@@ -38,35 +38,56 @@ jobs:
         run: |
           echo "=== Gathering repository context using GitHub CLI ==="
           
-          # Search for similar issues
+          # Search for similar issues (exclude current issue)
           echo "Searching for similar issues..."
-          SIMILAR_ISSUES=$(gh issue list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No similar issues found")
+          SIMILAR_ISSUES=$(gh issue list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r --arg current "$ISSUE_NUMBER" '.[] | select(.number != ($current | tonumber)) | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No similar issues found")
           
           # Search for related PRs
           echo "Searching for related PRs..."
-          RELATED_PRS=$(gh pr list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No related PRs found")
+          RELATED_PRS=$(gh pr list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url 2>&1)
+          if [ $? -eq 0 ]; then
+            RELATED_PRS=$(echo "$RELATED_PRS" | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"')
+            if [ -z "$RELATED_PRS" ]; then
+              RELATED_PRS="No related PRs found"
+            fi
+          else
+            echo "Warning: Failed to fetch related PRs: $RELATED_PRS"
+            RELATED_PRS="Unable to fetch related PRs (error occurred)"
+          fi
           
           # Get recent issues for context
           echo "Getting recent issues..."
-          RECENT_ISSUES=$(gh issue list --repo "$REPO" --limit 3 --state open --json number,title,labels | jq -r '.[] | "- #\(.number): \(.title) (Labels: \([.labels[].name] | join(", ")))"' || echo "No recent issues found")
+          RECENT_ISSUES=$(gh issue list --repo "$REPO" --limit 3 --state open --json number,title,labels 2>&1)
+          if [ $? -eq 0 ]; then
+            RECENT_ISSUES=$(echo "$RECENT_ISSUES" | jq -r '.[] | "- #\(.number): \(.title) (Labels: \([.labels[].name] | join(", ")))"')
+            if [ -z "$RECENT_ISSUES" ]; then
+              RECENT_ISSUES="No recent issues found"
+            fi
+          else
+            echo "Warning: Failed to fetch recent issues: $RECENT_ISSUES"
+            RECENT_ISSUES="Unable to fetch recent issues (error occurred)"
+          fi
           
           # Extract keywords from issue title for code search
           echo "Searching for relevant files..."
           RELEVANT_FILES=""
           
-          # Try to find Python files related to keywords in issue
-          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "borrow\|lend"; then
+          # Try to find Python files related to keywords in issue (using word boundaries)
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "borrow\|lend\|lending"; then
             RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/borrow.py - Book borrowing functionality"
           fi
-          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "account\|login\|auth"; then
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "account\|login\|auth\|authentication"; then
             RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/account.py - Account management"
           fi
-          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "search"; then
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "search\|searching"; then
             RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/worksearch/ - Search functionality"
           fi
-          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qi "book\|edit"; then
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "book\|edit\|editing"; then
             RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/addbook.py - Book editing"
           fi
+          
+          # Trim leading newline if files were found
+          RELEVANT_FILES=$(echo "$RELEVANT_FILES" | sed '/^$/d')
           
           # Save all context to outputs
           {

@@ -2,7 +2,7 @@
 
 This directory contains configurations for the GitHub Copilot Agent Skills-based issue triage workflow.
 
-## Copilot Instructions (`copilot-instructions.md`)
+## Copilot Instructions (`.github/copilot-instructions.md`)
 
 This file provides comprehensive context about the Open Library project to GitHub Copilot, including:
 - Project overview and technology stack
@@ -72,13 +72,13 @@ The workflow leverages these "skills" to gather context:
 ### Modifying the Workflow
 
 To update the AI's behavior:
-1. **Edit `copilot-instructions.md`** to change project context, guidelines, or criteria
+1. **Edit `.github/copilot-instructions.md`** to change project context, guidelines, or criteria
 2. **Edit workflow YAML** to add more Skills (e.g., code search, file content analysis)
 3. Changes take effect immediately for new issues
 
 ### Documentation Links
 
-Keep documentation links in `copilot-instructions.md` up-to-date as the project evolves.
+Keep documentation links in `.github/copilot-instructions.md` up-to-date as the project evolves.
 
 ## Legacy Files
 
@@ -90,9 +90,9 @@ Keep documentation links in `copilot-instructions.md` up-to-date as the project 
 If the workflow isn't working:
 1. Check GitHub Actions logs in the repository's Actions tab
 2. Verify GitHub Models API access is available
-3. Ensure `gh` CLI commands succeed (check for API rate limits)
+3. Ensure `gh` CLI commands succeed (check for API rate limits or auth errors in logs)
 4. Check that the workflow has proper permissions (`issues: write`, `pull-requests: read`)
-5. Review recent changes to the copilot-instructions.md file
+5. Review recent changes to the `.github/copilot-instructions.md` file
 
 ## Extending Skills
 
@@ -103,21 +103,44 @@ To add more "Skills" to the workflow:
 - name: Search code for keywords
   run: |
     KEYWORDS=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]')
-    gh search code --repo "$REPO" "$KEYWORDS" --json path,repository
+    CODE_RESULTS=$(gh search code --repo "$REPO" "$KEYWORDS" --json path,repository 2>&1)
+    if [ $? -eq 0 ]; then
+      CODE_MATCHES=$(echo "$CODE_RESULTS" | jq -r '.[] | .path')
+      echo "CODE_MATCHES<<EOF" >> "$GITHUB_OUTPUT"
+      echo "$CODE_MATCHES" >> "$GITHUB_OUTPUT"
+      echo "EOF" >> "$GITHUB_OUTPUT"
+    else
+      echo "Warning: Code search failed"
+      echo "CODE_MATCHES=No code matches found" >> "$GITHUB_OUTPUT"
+    fi
 ```
 
 ### Example: Get file content
 ```yaml
 - name: Get relevant file content
   run: |
-    gh api repos/$REPO/contents/path/to/file --jq '.content' | base64 -d
+    FILE_CONTENT=$(gh api repos/$REPO/contents/path/to/file --jq '.content' 2>&1 | base64 -d)
+    if [ $? -eq 0 ]; then
+      echo "FILE_CONTENT<<EOF" >> "$GITHUB_OUTPUT"
+      echo "$FILE_CONTENT" >> "$GITHUB_OUTPUT"
+      echo "EOF" >> "$GITHUB_OUTPUT"
+    else
+      echo "FILE_CONTENT=Unable to fetch file" >> "$GITHUB_OUTPUT"
+    fi
 ```
 
 ### Example: Check recent commits
 ```yaml
 - name: Get recent commits
   run: |
-    gh api repos/$REPO/commits --jq '.[0:5] | .[] | {sha, message, author}'
+    COMMITS=$(gh api repos/$REPO/commits --jq '.[0:5] | .[] | {sha, message, author}' 2>&1)
+    if [ $? -eq 0 ]; then
+      echo "RECENT_COMMITS<<EOF" >> "$GITHUB_OUTPUT"
+      echo "$COMMITS" >> "$GITHUB_OUTPUT"
+      echo "EOF" >> "$GITHUB_OUTPUT"
+    else
+      echo "RECENT_COMMITS=Unable to fetch commits" >> "$GITHUB_OUTPUT"
+    fi
 ```
 
 ## API Usage
@@ -130,4 +153,3 @@ The workflow uses:
 For more information:
 - GitHub CLI: https://cli.github.com/
 - GitHub Models: https://docs.github.com/en/github-models
-- Copilot Agent Skills: https://docs.github.com/en/copilot/concepts/agents/about-agent-skills
