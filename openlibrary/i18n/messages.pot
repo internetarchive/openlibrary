@@ -4776,8 +4776,12 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
-#: books/edit.html type/author/edit.html type/template/edit.html
-msgid "Delete Record"
+#: books/edit.html
+msgid "Delete Work and All Editions"
+msgstr ""
+
+#: books/edit.html
+msgid "Delete Edition"
 msgstr ""
 
 #: books/edit.html
@@ -7446,6 +7450,10 @@ msgstr ""
 
 #: type/about/view.html
 msgid "For more information"
+msgstr ""
+
+#: type/author/edit.html type/template/edit.html
+msgid "Delete Record"
 msgstr ""
 
 #: type/author/edit.html
