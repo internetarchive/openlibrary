@@ -1,19 +1,7 @@
-import glob
 from pathlib import Path
 from tokenize import TokenError
 
-import pytest
 from web.template import Template
-
-
-def get_template_filenames():
-    """
-    Returns a list of template filenames that are valid and can be parsed.
-    """
-
-    template_files = glob.glob('openlibrary/templates/**/*.html', recursive=True)
-    template_files += glob.glob('openlibrary/macros/**/*.html', recursive=True)
-    return map(Path, template_files)
 
 
 def try_parse_template(
@@ -28,7 +16,24 @@ def try_parse_template(
         return False, e
 
 
-@pytest.mark.parametrize('filename', get_template_filenames(), ids=str)
-def test_valid_template(filename: Path):
-    parsed, err = try_parse_template(filename.read_text(encoding='utf-8'), filename)
-    assert parsed, err
+def test_all_templates_with_subtests(subtests):
+    """Test that all template files can be parsed without syntax errors.
+
+    This uses pytest 9.0's subtests feature to test all templates in a single test.
+    Benefits over parametrize:
+    - Reports ALL syntax errors in one run (doesn't stop at first failure)
+    - Cleaner test output (not 100+ separate test cases)
+    - Easier to identify which templates have issues
+    - Faster to run
+    """
+
+    template_files = [
+        *Path("openlibrary/templates").rglob("*.html"),
+        *Path("openlibrary/macros").rglob("*.html"),
+    ]
+
+    for template_path in template_files:
+        with subtests.test(msg=str(template_path.relative_to('openlibrary'))):
+            template_text = template_path.read_text(encoding='utf-8')
+            parsed, err = try_parse_template(template_text, template_path)
+            assert parsed, f"Template parsing failed: {err}"
