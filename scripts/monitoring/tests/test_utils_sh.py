@@ -6,7 +6,7 @@ from scripts.monitoring.utils import bash_run
 def test_bash_run():
     # Test without sources
     output = bash_run("echo 'Hello, World!'", capture_output=True)
-    assert output.stdout.strip() == "Hello, World!"
+    assert output == "Hello, World!"
 
     # Test with sources
     with (
@@ -23,7 +23,7 @@ def test_bash_run():
             sources=[source1.name, source2.name],
             capture_output=True,
         )
-        assert output.stdout.strip() == "source1 source2"
+        assert output == "source1 source2"
 
 
 def test_log_recent_bot_traffic():
