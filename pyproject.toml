@@ -58,7 +58,6 @@ extend-exclude = [
   "vendor",
 ]
 lint.ignore = [
-  "RUF059",  # enabled again after pre-commit updates per https://github.com/internetarchive/openlibrary/issues/11745
   "B007",    # unused-loop-control-variable - not a big deal for us
   "B023",    # function-uses-loop-variable - doesn't matter for our lambdas but it's a good rule
   "B904",    # raise-without-from-inside-except - not sure but it seems fine for now
