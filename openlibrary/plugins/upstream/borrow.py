@@ -342,7 +342,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
             resource_pattern = r'acs:(\w+):(.*)'
             for resource_urn in resources:
                 if resource_urn.startswith('acs:'):
-                    (resource_type, resource_id) = re.match(
+                    resource_type, resource_id = re.match(
                         resource_pattern, resource_urn
                     ).groups()
                 else:
