@@ -1,7 +1,9 @@
+import re
 import typing
 from typing import cast
 
 import httpx
+from dateutil import parser as dateparser
 
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.data_provider import WorkReadingLogSolrSummary
@@ -86,6 +88,44 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
     @property
     def death_date(self) -> str | None:
         return self._author.get('death_date')
+
+    @property
+    def birth_timestamp(self) -> str | None:
+        """Normalized birth date as ISO timestamp for Solr sorting."""
+        return self._parse_date_to_iso(self._author.get('birth_date'))
+
+    @property
+    def death_timestamp(self) -> str | None:
+        """Normalized death date as ISO timestamp for Solr sorting."""
+        return self._parse_date_to_iso(self._author.get('death_date'))
+
+    def _parse_date_to_iso(self, date_string: str | None) -> str | None:
+        """Parse a date string to ISO format for Solr.
+
+        Tries full date parsing first, falls back to year extraction.
+        Returns None if parsing fails completely.
+        """
+        if not date_string:
+            return None
+
+        # Check for year-only pattern first (avoids dateutil using current day)
+        if re.fullmatch(r'\d{4}', date_string.strip()):
+            return f"{date_string.strip()}-01-01T00:00:00Z"
+
+        # Try full date parsing with dateutil
+        try:
+            parsed = dateparser.parse(date_string, default=None)
+            if parsed:
+                return parsed.strftime("%Y-%m-%dT00:00:00Z")
+        except (ValueError, OverflowError, TypeError):
+            pass
+
+        # Fall back to year extraction via regex for approximate dates
+        if year_match := re.search(r'\b(\d{4})\b', date_string):
+            year = year_match.group(1)
+            return f"{year}-01-01T00:00:00Z"
+
+        return None
 
     @property
     def date(self) -> str | None:
