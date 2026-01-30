@@ -9,9 +9,9 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components i18n lint
+.PHONY: all clean distclean git css js components lit-components i18n lint
 
-all: git css js components i18n
+all: git css js components lit-components i18n
 
 css:
 	node scripts/generate-css-custom-properties.js
@@ -40,6 +40,12 @@ components:
 	rm -rf $(BUILD)/components
 	mv $(BUILD)/components_new $(BUILD)/components
 
+lit-components:
+	mkdir -p $(BUILD)/lit-components_new
+	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
+	mkdir -p $(BUILD)/lit-components
+	rm -rf $(BUILD)/lit-components
+	mv $(BUILD)/lit-components_new $(BUILD)/lit-components
 
 i18n:
 	python ./scripts/i18n-messages compile
