@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
+    FullTextSuggestionsPartial,
     SearchFacetsPartial,
 )
 
@@ -16,7 +17,9 @@ router = APIRouter()
 
 @router.get("/partials.json")
 async def partials_endpoint(
-    _component: Literal["SearchFacets", "BPListsSection", "AffiliateLinks"] = Query(
+    _component: Literal[
+        "SearchFacets", "BPListsSection", "AffiliateLinks", "FulltextSearchSuggestion"
+    ] = Query(
         ...,
         description="Component name",
     ),
@@ -29,25 +32,20 @@ async def partials_endpoint(
 
     This endpoint mirrors the legacy /partials.json endpoint but is implemented in FastAPI.
 
-    Args:
-        _component: Component name (e.g., "SearchFacets", "BPListsSection", "AffiliateLinks")
-        data: JSON-encoded string containing parameters for the component
-
-    Returns:
-        Dictionary with component-specific data
     """
-    parsed_data = json.loads(data)
+    if _component != "FulltextSearchSuggestion":
+        # For FulltextSearchSuggestion, the data query param is just a string, not a dict
+        parsed_data = json.loads(data)
+    else:
+        parsed_data = data
 
     if _component == "SearchFacets":
-        handler: SearchFacetsPartial | BookPageListsPartial | AffiliateLinksPartial = (
-            SearchFacetsPartial(data=parsed_data)
-        )
-        return handler.generate()
+        return SearchFacetsPartial(data=parsed_data).generate()
     elif _component == "BPListsSection":
-        handler = BookPageListsPartial(data=parsed_data)
-        return handler.generate()
+        return BookPageListsPartial(data=parsed_data).generate()
     elif _component == "AffiliateLinks":
-        handler = AffiliateLinksPartial(data=parsed_data)
-        return handler.generate()
+        return AffiliateLinksPartial(data=parsed_data).generate()
+    elif _component == "FulltextSearchSuggestion":
+        return FullTextSuggestionsPartial(data=parsed_data).generate()
     else:
         raise HTTPException(status_code=400, detail=f"Unknown component: {_component}")
