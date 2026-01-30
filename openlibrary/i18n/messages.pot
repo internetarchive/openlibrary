@@ -3471,6 +3471,12 @@ msgid "Items"
 msgstr ""
 
 #: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
+msgstr ""
+
+#: admin/index.html
 msgid "Stats"
 msgstr ""
 
@@ -3604,6 +3610,14 @@ msgstr ""
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
+msgstr ""
+
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
 msgstr ""
 
 #: admin/loans_table.html

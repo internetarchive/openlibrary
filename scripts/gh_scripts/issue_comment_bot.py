@@ -8,6 +8,7 @@ the issues that were identified to the given channel.
 
 Adds the "Needs: Response" label to the issues in Github.
 """
+
 import argparse
 import errno
 import json

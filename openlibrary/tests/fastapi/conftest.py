@@ -39,6 +39,58 @@ def mock_work_search():
         yield mock
 
 
+@pytest.fixture
+def mock_fulltext_search_async():
+    """Mock fulltext_search_async function to avoid actual Solr calls.
+
+    Used by FastAPI search/inside endpoint tests.
+    """
+    with patch(
+        'openlibrary.fastapi.search.fulltext_search_async', autospec=True
+    ) as mock:
+        mock.return_value = {'docs': [], 'numFound': 0}
+        yield mock
+
+
+@pytest.fixture
+def mock_fulltext_search():
+    """Mock the fulltext_search (sync) function to avoid actual Solr calls.
+
+    Used by webpy search_inside endpoint tests.
+    """
+    with patch(
+        'openlibrary.plugins.inside.code.fulltext_search', autospec=True
+    ) as mock:
+        mock.return_value = {'docs': [], 'numFound': 0}
+        yield mock
+
+
+@pytest.fixture
+def mock_async_run_solr_query():
+    """Mock async_run_solr_query function to avoid actual Solr calls.
+
+    Used by FastAPI search/subjects endpoint tests.
+    """
+    with patch(
+        'openlibrary.fastapi.search.async_run_solr_query', autospec=True
+    ) as mock:
+        mock.return_value = _default_subjects_response()
+        yield mock
+
+
+@pytest.fixture
+def mock_run_solr_query():
+    """Mock run_solr_query (sync) function to avoid actual Solr calls.
+
+    Used by webpy search/subjects endpoint tests.
+    """
+    with patch(
+        'openlibrary.plugins.worksearch.code.run_solr_query', autospec=True
+    ) as mock:
+        mock.return_value = _default_subjects_response()
+        yield mock
+
+
 def _default_search_response():
     """Default mock response shared by both sync and async mocks."""
     return {
@@ -53,3 +105,35 @@ def _default_search_response():
         'q': '',
         'offset': None,
     }
+
+
+def _default_subjects_response():
+    """Default mock response for subjects search."""
+    from openlibrary.plugins.worksearch.code import SearchResponse
+
+    return SearchResponse(
+        facet_counts=None,
+        sort='work_count desc',
+        docs=[
+            {
+                'key': '/subjects/subject1',
+                'name': 'Subject 1',
+                'subject_type': 'subject',
+                'work_count': 10,
+            }
+        ],
+        num_found=1,
+        raw_resp={
+            'response': {
+                'docs': [
+                    {
+                        'key': '/subjects/subject1',
+                        'name': 'Subject 1',
+                        'subject_type': 'subject',
+                        'work_count': 10,
+                    }
+                ]
+            }
+        },
+        solr_select='mock',
+    )

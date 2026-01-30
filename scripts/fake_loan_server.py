@@ -2,6 +2,7 @@
 """
 Fake loan status server to make dev instance work with borrowing books.
 """
+
 import web
 
 urls = ("/is_loaned_out/(.*)", "is_loaned_out")

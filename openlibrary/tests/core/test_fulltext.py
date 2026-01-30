@@ -3,23 +3,10 @@ import pytest
 
 from infogami import config
 from openlibrary.core import fulltext
-from openlibrary.utils.async_utils import RequestContextVars, req_context
 
 
+@pytest.mark.usefixtures("request_context_fixture")
 class Test_fulltext_search_api:
-
-    @pytest.fixture(autouse=True)
-    def setup_interactions(self, monkeypatch):
-        # Runs automatically before every test in this class.
-        token = req_context.set(
-            RequestContextVars(x_forwarded_for=None, user_agent=None)
-        )
-
-        yield  # This yields control to the test function
-
-        # Cleanup
-        req_context.reset(token)
-
     @pytest.mark.asyncio
     async def test_no_config(self):
         response = await fulltext.fulltext_search_api({})

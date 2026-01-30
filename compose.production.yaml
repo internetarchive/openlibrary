@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
+      - GUNICORN_OPTS= --workers 30 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       # Note this won't work with uv pip, because uv makes a network request
       - BEFORE_START=pip install -e /booklending_utils
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 2 --timeout 300 --max-requests 500
+      - GUNICORN_OPTS= --workers 2 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../booklending_utils:/booklending_utils

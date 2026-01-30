@@ -6,14 +6,15 @@
 
 @import (less) "less/colors.less";
 @import (less) "less/font-families.less";
+@import (less) "less/line-heights.less";
 
 html {
   font-size: 1em;
 }
 
 body {
-  line-height: 1.45;
-  font-family: @verdana;
+  line-height: @line-height-body;
+  font-family: @font-family-body;
 }
 
 p {
@@ -26,7 +27,7 @@ h3,
 h4 {
   margin: 1.414em 0 0.5em;
   font-weight: inherit;
-  line-height: 1.2;
+  line-height: @line-height-heading;
 }
 
 h1 {

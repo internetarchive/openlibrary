@@ -3,12 +3,12 @@ import logging
 from urllib.parse import urlencode
 
 import httpx
-import web
 
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils.async_utils import async_bridge, req_context
+from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -46,8 +46,9 @@ async def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
-    offset = (page - 1) * limit
+async def fulltext_search_async(q, page=1, offset=0, limit=100, js=False, facets=False):
+    if offset is None:
+        offset = (page - 1) * limit
     params = {
         'q': q,
         'from': offset,
@@ -65,11 +66,11 @@ async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
             availability = {}
 
         edition_keys = list(
-            web.ctx.site.things(
+            site.get().things(
                 {'type': '/type/edition', 'ocaid': ocaids, 'limit': len(ocaids)}
             )
         )
-        editions = web.ctx.site.get_many(edition_keys)
+        editions = site.get().get_many(edition_keys)
         for ed in editions:
             idx = ocaids.index(ed.ocaid)
             hit = ia_results['hits']['hits'][idx]

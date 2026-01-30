@@ -2,6 +2,7 @@
 """
 Copies all patrons' preferences to the `store` tables.
 """
+
 import argparse
 from pathlib import Path
 
@@ -92,12 +93,46 @@ def _fetch_preference_keys() -> list[str]:
     return keys
 
 
+def _fetch_legacy_preference_keys() -> list[str]:
+    """
+    Returns a list of preference keys that exist in the `thing`
+    table, but do not exist in the `store` table.
+    """
+    oldb = db.get_db()
+
+    legacy_key_query = """
+        WITH preference_keys AS (
+            SELECT key FROM thing
+            WHERE type = (
+                SELECT id FROM thing WHERE key = '/type/object'
+            )
+            AND key LIKE '/people/%/preferences'
+            ORDER BY id DESC
+        )
+        SELECT t.key
+        FROM preference_keys t
+        LEFT JOIN store s ON t.key = s.key
+        WHERE s.key IS NULL
+    """
+
+    keys = []
+    try:
+        legacy_preference_entries = oldb.query(legacy_key_query)
+        keys = [entry.get('key', '') for entry in list(legacy_preference_entries)]
+    except DatabaseError as e:
+        print(f"An error occurred while fetching preference keys: {e}")
+
+    return keys
+
+
 def main(args):
     print("Setting up connection with DB...")
     setup(args.config)
 
     print("Fetching affected preferences...")
-    affected_pref_keys = _fetch_preference_keys()
+    affected_pref_keys = (
+        _fetch_legacy_preference_keys() if args.legacy else _fetch_preference_keys()
+    )
 
     print(f"Found {len(affected_pref_keys)} affected preferences")
     if args.dry_run:
@@ -129,6 +164,11 @@ def _parse_args():
         "--config",
         default=DEFAULT_CONFIG_PATH,
         help="Path to the `openlibrary.yml` configuration file",
+    )
+    p.add_argument(
+        "--legacy",
+        action="store_true",
+        help="Writes all remaining legacy preferences to the store",
     )
     p.add_argument(
         "-d",

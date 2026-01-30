@@ -4,6 +4,7 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
+    "generate:css-vars": "node scripts/generate-css-custom-properties.js",
     "watch": "env NODE_ENV=development npx webpack --config webpack.config.js --config webpack.config.css.js --watch --progress",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
