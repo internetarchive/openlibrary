@@ -26,7 +26,7 @@ jobs:
         with:
           # Should match what's in our Dockerfile
           node-version: '20' # Also update the `key` in the `with` map, below
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: npm-cache
         with:
           # Caching node_modules isn't recommended because it can break across
