@@ -276,11 +276,15 @@ class SearchFacetsPartial(PartialDataHandler):
 class FullTextSuggestionsPartial(PartialDataHandler):
     """Handler for rendering full-text search suggestions."""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: str | None = None):
+        if data is None:
+            raw_input = web.input(data=None)
+            self.query = raw_input.get("data", "")
+        else:
+            self.query = data or ""
 
     def generate(self) -> dict:
-        query = self.i.get("data", "")
+        query = self.query
         data = fulltext_search(query)
         # Add caching headers only if there were no errors in the search results
         if 'error' not in data:
