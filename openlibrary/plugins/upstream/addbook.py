@@ -3,7 +3,6 @@
 import csv
 import datetime
 import io
-import json
 import logging
 import urllib
 from typing import Literal, NoReturn, overload
