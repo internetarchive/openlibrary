@@ -11,7 +11,7 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/stale@v5
+      - uses: actions/stale@v10
         with:
           start-date: 2025-01-01
           exempt-issue-labels: 'no-automation,"Type: Epic"'
