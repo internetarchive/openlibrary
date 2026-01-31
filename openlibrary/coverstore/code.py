@@ -515,7 +515,7 @@ def render_list_preview_image(lst_key: str):
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
 
-    W, H = background.size
+    W, _H = background.size
     image = []
     for cover in five_covers:
         response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
