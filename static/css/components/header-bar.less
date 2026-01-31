@@ -9,6 +9,7 @@
  */
 
 @import (less) "less/z-index.less";
+@import (reference) "less/border-radius.less";
 
 .header-bar {
   max-width: 1060px;
@@ -57,7 +58,7 @@
     text-align: left;
     background-color: @light-beige;
     border: 1px solid @dark-beige;
-    border-radius: 3px;
+    border-radius: @border-radius-button;
 
     li {
       border-bottom: 1px solid @beige-two;
@@ -167,7 +168,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 6px;
+      border-radius: @border-radius-button;
       padding: 6px;
       transition: 0.3s;
     }
@@ -214,7 +215,7 @@
     .hamburger__icon {
       width: 22px;
       padding: 0 10px;
-      border-radius: 3px;
+      border-radius: @border-radius-button;
       box-sizing: content-box;
     }
 
@@ -304,7 +305,7 @@
       position: absolute;
       background: @primary-blue;
       color: @white;
-      border-radius: 8px;
+      border-radius: @border-radius-notification;
       padding: 3px 7px;
       font-size: @font-size-label-medium;
       margin-top: 25px;
@@ -481,7 +482,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: 6px;
+      border-radius: @border-radius-button;
       position: relative;
     }
 
@@ -508,7 +509,7 @@
         transition: background-color 0.2s;
 
         &:last-child {
-          border-radius: 0 0 6px 6px;
+          border-radius: 0 0 @border-radius-button @border-radius-button;
         }
 
         &:hover {
@@ -528,7 +529,7 @@
             background-color: @lightest-grey;
             margin-right: 10px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: @border-radius-thumbnail;
           }
 
           .book-desc {
@@ -678,7 +679,7 @@ div.search-facet:focus-within {
     -webkit-transition: all 0.2s;
     -o-transition: all 0.2s;
     transition: all 0.2s;
-    border-radius: 0.3em;
+    border-radius: @border-radius-input;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
     flex: 1;
