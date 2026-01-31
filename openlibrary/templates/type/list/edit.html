@@ -55,7 +55,11 @@ $jsdef render_seed_field(i, seed):
                     $key
             </div>
 
-            <textarea name="seeds--$i--notes" placeholder="$_('Notes (optional)')">$(seed['notes'] or '')</textarea>
+            $# How can I detect if this is a series...
+            $if 1:
+                <input name="seeds--$i--position" placeholder="$_('Position (optional), e.g. 1, 2, 1-7')" value="$(jsdef_get(seed, 'position') or '')"></input>
+
+            <textarea name="seeds--$i--notes" placeholder="$_('Notes (optional)')">$(jsdef_get(seed, 'notes') or '')</textarea>
         </main>
     </li>
 
