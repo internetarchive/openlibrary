@@ -141,7 +141,11 @@ def create_app() -> FastAPI:
             logger.exception("Failed to initialize legacy WSGI app")
             raise
 
-    app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
+    app = FastAPI(
+        title="OpenLibrary ASGI",
+        version="0.0.1",
+        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+    )
 
     app.add_middleware(
         CORSMiddleware,
@@ -178,11 +182,12 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.account import router as account_router  # type: ignore
-    from openlibrary.fastapi.languages import router as languages_router  # type: ignore
-    from openlibrary.fastapi.publishers import router as publishers_router  # type: ignore
-    from openlibrary.fastapi.search import router as search_router  # type: ignore
-    from openlibrary.fastapi.subjects import router as subjects_router  # type: ignore
+    from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.dev import router as dev_router
+    from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.subjects import router as subjects_router
 
     # Include routers
     app.include_router(languages_router)
@@ -190,6 +195,7 @@ def create_app() -> FastAPI:
     app.include_router(search_router)
     app.include_router(subjects_router)
     app.include_router(account_router)
+    app.include_router(dev_router)
 
     return app
 

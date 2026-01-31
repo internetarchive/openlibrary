@@ -30,6 +30,9 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    ports:
+      # Debugger
+      - 3001:3000
     volumes:
       - .:/openlibrary
     environment:
