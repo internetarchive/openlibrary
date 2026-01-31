@@ -78,7 +78,6 @@ class WorkSearchScheme(SearchScheme):
             "place",
             "time",
             "has_fulltext",
-            "title_suggest",
             "publish_year",
             "language",
             "number_of_pages_median",
@@ -370,7 +369,6 @@ class WorkSearchScheme(SearchScheme):
                 'text': 'text',
                 # Display data
                 'title': 'title',
-                'title_suggest': 'title_suggest',
                 'subtitle': 'subtitle',
                 'alternative_title': 'alternative_title',
                 'alternative_subtitle': 'subtitle',
