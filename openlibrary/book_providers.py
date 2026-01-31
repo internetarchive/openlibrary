@@ -376,15 +376,67 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         if not access:
             return []
 
-        return [
+        identifier = self.get_best_identifier(db_edition or ed_or_solr)
+        acquisitions = [
             Acquisition(
                 access=access,
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}?view=theater&wrapper=false',
+                url=f'https://archive.org/details/{identifier}?view=theater&wrapper=false',
                 provider_name=self.short_name,
-            )
+            ),
         ]
+
+        # Add direct download links for open-access books
+        if access == 'open-access':
+            download_files = self._get_ia_download_files(identifier)
+            for fmt, filename in download_files.items():
+                if filename:
+                    acquisitions.append(
+                        Acquisition(
+                            access='open-access',
+                            format=fmt,
+                            price=None,
+                            url=f'https://archive.org/download/{identifier}/{filename}',
+                            provider_name=self.short_name,
+                        )
+                    )
+
+        return acquisitions
+
+    def _get_ia_download_files(
+        self, identifier: str
+    ) -> dict[Literal['pdf', 'epub'], str | None]:
+        """
+        Get available download file names from IA metadata.
+
+        Uses the cached ia.get_metadata() to avoid repeated API calls.
+
+        Returns a dict mapping format to filename, e.g.:
+        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub'}
+        """
+        from openlibrary.core import ia
+
+        result: dict[Literal['pdf', 'epub'], str | None] = {
+            'pdf': None,
+            'epub': None,
+        }
+
+        try:
+            metadata = ia.get_metadata(identifier)
+            filenames = metadata.get('_filenames', [])
+
+            for name in filenames:
+                name_lower = name.lower()
+                if name_lower.endswith('.pdf') and not result['pdf']:
+                    result['pdf'] = name
+                elif name_lower.endswith('.epub') and not result['epub']:
+                    result['epub'] = name
+
+        except (KeyError, TypeError) as e:
+            logger.warning(f'Failed to get IA download files for {identifier}: {e}')
+
+        return result
 
 
 class LibriVoxProvider(AbstractBookProvider):
