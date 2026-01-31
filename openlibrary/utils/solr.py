@@ -56,11 +56,11 @@ class Solr:
         self.session = httpx.Client()
         self.async_session = httpx.AsyncClient()
 
-    def escape(self, query):
+    @staticmethod
+    def escape(query):
         r"""Escape special characters in the query string
 
-        >>> solr = Solr("")
-        >>> solr.escape("a[b]c")
+        >>> Solr.escape("a[b]c")
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
