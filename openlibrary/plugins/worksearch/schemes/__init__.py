@@ -1,4 +1,5 @@
 import logging
+import typing
 from collections.abc import Callable
 from types import MappingProxyType
 
@@ -11,6 +12,10 @@ from openlibrary.solr.query_utils import (
     fully_escape_query,
     luqum_parser,
 )
+
+if typing.TYPE_CHECKING:
+    from openlibrary.fastapi.models import SolrInternalsParams
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -130,6 +135,7 @@ class SearchScheme:
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
+        solr_internals_params: 'SolrInternalsParams | None' = None,
     ) -> list[tuple[str, str]]:
         return [('q', q)]
 

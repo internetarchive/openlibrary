@@ -17,6 +17,8 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       # Note this won't work with uv pip, because uv makes a network request
       - BEFORE_START=pip install -e /booklending_utils
+    env_file:
+      - ./.env.local
     volumes:
       - ../olsystem:/olsystem
       - ../booklending_utils:/booklending_utils
@@ -40,6 +42,8 @@ services:
     environment:
       - GUNICORN_OPTS= --workers 2 --timeout 180 --max-requests 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
+    env_file:
+      - ./.env.local
     volumes:
       - ../olsystem:/olsystem
       - .:/openlibrary
