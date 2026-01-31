@@ -4,7 +4,7 @@ import logging
 import re
 import time
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import requests
 from dateutil import parser as isoparser
@@ -588,8 +588,24 @@ def cached_get_amazon_metadata(*args, **kwargs):
     return result or memoized_get_amazon_metadata.update(*args, **kwargs)[0]
 
 
+class BetterWorldBooksMetadata(TypedDict):
+    url: str
+    isbn: str
+    market_price: list[str] | None
+    price: str | None
+    price_amt: str | None
+    qlt: str | None
+
+
+class BetterWorldBooksMetadataError(TypedDict):
+    error: str
+    code: int
+
+
 @public
-def get_betterworldbooks_metadata(isbn: str) -> dict | None:
+def get_betterworldbooks_metadata(
+    isbn: str,
+) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None:
     """
     :param str isbn: Unnormalisied ISBN10 or ISBN13
     :return: Metadata for a single BWB book, currently lited on their catalog, or
@@ -607,7 +623,9 @@ def get_betterworldbooks_metadata(isbn: str) -> dict | None:
         return betterworldbooks_fmt(isbn)
 
 
-def _get_betterworldbooks_metadata(isbn: str) -> dict | None:
+def _get_betterworldbooks_metadata(
+    isbn: str,
+) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError:
     """Returns price and other metadata (currently minimal)
     for a book currently available on betterworldbooks.com
 
@@ -649,7 +667,7 @@ def betterworldbooks_fmt(
     qlt: str | None = None,
     price: str | None = None,
     market_price: list[str] | None = None,
-) -> dict | None:
+) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 
     :param str qlt: Quality of the book, e.g. "new", "used"
@@ -664,10 +682,3 @@ def betterworldbooks_fmt(
         'price_amt': price,
         'qlt': qlt,
     }
-
-
-cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata,
-    "upstream.code._get_betterworldbooks_metadata",
-    timeout=dateutil.HALF_DAY_SECS,
-)
