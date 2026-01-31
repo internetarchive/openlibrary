@@ -424,7 +424,9 @@ class MyBooksTemplate:
             raise render.notfound("User %s" % self.username, create=False)
 
         self.is_public = self.user.preferences().get("public_readlog", "no") == "yes"
-        self.user_itemname = self.user.get_account().get("internetarchive_itemname")
+        self.user_itemname = (self.user.get_account() or {}).get(
+            "internetarchive_itemname"
+        )
 
         self.me = accounts.get_current_user()
         self.is_my_page = self.me and self.me.key.split("/")[-1] == self.username

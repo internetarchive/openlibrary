@@ -38,9 +38,7 @@ img.account-avatar {
 }
 
 .account-avatar-fix {
-  position: relative;
-  top: 7px;
-  left: 5px;
+  vertical-align: middle;
 }
 
 img.account-avatar--sm {

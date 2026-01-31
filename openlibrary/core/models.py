@@ -1053,10 +1053,13 @@ class User(Thing):
     @classmethod
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username: str) -> str:
+        default_avatar = '/images/icons/avatar_author.png'
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
-        itemname = user.get_account().get('internetarchive_itemname')
+        itemname = (user.get_account() or {}).get('internetarchive_itemname')
 
+        if not itemname:
+            return default_avatar
         return f'https://archive.org/services/img/{itemname}'
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
