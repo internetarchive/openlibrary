@@ -24,10 +24,24 @@ export async function initAsyncFollowing(followForms) {
                     if (!resp.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    submitButton.classList.toggle('cta-btn--primary');
-                    submitButton.classList.toggle('cta-btn--delete');
-                    submitButton.textContent = isFollowRequest ? i18nStrings.unfollow : i18nStrings.follow;
-                    stateInput.value = isFollowRequest ? '1' : '0';
+                    // Sync all follow buttons for the same publisher
+                    const publisher = form.querySelector('input[name=publisher]').value;
+                    const allFollowForms = document.querySelectorAll('form.follow-form');
+
+                    allFollowForms.forEach(otherForm => {
+                        const otherPublisher = otherForm.querySelector('input[name=publisher]');
+                        if (otherPublisher && otherPublisher.value === publisher) {
+                            const otherButton = otherForm.querySelector('button[type=submit]');
+                            const otherStateInput = otherForm.querySelector('input[name=state]');
+                            const otherI18n = JSON.parse(otherButton.dataset.i18n);
+
+                            // Set classes explicitly (not toggle) to ensure correct state
+                            otherButton.classList.remove('cta-btn--primary', 'cta-btn--delete');
+                            otherButton.classList.add(isFollowRequest ? 'cta-btn--delete' : 'cta-btn--primary');
+                            otherButton.textContent = isFollowRequest ? otherI18n.unfollow : otherI18n.follow;
+                            otherStateInput.value = isFollowRequest ? '1' : '0';
+                        }
+                    });
                 })
                 .catch(() => {
                     new PersistentToast(i18nStrings.errorMsg).show();
