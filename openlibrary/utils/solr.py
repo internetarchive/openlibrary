@@ -67,7 +67,7 @@ class Solr:
         pattern = re.compile("([%s])" % re.escape(chars))
         return pattern.sub(r'\\\1', query)
 
-    def get(
+    async def get_async(
         self,
         key: str,
         fields: list[str] | None = None,
@@ -76,56 +76,76 @@ class Solr:
     ) -> T | None:
         """Get a specific item from solr"""
         logger.debug(f"solr /get: {key}, {fields}")
-        resp = self.session.get(
-            f"{self.base_url}/get",
-            # It's unclear how field=None is getting in here; a better fix would be at the source.
-            params={
-                'id': key,
-                **(
-                    {'fl': ','.join([field for field in fields if field])}
-                    if fields
-                    else {}
-                ),
-                'ol.label': request_label,
-            },
-            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+        resp = (
+            await self.async_session.get(
+                f"{self.base_url}/get",
+                # It's unclear how field=None is getting in here; a better fix would be at the source.
+                params={
+                    'id': key,
+                    **(
+                        {'fl': ','.join([field for field in fields if field])}
+                        if fields
+                        else {}
+                    ),
+                    'ol.label': request_label,
+                },
+                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+            )
         ).json()
 
         # Solr returns {doc: null} if the record isn't there
         return doc_wrapper(resp['doc']) if resp['doc'] else None
 
-    def get_many(
+    @functools.wraps(get_async)
+    def get(self, *args, **kwargs):
+        return async_bridge.run(self.get_async(*args, **kwargs))
+
+    async def get_many_async(
         self,
         keys: Iterable[str],
         fields: Iterable[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> list[T]:
+        """Get multiple items from solr"""
         ids = list(keys)
         if not ids:
             return []
         logger.debug(f"solr /get: {ids}, {fields}")
-        resp = self.session.post(
-            f"{self.base_url}/get",
-            data={
-                'ids': ','.join(ids),
-                **({'fl': ','.join(fields)} if fields else {}),
-            },
-            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+        resp = (
+            await self.async_session.post(
+                f"{self.base_url}/get",
+                data={
+                    'ids': ','.join(ids),
+                    **({'fl': ','.join(fields)} if fields else {}),
+                },
+                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+            )
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
-    def update_in_place(
+    @functools.wraps(get_many_async)
+    def get_many(self, *args, **kwargs):
+        return async_bridge.run(self.get_many_async(*args, **kwargs))
+
+    async def update_in_place_async(
         self,
         request,
         commit: bool = False,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
-        resp = self.session.post(
-            f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
-            json=request,
-            timeout=_timeout,
+        """Update items in solr"""
+        resp = (
+            await self.async_session.post(
+                f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
+                json=request,
+                timeout=_timeout,
+            )
         ).json()
         return resp
+
+    @functools.wraps(update_in_place_async)
+    def update_in_place(self, *args, **kwargs):
+        return async_bridge.run(self.update_in_place_async(*args, **kwargs))
 
     async def select_async(
         self,
