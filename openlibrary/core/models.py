@@ -156,8 +156,10 @@ class Thing(client.Thing):
         preview = self.history_preview
         if preview.recent:
             return preview.recent[0]
-        else:
+        elif preview.initial:
             return preview.initial[0]
+        else:
+            return None
 
     def prefetch(self) -> None:
         """Prefetch all the anticipated data."""
