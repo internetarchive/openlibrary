@@ -141,7 +141,11 @@ def create_app() -> FastAPI:
             logger.exception("Failed to initialize legacy WSGI app")
             raise
 
-    app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
+    app = FastAPI(
+        title="OpenLibrary ASGI",
+        version="0.0.1",
+        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+    )
 
     app.add_middleware(
         CORSMiddleware,
