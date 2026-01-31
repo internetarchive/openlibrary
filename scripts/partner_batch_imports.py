@@ -22,7 +22,7 @@ import requests
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
-from openlibrary.plugins.upstream.utils import setup_requests
+from openlibrary.plugins.upstream.utils import sanitize_book_title, setup_requests
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 logger = logging.getLogger("openlibrary.importer.bwb")
@@ -241,7 +241,7 @@ class Biblio:
         self.isbn = data[124]
         self.source_id = f'bwb:{self.isbn}'
         self.isbn_13 = [self.isbn]
-        self.title = data[10]
+        self.title = sanitize_book_title(data[10])
         self.publish_date = data[20][:4]  # YYYY
         self.publishers = [data[135]]
         self.weight = data[39]
