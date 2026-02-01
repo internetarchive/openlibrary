@@ -187,6 +187,18 @@ class readinglog_stats(delegate.page):
 
         readlog = ReadingLog(user=user)
         works = readlog.get_works(key, page=1, limit=2000, year=year).docs
+
+        # Deduplicate works to prevent merged/redirected works from being counted twice
+        # Issue #11769: Some books appear multiple times when works have been merged
+        seen_keys: set[str] = set()
+        unique_works = []
+        for w in works:
+            work_key = w.get('key')
+            if work_key and work_key not in seen_keys:
+                seen_keys.add(work_key)
+                unique_works.append(w)
+        works = unique_works
+
         works_json = [
             {
                 # Fallback to key if it is a redirect
