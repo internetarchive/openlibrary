@@ -198,6 +198,9 @@ https://github.com/internetarchive/openlibrary/pull/11322 - Fix reading log expo
 
 ## Response Format
 Use this EXACT format (skip sections if uncertain):
+**Description:**
+- Provide a short, precise technical summary (4-6 sentences). Include links to specific related PRs or Issues from the provided Search Context **ONLY** if you are 95%+ confident they are directly relevant.
+
 **Files:**  
 - `path/to/file.ext` – brief reason (only if confident)
 

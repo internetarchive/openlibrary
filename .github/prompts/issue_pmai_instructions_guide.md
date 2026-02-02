@@ -178,6 +178,9 @@ https://github.com/internetarchive/openlibrary/issues/11291 - Bookmarklet import
 
 Use this format for guiding contributors:
 ```
+**Description:**
+- Provide a short, precise Guiding summary (4-6 sentences). Include links to specific related PRs or Issues from the provided Search Context **ONLY** if you are 95%+ confident they are directly relevant.
+
 **What's Missing:**
 - [Missing piece #1]
 - [Missing piece #2]

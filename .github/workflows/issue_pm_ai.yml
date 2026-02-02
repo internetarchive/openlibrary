@@ -157,7 +157,21 @@ jobs:
             echo "${EXTRA_INSTRUCTION:-}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-
+      
+      - name: Search for Related Context
+        id: search
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Search for top 3 related open issues/PRs using title keywords
+          KEYWORDS=$(echo "${{ github.event.issue.title }}" | awk '{print $1, $2, $3}')
+          RESULTS=$(gh search issues "$KEYWORDS" --repo ${{ github.repository }} --state open --limit 3 --json number,title,url)
+          
+          # Save to environment for the next step
+          echo "RELATED_SEARCH_RESULTS<<EOF" >> $GITHUB_ENV
+          echo "$RESULTS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
       - name: Generate issue response (GitHub Models)
         id: generate
         env:
