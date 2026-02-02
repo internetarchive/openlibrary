@@ -46,7 +46,7 @@ async def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-async def fulltext_search_async(q, page=1, offset=0, limit=100, js=False, facets=False):
+async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False):
     if offset is None:
         offset = (page - 1) * limit
     params = {
