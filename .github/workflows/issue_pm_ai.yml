@@ -19,10 +19,10 @@ jobs:
     # Only run if the 'actor' is a real human, not another bot
     if: github.event.issue.user.type != 'Bot'
     runs-on: ubuntu-latest
-    
+
     # Timeout to prevent infinite runs
     timeout-minutes: 5
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
             .github/prompts/issue_pmai_instructions_guide.md
             .github/prompts/issue_pmai_instructions_review.md
           sparse-checkout-cone-mode: false
-      
+
       # Detect issue quality to choose the right mode
       - name: Analyze issue quality
         id: quality
@@ -40,15 +40,15 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
           echo "Analyzing issue quality..."
-          
+
           TITLE="$ISSUE_TITLE"
           BODY="${ISSUE_BODY:-}"
-          
+
           # Initialize quality score
           SCORE=0
-          
+
           # Quality indicators (each adds to score)
-          
+
           # 1. Title quality (max 2 points)
           TITLE_LENGTH=$(echo "$TITLE" | wc -w)
           if [ "$TITLE_LENGTH" -ge 5 ] && [ "$TITLE_LENGTH" -le 15 ]; then
@@ -57,7 +57,7 @@ jobs:
           elif [ "$TITLE_LENGTH" -lt 3 ]; then
             echo "Title too short"
           fi
-          
+
           # 2. Body length (max 2 points)
           BODY_LENGTH=$(echo "$BODY" | wc -w)
           if [ "$BODY_LENGTH" -ge 30 ]; then
@@ -66,7 +66,7 @@ jobs:
           else
             echo "Description too short"
           fi
-          
+
           # 3. Has reproduction steps (max 3 points)
           if echo "$BODY" | grep -iE "(steps to reproduce|how to reproduce|reproduction|to reproduce|steps:)" > /dev/null; then
             SCORE=$((SCORE + 3))
@@ -74,7 +74,7 @@ jobs:
           else
             echo "No reproduction steps mentioned"
           fi
-          
+
           # 4. Has expected/actual behavior (max 2 points)
           if echo "$BODY" | grep -iE "(expected|actual|should|but instead|currently)" > /dev/null; then
             SCORE=$((SCORE + 2))
@@ -82,7 +82,7 @@ jobs:
           else
             echo "No expected/actual behavior"
           fi
-          
+
           # 5. Has technical details (max 2 points)
           if echo "$BODY" | grep -iE "(version|browser|os|environment|error|stack trace|console)" > /dev/null; then
             SCORE=$((SCORE + 2))
@@ -90,7 +90,7 @@ jobs:
           else
             echo "Missing technical details"
           fi
-          
+
           # 6. Has code/examples (max 2 points)
           if echo "$BODY" | grep -E '```|`[^`]+`' > /dev/null; then
             SCORE=$((SCORE + 2))
@@ -98,7 +98,7 @@ jobs:
           else
             echo "No code examples"
           fi
-          
+
           # 7. Not too vague (max 2 points)
           if ! echo "$TITLE $BODY" | grep -iE "(doesn't work|broken|fix|issue|problem|help)$" > /dev/null; then
             SCORE=$((SCORE + 2))
@@ -106,15 +106,15 @@ jobs:
           else
             echo "Vague language detected"
           fi
-          
+
           # Calculate total (max 15 points)
           echo "Total quality score: $SCORE/15"
-          
+
           # Determine mode based on threshold
           # High quality (≥10): Reviewer mode (concise)
           # Medium quality (6-9): Balanced mode
           # Low quality (<6): Guide mode (Contextual)
-          
+
           if [ "$SCORE" -ge 10 ]; then
             MODE="reviewer"
             echo "Using REVIEWER MODE (concise, professional)"
@@ -125,7 +125,7 @@ jobs:
             MODE="guide"
             echo "Using GUIDE MODE (Contextual, detailed)"
           fi
-          
+
           echo "MODE=$MODE" >> "$GITHUB_OUTPUT"
           echo "SCORE=$SCORE" >> "$GITHUB_OUTPUT"
 
@@ -135,7 +135,7 @@ jobs:
           MODE: ${{ steps.quality.outputs.MODE }}
         run: |
           echo "Loading instructions for mode: $MODE"
-          
+
           if [ "$MODE" = "reviewer" ]; then
             INSTRUCTIONS_FILE=".github/prompts/issue_pmai_instructions_review.md"
           elif [ "$MODE" = "balanced" ]; then
@@ -145,19 +145,19 @@ jobs:
           else
             INSTRUCTIONS_FILE=".github/prompts/issue_pmai_instructions_guide.md"
           fi
-          
+
           if [ ! -f "$INSTRUCTIONS_FILE" ]; then
             echo "Error: Instructions file not found: $INSTRUCTIONS_FILE"
             exit 1
           fi
-          
+
           {
             echo "INSTRUCTIONS<<EOF"
             cat "$INSTRUCTIONS_FILE"
             echo "${EXTRA_INSTRUCTION:-}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
-      
+
       - name: Search for Related Context
         id: search
         env:
@@ -166,12 +166,12 @@ jobs:
           # Search for top 3 related open issues/PRs using title keywords
           KEYWORDS=$(echo "${{ github.event.issue.title }}" | awk '{print $1, $2, $3}')
           RESULTS=$(gh search issues "$KEYWORDS" --repo ${{ github.repository }} --state open --limit 3 --json number,title,url)
-          
+
           # Save to environment for the next step
           echo "RELATED_SEARCH_RESULTS<<EOF" >> $GITHUB_ENV
           echo "$RESULTS" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      
+
       - name: Generate issue response (GitHub Models)
         id: generate
         env:
@@ -185,10 +185,10 @@ jobs:
         run: |
           echo "Processing issue: #$ISSUE_NUMBER by author: @$ISSUE_AUTHOR"
           echo "Issue URL: $ISSUE_URL"
-          
+
           # Construct the user message content with additional context
           USER_MESSAGE="Issue #${ISSUE_NUMBER} opened by @${ISSUE_AUTHOR}"$'\n\n'"Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"${ISSUE_BODY:-No description provided}"
-          
+
           # Build JSON payload using jq for proper escaping
           # temperature: 0.7 for consistent responses
           # max_tokens: 2000 to prevent overly long comments
@@ -205,21 +205,21 @@ jobs:
               temperature: 0.7,
               max_tokens: 2000
             }')
-          
+
           echo "Calling GitHub Models API..."
-          
+
           # Make API call to GitHub Models with retry logic (tries up to 3 times)
           MAX_RETRIES=3
           RETRY_COUNT=0
           SUCCESS=false
-          
+
           while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" = false ]; do
             if [ $RETRY_COUNT -gt 0 ]; then
               WAIT_TIME=$((RETRY_COUNT * 2))
               echo "Retry attempt $RETRY_COUNT after ${WAIT_TIME}s delay..."
               sleep $WAIT_TIME
             fi
-            
+
             # Timeout after 30 seconds
             RESPONSE=$(curl -s -w "\n%{http_code}" \
               --max-time 30 \
@@ -228,28 +228,28 @@ jobs:
               -H "Content-Type: application/json" \
               -H "User-Agent: GitHub-Actions-Issue-PM-AI" \
               -d "$PAYLOAD")
-            
+
             # Extract HTTP status code (last line)
             HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
             RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-            
+
             echo "HTTP Status Code: $HTTP_CODE"
-            
+
             # Handle different response scenarios (edge cases)
             if [ "$HTTP_CODE" -eq 200 ]; then
               # Extract AI's response
               CONTENT=$(echo "$RESPONSE_BODY" | jq -r '.choices[0].message.content // empty')
-              
+
               if [ -n "$CONTENT" ] && [ "$CONTENT" != "null" ]; then
                 echo "Successfully generated AI response"
-                
+
                 # Save AI response for the next step
                 {
                   echo "CONTENT<<EOF"
                   echo "$CONTENT"
                   echo "EOF"
                 } >> "$GITHUB_OUTPUT"
-                
+
                 SUCCESS=true
               else
                 # Retry when the response is empty or not generated
@@ -274,13 +274,13 @@ jobs:
               exit 1
             fi
           done
-          
+
           # Edge case: When all retries get exhausted
           if [ "$SUCCESS" = false ]; then
             echo "Error: Failed after $MAX_RETRIES retry attempts"
             exit 1
           fi
-      
+
       # This only runs when all previous steps are successful
       - name: Post response to issue
         if: success()
@@ -291,14 +291,14 @@ jobs:
           BODY: ${{ steps.generate.outputs.CONTENT }}
         run: |
           echo "Posting AI response to issue #$ISSUE_NUMBER..."
-          
+
           # Add HTML comment marker (invisible to users)
           COMMENT_HEADER="<!-- Generated by Issue PM AI -->"$'\n\n'
           FULL_BODY="${COMMENT_HEADER}${BODY}"
-          
+
           # Create JSON payload with proper escaping
           PAYLOAD=$(jq -n --arg body "$FULL_BODY" '{body: $body}')
-          
+
           # Post comment to issue via GitHub API (with 15 second timeout)
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             --max-time 15 \
@@ -309,11 +309,11 @@ jobs:
             -H "User-Agent: GitHub-Actions-Issue-PM-AI" \
             "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments" \
             -d "$PAYLOAD")
-          
+
           # Check if the comment was posted successfully
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
           RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
-          
+
           if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
             COMMENT_URL=$(echo "$RESPONSE_BODY" | jq -r '.html_url // empty')
             echo "Successfully posted comment to issue #$ISSUE_NUMBER"
@@ -324,7 +324,7 @@ jobs:
             echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
             exit 1
           fi
-      
+
       # Posts a friendly message if the workflow fails
       - name: Handle failure
         if: failure()
@@ -334,9 +334,9 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           echo "Workflow failed - posting fallback comment"
-          
+
           FALLBACK_MESSAGE="Thanks for opening this issue! The AI assistant encountered an error while analyzing your issue. A team member will review it shortly."
-          
+
           PAYLOAD=$(jq -n --arg body "$FALLBACK_MESSAGE" '{body: $body}')
 
           # Try to post fallback (don't fail if this fails too)
