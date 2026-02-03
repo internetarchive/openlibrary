@@ -106,7 +106,6 @@ class Solr:
         fields: Iterable[str] | None = None,
         doc_wrapper: Callable[[dict], T] = web.storage,
     ) -> list[T]:
-        """Get multiple items from solr"""
         ids = list(keys)
         if not ids:
             return []
@@ -133,7 +132,6 @@ class Solr:
         commit: bool = False,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
-        """Update items in solr"""
         resp = (
             await self.async_session.post(
                 f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
