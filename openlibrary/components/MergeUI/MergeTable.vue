@@ -161,6 +161,7 @@ export default {
                 for (const entry of (record.authors || [])) {
                     // Support both author entry shapes: {author: {key: "..."}}, {key: "..."}
                     const authorKey = entry.author?.key ?? entry.key;
+                    if (!authorKey) continue;
                     entry.name = author_names[authorKey.slice('/authors/'.length)];
                 }
             }
