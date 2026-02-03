@@ -57,7 +57,7 @@ class Test_fulltext_search_api:
         assert "from=0" in request.url.query.decode()
         
         # Reset mock
-        httpx_mock.reset(False)
+        httpx_mock.reset()
         httpx_mock.add_response(json={"hits": {"hits": []}})
         
         # Test page 10 should have offset 180 (9 * 20)
@@ -66,7 +66,7 @@ class Test_fulltext_search_api:
         assert "from=180" in request.url.query.decode()
         
         # Reset mock
-        httpx_mock.reset(False)
+        httpx_mock.reset()
         httpx_mock.add_response(json={"hits": {"hits": []}})
         
         # Test explicit offset overrides page
