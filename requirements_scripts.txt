@@ -1,6 +1,8 @@
 # Temporary requirements for running standalone scripts that are not necessary for OL to function.
 # Run like this:
 # uv pip install -r requirements_scripts.txt && PYTHONPATH=. python ./path/to/script.py optional_args... && uv pip uninstall -y -r requirements_scripts.txt
+#
+# Note: These are separate from the main project dependencies in pyproject.toml
 
 mwparserfromhell==0.6.6
 nameparser==1.1.3

@@ -21,7 +21,6 @@ repos:
       - id: mixed-line-ending
         args:
           - --fix=lf
-      - id: requirements-txt-fixer
       - id: trailing-whitespace
         args:
           - --markdown-linebreak-ext=md
@@ -107,7 +106,7 @@ repos:
       types_or: [python, html]
       language: python
       pass_filenames: false
-      # Dependencies must be manually updated to match versions in requirements.txt
+      # Dependencies are managed in pyproject.toml [project.dependencies]
       additional_dependencies:
         - Babel==2.12.1
         - multipart==0.2.4

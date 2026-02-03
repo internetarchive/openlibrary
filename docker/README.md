@@ -103,7 +103,7 @@ Occasionally, there will be cases when changes we pull or make to our codebase w
 
 | Change | Fix  |
 |------|-----------|
-| **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: ```docker compose build home``` |
+| **`pip` python package dependencies** (e.g. `pyproject.toml`) | rebuild just the `home` image with: ```docker compose build home``` |
 | **`npm` packages** | run ```docker compose run --rm home npm install --no-audit``` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why) |
 | **`js`, `vue`, `css`/`less`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
 
