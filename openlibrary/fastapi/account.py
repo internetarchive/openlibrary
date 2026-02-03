@@ -208,7 +208,7 @@ async def login(
         )
 
     # Determine cookie expiration
-    expires = 3600 * 24 * 365 if form_data.remember else ""
+    expires = 3600 * 24 * 365 if form_data.remember else None
 
     # Generate auth token (same way web.py does it via Account.generate_login_code())
     login_code = generate_login_code_for_user(ol_username)
