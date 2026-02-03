@@ -42,7 +42,7 @@ jobs:
           UV_SYSTEM_PYTHON: 1
           PYTHONPATH: "/github/workspace:/github/workspace/vendor/infogami:$PYTHONPATH"
         run: |
-          uv sync --all-groups
+          uv sync --extra dev --extra test
       - name: Activate venv and persist PATH
         run: |
           echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
