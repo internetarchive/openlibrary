@@ -16,16 +16,22 @@ $var title: $_("Human Verification")
 <script>
 (function() {
     var button = document.getElementById('verify-human-btn');
+    // Safely escape the redirect URL for use in JSON
+    var redirectUrl = $:json.dumps(redirect_url);
+    var verifyingText = $:json.dumps(_("Verifying..."));
+    var errorText = $:json.dumps(_("Verification failed. Please try again."));
+    var buttonText = $:json.dumps(_("Verify you are human"));
+
     button.addEventListener('click', function() {
         button.disabled = true;
-        button.textContent = '$_("Verifying...")';
+        button.textContent = verifyingText;
 
         fetch('/account/verify_human', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ redirect_url: '$redirect_url' })
+            body: JSON.stringify({ redirect_url: redirectUrl })
         })
         .then(function(response) {
             if (response.ok) {
@@ -42,9 +48,9 @@ $var title: $_("Human Verification")
         })
         .catch(function(error) {
             console.error('Verification error:', error);
-            alert('$_("Verification failed. Please try again.")');
+            alert(errorText);
             button.disabled = false;
-            button.textContent = '$_("Verify you are human")';
+            button.textContent = buttonText;
         });
     });
 })();

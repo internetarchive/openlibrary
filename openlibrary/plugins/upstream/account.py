@@ -1317,7 +1317,7 @@ class account_verify_human(delegate.page):
         try:
             data = json.loads(web.data())
             redirect_url = data.get('redirect_url', '/')
-        except (json.JSONDecodeError, KeyError, ValueError) as e:
+        except (json.JSONDecodeError, ValueError) as e:
             # Log error but continue with default redirect
             logger.warning(f"Error parsing verification request: {e}")
 

@@ -805,10 +805,9 @@ class search(delegate.page):
         q = i.get('q', '').strip()
 
         # Check for specialized Solr syntax patterns
-        # Exclude URLs by requiring field name followed by : but not ://
+        # We need to be careful not to match URLs
         expensive_patterns = [
             r'language:',           # language: queries
-            r'\w+:(?!//)',          # Field-specific query (excluding URLs like http://)
             r'\*:\*',               # Wildcard queries
             r'[\[\{]',              # Range queries with [ or {
             r'\bAND\b',             # Boolean operators
@@ -819,6 +818,11 @@ class search(delegate.page):
         for pattern in expensive_patterns:
             if re.search(pattern, q, re.IGNORECASE):
                 return True
+
+        # Check for field-specific queries, but exclude common URL schemes
+        # This pattern matches word:something but not http://, https://, ftp://, etc.
+        if re.search(r'(?<!http)(?<!https)(?<!ftp)(?<!mailto)\b\w+:(?!//)', q, re.IGNORECASE):
+            return True
 
         # Check if language filter is being used
         return bool(i.get('language'))
