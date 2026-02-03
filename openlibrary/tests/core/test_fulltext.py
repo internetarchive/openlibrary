@@ -42,7 +42,7 @@ class Test_fulltext_search_api:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
-        "page,limit,offset_kwarg,expected_from",
+        ("page", "limit", "offset_kwarg", "expected_from"),
         [
             (1, 20, "NOT_PASSED", 0),  # offset not passed at all
             (1, 20, None, 0),  # offset=None explicitly
