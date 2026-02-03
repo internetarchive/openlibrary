@@ -30,8 +30,8 @@ class subjects(delegate.page):
 
     def GET(self, key):
         # Check if human verification is needed for subject pages
-        from openlibrary.plugins.openlibrary.code import needs_human_verification, require_human_verification
-        if needs_human_verification():
+        from openlibrary.plugins.openlibrary.code import is_suspicious_visitor, require_human_verification
+        if is_suspicious_visitor():
             return require_human_verification()
 
         if (nkey := self.normalize_key(key)) != key:

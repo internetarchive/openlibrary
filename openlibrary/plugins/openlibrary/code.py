@@ -1231,14 +1231,15 @@ def is_bot():
 
 
 def is_suspicious_visitor():
-    """Check if the current visitor is suspicious (not logged in, not a known bot, generic UA).
+    """Check if the current visitor is suspicious and needs human verification.
 
-    A suspicious visitor is:
-    - Not logged in
-    - Not a known bot (as determined by is_bot())
+    A suspicious visitor is someone who:
+    - Is not logged in
+    - Is not a known bot (as determined by is_bot())
+    - Does not have the verification cookie (vf=1)
 
     Returns:
-        bool: True if visitor is suspicious, False otherwise
+        bool: True if visitor is suspicious and needs verification, False otherwise
     """
     # Check if user is logged in
     try:
@@ -1249,44 +1250,23 @@ def is_suspicious_visitor():
         pass
 
     # Check if it's a known bot
-    return not is_bot()
+    if is_bot():
+        return False
+
+    # Check if visitor has already been verified (has vf=1 cookie)
+    return web.cookies().get('vf') != '1'
 
 
-def has_verification_cookie():
-    """Check if the visitor has the human verification cookie (vf=1).
-
-    Returns:
-        bool: True if vf cookie is set to '1', False otherwise
-    """
-    return web.cookies().get('vf') == '1'
-
-
-def needs_human_verification():
-    """Check if the current visitor needs human verification.
-
-    Returns:
-        bool: True if visitor should see verification challenge, False otherwise
-    """
-    return is_suspicious_visitor() and not has_verification_cookie()
-
-
-def require_human_verification(original_url=None):
-    """Bounce suspicious unverified visitors to the human verification challenge page.
-
-    Args:
-        original_url: The URL to redirect back to after verification.
-                     If None, uses the current request URI.
+def require_human_verification():
+    """Show the human verification challenge page.
 
     Returns:
         The rendered challenge page template.
     """
-    if original_url is None:
-        original_url = web.ctx.env.get('REQUEST_URI', '/')
-
     # Track verification challenge shown
     openlibrary.core.stats.increment('ol.stats.verify_human.challenge_shown')
 
-    return render_template('lib/challenge', redirect_url=original_url)
+    return render_template('lib/challenge')
 
 
 def setup_template_globals():

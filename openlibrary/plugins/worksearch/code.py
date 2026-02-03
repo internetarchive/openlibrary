@@ -717,8 +717,8 @@ class search(delegate.page):
 
         # Check if this is an expensive search that requires human verification
         if self._is_expensive_search(i):
-            from openlibrary.plugins.openlibrary.code import needs_human_verification, require_human_verification
-            if needs_human_verification():
+            from openlibrary.plugins.openlibrary.code import is_suspicious_visitor, require_human_verification
+            if is_suspicious_visitor():
                 return require_human_verification()
 
         q_list = []

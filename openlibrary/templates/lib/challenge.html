@@ -1,5 +1,3 @@
-$def with (redirect_url)
-
 $var title: $_("Human Verification")
 
 <div id="contentHead">
@@ -16,8 +14,6 @@ $var title: $_("Human Verification")
 <script>
 (function() {
     var button = document.getElementById('verify-human-btn');
-    // Safely escape the redirect URL for use in JSON
-    var redirectUrl = $:json.dumps(redirect_url);
     var verifyingText = $:json.dumps(_("Verifying..."));
     var errorText = $:json.dumps(_("Verification failed. Please try again."));
     var buttonText = $:json.dumps(_("Verify you are human"));
@@ -30,20 +26,14 @@ $var title: $_("Human Verification")
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ redirect_url: redirectUrl })
+            }
         })
         .then(function(response) {
             if (response.ok) {
-                return response.json();
-            }
-            throw new Error('Verification failed');
-        })
-        .then(function(data) {
-            if (data.redirect) {
-                window.location.href = data.redirect;
-            } else {
+                // Simply reload the page - verification cookie is now set
                 window.location.reload();
+            } else {
+                throw new Error('Verification failed');
             }
         })
         .catch(function(error) {

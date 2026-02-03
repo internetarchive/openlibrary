@@ -1313,14 +1313,6 @@ class account_verify_human(delegate.page):
 
     def POST(self):
         """Handle verification request."""
-        redirect_url = '/'
-        try:
-            data = json.loads(web.data())
-            redirect_url = data.get('redirect_url', '/')
-        except (json.JSONDecodeError, ValueError) as e:
-            # Log error but continue with default redirect
-            logger.warning(f"Error parsing verification request: {e}")
-
         # Set the verification cookie (vf=1)
         # Cookie expires in 30 days
         expires = 30 * 24 * 60 * 60
@@ -1329,9 +1321,9 @@ class account_verify_human(delegate.page):
         # Track verification success
         stats.increment('ol.stats.verify_human.verified')
 
-        # Return JSON response with redirect URL
+        # Return JSON response
         web.header('Content-Type', 'application/json')
-        return json.dumps({'success': True, 'redirect': redirect_url})
+        return json.dumps({'success': True})
 
 
 def as_admin(f):
