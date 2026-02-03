@@ -8,7 +8,7 @@
         body{text-align:center; background: #E2DCC5;}
         #logo{margin:65px auto 75px;}
         p{font-size:1em;line-height:1.5em;font-family:Georgia,serif;}
-        a.proceed{
+        button.proceed{
             background: #0376b8;
             padding: 0.5em 1em;
             color: #ffffff;
@@ -22,10 +22,10 @@
     <body>
         <div id="logo"><img src="/static/images/logo_OL-lg.png" alt="Welcome to the Open Library!" width="219" height="131"/></div>
         <p><strong>Please help us serve your request with integrity:</strong></p>
-        <a href="#" class="proceed" onclick="
+        <button type="button" class="proceed" onclick="
         document.cookie='vf=1; path=/; max-age=86400; SameSite=Lax; Secure';
         location.reload();
         return false;
-        ">Verify you are a human</a>
+        ">Verify you are a human</button>
     </body>
 </html>
