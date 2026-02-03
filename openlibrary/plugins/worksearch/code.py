@@ -805,9 +805,10 @@ class search(delegate.page):
         q = i.get('q', '').strip()
 
         # Check for specialized Solr syntax patterns
+        # Exclude URLs by requiring field name followed by : but not ://
         expensive_patterns = [
             r'language:',           # language: queries
-            r'\w+:',                # Any field-specific query (e.g., title:, author:)
+            r'\w+:(?!//)',          # Field-specific query (excluding URLs like http://)
             r'\*:\*',               # Wildcard queries
             r'[\[\{]',              # Range queries with [ or {
             r'\bAND\b',             # Boolean operators

@@ -1313,11 +1313,13 @@ class account_verify_human(delegate.page):
 
     def POST(self):
         """Handle verification request."""
+        redirect_url = '/'
         try:
             data = json.loads(web.data())
             redirect_url = data.get('redirect_url', '/')
-        except Exception:
-            redirect_url = '/'
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            # Log error but continue with default redirect
+            logger.warning(f"Error parsing verification request: {e}")
 
         # Set the verification cookie (vf=1)
         # Cookie expires in 30 days

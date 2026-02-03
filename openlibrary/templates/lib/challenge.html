@@ -14,35 +14,38 @@ $var title: $_("Human Verification")
 </div>
 
 <script>
-document.getElementById('verify-human-btn').addEventListener('click', function() {
-    this.disabled = true;
-    this.textContent = '$_("Verifying...")';
-    
-    fetch('/account/verify_human', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ redirect_url: '$redirect_url' })
-    })
-    .then(function(response) {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Verification failed');
-    })
-    .then(function(data) {
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        } else {
-            window.location.reload();
-        }
-    })
-    .catch(function(error) {
-        console.error('Verification error:', error);
-        alert('$_("Verification failed. Please try again.")');
-        this.disabled = false;
-        this.textContent = '$_("Verify you are human")';
-    }.bind(this));
-});
+(function() {
+    var button = document.getElementById('verify-human-btn');
+    button.addEventListener('click', function() {
+        button.disabled = true;
+        button.textContent = '$_("Verifying...")';
+
+        fetch('/account/verify_human', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ redirect_url: '$redirect_url' })
+        })
+        .then(function(response) {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Verification failed');
+        })
+        .then(function(data) {
+            if (data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                window.location.reload();
+            }
+        })
+        .catch(function(error) {
+            console.error('Verification error:', error);
+            alert('$_("Verification failed. Please try again.")');
+            button.disabled = false;
+            button.textContent = '$_("Verify you are human")';
+        });
+    });
+})();
 </script>

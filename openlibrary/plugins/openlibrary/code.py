@@ -1245,7 +1245,7 @@ def is_suspicious_visitor():
         user = web.ctx.site.get_user()
         if user:
             return False
-    except:
+    except Exception:
         pass
 
     # Check if it's a known bot
@@ -1286,7 +1286,7 @@ def require_human_verification(original_url=None):
     # Track verification challenge shown
     openlibrary.core.stats.increment('ol.stats.verify_human.challenge_shown')
 
-    return render_template('lib/challenge', original_url)
+    return render_template('lib/challenge', redirect_url=original_url)
 
 
 def setup_template_globals():
