@@ -34,6 +34,15 @@ $def with (page)
     $ style = 'build/css/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
+    <style>
+      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content */
+      ol-read-more:not(:defined) {
+        visibility: hidden;
+        height: 0;
+        overflow: hidden;
+      }
+    </style>
+
     <noscript>
       <style>
         /* Don't hide content with clamp if no js to show more/less */
