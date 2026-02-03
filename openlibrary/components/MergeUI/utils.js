@@ -265,7 +265,7 @@ function save_many(items, comment, action, data) {
 }
 
 /**
- * Fetches name associated with the author key (ignores editions)
+ * Fetches name associated with the author key
  * @param {Object[]} works
  * @returns {Promise<Record<string,object>} A response to the request
  */
