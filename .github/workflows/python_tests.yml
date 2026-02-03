@@ -46,13 +46,15 @@ jobs:
       - run: make git
       - name: Run make i18n
         run: |
-          uv run make i18n
-          uv run make test-i18n
+          source .venv/bin/activate
+          make i18n
+          make test-i18n
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
-          uv run make test-py
-          uv run sh scripts/run_doctests.sh
+          source .venv/bin/activate
+          make test-py
+          sh scripts/run_doctests.sh
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
