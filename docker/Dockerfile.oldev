@@ -8,12 +8,16 @@ ARG HTTPS_PROXY
 
 WORKDIR /openlibrary
 
+# Set PYTHONPATH to include project root and vendor directories
+# This allows Python to find the infogami submodule and other project modules
+ENV PYTHONPATH="/openlibrary:/openlibrary/vendor/infogami:$PYTHONPATH"
+
 COPY --chown=openlibrary:openlibrary pyproject.toml ./
 USER root
-RUN uv sync --all-groups
+RUN uv pip install -e .
+RUN uv pip install -e ".[dev,test]"
 
-# For i18n scripts, which run as root (to modify the host filesystem) and need these packages.
-# These are already installed via uv sync, so no separate install needed
+# All dependencies are now installed to system Python, available to all users
 USER openlibrary
 
 COPY --chown=openlibrary:openlibrary package*.json ./

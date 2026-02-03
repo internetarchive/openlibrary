@@ -40,6 +40,7 @@ jobs:
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
+          PYTHONPATH: "/openlibrary:/openlibrary/vendor/infogami:$PYTHONPATH"
         run: |
           uv sync --all-groups
       - run: make git

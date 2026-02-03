@@ -52,7 +52,7 @@ dependencies = [
     "validate_email==1.3",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
     "debugpy>=1.6.4",
     "mypy==1.19.1",
