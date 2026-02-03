@@ -51,7 +51,7 @@ jobs:
         run: |
           git fetch --no-tags --prune --depth=1 origin master
           uv run make test-py
-          uv run python scripts/run_doctests.sh
+          uv run sh scripts/run_doctests.sh
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
