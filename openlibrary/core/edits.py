@@ -176,7 +176,7 @@ class CommunityEditsQueue:
             # some default note from submitter
             pass
         url = f"{olid}/-/edit?m=delete"
-        cls.submit_request(cls, url, submitter=submitter, comment=comment)
+        cls.submit_request(url, submitter=submitter, comment=comment)
 
     @classmethod
     def submit_request(
