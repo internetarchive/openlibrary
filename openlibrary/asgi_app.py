@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
@@ -115,7 +116,27 @@ def setup_i18n(app: FastAPI):
         return response
 
 
+def setup_debugpy():
+    import debugpy  # noqa: T100
+
+    # Start listening for debugger connections
+    debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
+    logger.info(
+        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI container'."
+    )
+
+
 sentry: Sentry | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+        setup_debugpy()
+    yield
+    # Shutdown (if needed in the future)
 
 
 def create_app() -> FastAPI:
@@ -145,6 +166,7 @@ def create_app() -> FastAPI:
         title="OpenLibrary ASGI",
         version="0.0.1",
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        lifespan=lifespan,
     )
 
     app.add_middleware(
@@ -183,7 +205,6 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router
-    from openlibrary.fastapi.dev import router as dev_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import router as search_router
@@ -195,7 +216,6 @@ def create_app() -> FastAPI:
     app.include_router(search_router)
     app.include_router(subjects_router)
     app.include_router(account_router)
-    app.include_router(dev_router)
 
     return app
 
