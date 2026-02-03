@@ -1,7 +1,7 @@
 import httpx
 import pytest
-
 from infogami import config
+
 from openlibrary.core import fulltext
 
 
@@ -47,28 +47,28 @@ class Test_fulltext_search_api:
         monkeypatch.setattr(
             config, "plugin_inside", {"search_endpoint": url}, raising=False
         )
-        
+
         # Mock a successful response
         httpx_mock.add_response(json={"hits": {"hits": []}})
-        
+
         # Test page 1 should have offset 0
         await fulltext.fulltext_search_async("test", page=1, limit=20)
         request = httpx_mock.get_request()
         assert "from=0" in request.url.query.decode()
-        
+
         # Reset mock
         httpx_mock.reset()
         httpx_mock.add_response(json={"hits": {"hits": []}})
-        
+
         # Test page 10 should have offset 180 (9 * 20)
         await fulltext.fulltext_search_async("test", page=10, limit=20)
         request = httpx_mock.get_request()
         assert "from=180" in request.url.query.decode()
-        
+
         # Reset mock
         httpx_mock.reset()
         httpx_mock.add_response(json={"hits": {"hits": []}})
-        
+
         # Test explicit offset overrides page
         await fulltext.fulltext_search_async("test", page=5, offset=100, limit=20)
         request = httpx_mock.get_request()

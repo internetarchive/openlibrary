@@ -3,8 +3,8 @@ import logging
 from urllib.parse import urlencode
 
 import httpx
-
 from infogami import config
+
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.utils.async_utils import async_bridge
@@ -46,7 +46,9 @@ async def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, facets=False):
+async def fulltext_search_async(
+    q, page=1, offset=None, limit=100, js=False, facets=False
+):
     if offset is None:
         offset = (page - 1) * limit
     params = {
