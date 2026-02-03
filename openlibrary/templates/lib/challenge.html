@@ -1,0 +1,48 @@
+$def with (redirect_url)
+
+$var title: $_("Human Verification")
+
+<div id="contentHead">
+    <h1>$_("Human Verification")</h1>
+</div>
+
+<div id="contentBody" style="text-align: center; padding: 2rem;">
+    <p style="margin-bottom: 2rem;">$_("Please verify you are human to continue.")</p>
+    <button id="verify-human-btn" class="cta-btn cta-btn--shell" style="padding: 1rem 2rem; font-size: 1.1rem;">
+        $_("Verify you are human")
+    </button>
+</div>
+
+<script>
+document.getElementById('verify-human-btn').addEventListener('click', function() {
+    this.disabled = true;
+    this.textContent = '$_("Verifying...")';
+    
+    fetch('/account/verify_human', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ redirect_url: '$redirect_url' })
+    })
+    .then(function(response) {
+        if (response.ok) {
+            return response.json();
+        }
+        throw new Error('Verification failed');
+    })
+    .then(function(data) {
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            window.location.reload();
+        }
+    })
+    .catch(function(error) {
+        console.error('Verification error:', error);
+        alert('$_("Verification failed. Please try again.")');
+        this.disabled = false;
+        this.textContent = '$_("Verify you are human")';
+    }.bind(this));
+});
+</script>

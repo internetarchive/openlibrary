@@ -29,6 +29,11 @@ class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
     def GET(self, key):
+        # Check if human verification is needed for subject pages
+        from openlibrary.plugins.openlibrary.code import needs_human_verification, require_human_verification
+        if needs_human_verification():
+            return require_human_verification()
+        
         if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 
