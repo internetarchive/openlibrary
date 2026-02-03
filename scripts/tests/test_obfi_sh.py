@@ -28,7 +28,7 @@ class TestObfiMatchRange:
         start = iso_to_ms(start_iso)
         end = iso_to_ms(end_iso)
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
-        assert output.stdout == SAMPLE_LOG.read_text()
+        assert output == SAMPLE_LOG.read_text().strip()
 
     def test_obfi_match_range_first_hour(self):
         # Only lines on 2025-06-27 between 00:00:00 and 00:59:59 should match (first line only)
@@ -38,7 +38,7 @@ class TestObfiMatchRange:
         end = iso_to_ms(end_iso)
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
         expected = SAMPLE_LOG.read_text().splitlines()[0] + '\n'
-        assert output.stdout == expected
+        assert output == expected.strip()
 
     def test_obfi_match_range_second_day_same_hour(self):
         # Only lines on 2025-06-28 between 00:00:00 and 00:59:59 should match (third line only)
@@ -48,7 +48,7 @@ class TestObfiMatchRange:
         end = iso_to_ms(end_iso)
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
         expected = SAMPLE_LOG.read_text().splitlines()[2] + '\n'
-        assert output.stdout == expected
+        assert output == expected.strip()
 
     def test_obfi_match_range_no_lines(self):
         start_iso = '2001-09-09T01:46:40Z'
@@ -56,4 +56,4 @@ class TestObfiMatchRange:
         start = iso_to_ms(start_iso)
         end = iso_to_ms(end_iso)
         output = bash_w_obfi(f"cat {SAMPLE_LOG} | obfi_match_range {start} {end}")
-        assert output.stdout == ''
+        assert output == ''
