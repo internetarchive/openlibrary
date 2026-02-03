@@ -40,8 +40,8 @@ jobs:
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
-          PYTHONPATH: "/github/workspace:/github/workspace/vendor/infogami:$PYTHONPATH"
         run: |
+          echo "PYTHONPATH=$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/vendor/infogami:$PYTHONPATH" >> $GITHUB_ENV
           uv sync --extra dev --extra test
       - name: Activate venv and persist PATH
         run: |
