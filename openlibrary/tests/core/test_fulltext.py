@@ -1,7 +1,7 @@
 import httpx
 import pytest
-from infogami import config
 
+from infogami import config
 from openlibrary.core import fulltext
 
 
