@@ -92,6 +92,7 @@ async def check_authentication(
         user_key=user.user_key if user else None,
         timestamp=user.timestamp if user else None,
         is_authenticated=user is not None,
+        error=None,
         cookie_name=cookie_name,
         cookie_value=(
             cookie_value[:50] + "..."
