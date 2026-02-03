@@ -1310,13 +1310,14 @@ class account_verify_human(delegate.page):
     Sets the vf=1 cookie and redirects back to the original URL.
     """
     path = "/account/verify_human"
+    
+    # Cookie expires in 30 days
+    VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
 
     def POST(self):
         """Handle verification request."""
         # Set the verification cookie (vf=1)
-        # Cookie expires in 30 days
-        expires = 30 * 24 * 60 * 60
-        web.setcookie('vf', '1', expires=expires)
+        web.setcookie('vf', '1', expires=self.VERIFICATION_COOKIE_EXPIRES_SECONDS)
 
         # Track verification success
         stats.increment('ol.stats.verify_human.verified')

@@ -16,7 +16,7 @@ $var title: $_("Human Verification")
     var button = document.getElementById('verify-human-btn');
     var verifyingText = $:json.dumps(_("Verifying..."));
     var errorText = $:json.dumps(_("Verification failed. Please try again."));
-    var buttonText = $:json.dumps(_("Verify you are human"));
+    var originalText = button.textContent;
 
     button.addEventListener('click', function() {
         button.disabled = true;
@@ -40,7 +40,7 @@ $var title: $_("Human Verification")
             console.error('Verification error:', error);
             alert(errorText);
             button.disabled = false;
-            button.textContent = buttonText;
+            button.textContent = originalText;
         });
     });
 })();
