@@ -15,7 +15,7 @@ ENV PYTHONPATH="/openlibrary:/openlibrary/vendor/infogami:$PYTHONPATH"
 COPY --chown=openlibrary:openlibrary pyproject.toml ./
 USER root
 RUN uv pip install -e .
-RUN uv pip install -e ".[dev,test]"
+RUN uv pip install -e ".[dev]"
 
 # All dependencies are now installed to system Python, available to all users
 USER openlibrary
