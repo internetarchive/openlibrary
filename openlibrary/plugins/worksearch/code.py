@@ -13,12 +13,12 @@ from unicodedata import normalize
 
 import httpx
 import web
-from requests import Response
-
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+from requests import Response
+
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
@@ -788,22 +788,22 @@ class search(delegate.page):
             page,
             rows,
         )
-    
+
     def _is_expensive_search(self, i):
         """Check if this is an expensive search query that requires verification.
-        
+
         Expensive queries include:
         - Queries with specialized Solr syntax (e.g., language:, *:*, etc.)
         - Queries with language filters
-        
+
         Args:
             i: Web input object with search parameters
-            
+
         Returns:
             bool: True if this is an expensive search, False otherwise
         """
         q = i.get('q', '').strip()
-        
+
         # Check for specialized Solr syntax patterns
         expensive_patterns = [
             r'language:',           # language: queries
@@ -814,16 +814,13 @@ class search(delegate.page):
             r'\bOR\b',
             r'\bNOT\b',
         ]
-        
+
         for pattern in expensive_patterns:
             if re.search(pattern, q, re.IGNORECASE):
                 return True
-        
+
         # Check if language filter is being used
-        if i.get('language'):
-            return True
-            
-        return False
+        return bool(i.get('language'))
 
 
 def works_by_author(

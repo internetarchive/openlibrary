@@ -14,11 +14,11 @@ import sys
 from time import time
 from urllib.parse import parse_qs, urlencode
 
+import infogami
 import requests
 import web
 import yaml
 
-import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -35,7 +35,6 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
 
-import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -47,6 +46,8 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+
+import openlibrary.core.stats
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
@@ -291,7 +292,7 @@ class widget(delegate.page):
     path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
     def GET(self, key: str):  # type: ignore[override]
-        olid = key.split('/')[-1]
+        olid = key.rsplit('/', maxsplit=1)[-1]
         item = web.ctx.site.get(key)
         is_work = key.startswith('/works/')
         item['olid'] = olid
@@ -1231,11 +1232,11 @@ def is_bot():
 
 def is_suspicious_visitor():
     """Check if the current visitor is suspicious (not logged in, not a known bot, generic UA).
-    
+
     A suspicious visitor is:
     - Not logged in
     - Not a known bot (as determined by is_bot())
-    
+
     Returns:
         bool: True if visitor is suspicious, False otherwise
     """
@@ -1246,17 +1247,14 @@ def is_suspicious_visitor():
             return False
     except:
         pass
-    
+
     # Check if it's a known bot
-    if is_bot():
-        return False
-    
-    return True
+    return not is_bot()
 
 
 def has_verification_cookie():
     """Check if the visitor has the human verification cookie (vf=1).
-    
+
     Returns:
         bool: True if vf cookie is set to '1', False otherwise
     """
@@ -1265,7 +1263,7 @@ def has_verification_cookie():
 
 def needs_human_verification():
     """Check if the current visitor needs human verification.
-    
+
     Returns:
         bool: True if visitor should see verification challenge, False otherwise
     """
@@ -1274,20 +1272,20 @@ def needs_human_verification():
 
 def require_human_verification(original_url=None):
     """Bounce suspicious unverified visitors to the human verification challenge page.
-    
+
     Args:
         original_url: The URL to redirect back to after verification.
                      If None, uses the current request URI.
-    
+
     Returns:
         The rendered challenge page template.
     """
     if original_url is None:
         original_url = web.ctx.env.get('REQUEST_URI', '/')
-    
+
     # Track verification challenge shown
     openlibrary.core.stats.increment('ol.stats.verify_human.challenge_shown')
-    
+
     return render_template('lib/challenge', original_url)
 
 

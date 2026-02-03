@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import cast
 
 import web
-from typing_extensions import deprecated
-
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from typing_extensions import deprecated
+
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
@@ -33,7 +33,7 @@ class subjects(delegate.page):
         from openlibrary.plugins.openlibrary.code import needs_human_verification, require_human_verification
         if needs_human_verification():
             return require_human_verification()
-        
+
         if (nkey := self.normalize_key(key)) != key:
             raise web.redirect(nkey)
 

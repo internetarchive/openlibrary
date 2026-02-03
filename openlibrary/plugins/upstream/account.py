@@ -9,10 +9,9 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -21,6 +20,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -1306,27 +1306,27 @@ class account_anonymization_json(delegate.page):
 
 class account_verify_human(delegate.page):
     """Endpoint for human verification challenge.
-    
+
     Sets the vf=1 cookie and redirects back to the original URL.
     """
     path = "/account/verify_human"
-    
+
     def POST(self):
         """Handle verification request."""
         try:
             data = json.loads(web.data())
             redirect_url = data.get('redirect_url', '/')
-        except:
+        except Exception:
             redirect_url = '/'
-        
+
         # Set the verification cookie (vf=1)
         # Cookie expires in 30 days
         expires = 30 * 24 * 60 * 60
         web.setcookie('vf', '1', expires=expires)
-        
+
         # Track verification success
         stats.increment('ol.stats.verify_human.verified')
-        
+
         # Return JSON response with redirect URL
         web.header('Content-Type', 'application/json')
         return json.dumps({'success': True, 'redirect': redirect_url})
