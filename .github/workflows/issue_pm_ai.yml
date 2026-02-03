@@ -1,0 +1,198 @@
+name: Issue PM AI
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  respond:
+    # Only run for issues opened in the main repository (not forks)
+    if: github.repository == 'internetarchive/openlibrary'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Load Copilot Instructions
+        id: copilot_instructions
+        run: |
+          {
+            echo "INSTRUCTIONS<<EOF"
+            cat .github/copilot-instructions.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      
+      - name: Gather Repository Context (Skills)
+        id: context
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          echo "=== Gathering repository context using GitHub CLI ==="
+          
+          # Search for similar issues (exclude current issue)
+          echo "Searching for similar issues..."
+          SIMILAR_ISSUES=$(gh issue list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url | jq -r --arg current "$ISSUE_NUMBER" '.[] | select(.number != ($current | tonumber)) | "- #\(.number): \(.title) (\(.state)) - \(.url)"' || echo "No similar issues found")
+          
+          # Search for related PRs
+          echo "Searching for related PRs..."
+          RELATED_PRS=$(gh pr list --repo "$REPO" --limit 5 --state all --search "$ISSUE_TITLE" --json number,title,state,url 2>&1)
+          if [ $? -eq 0 ]; then
+            RELATED_PRS=$(echo "$RELATED_PRS" | jq -r '.[] | "- #\(.number): \(.title) (\(.state)) - \(.url)"')
+            if [ -z "$RELATED_PRS" ]; then
+              RELATED_PRS="No related PRs found"
+            fi
+          else
+            echo "Warning: Failed to fetch related PRs: $RELATED_PRS"
+            RELATED_PRS="Unable to fetch related PRs (error occurred)"
+          fi
+          
+          # Get recent issues for context
+          echo "Getting recent issues..."
+          RECENT_ISSUES=$(gh issue list --repo "$REPO" --limit 3 --state open --json number,title,labels 2>&1)
+          if [ $? -eq 0 ]; then
+            RECENT_ISSUES=$(echo "$RECENT_ISSUES" | jq -r '.[] | "- #\(.number): \(.title) (Labels: \([.labels[].name] | join(", ")))"')
+            if [ -z "$RECENT_ISSUES" ]; then
+              RECENT_ISSUES="No recent issues found"
+            fi
+          else
+            echo "Warning: Failed to fetch recent issues: $RECENT_ISSUES"
+            RECENT_ISSUES="Unable to fetch recent issues (error occurred)"
+          fi
+          
+          # Extract keywords from issue title for code search
+          echo "Searching for relevant files..."
+          RELEVANT_FILES=""
+          
+          # Try to find Python files related to keywords in issue (using word boundaries)
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "borrow\|lend\|lending"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/borrow.py - Book borrowing functionality"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "account\|login\|auth\|authentication"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/account.py - Account management"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "search\|searching"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/worksearch/ - Search functionality"
+          fi
+          if echo "$ISSUE_TITLE $ISSUE_BODY" | grep -qiw "book\|edit\|editing"; then
+            RELEVANT_FILES="$RELEVANT_FILES"$'\n'"- openlibrary/plugins/upstream/addbook.py - Book editing"
+          fi
+          
+          # Trim leading newline if files were found
+          RELEVANT_FILES=$(echo "$RELEVANT_FILES" | sed '/^$/d')
+          
+          # Save all context to outputs
+          {
+            echo "SIMILAR_ISSUES<<EOF"
+            echo "$SIMILAR_ISSUES"
+            echo "EOF"
+            echo "RELATED_PRS<<EOF"
+            echo "$RELATED_PRS"
+            echo "EOF"
+            echo "RECENT_ISSUES<<EOF"
+            echo "$RECENT_ISSUES"
+            echo "EOF"
+            echo "RELEVANT_FILES<<EOF"
+            echo "$RELEVANT_FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          
+          echo "=== Context gathering complete ==="
+
+      - name: Generate issue response (GitHub Models with Skills)
+        id: generate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COPILOT_INSTRUCTIONS: ${{ steps.copilot_instructions.outputs.INSTRUCTIONS }}
+          SIMILAR_ISSUES: ${{ steps.context.outputs.SIMILAR_ISSUES }}
+          RELATED_PRS: ${{ steps.context.outputs.RELATED_PRS }}
+          RECENT_ISSUES: ${{ steps.context.outputs.RECENT_ISSUES }}
+          RELEVANT_FILES: ${{ steps.context.outputs.RELEVANT_FILES }}
+        run: |
+          # Construct comprehensive message with repository context (Skills-based approach)
+          USER_MESSAGE="Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"$ISSUE_BODY"$'\n\n'"=== Repository Context (from Skills) ==="$'\n\n'"Similar Issues:"$'\n'"$SIMILAR_ISSUES"$'\n\n'"Related PRs:"$'\n'"$RELATED_PRS"$'\n\n'"Recent Issues:"$'\n'"$RECENT_ISSUES"$'\n\n'"Potentially Relevant Files:"$'\n'"$RELEVANT_FILES"
+          
+          # Build JSON payload using jq for proper escaping (Skills-enhanced)
+          PAYLOAD=$(jq -n \
+            --arg model "gpt-4o-mini" \
+            --arg system "$COPILOT_INSTRUCTIONS" \
+            --arg user "$USER_MESSAGE" \
+            '{
+              model: $model,
+              messages: [
+                {role: "system", content: $system},
+                {role: "user", content: $user}
+              ]
+            }')
+          
+          # Make API call to GitHub Models
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://models.github.ai/inference/chat/completions \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+          
+          # Extract HTTP status code (last line)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Status Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" -eq 200 ]; then
+            CONTENT=$(echo "$RESPONSE_BODY" | jq -r '.choices[0].message.content')
+            
+            if [ "$CONTENT" = "null" ] || [ -z "$CONTENT" ]; then
+              echo "Error: No content in API response"
+              echo "$RESPONSE_BODY" | jq .
+              exit 1
+            fi
+            
+            # Save content to output
+            {
+              echo "CONTENT<<EOF"
+              echo "$CONTENT"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          else
+            echo "Error: API request failed with status $HTTP_CODE"
+            echo "$RESPONSE_BODY" | jq .
+            exit 1
+          fi
+
+      - name: Post response to issue
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BODY: ${{ steps.generate.outputs.CONTENT }}
+        run: |
+          # Create JSON payload with proper escaping
+          PAYLOAD=$(jq -n --arg body "$BODY" '{body: $body}')
+          
+          # Post comment to issue
+          HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/comment_response.json \
+            -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+            -d "$PAYLOAD")
+          
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "Successfully posted comment to issue #$ISSUE_NUMBER"
+            cat /tmp/comment_response.json | jq .
+          else
+            echo "Error: Failed to post comment with status $HTTP_CODE"
+            cat /tmp/comment_response.json | jq .
+            exit 1
+          fi
