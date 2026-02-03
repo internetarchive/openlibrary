@@ -40,19 +40,22 @@ jobs:
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
-          PYTHONPATH: "/openlibrary:/openlibrary/vendor/infogami:$PYTHONPATH"
+          PYTHONPATH: "/github/workspace:/github/workspace/vendor/infogami:$PYTHONPATH"
         run: |
           uv sync --all-groups
+      - name: Activate venv and persist PATH
+        run: |
+          echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
       - run: make git
       - name: Run make i18n
         run: |
-          uv run python ./scripts/i18n-messages compile
-          uv run python ./scripts/i18n-messages validate de es fr hr it ja zh
+          make i18n
+          make test-i18n
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
-          uv run pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
-          uv run sh scripts/run_doctests.sh
+          make test-py
+          sh scripts/run_doctests.sh
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
