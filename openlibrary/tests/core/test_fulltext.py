@@ -41,35 +41,29 @@ class Test_fulltext_search_api:
         assert response == {"error": "Error converting search engine data to JSON"}
 
     @pytest.mark.asyncio
-    async def test_pagination_offset_calculation(self, httpx_mock, monkeypatch):
-        """Test that page parameter correctly calculates offset for pagination."""
+    @pytest.mark.parametrize(
+        "page,limit,offset_kwarg,expected_from",
+        [
+            (1, 20, "NOT_PASSED", 0),  # offset not passed at all
+            (1, 20, None, 0),  # offset=None explicitly
+            (10, 20, "NOT_PASSED", 180),  # offset not passed, page 10
+            (5, 20, 100, 100),  # explicit offset provided
+        ],
+    )
+    async def test_pagination_offset_calculation(
+        self, httpx_mock, monkeypatch, page, limit, offset_kwarg, expected_from
+    ):
         url = "http://mock"
         monkeypatch.setattr(
             config, "plugin_inside", {"search_endpoint": url}, raising=False
         )
-
-        # Mock a successful response
         httpx_mock.add_response(json={"hits": {"hits": []}})
 
-        # Test page 1 should have offset 0
-        await fulltext.fulltext_search_async("test", page=1, limit=20)
+        # Conditionally build kwargs to test "not passed" scenario
+        kwargs = {"page": page, "limit": limit}
+        if offset_kwarg != "NOT_PASSED":
+            kwargs["offset"] = offset_kwarg
+
+        await fulltext.fulltext_search_async("test", **kwargs)
         request = httpx_mock.get_request()
-        assert "from=0" in request.url.query.decode()
-
-        # Reset mock
-        httpx_mock.reset()
-        httpx_mock.add_response(json={"hits": {"hits": []}})
-
-        # Test page 10 should have offset 180 (9 * 20)
-        await fulltext.fulltext_search_async("test", page=10, limit=20)
-        request = httpx_mock.get_request()
-        assert "from=180" in request.url.query.decode()
-
-        # Reset mock
-        httpx_mock.reset()
-        httpx_mock.add_response(json={"hits": {"hits": []}})
-
-        # Test explicit offset overrides page
-        await fulltext.fulltext_search_async("test", page=5, offset=100, limit=20)
-        request = httpx_mock.get_request()
-        assert "from=100" in request.url.query.decode()
+        assert f"from={expected_from}" in request.url.query.decode()
