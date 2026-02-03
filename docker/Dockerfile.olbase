@@ -52,13 +52,13 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:open
 WORKDIR /openlibrary
 
 USER openlibrary
-COPY --chown=openlibrary:openlibrary requirements*.txt ./
+COPY --chown=openlibrary:openlibrary pyproject.toml ./
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # This is needed so we install packages into the system python instead of needing venv
 ENV UV_SYSTEM_PYTHON=1
 USER root
 RUN uv pip install --upgrade wheel
-RUN uv pip install -r requirements.txt
+RUN uv pip install -e .
 
 USER openlibrary
 
