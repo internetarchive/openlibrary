@@ -91,6 +91,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
       <section class="example">
         <h3 class="example__title">Height-based truncation</h3>
         <p>Use <code>max-height</code> to limit content by pixel height.</p>
+        <ol-read-more class="srw__chapters" max-height="80px" more-text="$_('Show more')" less-text="$_('Show less')" background-color="#E2ECF8" label-size="small" padding-left="8">
         <code class="example__code">&lt;ol-read-more max-height="80px"&gt;...content...&lt;/ol-read-more&gt;</code>
         <div class="example__output" style="max-width: 360px;">
           <ol-read-more max-height="80px">
@@ -112,10 +113,10 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <section class="example">
         <h3 class="example__title">Custom button text</h3>
-        <p>Use <code>more-text</code> and <code>less-text</code> to customize the toggle button labels.</p>
-        <code class="example__code">&lt;ol-read-more max-lines="2" more-text="Show more" less-text="Show less"&gt;...&lt;/ol-read-more&gt;</code>
+        <p>Use <code>more-text</code> and <code>less-text</code> to customize the toggle button labels. We'll use the i18n strings for this example.</p>
+        <code class="example__code">&lt;ol-read-more max-lines="2" more-text="$$_('Show more')" less-text="$$_('Show less')"&gt;...&lt;/ol-read-more&gt;</code>
         <div class="example__output" style="max-width: 360px;">
-          <ol-read-more max-lines="2" more-text="Show more" less-text="Show less">
+          <ol-read-more max-lines="2" more-text="$_('Show more')" less-text="$_('Show less')">
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
           </ol-read-more>
         </div>
