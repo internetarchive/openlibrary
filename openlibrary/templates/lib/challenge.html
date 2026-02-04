@@ -4,12 +4,28 @@ $var title: $_("Human Verification")
     <h1>$_("Human Verification")</h1>
 </div>
 
-<div id="contentBody" style="text-align: center; padding: 2rem;">
-    <p style="margin-bottom: 2rem;">$_("Please verify you are human to continue.")</p>
-    <button id="verify-human-btn" class="cta-btn cta-btn--shell" style="padding: 1rem 2rem; font-size: 1.1rem;">
+<div id="contentBody" class="verification-challenge">
+    <p class="verification-message">$_("Please verify you are human to continue.")</p>
+    <button id="verify-human-btn" class="cta-btn cta-btn--shell">
         $_("Verify you are human")
     </button>
 </div>
+
+<style>
+.verification-challenge {
+    text-align: center;
+    padding: 2rem;
+}
+
+.verification-message {
+    margin-bottom: 2rem;
+}
+
+#verify-human-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+</style>
 
 <script>
 (function() {

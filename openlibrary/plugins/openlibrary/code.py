@@ -1239,7 +1239,7 @@ def is_suspicious_visitor():
     A suspicious visitor is someone who is NOT:
     1. a recognized bot
     2. coming from a referer
-    3. carrying a verification cookie (vf=1)
+    3. carrying a valid signed verification cookie
     4. logged in
 
     Returns:
@@ -1253,8 +1253,11 @@ def is_suspicious_visitor():
     if web.ctx.env.get('HTTP_REFERER'):
         return False
 
-    # Check if visitor has already been verified (has vf=1 cookie)
-    if web.cookies().get('vf') == '1':
+    # Check if visitor has a valid signed verification cookie
+    from openlibrary.accounts.model import verify_verification_cookie
+
+    cookie_value = web.cookies().get('vf')
+    if cookie_value and verify_verification_cookie(cookie_value):
         return False
 
     # Check if user is logged in

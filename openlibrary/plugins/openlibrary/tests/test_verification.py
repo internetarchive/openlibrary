@@ -28,8 +28,11 @@ class TestHumanVerification:
         mock_user = web.storage(key='/people/test_user')
         web.ctx.site.get_user = lambda: mock_user
 
-        # Mock is_bot to return False
-        monkeypatch.setattr(code, 'is_bot', lambda: False)
+        # Mock is_recognized_bot to return False
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: False)
+
+        # Mock no referer
+        web.ctx.env = {}
 
         # Mock no verification cookie
         def mock_cookies():
@@ -44,8 +47,8 @@ class TestHumanVerification:
         # Mock no logged in user
         web.ctx.site.get_user = lambda: None
 
-        # Mock is_bot to return True
-        monkeypatch.setattr(code, 'is_bot', lambda: True)
+        # Mock is_recognized_bot to return True
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: True)
 
         # Mock no verification cookie
         def mock_cookies():
@@ -55,17 +58,44 @@ class TestHumanVerification:
 
         assert code.is_suspicious_visitor() is False
 
-    def test_is_suspicious_visitor_with_cookie(self, monkeypatch):
-        """Test that visitors with vf=1 cookie are not suspicious."""
+    def test_is_suspicious_visitor_with_valid_cookie(self, monkeypatch):
+        """Test that visitors with valid signed cookie are not suspicious."""
+        from openlibrary.accounts import model
+
         # Mock no logged in user
         web.ctx.site.get_user = lambda: None
 
-        # Mock is_bot to return False
-        monkeypatch.setattr(code, 'is_bot', lambda: False)
+        # Mock is_recognized_bot to return False
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: False)
+
+        # Mock no referer
+        web.ctx.env = {}
+
+        # Create a valid signed cookie
+        valid_cookie = model.create_verification_cookie_value()
 
         # Mock verification cookie present
         def mock_cookies():
-            return {'vf': '1'}
+            return {'vf': valid_cookie}
+
+        monkeypatch.setattr(web, 'cookies', mock_cookies)
+
+        assert code.is_suspicious_visitor() is False
+
+    def test_is_suspicious_visitor_with_referer(self, monkeypatch):
+        """Test that visitors with referer are not suspicious."""
+        # Mock no logged in user
+        web.ctx.site.get_user = lambda: None
+
+        # Mock is_recognized_bot to return False
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: False)
+
+        # Mock referer present
+        web.ctx.env = {'HTTP_REFERER': 'https://example.com'}
+
+        # Mock no verification cookie
+        def mock_cookies():
+            return {}
 
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
@@ -76,8 +106,11 @@ class TestHumanVerification:
         # Mock no logged in user
         web.ctx.site.get_user = lambda: None
 
-        # Mock is_bot to return False
-        monkeypatch.setattr(code, 'is_bot', lambda: False)
+        # Mock is_recognized_bot to return False
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: False)
+
+        # Mock no referer
+        web.ctx.env = {}
 
         # Mock no verification cookie
         def mock_cookies():
@@ -87,17 +120,20 @@ class TestHumanVerification:
 
         assert code.is_suspicious_visitor() is True
 
-    def test_is_suspicious_visitor_with_wrong_cookie_value(self, monkeypatch):
-        """Test that visitors with wrong cookie value are still suspicious."""
+    def test_is_suspicious_visitor_with_invalid_cookie(self, monkeypatch):
+        """Test that visitors with invalid cookie value are still suspicious."""
         # Mock no logged in user
         web.ctx.site.get_user = lambda: None
 
-        # Mock is_bot to return False
-        monkeypatch.setattr(code, 'is_bot', lambda: False)
+        # Mock is_recognized_bot to return False
+        monkeypatch.setattr(code, 'is_recognized_bot', lambda: False)
 
-        # Mock verification cookie with wrong value
+        # Mock no referer
+        web.ctx.env = {}
+
+        # Mock verification cookie with invalid value
         def mock_cookies():
-            return {'vf': '0'}
+            return {'vf': 'invalid_value'}
 
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 

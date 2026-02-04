@@ -1317,8 +1317,15 @@ class account_verify_human(delegate.page):
 
     def POST(self):
         """Handle verification request."""
-        # Set the verification cookie (vf=1)
-        web.setcookie('vf', '1', expires=self.VERIFICATION_COOKIE_EXPIRES_SECONDS)
+        from openlibrary.accounts.model import create_verification_cookie_value
+
+        # Create a signed verification cookie
+        cookie_value = create_verification_cookie_value()
+
+        # Set the verification cookie
+        web.setcookie(
+            'vf', cookie_value, expires=self.VERIFICATION_COOKIE_EXPIRES_SECONDS
+        )
 
         # Track verification success
         stats.increment('ol.stats.verify_human.verified')

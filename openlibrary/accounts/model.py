@@ -95,6 +95,60 @@ def get_secret_key():
     return config.infobase['secret_key']
 
 
+def create_verification_cookie_value() -> str:
+    """Create a signed verification cookie value.
+
+    Returns:
+        str: Cookie value in format "vf/session_id,signature"
+    """
+    # Generate random session ID (server-side only)
+    session_id = secrets.token_urlsafe(32)
+
+    # Create the data portion
+    data = f"vf/{session_id}"
+
+    # Sign it (creates: "salt$hash")
+    signature = generate_hash(get_secret_key(), data)
+
+    # Combine into single cookie value
+    cookie_value = f"{data},{signature}"
+    # Result: "vf/kJ8x3mP...,a1b2c$d3e4f5"
+
+    return cookie_value
+
+
+def verify_verification_cookie(cookie_value: str) -> bool:
+    """Verify a verification cookie value.
+
+    Args:
+        cookie_value: The cookie value to verify
+
+    Returns:
+        bool: True if cookie is valid and properly signed, False otherwise
+    """
+    if not cookie_value:
+        return False
+
+    # Parse the single cookie
+    parts = cookie_value.split(",")
+    if len(parts) != 2:
+        return False  # Malformed cookie
+
+    data, signature = parts
+    # data = "vf/kJ8x3mP..."
+    # signature = "a1b2c$d3e4f5"
+
+    # Verify the signature (NO database lookup needed!)
+    if not verify_hash(get_secret_key(), data, signature):
+        return False  # Cookie was tampered with or forged
+
+    # Extract session ID (we can trust it because signature is valid)
+    if not data.startswith("vf/"):
+        return False
+
+    return True
+
+
 def generate_login_code_for_user(username: str) -> str:
     """
     Args:
