@@ -23,7 +23,6 @@ Requirements:
     - OpenLibrary server running on localhost:8080
 """
 
-import json
 import sys
 import urllib.parse
 from typing import Any
@@ -35,41 +34,45 @@ import requests
 BASE_URL = "http://localhost:8080/partials.json"
 
 
-def build_book_lists_url(data: dict) -> str:
+def build_book_lists_url(workId: str, editionId: str) -> str:
     """
     Build the URL for the BPListsSection partial endpoint.
 
-    Matches the JavaScript buildPartialsUrl function behavior.
+    Matches the JavaScript buildPartialsUrl function behavior,
+    which uses separate query parameters (not JSON data).
 
     Args:
-        data: Dictionary containing workId and editionId
+        workId: The work ID (e.g., '/works/OL53924W')
+        editionId: The edition ID (e.g., '/books/OL7353617M')
 
     Returns:
         Complete URL with query parameters
     """
-    params = {'_component': 'BPListsSection', 'data': json.dumps(data)}
+    params = {'_component': 'BPListsSection', 'workId': workId, 'editionId': editionId}
     query_string = urllib.parse.urlencode(params)
     return f"{BASE_URL}?{query_string}"
 
 
-def make_request(data: dict, description: str) -> dict[str, Any]:
+def make_request(workId: str, editionId: str, description: str) -> dict[str, Any]:
     """
     Make a request to the BPListsSection endpoint and return the response.
 
     Args:
-        data: The data payload to send
+        workId: The work ID
+        editionId: The edition ID
         description: Description of the test case for logging
 
     Returns:
         Parsed JSON response from the server
     """
-    url = build_book_lists_url(data)
+    url = build_book_lists_url(workId, editionId)
 
     print(f"\n{'=' * 60}")
     print(f"Test: {description}")
     print(f"{'=' * 60}")
     print(f"Request URL: {url}")
-    print(f"Request Data: {json.dumps(data, indent=2)}")
+    print(f"workId: {workId}")
+    print(f"editionId: {editionId}")
 
     try:
         response = requests.get(url, timeout=30)
@@ -113,72 +116,49 @@ def make_request(data: dict, description: str) -> dict[str, Any]:
 @pytest.mark.integration
 def test_with_work_id():
     """Test with a work ID."""
-    data = {
-        'workId': '/works/OL53924W',
-        'editionId': '',
-    }
-    return make_request(data, "Book page lists with work ID")
+    return make_request(
+        workId='/works/OL54120W',
+        editionId='',
+        description="Book page lists with work ID",
+    )
 
 
 @pytest.mark.integration
 def test_with_edition_id():
     """Test with an edition ID."""
-    data = {
-        'workId': '',
-        'editionId': '/books/OL7353617M',
-    }
-    return make_request(data, "Book page lists with edition ID")
+    return make_request(
+        workId='',
+        editionId='/books/OL2058361M',
+        description="Book page lists with edition ID",
+    )
 
 
 @pytest.mark.integration
 def test_with_both_ids():
     """Test with both work and edition IDs."""
-    data = {
-        'workId': '/works/OL53924W',
-        'editionId': '/books/OL7353617M',
-    }
-    return make_request(data, "Book page lists with both work and edition IDs")
+    return make_request(
+        workId='/works/OL54120W',
+        editionId='/books/OL2058361M',
+        description="Book page lists with both work and edition IDs",
+    )
 
 
 @pytest.mark.integration
 def test_with_empty_ids():
     """Test with empty IDs (should return no lists)."""
-    data = {
-        'workId': '',
-        'editionId': '',
-    }
-    return make_request(data, "Book page lists with empty IDs")
+    return make_request(
+        workId='', editionId='', description="Book page lists with empty IDs"
+    )
 
 
 @pytest.mark.integration
 def test_with_nonexistent_work():
     """Test with a non-existent work ID."""
-    data = {
-        'workId': '/works/OL99999999W',
-        'editionId': '',
-    }
-    return make_request(data, "Book page lists with non-existent work ID")
-
-
-@pytest.mark.integration
-def test_malformed_json():
-    """Test what happens with malformed JSON (should fail at request level)."""
-    # This test manually constructs a URL with bad JSON
-    url = f"{BASE_URL}?_component=BPListsSection&data=not_valid_json"
-
-    print(f"\n{'=' * 60}")
-    print("Test: Malformed JSON data")
-    print(f"{'=' * 60}")
-    print(f"Request URL: {url}")
-
-    try:
-        response = requests.get(url, timeout=30)
-        print(f"Status Code: {response.status_code}")
-        print(f"Response: {response.text[:500]}")
-        return {'status_code': response.status_code, 'text': response.text}
-    except requests.exceptions.RequestException as e:
-        print(f"Request Error: {e}")
-        return {'error': str(e)}
+    return make_request(
+        workId='/works/OL99999999W',
+        editionId='',
+        description="Book page lists with non-existent work ID",
+    )
 
 
 def run_all_tests():
@@ -195,7 +175,6 @@ def run_all_tests():
         ("Both IDs", test_with_both_ids),
         ("Empty IDs", test_with_empty_ids),
         ("Non-existent Work", test_with_nonexistent_work),
-        ("Malformed JSON", test_malformed_json),
     ]
 
     results = []

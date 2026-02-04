@@ -109,8 +109,8 @@ def test_affiliate_links_with_isbn():
     """Test AffiliateLinks with ISBN and title."""
     data = {
         'args': [
-            {'isbn': ['9780141439518'], 'title': 'Pride and Prejudice'},
-            'OL53924W',  # work ID
+            'Pride and Prejudice',  # title string
+            {'isbn': ['9780141439518']},  # opts dict
         ]
     }
     result = make_request(data, "AffiliateLinks with ISBN")
@@ -124,8 +124,8 @@ def test_affiliate_links_without_isbn():
     """Test AffiliateLinks without ISBN (only title and work ID)."""
     data = {
         'args': [
-            {'title': 'Pride and Prejudice'},
-            'OL53924W',
+            'Pride and Prejudice',  # title string
+            {},  # empty opts dict
         ]
     }
     result = make_request(data, "AffiliateLinks without ISBN")
@@ -149,7 +149,7 @@ def test_affiliate_links_single_arg():
     """Test AffiliateLinks with single arg (should error)."""
     data = {
         'args': [
-            {'isbn': ['9780141439518']},
+            'Pride and Prejudice',  # title string
         ]
     }
     result = make_request(data, "AffiliateLinks with single arg")
