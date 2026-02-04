@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
@@ -115,10 +116,30 @@ def setup_i18n(app: FastAPI):
         return response
 
 
+def setup_debugpy():
+    import debugpy  # noqa: T100
+
+    # Start listening for debugger connections
+    debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
+    logger.info(
+        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'."
+    )
+
+
 sentry: Sentry | None = None
 
 
-def create_app() -> FastAPI:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+        setup_debugpy()
+    yield
+    # Shutdown (if needed in the future)
+
+
+def create_app() -> FastAPI | None:
     if "pytest" not in sys.modules:
         _setup_env()
 
@@ -133,7 +154,7 @@ def create_app() -> FastAPI:
 
             global sentry
             if sentry is not None:
-                return
+                return None
             sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
             set_tag("fastapi", True)
 
@@ -141,7 +162,12 @@ def create_app() -> FastAPI:
             logger.exception("Failed to initialize legacy WSGI app")
             raise
 
-    app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
+    app = FastAPI(
+        title="OpenLibrary ASGI",
+        version="0.0.1",
+        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        lifespan=lifespan,
+    )
 
     app.add_middleware(
         CORSMiddleware,
@@ -178,12 +204,12 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.account import router as account_router  # type: ignore
-    from openlibrary.fastapi.languages import router as languages_router  # type: ignore
-    from openlibrary.fastapi.partials import router as partials_router  # type: ignore
-    from openlibrary.fastapi.publishers import router as publishers_router  # type: ignore
-    from openlibrary.fastapi.search import router as search_router  # type: ignore
-    from openlibrary.fastapi.subjects import router as subjects_router  # type: ignore
+    from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.partials import router as partials_router
+    from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.subjects import router as subjects_router
 
     # Include routers
     app.include_router(languages_router)

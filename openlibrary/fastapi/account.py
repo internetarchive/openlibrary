@@ -92,6 +92,7 @@ async def check_authentication(
         user_key=user.user_key if user else None,
         timestamp=user.timestamp if user else None,
         is_authenticated=user is not None,
+        error=None,
         cookie_name=cookie_name,
         cookie_value=(
             cookie_value[:50] + "..."
@@ -208,7 +209,7 @@ async def login(
         )
 
     # Determine cookie expiration
-    expires = 3600 * 24 * 365 if form_data.remember else ""
+    expires = 3600 * 24 * 365 if form_data.remember else None
 
     # Generate auth token (same way web.py does it via Account.generate_login_code())
     login_code = generate_login_code_for_user(ol_username)

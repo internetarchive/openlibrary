@@ -65,6 +65,7 @@ repos:
           - types-python-dateutil
           - types-requests
           - types-simplejson
+          - fastapi
 
   - repo: https://github.com/abravalheri/validate-pyproject
     rev: v0.24.1

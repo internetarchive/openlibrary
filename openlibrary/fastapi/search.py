@@ -83,23 +83,7 @@ class PublicQueryOptions(BaseModel):
     language: list[str] = Field(
         [],
         description="Filter by language using three-letter language codes.",
-        examples={
-            "english": {
-                "summary": "English",
-                "description": "Returns results in English",
-                "value": ["eng"],
-            },
-            "spanish": {
-                "summary": "Spanish",
-                "description": "Returns results in Spanish",
-                "value": ["spa"],
-            },
-            "english_and_spanish": {
-                "summary": "English + Spanish",
-                "description": "Bilingual results",
-                "value": ["eng", "spa"],
-            },
-        },
+        examples=[["eng"], ["spa"], ["eng", "spa"]],
     )
     author_facet: list[str] = Field(
         [],
@@ -120,10 +104,10 @@ class PublicQueryOptions(BaseModel):
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
     fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
-        ",".join(sorted(WorkSearchScheme.default_fetched_fields)),
+        sorted(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
-    query: Annotated[dict[str, Any], BeforeValidator(parse_query_json)] = Field(
+    query: Annotated[dict[str, Any] | None, BeforeValidator(parse_query_json)] = Field(
         None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
     )
     sort: str | None = Field(None, description="The sort order of results.")
@@ -132,11 +116,13 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         description="The number of spellcheck suggestions.",
     )
 
+    @staticmethod
     def parse_fields_string(v: str | list[str]) -> list[str]:
         if isinstance(v, str):
             v = [v]
         return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
+    @staticmethod
     def parse_query_json(v: str) -> dict[str, Any]:
         try:
             return json.loads(v)
