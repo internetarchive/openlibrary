@@ -5,13 +5,11 @@ FastAPI endpoints for yearly reading goals.
 from __future__ import annotations
 
 from datetime import datetime
-from math import floor
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form
 from pydantic import BaseModel, Field, model_validator
 
-from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
@@ -86,50 +84,7 @@ class ReadingGoalForm(BaseModel):
         return self
 
 
-class YearlyGoal:
-    """Helper class for calculating reading goal progress."""
-
-    def __init__(self, year: int, goal: int, books_read: int):
-        self.year = year
-        self.goal = goal
-        self.books_read = books_read
-        self.progress = floor((books_read / goal) * 100)
-
-    @classmethod
-    def calc_progress(cls, books_read: int, goal: int) -> int:
-        """Calculate progress percentage."""
-        return floor((books_read / goal) * 100)
-
-
-def get_reading_goals(
-    user: AuthenticatedUser, year: int | None = None
-) -> YearlyGoal | None:
-    """Get reading goals for the current user.
-
-    Args:
-        user: The authenticated user
-        year: Optional year to filter by (defaults to current year)
-
-    Returns:
-        YearlyGoal object if goals exist, None otherwise
-    """
-    if not year:
-        year = datetime.now().year
-
-    data = YearlyReadingGoals.select_by_username_and_year(user.username, year)
-    if not data:
-        return None
-
-    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
-        user.username, BookshelfEvent.FINISH, year
-    )
-    read_count = len(books_read)
-    result = YearlyGoal(data[0]['year'], data[0]['target'], read_count)
-
-    return result
-
-
-@router.get("/reading-goal", response_model=ReadingGoalsResponse)
+@router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
 async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     year: int | None = None,
@@ -162,7 +117,7 @@ async def get_reading_goals_endpoint(
     return ReadingGoalsResponse(status="ok", goal=goals)
 
 
-@router.post("/reading-goal", response_model=ReadingGoalUpdateResponse)
+@router.post("/reading-goal.json", response_model=ReadingGoalUpdateResponse)
 async def update_reading_goal_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     form: Annotated[ReadingGoalForm, Form()],
