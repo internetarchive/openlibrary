@@ -139,7 +139,7 @@ async def lifespan(app: FastAPI):
     # Shutdown (if needed in the future)
 
 
-def create_app() -> FastAPI:
+def create_app() -> FastAPI | None:
     if "pytest" not in sys.modules:
         _setup_env()
 
@@ -154,7 +154,7 @@ def create_app() -> FastAPI:
 
             global sentry
             if sentry is not None:
-                return
+                return None
             sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
             set_tag("fastapi", True)
 
