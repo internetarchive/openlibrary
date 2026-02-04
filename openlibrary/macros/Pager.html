@@ -1,7 +1,6 @@
 $def with (page, num_found, results_per_page=20)
 
 $ pages = ceil(num_found / results_per_page)
-
 $if pages != 1:
     $ pages_in_set = 10
     $ half = pages_in_set // 2
@@ -18,94 +17,6 @@ $if pages != 1:
         $ first_page_in_set = max((page-half, 1))
         $ last_page_in_set = page+half
 
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-
-$ pages = 5302
-$ page = 8
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-
-$ pages = 5
-$ page = 1
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-$ pages = 10
-$ page = 1
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-$ pages = 10
-$ page = 3
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-$ pages = 5203
-$ page = 24
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-$ pages = 5203
-$ page = 5202
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-
-
-$ pages = 10
-$ page = 3
-
-<div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
-    <ol-pagination
-        total-pages="$pages"
-        current-page="$page"
-        base-url="$changequery()"
-    ></ol-pagination>
-</div>
-$if pages != 1:
     <div class="pagination">
     $if page != 1:
         <a href="$changequery(page=None)" class="ChoosePage" data-ol-link-track="Pager|First">&laquo;&nbsp;$_('First')</a>
@@ -122,7 +33,3 @@ $if pages != 1:
     $if page < pages:
         <a href="$changequery(page=page+1)" class="ChoosePage" data-ol-link-track="Pager|Next">$_('Next')&nbsp;&gt;</a>
     </div>
-
-
-    <br />
-    <br />
