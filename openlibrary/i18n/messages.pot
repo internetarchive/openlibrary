@@ -774,11 +774,11 @@ msgstr ""
 msgid "added to"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show less"
 msgstr ""
 
@@ -1773,31 +1773,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
