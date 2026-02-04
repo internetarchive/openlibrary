@@ -348,7 +348,9 @@ def test_compare_fastapi_and_webpy_responses(session):
         r_fastapi = session_fastapi.get(
             f"{BASE_URL_FASTAPI}/reading-goal.json?year={test_year_fastapi}"
         )
-        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year_webpy}")
+        r_webpy = session_webpy.get(
+            f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year_webpy}"
+        )
 
         assert r_fastapi.status_code == r_webpy.status_code == 200
         data_fastapi = r_fastapi.json()
