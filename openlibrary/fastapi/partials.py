@@ -64,10 +64,8 @@ async def partials_endpoint(
         return AffiliateLinksPartial(data=parsed_data).generate()
 
     elif _component == "BPListsSection":
-        # Use separate query parameters
-        return BookPageListsPartial(
-            data={"workId": workId, "editionId": editionId}
-        ).generate()
+        # Pass parameters directly - much simpler!
+        return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
     elif _component == "FulltextSearchSuggestion":
         # data is just a string, not JSON
