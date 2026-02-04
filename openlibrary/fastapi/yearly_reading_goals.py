@@ -1,0 +1,194 @@
+"""
+FastAPI endpoints for yearly reading goals.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime
+from math import floor
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Form
+from pydantic import BaseModel, Field, model_validator
+
+from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
+from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    require_authenticated_user,
+)
+
+router = APIRouter()
+
+MAX_READING_GOAL = 10_000
+
+
+class ReadingGoalItem(BaseModel):
+    """A single reading goal entry."""
+
+    year: int = Field(..., description="The year for this reading goal")
+    goal: int = Field(..., description="The target number of books to read")
+    progress: int = Field(..., description="Current progress towards the goal")
+
+
+class ReadingGoalsResponse(BaseModel):
+    """Response model for reading goals GET endpoint."""
+
+    status: str = Field(default="ok", description="Response status")
+    goal: list[ReadingGoalItem] = Field(
+        default_factory=list, description="List of reading goals"
+    )
+
+
+class ReadingGoalUpdateResponse(BaseModel):
+    """Response model for reading goals POST endpoint."""
+
+    status: str = Field(default="ok", description="Response status")
+
+
+class ReadingGoalForm(BaseModel):
+    """Form data for creating or updating a reading goal.
+
+    Uses Pydantic model_validator to handle complex conditional validation
+    that depends on multiple fields (is_update flag affects goal validation).
+    """
+
+    goal: int = Field(
+        default=0,
+        ge=0,
+        le=MAX_READING_GOAL,
+        description="Target number of books to read (0-10000). Use 0 with is_update to delete.",
+    )
+    year: int | None = Field(
+        default=None,
+        description="Year for this reading goal. Defaults to current year for creates, required for updates.",
+    )
+    is_update: str | None = Field(
+        default=None,
+        description="Set to any value to indicate this is an update operation (not create).",
+    )
+
+    @model_validator(mode='after')
+    def validate_goal_logic(self) -> ReadingGoalForm:
+        """Validate goal based on whether this is an update or create operation.
+
+        - For creates: goal must be >= 1
+        - For updates: goal must be >= 0, and year is required
+        """
+        is_update = self.is_update is not None
+
+        if is_update:
+            if not self.year:
+                raise ValueError('Year required to update reading goals')
+        elif not self.goal:
+            raise ValueError('Reading goal must be a positive integer')
+
+        return self
+
+
+class YearlyGoal:
+    """Helper class for calculating reading goal progress."""
+
+    def __init__(self, year: int, goal: int, books_read: int):
+        self.year = year
+        self.goal = goal
+        self.books_read = books_read
+        self.progress = floor((books_read / goal) * 100)
+
+    @classmethod
+    def calc_progress(cls, books_read: int, goal: int) -> int:
+        """Calculate progress percentage."""
+        return floor((books_read / goal) * 100)
+
+
+def get_reading_goals(
+    user: AuthenticatedUser, year: int | None = None
+) -> YearlyGoal | None:
+    """Get reading goals for the current user.
+
+    Args:
+        user: The authenticated user
+        year: Optional year to filter by (defaults to current year)
+
+    Returns:
+        YearlyGoal object if goals exist, None otherwise
+    """
+    if not year:
+        year = datetime.now().year
+
+    data = YearlyReadingGoals.select_by_username_and_year(user.username, year)
+    if not data:
+        return None
+
+    books_read = BookshelvesEvents.select_distinct_by_user_type_and_year(
+        user.username, BookshelfEvent.FINISH, year
+    )
+    read_count = len(books_read)
+    result = YearlyGoal(data[0]['year'], data[0]['target'], read_count)
+
+    return result
+
+
+@router.get("/reading-goal", response_model=ReadingGoalsResponse)
+async def get_reading_goals_endpoint(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    year: int | None = None,
+) -> ReadingGoalsResponse:
+    """Get reading goals for the authenticated user.
+
+    Args:
+        user: The authenticated user (from session cookie)
+        year: Optional year to filter by. If not provided, returns all goals.
+
+    Returns:
+        ReadingGoalsResponse with status and list of goals
+
+    Raises:
+        HTTPException: 401 if not authenticated
+    """
+    if year:
+        records = YearlyReadingGoals.select_by_username_and_year(user.username, year)
+    else:
+        records = YearlyReadingGoals.select_by_username(user.username)
+    goals = [
+        ReadingGoalItem(
+            year=getattr(record, 'year', 0),
+            goal=getattr(record, 'target', 0),
+            progress=getattr(record, 'current', 0),
+        )
+        for record in records
+    ]
+
+    return ReadingGoalsResponse(status="ok", goal=goals)
+
+
+@router.post("/reading-goal", response_model=ReadingGoalUpdateResponse)
+async def update_reading_goal_endpoint(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    form: Annotated[ReadingGoalForm, Form()],
+) -> ReadingGoalUpdateResponse:
+    """Create or update a reading goal for the authenticated user.
+
+    Args:
+        user: The authenticated user (from session cookie)
+        form: Reading goal form data with goal, year, and is_update flag.
+              Validation is handled by Pydantic model_validator.
+
+    Returns:
+        ReadingGoalUpdateResponse with status
+
+    Raises:
+        HTTPException: 422 for validation errors, 401 if not authenticated
+    """
+    current_year = form.year or datetime.now().year
+    if form.is_update is not None:
+        # year is guaranteed to be not None here due to model_validator
+        assert form.year is not None
+        if form.goal == 0:
+            YearlyReadingGoals.delete_by_username_and_year(user.username, form.year)
+        else:
+            YearlyReadingGoals.update_target(user.username, form.year, form.goal)
+    else:
+        YearlyReadingGoals.create(user.username, current_year, form.goal)
+
+    return ReadingGoalUpdateResponse(status="ok")
