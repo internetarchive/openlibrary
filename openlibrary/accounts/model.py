@@ -143,10 +143,7 @@ def verify_verification_cookie(cookie_value: str) -> bool:
         return False  # Cookie was tampered with or forged
 
     # Extract session ID (we can trust it because signature is valid)
-    if not data.startswith("vf/"):
-        return False
-
-    return True
+    return data.startswith("vf/")
 
 
 def generate_login_code_for_user(username: str) -> str:
