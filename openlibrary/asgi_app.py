@@ -122,7 +122,7 @@ def setup_debugpy():
     # Start listening for debugger connections
     debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
     logger.info(
-        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI container'."
+        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'."
     )
 
 
