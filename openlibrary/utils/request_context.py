@@ -27,6 +27,7 @@ class RequestContextVars:
     lang: str | None
     solr_editions: bool | None
     print_disabled: bool
+    is_recognized_bot: bool = False
     is_bot: bool = False
 
 
@@ -35,6 +36,61 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
 
+
+USER_AGENT_BOTS = [
+    'sputnikbot',
+    'dotbot',
+    'semrushbot',
+    'googlebot',
+    'yandexbot',
+    'monsidobot',
+    'kazbtbot',
+    'seznambot',
+    'dubbotbot',
+    '360spider',
+    'redditbot',
+    'yandexmobilebot',
+    'linkdexbot',
+    'musobot',
+    'mojeekbot',
+    'focuseekbot',
+    'behloolbot',
+    'startmebot',
+    'yandexaccessibilitybot',
+    'uptimerobot',
+    'femtosearchbot',
+    'pinterestbot',
+    'toutiaospider',
+    'yoozbot',
+    'parsijoobot',
+    'equellaurlbot',
+    'donkeybot',
+    'paperlibot',
+    'nsrbot',
+    'discordbot',
+    'ahrefsbot',
+    'coccocbot',
+    'buzzbot',
+    'laserlikebot',
+    'baiduspider',
+    'bingbot',
+    'mj12bot',
+    'yoozbotadsbot',
+    'ahrefsbot',
+    'amazonbot',
+    'applebot',
+    'bingbot',
+    'brightbot',
+    'gptbot',
+    'petalbot',
+    'semanticscholarbot',
+    'yandex.com/bots',
+    'icc-crawler',
+]
+
+def _compute_is_recognized_bot(user_agent: str) -> bool:
+    my_ua = user_agent.lower()
+    return any(ua in my_ua for ua in USER_AGENT_BOTS)
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     """Determine if the request is from a bot.
@@ -46,57 +102,7 @@ def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     Returns:
         True if the request appears to be from a bot, False otherwise
     """
-    user_agent_bots = [
-        'sputnikbot',
-        'dotbot',
-        'semrushbot',
-        'googlebot',
-        'yandexbot',
-        'monsidobot',
-        'kazbtbot',
-        'seznambot',
-        'dubbotbot',
-        '360spider',
-        'redditbot',
-        'yandexmobilebot',
-        'linkdexbot',
-        'musobot',
-        'mojeekbot',
-        'focuseekbot',
-        'behloolbot',
-        'startmebot',
-        'yandexaccessibilitybot',
-        'uptimerobot',
-        'femtosearchbot',
-        'pinterestbot',
-        'toutiaospider',
-        'yoozbot',
-        'parsijoobot',
-        'equellaurlbot',
-        'donkeybot',
-        'paperlibot',
-        'nsrbot',
-        'discordbot',
-        'ahrefsbot',
-        'coccocbot',
-        'buzzbot',
-        'laserlikebot',
-        'baiduspider',
-        'bingbot',
-        'mj12bot',
-        'yoozbotadsbot',
-        'ahrefsbot',
-        'amazonbot',
-        'applebot',
-        'bingbot',
-        'brightbot',
-        'gptbot',
-        'petalbot',
-        'semanticscholarbot',
-        'yandex.com/bots',
-        'icc-crawler',
-    ]
-
+    
     # Check hhcl header first (set by nginx)
     if hhcl == '1':
         return True
@@ -105,9 +111,7 @@ def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     if not user_agent:
         return True
 
-    user_agent = user_agent.lower()
-    return any(bot in user_agent for bot in user_agent_bots)
-
+    return _compute_is_recognized_bot(user_agent)
 
 def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context."""
@@ -147,6 +151,9 @@ def set_context_from_legacy_web_py() -> None:
     print_disabled = bool(web.cookies().get('pd', False))
 
     # Compute is_bot once during request setup
+    is_recognized_bot = _compute_is_recognized_bot(
+        user_agent=web.ctx.env.get("HTTP_USER_AGENT", "")
+    )
     is_bot = _compute_is_bot(
         user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
         hhcl=web.ctx.env.get("HTTP_X_HHCL"),
@@ -160,6 +167,7 @@ def set_context_from_legacy_web_py() -> None:
             lang=web.ctx.lang,
             solr_editions=solr_editions,
             print_disabled=print_disabled,
+            is_recognized_bot=is_recognized_bot,
             is_bot=is_bot,
         )
     )

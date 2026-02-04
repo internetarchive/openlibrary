@@ -1229,33 +1229,40 @@ def is_bot():
     """Check if the current request is from a bot."""
     return req_context.get().is_bot
 
+def is_recognized_bot():
+    return req_context.get().is_recognized_bot
 
 def is_suspicious_visitor():
     """Check if the current visitor is suspicious and needs human verification.
 
-    A suspicious visitor is someone who:
-    - Is not logged in
-    - Is not a known bot (as determined by is_bot())
-    - Does not have the verification cookie (vf=1)
+    A suspicious visitor is someone who is NOT:
+    1. a recognized bot
+    2. coming from a referer
+    3. carrying a verification cookie (vf=1)
+    4. logged in
 
     Returns:
         bool: True if visitor is suspicious and needs verification, False otherwise
     """
+    # Check if it's a known bot
+    if is_recognized_bot():
+        return False
+
+    # Check if there's a referer header
+    if web.ctx.env.get('HTTP_REFERER'):
+        return False
+    
+    # Check if visitor has already been verified (has vf=1 cookie)
+    if web.cookies().get('vf') == '1':
+        return False
+
     # Check if user is logged in
     try:
-        user = web.ctx.site.get_user()
-        if user:
+        if web.ctx.site.get_user():
             return False
     except Exception:
         pass
-
-    # Check if it's a known bot
-    if is_bot():
-        return False
-
-    # Check if visitor has already been verified (has vf=1 cookie)
-    return web.cookies().get('vf') != '1'
-
+    return True
 
 def require_human_verification():
     """Show the human verification challenge page.
