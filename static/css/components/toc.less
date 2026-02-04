@@ -2,10 +2,9 @@
 @import (reference) "../less/colors.less";
 
 .toc__entry {
-  line-height: 1.2em;
-
+  font-size: 14px;
   border-radius: 4px;
-  padding: 3px 8px;
+  padding: 3px 0;
   @media only screen and (hover: none) {
     padding: 8px; /* Increase padding for touch-only devices */
   }
@@ -18,7 +17,7 @@
 
   .toc__dots {
     flex: 1;
-    border-bottom: 1px dotted;
+    border-bottom: 1px dotted @lighter-grey;
     height: 1.2em;
   }
 
