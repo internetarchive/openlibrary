@@ -31,8 +31,7 @@ export function matchStaticImages({ url }) {
 export function matchStaticBuild({ url }) {
     const regex = /^\/static\/build\/.*(\.js|\.css)/;
     const localhost = url.origin.includes('localhost')
-    const gitpod = url.origin.includes('gitpod')
-    return !localhost && !gitpod && regex.test(url.pathname);
+    return !localhost && regex.test(url.pathname);
 }
 
 export function matchArchiveOrgImage({ url }) {

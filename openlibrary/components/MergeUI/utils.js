@@ -47,7 +47,9 @@ export async function fetchWithRetry(input, init = {}, maxRetries = 5, initialDe
 function hash_subel(field, value) {
     switch (field) {
     case 'authors':
-        return (value.type.key || value.type) + value.author.key;
+        // Handle the two possible formats for authors in works and editions
+        const authorKey = value.author ? value.author.key : value.key;
+        return (value.type.key || value.type) + authorKey;
     case 'covers':
     case 'subjects':
     case 'subject_people':
@@ -269,7 +271,8 @@ function save_many(items, comment, action, data) {
  */
 export async function get_author_names(works) {
     const authorIds = _.uniq(works).flatMap(record =>
-        (record.authors || []).map(authorEntry => authorEntry.author.key)
+        (record.authors || [])
+            .map(authorEntry => authorEntry.author?.key ?? authorEntry.key)
     )
 
     if (!authorIds.length) return {};

@@ -19,8 +19,11 @@ $if ("stats" in ctx.features) and query_param('debug'):
 $if show_ol_shell:
   $:render_template("lib/nav_foot", page)
 
-<script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+$if not is_bot():
+  <script src="/cdn/archive.org/athena.js" type="text/javascript"></script>
+
 <script src="$static_url('build/js/all.js')" type="text/javascript"></script>
+<script src="$static_url('build/lit-components/production/ol-components.js')" type="module"></script>
 <div class="analytics-stats-time-calculator" data-time="$total_time"></div>
 </body>
 </html>

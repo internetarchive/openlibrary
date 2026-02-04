@@ -618,14 +618,6 @@ msgstr ""
 msgid "Listen"
 msgstr ""
 
-#: ReadMore.html
-msgid "Read more"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read less"
-msgstr ""
-
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
@@ -3479,6 +3471,12 @@ msgid "Items"
 msgstr ""
 
 #: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
+msgstr ""
+
+#: admin/index.html
 msgid "Stats"
 msgstr ""
 
@@ -3612,6 +3610,14 @@ msgstr ""
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
+msgstr ""
+
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
 msgstr ""
 
 #: admin/loans_table.html
@@ -7619,6 +7625,14 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import override
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -35,6 +36,7 @@ class publishers(subjects.subjects):
         return "publishers" in web.ctx.features
 
 
+@deprecated("migrated to fastapi")
 class publishers_json(subjects.subjects_json):
     path = '(/publishers/[^/]+)'
     encoding = "json"

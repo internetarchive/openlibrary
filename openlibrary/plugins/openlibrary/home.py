@@ -18,7 +18,7 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
-from openlibrary.utils.async_utils import set_context_from_legacy_web_py
+from openlibrary.utils.request_context import set_context_from_legacy_web_py
 
 logger = logging.getLogger("openlibrary.home")
 

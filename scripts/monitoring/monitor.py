@@ -11,6 +11,7 @@ import time
 import httpx
 
 from scripts.monitoring.haproxy_monitor import GraphiteEvent
+from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
     bash_run,
     get_service_ip,
@@ -24,6 +25,7 @@ if not HOST:
     raise ValueError("HOSTNAME environment variable not set.")
 
 SERVER = HOST.split(".")[0]  # eg "ol-www0"
+GRAPHITE_URL = "graphite.us.archive.org:2004"
 scheduler = OlAsyncIOScheduler("OL-MONITOR")
 
 
@@ -71,7 +73,7 @@ async def monitor_haproxy():
 
     await main(
         haproxy_url=f'http://{web_haproxy_ip}:7072/admin?stats',
-        graphite_address='graphite.us.archive.org:2004',
+        graphite_address=GRAPHITE_URL,
         prefix='stats.ol.haproxy',
         dry_run=False,
         fetch_freq=10,
@@ -92,7 +94,7 @@ async def monitor_solr():
             'solr_builder-solr_prod-1' if SERVER == 'ol-solr1' else 'openlibrary-solr-1'
         ),
         graphite_prefix=f'stats.ol.{SERVER}',
-        graphite_address='graphite.us.archive.org:2004',
+        graphite_address=GRAPHITE_URL,
     )
 
 
@@ -124,8 +126,7 @@ async def monitor_partner_useragents():
                 agent_counts['other'] += count
         return agent_counts
 
-    known_names = extract_agent_counts(
-        """
+    known_names = extract_agent_counts("""
     177 Whefi/1.0 (contact@whefi.com)
      85 Bookhives/1.0 (paulpleela@gmail.com)
      85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
@@ -139,8 +140,7 @@ async def monitor_partner_useragents():
       2 Leaders.org (leaders.org) janakan@leaders.org
       2 AwarioSmartBot/1.0 (+https://awario.com/bots.html; bots@awario.com)
       1 ISBNdb (support@isbndb.com)
-    """
-    )
+    """)
 
     recent_uas = bash_run(
         """obfi_in_docker obfi_previous_minute | obfi_grep_bots -v | grep -Eo '[^"]+@[^"]+' | sort | uniq -c | sort -rn""",
@@ -157,7 +157,7 @@ async def monitor_partner_useragents():
                 path=f'stats.ol.partners.{agent}', value=float(count), timestamp=ts
             )
         )
-    GraphiteEvent.submit_many(events, 'graphite.us.archive.org:2004')
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-www0"], scheduler)
@@ -171,7 +171,14 @@ async def monitor_empty_homepage():
             path="stats.ol.homepage_book_count",
             value=book_count,
             timestamp=ts,
-        ).submit('graphite.us.archive.org:2004')
+        ).submit(GRAPHITE_URL)
+
+
+@limit_server(["ol-home0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_solr_updater_lag():
+    (await get_solr_updater_lag_event(solr_next=False)).submit(GRAPHITE_URL)
+    (await get_solr_updater_lag_event(solr_next=True)).submit(GRAPHITE_URL)
 
 
 async def main():

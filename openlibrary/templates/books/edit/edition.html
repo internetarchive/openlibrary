@@ -167,7 +167,7 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
     <div class="formBackRight">
-        <div class="illustration">
+        <div class="illustration editEditionCover">
             $:render_template("covers/book_cover", book)
             $:render_template("covers/change", book)
         </div>
@@ -656,8 +656,8 @@ $if ctx.user:
 
 $if is_admin:
     <fieldset class="major adminOnly">
-        <legend>$_("Admin Only")</legend>
         <div class="formElement">
+        <legend>$_("Admin Only")</legend>
             <div class="label">
                 <label for="additional_metadata">$_("Additional Metadata")</label>
                 <span class="tip">$_('This field can accept arbitrary key:value pairs')</span>

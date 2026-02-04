@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Utility script to list html files which might be missing i18n strings."""
+
 import glob
 import re
 import sys
