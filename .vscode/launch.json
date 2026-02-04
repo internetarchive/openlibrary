@@ -5,12 +5,27 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python: Attach",
+      "name": "OL: Attach to Web Container",
       "type": "debugpy",
       "request": "attach",
       "connect": {
         "host": "localhost",
         "port": 3000
+      },
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}",
+          "remoteRoot": "/openlibrary/"
+        }
+      ]
+    },
+    {
+      "name": "OL: Attach to FastAPI Container",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 3001
       },
       "pathMappings": [
         {
