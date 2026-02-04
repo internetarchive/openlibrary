@@ -128,7 +128,7 @@ def setup_debugpy():
 
 sentry: Sentry | None = None
 
-  
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
