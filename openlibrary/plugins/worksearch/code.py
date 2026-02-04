@@ -13,12 +13,12 @@ from unicodedata import normalize
 
 import httpx
 import web
+from requests import Response
+
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
-from requests import Response
-
 from openlibrary.core import cache
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
@@ -717,7 +717,11 @@ class search(delegate.page):
 
         # Check if this is an expensive search that requires human verification
         if self._is_expensive_search(i):
-            from openlibrary.plugins.openlibrary.code import is_suspicious_visitor, require_human_verification
+            from openlibrary.plugins.openlibrary.code import (
+                is_suspicious_visitor,
+                require_human_verification,
+            )
+
             if is_suspicious_visitor():
                 return require_human_verification()
 

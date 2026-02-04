@@ -9,9 +9,10 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -20,7 +21,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -1309,8 +1309,9 @@ class account_verify_human(delegate.page):
 
     Sets the vf=1 cookie and redirects back to the original URL.
     """
+
     path = "/account/verify_human"
-    
+
     # Cookie expires in 30 days
     VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
 

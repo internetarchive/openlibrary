@@ -88,9 +88,11 @@ USER_AGENT_BOTS = [
     'icc-crawler',
 ]
 
+
 def _compute_is_recognized_bot(user_agent: str) -> bool:
     my_ua = user_agent.lower()
     return any(ua in my_ua for ua in USER_AGENT_BOTS)
+
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     """Determine if the request is from a bot.
@@ -102,7 +104,7 @@ def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
     Returns:
         True if the request appears to be from a bot, False otherwise
     """
-    
+
     # Check hhcl header first (set by nginx)
     if hhcl == '1':
         return True
@@ -112,6 +114,7 @@ def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
         return True
 
     return _compute_is_recognized_bot(user_agent)
+
 
 def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context."""

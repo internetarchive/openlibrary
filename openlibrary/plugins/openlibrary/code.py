@@ -14,11 +14,11 @@ import sys
 from time import time
 from urllib.parse import parse_qs, urlencode
 
-import infogami
 import requests
 import web
 import yaml
 
+import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -35,6 +35,7 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
 
+import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features
@@ -46,8 +47,6 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
-
-import openlibrary.core.stats
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
@@ -1229,8 +1228,10 @@ def is_bot():
     """Check if the current request is from a bot."""
     return req_context.get().is_bot
 
+
 def is_recognized_bot():
     return req_context.get().is_recognized_bot
+
 
 def is_suspicious_visitor():
     """Check if the current visitor is suspicious and needs human verification.
@@ -1251,7 +1252,7 @@ def is_suspicious_visitor():
     # Check if there's a referer header
     if web.ctx.env.get('HTTP_REFERER'):
         return False
-    
+
     # Check if visitor has already been verified (has vf=1 cookie)
     if web.cookies().get('vf') == '1':
         return False
@@ -1263,6 +1264,7 @@ def is_suspicious_visitor():
     except Exception:
         pass
     return True
+
 
 def require_human_verification():
     """Show the human verification challenge page.

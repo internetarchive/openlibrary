@@ -1,6 +1,5 @@
 """Tests for human verification challenge functionality."""
 
-import pytest
 import web
 
 from openlibrary.mocks.mock_infobase import MockSite
@@ -35,6 +34,7 @@ class TestHumanVerification:
         # Mock no verification cookie
         def mock_cookies():
             return {}
+
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
         assert code.is_suspicious_visitor() is False
@@ -50,6 +50,7 @@ class TestHumanVerification:
         # Mock no verification cookie
         def mock_cookies():
             return {}
+
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
         assert code.is_suspicious_visitor() is False
@@ -65,6 +66,7 @@ class TestHumanVerification:
         # Mock verification cookie present
         def mock_cookies():
             return {'vf': '1'}
+
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
         assert code.is_suspicious_visitor() is False
@@ -80,6 +82,7 @@ class TestHumanVerification:
         # Mock no verification cookie
         def mock_cookies():
             return {}
+
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
         assert code.is_suspicious_visitor() is True
@@ -95,6 +98,7 @@ class TestHumanVerification:
         # Mock verification cookie with wrong value
         def mock_cookies():
             return {'vf': '0'}
+
         monkeypatch.setattr(web, 'cookies', mock_cookies)
 
         assert code.is_suspicious_visitor() is True

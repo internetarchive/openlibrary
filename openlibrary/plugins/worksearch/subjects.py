@@ -6,11 +6,11 @@ from dataclasses import dataclass
 from typing import cast
 
 import web
+from typing_extensions import deprecated
+
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-from typing_extensions import deprecated
-
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
@@ -30,7 +30,11 @@ class subjects(delegate.page):
 
     def GET(self, key):
         # Check if human verification is needed for subject pages
-        from openlibrary.plugins.openlibrary.code import is_suspicious_visitor, require_human_verification
+        from openlibrary.plugins.openlibrary.code import (
+            is_suspicious_visitor,
+            require_human_verification,
+        )
+
         if is_suspicious_visitor():
             return require_human_verification()
 
