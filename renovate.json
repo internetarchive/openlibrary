@@ -6,8 +6,8 @@
     "enabled": true
   },
   "pip_requirements": {
-    "fileMatch": [
-      "(^|/)requirements[^/]*\\.txt$"
+    "managerFilePatterns": [
+      "/(^|/)requirements[^/]*\\.txt$/"
     ]
   },
   "packageRules": [
@@ -40,8 +40,7 @@
         "mypy",
         "pytest",
         "pytest-asyncio",
-        "ruff",
-        "safety"
+        "ruff"
       ]
     },
     {

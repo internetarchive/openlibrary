@@ -5,6 +5,9 @@
  * Components are bundled together via Vite for production use.
  */
 
+// Import components to register them as custom elements
+import './OLReadMore.js';
+
 // Pagination component
 export { OlPagination } from './OlPagination.js';
 

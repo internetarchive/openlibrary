@@ -200,7 +200,7 @@ class TestWorkSolrBuilder:
         assert d.printdisabled_s is None
         assert d.lending_edition_s == 'OL1M'
         assert d.ia == ['foo00bar']
-        assert sss(d.ia_collection_s) == sss("americana;inlibrary")
+        assert sorted(d.ia_collection) == sorted(["americana", "inlibrary"])
         assert d.edition_count == 1
         assert d.ebook_count_i == 1
 
@@ -222,7 +222,9 @@ class TestWorkSolrBuilder:
         assert d.printdisabled_s is None
         assert d.lending_edition_s == 'OL1M'
         assert sorted(d.ia) == ['foo01bar', 'foo02bar']
-        assert sss(d.ia_collection_s) == sss("inlibrary;americana;internetarchivebooks")
+        assert sorted(d.ia_collection) == sorted(
+            ["inlibrary", "americana", "internetarchivebooks"]
+        )
         assert d.edition_count == 2
         assert d.ebook_count_i == 2
 
@@ -238,7 +240,7 @@ class TestWorkSolrBuilder:
         assert d.printdisabled_s == 'OL1M'
         assert d.lending_edition_s == 'OL1M'
         assert d.ia == ['foo00bar']
-        assert sss(d.ia_collection_s) == sss("printdisabled;inlibrary")
+        assert sorted(d.ia_collection) == sorted(["printdisabled", "inlibrary"])
         assert d.edition_count == 1
         assert d.ebook_count_i == 1
 
@@ -254,7 +256,7 @@ class TestWorkSolrBuilder:
         assert d.printdisabled_s == 'OL1M'
         assert d.lending_edition_s is None
         assert d.ia == ['foo00bar']
-        assert sss(d.ia_collection_s) == sss("printdisabled;americana")
+        assert sorted(d.ia_collection) == sorted(["printdisabled", "americana"])
         assert d.edition_count == 1
         assert d.ebook_count_i == 1
 
@@ -295,7 +297,9 @@ class TestWorkSolrBuilder:
         assert d.printdisabled_s == 'OL4M'
         assert d.lending_edition_s == 'OL2M'
         assert sorted(d.ia) == ['foo00bar', 'foo01bar', 'foo02bar']
-        assert sss(d.ia_collection_s) == sss("americana;inlibrary;printdisabled")
+        assert sorted(d.ia_collection) == sorted(
+            ["americana", "inlibrary", "printdisabled"]
+        )
 
         assert d.edition_count == 4
         assert d.ebook_count_i == 3
@@ -544,4 +548,4 @@ class Test_Sort_Editions_Ocaids:
             },
         )
 
-        assert wsb.ia_collection_s == "americanlibraries;blah"
+        assert sorted(wsb.ia_collection) == sorted(["americanlibraries", "blah"])

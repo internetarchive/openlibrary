@@ -21,12 +21,12 @@ jobs:
   javascript_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           # Should match what's in our Dockerfile
           node-version: '20' # Also update the `key` in the `with` map, below
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: npm-cache
         with:
           # Caching node_modules isn't recommended because it can break across
@@ -44,6 +44,6 @@ jobs:
       - run: npx concurrently --group 'make js' 'make css' 'make components'
       - run: npm run test
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

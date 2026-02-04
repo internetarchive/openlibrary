@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import cast
 
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -14,6 +15,7 @@ from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
@@ -80,6 +82,7 @@ class subjects(delegate.page):
                 )
 
 
+@deprecated("migrated to fastapi")
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
     encoding = 'json'
@@ -161,7 +164,7 @@ The key-like paths for a subject, eg:
 """
 
 
-def get_subject(
+async def get_subject_async(
     key: SubjectPseudoKey,
     details=False,
     offset=0,
@@ -175,7 +178,7 @@ def get_subject(
     By default, it returns a storage object with key, name, work_count and works.
     The offset and limit arguments are used to get the works.
 
-        >>> get_subject("/subjects/Love") #doctest: +SKIP
+        >>> await get_subject_async("/subjects/Love") #doctest: +SKIP
         {
             "key": "/subjects/Love",
             "name": "Love",
@@ -185,7 +188,7 @@ def get_subject(
 
     When details=True, facets and ebook_count are additionally added to the result.
 
-    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
+    >>> await get_subject_async("/subjects/Love", details=True) #doctest: +SKIP
     {
         "key": "/subjects/Love",
         "name": "Love",
@@ -230,7 +233,7 @@ def get_subject(
     if not engine:
         raise NotImplementedError(f"No SubjectEngine for key: {key}")
 
-    return engine.get_subject(
+    return await engine.get_subject_async(
         key,
         details=details,
         offset=offset,
@@ -241,6 +244,9 @@ def get_subject(
     )
 
 
+get_subject = async_bridge.wrap(get_subject_async)
+
+
 @dataclass
 class SubjectEngine:
     name: str
@@ -249,7 +255,7 @@ class SubjectEngine:
     facet: str
     facet_key: str
 
-    def get_subject(
+    async def get_subject_async(
         self,
         key,
         details=False,
@@ -260,7 +266,10 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            run_solr_query_async,
+        )
 
         subject_type = self.name
         path = web.lstrips(key, self.prefix)
@@ -270,7 +279,7 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
-        result = run_solr_query(
+        result = await run_solr_query_async(
             WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
@@ -296,7 +305,7 @@ class SubjectEngine:
                 "cover_edition_key",
                 "has_fulltext",
                 "subject",
-                "ia_collection_s",
+                "ia_collection",
                 "public_scan_b",
                 "lending_edition_s",
                 "lending_identifier_s",
@@ -419,7 +428,7 @@ class SubjectEngine:
         These docs are weird :/ We should be using more standardized results
         across our search APIs, but that would be a big breaking change.
         """
-        ia_collection = w.get('ia_collection_s', '').split(';')
+        ia_collection = w.get('ia_collection') or []
         return web.storage(
             key=w['key'],
             title=w["title"],

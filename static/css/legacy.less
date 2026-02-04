@@ -216,12 +216,12 @@ em {
   ol li {
     list-style: decimal;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
   ul li {
     list-style: disc;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
 }
 
@@ -270,7 +270,7 @@ q {
 
 div.unordered {
   margin-top: 10px;
-  line-height: 150%;
+  line-height: @line-height-list;
 }
 
 div.superNav {
@@ -549,7 +549,7 @@ div.formElement {
     padding: 5px;
   }
   blockquote {
-    font-family: @georgia_serif-1;
+    font-family: @font-family-quote;
     font-size: 0.875em;
     margin: 1em 40px;
   }
@@ -926,6 +926,7 @@ div.facet {
     margin-bottom: 5px;
     a {
       text-decoration: none !important;
+      line-height: @line-height-list;
     }
   }
   &MoreLess {
@@ -958,7 +959,7 @@ div.list {
     width: 155px;
   }
   h5 {
-    font-family: @georgia_serif-1;
+    font-family: @font-family-serif;
     font-weight: normal;
     color: @dark-grey;
     margin-bottom: 5px;
@@ -1347,7 +1348,6 @@ ul.list-books {
     .sri__main {
       display: flex;
       flex-direction: column;
-      height: 100%;
     }
 
     .bookcover {
@@ -1376,6 +1376,22 @@ ul.list-books {
     .star-rating-form {
       display: none;
     }
+  }
+
+  .list-books__note {
+    overflow: hidden;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: @border-divider;
+    line-height: @line-height-blurb;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    -webkit-box-orient: vertical;
+  }
+
+  .list-books__note p {
+    margin-top: 0;
   }
 }
 

@@ -14,6 +14,7 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 all: git css js components lit-components i18n
 
 css:
+	node scripts/generate-css-custom-properties.js
 	mkdir -p $(BUILD)/css_new
 	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
 	mkdir -p $(BUILD)/css
@@ -41,7 +42,7 @@ components:
 
 lit-components:
 	mkdir -p $(BUILD)/lit-components_new
-	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/lit-vite.config.js
+	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
 	mkdir -p $(BUILD)/lit-components
 	rm -rf $(BUILD)/lit-components
 	mv $(BUILD)/lit-components_new $(BUILD)/lit-components

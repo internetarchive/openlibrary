@@ -1,8 +1,8 @@
 # Translations template for Open Library.
-# Copyright (C) 2025 Internet Archive
+# Copyright (C) 2026 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
@@ -616,14 +616,6 @@ msgstr ""
 
 #: ReadButton.html
 msgid "Listen"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read more"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read less"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -3479,6 +3471,12 @@ msgid "Items"
 msgstr ""
 
 #: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
+msgstr ""
+
+#: admin/index.html
 msgid "Stats"
 msgstr ""
 
@@ -3612,6 +3610,14 @@ msgstr ""
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
+msgstr ""
+
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
 msgstr ""
 
 #: admin/loans_table.html
@@ -6073,6 +6079,10 @@ msgid "Release Notes"
 msgstr ""
 
 #: lib/nav_foot.html
+msgid "Bluesky"
+msgstr ""
+
+#: lib/nav_foot.html
 msgid "Twitter"
 msgstr ""
 
@@ -7615,6 +7625,14 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

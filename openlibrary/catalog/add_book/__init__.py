@@ -692,7 +692,7 @@ def load_data(  # noqa: PLR0912, PLR0915
         for a in edition.get('authors', [])
     ]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = load_author_import_records(
+    authors, author_reply = load_author_import_records(
         author_in, edits, rec['source_records'][0], save=save
     )
 

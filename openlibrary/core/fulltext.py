@@ -7,8 +7,8 @@ import httpx
 from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
-from openlibrary.utils import async_utils
-from openlibrary.utils.async_utils import async_bridge, req_context
+from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -46,8 +46,11 @@ async def fulltext_search_api(params):
         return {'error': 'Error converting search engine data to JSON'}
 
 
-async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
-    offset = (page - 1) * limit
+async def fulltext_search_async(
+    q, page=1, offset=None, limit=100, js=False, facets=False
+):
+    if offset is None:
+        offset = (page - 1) * limit
     params = {
         'q': q,
         'from': offset,
@@ -62,21 +65,21 @@ async def fulltext_search_async(q, page=1, limit=100, js=False, facets=False):
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
         availability = get_availability('identifier', ocaids)
         if 'error' in availability:
-            return {"hits": {"hits": []}}
-        editions = async_utils.site.get().get_many(
-            [
-                '/books/%s' % availability[ocaid].get('openlibrary_edition')
-                for ocaid in availability
-                if availability[ocaid].get('openlibrary_edition')
-            ]
+            availability = {}
+
+        edition_keys = list(
+            site.get().things(
+                {'type': '/type/edition', 'ocaid': ocaids, 'limit': len(ocaids)}
+            )
         )
+        editions = site.get().get_many(edition_keys)
         for ed in editions:
-            if ed.ocaid in ocaids:
-                idx = ocaids.index(ed.ocaid)
-                ia_results['hits']['hits'][idx]['edition'] = (
-                    format_book_data(ed, fetch_availability=False) if js else ed
-                )
-                ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
+            idx = ocaids.index(ed.ocaid)
+            hit = ia_results['hits']['hits'][idx]
+            hit['edition'] = (
+                format_book_data(ed, fetch_availability=False) if js else ed
+            )
+            hit['availability'] = availability.get(ed.ocaid, {})
     return ia_results
 
 

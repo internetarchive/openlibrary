@@ -37,7 +37,20 @@ module = ["openlibrary.core.wikidata", "openlibrary.core.yearly_reading_goals"]
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
+strict = true
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Ignore warnings from webob, which doesn't have a fix.
+    # It comes from webtest, which we will remove when fastapi is done
+    'ignore::DeprecationWarning:webob',
+    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.12 deprecation)
+    'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
+]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -46,6 +59,7 @@ extend-exclude = [
   "vendor",
 ]
 lint.ignore = [
+  "RUF059",  # enabled again after pre-commit updates per https://github.com/internetarchive/openlibrary/issues/11745
   "B007",    # unused-loop-control-variable - not a big deal for us
   "B023",    # function-uses-loop-variable - doesn't matter for our lambdas but it's a good rule
   "B904",    # raise-without-from-inside-except - not sure but it seems fine for now
@@ -59,7 +73,6 @@ lint.ignore = [
   "UP031",   # printf-string-formatting - a ton of work to fix to 224 errors
   # TODO: these could be fixed one day
   "B905",    # zip-without-explicit-strict - TODO: seems like we should fix this one
-  "UP038",   # non-pep604-isinstance - This rule is deprecated and will be removed in a future ruff release.
   "E402",    # module-import-not-at-top-of-file - TODO: we should probably enable this and and add exceptions
     # openlibrary/plugins/admin/code.py - maybe it can be fixed
     # openlibrary/plugins/openlibrary/code.py - unclear but has many
