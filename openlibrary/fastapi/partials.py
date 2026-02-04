@@ -39,30 +39,39 @@ async def partials_endpoint(
 
     For other components, uses the data parameter (JSON).
     """
-    # Handle BPListsSection with separate query parameters
-    if _component == "BPListsSection":
-        parsed_data = {"workId": workId, "editionId": editionId}
-    elif _component == "FulltextSearchSuggestion":
-        # For FulltextSearchSuggestion, the data query param is just a string, not a dict
-        parsed_data = data if data else ""
-    elif data:
-        # For other components, parse JSON data
+    # Parse JSON data for components that need it
+    parsed_data: dict | None = None
+    if data and _component in ("SearchFacets", "AffiliateLinks"):
         try:
             parsed_data = json.loads(data)
         except json.JSONDecodeError:
             raise HTTPException(
                 status_code=400, detail="Invalid JSON in data parameter"
             )
-    else:
-        raise HTTPException(status_code=400, detail="Missing required data parameter")
 
     if _component == "SearchFacets":
+        if not parsed_data:
+            raise HTTPException(
+                status_code=400, detail="Missing required data parameter"
+            )
         return SearchFacetsPartial(data=parsed_data).generate()
-    elif _component == "BPListsSection":
-        return BookPageListsPartial(data=parsed_data).generate()
+
     elif _component == "AffiliateLinks":
+        if not parsed_data:
+            raise HTTPException(
+                status_code=400, detail="Missing required data parameter"
+            )
         return AffiliateLinksPartial(data=parsed_data).generate()
+
+    elif _component == "BPListsSection":
+        # Use separate query parameters
+        return BookPageListsPartial(
+            data={"workId": workId, "editionId": editionId}
+        ).generate()
+
     elif _component == "FulltextSearchSuggestion":
-        return FullTextSuggestionsPartial(data=parsed_data).generate()
+        # data is just a string, not JSON
+        return FullTextSuggestionsPartial(data=data or "").generate()
+
     else:
         raise HTTPException(status_code=400, detail=f"Unknown component: {_component}")
