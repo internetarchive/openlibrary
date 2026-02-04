@@ -27,14 +27,22 @@ class yearly_reading_goal_json(delegate.page):
         username = user['key'].split('/')[-1]
         if i.year:
             results = [
-                {'year': i.year, 'goal': record.target, 'progress': record.current}
+                {
+                    'year': i.year,
+                    'goal': record.target,
+                    'progress': getattr(record, 'current', 0),
+                }
                 for record in YearlyReadingGoals.select_by_username_and_year(
                     username, i.year
                 )
             ]
         else:
             results = [
-                {'year': record.year, 'goal': record.target, 'progress': record.current}
+                {
+                    'year': record.year,
+                    'goal': record.target,
+                    'progress': getattr(record, 'current', 0),
+                }
                 for record in YearlyReadingGoals.select_by_username(username)
             ]
 
