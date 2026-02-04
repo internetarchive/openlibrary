@@ -32,14 +32,13 @@ async def partials_endpoint(
     """
     Get partial HTML for various components.
 
-    This endpoint mirrors the legacy /partials.json endpoint but is implemented in FastAPI.
+    This endpoint mirrors the web.py /partials.json endpoint.
 
     For BPListsSection, accepts separate parameters:
     - ?workId=/works/OL53924W&editionId=/books/OL7353617M
 
     For other components, uses the data parameter (JSON).
     """
-    # Parse JSON data for components that need it
     parsed_data: dict | None = None
     if data and _component in ("SearchFacets", "AffiliateLinks"):
         try:
@@ -64,7 +63,7 @@ async def partials_endpoint(
         return AffiliateLinksPartial(data=parsed_data).generate()
 
     elif _component == "BPListsSection":
-        # Pass parameters directly - much simpler!
+        # TODO: fix it to work when logged in too
         return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
     elif _component == "FulltextSearchSuggestion":
