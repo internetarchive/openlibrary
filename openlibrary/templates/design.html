@@ -5,36 +5,59 @@ $ _x = ctx.setdefault('cssfile', 'design')
 <div class="design-pattern-library">
   <h1>$_("Design Pattern Library")</h1>
   <article class="design-pattern">
-    <h2>$_("Fonts")</h2>
-    <hr/>
-    <h3>$_("Font-size")</h3>
+    <h2>$_("Colors")</h2>
     <section>
-      <code>
-        <h1>h1.</h1> $# detect-missing-i18n-skip-line
-        <h2>h2.</h2> $# detect-missing-i18n-skip-line
-        <h3>h3.</h3> $# detect-missing-i18n-skip-line
-        <h4>h4.</h4> $# detect-missing-i18n-skip-line
-      </code>
-    </section>
-
-    <h3>$_("Font-family")</h3>
-    <section>
-      <li class="sansserif">$_("Sans-serif: Verdana")</li>
-      <li class="serif">$_("Serif: Georgia")</li>
+      <ul>
+        <li class="color-swatch"><span class="color-block color-block-background"></span> $_("Background")</li>
+        <li class="color-swatch"><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
+        <li class="color-swatch"><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
+        <li class="color-swatch"><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
+      </ul>
     </section>
   </article>
 
   <article class="design-pattern">
-    <h2>$_("Colors")</h2>
-    <hr/>
-    <h3>$_("Defaults")</h3>
-    <section>
-      <ul class="color-swatch">
-        <li><span class="color-block color-block-background"></span> $_("Background")</li>
-        <li><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
-        <li><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
-        <li><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
-      </ul>
+    <h2>Pagination</h2>
+    <p>The ol-pagination component provides accessible, keyboard-navigable pagination with support for both event-based and URL-based navigation.</p>
+
+    <section class="example">
+      <h3>Basic Usage (Event-based)</h3>
+      <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
+      <ol-pagination total-pages="10" current-page="1"></ol-pagination>
+    </section>
+
+    <section class="example">
+      <h3>URL-based Navigation</h3>
+      <p>When base-url is provided, pagination renders anchor tags for SEO-friendly links.</p>
+      <code class="example__code">&lt;ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"&gt;&lt;/ol-pagination&gt;</code>
+      <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"></ol-pagination>
+    </section>
+
+    <section class="example">
+      <h3>Page States</h3>
+      <p>First page (no previous arrow):</p>
+      <ol-pagination total-pages="20" current-page="1"></ol-pagination>
+
+      <p style="margin-top: 1em;">Middle page (both arrows visible):</p>
+      <ol-pagination total-pages="20" current-page="10"></ol-pagination>
+
+      <p style="margin-top: 1em;">Last page (no next arrow):</p>
+      <ol-pagination total-pages="20" current-page="20"></ol-pagination>
+    </section>
+
+    <section class="example">
+      <h3>Small Page Counts</h3>
+      <p>3 pages:</p>
+      <ol-pagination total-pages="3" current-page="2"></ol-pagination>
+
+      <p style="margin-top: 1em;">5 pages (no ellipsis needed):</p>
+      <ol-pagination total-pages="5" current-page="3"></ol-pagination>
+    </section>
+
+    <section class="example">
+      <h3>Large Page Count</h3>
+      <p>100 pages with ellipsis:</p>
+      <ol-pagination total-pages="100" current-page="50"></ol-pagination>
     </section>
   </article>
 </div>

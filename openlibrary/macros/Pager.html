@@ -95,8 +95,8 @@ $ page = 5202
 </div>
 
 
-$ pages = 5203
-$ page = 5203
+$ pages = 10
+$ page = 3
 
 <div style="display: flex; justify-content: right; margin: 8px 0 24px 0;">
     <ol-pagination
@@ -105,6 +105,7 @@ $ page = 5203
         base-url="$changequery()"
     ></ol-pagination>
 </div>
+$if pages != 1:
     <div class="pagination">
     $if page != 1:
         <a href="$changequery(page=None)" class="ChoosePage" data-ol-link-track="Pager|First">&laquo;&nbsp;$_('First')</a>
@@ -121,7 +122,6 @@ $ page = 5203
     $if page < pages:
         <a href="$changequery(page=page+1)" class="ChoosePage" data-ol-link-track="Pager|Next">$_('Next')&nbsp;&gt;</a>
     </div>
-
 
 
     <br />
