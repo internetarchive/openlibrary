@@ -803,28 +803,7 @@ class search(delegate.page):
             bool: True if this is an expensive search, False otherwise
         """
         q = i.get('q', '').strip()
-
-        # Check for specialized Solr syntax patterns
-        expensive_patterns = [
-            r'language:',           # language: queries
-            r'\*:\*',               # Wildcard queries
-            r'[\[\{]',              # Range queries with [ or {
-            r'\bAND\b',             # Boolean operators
-            r'\bOR\b',
-            r'\bNOT\b',
-        ]
-
-        for pattern in expensive_patterns:
-            if re.search(pattern, q, re.IGNORECASE):
-                return True
-
-        # Check for field-specific queries while excluding URL schemes
-        # Matches patterns like 'field:value' but not 'http://', 'https://', 'ftp://', 'mailto:'
-        if re.search(r'(?<![:/])\b(?!(?:https?|ftp|mailto)://)\w+:', q, re.IGNORECASE):
-            return True
-
-        # Check if language filter is being used
-        return bool(i.get('language'))
+        return any(term in q for term in ['ebook_access:', 'language:'])
 
 
 def works_by_author(
