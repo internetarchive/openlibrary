@@ -207,8 +207,8 @@ class AffiliateLinksPartial(PartialDataHandler):
 
     def __init__(self, data: dict | None = None):
         if data is None:
-            self.i = web.input(data=None)
-            self.data = json.loads(self.i.data) if self.i.data else {}
+            i = web.input(data=None)
+            self.data = json.loads(i.data) if i.data else {}
         else:
             self.data = data
 
@@ -227,8 +227,8 @@ class SearchFacetsPartial(PartialDataHandler):
 
     def __init__(self, data: dict | None = None):
         if data is None:
-            self.i = web.input(data=None)
-            self.data = json.loads(self.i.data) if self.i.data else {}
+            i = web.input(data=None)
+            self.data = json.loads(i.data) if i.data else {}
         else:
             self.data = data
 
