@@ -23,21 +23,38 @@ async def partials_endpoint(
         ...,
         description="Component name",
     ),
-    data: str = Query(
-        ..., description="JSON-encoded data with parameters for the component"
+    data: str | None = Query(
+        None, description="JSON-encoded data with parameters for the component"
     ),
+    workId: str = Query("", description="Work ID (for BPListsSection component)"),
+    editionId: str = Query("", description="Edition ID (for BPListsSection component)"),
 ) -> dict:
     """
     Get partial HTML for various components.
 
     This endpoint mirrors the legacy /partials.json endpoint but is implemented in FastAPI.
 
+    For BPListsSection, accepts separate parameters:
+    - ?workId=/works/OL53924W&editionId=/books/OL7353617M
+
+    For other components, uses the data parameter (JSON).
     """
-    if _component != "FulltextSearchSuggestion":
+    # Handle BPListsSection with separate query parameters
+    if _component == "BPListsSection":
+        parsed_data = {"workId": workId, "editionId": editionId}
+    elif _component == "FulltextSearchSuggestion":
         # For FulltextSearchSuggestion, the data query param is just a string, not a dict
-        parsed_data = json.loads(data)
+        parsed_data = data if data else ""
+    elif data:
+        # For other components, parse JSON data
+        try:
+            parsed_data = json.loads(data)
+        except json.JSONDecodeError:
+            raise HTTPException(
+                status_code=400, detail="Invalid JSON in data parameter"
+            )
     else:
-        parsed_data = data
+        raise HTTPException(status_code=400, detail="Missing required data parameter")
 
     if _component == "SearchFacets":
         return SearchFacetsPartial(data=parsed_data).generate()
