@@ -27,7 +27,7 @@ repos:
           - --markdown-linebreak-ext=md
 
   - repo: https://github.com/MarcoGorelli/auto-walrus
-    rev: 0.3.4
+    rev: 0.4.1
     hooks:
       - id: auto-walrus
 
@@ -51,7 +51,7 @@ repos:
         args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.18.1
+    rev: v0.19.0
     hooks:
     - id: cython-lint
 
@@ -67,12 +67,12 @@ repos:
           - types-simplejson
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.24.1
+    rev: v0.25
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.0.0-rc.1
+    rev: v10.0.0-rc.2
     hooks:
       - id: eslint
         types: [file]
