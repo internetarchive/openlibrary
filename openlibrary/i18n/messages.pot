@@ -1777,10 +1777,6 @@ msgid "Colors"
 msgstr ""
 
 #: design.html
-msgid "The ol-colors component provides a set of colors for the library."
-msgstr ""
-
-#: design.html
 msgid "Background"
 msgstr ""
 
