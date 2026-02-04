@@ -322,26 +322,33 @@ def test_compare_fastapi_and_webpy_responses(session):
         _login(session_fastapi, BASE_URL_FASTAPI)
         _login(session_webpy, BASE_URL_WEBPY)
 
-        test_year = 2025
+        # Use different years for each API to avoid database conflicts
+        test_year_fastapi = 2025
+        test_year_webpy = 2026
         test_goal = 20
 
-        # Create goal in both
+        # Create goal in FastAPI
         r_fastapi = session_fastapi.post(
             f"{BASE_URL_FASTAPI}/reading-goal.json",
-            data={"goal": test_goal, "year": test_year},
+            data={"goal": test_goal, "year": test_year_fastapi},
         )
+        assert r_fastapi.status_code == 200
+
+        # Create goal in web.py
         r_webpy = session_webpy.post(
             f"{BASE_URL_WEBPY}/reading-goal.json",
-            data={"goal": test_goal, "year": test_year},
+            data={"goal": test_goal, "year": test_year_webpy},
         )
+        assert r_webpy.status_code == 200
 
-        # Both should succeed
-        assert r_fastapi.status_code == r_webpy.status_code == 200
+        # Compare response structure (both should have same format)
         assert r_fastapi.json() == r_webpy.json()
 
-        # Get all goals
-        r_fastapi = session_fastapi.get(f"{BASE_URL_FASTAPI}/reading-goal.json")
-        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json")
+        # Get specific year from each API
+        r_fastapi = session_fastapi.get(
+            f"{BASE_URL_FASTAPI}/reading-goal.json?year={test_year_fastapi}"
+        )
+        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year_webpy}")
 
         assert r_fastapi.status_code == r_webpy.status_code == 200
         data_fastapi = r_fastapi.json()
@@ -352,28 +359,20 @@ def test_compare_fastapi_and_webpy_responses(session):
         assert isinstance(data_fastapi["goal"], list)
         assert isinstance(data_webpy["goal"], list)
 
-        # Get specific year
-        r_fastapi = session_fastapi.get(
-            f"{BASE_URL_FASTAPI}/reading-goal.json?year={test_year}"
-        )
-        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year}")
-
-        assert r_fastapi.status_code == r_webpy.status_code == 200
-        data_fastapi = r_fastapi.json()
-        data_webpy = r_webpy.json()
-
-        assert data_fastapi["goal"][0]["year"] == data_webpy["goal"][0]["year"]
+        # Compare response formats (same goal value, different years)
         assert data_fastapi["goal"][0]["goal"] == data_webpy["goal"][0]["goal"]
+        assert data_fastapi["goal"][0]["year"] == test_year_fastapi
+        assert data_webpy["goal"][0]["year"] == test_year_webpy
 
     finally:
         # Cleanup
         session_fastapi.post(
             f"{BASE_URL_FASTAPI}/reading-goal.json",
-            data={"goal": 0, "year": test_year, "is_update": "true"},
+            data={"goal": 0, "year": test_year_fastapi, "is_update": "true"},
         )
         session_webpy.post(
             f"{BASE_URL_WEBPY}/reading-goal.json",
-            data={"goal": 0, "year": test_year, "is_update": "true"},
+            data={"goal": 0, "year": test_year_webpy, "is_update": "true"},
         )
         _logout(session_fastapi, BASE_URL_FASTAPI)
         _logout(session_webpy, BASE_URL_WEBPY)
