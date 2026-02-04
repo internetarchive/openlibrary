@@ -26,6 +26,8 @@ BASE_URL_FASTAPI = "http://localhost:18080"
 BASE_URL_WEBPY = "http://localhost:8080"  # Adjust if your web.py runs on different port
 USERNAME = "openlibrary@example.com"
 PASSWORD = "admin123"
+
+
 @pytest.fixture
 def session():
     """Create a configured requests session."""
@@ -69,7 +71,7 @@ def test_fastapi_get_reading_goals_requires_auth(session):
 @pytest.mark.integration
 def test_webpy_get_reading_goals_requires_auth(session):
     """Test that web.py GET /reading-goal requires authentication."""
-    r = session.get(f"{BASE_URL_WEBPY}/reading-goal")
+    r = session.get(f"{BASE_URL_WEBPY}/reading-goal.json")
     # web.py returns 401 with message, FastAPI returns 401
     assert r.status_code == 401
 
@@ -136,7 +138,7 @@ def test_webpy_create_and_get_reading_goal(session):
     try:
         # Create a reading goal
         r = session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": test_goal, "year": test_year},
         )
         assert r.status_code == 200
@@ -144,14 +146,14 @@ def test_webpy_create_and_get_reading_goal(session):
         assert data["status"] == "ok"
 
         # Get all reading goals
-        r = session.get(f"{BASE_URL_WEBPY}/reading-goal")
+        r = session.get(f"{BASE_URL_WEBPY}/reading-goal.json")
         assert r.status_code == 200
         data = r.json()
         assert data["status"] == "ok"
         assert isinstance(data["goal"], list)
 
         # Get specific year
-        r = session.get(f"{BASE_URL_WEBPY}/reading-goal?year={test_year}")
+        r = session.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year}")
         assert r.status_code == 200
         data = r.json()
         assert data["status"] == "ok"
@@ -162,7 +164,7 @@ def test_webpy_create_and_get_reading_goal(session):
     finally:
         # Cleanup: delete the test goal
         session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": 0, "year": test_year, "is_update": "true"},
         )
         _logout(session, BASE_URL_WEBPY)
@@ -219,13 +221,13 @@ def test_webpy_update_reading_goal(session):
     try:
         # Create initial goal
         session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": initial_goal, "year": test_year},
         )
 
         # Update the goal
         r = session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": updated_goal, "year": test_year, "is_update": "true"},
         )
         assert r.status_code == 200
@@ -233,14 +235,14 @@ def test_webpy_update_reading_goal(session):
         assert data["status"] == "ok"
 
         # Verify the update
-        r = session.get(f"{BASE_URL_WEBPY}/reading-goal?year={test_year}")
+        r = session.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year}")
         data = r.json()
         assert data["goal"][0]["goal"] == updated_goal
 
     finally:
         # Cleanup
         session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": 0, "year": test_year, "is_update": "true"},
         )
         _logout(session, BASE_URL_WEBPY)
@@ -257,21 +259,21 @@ def test_fastapi_validation_errors(session):
             f"{BASE_URL_FASTAPI}/reading-goal.json",
             data={"goal": -1, "year": 2025},
         )
-        assert r.status_code == 400
+        assert r.status_code == 422
 
         # Test goal = 0 on create (not update)
         r = session.post(
             f"{BASE_URL_FASTAPI}/reading-goal.json",
             data={"goal": 0, "year": 2025},
         )
-        assert r.status_code == 400
+        assert r.status_code == 422
 
         # Test update without year
         r = session.post(
             f"{BASE_URL_FASTAPI}/reading-goal.json",
             data={"goal": 5, "is_update": "true"},
         )
-        assert r.status_code == 400
+        assert r.status_code == 422
 
     finally:
         _logout(session, BASE_URL_FASTAPI)
@@ -285,21 +287,21 @@ def test_webpy_validation_errors(session):
     try:
         # Test negative goal on create
         r = session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": -1, "year": 2025},
         )
         assert r.status_code == 400
 
         # Test goal = 0 on create (not update)
         r = session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": 0, "year": 2025},
         )
         assert r.status_code == 400
 
         # Test update without year
         r = session.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": 5, "is_update": "true"},
         )
         assert r.status_code == 400
@@ -329,7 +331,7 @@ def test_compare_fastapi_and_webpy_responses(session):
             data={"goal": test_goal, "year": test_year},
         )
         r_webpy = session_webpy.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": test_goal, "year": test_year},
         )
 
@@ -339,7 +341,7 @@ def test_compare_fastapi_and_webpy_responses(session):
 
         # Get all goals
         r_fastapi = session_fastapi.get(f"{BASE_URL_FASTAPI}/reading-goal.json")
-        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal")
+        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json")
 
         assert r_fastapi.status_code == r_webpy.status_code == 200
         data_fastapi = r_fastapi.json()
@@ -354,7 +356,7 @@ def test_compare_fastapi_and_webpy_responses(session):
         r_fastapi = session_fastapi.get(
             f"{BASE_URL_FASTAPI}/reading-goal.json?year={test_year}"
         )
-        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal?year={test_year}")
+        r_webpy = session_webpy.get(f"{BASE_URL_WEBPY}/reading-goal.json?year={test_year}")
 
         assert r_fastapi.status_code == r_webpy.status_code == 200
         data_fastapi = r_fastapi.json()
@@ -370,7 +372,7 @@ def test_compare_fastapi_and_webpy_responses(session):
             data={"goal": 0, "year": test_year, "is_update": "true"},
         )
         session_webpy.post(
-            f"{BASE_URL_WEBPY}/reading-goal",
+            f"{BASE_URL_WEBPY}/reading-goal.json",
             data={"goal": 0, "year": test_year, "is_update": "true"},
         )
         _logout(session_fastapi, BASE_URL_FASTAPI)
