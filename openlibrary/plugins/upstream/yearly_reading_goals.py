@@ -30,7 +30,6 @@ class yearly_reading_goal_json(delegate.page):
                 {
                     'year': i.year,
                     'goal': record.target,
-                    'progress': getattr(record, 'current', 0),
                 }
                 for record in YearlyReadingGoals.select_by_username_and_year(
                     username, i.year
@@ -41,7 +40,6 @@ class yearly_reading_goal_json(delegate.page):
                 {
                     'year': record.year,
                     'goal': record.target,
-                    'progress': getattr(record, 'current', 0),
                 }
                 for record in YearlyReadingGoals.select_by_username(username)
             ]
