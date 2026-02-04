@@ -61,7 +61,7 @@ export class OLReadMore extends LitElement {
             font-weight: 500;
             text-align: center;
             width: 100%;
-            padding: 24px 12px 12px 0;
+            padding: 24px 12px 12px 12px;
             background: linear-gradient(
                 var(--ol-readmore-gradient-color-transparent) 0,
                 var(--ol-readmore-gradient-color) 12px
@@ -86,6 +86,7 @@ export class OLReadMore extends LitElement {
         @media only screen and (min-width: 800px) {
             .toggle-btn {
                 text-align: left;
+                padding-left: 0;
             }
         }
 
