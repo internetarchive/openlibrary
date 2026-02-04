@@ -12,8 +12,8 @@ Test script for comparing BookPageListsPartial endpoints.
 This script compares the legacy web.py endpoint (localhost:8080) with the
 new FastAPI endpoint (localhost:18080) to ensure they return identical results.
 
-Both endpoints now use the exact same interface:
-    GET /partials.json?_component=BPListsSection&data={json}
+Both endpoints use separate query parameters (matching JavaScript behavior):
+    GET /partials.json?_component=BPListsSection&workId=/works/OL53924W&editionId=/books/OL7353617M
 
 Usage with uv:
     uv run test_book_page_lists_comparison.py
@@ -50,18 +50,18 @@ FIREFOX_HEADERS = {
 }
 
 
-def build_url(base_url: str, data: dict) -> str:
+def build_url(base_url: str, workId: str, editionId: str) -> str:
     """Build the URL for the BPListsSection partial endpoint."""
-    params = {'_component': 'BPListsSection', 'data': json.dumps(data)}
+    params = {'_component': 'BPListsSection', 'workId': workId, 'editionId': editionId}
     query_string = urllib.parse.urlencode(params)
     return f"{base_url}?{query_string}"
 
 
 def make_request(
-    base_url: str, data: dict, description: str, endpoint_name: str
+    base_url: str, workId: str, editionId: str, description: str, endpoint_name: str
 ) -> dict[str, Any]:
     """Make a request to the endpoint and return the response."""
-    url = build_url(base_url, data)
+    url = build_url(base_url, workId, editionId)
 
     print(f"\n{'=' * 60}")
     print(f"{endpoint_name} Test: {description}")
@@ -238,10 +238,12 @@ def compare_responses(  # noqa: PLR0915 PLR0912
 
 
 @pytest.mark.integration
-def test_case(data: dict, description: str) -> bool:
+def test_case(workId: str, editionId: str, description: str) -> bool:
     """Run a test case against both endpoints and compare results."""
-    legacy_result = make_request(LEGACY_URL, data, description, "Legacy")
-    fastapi_result = make_request(FASTAPI_URL, data, description, "FastAPI")
+    legacy_result = make_request(LEGACY_URL, workId, editionId, description, "Legacy")
+    fastapi_result = make_request(
+        FASTAPI_URL, workId, editionId, description, "FastAPI"
+    )
 
     return compare_responses(legacy_result, fastapi_result, description)
 
@@ -253,8 +255,10 @@ def run_comparison_tests():
     print("=" * 60)
     print(f"Legacy:  {LEGACY_URL}")
     print(f"FastAPI: {FASTAPI_URL}")
-    print("\nBoth endpoints use the same interface:")
-    print("  GET /partials.json?_component=BPListsSection&data={json}")
+    print("\nBoth endpoints use separate query parameters:")
+    print(
+        "  GET /partials.json?_component=BPListsSection&workId=/works/OL53924W&editionId=/books/OL7353617M"
+    )
     print("\nMake sure both servers are running:")
     print("  - Legacy on localhost:8080")
     print("  - FastAPI on localhost:18080")
@@ -262,45 +266,35 @@ def run_comparison_tests():
     test_cases = [
         (
             "Work ID only",
-            {
-                'workId': '/works/OL53924W',
-                'editionId': '',
-            },
+            '/works/OL54120W',
+            '/books/OL2058361M',
         ),
         (
             "Edition ID only",
-            {
-                'workId': '',
-                'editionId': '/books/OL7353617M',
-            },
+            '',
+            '/books/OL2058361M',
         ),
         (
             "Both work and edition IDs",
-            {
-                'workId': '/works/OL53924W',
-                'editionId': '/books/OL7353617M',
-            },
+            '/works/OL54120W',
+            '/books/OL2058361M',
         ),
         (
             "Empty IDs",
-            {
-                'workId': '',
-                'editionId': '',
-            },
+            '',
+            '',
         ),
         (
             "Non-existent work",
-            {
-                'workId': '/works/OL99999999W',
-                'editionId': '',
-            },
+            '/works/OL99999999W',
+            '',
         ),
     ]
 
     results = []
-    for description, data in test_cases:
+    for description, workId, editionId in test_cases:
         try:
-            match = test_case(data, description)
+            match = test_case(workId, editionId, description)
             results.append((description, match))
         except (KeyError, ValueError, TypeError, json.JSONDecodeError) as e:
             print(f"\nTest '{description}' raised exception: {e}")

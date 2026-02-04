@@ -228,8 +228,8 @@ def run_comparison_tests():
             "With ISBN and title",
             {
                 'args': [
-                    {'isbn': ['9780141439518'], 'title': 'Pride and Prejudice'},
-                    'OL53924W',
+                    'Pride and Prejudice',  # title string
+                    {'isbn': ['9780141439518']},  # opts dict
                 ]
             },
         ),
@@ -237,8 +237,8 @@ def run_comparison_tests():
             "Without ISBN (title only)",
             {
                 'args': [
-                    {'title': 'Pride and Prejudice'},
-                    'OL53924W',
+                    'Pride and Prejudice',  # title string
+                    {},  # empty opts dict
                 ]
             },
         ),
@@ -246,11 +246,10 @@ def run_comparison_tests():
             "With multiple ISBNs",
             {
                 'args': [
+                    'Pride and Prejudice',  # title string
                     {
-                        'isbn': ['9780141439518', '9780141199078'],
-                        'title': 'Pride and Prejudice',
-                    },
-                    'OL53924W',
+                        'isbn': ['9780141439518', '9780141199078']
+                    },  # opts dict with multiple ISBNs
                 ]
             },
         ),
@@ -258,8 +257,8 @@ def run_comparison_tests():
             "Empty book info",
             {
                 'args': [
-                    {},
-                    'OL53924W',
+                    'Pride and Prejudice',  # title string
+                    {},  # empty opts dict
                 ]
             },
         ),
@@ -273,7 +272,7 @@ def run_comparison_tests():
             "Single arg (should error)",
             {
                 'args': [
-                    {'isbn': ['9780141439518']},
+                    'Pride and Prejudice',  # title string
                 ]
             },
         ),
