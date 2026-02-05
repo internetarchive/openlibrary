@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
@@ -31,7 +32,6 @@ class PaginationLimit20(Pagination):
 class SolrInternalsParams(BaseModel):
     """
     Internal Solr query parameters for A/B testing search configurations.
-    These map to the solr_* parameters from the legacy API.
     """
 
     # Dismax parameters
@@ -126,12 +126,16 @@ class SolrInternalsParams(BaseModel):
             value = getattr(self, field)
             if defaults and value is None:
                 value = getattr(defaults, field)
-            # Variables shouldn't be quoted
             if value is None:
                 continue
 
             if value and value.startswith('$'):
+                if not re.match(r'^\$[a-zA-Z0-9.-_]+$', value):
+                    raise ValueError("Invalid solr internal variable supplied")
+                # Variables shouldn't be quoted
                 params.append(f'{solr_name}={value}')
             else:
+                if '"' in value:
+                    raise ValueError("Invalid solr internal value supplied")
                 params.append(f'{solr_name}="{value}"')
         return '({!edismax ' + ' '.join(params) + '})' if params else ''
