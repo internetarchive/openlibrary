@@ -948,6 +948,11 @@ class opds_home(delegate.page):
                         type="application/opds+json",
                     ),
                     Link(
+                        rel="start",
+                        href=provider.BASE_URL,
+                        type="application/opds+json",
+                    ),
+                    Link(
                         rel="search",
                         href=f"{provider.BASE_URL}/opds/search{{?query}}",
                         type="application/opds+json",
