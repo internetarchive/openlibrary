@@ -89,18 +89,7 @@ async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     year: int | None = None,
 ) -> ReadingGoalsResponse:
-    """Get reading goals for the authenticated user.
-
-    Args:
-        user: The authenticated user (from session cookie)
-        year: Optional year to filter by. If not provided, returns all goals.
-
-    Returns:
-        ReadingGoalsResponse with status and list of goals
-
-    Raises:
-        HTTPException: 401 if not authenticated
-    """
+    """Get reading goals for the authenticated user."""
     if year:
         records = YearlyReadingGoals.select_by_username_and_year(user.username, year)
     else:
@@ -122,19 +111,7 @@ async def update_reading_goal_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     form: Annotated[ReadingGoalForm, Form()],
 ) -> ReadingGoalUpdateResponse:
-    """Create or update a reading goal for the authenticated user.
-
-    Args:
-        user: The authenticated user (from session cookie)
-        form: Reading goal form data with goal, year, and is_update flag.
-              Validation is handled by Pydantic model_validator.
-
-    Returns:
-        ReadingGoalUpdateResponse with status
-
-    Raises:
-        HTTPException: 422 for validation errors, 401 if not authenticated
-    """
+    """Create or update a reading goal for the authenticated user."""
     current_year = form.year or datetime.now().year
     if form.is_update is not None:
         # year is guaranteed to be not None here due to model_validator
