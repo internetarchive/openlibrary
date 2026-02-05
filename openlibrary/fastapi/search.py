@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
@@ -18,6 +17,7 @@ from pydantic import (
     model_validator,
 )
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.fastapi.models import (
     Pagination,
@@ -178,10 +178,7 @@ async def search_json(
     """
     solr_internals_params = SolrInternalsParams.model_validate(request.query_params)
     solr_internals_specified = bool(solr_internals_params.model_dump(exclude_none=True))
-    if (
-        solr_internals_specified
-        and os.environ.get('OL_EXPOSE_SOLR_INTERNALS_PARAMS') != 'true'
-    ):
+    if solr_internals_specified and get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
         raise ValueError(
             "Solr internals parameters are not allowed in this environment."
         )

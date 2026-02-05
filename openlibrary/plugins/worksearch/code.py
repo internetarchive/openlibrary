@@ -2,7 +2,6 @@ import copy
 import functools
 import itertools
 import logging
-import os
 import re
 import time
 import urllib
@@ -21,6 +20,7 @@ from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -774,16 +774,8 @@ class search(delegate.page):
         sort = param.get('sort')
         rows = 20
 
-        if os.environ.get('OL_EXPOSE_SOLR_INTERNALS_PARAMS') == 'true':
-            # Replace with the following once we update to latest pydantic, which supports extra='ignore'
-            # solr_internals_params = SolrInternalsParams.model_validate(dict(web_input), extra='ignore')
-            solr_internals_params = SolrInternalsParams.model_validate(
-                {
-                    k: v
-                    for k, v in web_input.items()
-                    if k in SolrInternalsParams.model_fields
-                }
-            )
+        if get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+            solr_internals_params = SolrInternalsParams.model_validate(dict(web_input))
         else:
             solr_internals_params = None
 
