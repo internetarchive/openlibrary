@@ -178,7 +178,7 @@ async def search_json(
     """
     solr_internals_params = SolrInternalsParams.model_validate(request.query_params)
     solr_internals_specified = bool(solr_internals_params.model_dump(exclude_none=True))
-    if solr_internals_specified and get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+    if solr_internals_specified and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
         raise HTTPException(
             status_code=403,
             detail="Solr internals parameters are not allowed in this environment.",
