@@ -12,8 +12,6 @@ class ReadingGoal:
     username: str
     year: int
     target: int
-    created: datetime | None = None
-    updated: datetime | None = None
     books_read: int = 0
 
     @classmethod
@@ -22,8 +20,6 @@ class ReadingGoal:
             username=row['username'],
             year=row['year'],
             target=row['target'],
-            created=row.get('created'),
-            updated=row.get('updated'),
         )
 
     @property
