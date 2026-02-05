@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -179,8 +179,9 @@ async def search_json(
     solr_internals_params = SolrInternalsParams.model_validate(request.query_params)
     solr_internals_specified = bool(solr_internals_params.model_dump(exclude_none=True))
     if solr_internals_specified and get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
-        raise ValueError(
-            "Solr internals parameters are not allowed in this environment."
+        raise HTTPException(
+            status_code=403,
+            detail="Solr internals parameters are not allowed in this environment.",
         )
 
     raw_response = await work_search_async(
