@@ -3,9 +3,16 @@ import { LitElement, html, css } from 'lit';
 /**
  * OLReadMore - A web component for expandable/collapsible content
  *
- * Supports two truncation modes:
- * - Height-based: Use `max-height` attribute (e.g., "81px")
- * - Line-based: Use `max-lines` attribute (e.g., "4")
+ * Uses height-based truncation via `max-height` attribute.
+ *
+ * Important: The default max-height is 80px. If you want to use a different max-height, you must
+ * also set a min-height on the component with an inline style. The value of the min-height should
+ * be the max-height + 41px or max-height + 27px if using a small label size.
+ *
+ * Example:
+ * <ol-read-more max-height="100px" style="min-height: 141px">
+ *   <p>Long content here...</p>
+ * </ol-read-more>
  *
  * @property {String} background-color - Background color for the gradient fade (default: white)
  * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
@@ -15,16 +22,10 @@ import { LitElement, html, css } from 'lit';
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">
  *   <p>Long content here...</p>
  * </ol-read-more>
- *
- * @example
- * <ol-read-more max-lines="4" background-color="#f5f5f5" label-size="small">
- *   <p>Long content here...</p>
- * </ol-read-more>
  */
 export class OLReadMore extends LitElement {
     static properties = {
         maxHeight: { type: String, attribute: 'max-height' },
-        maxLines: { type: Number, attribute: 'max-lines' },
         moreText: { type: String, attribute: 'more-text' },
         lessText: { type: String, attribute: 'less-text' },
         backgroundColor: { type: String, attribute: 'background-color' },
@@ -49,17 +50,8 @@ export class OLReadMore extends LitElement {
             overflow: hidden;
         }
 
-        /* Line-based mode */
-        :host([max-lines]) .content-wrapper:not(.expanded) {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            /* -webkit-line-clamp is set via inline style */
-        }
-
         .content-wrapper.expanded {
             max-height: none !important;
-            -webkit-line-clamp: unset !important;
-            display: block !important;
         }
 
         .toggle-btn {
@@ -124,8 +116,7 @@ export class OLReadMore extends LitElement {
 
     constructor() {
         super();
-        this.maxHeight = null;
-        this.maxLines = null;
+        this.maxHeight = '80px';
         this.moreText = 'Read More';
         this.lessText = 'Read Less';
         this.backgroundColor = null;
@@ -139,6 +130,12 @@ export class OLReadMore extends LitElement {
         this._checkIfTruncationNeeded();
         this._updateBackgroundColor();
         this._updatePaddingLeft();
+
+        // Remove styles that were used to prevent layout shift
+        // Now that the component has rendered, it can size naturally
+        this.style.minHeight = 'auto';
+        this.style.visibility = 'visible';
+        this.style.overflow = 'visible';
     }
 
     updated(changedProperties) {
@@ -201,10 +198,6 @@ export class OLReadMore extends LitElement {
 
         if (this.maxHeight) {
             return `max-height: ${this.maxHeight}`;
-        }
-
-        if (this.maxLines) {
-            return `-webkit-line-clamp: ${this.maxLines}`;
         }
 
         return '';

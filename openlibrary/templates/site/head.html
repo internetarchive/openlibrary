@@ -35,11 +35,14 @@ $def with (page)
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
     <style>
-      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content */
-      ol-read-more:not(:defined) {
+      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content. The min-height is set to match the default height of the component. */
+      ol-read-more {
+        min-height: 121px;
         visibility: hidden;
-        height: 0;
         overflow: hidden;
+      }
+      ol-read-more[label-size="small"] {
+        min-height: 107px;
       }
     </style>
 
