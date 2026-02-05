@@ -26,7 +26,6 @@ class ReadingGoalItem(BaseModel):
 
     year: int = Field(..., description="The year for this reading goal")
     goal: int = Field(..., description="The target number of books to read")
-    progress: int = Field(..., description="Current progress towards the goal")
 
 
 class ReadingGoalsResponse(BaseModel):
@@ -98,7 +97,6 @@ async def get_reading_goals_endpoint(
         ReadingGoalItem(
             year=getattr(record, 'year', 0),
             goal=getattr(record, 'target', 0),
-            progress=getattr(record, 'current', 0),
         )
         for record in records
     ]
