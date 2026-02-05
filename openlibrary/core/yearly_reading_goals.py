@@ -1,8 +1,34 @@
+from dataclasses import dataclass
 from datetime import date, datetime
+from math import floor
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+
+
+@dataclass
+class ReadingGoal:
+    username: str
+    year: int
+    target: int
+    created: datetime | None = None
+    updated: datetime | None = None
+    books_read: int = 0
+
+    @classmethod
+    def from_row(cls, row: dict) -> 'ReadingGoal':
+        return cls(
+            username=row['username'],
+            year=row['year'],
+            target=row['target'],
+            created=row.get('created'),
+            updated=row.get('updated'),
+        )
+
+    @property
+    def progress(self) -> int:
+        return floor((self.books_read / self.target) * 100) if self.target > 0 else 0
 
 
 class YearlyReadingGoals:
@@ -30,27 +56,25 @@ class YearlyReadingGoals:
 
     # Read methods:
     @classmethod
-    def select_by_username(cls, username: str, order: str = 'year ASC') -> list[dict]:
+    def select_by_username(
+        cls, username: str, order: str = 'year ASC'
+    ) -> list[ReadingGoal]:
         oldb = db.get_db()
 
         where = 'username=$username'
-        data = {
-            'username': username,
-        }
-
-        return list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
+        data = {'username': username}
+        rows = list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
+        return [ReadingGoal.from_row(row) for row in rows]
 
     @classmethod
-    def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:
+    def select_by_username_and_year(cls, username: str, year: int) -> list[ReadingGoal]:
         oldb = db.get_db()
 
         where = 'username=$username AND year=$year'
-        data = {
-            'username': username,
-            'year': year,
-        }
+        data = {'username': username, 'year': year}
 
-        return list(oldb.select(cls.TABLENAME, where=where, vars=data))
+        rows = list(oldb.select(cls.TABLENAME, where=where, vars=data))
+        return [ReadingGoal.from_row(row) for row in rows]
 
     @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:

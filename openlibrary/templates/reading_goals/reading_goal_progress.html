@@ -17,10 +17,10 @@ $# YearlyGoal.progress : int : Percent of goal achieved
         <span class="reading-goal-progress__completed" style="width: $(completed)%;"></span>
       </div>
       <div class="reading-goal-progress__details">
-          <a href="/account/books/already-read/year/$(goal.year)" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">$:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=goal.books_read, goal=goal.goal)</a>
+          <a href="/account/books/already-read/year/$(goal.year)" data-ol-link-track="ReadingGoalProgress|AnnualSummaryLink">$:_('<span class="reading-goal-progress__books-read">%(books_read)d</span>/<span class="reading-goal-progress__goal">%(goal)d</span> Books', books_read=goal.books_read, goal=goal.target)</a>
           <a class="edit-reading-goal-link" href="javascript:;">$_('Edit')</a>
       </div>
-      $ reading_goal_form = render_template('reading_goals/reading_goal_form', goal=goal.goal, year=goal.year, update=True)
+      $ reading_goal_form = render_template('reading_goals/reading_goal_form', goal=goal.target, year=goal.year, update=True)
       $ id = 'yearly-goal-modal-%d' % loop.index
       $ title = _('Edit %(year)d Reading Goal', year=goal.year)
       $:render_template('native_dialog', id, reading_goal_form, title=title)

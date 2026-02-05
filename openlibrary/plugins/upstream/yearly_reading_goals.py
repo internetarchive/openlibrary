@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from math import floor
 
 import web
 
@@ -27,20 +26,14 @@ class yearly_reading_goal_json(delegate.page):
         username = user['key'].split('/')[-1]
         if i.year:
             results = [
-                {
-                    'year': i.year,
-                    'goal': record.target,
-                }
+                {'year': record.year, 'goal': record.target}
                 for record in YearlyReadingGoals.select_by_username_and_year(
                     username, i.year
                 )
             ]
         else:
             results = [
-                {
-                    'year': record.year,
-                    'goal': record.target,
-                }
+                {'year': record.year, 'goal': record.target}
                 for record in YearlyReadingGoals.select_by_username(username)
             ]
 
@@ -99,21 +92,10 @@ def get_reading_goals(year=None):
         username, BookshelfEvent.FINISH, year
     )
     read_count = len(books_read)
-    result = YearlyGoal(data[0].year, data[0].target, read_count)
 
-    return result
-
-
-class YearlyGoal:
-    def __init__(self, year, goal, books_read):
-        self.year = year
-        self.goal = goal
-        self.books_read = books_read
-        self.progress = floor((books_read / goal) * 100)
-
-    @classmethod
-    def calc_progress(cls, books_read, goal):
-        return floor((books_read / goal) * 100)
+    to_return = data[0]
+    to_return.books_read = read_count
+    return to_return
 
 
 def setup():
