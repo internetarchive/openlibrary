@@ -14,6 +14,10 @@ class ReadingGoal:
     target: int
     books_read: int = 0
 
+    @property
+    def progress(self) -> int:
+        return floor((self.books_read / self.target) * 100) if self.target > 0 else 0
+
     @classmethod
     def from_row(cls, row: dict) -> 'ReadingGoal':
         return cls(
@@ -21,10 +25,6 @@ class ReadingGoal:
             year=row['year'],
             target=row['target'],
         )
-
-    @property
-    def progress(self) -> int:
-        return floor((self.books_read / self.target) * 100) if self.target > 0 else 0
 
 
 class YearlyReadingGoals:
