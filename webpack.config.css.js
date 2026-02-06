@@ -1,6 +1,7 @@
 /* eslint-env node, es6 */
 /*
- * Webpack config for compiling Less files to independent CSS files in static/build/
+ * Webpack config for compiling Less and CSS files to independent CSS files in static/build/
+ * Supports both .less and .css entry points for gradual migration from LESS to native CSS.
  */
 const path = require('path');
 const glob = require('glob');
@@ -9,12 +10,21 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const LessPluginCleanCss = require('less-plugin-clean-css');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
 
-// Find all Less files matching static/css/page-*.less
+// Find all entry files matching static/css/page-*.less or static/css/page-*.css
 const lessFiles = glob.sync('./static/css/page-*.less');
+const cssFiles = glob.sync('./static/css/page-*.css');
 const entries = {};
+
 lessFiles.forEach(file => {
     // e.g. page-home.less -> page-home
     const name = path.basename(file, '.less');
+    entries[name] = file;
+});
+
+cssFiles.forEach(file => {
+    // e.g. page-home.css -> page-home
+    // CSS files take precedence if both .less and .css exist (migration complete)
+    const name = path.basename(file, '.css');
     entries[name] = file;
 });
 
@@ -29,6 +39,7 @@ module.exports = {
     },
     module: {
         rules: [
+            // Rule for .less files (legacy, to be removed after migration)
             {
                 test: /\.less$/,
                 use: [
@@ -53,6 +64,20 @@ module.exports = {
                                     })
                                 ]
                             }
+                        }
+                    }
+                ]
+            },
+            // Rule for .css files (native CSS)
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: 'css-loader',
+                        options: {
+                            url: false,
+                            import: true // Enable @import resolution
                         }
                     }
                 ]
