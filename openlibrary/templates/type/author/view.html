@@ -166,7 +166,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
-        $if books_count > 0:
+        $if books_count and books.facet_counts:
             $:render_subjects(_("Subjects"), books.facet_counts.get('subject_facet'), '')
             $:render_subjects(_("Places"), books.facet_counts.get('place_facet'), 'place:')
             $:render_subjects(_("People"), books.facet_counts.get('person_facet'), 'person:')
