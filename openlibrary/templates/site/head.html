@@ -35,13 +35,13 @@ $def with (page)
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
     <style>
-      /* Clip ol-read-more content before component is defined to prevent flash of unstyled content / cumulative layout shift. The max-height is set to match the default height of the component. */
-      ol-read-more:not(:defined) {
-        display: block;
-        max-height: 121px;
+      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content. The min-height is set to match the default height of the component. */
+      ol-read-more {
+        min-height: 121px;
+        visibility: hidden;
         overflow: hidden;
       }
-      ol-read-more[label-size="small"]:not(:defined) {
+      ol-read-more[label-size="small"] {
         min-height: 107px;
       }
     </style>
@@ -51,10 +51,6 @@ $def with (page)
         /* Don't hide content with clamp if no js to show more/less */
         .clamp {
           -webkit-line-clamp: unset !important;
-        }
-
-        ol-read-more {
-          max-height: unset !important;
         }
 
         /* @width-breakpoint-tablet media query: */
