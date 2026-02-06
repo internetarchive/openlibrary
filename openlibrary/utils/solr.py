@@ -52,7 +52,6 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.session = httpx.Client()
         self.async_session = httpx.AsyncClient()
 
     def escape(self, query):
