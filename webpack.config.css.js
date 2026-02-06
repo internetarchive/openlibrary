@@ -71,6 +71,7 @@ module.exports = {
                             cwd: __dirname,
                         });
                     } catch (e) {
+                        // eslint-disable-next-line no-console
                         console.error('Failed to generate CSS custom properties:', e.message);
                     }
                 });
