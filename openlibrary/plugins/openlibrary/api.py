@@ -814,13 +814,18 @@ class opds_search(delegate.page):
         from pyopds2 import Catalog, Link, Metadata
 
         i = web.input(
-            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
+            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None, mode="ebooks"
         )
+
+        query = i.query
+        if i.mode == "ebooks" and "ebook_access:" not in query:
+            query = f"{query} ebook_access:[borrowable TO *]"
+
         provider = get_opds_data_provider()
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
             response=provider.search(
-                query=i.query,
+                query=query,
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
                 sort=i.sort,
