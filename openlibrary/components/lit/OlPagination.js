@@ -56,7 +56,7 @@ export class OlPagination extends LitElement {
     static styles = css`
         :host {
             display: block;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: var(--font-family-button);
         }
 
         .pagination {
@@ -70,7 +70,7 @@ export class OlPagination extends LitElement {
             align-items: center;
             justify-content: center;
             padding: 0.2em 0.6em;
-            border: 1px solid transparent;
+            border: var(--border-width-control) solid transparent;
             border-radius: 4px;
             background: transparent;
             color: #444;
@@ -87,12 +87,12 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:focus-visible {
-            outline: 2px solid #5B8DD9;
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
         .pagination-item[aria-current="page"] {
-            border-color: #ddd;
+            border-color: var(--color-border-subtle);
             cursor: default;
             user-select: none;
         }
