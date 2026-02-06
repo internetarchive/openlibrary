@@ -774,11 +774,11 @@ msgstr ""
 msgid "added to"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show less"
 msgstr ""
 
@@ -1773,31 +1773,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
@@ -1814,6 +1790,136 @@ msgstr ""
 
 #: design.html
 msgid "Link (clicked)"
+msgstr ""
+
+#: design.html
+msgid "Pagination component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+msgid "Event-based"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+msgid "Selected page:"
+msgstr ""
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+msgid "3 pages"
+msgstr ""
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Read More component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+msgid "Custom background color"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
 msgstr ""
 
 #: diff.html
