@@ -1,6 +1,5 @@
 """Python library for accessing Solr"""
 
-import functools
 import logging
 import re
 from collections.abc import Callable, Iterable
@@ -96,10 +95,6 @@ class Solr:
         # Solr returns {doc: null} if the record isn't there
         return doc_wrapper(resp['doc']) if resp['doc'] else None
 
-    @functools.wraps(get_async)
-    def get(self, *args, **kwargs):
-        return async_bridge.run(self.get_async(*args, **kwargs))
-
     async def get_many_async(
         self,
         keys: Iterable[str],
@@ -122,10 +117,6 @@ class Solr:
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
-    @functools.wraps(get_many_async)
-    def get_many(self, *args, **kwargs):
-        return async_bridge.run(self.get_many_async(*args, **kwargs))
-
     async def update_in_place_async(
         self,
         request,
@@ -140,10 +131,6 @@ class Solr:
             )
         ).json()
         return resp
-
-    @functools.wraps(update_in_place_async)
-    def update_in_place(self, *args, **kwargs):
-        return async_bridge.run(self.update_in_place_async(*args, **kwargs))
 
     async def select_async(
         self,
@@ -204,15 +191,11 @@ class Solr:
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    @functools.wraps(select_async)
-    def select(self, *args, **kwargs):
-        """
-        Synchronously execute a solr query.
-
-        This is a wrapper around the async `select_async` method.
-        All parameters are passed directly to the async version.
-        """
-        return async_bridge.run(self.select_async(*args, **kwargs))
+    # Non-async versions for backwards compatibility
+    get = async_bridge.wrap(get_async)
+    get_many = async_bridge.wrap(get_many_async)
+    update_in_place = async_bridge.wrap(update_in_place_async)
+    select = async_bridge.wrap(select_async)
 
     async def raw_request(
         self,
