@@ -383,12 +383,10 @@ class PartialRequestResolver:
 
 
 class Partials(delegate.page):
-    path = '/partials'
+    path = r'/partials/([A-Za-z]+)'
     encoding = 'json'
 
-    def GET(self):
-        i = web.input(_component=None)
-        component = i.pop("_component")
+    def GET(self, component):
         return delegate.RawText(
             json.dumps(PartialRequestResolver.resolve(component)),
             content_type='application/json',
