@@ -28,7 +28,7 @@ $code:
     book_url = doc.key + '/' + urlsafe(doc.get('title', '-'))
 
   if doc_type == 'solr_edition':
-    work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed.key)
+    work_edition_url = book_url + '?edition=' + urlquote('key:' + selected_ed['key'])
   else:
     book_provider = get_book_provider(doc)
     if book_provider and doc_type.endswith('_work'):
@@ -46,11 +46,11 @@ $code:
   if doc_type == 'infogami_edition' and 'works' in doc:
     edition_work = doc['works'][0]
 
-  full_title = selected_ed.get('title', '') + (': ' + selected_ed.subtitle if selected_ed.get('subtitle') else '')
+  full_title = selected_ed.get('title', '') + (': ' + selected_ed['subtitle'] if selected_ed.get('subtitle') else '')
   if doc_type == 'infogami_edition' and edition_work:
-    full_work_title = edition_work.get('title', '') + (': ' + edition_work.subtitle if edition_work.get('subtitle') else '')
+    full_work_title = edition_work.get('title', '') + (': ' + edition_work['subtitle'] if edition_work.get('subtitle') else '')
   else:
-    full_work_title = doc.get('title', '') + (': ' + doc.subtitle if doc.get('subtitle') else '')
+    full_work_title = doc.get('title', '') + (': ' + doc['subtitle'] if doc.get('subtitle') else '')
 
 <li class="searchResultItem sri--w-main" itemscope itemtype="https://schema.org/Book" $:attrs>
   $ blur_cover = "bookcover--blur" if blur else ""
@@ -79,6 +79,21 @@ $code:
 
     <div class="details">
         <div class="resultTitle">
+          $ series_edge = None
+          $if doc_type == 'infogami_work':
+            $ series_edge = doc.get_primary_series()
+          $elif doc_type.startswith('solr_'):
+            $if doc.get('series'):
+              $ series_edge = doc['series'][0]
+            $elif doc.get('series_key'):
+              $ series_edge = { 'series': { 'key': doc['series_key'][0], 'name': doc['series_name'][0] }, 'position': doc['series_position'][0] }
+
+          $if series_edge:
+            <span class="bookseries" itemprop="isPartOf" itemscope itemtype="https://schema.org/Series">
+              <a href="/series/$series_edge['series']['key']/$urlsafe(series_edge['series'].get('name'))" itemprop="name url">$series_edge['series'].get('name')</a>$cond(series_edge.get('position'), ': ')
+              $if series_edge.get('position'):
+                <span class="bookseries__position">$_('Book %(position)s', position=series_edge.get('position'))</span>
+            </span>
           <h3 itemprop="name" class="booktitle">
             <a itemprop="url" href="$work_edition_url" class="results">$full_title</a>
           </h3>
@@ -212,7 +227,7 @@ $code:
         $if include_dropper:
           $ edition_key = None
           $if doc_type == 'solr_edition':
-            $ edition_key = selected_ed.key
+            $ edition_key = selected_ed['key']
           $elif doc_type == 'infogami_edition':
             $ edition_key = doc.key
           $elif doc_type == 'solr_work':
