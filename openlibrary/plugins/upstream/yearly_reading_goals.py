@@ -3,6 +3,7 @@ from datetime import datetime
 from math import floor
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -13,6 +14,7 @@ from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 MAX_READING_GOAL = 10_000
 
 
+@deprecated("migrated to fastapi")
 class yearly_reading_goal_json(delegate.page):
     path = '/reading-goal'
     encoding = 'json'
