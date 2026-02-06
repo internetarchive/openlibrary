@@ -814,7 +814,11 @@ class opds_search(delegate.page):
         from pyopds2 import Catalog, Link, Metadata
 
         i = web.input(
-            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None, mode="ebooks"
+            query="trending_score_hourly_sum:[1 TO *]",
+            limit=25,
+            page=1,
+            sort=None,
+            mode="ebooks",
         )
 
         query = i.query
