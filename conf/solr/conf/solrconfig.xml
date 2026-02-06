@@ -35,55 +35,7 @@
        that you fully re-index after changing this setting as it can
        affect both how text is indexed and queried.
   -->
-  <luceneMatchVersion>9.4</luceneMatchVersion>
-
-  <!-- <lib/> directives can be used to instruct Solr to load any Jars
-       identified and use them to resolve any "plugins" specified in
-       your solrconfig.xml or schema.xml (ie: Analyzers, Request
-       Handlers, etc...).
-
-       All directories and paths are resolved relative to the
-       instanceDir.
-
-       Please note that <lib/> directives are processed in the order
-       that they appear in your solrconfig.xml file, and are "stacked"
-       on top of each other when building a ClassLoader - so if you have
-       plugin jars with dependencies on other jars, the "lower level"
-       dependency jars should be loaded first.
-
-       If a "./lib" directory exists in your instanceDir, all files
-       found in it are included as if you had used the following
-       syntax...
-
-              <lib dir="./lib" />
-    -->
-
-  <!-- A 'dir' option by itself adds any files found in the directory
-       to the classpath, this is useful for including all jars in a
-       directory.
-
-       When a 'regex' is specified in addition to a 'dir', only the
-       files in that directory which completely match the regex
-       (anchored on both ends) will be included.
-
-       If a 'dir' option (with or without a regex) is used and nothing
-       is found that matches, a warning will be logged.
-
-       The example below can be used to load a Solr Module along
-       with their external dependencies.
-    -->
-    <!-- <lib dir="${solr.install.dir:../../../..}/modules/ltr/lib" regex=".*\.jar" /> -->
-    <!-- <lib dir="${solr.install.dir:../../../..}/modules/analysis-extras/lib" regex="solr-analysis-extras-\d.*\.jar" />
-    <lib dir="${solr.install.dir:../../../..}/modules/analysis-extras/lib" regex="lucene-analysis-icu-\d.*\.jar" />
-    <lib dir="${solr.install.dir:../../../..}/modules/analysis-extras/lib" regex="icu4j-\d.*\.jar" /> -->
-
-  <!-- an exact 'path' can be used instead of a 'dir' to specify a
-       specific jar file.  This will cause a serious error to be logged
-       if it can't be loaded.
-    -->
-  <!--
-     <lib path="../a-jar-that-does-not-exist.jar" />
-  -->
+    <luceneMatchVersion>9.12</luceneMatchVersion>
 
   <!-- Data Directory
 
@@ -259,16 +211,9 @@
          is recommended (see below).
          "dir" - the target directory for transaction logs, defaults to the
                 solr data directory.
-         "numVersionBuckets" - sets the number of buckets used to keep
-                track of max version values when checking for re-ordered
-                updates; increase this value to reduce the cost of
-                synchronizing access to version buckets during high-volume
-                indexing, this requires 8 bytes (long) * numVersionBuckets
-                of heap space per Solr core.
     -->
     <updateLog>
       <str name="dir">${solr.ulog.dir:}</str>
-      <int name="numVersionBuckets">${solr.ulog.numVersionBuckets:65536}</int>
     </updateLog>
 
     <!-- AutoCommit
@@ -304,6 +249,7 @@
       -->
 
     <autoSoftCommit>
+      <!-- Solr 9.9 default is 3000 -->
       <maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
     </autoSoftCommit>
 
@@ -363,6 +309,21 @@
       -->
     <maxBooleanClauses>${solr.max.booleanClauses:1024}</maxBooleanClauses>
 
+        <!-- Minimum acceptable prefix-size for prefix-based queries.
+
+             Prefix-based queries consume memory in proportion to the number of terms in the index
+             that start with that prefix.  Short prefixes tend to match many many more indexed-terms
+             and consume more memory as a result, sometimes causing stability issues on the node.
+
+             This setting allows administrators to require that prefixes meet or exceed a specified
+             minimum length requirement.  Prefix queries that don't meet this requirement return an
+             error to users.  The limit may be overridden on a per-query basis by specifying a
+             'minPrefixQueryTermLength' local-param value.
+
+             The flag value of '-1' can be used to disable enforcement of this limit.
+        -->
+        <minPrefixQueryTermLength>${solr.query.minPrefixLength:-1}</minPrefixQueryTermLength>
+
     <!-- Solr Internal Query Caches
          Starting with Solr 9.0 the default cache implementation used is CaffeineCache.
     -->
@@ -390,7 +351,7 @@
       -->
     <filterCache size="512"
                  initialSize="512"
-                 autowarmCount="128"/>
+                 autowarmCount="128"/> <!-- default = 0 -->
 
     <!-- Query Result Cache
 
@@ -402,7 +363,7 @@
       -->
     <queryResultCache size="512"
                       initialSize="512"
-                      autowarmCount="128"/>
+                      autowarmCount="128"/> <!-- default = 0 -->
 
     <!-- Document Cache
 
@@ -497,23 +458,6 @@
       -->
     <queryResultMaxDocsCached>200</queryResultMaxDocsCached>
 
-  <!-- Use Filter For Sorted Query
-
-   A possible optimization that attempts to use a filter to
-   satisfy a search.  If the requested sort does not include
-   score, then the filterCache will be checked for a filter
-   matching the query. If found, the filter will be used as the
-   source of document ids, and then the sort will be applied to
-   that.
-
-   For most situations, this will not be useful unless you
-   frequently get the same search repeatedly with different sort
-   options, and none of them ever use "score"
--->
-    <!--
-       <useFilterForSortedQuery>true</useFilterForSortedQuery>
-      -->
-
     <!-- Query Related Event Listeners
 
          Various IndexSearcher related events can trigger Listeners to
@@ -607,51 +551,10 @@
     <maxWarmingSearchers>4</maxWarmingSearchers>
   </query>
 
-  <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     Circuit Breaker Section - This section consists of configurations for
-     circuit breakers
-     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
-  <!-- Circuit breakers are designed to allow stability and predictable query
-     execution. They prevent operations that can take down the node and cause
-     noisy neighbour issues.
-
-     The CircuitBreakerManager is the default manager for all circuit breakers.
-     The enabled flag here controls the activation/deactivation of all circuit
-     breakers specified within.
+  <!-- Legacy CircuitBreakerManager configuration is deprecated.
+       It was unused, but see https://solr.apache.org/guide/solr/latest/deployment-guide/circuit-breakers.html
+       for how to configure them via environment variables, if desired.
   -->
-  <circuitBreaker class="solr.CircuitBreakerManager" enabled="true">
-    <!-- Memory Circuit Breaker
-
-     Specific configuration for max JVM heap usage circuit breaker. This configuration defines
-     whether the circuit breaker is enabled and the threshold percentage of maximum heap allocated
-     beyond which queries will be rejected until the current JVM usage goes below the threshold.
-     The valid value for this range is 50-95.
-
-     Consider a scenario where the max heap allocated is 4 GB and memThreshold is defined as 75.
-     Threshold JVM usage will be 4 * 0.75 = 3 GB. Its generally a good idea to keep this value
-     between 75 - 80% of maximum heap allocated.
-
-     If, at any point, the current JVM heap usage goes above 3 GB, queries will be rejected until
-     the heap usage goes below 3 GB again. If you see queries getting rejected with 503 error code,
-     check for "Circuit Breakers tripped" in logs and the corresponding error message should tell
-     you what transpired (if the failure was caused by tripped circuit breakers).
-    -->
-    <!--
-    <str name="memEnabled">true</str>
-    <str name="memThreshold">75</str>
-    -->
-
-    <!-- CPU Circuit Breaker Configuration
-
-     Specific configuration for CPU utilization based circuit breaker. This configuration defines
-     whether the circuit breaker is enabled and the average load over the last minute at which the
-     circuit breaker should start rejecting queries.
-    -->
-    <!--
-    <str name="cpuEnabled">true</str>
-    <str name="cpuThreshold">75</str>
-    -->
-  </circuitBreaker>
 
   <!-- Request Dispatcher
 
@@ -665,9 +568,6 @@
          These settings indicate how Solr Requests may be parsed, and
          what restrictions may be placed on the ContentStreams from
          those requests
-
-         enableRemoteStreaming - enables use of the stream.file
-         and stream.url parameters for specifying remote streams.
 
          multipartUploadLimitInKB - specifies the max size (in KiB) of
          Multipart File Uploads that Solr will allow in a Request.
@@ -684,12 +584,7 @@
          Solr components, but may be useful when developing custom
          plugins.
 
-         *** WARNING ***
-         Before enabling remote streaming, you should make sure your
-         system has authentication enabled.
-
-    <requestParsers enableRemoteStreaming="false"
-                    multipartUploadLimitInKB="-1"
+        <requestParsers multipartUploadLimitInKB="-1"
                     formdataUploadLimitInKB="-1"
                     addHttpRequestToContext="false"/>
       -->
@@ -1017,6 +912,10 @@
     <str name="pattern">[^\w-\.]</str>
     <str name="replacement">_</str>
   </updateProcessor>
+    <updateProcessor class="solr.NumFieldLimitingUpdateRequestProcessorFactory" name="max-fields">
+        <int name="maxFields">1000</int>
+        <bool name="warnOnly">true</bool>
+    </updateProcessor>
   <updateProcessor class="solr.ParseBooleanFieldUpdateProcessorFactory" name="parse-boolean"/>
   <updateProcessor class="solr.ParseLongFieldUpdateProcessorFactory" name="parse-long"/>
   <updateProcessor class="solr.ParseDoubleFieldUpdateProcessorFactory" name="parse-double"/>
@@ -1061,15 +960,16 @@
     </lst>
   </updateProcessor>
 
+
   <!-- The update.autoCreateFields property can be turned to false to disable schemaless mode -->
   <updateRequestProcessorChain name="add-unknown-fields-to-the-schema" default="${update.autoCreateFields:true}"
-           processor="uuid,remove-blank,field-name-mutating,parse-boolean,parse-long,parse-double,parse-date,add-schema-fields">
+                                 processor="uuid,remove-blank,field-name-mutating,max-fields,parse-boolean,parse-long,parse-double,parse-date,add-schema-fields">
     <processor class="solr.LogUpdateProcessorFactory"/>
     <processor class="solr.DistributedUpdateProcessorFactory"/>
     <processor class="solr.RunUpdateProcessorFactory"/>
   </updateRequestProcessorChain>
 
-  <!-- This makes a bulk update requests not fail if only one of the records has an issue -->
+  <!-- OL addition - This makes bulk update requests not fail if only one of the records has an issue -->
   <updateRequestProcessorChain name="tolerant-chain">
     <processor class="solr.TolerantUpdateProcessorFactory">
       <int name="maxErrors">-1</int>

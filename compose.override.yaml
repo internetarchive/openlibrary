@@ -48,6 +48,7 @@ services:
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=dev
+        -Dsolr.modules=analysis-extras
     ports:
       - 8983:8983
 
