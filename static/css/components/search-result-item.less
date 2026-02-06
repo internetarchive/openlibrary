@@ -180,6 +180,12 @@
   margin-bottom: 5px;
   font-size: @font-size-label-medium;
 
+  &::part(toggle-btn) {
+    @media only screen and (min-width: 800px) {
+      padding-left: 8px;
+    }
+  }
+
   .srw__chapter {
     border-radius: inherit;
     padding: 6px 8px;
