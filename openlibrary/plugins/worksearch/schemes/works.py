@@ -17,6 +17,7 @@ from openlibrary.solr.query_utils import (
     EmptyTreeError,
     fully_escape_query,
     luqum_deepcopy,
+    luqum_get_all_fields,
     luqum_parser,
     luqum_remove_child,
     luqum_remove_field,
@@ -533,19 +534,40 @@ class WorkSearchScheme(SearchScheme):
                 ),
             )
 
-        if ed_q or len(editions_fq) > 1:
+        # This clause performs a hard filter based on the edition query.
+        # E.g. for a query like `language:fre ebook_access:public`, we want to exclude
+        # works which do not have any **editions** matching that query.
+        #
+        # The only cases where we want to skip this is when the query is simple enough,
+        # e.g. just `language:fre` or just `ebook_access:public`, since in those cases
+        # the work query already filters out works without matching editions.
+        ed_q_fields = luqum_get_all_fields(luqum_parser(ed_q)) if ed_q else set()
+        if (
+            # None is the default field, eg `hello language:eng`. `hello` will always
+            # require edition-based work-filtering.
+            None in ed_q_fields
+            # Otherwise check if we have any valid edition fields explicitly specified.
+            # Note `editions_fq` will always be at least {'type:edition'}
+            or (len(ed_q_fields - {None}) + len(editions_fq) - 1) > 1
+        ):
             # The elements in _this_ edition query should cause works not to
             # match _at all_ if matching editions are not found
             new_params.append(
                 ('fullEdQuery', cast(str, full_ed_query) if ed_q else '*:*')
             )
+
+            # If the query is _only_ a default-field query, we can make the
+            # match optional. This allows searches like `horror` to return works
+            # that only match at the work-level, eg only a subject match.
+            optional = ed_q_fields == {None} and len(editions_fq) == 1
+
             q = (
                 f'+{full_work_query} '
                 # This is using the special parent query syntax to, on top of
                 # the user's `full_work_query`, also only find works which have
                 # editions matching the edition query.
                 # Also include edition-less works (i.e. edition_count:0)
-                '+('
+                f'{"+" if not optional else ""}('
                 '_query_:"{!parent which=type:work v=$fullEdQuery filters=$editions.fq}" '
                 'OR edition_count:0'
                 ')'
