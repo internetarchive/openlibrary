@@ -205,12 +205,15 @@ class CarouselCardPartial(PartialDataHandler):
 class AffiliateLinksPartial(PartialDataHandler):
     """Handler for affiliate links"""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: dict | None = None):
+        if data is None:
+            i = web.input(data=None)
+            self.data = json.loads(i.data) if i.data else {}
+        else:
+            self.data = data
 
     def generate(self) -> dict:
-        data = json.loads(self.i.data)
-        args = data.get("args", [])
+        args = self.data.get("args", [])
 
         if len(args) < 2:
             raise PartialResolutionError("Unexpected amount of arguments")
@@ -222,15 +225,18 @@ class AffiliateLinksPartial(PartialDataHandler):
 class SearchFacetsPartial(PartialDataHandler):
     """Handler for search facets sidebar and "selected facets" affordances."""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: dict | None = None):
+        if data is None:
+            i = web.input(data=None)
+            self.data = json.loads(i.data) if i.data else {}
+        else:
+            self.data = data
 
     def generate(self) -> dict:
-        data = json.loads(self.i.data)
-        path = data.get('path')
-        query = data.get('query', '')
+        path = self.data.get('path')
+        query = self.data.get('query', '')
         parsed_qs = parse_qs(query.replace('?', ''))
-        param = data.get('param', {})
+        param = self.data.get('param', {})
 
         sort = None
         search_response = do_search(
@@ -270,11 +276,15 @@ class SearchFacetsPartial(PartialDataHandler):
 class FullTextSuggestionsPartial(PartialDataHandler):
     """Handler for rendering full-text search suggestions."""
 
-    def __init__(self):
-        self.i = web.input(data=None)
+    def __init__(self, data: str | None = None):
+        if data is None:
+            raw_input = web.input(data=None)
+            self.query = raw_input.get("data", "")
+        else:
+            self.query = data or ""
 
     def generate(self) -> dict:
-        query = self.i.get("data", "")
+        query = self.query
         data = fulltext_search(query)
         # Add caching headers only if there were no errors in the search results
         if 'error' not in data:
@@ -293,14 +303,19 @@ class FullTextSuggestionsPartial(PartialDataHandler):
 class BookPageListsPartial(PartialDataHandler):
     """Handler for rendering the book page "Lists" section"""
 
-    def __init__(self):
-        self.i = web.input(workId="", editionId="")
+    def __init__(self, workId: str = "", editionId: str = ""):
+        if not workId and not editionId:
+            # Only read from web.input if no params provided
+            i = web.input(workId="", editionId="")
+            self.workId = i.workId
+            self.editionId = i.editionId
+        else:
+            self.workId = workId
+            self.editionId = editionId
 
     def generate(self) -> dict:
         results: dict = {"partials": []}
-        work_key = self.i.workId
-        edition_key = self.i.editionId
-        keys = [k for k in (work_key, edition_key) if k]
+        keys = [k for k in (self.workId, self.editionId) if k]
 
         # Do checks and render
         lists = get_lists(keys)
