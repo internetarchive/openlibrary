@@ -11,6 +11,7 @@ import web
 from typing_extensions import deprecated
 
 import infogami
+from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -312,6 +313,7 @@ class WorkSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
+        solr_internals_params: 'SolrInternalsParams | None' = None,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -342,24 +344,31 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" pf="{pf}" bf="{bf}" v={v}}})'.format(
+        edismax_params = SolrInternalsParams(
+            solr_q_op='AND',
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^10 author_name^10 chapter^5',
+            solr_qf='text alternative_title^10 author_name^10 chapter^5',
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
-            pf='alternative_title^10 author_name^10',
+            solr_pf='alternative_title^10 author_name^10',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count) min(100,def(readinglog_count,0))',
+            solr_bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called userWorkQuery.
-            v='$userWorkQuery',
+            solr_v='$userWorkQuery',
         )
+        if solr_internals_params:
+            edismax_params = SolrInternalsParams.combine(
+                edismax_params, solr_internals_params
+            )
+
+        full_work_query = edismax_params.to_solr_edismax_subquery()
         ed_q = None
         full_ed_query = None
         editions_fq = []
