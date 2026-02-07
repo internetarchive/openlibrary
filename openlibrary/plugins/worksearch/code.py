@@ -715,6 +715,16 @@ class search(delegate.page):
         if 'isbn' in i:
             self.isbn_redirect(i.isbn)
 
+        # Check if this is an expensive search that requires human verification
+        if self._is_expensive_search(i):
+            from openlibrary.plugins.openlibrary.code import (
+                is_suspicious_visitor,
+                require_human_verification,
+            )
+
+            if is_suspicious_visitor():
+                return require_human_verification()
+
         q_list = []
         if q := i.get('q', '').strip():
             m = re_olid.match(q)
@@ -782,6 +792,22 @@ class search(delegate.page):
             page,
             rows,
         )
+
+    def _is_expensive_search(self, i):
+        """Check if this is an expensive search query that requires verification.
+
+        Expensive queries include:
+        - Queries with specialized Solr syntax (e.g., language:, *:*, etc.)
+        - Queries with language filters
+
+        Args:
+            i: Web input object with search parameters
+
+        Returns:
+            bool: True if this is an expensive search, False otherwise
+        """
+        q = i.get('q', '').strip()
+        return any(term in q for term in ['ebook_access:', 'language:'])
 
 
 def works_by_author(

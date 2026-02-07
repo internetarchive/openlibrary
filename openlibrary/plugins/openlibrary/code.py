@@ -1229,6 +1229,58 @@ def is_bot():
     return req_context.get().is_bot
 
 
+def is_recognized_bot():
+    return req_context.get().is_recognized_bot
+
+
+def is_suspicious_visitor():
+    """Check if the current visitor is suspicious and needs human verification.
+
+    A suspicious visitor is someone who is NOT:
+    1. a recognized bot
+    2. coming from a referer
+    3. carrying a valid signed verification cookie
+    4. logged in
+
+    Returns:
+        bool: True if visitor is suspicious and needs verification, False otherwise
+    """
+    # Check if it's a known bot
+    if is_recognized_bot():
+        return False
+
+    # Check if there's a referer header
+    if web.ctx.env.get('HTTP_REFERER'):
+        return False
+
+    # Check if visitor has a valid signed verification cookie
+    from openlibrary.accounts.model import verify_verification_cookie
+
+    cookie_value = web.cookies().get('vf')
+    if cookie_value and verify_verification_cookie(cookie_value):
+        return False
+
+    # Check if user is logged in
+    try:
+        if web.ctx.site.get_user():
+            return False
+    except Exception:
+        pass
+    return True
+
+
+def require_human_verification():
+    """Show the human verification challenge page.
+
+    Returns:
+        The rendered challenge page template.
+    """
+    # Track verification challenge shown
+    openlibrary.core.stats.increment('ol.stats.verify_human.challenge_shown')
+
+    return render_template('lib/challenge')
+
+
 def setup_template_globals():
     # must be imported here, otherwise silently messes up infogami's import execution
     # order, resulting in random errors like the the /account/login.json endpoint

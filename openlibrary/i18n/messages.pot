@@ -5812,6 +5812,26 @@ msgstr ""
 msgid "%s does not exist."
 msgstr ""
 
+#: lib/challenge.html
+msgid "Human Verification"
+msgstr ""
+
+#: lib/challenge.html
+msgid "Please verify you are human to continue."
+msgstr ""
+
+#: lib/challenge.html
+msgid "Verify you are human"
+msgstr ""
+
+#: lib/challenge.html
+msgid "Verifying..."
+msgstr ""
+
+#: lib/challenge.html
+msgid "Verification failed. Please try again."
+msgstr ""
+
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
 msgstr ""

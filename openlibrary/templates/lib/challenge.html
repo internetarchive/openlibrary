@@ -1,0 +1,63 @@
+$var title: $_("Human Verification")
+
+<div id="contentHead">
+    <h1>$_("Human Verification")</h1>
+</div>
+
+<div id="contentBody" class="verification-challenge">
+    <p class="verification-message">$_("Please verify you are human to continue.")</p>
+    <button id="verify-human-btn" class="cta-btn cta-btn--shell">
+        $_("Verify you are human")
+    </button>
+</div>
+
+<style>
+.verification-challenge {
+    text-align: center;
+    padding: 2rem;
+}
+
+.verification-message {
+    margin-bottom: 2rem;
+}
+
+#verify-human-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+</style>
+
+<script>
+(function() {
+    var button = document.getElementById('verify-human-btn');
+    var verifyingText = $:json.dumps(_("Verifying..."));
+    var errorText = $:json.dumps(_("Verification failed. Please try again."));
+    var originalText = button.textContent;
+
+    button.addEventListener('click', function() {
+        button.disabled = true;
+        button.textContent = verifyingText;
+
+        fetch('/account/verify_human', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(response) {
+            if (response.ok) {
+                // Simply reload the page - verification cookie is now set
+                window.location.reload();
+            } else {
+                throw new Error('Verification failed');
+            }
+        })
+        .catch(function(error) {
+            console.error('Verification error:', error);
+            alert(errorText);
+            button.disabled = false;
+            button.textContent = originalText;
+        });
+    });
+})();
+</script>
