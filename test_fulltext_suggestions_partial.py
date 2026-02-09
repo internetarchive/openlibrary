@@ -31,8 +31,8 @@ from typing import Any
 import pytest
 import requests
 
-# Base URL for the partials endpoint
-BASE_URL = "http://localhost:8080/partials.json"
+# Base URL for the FulltextSearchSuggestion partials endpoint
+BASE_URL = "http://localhost:8080/partials/FulltextSearchSuggestion.json"
 
 # Firefox-like headers for realistic requests
 FIREFOX_HEADERS = {
@@ -42,35 +42,35 @@ FIREFOX_HEADERS = {
 }
 
 
-def build_fulltext_suggestions_url(data: dict) -> str:
+def build_fulltext_suggestions_url(query: str) -> str:
     """
     Build the URL for the FulltextSearchSuggestion partial endpoint.
 
     Matches the JavaScript buildPartialsUrl function behavior.
 
     Args:
-        data: Dictionary containing query string
+        query: The search query string
 
     Returns:
         Complete URL with query parameters
     """
-    params = {'_component': 'FulltextSearchSuggestion', 'data': json.dumps(data)}
+    params = {'data': query}
     query_string = urllib.parse.urlencode(params)
     return f"{BASE_URL}?{query_string}"
 
 
-def make_request(data: dict, description: str) -> dict[str, Any]:
+def make_request(query: str, description: str) -> dict[str, Any]:
     """
     Make a request to the FullTextSuggestions endpoint and return the response.
 
     Args:
-        data: The data payload to send
+        query: The search query string
         description: Description of the test case
 
     Returns:
         Response dictionary or error dictionary
     """
-    url = build_fulltext_suggestions_url(data)
+    url = build_fulltext_suggestions_url(query)
 
     print(f"\n{'=' * 60}")
     print(f"Test: {description}")
@@ -105,8 +105,8 @@ def make_request(data: dict, description: str) -> dict[str, Any]:
 @pytest.mark.integration
 def test_fulltext_suggestions_with_query():
     """Test FullTextSuggestions with a search query."""
-    data = {'query': 'python programming'}
-    result = make_request(data, "Test with search query")
+    query = 'python programming'
+    result = make_request(query, "Test with search query")
     assert 'error' not in result, f"Request failed: {result.get('error')}"
     assert 'partials' in result, "Response should contain 'partials' key"
     print("\n✓ Success! Got partials content")
@@ -115,8 +115,8 @@ def test_fulltext_suggestions_with_query():
 @pytest.mark.integration
 def test_fulltext_suggestions_empty_query():
     """Test FullTextSuggestions with empty query."""
-    data = {'query': ''}
-    result = make_request(data, "Test with empty query")
+    query = ''
+    result = make_request(query, "Test with empty query")
     assert 'error' not in result, f"Request failed: {result.get('error')}"
     assert 'partials' in result, "Response should contain 'partials' key"
     print("\n✓ Success! Got partials content")
@@ -125,8 +125,8 @@ def test_fulltext_suggestions_empty_query():
 @pytest.mark.integration
 def test_fulltext_suggestions_simple_word():
     """Test FullTextSuggestions with a simple word."""
-    data = {'query': 'shakespeare'}
-    result = make_request(data, "Test with simple word")
+    query = 'shakespeare'
+    result = make_request(query, "Test with simple word")
     assert 'error' not in result, f"Request failed: {result.get('error')}"
     assert 'partials' in result, "Response should contain 'partials' key"
     print("\n✓ Success! Got partials content")

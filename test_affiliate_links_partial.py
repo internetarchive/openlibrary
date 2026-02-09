@@ -30,8 +30,8 @@ from typing import Any
 import pytest
 import requests
 
-# Base URL for the partials endpoint
-BASE_URL = "http://localhost:8080/partials.json"
+# Base URL for the AffiliateLinks partials endpoint
+BASE_URL = "http://localhost:8080/partials/AffiliateLinks.json"
 
 
 def build_affiliate_links_url(data: dict) -> str:
@@ -46,7 +46,7 @@ def build_affiliate_links_url(data: dict) -> str:
     Returns:
         Complete URL with query parameters
     """
-    params = {'_component': 'AffiliateLinks', 'data': json.dumps(data)}
+    params = {'data': json.dumps(data)}
     query_string = urllib.parse.urlencode(params)
     return f"{BASE_URL}?{query_string}"
 

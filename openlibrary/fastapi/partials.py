@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -15,60 +14,64 @@ from openlibrary.plugins.openlibrary.partials import (
 router = APIRouter()
 
 
-@router.get("/partials.json")
-async def partials_endpoint(
-    _component: Literal[
-        "SearchFacets", "BPListsSection", "AffiliateLinks", "FulltextSearchSuggestion"
-    ] = Query(
-        ...,
-        description="Component name",
-    ),
-    data: str | None = Query(
-        None, description="JSON-encoded data with parameters for the component"
-    ),
-    workId: str = Query("", description="Work ID (for BPListsSection component)"),
-    editionId: str = Query("", description="Edition ID (for BPListsSection component)"),
+@router.get("/partials/SearchFacets.json")
+async def search_facets_partial(
+    data: str = Query(..., description="JSON-encoded data with search parameters"),
 ) -> dict:
     """
-    Get partial HTML for various components.
+    Get search facets sidebar and selected facets HTML.
 
-    This endpoint mirrors the web.py /partials.json endpoint.
-
-    For BPListsSection, accepts separate parameters:
-    - ?workId=/works/OL53924W&editionId=/books/OL7353617M
-
-    For other components, uses the data parameter (JSON).
+    The data parameter should contain:
+    - param: dict with search parameters (q, author_key, subject_facet, etc.)
+    - path: str (e.g., '/search')
+    - query: str (e.g., '?q=python')
     """
-    parsed_data: dict | None = None
-    if data and _component in ("SearchFacets", "AffiliateLinks"):
-        try:
-            parsed_data = json.loads(data)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=400, detail="Invalid JSON in data parameter"
-            )
+    try:
+        parsed_data = json.loads(data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    if _component == "SearchFacets":
-        if not parsed_data:
-            raise HTTPException(
-                status_code=400, detail="Missing required data parameter"
-            )
-        return SearchFacetsPartial(data=parsed_data).generate()
+    return SearchFacetsPartial(data=parsed_data).generate()
 
-    elif _component == "AffiliateLinks":
-        if not parsed_data:
-            raise HTTPException(
-                status_code=400, detail="Missing required data parameter"
-            )
-        return AffiliateLinksPartial(data=parsed_data).generate()
 
-    elif _component == "BPListsSection":
-        # TODO: fix it to work when logged in too
-        return BookPageListsPartial(workId=workId, editionId=editionId).generate()
+@router.get("/partials/AffiliateLinks.json")
+async def affiliate_links_partial(
+    data: str = Query(..., description="JSON-encoded data with book information"),
+) -> dict:
+    """
+    Get affiliate links HTML for a book.
 
-    elif _component == "FulltextSearchSuggestion":
-        # data is just a string, not JSON
-        return FullTextSuggestionsPartial(data=data or "").generate()
+    The data parameter should contain:
+    - args: list with [title, opts] where opts is a dict with optional isbn
+    """
+    try:
+        parsed_data = json.loads(data)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    else:
-        raise HTTPException(status_code=400, detail=f"Unknown component: {_component}")
+    return AffiliateLinksPartial(data=parsed_data).generate()
+
+
+@router.get("/partials/BPListsSection.json")
+async def book_page_lists_partial(
+    workId: str = Query("", description="Work ID (e.g., /works/OL53924W)"),
+    editionId: str = Query("", description="Edition ID (e.g., /books/OL7353617M)"),
+) -> dict:
+    """
+    Get book page lists section HTML.
+
+    At least one of workId or editionId must be provided.
+    """
+    return BookPageListsPartial(workId=workId, editionId=editionId).generate()
+
+
+@router.get("/partials/FulltextSearchSuggestion.json")
+async def fulltext_search_suggestion_partial(
+    data: str = Query(..., description="Search query string"),
+) -> dict:
+    """
+    Get full-text search suggestions HTML.
+
+    The data parameter is the raw search query string.
+    """
+    return FullTextSuggestionsPartial(data=data).generate()

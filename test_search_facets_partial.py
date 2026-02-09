@@ -31,8 +31,8 @@ from typing import Any
 import pytest
 import requests
 
-# Base URL for the partials endpoint
-BASE_URL = "http://localhost:8080/partials.json"
+# Base URL for the SearchFacets partials endpoint
+BASE_URL = "http://localhost:8080/partials/SearchFacets.json"
 
 
 def build_search_facets_url(data: dict) -> str:
@@ -47,7 +47,7 @@ def build_search_facets_url(data: dict) -> str:
     Returns:
         Complete URL with query parameters
     """
-    params = {'_component': 'SearchFacets', 'data': json.dumps(data)}
+    params = {'data': json.dumps(data)}
     query_string = urllib.parse.urlencode(params)
     return f"{BASE_URL}?{query_string}"
 
@@ -301,7 +301,7 @@ def test_missing_query():
 def test_malformed_json():
     """Test what happens with malformed JSON (should fail at request level)."""
     # This test manually constructs a URL with bad JSON
-    url = f"{BASE_URL}?_component=SearchFacets&data=not_valid_json"
+    url = f"{BASE_URL}?data=not_valid_json"
 
     print(f"\n{'=' * 60}")
     print("Test: Malformed JSON data")
