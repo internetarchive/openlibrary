@@ -291,7 +291,7 @@ class widget(delegate.page):
     path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
     def GET(self, key: str):  # type: ignore[override]
-        olid = key.split('/')[-1]
+        olid = key.rsplit('/', maxsplit=1)[-1]
         item = web.ctx.site.get(key)
         is_work = key.startswith('/works/')
         item['olid'] = olid

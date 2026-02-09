@@ -43,7 +43,7 @@ class HMACToken:
                 (raised after digest comparison).
         """
         current_time = datetime.datetime.now(datetime.UTC)
-        expiry_str = msg.split(delimiter)[-1]
+        expiry_str = msg.rsplit(delimiter, maxsplit=1)[-1]
         expiry = datetime.datetime.fromisoformat(expiry_str)
 
         err: Exception | None = None

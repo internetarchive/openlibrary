@@ -988,7 +988,7 @@ class User(Thing):
     @classmethod
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username: str) -> str:
-        username = username.split('/people/')[-1]
+        username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
 
