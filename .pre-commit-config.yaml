@@ -93,7 +93,7 @@ repos:
     - id: stylelint
       files: \.(css|less)$
       additional_dependencies:
-        - stylelint@16.19.1
+        - stylelint@16.22.0
         - stylelint-declaration-strict-value@1.10.11
         - postcss-less@6.0.0
         - stylelint-prettier@5.0.3
