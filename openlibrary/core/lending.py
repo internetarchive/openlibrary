@@ -1027,7 +1027,7 @@ def get_resource_id(identifier: str, resource_type: str) -> str | None:
 
         # The external identifiers will be of the format
         # acs:epub:<resource_id> or acs:pdf:<resource_id>
-        acs, rtype, resource_id = eid.split(":", 2)
+        _acs, rtype, resource_id = eid.split(":", 2)
         if rtype == resource_type:
             return resource_id
     return None

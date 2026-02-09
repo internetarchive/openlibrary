@@ -170,7 +170,7 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
         def find_route() -> InfogamiRoute:
             result = InfogamiRoute('<other>')
 
-            cls, args = find_page()
+            cls, _args = find_page()
             if cls:
                 if hasattr(cls, 'path'):
                     result.route = cls.path
