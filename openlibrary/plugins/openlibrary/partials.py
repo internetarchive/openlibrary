@@ -276,12 +276,12 @@ class SearchFacetsPartial(PartialDataHandler):
 class FullTextSuggestionsPartial(PartialDataHandler):
     """Handler for rendering full-text search suggestions."""
 
-    def __init__(self, data: str | None = None):
-        if data is None:
-            raw_input = web.input(data=None)
-            self.query = raw_input.get("data", "")
+    def __init__(self, query: str | None = None):
+        if query is None:
+            i = web.input(data=None)
+            self.query = i.get("data", "")
         else:
-            self.query = data or ""
+            self.query = query or ""
 
     def generate(self) -> dict:
         query = self.query

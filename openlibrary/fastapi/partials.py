@@ -62,6 +62,7 @@ async def book_page_lists_partial(
 
     At least one of workId or editionId must be provided.
     """
+    # TODO: make this work when user is logged in. Blocked on #11816
     return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
 
@@ -74,4 +75,4 @@ async def fulltext_search_suggestion_partial(
 
     The data parameter is the raw search query string.
     """
-    return FullTextSuggestionsPartial(data=data).generate()
+    return FullTextSuggestionsPartial(query=data).generate()
