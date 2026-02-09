@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -13,8 +14,11 @@ from openlibrary.plugins.openlibrary.partials import (
 
 router = APIRouter()
 
+# Only show partials endpoints in OpenAPI schema in local dev
+SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
-@router.get("/partials/SearchFacets.json")
+
+@router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def search_facets_partial(
     data: str = Query(..., description="JSON-encoded data with search parameters"),
 ) -> dict:
@@ -34,7 +38,7 @@ async def search_facets_partial(
     return SearchFacetsPartial(data=parsed_data).generate()
 
 
-@router.get("/partials/AffiliateLinks.json")
+@router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def affiliate_links_partial(
     data: str = Query(..., description="JSON-encoded data with book information"),
 ) -> dict:
@@ -52,7 +56,7 @@ async def affiliate_links_partial(
     return AffiliateLinksPartial(data=parsed_data).generate()
 
 
-@router.get("/partials/BPListsSection.json")
+@router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def book_page_lists_partial(
     workId: str = Query("", description="Work ID (e.g., /works/OL53924W)"),
     editionId: str = Query("", description="Edition ID (e.g., /books/OL7353617M)"),
@@ -66,7 +70,9 @@ async def book_page_lists_partial(
     return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
 
-@router.get("/partials/FulltextSearchSuggestion.json")
+@router.get(
+    "/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
 async def fulltext_search_suggestion_partial(
     data: str = Query(..., description="Search query string"),
 ) -> dict:
