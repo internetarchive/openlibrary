@@ -13,14 +13,14 @@ body:
       label: Feature Request
       description: Provide a brief summary of the proposed feature and any details, designs, or screenshots that may be relevant.
       value: |
-        ### Problem / Opportunity
+        ## Problem / Opportunity
         <!-- Describe: What is the problem this proposal addresses & for which audience(s)? -->
 
         <!-- Justify: Why should we work on this and what is the measurable impact? -->
 
         <!-- Define Success: How will we know when the problem is solved? -->
 
-        ### Proposal
+        ## Proposal
         <!-- Brief overview of your proposed solution -->
 
         <!-- Relevant designs, screenshots, or reference implementations that may help reviewers evaluate your proposal -->
@@ -32,24 +32,29 @@ body:
       label: Breakdown
       description: If you are unsure what to enter, please leave this section blank for leads/maintainers
       value: |
-        ### Related files
+        <details>
+        <summary><strong>Implementation Details</strong> (for maintainers)</summary>
+
+        #### Related files
         <!-- Add links to files relevant to the implementation of this proposal; useful for good first issues -->
         Refer to [this map of common Endpoints](https://github.com/internetarchive/openlibrary/wiki/Endpoints):
         *
 
-        ### Requirements Checklist
+        #### Requirements Checklist
         Checklist of requirements that need to be satisfied in order for this issue to be closed:
         * [ ]
 
-        ### Stakeholders
+        #### Stakeholders
         <!-- @ tag stakeholders of this feature, clarify their stake, and specify what checkoff is required from them -->
         *
 
         <hr>
 
-        ### Instructions for Contributors
+        #### Instructions for Contributors
         <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
         * **Before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) or pushing up changes to a PR, please first [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date, as the pre-commit bot may add commits to your PRs upstream.
+
+        </details>
 
   - type: markdown
     attributes:
