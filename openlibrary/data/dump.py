@@ -80,7 +80,7 @@ def read_data_file(filename: str, max_lines: int = 0):
     Setting max_lines to 0 will processes all records.
     """
     start_time = datetime.now()
-    log(f"read_data_file({filename}, max_lines={max_lines if max_lines else 'all'})")
+    log(f"read_data_file({filename}, max_lines={max_lines or 'all'})")
     total = 0
     for i, line in enumerate(xopen(filename, "rt")):
         total += 1

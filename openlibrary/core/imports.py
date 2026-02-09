@@ -98,9 +98,7 @@ class Batch(web.storage):
                         if item.get('data')
                         else None
                     ),
-                    'submitter': (
-                        item.get('submitter') if item.get('submitter') else None
-                    ),
+                    'submitter': item.get('submitter') or None,
                 }
             )
             for item in items

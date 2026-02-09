@@ -835,7 +835,7 @@ def get_best_edition(
         ],
     )
 
-    return best if best else (None, None)
+    return best or (None, None)
 
 
 def get_solr_keys() -> list[str]:

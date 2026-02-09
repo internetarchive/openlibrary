@@ -4,7 +4,7 @@
 import glob
 import re
 import sys
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
@@ -32,7 +32,7 @@ EXCLUDE_LIST = {
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
 
 
-class Errtype(str, Enum):
+class Errtype(StrEnum):
     WARN = "\033[93mWARN\033[0m"
     ERR = "\033[91mERRO\033[0m"
     SKIP = "\033[94mSKIP\033[0m"

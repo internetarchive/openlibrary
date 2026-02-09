@@ -194,11 +194,7 @@ class ratings(delegate.page):
             page=None,
             ajax=False,
         )
-        key = (
-            i.redir_url
-            if i.redir_url
-            else i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
-        )
+        key = i.redir_url or (i.edition_id or ('/works/OL%sW' % work_id))
         edition_id = (
             int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
         )
@@ -324,7 +320,7 @@ class work_bookshelves(delegate.page):
             bookshelf_id=None,
             dont_remove=False,
         )
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        key = i.edition_id or ('/works/OL%sW' % work_id)
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
@@ -468,7 +464,7 @@ class price_api(delegate.page):
         i = web.input(isbn='', asin='')
         if not (i.isbn or i.asin):
             return json.dumps({'error': 'isbn or asin required'})
-        id_ = i.asin if i.asin else normalize_isbn(i.isbn)
+        id_ = i.asin or normalize_isbn(i.isbn)
         id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
 
         metadata = {
@@ -765,7 +761,7 @@ class bestbook_award(delegate.page):
                             ),
                         }
                     )
-                elif i.op in ["remove"]:
+                elif i.op == "remove":
                     # Remove any award this patron has given this work_id
                     return json.dumps(
                         {

@@ -322,7 +322,7 @@ def format_book_data(book, fetch_availability=True):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
-    d.authors = get_authors(work if work else book)
+    d.authors = get_authors(work or book)
     d.work_key = work.key if work else book.key
 
     if cover := book.get_cover():

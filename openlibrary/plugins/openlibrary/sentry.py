@@ -14,5 +14,5 @@ def setup():
     sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
 
     if sentry.enabled:
-        delegate.add_exception_hook(lambda: sentry.capture_exception_webpy())
+        delegate.add_exception_hook(sentry.capture_exception_webpy)
         delegate.app.add_processor(InfogamiSentryProcessor(delegate.app))
