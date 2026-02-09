@@ -551,6 +551,11 @@ class SaveBookHelper:
         comment = formdata.pop('_comment', '')
 
         user = accounts.get_current_user()
+        delete_all = (
+            user
+            and (user.is_admin() or user.is_super_librarian())
+            and formdata.pop('_delete_all', '')
+        )
         delete = (
             user
             and (user.is_admin() or user.is_super_librarian())
@@ -560,11 +565,16 @@ class SaveBookHelper:
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
-        if not delete:
+        if not (delete or delete_all):
             self.process_new_fields(formdata)
 
         saveutil = DocSaveHelper()
 
+        # deletes a work and all its editions via batching
+        if delete_all and self.work:
+            self.delete_all_editions()
+
+        # deletes a single edition (and work if no more editions exist)
         if delete:
             if self.edition:
                 self.delete(self.edition.key, comment=comment)
@@ -662,6 +672,22 @@ class SaveBookHelper:
             saveutil.save(self.edition)
 
         saveutil.commit(comment=comment, action="edit-book")
+
+    def delete_all_editions(self) -> None:
+        """
+        Deletes all editions of the work in batches.
+        """
+        from openlibrary.plugins.openlibrary.api import work_delete
+
+        assert self.work is not None, "delete_all_editions requires a work"
+        work_id = self.work.key.split('/')[-1]
+        try:
+            work_delete().POST(work_id)
+        except web.HTTPError as e:
+            add_flash_message(
+                "error", "There was an error deleting the work: " + str(e)
+            )
+        raise web.seeother('/')
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
