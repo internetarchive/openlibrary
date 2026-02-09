@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Pagination(BaseModel):
@@ -33,6 +33,11 @@ class SolrInternalsParams(BaseModel):
     """
     Internal Solr query parameters for A/B testing search configurations.
     """
+
+    model_config = ConfigDict(
+        extra='ignore',  # Ignore extra query params from request.query_params
+        str_strip_whitespace=True,
+    )
 
     # Dismax parameters
     # See https://solr.apache.org/guide/solr/latest/query-guide/dismax-query-parser.html
@@ -99,6 +104,32 @@ class SolrInternalsParams(BaseModel):
         default=None, description="The value of the edismax query."
     )
 
+    @field_validator('*')
+    @classmethod
+    def validate_no_quotes_in_non_variables(cls, v: str | None, info) -> str | None:
+        """Block double quotes in non-variable values to prevent injection."""
+        if v is None or v.startswith('$'):
+            return v
+        if '"' in v:
+            raise ValueError(
+                f"Double quotes not allowed in {info.field_name}. "
+                f"This prevents potential Solr injection attacks."
+            )
+        return v
+
+    @field_validator('*')
+    @classmethod
+    def validate_variable_references(cls, v: str | None, info) -> str | None:
+        """Validate variable reference syntax ($var_name)."""
+        if v is None or not v.startswith('$'):
+            return v
+        if not re.match(r'^\$[a-zA-Z0-9._-]+$', v):
+            raise ValueError(
+                f"Invalid variable reference in {info.field_name}. "
+                f"Variables must match pattern: $[a-zA-Z0-9._-]+"
+            )
+        return v
+
     @staticmethod
     def combine(
         base: SolrInternalsParams,
@@ -120,6 +151,12 @@ class SolrInternalsParams(BaseModel):
     def to_solr_edismax_subquery(
         self, defaults: SolrInternalsParams | None = None
     ) -> str:
+        """
+        Convert to Solr edismax subquery string.
+
+        Note: All validation happens during model construction via @field_validator.
+        This method is now purely responsible for query string generation.
+        """
         params = []
         for field in SolrInternalsParams.model_fields:
             solr_name = field[len('solr_') :].replace('_', '.')
@@ -129,13 +166,10 @@ class SolrInternalsParams(BaseModel):
             if value is None:
                 continue
 
-            if value and value.startswith('$'):
-                if not re.match(r'^\$[a-zA-Z0-9.-_]+$', value):
-                    raise ValueError("Invalid solr internal variable supplied")
+            if value.startswith('$'):
                 # Variables shouldn't be quoted
                 params.append(f'{solr_name}={value}')
             else:
-                if '"' in value:
-                    raise ValueError("Invalid solr internal value supplied")
+                # Safe to use quotes - validation already checked for double quotes
                 params.append(f'{solr_name}="{value}"')
         return '({!edismax ' + ' '.join(params) + '})' if params else ''
