@@ -30,8 +30,8 @@ from typing import Any
 import pytest
 import requests
 
-# Base URL for the partials endpoint
-BASE_URL = "http://localhost:8080/partials.json"
+# Base URL for the BPListsSection partials endpoint
+BASE_URL = "http://localhost:8080/partials/BPListsSection.json"
 
 
 def build_book_lists_url(workId: str, editionId: str) -> str:
@@ -48,7 +48,7 @@ def build_book_lists_url(workId: str, editionId: str) -> str:
     Returns:
         Complete URL with query parameters
     """
-    params = {'_component': 'BPListsSection', 'workId': workId, 'editionId': editionId}
+    params = {'workId': workId, 'editionId': editionId}
     query_string = urllib.parse.urlencode(params)
     return f"{BASE_URL}?{query_string}"
 
