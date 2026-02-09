@@ -19,7 +19,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-async def search_facets_partial(
+def search_facets_partial(
     data: str = Query(..., description="JSON-encoded data with search parameters"),
 ) -> dict:
     """
@@ -29,6 +29,7 @@ async def search_facets_partial(
     - param: dict with search parameters (q, author_key, subject_facet, etc.)
     - path: str (e.g., '/search')
     - query: str (e.g., '?q=python')
+    # TODO: Make this fully async
     """
     try:
         parsed_data = json.loads(data)
@@ -39,7 +40,7 @@ async def search_facets_partial(
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-async def affiliate_links_partial(
+def affiliate_links_partial(
     data: str = Query(..., description="JSON-encoded data with book information"),
 ) -> dict:
     """
@@ -57,7 +58,7 @@ async def affiliate_links_partial(
 
 
 @router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-async def book_page_lists_partial(
+def book_page_lists_partial(
     workId: str = Query("", description="Work ID (e.g., /works/OL53924W)"),
     editionId: str = Query("", description="Edition ID (e.g., /books/OL7353617M)"),
 ) -> dict:
@@ -73,7 +74,7 @@ async def book_page_lists_partial(
 @router.get(
     "/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
 )
-async def fulltext_search_suggestion_partial(
+def fulltext_search_suggestion_partial(
     data: str = Query(..., description="Search query string"),
 ) -> dict:
     """
