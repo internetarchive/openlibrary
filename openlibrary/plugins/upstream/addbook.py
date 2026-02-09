@@ -902,21 +902,11 @@ class book_edit(delegate.page):
         else:
             work = None
 
-        add = (
-            edition.revision == 1
-            and work
-            and work.revision == 1
-            and work.edition_count == 1
-        )
-
         try:
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
 
-            if add:
-                add_flash_message("info", utils.get_message("flash_catalog_updated"))
-            else:
-                add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
             if i.work_key and i.work_key.startswith('/works/'):
                 url = i.work_key
