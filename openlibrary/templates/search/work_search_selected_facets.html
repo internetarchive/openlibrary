@@ -33,7 +33,7 @@ $if param and not search_response.error:
                     $fulltext_names.get(k, '')
                 $elif header == 'public_scan_b':
                     $if display == 'true':
-                        <a href="/read" title="$_('Explore Classic eBooks')">$_("Only Classic eBooks")</a>
+                        <a href="/subjects/accessible_book#ebooks=true" title="$_('Explore Classic eBooks')">$_("Only Classic eBooks")</a>
                     $else:
                         Classic eBooks hidden
                 $elif header == 'subject_facet':

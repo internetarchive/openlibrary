@@ -1,49 +1,13 @@
 """
-Controllers for /borrow pages.
-
-These endpoints are largely deprecated, and only maintained for
-backwards compatibility.
+Event handlers for loan statistics.
 """
 
 import datetime
 import json
 
 import eventer
-import web
 
-from infogami.utils import delegate
-from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from openlibrary.core import statsdb
-
-
-class borrow(delegate.page):
-    path = "/borrow"
-
-    def GET(self):
-        raise web.seeother('/subjects/in_library#ebooks=true')
-
-
-class borrow_json(delegate.page):
-    path = "/borrow"
-    encoding = "json"
-
-    def GET(self):
-        raise web.seeother('/subjects/in_library.json' + web.ctx.query)
-
-
-class read(delegate.page):
-    path = "/read"
-
-    def GET(self):
-        web.seeother('/subjects/accessible_book#ebooks=true')
-
-
-class read_json(delegate.page):
-    path = "/read"
-    encoding = "json"
-
-    def GET(self):
-        web.seeother('/subjects/accessible_book.json' + web.ctx.query)
 
 
 def on_loan_created_statsdb(loan):
