@@ -18,11 +18,11 @@ assignees: ''
 <details>
 <summary><strong>Resolution Details</strong> (for maintainers)</summary>
 
-### Issue resolution criteria
+#### Issue resolution criteria
 <!-- When can this issue be closed? -->
 
 
-### Stakeholders
+#### Stakeholders
 <!-- @ tag stakeholders of this bug -->
 
 </details>

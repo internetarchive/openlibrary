@@ -36,10 +36,10 @@ assignees: ''
 <details>
 <summary><strong>Implementation & Decision Details</strong></summary>
 
-## Decisions
+#### Decisions
 <!-- This section should be updated once stakeholders and staff have arrived at a decision -->
 
-### Stakeholders
+#### Stakeholders
 <!-- @ tag stakeholders for feedback -->
 
 </details>
