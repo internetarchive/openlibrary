@@ -761,7 +761,7 @@ class bestbook_award(delegate.page):
                             ),
                         }
                     )
-                elif i.op in ["remove"]:
+                elif i.op == "remove":
                     # Remove any award this patron has given this work_id
                     return json.dumps(
                         {
