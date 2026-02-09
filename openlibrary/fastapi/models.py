@@ -3,7 +3,16 @@ from __future__ import annotations
 import re
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from fastapi import HTTPException, Request
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
+
+from openlibrary.core.env import get_ol_env
 
 
 class Pagination(BaseModel):
@@ -173,3 +182,24 @@ class SolrInternalsParams(BaseModel):
                 # Safe to use quotes - validation already checked for double quotes
                 params.append(f'{solr_name}="{value}"')
         return '({!edismax ' + ' '.join(params) + '})' if params else ''
+
+
+async def get_solr_internals_params(
+    request: Request,
+) -> SolrInternalsParams | None:
+    """
+    FastAPI dependency that extracts and validates Solr internals params.
+
+    Returns None if the feature is not enabled or no params were provided.
+    Raises 403 if params are provided but feature is disabled.
+    """
+    params = SolrInternalsParams.model_validate(request.query_params)
+    has_params = bool(params.model_dump(exclude_none=True))
+
+    if has_params and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+        raise HTTPException(
+            status_code=403,
+            detail="Solr internals parameters are not allowed in this environment.",
+        )
+
+    return params if has_params else None
