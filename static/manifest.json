@@ -82,6 +82,20 @@
           "label": "Main Page - Mobile"
         },
         {
+          "src": "/images/screenshots/mobile/BorrowMobile.png",
+          "sizes": "750x1334",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Main Page - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/ExplorerMobile.png",
+          "sizes": "750x1334",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Main Page - Mobile"
+        },
+        {
           "src": "/images/screenshots/mobile/SearchMobile.png",
           "sizes": "750x1334",
           "type": "image/png",
@@ -94,13 +108,6 @@
           "type": "image/png",
           "form_factor": "narrow",
           "label": "Student Library - Mobile"
-        },
-        {
-          "src": "/images/screenshots/mobile/TrendingMobile.png",
-          "sizes": "750x1334",
-          "type": "image/png",
-          "form_factor": "narrow",
-          "label": "Trending - Mobile"
         },
         {
           "src": "/images/screenshots/mobile/ListsMobile.png",
