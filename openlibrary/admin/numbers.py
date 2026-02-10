@@ -8,7 +8,7 @@ admin_range__foo will be stored under the key `foo`.
 
 All functions prefixed with `admin_total__` will be run for the current
 day and the result will be stored as `total_<key>`. e.g. the result of
-`admin_total__foo` will be stored under the key `total__foo`.
+`admin_total__foo` will be stored under the key `total_foo`.
 
 Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
@@ -64,8 +64,8 @@ def single_thing_skeleton(**kargs):
 
 # Public functions that are used by stats.py
 def admin_range__human_edits(**kargs):
-    """Calculates the number of edits between the `start` and `end`
-    parameters done by humans. `thingdb` is the database.
+    """Calculates the number of edit actions performed by humans
+    between the given `start` and `end` dates. `thingdb` is the database.
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
@@ -87,8 +87,8 @@ def admin_range__human_edits(**kargs):
 
 
 def admin_range__bot_edits(**kargs):
-    """Calculates the number of edits between the `start` and `end`
-    parameters done by bots. `thingdb` is the database.
+    """Calculates the number of edit actions performed by bots between
+    the `start` and `end` dates. `thingdb` is the database.
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
@@ -130,9 +130,9 @@ admin_range__members = functools.partial(single_thing_skeleton, type="user")
 def admin_range__loans(**kargs):
     """Finds the number of loans on a given day.
 
-    Loan info is written to infobase write log. Grepping through the log file gives us the counts.
-
-    WARNING: This script must be run on the node that has infobase logs.
+    Loan info is written to the `stats` table.  Such entries will have
+    type `loan`.  As of writing, _only_ loan data is saved in the `stats`
+    table.
     """
     try:
         db = kargs['thingdb']
