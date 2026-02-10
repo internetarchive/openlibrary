@@ -6,10 +6,6 @@ All functions prefixed with `admin_range__` will be run for each day and the
 result will be stored as the part after it. e.g. the result of
 admin_range__foo will be stored under the key `foo`.
 
-All functions prefixed with `admin_delta__` will be run for the current
-day and the result will be stored as the part after it. e.g. the
-result of `admin_delta__foo` will be stored under the key `foo`.
-
 All functions prefixed with `admin_total__` will be run for the current
 day and the result will be stored as `total_<key>`. e.g. the result of
 `admin_total__foo` will be stored under the key `total__foo`.
@@ -159,12 +155,6 @@ def admin_total__authors(**kargs):
     return _count_things(db, "/type/author")
 
 
-def admin_total__subjects(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0
-
-
 def admin_total__lists(**kargs):
     try:
         db = kargs['thingdb']
@@ -219,27 +209,6 @@ def _query_count(db, table, type, property, distinct=False):
     return result[0].count
 
 
-def admin_total__ebooks(**kargs):
-    # Anand - Dec 2014
-    # The following implementation is too slow. Disabling for now.
-    return 0
-
-    db = kargs['thingdb']
-    return _query_count(db, "edition_str", "/type/edition", "ocaid")
-
-
 def admin_total__members(**kargs):
     db = kargs['thingdb']
     return _count_things(db, '/type/user')
-
-
-def admin_delta__ebooks(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0
-
-
-def admin_delta__subjects(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0

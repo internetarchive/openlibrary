@@ -157,17 +157,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays=1):
             key_prefix="total",
         )
     )
-    logger.info("Gathering data using difference between totals")
-    data.update(
-        run_gathering_functions(
-            infobase_db,
-            coverstore_db,
-            yesterday,
-            today,
-            logroot,
-            prefix="admin_delta__",
-        )
-    )
+
     store_data(data, today.strftime("%Y-%m-%d"))
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
