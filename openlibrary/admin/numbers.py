@@ -62,6 +62,47 @@ def single_thing_skeleton(**kargs):
     return query_single_thing(db, typ, start, end)
 
 
+cached_bot_accounts = None
+
+def get_bot_accounts(thingdb=None) -> list[int]:
+    """
+    Returns a list of all `thing` table IDs that are associated with
+    bot accounts.
+    """
+    bot_query = """
+        SELECT id
+        FROM thing
+        WHERE key IN (
+          SELECT REPLACE(key, 'account/', '/people/')
+          FROM store
+          WHERE id IN (
+            SELECT store_id
+            FROM store_index
+            WHERE type = 'account'
+              AND name = 'bot'
+              AND value <> 'false'
+          )
+        )
+    """
+    oldb = thingdb
+    return [item.get('id') for item in list(oldb.query(bot_query))]
+
+
+def _get_cached_bot_accounts(thingdb=None) -> list[int]:
+    """
+    Returns a list of `thing` table IDs that are associated with
+    bot accounts.
+
+    Results are cached in the global `cached_bot_accounts`
+    variable.  If this variable is not set, the `get_bot_accounts`
+    function is used to fetch these identifiers.
+    """
+    global cached_bot_accounts
+    if cached_bot_accounts is None:
+        cached_bot_accounts = get_bot_accounts(thingdb=thingdb)
+    return cached_bot_accounts
+
+
 # Public functions that are used by stats.py
 def admin_range__human_edits(**kargs):
     """Calculates the number of edit actions performed by humans
@@ -73,17 +114,15 @@ def admin_range__human_edits(**kargs):
         db = kargs['thingdb']
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__human_edits")
-    q1 = f"SELECT count(*) AS count FROM transaction WHERE created >= '{start}' and created < '{end}'"
-    result = db.query(q1)
-    total_edits = result[0].count
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
     q1 = (
-        "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE "
-        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+        "SELECT count(t.id) AS count FROM transaction t WHERE "
+        "t.created >= $start and t.created < $end AND "
+        "t.author_id NOT IN $bot_ids"
     )
-    result = db.query(q1)
-    bot_edits = result[0].count
-    return total_edits - bot_edits
+    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
+    count = result[0].count
+    return count
 
 
 def admin_range__bot_edits(**kargs):
@@ -96,12 +135,13 @@ def admin_range__bot_edits(**kargs):
         db = kargs['thingdb']
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
     q1 = (
-        "SELECT count(*) AS count FROM transaction t, version v WHERE "
-        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+        "SELECT count(t.id) AS count FROM transaction t WHERE "
+        "t.created >= $start and t.created < $end AND "
+        "t.author_id IN $bot_ids"
     )
-    result = db.query(q1)
+    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
     count = result[0].count
     return count
 
