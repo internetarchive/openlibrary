@@ -96,8 +96,6 @@ repos:
         - stylelint@17.1.1
         - stylelint-declaration-strict-value@1.10.11
         - postcss-less@6.0.0
-        - stylelint-prettier@5.0.3
-        - prettier@3.5.3
       args: [--fix]
 
   - repo: local

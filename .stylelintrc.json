@@ -1,5 +1,5 @@
 {
-  "extends": ["stylelint-prettier/recommended"],
+  "extends": [],
   "customSyntax": "postcss-less",
   "plugins": [
     "stylelint-declaration-strict-value"
