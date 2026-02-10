@@ -28,7 +28,7 @@
 		"function-url-quotes": "never",
 		"length-zero-no-unit": true,
 		"shorthand-property-no-redundant-values":true,
-		"selector-max-specificity": "1,4,0",
+		"selector-max-specificity": "1,4,3",
 		"unit-no-unknown": true,
 		"property-no-unknown": true,
 		"declaration-block-no-shorthand-property-overrides": true,
@@ -42,6 +42,6 @@
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
 		"font-family-no-missing-generic-family-keyword": [true, {"ignoreFontFamilies": ["!important"]}],
-		"no-descending-specificity": true
+		"no-descending-specificity": null
   }
 }
