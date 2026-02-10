@@ -7,11 +7,10 @@ code duplication and ensure consistent behavior.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import Field
 
-from openlibrary.core.models import Subject
 from openlibrary.fastapi.models import Pagination
 from openlibrary.plugins.worksearch.subjects import (
     DEFAULT_RESULTS,
@@ -19,6 +18,9 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import Subject
 
 
 class BaseSubjectRequestParams(Pagination):
