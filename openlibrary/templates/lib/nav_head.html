@@ -114,7 +114,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
           var facetSelect = document.querySelector('select[aria-label="Search by"]');
           var form = document.querySelector('.search-bar-input');
           if (!input || !facetSelect || !form) return;
-          
+
           function updateValidation() {
             var isAuthorFacet = facetSelect.value === 'author';
             if (isAuthorFacet) {
@@ -130,9 +130,9 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
               input.setCustomValidity('');
             }
           }
-          
+
           facetSelect.addEventListener('change', updateValidation);
-          
+
           // Watch for value changes (including programmatic ones from SearchBar.js)
           var lastValue = facetSelect.value;
           setInterval(function() {
@@ -141,11 +141,11 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
               updateValidation();
             }
           }, 100);
-          
+
           // Call once immediately and again after SearchBar.js initializes
           updateValidation();
           setTimeout(updateValidation, 500);
-          
+
           form.addEventListener('submit', function(e){
             if (facetSelect.value === 'author' && !input.checkValidity()) {
               e.preventDefault();

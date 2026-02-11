@@ -23,7 +23,7 @@ $ placeholder = placeholder or _('Search')
   var input = document.querySelector('.searchbox__input');
   var form = document.querySelector('.searchbox').closest('form') || (input && input.form);
   if (!input) return;
-  
+
   function updateValidation() {
     var shouldRestrict = category === 'authors';
     if (shouldRestrict) {
@@ -38,9 +38,9 @@ $ placeholder = placeholder or _('Search')
       input.removeAttribute('oninput');
     }
   }
-  
+
   updateValidation();
-  
+
   if (form) {
     form.addEventListener('submit', function(e){
       if (category === 'authors' && !input.checkValidity()) {
