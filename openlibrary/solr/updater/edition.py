@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 import requests
 
 import openlibrary.book_providers as bp
+from openlibrary.scorecards import EditionScorecard
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
@@ -330,28 +331,33 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    def get_scorecard(self) -> EditionScorecard:
+        sc = EditionScorecard()
+
+        if self.title:
+            sc.passing_checks.add(sc.has_title)
+        if self.cover_i:
+            sc.passing_checks.add(sc.has_cover)
+        if len(self._edition.get('description') or '') > 50:
+            sc.passing_checks.add(sc.has_short_description)
+        if len(self._edition.get('description') or '') > 100:
+            sc.passing_checks.add(sc.has_long_description)
+        if self.language:
+            sc.passing_checks.add(sc.has_language)
+        if self._solr_work and self._solr_work.author_key:
+            sc.passing_checks.add(sc.has_author)
+        if self.publish_year:
+            sc.passing_checks.add(sc.has_publish_year)
+        if self.isbn or self.lccn or self.ia or self.identifiers:
+            sc.passing_checks.add(sc.has_identifiers)
+        if self.lexile:
+            sc.passing_checks.add(sc.has_lexile)
+
+        return sc
+
     @cached_property
     def metadata_score(self) -> int:
-        score = 0
-        if self.title:
-            score += 20
-        if self.cover_i:
-            score += 20
-        if len(self._edition.get('description') or '') > 50:
-            score += 10
-        if len(self._edition.get('description') or '') > 100:
-            score += 10
-        if self.language:
-            score += 15
-        if self._solr_work and self._solr_work.author_key:
-            score += 10
-        if self.publish_year:
-            score += 5
-        if self.isbn or self.lccn or self.ia or self.identifiers:
-            score += 10
-        if self.lexile:
-            score += 10
-        return score
+        return self.get_scorecard().score
 
     @cached_property
     def usefulness_score(self) -> int:
