@@ -54,6 +54,65 @@ class AutolinkPreprocessor(markdown.Preprocessor):
 AUTOLINK_PREPROCESSOR = AutolinkPreprocessor()
 
 
+class AsteriskSafePreprocessor(markdown.Preprocessor):
+    """
+    Preprocessor to fix problematic asterisk patterns that create unclosed HTML tags.
+
+    This addresses GitHub issue #4986 where patterns like **** or ** at the start
+    of lines would create unclosed <em> or <strong> tags that leak out of the
+    description container and break page formatting.
+
+    Rules:
+    - **** (4+ asterisks) at line start → # (heading)
+    - ** (2 asterisks) followed by space at line start → * (bullet point)
+    - Preserves valid markdown patterns like **bold** and *italic*
+    """
+
+    def run(self, lines):
+        for i in range(len(lines)):
+            line = lines[i]
+
+            # Skip code blocks (lines starting with 4 spaces or a tab)
+            # Check BEFORE stripping to preserve code block detection
+            if line.startswith(("    ", "\t")):
+                continue
+
+            stripped = line.lstrip()
+
+            # Fix: **** (4+ asterisks) at start → # heading
+            if stripped.startswith("****"):
+                # Count leading asterisks
+                asterisk_count = 0
+                for char in stripped:
+                    if char == '*':
+                        asterisk_count += 1
+                    else:
+                        break
+
+                # Only replace if it's 4 or more asterisks
+                if asterisk_count >= 4:
+                    # Get the rest of the line after asterisks
+                    rest_of_line = stripped[asterisk_count:]
+                    # Check if it's followed by space or is at end of line
+                    if not rest_of_line or rest_of_line[0].isspace():
+                        # Replace with heading marker, preserving leading whitespace
+                        leading_whitespace = line[: len(line) - len(stripped)]
+                        lines[i] = leading_whitespace + "#" + rest_of_line
+
+            # Fix: ** followed by space at line start → * bullet point
+            # But only if it's not a valid **bold** pattern (i.e., not closed on same line)
+            elif stripped.startswith("** ") and "**" not in stripped[3:]:
+                # This is likely intended as a bullet point, not bold
+                rest_of_line = stripped[2:]
+                leading_whitespace = line[: len(line) - len(stripped)]
+                lines[i] = leading_whitespace + "*" + rest_of_line
+
+        return lines
+
+
+ASTERISK_SAFE_PREPROCESSOR = AsteriskSafePreprocessor()
+
+
 class OLMarkdown(markdown.Markdown):
     """Open Library flavored Markdown, inspired by [Github Flavored Markdown][GFM].
 
@@ -78,6 +137,9 @@ class OLMarkdown(markdown.Markdown):
         p = self.preprocessors
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
         p.append(AUTOLINK_PREPROCESSOR)
+        # Add asterisk safety preprocessor early in the pipeline
+        # Insert at position 0 so it runs first, before other preprocessors
+        p.insert(0, ASTERISK_SAFE_PREPROCESSOR)
 
     def convert(self):
         html = markdown.Markdown.convert(self)
