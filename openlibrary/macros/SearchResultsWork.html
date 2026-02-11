@@ -219,7 +219,8 @@ $code:
             $# Prefer logged_edition (set when user added book) over default edition_key
             $ edition_key = doc.get('logged_edition') or (doc.get('edition_key') and doc.get("edition_key")[0])
             $# logged_edition already has /books/ prefix, but edition_key needs it added
-            $ edition_key = '/books/%s' % edition_key if edition_key and not edition_key.startswith('/books/') else edition_key
+            $if edition_key and not edition_key.startswith('/books/'):
+              $ edition_key = '/books/%s' % edition_key
           $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:
