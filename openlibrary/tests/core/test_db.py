@@ -163,6 +163,10 @@ class TestUpdateWorkID:
         assert len(books) == 1, "Should only have one entry after moving"
         assert books[0]['edition_id'] == int(edition_id), "Edition ID should be preserved"
         assert books[0]['bookshelf_id'] == 3, "Should now be on Already Read shelf"
+        
+        # Verify no entry remains on the old shelf
+        old_shelf_books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id), "bookshelf_id": 2}))
+        assert len(old_shelf_books) == 0, "Should not have any entry on the old shelf"
 
     def test_no_allow_delete_on_conflict(self):
         rows = [
