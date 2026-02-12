@@ -153,10 +153,10 @@ services:
     image: "${OLIMAGE:-openlibrary/olbase:latest}"
     hostname: "$HOSTNAME"
     user: root
-    command: docker/ol-cron-start.sh
+    command: yacron -c /etc/yacron.yaml
     restart: unless-stopped
     volumes:
-      - ../olsystem/etc/cron.d/openlibrary.ol_home0:/etc/cron.d/openlibrary.ol_home0:ro
+      - ../olsystem/etc/yacron.yml:/etc/yacron.yml:ro
       - ../olsystem:/olsystem
       - /1/var/tmp:/1/var/tmp
     networks:
