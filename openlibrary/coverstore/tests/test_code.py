@@ -1,6 +1,7 @@
 import datetime
 from io import StringIO
 
+import pytest
 import web
 
 from .. import code
@@ -73,22 +74,23 @@ class Test_cover:
         }
 
 
-class TestZipViewUrl:
-    def test_zipview_url_from_id_small_id(self, monkeypatch):
-        """Test URL generation for small cover IDs"""
-        # Mock protocol to https
-        monkeypatch.setattr("web.ctx.protocol", "https", raising=False)
+@pytest.fixture
+def mock_web_ctx_protocol(monkeypatch):
+    """Fixture to mock web.ctx.protocol for TestZipViewUrl tests"""
+    monkeypatch.setattr("web.ctx.protocol", "https", raising=False)
 
+
+@pytest.mark.usefixtures("mock_web_ctx_protocol")
+class TestZipViewUrl:
+    def test_zipview_url_from_id_small_id(self):
+        """Test URL generation for small cover IDs"""
         # Test cover ID 42 (first batch)
         url = code.zipview_url_from_id(42, "M")
         expected = "https://archive.org/download/olcovers0/olcovers0-M.zip/42-M.jpg"
         assert url == expected, f"Expected {expected} but got {url}"
 
-    def test_zipview_url_from_id_large_id(self, monkeypatch):
+    def test_zipview_url_from_id_large_id(self):
         """Test URL generation for large cover IDs (reproduces bug #9921)"""
-        # Mock protocol to https
-        monkeypatch.setattr("web.ctx.protocol", "https", raising=False)
-
         # This is the exact cover ID from the bug report
         url = code.zipview_url_from_id(6747253, "L")
         expected = (
@@ -96,11 +98,8 @@ class TestZipViewUrl:
         )
         assert url == expected, f"Expected {expected} but got {url}"
 
-    def test_zipview_url_from_id_various_sizes(self, monkeypatch):
+    def test_zipview_url_from_id_various_sizes(self):
         """Test URL generation for different sizes"""
-        # Mock protocol to https
-        monkeypatch.setattr("web.ctx.protocol", "https", raising=False)
-
         # Test -S, -M, -L sizes
         assert (
             code.zipview_url_from_id(6747253, "S")
@@ -115,11 +114,8 @@ class TestZipViewUrl:
             == "https://archive.org/download/olcovers674/olcovers674-L.zip/6747253-L.jpg"
         )
 
-    def test_zipview_url_from_id_no_size(self, monkeypatch):
+    def test_zipview_url_from_id_no_size(self):
         """Test URL generation for original image (no size suffix)"""
-        # Mock protocol to https
-        monkeypatch.setattr("web.ctx.protocol", "https", raising=False)
-
         url = code.zipview_url_from_id(6747253, "")
         expected = (
             "https://archive.org/download/olcovers674/olcovers674.zip/6747253.jpg"
