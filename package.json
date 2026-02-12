@@ -82,6 +82,9 @@
     "webpack-cli": "^5.1.4",
     "workbox-webpack-plugin": "^7.3.0"
   },
+  "engines": {
+    "node": "^24.0.0"
+  },
   "jest": {
     "roots": [
       "<rootDir>/openlibrary/plugins/openlibrary/js/",
