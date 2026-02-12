@@ -77,7 +77,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_new(self, documents, author, comment):
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
 
         # insert things
@@ -188,7 +188,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_update(self, documents, author, comment):
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
 
         keys = [doc['key'] for doc in documents]
 
