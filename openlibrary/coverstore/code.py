@@ -214,7 +214,7 @@ IMAGES_PER_ITEM = 10_000
 
 def zipview_url_from_id(coverid, size):
     suffix = size and ("-" + size.upper())
-    item_index = coverid / IMAGES_PER_ITEM
+    item_index = coverid // IMAGES_PER_ITEM
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
@@ -344,7 +344,7 @@ class cover:
 
     def get_tar_filename(self, coverid, size):
         """Returns tarfile:offset:size for given coverid."""
-        tarindex = coverid / 10000
+        tarindex = coverid // 10000
         index = coverid % 10000
         array_offset, array_size = get_tar_index(tarindex, size)
 
