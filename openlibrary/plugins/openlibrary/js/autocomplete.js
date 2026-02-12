@@ -135,9 +135,48 @@ export function init() {
                 url: ol_ac_opts.endpoint,
                 data: params
             }).then((results) => {
+                const sortedResults = (results || []).slice().sort((a, b) => {
+                    const A = (a?.name || '').toString();
+                    const B = (b?.name || '').toString();
+
+                    const baseA = A.split(',')[0].trim();
+                    const baseB = B.split(',')[0].trim();
+
+                    // Normalize for matching
+                    const t = (term || '').toString().trim().toLowerCase();
+                    const nBaseA = baseA.toLowerCase();
+                    const nBaseB = baseB.toLowerCase();
+
+                    // 1) If the user typed something, prioritize items whose BASE matches the typed language
+                    //    - exact base match first (when user types full "English")
+                    //    - then base prefix match (so "eng" brings "English, ..." above "..., English-based")
+                    if (t) {
+                        const aExact = nBaseA === t;
+                        const bExact = nBaseB === t;
+                        if (aExact !== bExact) return aExact ? -1 : 1;
+
+                        const aPrefix = nBaseA.startsWith(t);
+                        const bPrefix = nBaseB.startsWith(t);
+                        if (aPrefix !== bPrefix) return aPrefix ? -1 : 1;
+                    }
+
+                    // 2) Otherwise (or after that), sort by base language alphabetically
+                    const baseCmp = baseA.localeCompare(baseB, undefined, { sensitivity: 'base' });
+                    if (baseCmp !== 0) return baseCmp;
+
+                    // 3) Same base: put the exact match WITHOUT a comma first
+                    const aHasComma = A.includes(',');
+                    const bHasComma = B.includes(',');
+                    if (aHasComma !== bHasComma) return aHasComma ? 1 : -1;
+
+                    // 4) Alphabetical among remaining variants
+                    return A.localeCompare(B, undefined, { sensitivity: 'base' });
+                    });
+
+
                 response(
                     mapApiResultsToAutocompleteSuggestions(
-                        results,
+                        sortedResults,
                         (r) => highlight(options.formatItem(r), term),
                         ol_ac_opts.addnew === true ||
                             (ol_ac_opts.addnew && ol_ac_opts.addnew(term)) ? (ol_ac_opts.new_name || term) : null
