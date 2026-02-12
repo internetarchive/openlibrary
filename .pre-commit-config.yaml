@@ -80,11 +80,11 @@ repos:
         types_or: [javascript, vue]
         additional_dependencies:
           - eslint@8.49.0
-          - eslint-plugin-no-jquery@2.6.0
-          - eslint-plugin-vue@9.17.0
-          - "@babel/eslint-parser@7.22.15"
+          - eslint-plugin-no-jquery@2.7.0
+          - eslint-plugin-vue@9.32.0
+          - "@babel/eslint-parser@7.28.0"
           - "@babel/plugin-syntax-dynamic-import@7.8.3"
-          - "@babel/preset-env@7.22.20"
+          - "@babel/preset-env@7.29.0"
         args: [--fix]
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
