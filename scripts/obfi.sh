@@ -353,7 +353,7 @@ obfi_top_bots() {
 
 obfi_grep_bots() {
     # FIXME: Should be in sync with openlibrary/plugins/openlibrary/code.py
-    grep $1 -iE '"[^"]*ahrefsbot|amazonbot|applebot|awariosmartbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot[^"]*" [0-9]+\.[0-9]+$' -
+    grep $1 -iE '"[^"]*ahrefsbot|amazonbot|applebot|awariosmartbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|icc-crawler|meta-externalagent|mj12bot|mojeekbot|oai-searchbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot[^"]*" [0-9]+\.[0-9]+$' -
 }
 
 obfi_grep_secondary_reqs() {

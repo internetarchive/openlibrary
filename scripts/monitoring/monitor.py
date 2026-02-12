@@ -127,6 +127,7 @@ async def monitor_partner_useragents():
         return agent_counts
 
     known_names = extract_agent_counts("""
+   1621 RaftulDeCarti/1.0 (contact@raftuldecarti.ro)
     177 Whefi/1.0 (contact@whefi.com)
      85 Bookhives/1.0 (paulpleela@gmail.com)
      85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
