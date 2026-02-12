@@ -1,6 +1,5 @@
 """Upstream customizations."""
 
-import datetime
 import hashlib
 import json
 import os.path
@@ -37,6 +36,7 @@ from openlibrary.plugins.upstream import (
     yearly_reading_goals,
 )  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
+from openlibrary.utils.dateutil import utcnow
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
@@ -211,7 +211,7 @@ class DynamicDocument:
             self.last_modified = min(doc.last_modified for doc in docs)
             self._text = "\n\n".join(doc.get('body', '') for doc in docs)
         else:
-            self.last_modified = datetime.datetime.utcnow()
+            self.last_modified = utcnow()
             self._text = ""
 
     def get_text(self):

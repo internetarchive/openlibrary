@@ -11,6 +11,7 @@ import pytest
 
 from openlibrary.core import lending
 from openlibrary.core.waitinglist import WaitingLoan
+from openlibrary.utils.dateutil import utcnow
 
 
 class TestWaitingLoanNew:
@@ -202,7 +203,7 @@ class TestWaitingLoanDict:
 
     def test_dict_is_json_serializable(self):
         """Test that the dict output can be serialized to JSON."""
-        dt = datetime.datetime.utcnow()
+        dt = utcnow()
         w = WaitingLoan(
             {
                 "status": "waiting",

@@ -1,7 +1,6 @@
 """Interface to import queue."""
 
 import contextlib
-import datetime
 import json
 import logging
 import time
@@ -16,6 +15,7 @@ from web.db import ResultSet
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
+from openlibrary.utils.dateutil import utcnow
 
 from . import db
 
@@ -279,7 +279,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": utcnow(),
         }
         if status != 'failed':
             d = dict(**d, data=None)

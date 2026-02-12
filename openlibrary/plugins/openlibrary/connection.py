@@ -1,6 +1,5 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
-import datetime
 import json
 import logging
 
@@ -10,6 +9,7 @@ from infogami import config
 from infogami.infobase import client
 from infogami.utils import stats
 from openlibrary.core import ia
+from openlibrary.utils.dateutil import utcnow
 
 logger = logging.getLogger("openlibrary")
 
@@ -210,7 +210,7 @@ class IAMiddleware(ConnectionMiddleware):
                     "_key": key,
                     "type": "ia-scan",
                     "identifier": identifier,
-                    "created": datetime.datetime.utcnow().isoformat(),
+                    "created": utcnow().isoformat(),
                 }
                 self.store_put(sitename, store_key, json.dumps(doc))
                 return doc
