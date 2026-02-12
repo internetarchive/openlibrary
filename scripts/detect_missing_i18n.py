@@ -18,8 +18,6 @@ EXCLUDE_LIST = {
     # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
     "openlibrary/templates/history/sources.html",
-    # This can't be fixed because it's not in the i18n directories
-    "openlibrary/admin/templates/admin/index.html",
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
