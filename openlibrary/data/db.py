@@ -25,9 +25,8 @@ import json
 import sys
 import time
 
+import memcache
 import web
-
-from openlibrary.utils import olmemcache
 
 __all__ = [
     "iterdocs",
@@ -56,7 +55,7 @@ def setup_memcache(servers):
     This must be called along with setup_database, if memcached servers are used in the system.
     """
     global mc
-    mc = olmemcache.Client(servers)
+    mc = memcache.Client(servers)
 
 
 def iterdocs(type=None):
