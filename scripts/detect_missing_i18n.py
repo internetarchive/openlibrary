@@ -13,8 +13,6 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # This is a list of files that are intentionally excluded from the i18n process
 EXCLUDE_LIST = {
-    # This is being left untranslated because it is rarely used
-    "openlibrary/templates/admin/sync.html",
     # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
     "openlibrary/templates/history/sources.html",
@@ -23,8 +21,6 @@ EXCLUDE_LIST = {
     "static/status-500.html",
     # Uses jsdef and the current stance is no i18n in JS.
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
-    # Admin-only dashboard
-    "openlibrary/templates/admin/pd_dashboard.html",
 }
 
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
