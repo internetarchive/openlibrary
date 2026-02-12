@@ -335,6 +335,11 @@ obfi_top_http_statuses() {
     grep -oE '" [0-9]{3} ' - | sort | uniq -c | sort -rn
 }
 
+obfi_top_user_agents() {
+    local COUNT=${1:-25}
+    grep -oE '"[^"]*" [0-9]+\.[0-9]+$' - | grep -oE '"[^"]*"' - | sort | uniq -c | sort -rn | head -n $COUNT
+}
+
 obfi_top_bots() {
     obfi_grep_bots -o | \
         tr '[:upper:]' '[:lower:]' | \
@@ -348,7 +353,7 @@ obfi_top_bots() {
 
 obfi_grep_bots() {
     # FIXME: Should be in sync with openlibrary/plugins/openlibrary/code.py
-    grep $1 -iE 'ahrefsbot|amazonbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot' -
+    grep $1 -iE '"[^"]*ahrefsbot|amazonbot|applebot|awariosmartbot|bingbot|bytespider|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|iaskbot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot[^"]*" [0-9]+\.[0-9]+$' -
 }
 
 obfi_grep_secondary_reqs() {
