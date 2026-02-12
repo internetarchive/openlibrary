@@ -34,7 +34,8 @@ class ReadableUrlProcessor:
         (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
         (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
         (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
-        (r'/[/\w\-]+/OL\d+L', '/type/list', 'name', 'unnamed'),
+        (r'[/\w\-]*/lists/OL\d+L', '/type/list', 'name', 'unnamed'),
+        (r'/series/OL\d+L', '/type/series', 'name', 'unnamed'),
         (r'/\w+/OL\d+T', '/type/tag', 'name', 'untitled'),
     )
 

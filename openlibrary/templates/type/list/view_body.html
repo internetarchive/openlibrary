@@ -37,7 +37,7 @@ $jsdef render_seed_count(seed_count):
 
 $if not is_owner:
     <div id="contentHead" style="margin-bottom:0;">
-        $:macros.databarView(list, edit=list.key.startswith('/lists/'))
+        $:macros.databarView(list, edit=not list.key.startswith('/people/'))
         <h1>$list.name</h1>
         <p class="collapse sansserif">
             $ component_times['render_seed_count'] = time()
