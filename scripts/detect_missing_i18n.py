@@ -15,7 +15,6 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 EXCLUDE_LIST = {
     # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
-    "openlibrary/templates/history/sources.html",
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
