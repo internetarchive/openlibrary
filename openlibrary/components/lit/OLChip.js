@@ -11,7 +11,7 @@ import { LitElement, html, css, nothing } from 'lit';
  * @property {String} href - When set, the chip renders as a link
  * @property {String} count - Optional count displayed to the right of the label
  *
- * @fires chip-click - Fired on click. detail: { selected: Boolean }
+ * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
  *
  * @example
  * <ol-chip>Fiction</ol-chip>
@@ -40,43 +40,43 @@ export class OLChip extends LitElement {
             align-items: center;
             gap: 4px;
             padding: 6px 12px;
-            border: var(--border-width, 1px) solid var(--color-border-subtle, hsl(0, 0%, 87%));
-            border-radius: var(--border-radius-pill, 9999px);
-            font-family: var(--font-family-sans, sans-serif);
-            font-size: var(--font-size-body-medium, 14px);
+            border: var(--border-width) solid var(--color-border-subtle);
+            border-radius: var(--border-radius-pill);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-body-medium);
             line-height: 1.1;
-            background: var(--white, hsl(0, 0%, 100%));
-            color: var(--dark-grey, hsl(0, 0%, 20%));
+            background: var(--white);
+            color: var(--dark-grey);
             cursor: pointer;
             user-select: none;
             text-decoration: none;
         }
 
         .chip:hover {
-            background: var(--lightest-grey, hsl(0, 0%, 93%));
+            background: var(--lightest-grey);
         }
 
         .chip:focus-visible {
             outline: none;
-            box-shadow: var(--box-shadow-focus, 0 0 0 2px hsl(202, 96%, 37%));
+            box-shadow: var(--box-shadow-focus);
         }
 
         /* Selected state */
         :host([selected]) .chip {
-            background: var(--primary-blue, hsl(202, 96%, 37%));
-            border-color: var(--primary-blue, hsl(202, 96%, 37%));
-            color: var(--white, hsl(0, 0%, 100%));
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
         }
 
         :host([selected]) .chip:hover {
-            background: var(--primary-blue, hsl(202, 96%, 37%));
+            background: var(--primary-blue);
             filter: brightness(1.1);
         }
 
         /* Small size */
         :host([size="small"]) .chip {
             padding: 4px 8px;
-            font-size: var(--font-size-label-medium, 12px);
+            font-size: var(--font-size-label-medium);
         }
 
         /* Check icon */
@@ -93,8 +93,12 @@ export class OLChip extends LitElement {
 
         /* Count */
         .count {
-            color: var(--mid-grey);
+            color: #777;
             font-size: 0.85em;
+        }
+
+        :host([selected]) .count {
+            color: var(--lighter-grey);
         }
     `;
 
@@ -107,7 +111,7 @@ export class OLChip extends LitElement {
     }
 
     _handleClick() {
-        this.dispatchEvent(new CustomEvent('chip-click', {
+        this.dispatchEvent(new CustomEvent('ol-chip-select', {
             bubbles: true,
             composed: true,
             detail: { selected: this.selected },
@@ -148,14 +152,18 @@ export class OLChip extends LitElement {
 
         if (this.href) {
             return html`
-                <a class="chip" href=${this.href} @click=${this._handleClick}>
+                <a class="chip" href=${this.href}
+                    aria-current=${this.selected || nothing}
+                    @click=${this._handleClick}>
                     ${content}
                 </a>
             `;
         }
 
         return html`
-            <button class="chip" type="button" @click=${this._handleClick}>
+            <button class="chip" type="button"
+                aria-pressed=${this.selected}
+                @click=${this._handleClick}>
                 ${content}
             </button>
         `;

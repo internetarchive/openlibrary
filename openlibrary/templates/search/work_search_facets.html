@@ -44,11 +44,11 @@ $def facet(header, label, counts):
         $if len(counts) > start_facet_count:
             <div class="facetMoreLess">
                 <span class="header_more small" data-header="$header">
-                    <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
+                    <a href="javascript:;" id="${header}_more">$_("More")</a>
                 </span>
                 <span id="${header}_bull" class="header_bull small gray">&bull;</span>
                 <span class="header_less small" data-header="$header">
-                    <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
+                    <a href="javascript:;" id="${header}_less" class="ui-helper-hidden">$_("Less")</a>
                 </span>
             </div>
     </div>
