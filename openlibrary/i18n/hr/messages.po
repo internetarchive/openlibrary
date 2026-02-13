@@ -6171,8 +6171,8 @@ msgstr[2] "%s djela"
 msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
 msgstr[0] "%s izdanje e-knjige"
-msgstr[1] "%s izdanja e-knjige"
-msgstr[2] "%s izdanja e-knjige"
+msgstr[1] "%s izdanja e-knjiga"
+msgstr[2] "%s izdanja e-knjiga"
 
 #: languages/notfound.html
 #, python-format
