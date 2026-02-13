@@ -68,7 +68,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
                     $ display = _('yes')
                 $else:
                     $ display = _('no')
-            <span class="small"><a href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+            <ol-chip size="small" href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)" count="$commify(count)">$display</ol-chip>
     </div>
 
 <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})" data-param="$dumps(param)" data-async-load="$dumps(async_load)">

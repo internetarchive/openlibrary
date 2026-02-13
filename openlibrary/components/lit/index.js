@@ -7,4 +7,5 @@
 
 // Import components to register them as custom elements
 import './OLReadMore.js';
+import './OLChip.js';
 

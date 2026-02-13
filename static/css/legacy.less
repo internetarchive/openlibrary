@@ -921,17 +921,18 @@ div#searchFacets {
 // openlibrary/templates/work_search.html
 div.facet {
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  .facetHead {
+    flex-basis: 100%;
+  }
   &Entry {
     font-family: @body-family;
-    margin-bottom: 5px;
-    a {
-      text-decoration: none !important;
-      line-height: @line-height-list;
-    }
   }
   &MoreLess {
+    flex-basis: 100%;
     font-family: @body-family;
-    margin-bottom: 5px;
     a {
       text-decoration: none !important;
     }
