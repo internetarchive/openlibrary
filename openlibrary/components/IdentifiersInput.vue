@@ -249,6 +249,11 @@ export default {
             if (this.saveIdentifiersAsList) {
                 // collect id values of matching type, or empty array if none present
                 const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
+                // Only one Internet Archive ID (ocaid) is allowed per edition
+                if (this.selectedIdentifier === 'ocaid' && existingIds.length > 0) {
+                    errorDisplay('Only one Internet Archive ID is allowed per edition.', this.output_selector);
+                    return;
+                }
                 const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {

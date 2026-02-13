@@ -4,7 +4,7 @@
 import glob
 import re
 import sys
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 import _init_path  # noqa: F401  Imported for its side effect of setting PYTHONPATH
@@ -13,26 +13,19 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # This is a list of files that are intentionally excluded from the i18n process
 EXCLUDE_LIST = {
-    # This is being left untranslated because it is rarely used
-    "openlibrary/templates/admin/sync.html",
     # These are excluded because they require more info to fix
     "openlibrary/templates/books/edit.html",
-    "openlibrary/templates/history/sources.html",
-    # This can't be fixed because it's not in the i18n directories
-    "openlibrary/admin/templates/admin/index.html",
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
     # Uses jsdef and the current stance is no i18n in JS.
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
-    # Admin-only dashboard
-    "openlibrary/templates/admin/pd_dashboard.html",
 }
 
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
 
 
-class Errtype(str, Enum):
+class Errtype(StrEnum):
     WARN = "\033[93mWARN\033[0m"
     ERR = "\033[91mERRO\033[0m"
     SKIP = "\033[94mSKIP\033[0m"

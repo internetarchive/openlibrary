@@ -3,6 +3,7 @@ from datetime import datetime
 from math import floor
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -13,6 +14,7 @@ from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
 MAX_READING_GOAL = 10_000
 
 
+@deprecated("migrated to fastapi")
 class yearly_reading_goal_json(delegate.page):
     path = '/reading-goal'
     encoding = 'json'
@@ -27,14 +29,20 @@ class yearly_reading_goal_json(delegate.page):
         username = user['key'].split('/')[-1]
         if i.year:
             results = [
-                {'year': i.year, 'goal': record.target, 'progress': record.current}
+                {
+                    'year': i.year,
+                    'goal': record.target,
+                }
                 for record in YearlyReadingGoals.select_by_username_and_year(
                     username, i.year
                 )
             ]
         else:
             results = [
-                {'year': record.year, 'goal': record.target, 'progress': record.current}
+                {
+                    'year': record.year,
+                    'goal': record.target,
+                }
                 for record in YearlyReadingGoals.select_by_username(username)
             ]
 

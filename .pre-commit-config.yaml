@@ -27,12 +27,12 @@ repos:
           - --markdown-linebreak-ext=md
 
   - repo: https://github.com/MarcoGorelli/auto-walrus
-    rev: 0.3.4
+    rev: 0.4.1
     hooks:
       - id: auto-walrus
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.14
+    rev: v0.15.0
     hooks:
       - id: ruff-check
         args: [ --fix ]
@@ -51,7 +51,7 @@ repos:
         args: ["--skip", "*.mjs"]
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.18.1
+    rev: v0.19.0
     hooks:
     - id: cython-lint
 
@@ -68,23 +68,23 @@ repos:
           - fastapi
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.24.1
+    rev: v0.25
     hooks:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.0.0-rc.1
+    rev: v10.0.0
     hooks:
       - id: eslint
         types: [file]
         types_or: [javascript, vue]
         additional_dependencies:
           - eslint@8.49.0
-          - eslint-plugin-no-jquery@2.6.0
-          - eslint-plugin-vue@9.17.0
-          - "@babel/eslint-parser@7.22.15"
+          - eslint-plugin-no-jquery@2.7.0
+          - eslint-plugin-vue@9.32.0
+          - "@babel/eslint-parser@7.28.0"
           - "@babel/plugin-syntax-dynamic-import@7.8.3"
-          - "@babel/preset-env@7.22.20"
+          - "@babel/preset-env@7.29.0"
         args: [--fix]
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
@@ -93,7 +93,7 @@ repos:
     - id: stylelint
       files: \.(css|less)$
       additional_dependencies:
-        - stylelint@16.19.1
+        - stylelint@16.22.0
         - stylelint-declaration-strict-value@1.10.11
         - postcss-less@6.0.0
         - stylelint-prettier@5.0.3

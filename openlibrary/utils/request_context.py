@@ -7,10 +7,12 @@ and parsing request data for both web.py and FastAPI frameworks.
 
 from contextvars import ContextVar
 from dataclasses import dataclass
+from urllib.parse import unquote
 
 import web
 from fastapi import Request
 
+from infogami import config
 from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site
 
@@ -34,6 +36,21 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
 site: ContextVar[Site] = ContextVar("site")
+
+
+def setup_site(request: Request | None = None):
+    """
+    When called from web.py, web.ctx._parsed_cookies is already set.
+    When called from FastAPI, we need to set it.
+    create_site() automatically uses the cookie to set the auth token
+    """
+    if request:
+        cookie_name = config.get("login_cookie_name", "session")
+        cookie_value = request.cookies.get(cookie_name)
+        cookie_value = unquote(cookie_value) if cookie_value else ""
+        web.ctx._parsed_cookies = {cookie_name: cookie_value}
+
+    site.set(create_site())
 
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
@@ -152,7 +169,7 @@ def set_context_from_legacy_web_py() -> None:
         hhcl=web.ctx.env.get("HTTP_X_HHCL"),
     )
 
-    site.set(create_site())
+    setup_site()
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -180,7 +197,7 @@ def set_context_from_fastapi(request: Request) -> None:
         hhcl=request.headers.get("X-HHCL"),
     )
 
-    site.set(create_site())
+    setup_site(request)
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),

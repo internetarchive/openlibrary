@@ -66,7 +66,7 @@
     "prettier": "^3.5.3",
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
-    "sinon": "20.0.0",
+    "sinon": "21.0.1",
     "slick-carousel": "1.6.0",
     "style-loader": "^4.0.0",
     "stylelint": "^16.22.0",
@@ -78,10 +78,12 @@
     "vue": "^3.5.13",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.1.0",
-    "vue-web-component-wrapper": "^1.6.11",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
     "workbox-webpack-plugin": "^7.3.0"
+  },
+  "engines": {
+    "node": "^24.0.0"
   },
   "jest": {
     "roots": [

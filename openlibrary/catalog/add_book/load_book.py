@@ -61,7 +61,7 @@ HONORIFICS: Final = sorted(
         'sra.',
         'srta.',
     ],
-    key=lambda x: len(x),
+    key=len,
     reverse=True,
 )
 

@@ -39,7 +39,7 @@ def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
 
 
 def is_seed_subject_string(seed: str) -> bool:
-    subject_type = seed.split(":")[0]
+    subject_type = seed.split(":", maxsplit=1)[0]
     return subject_type in ("subject", "place", "person", "time")
 
 

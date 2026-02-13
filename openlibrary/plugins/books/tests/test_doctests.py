@@ -13,6 +13,6 @@ def find_doctests(modules):
 @pytest.mark.parametrize('test', find_doctests(["openlibrary.plugins.books.dynlinks"]))
 def test_doctest(test):
     runner = doctest.DocTestRunner(verbose=True)
-    failures, tries = runner.run(test)
+    failures, _tries = runner.run(test)
     if failures:
         pytest.fail("doctest failed: " + test.name)

@@ -93,7 +93,7 @@ WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
 
 def get_wd_item_id(string: str):
-    return string.split('/')[-1]
+    return string.rsplit('/', maxsplit=1)[-1]
 
 
 @dataclass

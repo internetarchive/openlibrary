@@ -80,11 +80,11 @@ def read_data_file(filename: str, max_lines: int = 0):
     Setting max_lines to 0 will processes all records.
     """
     start_time = datetime.now()
-    log(f"read_data_file({filename}, max_lines={max_lines if max_lines else 'all'})")
+    log(f"read_data_file({filename}, max_lines={max_lines or 'all'})")
     total = 0
     for i, line in enumerate(xopen(filename, "rt")):
         total += 1
-        thing_id, revision, json_data = line.strip().split("\t")
+        _thing_id, _revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
         if max_lines and i >= max_lines:
             break
@@ -241,7 +241,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         total += 1
         if i % 1_000_000 == 0:
             log(f"split_dump {i:,}")
-        type, rest = line.split("\t", 1)
+        type, _rest = line.split("\t", 1)
         if type in files:
             files[type].write(line)
         else:
@@ -260,7 +260,7 @@ def make_index(dump_file):
     total = 0
     for i, line in enumerate(read_tsv(dump_file)):
         total += 1
-        type, key, revision, timestamp, json_data = line
+        type, key, _revision, timestamp, json_data = line
         data = json.loads(json_data)
         if type in ("/type/edition", "/type/work"):
             title = data.get("title", "untitled")
