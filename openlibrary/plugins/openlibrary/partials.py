@@ -280,15 +280,20 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         if query is None:
             i = web.input(data=None)
             self.query = i.get("data", "")
+            self.webpy_mode = True
         else:
             self.query = query or ""
+            self.webpy_mode = False
+        self.has_error: bool = False
 
     def generate(self) -> dict:
         query = self.query
         data = fulltext_search(query)
         # Add caching headers only if there were no errors in the search results
-        if 'error' not in data:
+        self.has_error = "error" in data
+        if not self.has_error and self.webpy_mode:
             # Cache for 5 minutes (300 seconds)
+            # TODO: remove when we rip out the old partials endpoints
             web.header('Cache-Control', 'public, max-age=300')
         hits = data.get('hits', [])
         if not hits['hits']:

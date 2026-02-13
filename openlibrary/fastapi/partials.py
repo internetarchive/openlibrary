@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
@@ -75,6 +75,7 @@ def book_page_lists_partial(
     "/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
 )
 def fulltext_search_suggestion_partial(
+    response: Response,
     data: str = Query(..., description="Search query string"),
 ) -> dict:
     """
@@ -82,4 +83,10 @@ def fulltext_search_suggestion_partial(
 
     The data parameter is the raw search query string.
     """
-    return FullTextSuggestionsPartial(query=data).generate()
+    partial = FullTextSuggestionsPartial(query=data)
+    result = FullTextSuggestionsPartial(query=data).generate()
+
+    if not partial.has_error:
+        response.headers["Cache-Control"] = "public, max-age=300"
+
+    return result
