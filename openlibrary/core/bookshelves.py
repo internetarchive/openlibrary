@@ -389,6 +389,7 @@ class Bookshelves(db.CommonExtras):
         sort: Literal['created asc', 'created desc'] = 'created desc',
         checkin_year: int | None = None,
         q: str = "",
+        fq: list[str] | None = None,
     ) -> Any:  # Circular imports prevent type hinting LoggedBooksData
         """
         Returns LoggedBooksData containing Reading Log database records for books that
@@ -455,7 +456,10 @@ class Bookshelves(db.CommonExtras):
             return solr_docs
 
         def get_filtered_reading_log_books(
-            q: str, query_params: dict[str, str | int | None], filter_book_limit: int
+            q: str,
+            query_params: dict[str, str | int | None],
+            filter_book_limit: int,
+            fq: list[str] | None = None,
         ) -> LoggedBooksData:
             """
             Filter reading log books based an a query and return LoggedBooksData.
@@ -495,13 +499,16 @@ class Bookshelves(db.CommonExtras):
 
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
-                param={'q': q},
+                param={'q': q or '*:*'},
                 offset=query_params["offset"],
                 rows=limit,
                 facet=False,
-                # Putting these in fq allows them to avoid user-query processing, which
-                # can be (surprisingly) slow if we have ~20k OR clauses.
-                extra_params=[('fq', filter_query)],
+                extra_params=[
+                    # Putting these in fq allows them to avoid user-query processing, which
+                    # can be (surprisingly) slow if we have ~20k OR clauses.
+                    ('fq', filter_query),
+                    *[('fq', f) for f in (fq or [])],
+                ],
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
@@ -600,10 +607,13 @@ class Bookshelves(db.CommonExtras):
                 docs=solr_docs,
             )
 
-        if q:
+        if q or fq:
             # checkin_year ignored :(
             return get_filtered_reading_log_books(
-                q=q, query_params=query_params, filter_book_limit=FILTER_BOOK_LIMIT
+                q=q,
+                query_params=query_params,
+                filter_book_limit=FILTER_BOOK_LIMIT,
+                fq=fq,
             )
         else:
             return get_sorted_reading_log_books(
