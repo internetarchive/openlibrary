@@ -44,9 +44,6 @@ from openlibrary.core.vendors import (
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
-from openlibrary.plugins.worksearch.subjects import (
-    get_subject,  # noqa: F401 side effects may be needed
-)
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import get_trending_books
