@@ -107,7 +107,7 @@ export class OLChip extends LitElement {
         }
 
         :host([selected]) .count {
-            color: var(--lighter-grey);
+            color: #c6e1f0;
         }
     `;
 

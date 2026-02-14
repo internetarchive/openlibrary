@@ -95,8 +95,15 @@ h4 {
     font-weight: 700;
     color: @black;
     text-transform: uppercase;
-    margin: 0 0 5px;
+    margin: 0;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    .facet-icon {
+      flex-shrink: 0;
+      color: #999;
+    }
     span.merge {
       font-family: @body-family;
       font-size: @font-size-label-small;
