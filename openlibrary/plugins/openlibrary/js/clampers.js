@@ -1,9 +1,9 @@
 /**
  * @param {NodeListOf<Element>} clampers
- * 
+ *
  */
 export function initClampers(clampers) {
-    for(const clamper of clampers) {
+    for (const clamper of clampers) {
         if (clamper.clientHeight === clamper.scrollHeight) {
             clamper.classList.remove('.clamp');
         } else {
@@ -13,7 +13,7 @@ export function initClampers(clampers) {
                 style on parent element
             */
 
-            clamper.addEventListener("click", (event) => {
+            clamper.addEventListener('click', (event) => {
                 const up = event.target;
 
                 if (event.target instanceof HTMLAnchorElement) {
@@ -22,7 +22,7 @@ export function initClampers(clampers) {
 
                 if (up.classList.contains('clamp')) {
                     clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
-                    
+
                     if (up.getAttribute('data-before') === '\u25BE ') {
                         up.setAttribute('data-before', '\u25B8 ')
                     } else {
