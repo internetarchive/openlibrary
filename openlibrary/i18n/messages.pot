@@ -3079,16 +3079,14 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/sort_options.html
-msgid "Sorting by"
+#: account/reading_log.html type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
 #: account/reading_log.html
-msgid "Date Added (newest)"
-msgstr ""
-
-#: account/reading_log.html
-msgid "Date Added (oldest)"
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
 msgstr ""
 
 #: account/reading_log.html
@@ -7330,6 +7328,14 @@ msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Date Added (newest)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Date Added (oldest)"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Most Editions"
 msgstr ""
 
@@ -7351,6 +7357,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Sorting by"
 msgstr ""
 
 #: search/sort_options.html
@@ -7710,11 +7720,6 @@ msgstr ""
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
 #: type/author/view.html
