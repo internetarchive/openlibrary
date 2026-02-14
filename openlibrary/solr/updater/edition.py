@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, cast
 import requests
 
 import openlibrary.book_providers as bp
+from openlibrary.scorecards import EditionScorecard
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
@@ -330,6 +331,45 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    def get_scorecard(self) -> EditionScorecard:
+        sc = EditionScorecard()
+
+        if self.title:
+            sc.passing_checks.add(sc.has_title)
+        if self.cover_i:
+            sc.passing_checks.add(sc.has_cover)
+        if len(self._edition.get('description') or '') > 50:
+            sc.passing_checks.add(sc.has_short_description)
+        if len(self._edition.get('description') or '') > 100:
+            sc.passing_checks.add(sc.has_long_description)
+        if self.language:
+            sc.passing_checks.add(sc.has_language)
+        if self._solr_work and self._solr_work.author_key:
+            sc.passing_checks.add(sc.has_author)
+        if self.publish_year:
+            sc.passing_checks.add(sc.has_publish_year)
+        if self.isbn or self.lccn or self.ia or self.identifiers:
+            sc.passing_checks.add(sc.has_identifiers)
+        if self.lexile:
+            sc.passing_checks.add(sc.has_lexile)
+
+        return sc
+
+    @cached_property
+    def metadata_score(self) -> int:
+        return self.get_scorecard().score
+
+    @cached_property
+    def usefulness_score(self) -> int:
+        score = self.metadata_score
+
+        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
+            score += 100
+        if self.ebook_access == bp.EbookAccess.PRINTDISABLED:
+            score += 80
+
+        return score
+
     def build(self) -> SolrDocument:
         """
         Build the solr document for the given edition to store as a nested
@@ -370,6 +410,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 'format': [self.format] if self.format else None,
                 'publish_date': [self.publish_date] if self.publish_date else None,
                 'publish_year': [self.publish_year] if self.publish_year else None,
+                'metadata_score': self.metadata_score,
+                'usefulness_score': self.usefulness_score,
                 # Identifiers
                 'isbn': self.isbn,
                 'lccn': self.lccn,

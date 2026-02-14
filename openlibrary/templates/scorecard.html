@@ -1,0 +1,75 @@
+$def with (scorecard)
+
+$ percentage = int((scorecard.score / scorecard.max_score * 100)) if scorecard.max_score > 0 else 0
+
+<style>
+.ol-scorecard {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+.ol-scorecard summary {
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px;
+}
+
+.ol-scorecard-check {
+    margin: 8px 0;
+    border-left: 3px solid #ddd;
+}
+
+.ol-scorecard-check summary {
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.ol-scorecard-check-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ol-scorecard-check-details {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f9f9f9;
+    border-radius: 3px;
+    font-size: 0.9em;
+    color: #555;
+}
+</style>
+
+$def render_scorecard_check(check):
+    $ is_passing = check in scorecard.passing_checks
+    $ emoji = "✅" if is_passing else "❌"
+
+    <details class="ol-scorecard-check">
+        <summary class="ol-scorecard-check-header">
+            <span style="flex: 1">$emoji $check.description</span>
+            <span class="ol-scorecard-check-header">$_("%d points", check.score)</span>
+        </summary>
+        <div class="ol-scorecard-check-details">
+            $check.details
+        </div>
+    </details>
+
+<details class="ol-scorecard">
+    <summary>$_("Score"): $scorecard.score/$scorecard.max_score ($percentage%)</summary>
+    $ failing_checks = [check for check in scorecard.get_checks() if check not in scorecard.passing_checks]
+    $ passing_checks = [check for check in scorecard.get_checks() if check in scorecard.passing_checks]
+
+    <details open>
+        <summary>$_("Failing Checks (%d)", len(failing_checks))</summary>
+        $for check in sorted(failing_checks, key=lambda c: c.score, reverse=True):
+            $:render_scorecard_check(check)
+    </details>
+
+    <details>
+        <summary>$_("Passing Checks (%d)", len(passing_checks))</summary>
+        $for check in sorted(passing_checks, key=lambda c: c.score, reverse=True):
+            $:render_scorecard_check(check)
+    </details>
+</details>
