@@ -115,17 +115,25 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/history.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: BookPreview.html BookTalkWatch.html CreateListModal.html DonateModal.html
+#: NotesModal.html ObservationsModal.html ShareModal.html
+#: covers/author_photo.html covers/book_cover.html covers/change.html
+#: lib/history.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
 #: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
 #: search/inside.html search/snippets.html
 msgid "Search Inside"
+msgstr ""
+
+#: BookTalkWatch.html
+msgid "Watch"
+msgstr ""
+
+#: BookTalkWatch.html
+msgid "Watch Book Talk"
 msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html
@@ -5778,6 +5786,10 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
+#: home/book_talks_carousel.html lib/nav_head.html
+msgid "Book Talks"
+msgstr ""
+
 #: home/categories.html
 msgid "Browse by Subject"
 msgstr ""
@@ -6306,10 +6318,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "K-12 Student Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Book Talks"
 msgstr ""
 
 #: lib/nav_head.html
