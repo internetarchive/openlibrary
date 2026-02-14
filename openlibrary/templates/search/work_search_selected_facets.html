@@ -3,6 +3,12 @@ $def with (param, search_response, q_param, path=None, query={})
 $code:
     fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
     facet_map = get_facet_map()
+    facet_tooltips = {
+        'first_publish_year': 'First published in',
+        'language': 'Written in',
+        'publisher_facet': 'Published by',
+        'author_key': 'Author',
+    }
     def del_facet_url(k, v):
         if k != 'has_fulltext':
             return changequery(page=None, _path=path, query=dict(query), **{k:[i for i in param.get(k, []) if i != v]})
@@ -32,9 +38,16 @@ $if param and not search_response.error:
                 $if header == 'has_fulltext':
                     $ chip_display = fulltext_names.get(k, '')
                 $elif header == 'public_scan_b':
-                    $continue
+                    $# TODO: Consider removing public_scan_b handling. No UI exposes
+                    $# this facet (the sidebar skips it), so it only triggers via
+                    $# manually crafted URLs like /search?public_scan_b=true.
+                    $ chip_display = _("Only Classic eBooks") if display == 'true' else _("Classic eBooks hidden")
                 $else:
                     $ chip_display = display
-                <ol-chip selected size="small" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+                $ chip_title = facet_tooltips.get(header, '')
+                $if chip_title:
+                    <ol-chip selected size="small" title="$_(chip_title)" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+                $else:
+                    <ol-chip selected size="small" href="$del_facet_url(header, k)">$chip_display</ol-chip>
         </div>
     $var title: $_('%(title)s - search', title=', '.join(title))

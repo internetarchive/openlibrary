@@ -82,7 +82,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
         $if header=='public_scan_b':
             $continue
         $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])] if not async_load else [(None, None, None)]
-        $if not counts and not async_load:
+        $if len(counts) <= 1 and not async_load:
             $continue
         $:facet(header, label, counts)
 </div>
