@@ -307,19 +307,21 @@ export default {
             }
             document.querySelector(this.output_selector).innerHTML = html;
         },
+        /**
+         * Auto-selects identifier type dropdown based on input pattern (e.g., Q12345 → Wikidata).
+         * Only selects types available in the current page's identifier config.
+         * Enables autodetect for editions/works (previously author-only).
+         */
         selectIdentifierByInputValue: function() {
-            // Ignore for edition identifiers
-            if (this.saveIdentifiersAsList) {
-                return;
-            }
-            // Selects the dropdown identifier based on the input value when possible
             for (const idtype in identifierPatterns) {
                 if (this.inputValue.match(identifierPatterns[idtype])){
-                    this.selectedIdentifier = idtype;
-                    break;
+                    /** Only select identifier types available in page config (prevents selecting unsupported types) */
+                    if (this.identifierConfigsByKey && this.identifierConfigsByKey[idtype]) {
+                        this.selectedIdentifier = idtype;
+                        break;
+                    }
                 }
             }
-
         }
     }
 }
