@@ -32,14 +32,24 @@ export class OLChip extends LitElement {
 
     static styles = css`
         :host {
+            --chip-padding-block: 6px;
+            --chip-padding-inline: 12px;
+            --chip-icon-size: 14px;
+            --chip-icon-gap: 4px;
             display: inline-block;
         }
 
+        :host([size="small"]) {
+            --chip-padding-block: 4px;
+            --chip-padding-inline: 8px;
+            --chip-icon-size: 12px;
+        }
+
         .chip {
+            position: relative;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 6px 12px;
+            padding: var(--chip-padding-block) var(--chip-padding-inline);
             border: var(--border-width) solid var(--color-border-subtle);
             border-radius: var(--border-radius-pill);
             font-family: var(--font-family-sans);
@@ -63,6 +73,7 @@ export class OLChip extends LitElement {
 
         /* Selected state */
         :host([selected]) .chip {
+            padding-inline-start: calc(var(--chip-padding-inline) + var(--chip-icon-size) + var(--chip-icon-gap));
             background: var(--primary-blue);
             border-color: var(--primary-blue);
             color: var(--white);
@@ -75,24 +86,22 @@ export class OLChip extends LitElement {
 
         /* Small size */
         :host([size="small"]) .chip {
-            padding: 4px 8px;
             font-size: var(--font-size-label-medium);
         }
 
-        /* Check icon */
+        /* Check icon — absolutely positioned so it never affects chip height */
         .check-icon {
-            width: 14px;
-            height: 14px;
-            flex-shrink: 0;
-        }
-
-        :host([size="small"]) .check-icon {
-            width: 12px;
-            height: 12px;
+            position: absolute;
+            inset-inline-start: var(--chip-padding-inline);
+            top: 50%;
+            transform: translateY(-50%);
+            width: var(--chip-icon-size);
+            height: var(--chip-icon-size);
         }
 
         /* Count */
         .count {
+            margin-inline-start: 4px;
             color: #777;
             font-size: 0.85em;
         }

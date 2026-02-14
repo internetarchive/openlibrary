@@ -3,24 +3,11 @@ $# /developers/design
 $ _x = ctx.setdefault('cssfile', 'design')
 
 <div class="design-pattern-library">
-  <h1>$_("Design Pattern Library")</h1>
-  <article class="design-pattern">
-    <div class="design-pattern__header">
-      <h2 class="design-pattern__title">$_("Colors")</h2>
-    </div>
-    <div class="design-pattern__content">
-      <ul>
-        <li class="color-swatch"><span class="color-block color-block-background"></span> $_("Background")</li>
-        <li class="color-swatch"><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
-        <li class="color-swatch"><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
-        <li class="color-swatch"><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
-      </ul>
-    </div>
-  </article>
+  <h1>$_("Web Components")</h1>
 
   <article class="design-pattern">
     <div class="design-pattern__header">
-      <h2 class="design-pattern__title">$_("Pagination component")</h2>
+      <h2 class="design-pattern__title">$_("Pagination")</h2>
       <p>$_("The ol-pagination component provides support for both event-based and URL-based navigation.")</p>
     </div>
     <div class="design-pattern__content">
@@ -83,7 +70,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
   <article class="design-pattern">
     <div class="design-pattern__header">
-      <h2 class="design-pattern__title">$_("Read More component")</h2>
+      <h2 class="design-pattern__title">$_("Read More")</h2>
       <p>$_("The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.")</p>
     </div>
     <div class="design-pattern__content">
@@ -154,4 +141,84 @@ $ _x = ctx.setdefault('cssfile', 'design')
       </section>
     </div>
     </article>
+
+  <article class="design-pattern">
+    <div class="design-pattern__header">
+      <h2 class="design-pattern__title">$_("Chip")</h2>
+      <p>$:_("The ol-chip component is a pill-shaped interactive element for filters, tags, and selections. It fires an %(event)s event on click.", event="<code>ol-chip-select</code>")</p>
+    </div>
+    <div class="design-pattern__content">
+      <section class="example">
+        <h3 class="example__title">$_("Default (medium)")</h3>
+        <p>$_("Basic chips at the default medium size.")</p>
+        <code class="example__code">&lt;ol-chip&gt;Fiction&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip>Fiction</ol-chip>
+          <ol-chip>Science</ol-chip>
+          <ol-chip>History</ol-chip>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Selected state")</h3>
+        <p>$_("A selected chip displays a checkmark icon and uses an active color scheme.")</p>
+        <code class="example__code">&lt;ol-chip selected&gt;History&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip>Fiction</ol-chip>
+          <ol-chip selected>History</ol-chip>
+          <ol-chip>Science</ol-chip>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Small size")</h3>
+        <p>$:_("Use %(size)s for a compact chip.", size='<code>size="small"</code>')</p>
+        <code class="example__code">&lt;ol-chip size="small"&gt;Poetry&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip size="small">Poetry</ol-chip>
+          <ol-chip size="small" selected>Drama</ol-chip>
+          <ol-chip size="small">Essays</ol-chip>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("With count")</h3>
+        <p>$:_("Use %(count)s to display a number alongside the label.", count="<code>count</code>")</p>
+        <code class="example__code">&lt;ol-chip count="42"&gt;Fiction&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip count="1,024">Fiction</ol-chip>
+          <ol-chip count="76" selected>History</ol-chip>
+          <ol-chip size="small" count="310">Science</ol-chip>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("As a link")</h3>
+        <p>$:_("When %(href)s is provided, the chip renders as an anchor tag instead of a button.", href="<code>href</code>")</p>
+        <code class="example__code">&lt;ol-chip href="/subjects/fiction" count="76"&gt;Fiction&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip href="/subjects/fiction" count="1,024">Fiction</ol-chip>
+          <ol-chip href="/subjects/history" count="76" selected>History</ol-chip>
+          <ol-chip href="/subjects/science" size="small" count="310">Science</ol-chip>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Interactive toggle")</h3>
+        <p>$:_("Clicking a chip fires an %(event)s event. Toggle the selected state by listening to the event.", event="<code>ol-chip-select</code>")</p>
+        <code class="example__code">&lt;ol-chip id="demo-chip"&gt;Toggle me&lt;/ol-chip&gt;</code>
+        <div class="example__output">
+          <ol-chip id="demo-chip-1">Toggle me</ol-chip>
+          <ol-chip id="demo-chip-2" selected>Toggle me too</ol-chip>
+        </div>
+        <script>
+          document.querySelectorAll('#demo-chip-1, #demo-chip-2').forEach(chip => {
+            chip.addEventListener('ol-chip-select', (e) => {
+              e.target.selected = !e.target.selected;
+            });
+          });
+        </script>
+      </section>
+    </div>
+  </article>
 </div>
