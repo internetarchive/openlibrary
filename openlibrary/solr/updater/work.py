@@ -410,7 +410,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def oclc(self) -> set[str]:
-        return {v for e in self._editions for v in e.get('oclc_numbers', [])}
+        return {oclc for ed in self._solr_editions for oclc in ed.oclc}
 
     @property
     def contributor(self) -> set[str]:
