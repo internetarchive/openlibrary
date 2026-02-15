@@ -5,7 +5,7 @@
 export function initClampers(clampers) {
     for (const clamper of clampers) {
         if (clamper.clientHeight === clamper.scrollHeight) {
-            clamper.classList.remove('.clamp');
+            clamper.classList.remove('clamp');
         } else {
 
             /*
@@ -20,14 +20,12 @@ export function initClampers(clampers) {
                     return;
                 }
 
-                if (up.classList.contains('clamp')) {
-                    clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
+                clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
 
-                    if (up.getAttribute('data-before') === '\u25BE ') {
-                        up.setAttribute('data-before', '\u25B8 ')
-                    } else {
-                        up.setAttribute('data-before', '\u25BE ')
-                    }
+                if (up.getAttribute('data-before') === '\u25BE ') {
+                    up.setAttribute('data-before', '\u25B8 ')
+                } else {
+                    up.setAttribute('data-before', '\u25BE ')
                 }
             })
         }
