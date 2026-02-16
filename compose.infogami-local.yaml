@@ -6,19 +6,19 @@
 services:
   web:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
   fast_web:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
   covers:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
   infobase:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
   home:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
   solr-updater:
     volumes:
-      - ./vendor/infogami:/openlibrary/vendor/infogami
+      - ./vendor/infogami:/openlibrary/vendor/infogami:z
