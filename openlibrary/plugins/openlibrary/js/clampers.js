@@ -14,18 +14,16 @@ export function initClampers(clampers) {
             */
 
             clamper.addEventListener('click', (event) => {
-                const up = event.target;
-
                 if (event.target instanceof HTMLAnchorElement) {
                     return;
                 }
 
                 clamper.style.display = clamper.style.display === '-webkit-box' || clamper.style.display === '' ? 'unset' : '-webkit-box'
 
-                if (up.getAttribute('data-before') === '\u25BE ') {
-                    up.setAttribute('data-before', '\u25B8 ')
+                if (clamper.getAttribute('data-before') === '\u25BE ') {
+                    clamper.setAttribute('data-before', '\u25B8 ')
                 } else {
-                    up.setAttribute('data-before', '\u25BE ')
+                    clamper.setAttribute('data-before', '\u25BE ')
                 }
             })
         }
