@@ -261,15 +261,15 @@ q {
 
 /* SITE DEFAULTS */
 
-@import (less) "base/common.less";
+@import (inline) "base/common.css";
 @import (inline) "components/buttonCta.css";
 @import (inline) "components/buttonsAndLinks.css";
 @import (inline) "components/buttonLink.css";
 @import (inline) "components/buttonGhost.css";
 @import (inline) "components/buttonBtn.css";
-@import (less) "base/dl.less";
-@import (less) "base/helpers-common.less";
-@import (less) "base/helpers-misc.less";
+@import (inline) "base/dl.css";
+@import (inline) "base/helpers-common.css";
+@import (inline) "base/helpers-misc.css";
 
 // openlibrary/templates/recentchanges/header.html
 // openlibrary/templates/showia.html
@@ -301,7 +301,7 @@ div.superNav {
   margin-bottom: 5px;
 }
 
-@import (less) "base/headings.less";
+@import (inline) "base/headings.css";
 
 span {
   &.link {
@@ -462,7 +462,7 @@ input {
 }
 
 /* LAYOUT */
-@import "layout/index.less";
+@import (inline) "layout/index.css";
 
 // openlibrary/data/sitemap.py
 div#placement {

@@ -12,7 +12,8 @@
 @import (less) "less/index.less";
 
 // Import all base styles
-@import (less) "base/index.less";
+@import (inline) "base/helpers-common.css";
+@import (inline) "base/common.css";
 
 // Import colors
 @import (less) "less/colors.less";
@@ -21,7 +22,7 @@
 @import (less) "less/font-families.less";
 
 // Layout rules
-@import (less) "layout/index.less";
+@import (inline) "layout/index.css";
 
 // Components (modules) in order of appearance on page
 @import (inline) "components/header-bar.css";

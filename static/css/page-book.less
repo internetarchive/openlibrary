@@ -9,11 +9,12 @@
 @import (less) "less/index.less";
 
 // base styles
-@import (less) "base/index.less";
-@import (less) "base/headings.less";
+@import (inline) "base/helpers-common.css";
+@import (inline) "base/common.css";
+@import (inline) "base/headings.css";
 
 // layout styles
-@import (less) "layout/index.less";
+@import (inline) "layout/index.css";
 
 // Components in order of appearance!
 // Header sub-imports
@@ -27,7 +28,7 @@
 @import (inline) "components/buttonLink.css";
 @import (inline) "components/edit-toolbar.css";
 // Work sub-imports
-@import (less) "base/dl.less";
+@import (inline) "base/dl.css";
 @import (inline) "components/compact-title.css";
 @import (inline) "components/nav-bar.css";
 @import (inline) "components/librarian-dashboard.css";

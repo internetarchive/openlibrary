@@ -1,0 +1,109 @@
+/**
+* This file provides a sensible and minimal
+* set of default styles for all entry points
+*
+* These styles are loaded as render blocking CSS on every page.
+*/
+
+/* RESET EVERYTHING */
+body,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+pre,
+code,
+form,
+fieldset,
+legend,
+input,
+textarea,
+th,
+td {
+  margin: 0;
+  padding: 0;
+}
+h1 {
+  margin: 20px 0;
+}
+body,
+p,
+li {
+  color: var(--dark-grey);
+}
+body {
+  font-size: 100%;
+  line-height: normal;
+  background-color: var(--beige);
+  font-family: var(--body-family);
+}
+fieldset {
+  width: 100%;
+}
+p {
+  line-height: var(--line-height-body);
+}
+hr {
+  height: 1px;
+  border: none;
+  /* fade(@beige, 66) */
+  background: hsla(48, 44%, 84%, 0.66);
+}
+li {
+  list-style: none;
+  color: var(--dark-grey);
+}
+a:link {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+a:hover {
+  color: var(--dark-blue);
+  text-decoration: underline;
+}
+a:visited {
+  color: var(--dark-blue);
+  text-decoration: underline;
+}
+/* Note more heading styles can be found in base/headings
+   This provides the minimum possible */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--body-family);
+  color: var(--grey);
+  font-weight: 600;
+}
+div.head {
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+div.head span {
+  font-size: var(--font-size-label-medium);
+}
+
+/* Tablet: max-width: 768px */
+@media only screen and (max-width: 768px) {
+  table:not(.no-table-collapse) {
+    overflow: auto;
+    display: block;
+  }
+  table:not(.no-table-collapse) tr,
+  table:not(.no-table-collapse) tbody {
+    overflow: auto;
+    display: block;
+  }
+  table:not(.no-table-collapse) td {
+    display: inline-block;
+  }
+}
+
+a.nostyle {
+  color: inherit;
+}

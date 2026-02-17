@@ -1,23 +1,24 @@
-// A standard list of helpers
+/* A standard list of helpers */
 .hidden {
   display: none !important;
 }
 .inline {
   display: inline;
+}
 
-  // All inline elements following an inline element
-  // e.g. heading should be a little smaller
-  // See /subjects "Try a keyword"
-  + span {
-    font-size: @font-size-label-small;
-  }
+/* All inline elements following an inline element
+   e.g. heading should be a little smaller
+   See /subjects "Try a keyword" */
+.inline + span {
+  font-size: var(--font-size-label-small);
 }
 
 .desktop-only {
   display: none !important;
 }
 
-@media only screen and (min-width: @width-breakpoint-desktop) {
+/* Desktop: min-width: 960px */
+@media only screen and (min-width: 960px) {
   .desktop-only {
     display: block !important;
   }
@@ -30,22 +31,22 @@
   text-align: center;
   padding: 10px 5px;
   display: none;
-  background-color: @grey;
-  color: @white;
+  background-color: var(--grey);
+  color: var(--white);
 }
 .hidden--nojs {
   display: none;
-  .client-js & {
-    display: block;
-  }
+}
+.client-js .hidden--nojs {
+  display: block;
 }
 .clearfix {
   width: 100%;
   clear: both;
   padding: 5px;
 }
-// To be used for shifting content so its accessible to screen readers
-// but not visible to anyone else.
+/* To be used for shifting content so its accessible to screen readers
+   but not visible to anyone else. */
 .shift {
   position: absolute !important;
   left: -10000px !important;
@@ -57,8 +58,8 @@ a.hoverlink {
 }
 
 .local-date-time {
-  color: @dark-green;
-  font-size: @font-size-label-small;
+  color: var(--dark-green);
+  font-size: var(--font-size-label-small);
   text-align: center;
   padding: 5px 0 0;
 }
