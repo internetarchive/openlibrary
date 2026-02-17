@@ -15,21 +15,21 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: @black;
+  background-color: var(--black);
   opacity: 0.5;
   filter: alpha(opacity=50);
-  z-index: @z-index-level-13 !important;
+  z-index: var(--z-index-level-13) !important;
 }
 .ui-sortable-placeholder {
-  border: 1px dotted @mid-grey;
+  border: 1px dotted var(--mid-grey);
   visibility: visible !important;
   filter: brightness(0.85);
-  border-radius: @border-radius-button;
-  *,
-  &:before,
-  &:after {
-    visibility: hidden;
-  }
+  border-radius: var(--border-radius-button);
+}
+.ui-sortable-placeholder *,
+.ui-sortable-placeholder::before,
+.ui-sortable-placeholder::after {
+  visibility: hidden;
 }
 .ui-sortable--covers {
   max-height: 270px;

@@ -1,0 +1,22 @@
+/* slick font is used by Carousel arrow icons */
+/* (this is a lot of bytes for just an icon so should be revisited asap) */
+@import "../lib/slick.css";
+@import "../lib/slick-theme.css";
+
+.carousel-container .slick-slider {
+  /* allow overflow now the carousel has been initialised. */
+  overflow: visible;
+}
+
+.carousel .slick-prev,
+.carousel .slick-next {
+  z-index: var(--z-index-level-4);
+}
+
+.carousel .slick-prev:before {
+  margin-left: 15px;
+}
+
+.carousel .slick-next {
+  margin-right: 11px;
+}

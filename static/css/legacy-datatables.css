@@ -13,16 +13,15 @@
  *
  * DO NOT ADD NEW CSS HERE
  */
-@import (less) "less/index.less";
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables features
  */
 
 .dataTables_wrapper {
-  font-family: @body-family;
+  font-family: var(--body-family);
   position: relative;
-  z-index: @z-index-level-1;
+  z-index: var(--z-index-level-1);
   clear: both;
   zoom: 1; /* Feeling sorry for IE */
 }
@@ -36,33 +35,33 @@
   margin-left: -125px;
   margin-top: -15px;
   padding: 14px 0 5px;
-  border: 1px solid @lighter-grey;
+  border: 1px solid var(--lighter-grey);
   text-align: center;
-  color: @light-grey;
-  font-size: @font-size-label-large;
+  color: var(--light-grey);
+  font-size: var(--font-size-label-large);
 }
 
 .dataTables_length {
-  font-size: @font-size-label-medium;
-  color: @grey;
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
   display: inline-block;
 }
 
 .dataTables_info {
   width: 100%;
-  font-size: @font-size-label-medium;
-  color: @grey;
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
   margin-top: 20px;
 }
 
 .dataTables_paginate {
-  // stylelint-disable declaration-block-no-duplicate-properties
+  /* stylelint-disable declaration-block-no-duplicate-properties */
   width: 44px;
   *width: 50px;
-  // stylelint-enable declaration-block-no-duplicate-properties
+  /* stylelint-enable declaration-block-no-duplicate-properties */
   text-align: right;
-  font-size: @font-size-label-medium;
-  color: @grey;
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
 }
 
 /* Pagination nested */
@@ -103,10 +102,10 @@ table.display {
 }
 
 table.display thead th {
-  // stylelint-disable declaration-block-no-duplicate-properties
+  /* stylelint-disable declaration-block-no-duplicate-properties */
   cursor: pointer;
   *cursor: hand;
-  // stylelint-enable declaration-block-no-duplicate-properties
+  /* stylelint-enable declaration-block-no-duplicate-properties */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -149,7 +148,7 @@ table.display thead th {
 
 tr.even,
 tr.odd {
-  border-bottom: 1px solid @light-grey;
+  border-bottom: 1px solid var(--light-grey);
 }
 
 /*
@@ -160,31 +159,31 @@ table.KeyTable td {
 }
 
 table.KeyTable td.focus {
-  border: 3px solid @blue-3366ff;
+  border: 3px solid var(--blue-3366ff);
 }
 
 table.display tr.gradeA {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 table.display tr.gradeC {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 table.display tr.gradeX {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 table.display tr.gradeU {
-  background-color: @lighter-grey;
+  background-color: var(--lighter-grey);
 }
 
 div.box {
   height: 100px;
   padding: 10px;
   overflow: auto;
-  border: 1px solid @dark-baby-blue;
-  background-color: @baby-blue;
+  border: 1px solid var(--dark-baby-blue);
+  background-color: var(--baby-blue);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -203,46 +202,46 @@ div.box {
 
 .dataTables_empty {
   text-align: center;
-  font-size: @font-size-label-large;
+  font-size: var(--font-size-label-large);
   font-weight: normal;
   padding: 15px 0;
-  color: @red;
+  color: var(--red);
 }
 
 tfoot input {
   margin: 0.5em 0;
   width: 100%;
-  color: @darker-grey;
+  color: var(--darker-grey);
 }
 
 tfoot input.search_init {
-  color: @grey;
+  color: var(--grey);
 }
 
 td.group {
-  background-color: @gray-d1cfd0;
-  border-bottom: 2px solid @gray-a19b9e;
-  border-top: 2px solid @gray-a19b9e;
+  background-color: var(--gray-d1cfd0);
+  border-bottom: 2px solid var(--gray-a19b9e);
+  border-top: 2px solid var(--gray-a19b9e);
 }
 
 td.details {
-  background-color: @gray-d1cfd0;
-  border: 2px solid @gray-a19b9e;
+  background-color: var(--gray-d1cfd0);
+  border: 2px solid var(--gray-a19b9e);
 }
 
 div.dataTables_filter {
   float: right;
   text-align: right;
-  font-size: @font-size-label-medium;
+  font-size: var(--font-size-label-medium);
   margin: 0;
-  color: @grey;
+  color: var(--grey);
 }
 
 .dataTables_filter input {
   margin: 0 0 0 5px;
-  border-radius: @border-radius-input;
+  border-radius: var(--border-radius-input);
   padding: 3px;
-  border: 1px solid @grey;
+  border: 1px solid var(--grey);
 }
 
 .example_alt_pagination div.dataTables_info {
@@ -257,31 +256,31 @@ div.dataTables_filter {
 
 .paging_full_numbers .paginate_button,
 .paging_full_numbers .paginate_active {
-  font-family: @body-family;
-  font-size: @font-size-label-small;
+  font-family: var(--body-family);
+  font-size: var(--font-size-label-small);
   padding: 7px;
   margin: 0 5px;
-  color: @link-blue;
+  color: var(--link-blue);
   cursor: pointer;
 }
 
 .paging_full_numbers .paginate_button:hover {
-  background: @link-blue;
-  color: @white;
+  background: var(--link-blue);
+  color: var(--white);
   text-decoration: none;
 }
 
 .paging_full_numbers span.paginate_active {
-  color: @black;
-  background-color: @grey-f3f3f3;
+  color: var(--black);
+  background-color: var(--grey-f3f3f3);
 }
 
 table.display tr.even.row_selected td {
-  background-color: @blue-b0bed9;
+  background-color: var(--blue-b0bed9);
 }
 
 table.display tr.odd.row_selected td {
-  background-color: @blue-9fafd1;
+  background-color: var(--blue-9fafd1);
 }
 
 /* For the Conditional-CSS grading rows */
@@ -295,99 +294,99 @@ table.display tr.odd.row_selected td {
 	  ee > e2
  */
 tr.odd.gradeA td.sorting_1 {
-  background-color: @mid-baby-green;
+  background-color: var(--mid-baby-green);
 }
 
 tr.odd.gradeA td.sorting_2 {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 tr.odd.gradeA td.sorting_3 {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 tr.even.gradeA td.sorting_1 {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 tr.even.gradeA td.sorting_2 {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 tr.even.gradeA td.sorting_3 {
-  background-color: @baby-green;
+  background-color: var(--baby-green);
 }
 
 tr.odd.gradeC td.sorting_1 {
-  background-color: @mid-baby-blue;
+  background-color: var(--mid-baby-blue);
 }
 
 tr.odd.gradeC td.sorting_2 {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 tr.odd.gradeC td.sorting_3 {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 tr.even.gradeC td.sorting_1 {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 tr.even.gradeC td.sorting_2 {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 tr.even.gradeC td.sorting_3 {
-  background-color: @baby-blue;
+  background-color: var(--baby-blue);
 }
 
 tr.odd.gradeX td.sorting_1 {
-  background-color: @mid-baby-pink;
+  background-color: var(--mid-baby-pink);
 }
 
 tr.odd.gradeX td.sorting_2 {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 tr.odd.gradeX td.sorting_3 {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 tr.even.gradeX td.sorting_1 {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 tr.even.gradeX td.sorting_2 {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 tr.even.gradeX td.sorting_3 {
-  background-color: @baby-pink;
+  background-color: var(--baby-pink);
 }
 
 tr.odd.gradeU td.sorting_1 {
-  background-color: @mid-grey;
+  background-color: var(--mid-grey);
 }
 
 tr.odd.gradeU td.sorting_2 {
-  background-color: @mid-grey;
+  background-color: var(--mid-grey);
 }
 
 tr.odd.gradeU td.sorting_3 {
-  background-color: @mid-grey;
+  background-color: var(--mid-grey);
 }
 
 tr.even.gradeU td.sorting_1 {
-  background-color: @lighter-grey;
+  background-color: var(--lighter-grey);
 }
 
 tr.even.gradeU td.sorting_2 {
-  background-color: @lighter-grey;
+  background-color: var(--lighter-grey);
 }
 
 tr.even.gradeU td.sorting_3 {
-  background-color: @lighter-grey;
+  background-color: var(--lighter-grey);
 }
 
 /*
@@ -395,15 +394,15 @@ tr.even.gradeU td.sorting_3 {
  */
 .ex_highlight #example tbody tr.even:hover,
 #example tbody tr.even td.highlighted {
-  background-color: @lime-green;
+  background-color: var(--lime-green);
 }
 
 .ex_highlight #example tbody tr.odd:hover,
 #example tbody tr.odd td.highlighted {
-  background-color: @lime-green;
+  background-color: var(--lime-green);
 }
 
-@media only screen and (max-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: 768px) {
   .dataTables_paginate.paging_full_numbers {
     display: flex;
     justify-content: center;

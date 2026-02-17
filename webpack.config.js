@@ -62,6 +62,19 @@ module.exports = {
                     loader: 'less-loader'
                 }
             ]
+        }, {
+            test: /\.css$/,
+            use: [
+                {
+                    loader: 'style-loader'
+                },
+                {
+                    loader: 'css-loader',
+                    options: {
+                        url: false
+                    }
+                }
+            ]
         }]
     },
     optimization: {
