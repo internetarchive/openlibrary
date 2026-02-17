@@ -1,0 +1,116 @@
+.sort-content {
+  display: flex;
+  background: var(--white);
+}
+.sort-content-inner {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  margin-top: 5px;
+  background-color: var(--lightest-grey);
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: var(--light-grey);
+  z-index: var(--z-index-level-1);
+}
+.sort-content-inner a {
+  text-decoration: none;
+  color: var(--grey);
+  padding-right: 25px;
+  border: 2px solid transparent;
+}
+.sort-content-inner a:link,
+.sort-content-inner a:visited {
+  color: var(--black);
+}
+.sort-content-inner a:hover {
+  color: var(--grey);
+  border-color: var(--primary-blue);
+}
+.sort-content-inner a.sort-selected::before {
+  color: var(--grey);
+  padding-right: 5px;
+}
+.sort-content-inner a.sort-subsort-selected::before {
+  color: var(--grey);
+  padding-right: 5px;
+}
+.sort-content-inner a::before {
+  content: "\2713";
+  margin: 5px 10px;
+  color: transparent;
+}
+.sort-content-inner a.sort-subsort {
+  padding-left: 20px;
+}
+.sort-content-inner a.sort-subsort::before {
+  content: "\2713";
+  margin: 5px 10px;
+  color: transparent;
+}
+.sort-content-inner a.sort-subsort-selected {
+  padding-left: 20px;
+  padding-right: 10px;
+  color: var(--grey);
+}
+
+.tool-button {
+  border-radius: 5px;
+  background-color: var(--lightest-grey);
+  border: 1px solid var(--mid-grey);
+  padding: 4px 9px;
+  display: inline-flex;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+.tool-button:not(.tool-button--group):hover {
+  background: var(--grey-f3f3f3);
+}
+a.tool-button {
+  text-decoration: none;
+}
+.tool-button.active {
+  font-weight: bold;
+}
+
+.tool-button--group {
+  padding: 0;
+}
+/* stylelint-disable-next-line no-descending-specificity */
+.tool-button--group > .tool-button {
+  border: 0;
+  border-left: 1px solid var(--gray-d1cfd0);
+}
+.tool-button--group > .tool-button:first-child {
+  border-left: 0;
+  border-radius: 5px 0 0 5px;
+}
+.tool-button--group > .tool-button:last-child {
+  border-radius: 0 5px 5px 0;
+}
+
+details.sort-dropper {
+  display: inline;
+}
+details.sort-dropper summary {
+  list-style-type: none;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+details.sort-dropper summary::after {
+  content: "\25BE";
+  color: var(--dark-grey);
+  width: 9px;
+  font-size: var(--font-size-headline-small);
+  line-height: 0;
+  transform: translateX(-50%);
+}
+details.sort-dropper[open] summary::after {
+  content: "\25B4";
+}
+
+.sort-random-shuffle {
+  display: inline-flex;
+  padding: 5px;
+}

@@ -1,0 +1,86 @@
+/**
+ * PageBanner
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#pagebanner
+ */
+.page-banner {
+  display: block;
+  color: var(--white);
+  font-family: var(--body-family);
+  background: var(--dark-grey);
+  padding: 15px;
+  border-bottom: 1px solid var(--beige);
+  z-index: var(--z-index-level-2);
+}
+.page-banner-mybooks {
+  color: var(--black);
+  background: var(--grey-blue);
+  border: 1px solid var(--blue-b0bed9);
+  font-weight: 500;
+}
+.page-banner-black {
+  background-color: var(--dark-grey);
+  padding: 5px;
+}
+.page-banner-black .cta {
+  padding: 4px 8px;
+  border-radius: var(--border-radius-button);
+  border: 1px solid var(--grey-555);
+  font-weight: 500;
+  text-decoration: none;
+  background: var(--grey-464646);
+  margin: 0 5px;
+}
+.page-banner .button {
+  border-radius: var(--border-radius-button);
+  padding: 8px 10px;
+  cursor: pointer;
+  display: inline;
+  border: 1px solid var(--mid-blue);
+}
+/* stylelint-disable selector-max-specificity */
+/* FIXME: Is this actually used anywhere? I think this block can be removed. */
+.page-banner a.button {
+  text-decoration: none;
+  background: var(--mid-blue);
+  color: var(--white);
+}
+.page-banner a.button:hover {
+  background: var(--button-hover-blue);
+  color: var(--white);
+}
+/* stylelint-enable selector-max-specificity */
+.page-banner .btn {
+  display: block;
+  max-width: 200px;
+  margin: auto;
+  border: 1px solid var(--button-hover-blue);
+  font-weight: bold;
+}
+.page-banner-body {
+  font-size: 0.9em;
+  padding: 10px;
+  line-height: 25px;
+  text-align: center;
+}
+.page-banner--dismissable {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--white);
+  font-family: var(--body-family);
+  background: var(--dark-grey);
+  padding: 15px;
+  border-bottom: 1px solid var(--beige);
+}
+.page-banner--dismissable-content {
+  flex: 1;
+  text-align: center;
+}
+.page-banner--dismissable-close {
+  height: 100%;
+  margin-left: auto;
+  color: var(--white);
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+}

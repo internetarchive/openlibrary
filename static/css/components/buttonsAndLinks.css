@@ -1,0 +1,100 @@
+a.cancel {
+  color: var(--red);
+  font-family: var(--body-family);
+  font-size: 1em;
+}
+a.borrowResults:link {
+  color: var(--black);
+  text-decoration: none;
+}
+a.borrowResults:visited {
+  color: var(--black);
+  text-decoration: none;
+}
+a.borrowResults:hover {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+a.borrowResults:active {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+a.coverLook {
+  display: block;
+}
+a.facetSubject:link,
+a.facetSubject:visited {
+  color: var(--black);
+  text-decoration: none;
+}
+a.facetSubject:hover,
+a.facetSubject:active {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+/* Can possibly be removed provided there are no usages of .results
+   class outside search-result-item.less */
+a.results:link {
+  color: var(--black);
+  text-decoration: none;
+}
+a.results:visited {
+  color: var(--black);
+  text-decoration: none;
+}
+a.results:hover {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+a.results:active {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+a.toggle {
+  text-decoration: none;
+  color: var(--white) !important;
+  background-color: var(--olive) !important;
+  padding: 3px;
+  border-radius: 3px;
+}
+a.toggle:hover {
+  background-color: var(--link-blue) !important;
+  color: var(--white) !important;
+}
+
+button.plainText {
+  border: none;
+  font-family: var(--body-family);
+  font-size: 0.75em;
+  color: var(--red);
+  background-color: var(--white);
+  cursor: pointer;
+}
+button.plainText:hover {
+  color: var(--dark-green);
+}
+button.plain {
+  border: none;
+  font-family: var(--body-family);
+  font-size: 0.75em;
+  color: var(--black);
+  background-color: transparent !important;
+  cursor: pointer;
+}
+button.plain:hover {
+  color: var(--dark-green);
+}
+button.addAnother {
+  width: 32px;
+  height: 32px;
+  border: none;
+  vertical-align: middle;
+  cursor: pointer;
+  background-image: url(/images/icons/icon_add.png);
+  background-position: 0 0;
+  background-color: transparent;
+  display: none;
+}
+button.addAnother:hover {
+  background-position: -32px 0;
+}

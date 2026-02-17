@@ -29,7 +29,7 @@
 @import (less) "legacy-wmd.less";
 
 @import (less) "components/read-panel.less";
-@import (less) "components/diff.less";
+@import (inline) "components/diff.css";
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
@@ -246,7 +246,11 @@ q {
 /* SITE DEFAULTS */
 
 @import (less) "base/common.less";
-@import (less) "components/buttonsAndLinks.less";
+@import (less) "components/buttonCta.less";
+@import (inline) "components/buttonsAndLinks.css";
+@import (inline) "components/buttonLink.css";
+@import (inline) "components/buttonGhost.css";
+@import (inline) "components/buttonBtn.css";
 @import (less) "base/dl.less";
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
@@ -1024,7 +1028,7 @@ div.work {
   }
 }
 
-@import (less) "components/illustration.less";
+@import (inline) "components/illustration.css";
 
 // openlibrary/templates/books/author-autocomplete.html
 div.books {

@@ -1,0 +1,52 @@
+/* buttonBtn styles are loaded globally via page entry points */
+
+.book-notes-form {
+  margin: 1em auto;
+  padding: 0 20px;
+}
+.book-notes-form p {
+  font-size: var(--font-size-title-medium);
+}
+.book-notes-form div {
+  width: 100%;
+  margin-bottom: 1em;
+}
+.book-notes-form div textarea {
+  width: 100%;
+  padding: 0.25em;
+  font-size: var(--font-size-title-medium);
+  resize: none;
+}
+
+.note-form-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+.note-form-buttons button {
+  font-size: 1.2em;
+  width: unset;
+}
+.note-form-buttons .update-note-button {
+  margin-left: auto;
+  margin-top: 5px;
+  font-size: 1.2em;
+  padding: 7px;
+}
+
+.observation-instructions {
+  margin: 1em 2em;
+}
+
+/* --width-breakpoint-tablet: 768px */
+@media screen and (max-width: 768px) {
+  .note-form-buttons {
+    flex-direction: column-reverse;
+  }
+  .note-form-buttons .update-note-button {
+    margin-bottom: 1em;
+  }
+  .book-notes-form button {
+    width: 100%;
+    line-height: 1.5em;
+  }
+}
