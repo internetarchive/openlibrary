@@ -12,7 +12,7 @@
   float: right;
 }
 .subjectTagEdit .editTagButton {
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   background-color: var(--white);
   padding: 10px;
   display: inline-block;

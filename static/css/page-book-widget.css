@@ -23,7 +23,7 @@ body {
 .cta {
   font-family: var(--body-family);
   background: var(--primary-blue);
-  border-radius: var(--border-radius-button);
+  border-radius: 3px;
   width: 130px;
   margin: 0 auto;
   margin-top: 5px;

@@ -24,7 +24,7 @@
   border: 1px dotted var(--mid-grey);
   visibility: visible !important;
   filter: brightness(0.85);
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
 }
 .ui-sortable-placeholder *,
 .ui-sortable-placeholder::before,

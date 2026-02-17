@@ -23,7 +23,7 @@
 }
 .page-banner-black .cta {
   padding: 4px 8px;
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   border: 1px solid var(--grey-555);
   font-weight: 500;
   text-decoration: none;
@@ -31,7 +31,7 @@
   margin: 0 5px;
 }
 .page-banner .button {
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   padding: 8px 10px;
   cursor: pointer;
   display: inline;

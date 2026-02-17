@@ -1,7 +1,7 @@
 .searchbox {
   background-color: var(--white);
   border: 1px solid var(--dark-beige);
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   position: relative;
   display: inline-flex;
   align-items: center;

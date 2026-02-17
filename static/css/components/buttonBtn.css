@@ -13,7 +13,7 @@
   background-color: var(--primary-blue);
   /* Important is necessary to override default link color */
   color: var(--white) !important;
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
 }
 
 a.btn {

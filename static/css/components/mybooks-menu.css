@@ -106,7 +106,7 @@
 
 .mybooks-menu ul li.create-new-list > a {
   display: inline-block;
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   cursor: pointer;
   padding: 2px 5%;
   font-size: 0.96em;

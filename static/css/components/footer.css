@@ -61,7 +61,7 @@ footer ul li {
   height: 35px;
   cursor: pointer;
   background-color: var(--dark-grey);
-  border-radius: var(--border-radius-button);
+  border-radius: 3px;
 }
 
 .footer-icon img {

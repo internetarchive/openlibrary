@@ -287,7 +287,7 @@ div.floaterBody p {
 .ol-cover-form .carousel .cta-btn {
   color: var(--grey);
   border: 2px solid var(--light-grey);
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
   position: relative;
 }
 

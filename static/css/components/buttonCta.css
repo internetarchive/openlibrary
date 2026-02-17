@@ -11,7 +11,7 @@ a.cta-btn {
   width: 100%;
   display: block;
   border: 0;
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
@@ -33,15 +33,18 @@ a.cta-btn .btn-icon {
   flex-shrink: 0;
 }
 
-/* stylelint-disable-next-line selector-max-specificity */
-.cta-btn .btn-icon.read-aloud {
+/* stylelint-disable selector-max-specificity */
+.cta-btn .btn-icon.read-aloud,
+a.cta-btn .btn-icon.read-aloud {
   background-image: url(/static/images/icons/read%20aloud.svg);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
 }
+/* stylelint-enable selector-max-specificity */
 
-.cta-btn .btn-label {
+.cta-btn .btn-label,
+a.cta-btn .btn-label {
   padding: 8px;
   padding-right: 0;
 }
@@ -54,31 +57,42 @@ a.cta-btn:visited {
   text-decoration: none;
 }
 
-.cta-btn--no-pointer {
+.cta-btn--no-pointer,
+a.cta-btn--no-pointer {
   cursor: default;
 }
 
 .cta-btn--available,
 .cta-btn--preview,
-.cta-btn--primary {
+.cta-btn--primary,
+a.cta-btn--available,
+a.cta-btn--preview,
+a.cta-btn--primary {
   background-color: var(--primary-blue);
   color: var(--white);
 }
 
 .cta-btn--available:hover,
 .cta-btn--preview:hover,
-.cta-btn--primary:hover {
+.cta-btn--primary:hover,
+a.cta-btn--available:hover,
+a.cta-btn--preview:hover,
+a.cta-btn--primary:hover {
   background-color: hsl(202, 96%, 17%);
 }
 
 .cta-btn--available:disabled,
 .cta-btn--preview:disabled,
-.cta-btn--primary:disabled {
+.cta-btn--primary:disabled,
+a.cta-btn--available:disabled,
+a.cta-btn--preview:disabled,
+a.cta-btn--primary:disabled {
   background-color: var(--grey);
   cursor: default;
 }
 
-.cta-btn--external {
+.cta-btn--external,
+a.cta-btn--external {
   background-image: url(/static/images/icons/octicon-link-external-24.svg);
   background-repeat: no-repeat;
   background-size: 20px;
@@ -86,90 +100,115 @@ a.cta-btn:visited {
   justify-content: center;
 }
 
-.cta-btn--unavailable {
+.cta-btn--unavailable,
+a.cta-btn--unavailable {
   background-color: var(--primary-blue);
   color: var(--white);
 }
 
-.cta-btn--unavailable:hover {
+.cta-btn--unavailable:hover,
+a.cta-btn--unavailable:hover {
   background-color: hsl(202, 96%, 17%);
 }
 
-.cta-btn--shell.cta-btn--external {
+.cta-btn--shell.cta-btn--external,
+a.cta-btn--shell.cta-btn--external {
   background-blend-mode: difference;
 }
 
 .cta-btn--shell,
 .cta-btn--shell:link,
-.cta-btn--shell:visited {
+.cta-btn--shell:visited,
+a.cta-btn--shell,
+a.cta-btn--shell:link,
+a.cta-btn--shell:visited {
   background-color: var(--white);
   border: 2px solid var(--primary-blue);
   color: var(--primary-blue);
 }
 
-.cta-btn--shell:disabled {
+.cta-btn--shell:disabled,
+a.cta-btn--shell:disabled {
   border: 2px solid var(--light-grey);
   color: var(--light-grey);
   cursor: default;
 }
 
-.cta-btn--sponsor {
+.cta-btn--sponsor,
+a.cta-btn--sponsor {
   border: 2px solid var(--link-blue);
   background: hsl(202, 40%, 95%);
 }
 
 .cta-btn--vanilla,
 .cta-btn--vanilla:visited,
-.cta-btn--vanilla:link {
+.cta-btn--vanilla:link,
+a.cta-btn--vanilla,
+a.cta-btn--vanilla:visited,
+a.cta-btn--vanilla:link {
   padding: 5px;
   border: 2px solid var(--light-grey);
   background: var(--white);
   color: var(--grey);
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
 }
 
 .cta-btn--unstyled,
 .cta-btn--unstyled:visited,
-.cta-btn--unstyled:link {
+.cta-btn--unstyled:link,
+a.cta-btn--unstyled,
+a.cta-btn--unstyled:visited,
+a.cta-btn--unstyled:link {
   padding: 7px;
   background: var(--white);
   color: var(--grey);
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
 }
 
 .cta-btn--delete,
-.cta-btn--cancel {
+.cta-btn--cancel,
+a.cta-btn--delete,
+a.cta-btn--cancel {
   background-color: var(--red);
 }
 
 .cta-btn--delete:visited,
-.cta-btn--cancel:visited {
+.cta-btn--cancel:visited,
+a.cta-btn--delete:visited,
+a.cta-btn--cancel:visited {
   color: var(--grey);
 }
 
 .cta-btn--delete:hover,
-.cta-btn--cancel:hover {
+.cta-btn--cancel:hover,
+a.cta-btn--delete:hover,
+a.cta-btn--cancel:hover {
   background-color: hsl(8, 78%, 29%);
 }
 
-.cta-btn.cta-btn--w-icon {
+.cta-btn.cta-btn--w-icon,
+a.cta-btn.cta-btn--w-icon {
   display: flex;
   align-items: center;
   padding: 0 8px;
 }
 
 .cta-btn--sponsor:link,
-.cta-btn--sponsor:visited {
+.cta-btn--sponsor:visited,
+a.cta-btn--sponsor:link,
+a.cta-btn--sponsor:visited {
   color: var(--link-blue);
 }
 
-.cta-btn--sponsor:hover {
+.cta-btn--sponsor:hover,
+a.cta-btn--sponsor:hover {
   border: 2px solid var(--link-blue);
   background-color: var(--link-blue);
   color: var(--white);
 }
 
-.cta-btn__badge {
+.cta-btn__badge,
+a.cta-btn__badge {
   background-color: hsl(19, 95%, 20%);
   padding: 4px 7px;
   border-radius: 5px;
@@ -228,7 +267,7 @@ a.cta-btn:visited {
 
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:first-child:not(:last-child) {
-  border-radius: var(--border-radius-button) 2px 2px var(--border-radius-button);
+  border-radius: 6px 2px 2px 6px;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -240,5 +279,5 @@ a.cta-btn:visited {
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:last-child:not(:first-child) {
   margin-left: 1px;
-  border-radius: 2px var(--border-radius-button) var(--border-radius-button) 2px;
+  border-radius: 2px 6px 6px 2px;
 }

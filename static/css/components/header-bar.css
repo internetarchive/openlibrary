@@ -55,7 +55,7 @@
   text-align: left;
   background-color: var(--light-beige);
   border: 1px solid var(--dark-beige);
-  border-radius: var(--border-radius-button);
+  border-radius: 3px;
 }
 
 .header-bar .dropdown-menu li {
@@ -168,7 +168,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
   padding: 6px;
   transition: 0.3s;
 }
@@ -217,7 +217,7 @@
 .header-bar .hamburger-component .hamburger__icon {
   width: 22px;
   padding: 0 10px;
-  border-radius: var(--border-radius-button);
+  border-radius: 3px;
   box-sizing: content-box;
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
@@ -484,7 +484,7 @@
 
 .header-bar .search-component .search-bar-component {
   display: inline-block;
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
   position: relative;
 }
 
@@ -511,7 +511,7 @@
 }
 
 .header-bar .search-component .search-dropdown .search-results li:last-child {
-  border-radius: 0 0 var(--border-radius-button) var(--border-radius-button);
+  border-radius: 0 0 6px 6px;
 }
 
 .header-bar .search-component .search-dropdown .search-results li:hover {

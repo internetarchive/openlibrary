@@ -268,7 +268,7 @@
   color: var(--white);
   text-decoration: none;
   border: none;
-  border-radius: var(--border-radius-button);
+  border-radius: 6px;
   box-shadow: none;
   height: 100%;
   font-weight: bold;

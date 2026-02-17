@@ -26,7 +26,7 @@
   width: 150px;
   text-align: left;
   background-color: var(--light-beige);
-  border-radius: var(--border-radius-button);
+  border-radius: 3px;
   cursor: pointer;
 }
 
@@ -55,7 +55,7 @@
 .iaBar .language-component {
   position: relative;
   display: block;
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   padding: 0.2rem 0.4rem;
 }
 

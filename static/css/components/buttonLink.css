@@ -3,7 +3,7 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#buttonlink
  */
 .linkButton {
-  border-radius: var(--border-radius-button);
+  border-radius: 5px;
   background-color: var(--white);
   padding: 10px;
   display: inline-block;
