@@ -1,0 +1,19 @@
+/**
+ * Cross-document View Transitions API opt-in.
+ * Enables cover image morph when navigating between home carousel and book page.
+ * See https://developer.chrome.com/docs/web-platform/view-transitions/cross-document
+ */
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-group(book-cover) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+::view-transition-old(book-cover),
+::view-transition-new(book-cover) {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in-out;
+}

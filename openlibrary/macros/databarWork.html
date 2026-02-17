@@ -18,7 +18,7 @@ $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     <div class="panel">
       <div class="btn-notice read-options" id="read-options">
 
-        <div class="illustration edition-cover">
+        <div class="illustration edition-cover" id="book-cover-detail">
           $:render_template('covers/book_cover', page, preload=True)
           $# Don't display add/change cover link for /books/ia:foo00bar pages
           $if not page.is_fake_record():

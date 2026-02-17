@@ -33,7 +33,7 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
 
 <div class="book carousel__item">
   <div class="book-cover">
-    <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
+    <a href="$(url)" class="book-cover-link" data-ol-link-track="BookCarousel|CoverClick|$key">
       $if cover_url:
         <img class="bookcover" loading="lazy"
           title="$('%s%s'%(title,byline))"
