@@ -42,6 +42,7 @@
     "concurrently": "^7.6.0",
     "core-js": "^3.37.1",
     "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.4",
     "datatables.net-dt": "1.13.11",
     "details-polyfill": "1.2.0",
     "diff": "4.0.2",

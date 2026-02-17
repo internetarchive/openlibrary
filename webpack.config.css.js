@@ -2,11 +2,25 @@
 /*
  * Webpack config for compiling Less and CSS files to independent CSS files in static/build/
  * Supports both .less and .css entry points for gradual migration from LESS to native CSS.
+ *
+ * LESS → CSS Migration
+ * --------------------
+ * We are migrating component styles from LESS to native CSS.
+ * During migration, both pipelines coexist:
+ *
+ *  1. Component .less files are compiled via less-loader + clean-css (minified).
+ *  2. Component .css files use native CSS with custom properties (var(--token)).
+ *     They are included in LESS bundles via @import (inline), which pastes them
+ *     verbatim without LESS processing — clean-css still minifies the result.
+ *  3. When an entire page entry is migrated to .css, it enters the CSS-only pipeline
+ *     and is minified by css-minimizer-webpack-plugin.
+ *
  */
 const path = require('path');
 const glob = require('glob');
 const { execSync } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const LessPluginCleanCss = require('less-plugin-clean-css');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
 
@@ -127,6 +141,10 @@ module.exports = {
         }
     ],
     optimization: {
+        minimizer: [
+            // Minify CSS entry points that bypass the LESS/clean-css pipeline
+            new CssMinimizerPlugin(),
+        ],
         runtimeChunk: false,
         splitChunks: false,
     },
