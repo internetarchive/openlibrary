@@ -1,5 +1,6 @@
 @import (less) "components/header-bar.less";
-@import (less) "components/iaBar.less";
+@import (inline) "components/buttonGhost.css";
+@import (inline) "components/iaBar.css";
 @import (inline) "components/buttonBtn.css";
 @import (inline) "components/page-banner.css";
 
@@ -11,7 +12,7 @@ html {
 
 // Tablet
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  @import (less) "components/header-bar--tablet.less";
+  @import (inline) "components/header-bar--tablet.css";
   @import (inline) "components/page-banner--tablet.css";
   html {
     scroll-padding-top: 70px;
@@ -20,7 +21,7 @@ html {
 
 // Desktop
 @media all and (min-width: @width-breakpoint-desktop) {
-  @import (less) "components/header-bar--desktop.less";
+  @import (inline) "components/header-bar--desktop.css";
   html {
     scroll-padding-top: 0;
   }

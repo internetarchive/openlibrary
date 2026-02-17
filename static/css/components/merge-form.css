@@ -1,0 +1,141 @@
+/**
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#merge-form
+ */
+/* Consider using .merge-form OR #mergeForm for a common parent selector */
+/* openlibrary/templates/merge/authors.html */
+div.merge {
+  font-family: var(--body-family);
+  width: 100%;
+  float: left;
+  margin-bottom: 15px;
+}
+
+div.merge .entry {
+  width: 100%;
+  padding: 10px 0;
+  float: left;
+  clear: right;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+div.merge .header {
+  width: 100%;
+  padding: 0 !important;
+  float: left;
+  clear: right;
+  border-bottom: 1px solid var(--lighter-grey);
+}
+
+div.merge .header div {
+  padding: 5px;
+}
+
+div.merge .master {
+  background-color: var(--light-yellow) !important;
+  position: sticky;
+  top: 0;
+}
+
+div.merge .mergeSelection,
+div.merge .mouseoverHighlight {
+  background-color: var(--lighter-yellow);
+}
+
+div.merge .data {
+  padding: 0 5px;
+}
+
+div.merge .input {
+  width: 37px;
+  float: left;
+  text-align: center;
+  padding: 3px 5px 0;
+}
+
+div.merge .record ul {
+  margin-top: 5px;
+  margin-bottom: 0 !important;
+}
+
+div.merge .record li {
+  color: var(--grey) !important;
+  font-size: 0.75em;
+}
+
+div.merge .record label {
+  display: block;
+}
+
+div.merge .metaDate {
+  color: var(--brown);
+  font-size: 0.8125em;
+  padding-left: 10px;
+}
+
+div.merge .metaSubject {
+  color: var(--grey);
+  font-size: 0.8125em;
+  display: block;
+}
+
+div.merge .ol-num {
+  color: var(--brown);
+  font-family: var(--code-family);
+}
+
+div.merge .name {
+  font-weight: 700;
+  color: var(--black);
+}
+
+/* stylelint-disable selector-max-specificity */
+div.merge .name a:link,
+div.merge .name a:visited {
+  color: var(--black);
+  text-decoration: none;
+}
+
+div.merge .name a:hover,
+div.merge .name a:active {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+/* stylelint-enable selector-max-specificity */
+
+div.merge .count {
+  font-size: 0.8125em;
+  text-align: right;
+}
+
+.merge-feedback input {
+  width: 100%;
+  margin-top: 5px;
+}
+
+.merge-feedback__buttons {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.merge-feedback__reject {
+  color: var(--white);
+  background-color: var(--red-two);
+}
+
+/* @width-breakpoint-desktop: 960px */
+@media all and (min-width: 960px) {
+  div.merge .record {
+    float: left;
+    width: 710px;
+  }
+
+  div.merge label {
+    width: 710px;
+  }
+
+  div.merge .count {
+    width: 86px;
+    float: left;
+  }
+}
