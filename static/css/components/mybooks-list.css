@@ -1,0 +1,100 @@
+/**
+ * MyBooksList
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#mybooks-list
+ * Used in:
+ * - openlibrary/templates/account/books.html
+ * - openlibrary/templates/stats/readinglog.html
+ *
+ * http://localhost:8080/account/books/currently-reading
+ * http://localhost:8080/stats/readinglog
+ */
+
+.mybooks-list ul {
+  margin: 0 !important;
+}
+
+.mybooks-list h2 {
+  padding: 5px 0;
+  margin: 0;
+  line-height: var(--line-height-heading);
+  margin-bottom: 5px;
+}
+
+.mybooks-list h2.subtitle {
+  font-weight: normal;
+}
+
+.mybooks-list h4.work-subtitle {
+  font-family: var(--font-family-subtitle);
+  color: var(--grey);
+  font-size: 1em;
+  font-weight: normal;
+  font-style: italic;
+}
+
+.mybooks-list .loadmore {
+  text-align: center;
+}
+
+.mybooks-list .yearly-goal-section {
+  margin-bottom: 28px;
+}
+
+.mybooks-list {
+  overflow-wrap: anywhere;
+}
+
+.mybooks-list--clean ul {
+  display: flex;
+  margin: 0;
+  flex-wrap: wrap;
+}
+
+.mybooks-list--clean h3 {
+  display: inline;
+  padding-right: 10px;
+  font-family: var(--body-family);
+  font-size: 1em;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.mybooks-list--clean li {
+  width: 310px;
+  margin-right: 10px;
+}
+
+.mybooks-list--clean span.imageLg {
+  display: block;
+  float: left;
+  width: 34px;
+  height: auto;
+  margin-right: 0;
+  max-width: 34px;
+  text-align: left;
+}
+
+.mybooks-list--clean span.imageLg img {
+  width: 24px;
+  height: auto;
+}
+
+.mybooks-list--clean div.details {
+  display: block;
+  float: left;
+  width: 260px;
+}
+
+.mybooks-list--clean span.editions {
+  margin-top: 0;
+  font-size: 0.6875em;
+  color: var(--grey);
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+@media only screen and (min-width: 768px /* @width-breakpoint-tablet */) {
+  .mybooks-list {
+    flex: 1;
+  }
+}
