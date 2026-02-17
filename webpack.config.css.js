@@ -16,7 +16,10 @@ const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/c
 
 // Find all CSS entry files matching static/css/page-*.css
 const cssFiles = glob.sync('./static/css/page-*.css');
-const entries = {};
+const entries = {
+    // Design tokens — compiled from static/css/tokens/ into a single file
+    tokens: './static/css/tokens.css',
+};
 
 cssFiles.forEach(file => {
     const name = path.basename(file, '.css');

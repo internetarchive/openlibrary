@@ -7,3 +7,4 @@
 node_modules/
 static/build/
 static/css/tokens.css
+static/css/tokens/

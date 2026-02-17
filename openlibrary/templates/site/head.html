@@ -32,7 +32,7 @@ $def with (page)
     <link href="/static/images/openlibrary-192x192.png" rel="icon" sizes="192x192" />
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
     $# CSS Custom Properties (design tokens) - loaded separately for caching
-    <link href="$static_url('css/tokens.css')" rel="stylesheet" type="text/css" />
+    <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
     $ style = 'build/css/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 

@@ -1,0 +1,41 @@
+/**
+ * Border Primitives
+ * ======================
+ * Rarely used directly in components - use semantic tokens instead
+ */
+:root {
+  --border-width-none: 0;
+  --border-width-thin: 1px;
+  --border-width: 1px;
+  --border-width-thick: 2px;
+  --border-width-heavy: 3px;
+}
+
+/**
+ * Border Semantic Tokens
+ * ====================
+ * Reference these throughout the app for consistent border styling.
+ *
+ * You should be able to use the complete border style variables in most cases,
+ * instead of the border width variables.
+ */
+:root {
+  /* Border Widths */
+  --border-width-control: 1px; /* inputs, buttons */
+  --border-width-media: 1px; /* images, media objects */
+  --border-width-table: 1px;
+  --border-width-divider: 1px;
+  --focus-width: 2px;
+
+  /* Complete Border Styles */
+  --border-card: 1px solid hsl(0, 0%, 87%);
+  --border-divider: 1px solid hsl(0, 0%, 87%);
+  --border-table: 1px solid hsl(0, 0%, 87%);
+
+  --border-input: 1px solid hsl(0, 0%, 87%);
+  --border-input-hovered: 1px solid hsl(202, 96%, 37%);
+  --border-input-focused: 1px solid hsl(202, 96%, 37%);
+
+  /* Focus Ring — accessible focus indicator */
+  --box-shadow-focus: 0 0 0 2px hsl(202, 96%, 37%);
+}
