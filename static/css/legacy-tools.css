@@ -1,0 +1,340 @@
+/* stylelint-disable no-descending-specificity */
+
+/**
+ * Tools
+ * These styles appears to predominately be about layout.
+ * They are used on works and authors pages.
+ * The file should be refactored and its layout rules generalised.
+ * Many of these styles may be needed in existing components.
+ * It will be refactored at the earliest opportunity but for now
+ * lives inside the legacy stylesheet.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ */
+
+.Tools {
+  position: relative;
+}
+
+.Tools .btn-notice a.worldcat-link {
+  text-decoration: underline;
+}
+
+.Tools .btn-notice span.worldcat-attribution {
+  font-size: 0.8em;
+  display: block;
+}
+
+.Tools .btn-notice input {
+  display: block;
+  width: 100%;
+}
+
+.Tools .btn-notice p {
+  padding-left: 0 !important;
+  font-size: 1em;
+}
+
+.Tools .btn-notice p a.wait-btn,
+.Tools .btn-notice p a.borrow-btn {
+  display: block;
+  text-align: center;
+  margin: 0 auto;
+  color: var(--white);
+}
+
+.Tools .btn-notice p.primary-cta {
+  text-align: center;
+}
+
+.Tools .btn-notice p.primary-cta a {
+  display: block;
+}
+
+.Tools .check-availability {
+  padding: 10px;
+  border-top: 1px solid var(--lightest-grey);
+  border-radius: 3px;
+}
+
+.Tools .check-availability p {
+  padding-top: 7px;
+}
+
+.Tools .check-availability p.check-other-editions {
+  text-align: center;
+}
+
+.Tools .check-availability p.check-other-editions a {
+  font-size: 1em;
+  text-decoration: underline;
+}
+
+.Tools .check-availability a {
+  font-size: 1.3em;
+  color: var(--dark-blue);
+}
+
+.Tools .cta-section {
+  padding: 5px 5px 0;
+  margin: 0;
+}
+
+.Tools .cta-section ul li {
+  padding-left: 0;
+}
+
+.Tools div.panel .cta-section p {
+  margin: 0;
+}
+
+.Tools .hidetool {
+  display: none;
+}
+
+.Tools span.owner {
+  font-size: 10px;
+}
+
+.Tools.borrow {
+  position: relative;
+}
+
+.Tools.borrow div.icon.list {
+  background-image: none;
+}
+
+.Tools.borrow .lists-widget-head {
+  display: none;
+}
+
+.Tools table {
+  width: 250px;
+}
+
+.Tools table td {
+  font-size: 0.6875em;
+  font-family: var(--body-family);
+}
+
+.Tools table td.price {
+  padding: 3px 0 0;
+}
+
+.Tools table td.vendor {
+  padding: 3px 10px 0 42px;
+}
+
+.Tools h3 {
+  font-size: 100%;
+  min-height: 32px;
+  width: 250px;
+  font-family: var(--body-family) !important;
+  font-weight: normal;
+  outline: 0;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  zoom: 1;
+}
+
+.Tools h3 span.icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  float: left;
+  background-image: url(/images/icons/icons_sprite.png);
+  background-repeat: no-repeat;
+}
+
+.Tools h3 span.icon.read {
+  background-position: -96px 0;
+}
+
+.Tools h3 span.icon.readinact {
+  background-position: -160px 0;
+}
+
+.Tools h3 span.icon.download {
+  background-position: -192px 0;
+}
+
+.Tools h3 span.icon.downloadinact {
+  background-position: -256px 0;
+}
+
+.Tools h3 span.icon.buy {
+  background-position: -288px 0;
+}
+
+.Tools h3 span.icon.buyinact {
+  background-position: -352px 0;
+}
+
+.Tools h3 span.icon.borrow {
+  background-position: -384px 0;
+}
+
+.Tools h3 span.icon.borrowinact {
+  background-position: -448px 0;
+}
+
+.Tools h3 span.icon.browse {
+  background-position: -512px 0;
+}
+
+.Tools h3 span.head {
+  padding-left: 10px;
+  font-size: 1.125em;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.Tools h3 span.subhead {
+  padding-left: 10px;
+  font-size: 0.6875em;
+  color: var(--light-grey);
+}
+
+.Tools h3.closed span.head {
+  color: var(--grey);
+}
+
+.Tools h4 {
+  font-size: 1em;
+  font-family: var(--body-family);
+  color: var(--teal);
+  font-weight: 600;
+  margin: 0 0 10px;
+  padding: 0;
+  zoom: 1;
+}
+
+.Tools .panel {
+  margin-bottom: 10px;
+}
+
+.Tools .panel ul {
+  list-style-type: none;
+  margin-left: 0;
+}
+
+.Tools .panel ul.booklinks li {
+  list-style: none;
+  padding-left: 20px;
+  font-size: 0.7em;
+}
+
+.Tools .panel li {
+  list-style-type: none;
+  font-size: 0.75em;
+  margin-top: 0;
+  color: var(--grey);
+}
+
+.Tools .panel p {
+  font-size: 0.75em;
+  margin-top: 0;
+  color: var(--grey);
+}
+
+.Tools div.icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 32px;
+  height: 32px;
+  background-image: url(/images/icons/icons_sprite.png);
+  background-repeat: no-repeat;
+}
+
+.Tools div.icon.list {
+  background-position: 0 0;
+}
+
+.Tools p {
+  font-size: 0.6875em;
+  font-family: var(--body-family);
+  padding-left: 42px;
+  margin-bottom: 5px;
+}
+
+.Tools #readBooks p {
+  font-size: 0.75em !important;
+}
+
+.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown {
+  margin: 0;
+  left: 0;
+  width: 157px;
+  top: 0;
+  padding: 0 10px;
+}
+
+/* stylelint-disable selector-max-specificity */
+.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown .arrow-unactivated {
+  background-position: 6px -7px;
+}
+/* stylelint-enable selector-max-specificity */
+
+/* stylelint-disable selector-max-specificity */
+.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown .arrow.up {
+  background-position: -22px -7px;
+}
+/* stylelint-enable selector-max-specificity */
+
+.user-book-options .Tools {
+  margin: 0 auto;
+}
+
+div.tools-override {
+  min-height: 45px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+div.tools-override .Tools .btn-notice {
+  margin: auto;
+  font-size: 0.9em;
+}
+
+div.tools-override .listLists {
+  margin: 0;
+  clear: both;
+}
+
+div.tools-override .listLists li {
+  padding-left: 0;
+}
+
+/* @width-breakpoint-tablet hardcoded as 768px */
+@media only screen and (min-width: 768px) {
+  .Tools .btn-notice {
+    margin-left: 35px;
+  }
+
+  /* FIXME: Workaround for users of the "works" component. */
+  .workDetails .btn-notice {
+    margin-left: 0 !important;
+  }
+
+  div.tools-override {
+    width: 180px;
+  }
+
+  div.tools-override.editionTools {
+    float: left;
+  }
+
+  div.tools-override .Tools .btn-notice {
+    width: 180px;
+    margin-left: 45px;
+  }
+}

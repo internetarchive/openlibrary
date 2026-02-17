@@ -1,0 +1,83 @@
+/**
+ * These styles only apply to the borrowTable on pages where
+ * the id `admin` or `user` is present on the body element.
+ * They should be reviewed and cleaned up as necessary.
+ */
+
+/* stylelint-disable selector-max-specificity */
+.borrow-table {
+  margin: 30px 0 25px;
+}
+.borrow-table table {
+  width: 100%;
+  font-family: var(--body-family);
+}
+.borrow-table table th {
+  border-bottom: 1px solid var(--beige-three);
+  vertical-align: bottom;
+  padding-bottom: 10px;
+  font-family: var(--body-family);
+  color: var(--brown);
+  font-weight: 600;
+  font-size: 0.6875em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+}
+.borrow-table table th.titles {
+  text-align: left;
+}
+.borrow-table table th.xtitles {
+  text-align: left !important;
+}
+
+.borrow-table tr.row-available {
+  background: var(--admin-row-background) !important;
+}
+.borrow-table tr.row-available .status-value {
+  color: var(--dark-green);
+}
+
+.borrow-table td.status,
+.borrow-table th.status {
+  padding: 15px;
+  text-align: center;
+}
+
+.borrow-table td.serial {
+  padding: 15px 0;
+  text-align: right;
+  width: 20px;
+}
+
+.borrow-table .current-loan tbody tr {
+  background: var(--soft-green) !important;
+}
+
+.borrow-table .checkedout-elsewhere {
+  padding: 15px;
+  background: var(--orange-four) !important;
+  border: 1px solid var(--orange-five);
+}
+
+.borrow-table .available {
+  padding: 15px;
+  background: var(--soft-green) !important;
+  border: 1px solid var(--soft-green-two);
+}
+
+.borrow-table .section {
+  margin: 25px 0;
+}
+
+.borrow-table .section h3 {
+  margin: 1em 0 0.5em;
+}
+
+.borrow-table div#alert0 {
+  background-color: var(--admin-row-background) !important;
+  border: 1px solid var(--orange-five);
+}
+.borrow-table ul.inner {
+  margin-bottom: 0 !important;
+}

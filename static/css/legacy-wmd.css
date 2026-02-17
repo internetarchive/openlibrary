@@ -13,27 +13,26 @@
  *
  * DO NOT ADD NEW CSS HERE
  */
-@import (less) "less/font-families.less";
 
 .wmd-panel {
   width: auto;
 }
 
 .wmd-editor {
-  background-color: @nagios-green;
+  background-color: var(--nagios-green);
 }
 
 .wmd-input {
   height: 500px;
   width: 100%;
-  background-color: @white;
-  border: 1px solid @darker-grey;
+  background-color: var(--white);
+  border: 1px solid var(--darker-grey);
 }
 
 .wmd-preview {
-  background-color: @white;
-  border: 1px solid @lighter-grey;
-  font-family: @font-family-serif;
+  background-color: var(--white);
+  border: 1px solid var(--lighter-grey);
+  font-family: var(--font-family-serif);
   display: none;
   overflow-wrap: anywhere;
 }
@@ -56,7 +55,7 @@ form.olform.books .formElement .input .wmd-preview {
 /* stylelint-enable no-descending-specificity */
 
 .wmd-output {
-  background-color: @white;
+  background-color: var(--white);
 }
 
 .wmd-button-row {
@@ -169,16 +168,66 @@ form.olform.books .formElement .input .wmd-preview {
 }
 
 .wmd-prompt-background {
-  background-color: @black;
+  background-color: var(--black);
   opacity: 0.9;
   filter: Alpha(Opacity=90);
 }
 
-@import (inline) "components/wmd-button-bar.css";
+/**
+ * Wmd ButtonBar
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#wmdbuttonbar
+ */
+.wmd-button-bar {
+  overflow: hidden;
+}
+/* on mobile hide all tools beyond the first 8 */
+.wmd-button-bar li:nth-child(n + 8) {
+  display: none;
+}
+/* wmd-help-button */
+.wmd-button-bar li:last-child {
+  display: inline-block;
+}
+.wmd-button-bar li:last-child a {
+  position: absolute;
+  width: inherit;
+  height: inherit;
+}
 
-@media only screen and (min-width: @width-breakpoint-desktop) {
-  // Styles are used on edit page
-  // e.g. http://localhost:8080/works/OL61982W/Odyssey/edit
+/* Desktop: min-width: 960px */
+@media only screen and (min-width: 960px) {
+  .wmd-button-bar {
+    overflow: auto;
+    width: 100%;
+    background-color: transparent;
+  }
+  /* reveal all the extra tools */
+  .wmd-button-bar li:nth-child(n + 8) {
+    display: inline-block;
+  }
+  /* wmd-help-button is floated out to the right */
+  .wmd-button-bar li:last-child {
+    width: 20px;
+    height: 20px;
+    margin-left: 5px;
+    margin-right: 5px;
+    position: absolute;
+  }
+  /* stylelint-disable selector-max-specificity */
+  .wmd-button-bar form.olform.books,
+  .wmd-button-bar fieldset.major {
+    width: 854px;
+  }
+  .wmd-button-bar form.olform.books .formElement.librarian .input {
+    width: 798px;
+  }
+  .wmd-button-bar form#addAuthor.olform {
+    width: 628px;
+  }
+  /* stylelint-enable selector-max-specificity */
+
+  /* Styles are used on edit page
+     e.g. http://localhost:8080/works/OL61982W/Odyssey/edit */
   form.olform.books .formElement.librarian .input .wmd-preview {
     width: 798px;
   }
