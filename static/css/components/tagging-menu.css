@@ -1,0 +1,214 @@
+.bulk-tagging-form {
+  width: 320px;
+  height: fit-content;
+  right: 30px;
+  bottom: 50px;
+  border: 1px solid var(--light-grey);
+  box-shadow: 0 5px 5px 2px var(--accessible-grey);
+  background-color: var(--white);
+  border-radius: var(--border-radius-card);
+  position: absolute;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 33px;
+  padding: 7px 15px;
+  font-weight: bold;
+}
+
+.close-bulk-tagging-form {
+  cursor: pointer;
+  color: var(--black);
+  font-size: 17px;
+  font-weight: normal;
+}
+
+.search-subject-container {
+  border-top: 1px solid var(--light-grey);
+  border-bottom: 1px solid var(--light-grey);
+  width: 100%;
+  padding: 5px;
+}
+
+.subjects-search-input {
+  width: 100%;
+  height: 100%;
+  padding: 5px;
+  margin: 0;
+  border: 1px solid var(--light-grey);
+  border-radius: 5px;
+  background: var(--white);
+  font-size: var(--font-size-label-large);
+  color: var(--black);
+}
+
+.subjects-search-input:focus {
+  border-color: var(--blue-3366ff);
+}
+
+/* Menu option containers: */
+.selection-container {
+  height: 266px;
+  overflow-y: auto;
+}
+
+.selection-container .subjects-search-results,
+.selection-container .selected-tag-subjects {
+  padding: 0 5px;
+}
+
+.selection-container::-webkit-scrollbar {
+  -webkit-appearance: none;
+  background-color: var(--lighter-grey);
+  width: 5px;
+}
+
+.selection-container::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: var(--grey);
+  -webkit-box-shadow: 0 0 1px var(--grey);
+}
+
+/* Holds the button */
+.submit-tags-section {
+  padding: 5px;
+}
+
+.subject-type-option {
+  font-size: var(--font-size-label-small);
+  color: var(--white);
+  font-weight: 700;
+  width: fit-content;
+  padding: 3px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.subject-type-option--place {
+  background-color: var(--dark-red);
+}
+
+.subject-type-option--person {
+  background-color: var(--dark-green);
+}
+
+.subject-type-option--time {
+  background-color: var(--dark-yellow);
+  color: var(--black);
+}
+
+.subject-type-option--subject {
+  background-color: var(--primary-blue);
+}
+
+.subject-type-option--collection {
+  background-color: var(--black);
+}
+
+.search-subject-row-name {
+  font-size: 13px;
+  color: var(--black);
+  font-weight: 400;
+}
+
+.search-subject-row-name.search-subject-row-name-create {
+  height: 50px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--light-grey);
+  border-top: 1px solid var(--light-grey);
+}
+
+.search-subject-row-name.search-subject-row-name-create .search-subject-row-name-create-p {
+  font-size: 13px;
+  color: var(--black);
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+.search-subject-row-name.search-subject-row-name-create .search-subject-row-name-create-select {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.selected-tag {
+  color: var(--black);
+  cursor: pointer;
+  margin: 5px 0;
+  padding: 5px 0;
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+}
+
+.selected-tag .selected-tag__status {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  margin-right: 5px;
+}
+
+.selected-tag .selected-tag__status--some-tagged::before {
+  content: "-";
+}
+
+.selected-tag .selected-tag__status--all-tagged::before {
+  content: "\2713";
+}
+
+.selected-tag .selected-tag__name {
+  overflow-wrap: anywhere;
+  max-width: 190px;
+}
+
+.selected-tag .selected-tag__type-container {
+  width: 80px;
+  margin: 0 10px 0 auto;
+}
+
+.selected-tag .selected-tag__type {
+  border-radius: 8px;
+  display: inline-block;
+  padding: 3px 6px;
+  color: var(--white);
+  font-size: var(--font-size-label-small);
+  width: fit-content;
+}
+
+.selected-tag .selected-tag__type--place {
+  background-color: var(--dark-red);
+}
+
+.selected-tag .selected-tag__type--person {
+  background-color: var(--dark-green);
+}
+
+.selected-tag .selected-tag__type--time {
+  background-color: var(--dark-yellow);
+  color: var(--black);
+}
+
+.selected-tag .selected-tag__type--subject {
+  background-color: var(--primary-blue);
+}
+
+.selected-tag .selected-tag__type--collection {
+  background-color: var(--black);
+}
+
+.selected-tag--staged {
+  background-color: var(--light-yellow);
+}
+
+.loading-indicator {
+  height: 266px;
+  background: var(--white) url(/static/images/ajax-loader.gif) center center no-repeat;
+}
