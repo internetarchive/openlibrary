@@ -24,7 +24,26 @@ LESS has been fully removed from the project. All stylesheets are now native CSS
 - **`webpack.config.css.js`** — LESS rule removed, tokens entry added
 - **`webpack.config.js`** — LESS rule removed
 - **`.stylelintrc.json`** — `postcss-less` custom syntax removed
-- **`package.json`** — lint scripts target `*.css`, LESS deps removed
+- **`package.json`** — lint scripts target `static/` and `openlibrary/` CSS, LESS deps removed
+- **`.stylelintignore`** — updated to exclude `vendor/` submodules, `static/css/lib/`, generated token files, and build output
+
+### Lint cleanup
+
+All CSS files now pass `npm run lint:css` with zero errors. Changes made:
+
+- **Prettier formatting** — long selectors and property values auto-wrapped to comply with line-length rules. These are source-only whitespace changes; the minified build output is identical.
+- **Raw z-index values replaced with tokens** — e.g. `z-index: 3` → `z-index: var(--z-index-level-3)`. The token values are identical to the raw values they replace (`--z-index-level-1: 1`, `--z-index-level-2: 2`, `--z-index-level-3: 3`, `--z-index-level-16: 99999`). Affected files: `list-follow.css`, `list-showcase.css`, `manage-covers.css`, `rating-form.css`.
+- **Selector reordering in `list-showcase.css`** — moved `.list-card` base styles before `.list-showcase .list-card` to satisfy the `no-descending-specificity` rule. No property overlap between these selectors, so cascade behavior is unchanged.
+- **Specificity disable comments** — added `stylelint-disable` comments to pre-existing high-specificity selectors in `language.css`, `pd-dashboard.css`, and `read-statuses.css`. No code changes; these are selectors that legitimately need their specificity.
+- **Lint scope** — `lint:css` and `lint-fix:css` globs changed from `./**/*.css` to `"static/**/*.css" "openlibrary/**/*.css"` to exclude `vendor/` submodule CSS (infogami, wmd) and third-party library files (`static/css/lib/`) from linting.
+
+### Visual impact
+
+**None.** All changes are either:
+- Source formatting only (minified output unchanged)
+- Token swaps with identical values (e.g. `3` → `var(--z-index-level-3)` where the token equals `3`)
+- Selector reordering where specificity already determines winner (no cascade change)
+- Lint comments added to existing selectors (no code change)
 
 ---
 
@@ -60,6 +79,7 @@ That's it. The build commands (`make css`, `npm run watch:css`, `npm run watch`)
 | `Module not found: Error: Can't resolve 'less-loader'` | Run `npm install` to remove stale LESS packages |
 | Missing `static/build/css/tokens.css` | Run `make css` — tokens are now built by webpack |
 | Stylelint errors about unknown syntax | Run `npm install` — `postcss-less` has been removed from `.stylelintrc.json` |
+| Stylelint errors in vendor/submodule CSS | Already fixed — lint now scopes to `static/` and `openlibrary/` only |
 
 ---
 
@@ -190,10 +210,11 @@ make js
 # Jest tests — all 302 tests should pass
 npm run test:js
 
-# Lint CSS
-npm run lint:css
+# Lint all (CSS + JS) — must show 0 errors
+npm run lint
 
-# Lint JS
+# Or individually:
+npm run lint:css  # scoped to static/ and openlibrary/ directories
 npm run lint:js
 ```
 
