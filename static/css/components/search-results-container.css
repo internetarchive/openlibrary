@@ -2,10 +2,8 @@
  * Search Results Container
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultcontainer
  */
-@import (inline) "search-result-item.css";
-@import (inline) "fulltext-snippet.css";
 
-@media only screen and (min-width: @width-breakpoint-desktop) {
+@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
   .resultsContainer {
     display: flex;
   }
