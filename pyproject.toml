@@ -205,3 +205,20 @@ max-statements = 70
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
+
+[tool.sqlfluff.core]
+dialect = "postgres"
+# ── Rule Exclusions ──────────────────────────────────────────────────
+# Only rules that conflict with the existing codebase style are excluded.
+# Each exclusion includes a rationale.
+#
+# LT01/LT02: overlap with pre-commit hooks (trailing-whitespace, end-of-file-fixer)
+# LT05: codebase consistently uses trailing commas
+# CP01-CP05: codebase uses lowercase keywords throughout; changing would touch every SQL file
+# AL01/AL02: queries omit explicit "AS" keyword, valid Postgres convention
+# RF04: SQL keywords used as column names (key, type, action, created) — deeply embedded in schema
+# ST06: column ordering rule conflicts with public dump format (column order is part of the API)
+exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,RF04,ST06"
+
+[tool.sqlfluff.indentation]
+tab_space_size = 4

@@ -3,9 +3,9 @@
 
 COPY (
   SELECT
-    id AS id,
-    width AS width,
-    height AS height,
+    cover.id,
+    cover.width,
+    cover.height,
     -- Truncate created to day precision as a privacy precaution
     DATE(cover.created) AS created
   FROM cover
