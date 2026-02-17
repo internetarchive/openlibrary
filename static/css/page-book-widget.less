@@ -5,9 +5,6 @@
  * The stylesheet is loaded via style tag inside
  * openlibrary/templates/widget.html
  */
-@import (less) "less/colors.less";
-@import (less) "less/font-families.less";
-@import (less) "less/border-radius.less";
 
 body {
   line-height: normal;
@@ -19,14 +16,14 @@ body {
 
 .open a {
   display: block;
-  color: @white;
+  color: var(--white);
   text-decoration: none;
 }
 
 .cta {
-  font-family: @body-family;
-  background: @primary-blue;
-  border-radius: @border-radius-button;
+  font-family: var(--body-family);
+  background: var(--primary-blue);
+  border-radius: var(--border-radius-button);
   width: 130px;
   margin: 0 auto;
   margin-top: 5px;
@@ -38,37 +35,37 @@ body {
 
 .available a {
   display: block;
-  color: @white;
+  color: var(--white);
   text-decoration: none;
 }
 
 .waitlist {
-  background: @orange;
+  background: var(--orange);
+}
 
-  button {
-    border: none;
-    color: @white;
-    background: none;
-    font-size: 1em;
-    text-decoration: none;
-    cursor: pointer;
-  }
+.waitlist button {
+  border: none;
+  color: var(--white);
+  background: none;
+  font-size: 1em;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 img.bookcover {
   margin: 0 auto;
   width: 130px;
   height: 200px;
-  box-shadow: 1px 2px 5px 0 @grey-555;
-  border-radius: @border-radius-thumbnail;
+  box-shadow: 1px 2px 5px 0 var(--grey-555);
+  border-radius: var(--border-radius-thumbnail);
   text-align: center;
   display: block;
 }
 
 .title {
-  font-family: @font-family-title;
+  font-family: var(--font-family-title);
   margin: 7px auto 0;
-  color: @grey-555;
+  color: var(--grey-555);
   font-size: 0.8em;
   width: 130px;
 }
@@ -78,23 +75,23 @@ a.noshow {
 }
 
 .author {
-  font-family: @body-family;
+  font-family: var(--body-family);
   font-size: 0.7em;
   font-weight: normal;
-  color: @grey;
+  color: var(--grey);
   margin: 5px auto 7px;
   width: 130px;
 }
 
 .service {
-  font-family: @body-family;
-  color: @light-grey;
+  font-family: var(--body-family);
+  color: var(--light-grey);
   width: 130px;
   margin: 7px auto;
   text-align: right;
   font-size: 0.6em;
+}
 
-  a {
-    color: @light-grey;
-  }
+.service a {
+  color: var(--light-grey);
 }

@@ -36,36 +36,31 @@
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/font-families.less";
-@import (less) "less/border-radius.less";
 @import (inline) "components/flash-messages.css";
-@import (less) "less/z-index.less";
 @import (inline) "components/provider-table.css";
 
 body {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 /* stylelint-disable selector-max-specificity */
 div#headerNav {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#headerNav ul.links li {
-  border-top: 1px solid @beige-two;
+  border-top: 1px solid var(--beige-two);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#headerLogo {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#background {
   width: 100%;
-  background-color: @beige;
+  background-color: var(--beige);
 }
 /* stylelint-enable selector-max-specificity */
 div.message {
@@ -73,10 +68,10 @@ div.message {
   clear: both;
   width: 100%;
   margin-bottom: 15px;
-  background: @light-yellow;
-  p {
-    font-family: @body-family;
-  }
+  background: var(--light-yellow);
+}
+div.message p {
+  font-family: var(--body-family);
 }
 div.siteSearch {
   -webkit-box-ordinal-group: 4;
@@ -84,7 +79,7 @@ div.siteSearch {
   order: 3;
 }
 div.siteSearch.darker {
-  background-color: @grey-f3f3f3;
+  background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
 /* stylelint-disable selector-max-specificity */
@@ -95,17 +90,22 @@ div#editHistory {
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#headerPlace {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 
 div#subjectsPage {
   columns: 2;
-  @media only screen and (min-width: @width-breakpoint-tablet) {
+}
+
+/* @width-breakpoint-tablet = 768px */
+@media only screen and (min-width: 768px) {
+  div#subjectsPage {
     columns: 4;
   }
-  ul {
-    display: inline-block;
-  }
+}
+
+div#subjectsPage ul {
+  display: inline-block;
 }
 
 div.lists {
@@ -113,14 +113,12 @@ div.lists {
   flex-wrap: wrap;
 }
 
-.multi-input-autocomplete--author {
-  .mia__input {
-    display: flex;
-  }
+.multi-input-autocomplete--author .mia__input {
+  display: flex;
 }
 
 th.toggle-all {
-  background: @primary-blue;
+  background: var(--primary-blue);
 }
 
 .div-class {
@@ -133,25 +131,23 @@ th.toggle-all {
 
 .import-table {
   border: 2px;
-  th {
-    padding: 5px 10px;
-  }
-  td {
-    padding: 5px 10px;
-  }
-  thead {
-    th {
-      position: sticky;
-      top: 0;
-      background-color: @white;
-    }
-  }
-  tbody {
-    width: 100%;
-    tr {
-      background-color: @white;
-    }
-  }
+}
+.import-table th {
+  padding: 5px 10px;
+}
+.import-table td {
+  padding: 5px 10px;
+}
+.import-table thead th {
+  position: sticky;
+  top: 0;
+  background-color: var(--white);
+}
+.import-table tbody {
+  width: 100%;
+}
+.import-table tbody tr {
+  background-color: var(--white);
 }
 .my-imports {
   width: 100%;
@@ -159,25 +155,25 @@ th.toggle-all {
 .import-export {
   display: flex;
   flex-direction: column;
-  &__section {
-    padding: 0 10px;
-  }
+}
+.import-export__section {
+  padding: 0 10px;
 }
 
 #myProgress {
   margin-top: 5px;
-  border-radius: @border-radius-card;
+  border-radius: var(--border-radius-card);
   width: 100%;
-  background-color: @lightest-grey;
+  background-color: var(--lightest-grey);
 }
 
 #myBar {
   width: 0%;
-  border-radius: @border-radius-card;
+  border-radius: var(--border-radius-card);
   padding: 4px;
-  background-color: @green;
+  background-color: var(--green);
   text-align: center;
-  color: @white;
+  color: var(--white);
 }
 
 .import-buttons {
@@ -185,26 +181,26 @@ th.toggle-all {
 }
 
 .import-table tbody tr:nth-child(odd) {
-  background-color: @lightest-grey;
+  background-color: var(--lightest-grey);
 }
 
 .error-imported {
   font-weight: bold;
-  color: @red;
+  color: var(--red);
 }
 
 .success-imported {
-  color: @green;
+  color: var(--green);
   font-weight: bold;
 }
 
 tr.table-row.selected {
-  border: 2px solid @green;
+  border: 2px solid var(--green);
 }
 
 .olform--decoration {
   margin: 20px 0;
-  border: 2px solid @lightest-grey;
+  border: 2px solid var(--lightest-grey);
   padding: 20px;
   border-radius: 5px;
 }
@@ -230,28 +226,28 @@ textarea.toc-editor {
 }
 
 @import (inline) "components/ol-message.css";
-// Import styles for fulltext-search-suggestion card
+/* Import styles for fulltext-search-suggestion card */
 @import (inline) "components/fulltext-search-suggestion.css";
-// Import styles for fulltext-search-suggestion card item
+/* Import styles for fulltext-search-suggestion card item */
 @import (inline) "components/fulltext-search-suggestion-item.css";
-// Import styles for fulltext-search-suggestion card item snippet
+/* Import styles for fulltext-search-suggestion card item snippet */
 @import (inline) "components/fulltext-snippet.css";
-// Import styles for author infobox
+/* Import styles for author infobox */
 @import (inline) "components/author-infobox.css";
-// Import all common components
+/* Import all common components */
 @import (less) "legacy.less";
-// Import styles specific to the BorrowTable for user pages
+/* Import styles specific to the BorrowTable for user pages */
 @import (inline) "legacy-borrowTable-adminUser.css";
-// Import styles for notes and observations views
+/* Import styles for notes and observations views */
 @import (inline) "components/notes-view.css";
-// Import styles for community merge request views
+/* Import styles for community merge request views */
 @import (inline) "components/merge-request-table.css";
-// Import styles for want-to-read buttons
+/* Import styles for want-to-read buttons */
 @import (inline) "legacy-tools.css";
 @import (inline) "components/generic-dropper.css";
 @import (inline) "components/mybooks-dropper.css";
-// Import styles for search box
+/* Import styles for search box */
 @import (inline) "components/searchbox.css";
-// Import styles for sort options
+/* Import styles for sort options */
 @import (inline) "components/sort-dropper.css";
 @import (inline) "components/pagination.css";

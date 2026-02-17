@@ -17,21 +17,18 @@
  * Used on pages:
  * - /people/openlibrary9157?m=edit
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/font-families.less";
 @import (less) "legacy.less";
 
 /* stylelint-disable selector-max-specificity */
 body,
 div#content {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 /* stylelint-enable selector-max-specificity */
 
 /* stylelint-disable selector-max-specificity */
 div#content {
-  font-family: @body-family;
+  font-family: var(--body-family);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -46,27 +43,27 @@ div#revertLink {
   top: 60px;
   right: 20px;
   font-size: 0.75em;
-  font-family: @body-family;
+  font-family: var(--body-family);
 }
 /* stylelint-enable selector-max-specificity */
 .formElement {
-  font-family: @body-family;
-  color: @darker-grey;
+  font-family: var(--body-family);
+  color: var(--darker-grey);
 }
 .label {
   padding: 10px 0 5px;
-  label {
-    font-size: 1em;
-    font-family: @body-family;
-    font-weight: 700;
-  }
-  span {
-    font-size: 0.75em;
-    font-family: @body-family;
-  }
+}
+.label label {
+  font-size: 1em;
+  font-family: var(--body-family);
+  font-weight: 700;
+}
+.label span {
+  font-size: 0.75em;
+  font-family: var(--body-family);
 }
 textarea {
-  font-family: @code-family;
+  font-family: var(--code-family);
   font-size: 0.875em;
   padding: 5px;
   resize: vertical;
@@ -74,31 +71,31 @@ textarea {
 .formElement input[type="text"],
 .formElement select {
   font-size: 1em;
-  font-family: @body-family;
-  color: @dark-grey;
+  font-family: var(--body-family);
+  color: var(--dark-grey);
   padding: 5px;
 }
 table.code {
-  border: 1px solid @grey-e7e7e7;
+  border: 1px solid var(--grey-e7e7e7);
   width: 100%;
   margin-right: 10px;
   margin-bottom: 40px;
-  td {
-    background-color: @white;
-    vertical-align: top;
-    font-family: @code-family;
-    font-size: 0.875em;
-    padding: 5px;
-  }
+}
+table.code td {
+  background-color: var(--white);
+  vertical-align: top;
+  font-family: var(--code-family);
+  font-size: 0.875em;
+  padding: 5px;
 }
 /* stylelint-disable selector-max-specificity */
 div#databar {
   padding: 10px;
   margin: 20px 20px 0;
-  background-color: @light-yellow;
-  a {
-    font-size: 0.75em;
-  }
+  background-color: var(--light-yellow);
+}
+div#databar a {
+  font-size: 0.75em;
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -107,29 +104,29 @@ div#databar {
   padding: 25px 0 45px 140px;
   white-space: nowrap;
   clear: left;
-  h2 {
-    margin: 0 0 5px;
-    a {
-      font-family: @body-family;
-      color: @red;
-      font-size: @font-size-label-large;
-      font-weight: normal;
-      text-decoration: underline;
-    }
-  }
-  p {
-    color: @brown;
-    font-size: @font-size-label-large;
-    margin: 0;
-  }
+}
+#editHead h2 {
+  margin: 0 0 5px;
+}
+#editHead h2 a {
+  font-family: var(--body-family);
+  color: var(--red);
+  font-size: var(--font-size-label-large);
+  font-weight: normal;
+  text-decoration: underline;
+}
+#editHead p {
+  color: var(--brown);
+  font-size: var(--font-size-label-large);
+  margin: 0;
 }
 /* stylelint-enable selector-max-specificity */
 
 .formElement.pagetype {
   width: 300px;
-  #type\.key {
-    width: 100%;
-  }
+}
+.formElement.pagetype #type\.key {
+  width: 100%;
 }
 /* stylelint-disable selector-max-specificity */
 div#revertNotice,
@@ -141,20 +138,21 @@ div#bottom,
 }
 /* stylelint-enable selector-max-specificity */
 
-// Defined in openlibrary/macros/EditButtons.html
+/* Defined in openlibrary/macros/EditButtons.html */
 div.adminDelete {
   margin-top: 8px;
-  font-size: @font-size-label-medium;
-  color: @grey;
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
 }
 
-@media all and (min-width: @width-breakpoint-desktop) {
+/* @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
   .formElement.title {
     width: 618px;
     float: left;
-    input {
-      width: 580px;
-    }
+  }
+  .formElement.title input {
+    width: 580px;
   }
 
   textarea {

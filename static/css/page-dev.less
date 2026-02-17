@@ -1,5 +1,3 @@
-@import (less) "less/index.less";
-
 /**
  * NOT FOR PRODUCTION. If this stylesheet is loading on openlibrary.org please raise a github issue:
  * https://github.com/internetarchive/openlibrary/issues/new
@@ -14,8 +12,8 @@
  * this stylesheet will be loaded afterwards.
  */
 
-// Make banners less prominent for developers so they don't get in their way.
-// This is particularly important during fundraising season!
+/* Make banners less prominent for developers so they don't get in their way.
+   This is particularly important during fundraising season! */
 #donate_banner {
   min-height: 50px !important;
   overflow: hidden;
@@ -26,20 +24,20 @@
 
 .logo-txt {
   position: relative;
+}
 
-  &:after {
-    content: "development version";
-    position: absolute;
-    background: @mid-baby-green;
-    pointer-events: none;
-    padding: 0 0.7em;
-    font-size: 0.8em;
-    line-height: 1.75;
-    border-radius: @border-radius-badge;
-    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
-    left: 40px;
-    top: 36px;
-    z-index: @z-index-level-2;
-    transform: rotate(0deg);
-  }
+.logo-txt:after {
+  content: "development version";
+  position: absolute;
+  background: var(--mid-baby-green);
+  pointer-events: none;
+  padding: 0 0.7em;
+  font-size: 0.8em;
+  line-height: 1.75;
+  border-radius: var(--border-radius-badge);
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  left: 40px;
+  top: 36px;
+  z-index: var(--z-index-level-2);
+  transform: rotate(0deg);
 }

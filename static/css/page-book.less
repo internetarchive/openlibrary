@@ -6,18 +6,16 @@
  * - /works/OL3513417W/Physics
  * - /books/OL9737752M/The_Odyssey
  */
-@import (less) "less/index.less";
-
-// base styles
+/* base styles */
 @import (inline) "base/helpers-common.css";
 @import (inline) "base/common.css";
 @import (inline) "base/headings.css";
 
-// layout styles
+/* layout styles */
 @import (inline) "layout/index.css";
 
-// Components in order of appearance!
-// Header sub-imports
+/* Components in order of appearance */
+/* Header sub-imports */
 @import (inline) "components/header-bar.css";
 @import (inline) "components/buttonGhost.css";
 @import (inline) "components/iaBar.css";
@@ -27,7 +25,7 @@
 @import (inline) "components/navEdition.css";
 @import (inline) "components/buttonLink.css";
 @import (inline) "components/edit-toolbar.css";
-// Work sub-imports
+/* Work sub-imports */
 @import (inline) "base/dl.css";
 @import (inline) "components/compact-title.css";
 @import (inline) "components/nav-bar.css";
@@ -58,29 +56,35 @@
 @import (inline) "components/check-in.css";
 @import (inline) "components/reading-goal.css";
 @import (inline) "components/work-title-and-author.css";
-// Mobile
-html {
-  // Take into account the header bar + tab bar
-  scroll-padding-top: 100px;
 
-  // Tablet
-  @media only screen and (min-width: @width-breakpoint-tablet) {
+/* Mobile: Take into account the header bar + tab bar */
+html {
+  scroll-padding-top: 100px;
+}
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media only screen and (min-width: 768px) {
+  html {
     scroll-padding-top: 110px;
   }
+}
 
-  // Desktop
-  @media all and (min-width: @width-breakpoint-desktop) {
+/* Desktop: @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
+  html {
     scroll-padding-top: 0;
   }
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media only screen and (min-width: 768px) {
   @import (inline) "components/header-bar--tablet.css";
   @import (inline) "components/page-banner--tablet.css";
   @import (inline) "components/work--tablet.css";
   @import (inline) "components/edit-toolbar--tablet.css";
 }
 
-@media all and (min-width: @width-breakpoint-desktop) {
+/* Desktop: @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
   @import (inline) "components/header-bar--desktop.css";
 }

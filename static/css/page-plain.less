@@ -5,9 +5,6 @@
  * Used on pages:
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/font-families.less";
 
 div#header,
 footer,
@@ -30,99 +27,100 @@ div.contentSpacer {
 }
 div.nav {
   margin: 50px 0;
-  font-size: @font-size-label-large;
+  font-size: var(--font-size-label-large);
 }
-// Specific to borrowTable component
+/* Specific to borrowTable component */
 
 .borrow-table {
   margin: 60px 0 25px;
-
-  p {
-    font-size: 0.875em;
-    margin: 0;
-    padding: 0;
-  }
-
-  table {
-    width: 690px;
-    margin-bottom: 20px;
-
-    th {
-      border-bottom: 1px solid @beige-three;
-      vertical-align: bottom;
-      padding-bottom: 10px;
-
-      &.expires {
-        font-family: @body-family;
-        color: @brown;
-        font-weight: 600;
-        font-size: 0.6875em;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      &.titles {
-        font-family: @body-family;
-        color: @teal;
-        font-weight: 600;
-        font-size: 1.125em;
-      }
-    }
-  }
 }
+
+.borrow-table p {
+  font-size: 0.875em;
+  margin: 0;
+  padding: 0;
+}
+
+.borrow-table table {
+  width: 690px;
+  margin-bottom: 20px;
+}
+
+.borrow-table table th {
+  border-bottom: 1px solid var(--beige-three);
+  vertical-align: bottom;
+  padding-bottom: 10px;
+}
+
+.borrow-table table th.expires {
+  font-family: var(--body-family);
+  color: var(--brown);
+  font-weight: 600;
+  font-size: 0.6875em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.borrow-table table th.titles {
+  font-family: var(--body-family);
+  color: var(--teal);
+  font-weight: 600;
+  font-size: 1.125em;
+}
+
 div.message {
   padding: 25px 25px 25px 55px;
   margin-bottom: 50px;
-  background: @light-yellow url(/images/icons/icon_lock-msg.png) no-repeat 15px
+  background: var(--light-yellow) url(/images/icons/icon_lock-msg.png) no-repeat 15px
     50%;
-  h2 {
-    font-weight: normal;
-    font-size: 18px;
-    color: @black;
-    margin: 0;
-    padding: 0;
-  }
-  p {
-    font-size: 0.75em;
-    padding: 0;
-    margin: 0;
-  }
 }
-ul.link {
-  margin-bottom: 50px;
-  li {
-    font-size: 1.125em;
-  }
+div.message h2 {
+  font-weight: normal;
+  font-size: 18px;
+  color: var(--black);
+  margin: 0;
+  padding: 0;
+}
+div.message p {
+  font-size: 0.75em;
+  padding: 0;
+  margin: 0;
 }
 
-#faq {
-  h4 {
-    font-size: 0.75em;
-    color: @black;
-    text-transform: uppercase;
-    margin-bottom: 0;
-  }
-  p {
-    font-size: 0.75em;
-    color: @dark-grey;
-  }
+ul.link {
+  margin-bottom: 50px;
 }
+ul.link li {
+  font-size: 1.125em;
+}
+
+#faq h4 {
+  font-size: 0.75em;
+  color: var(--black);
+  text-transform: uppercase;
+  margin-bottom: 0;
+}
+#faq p {
+  font-size: 0.75em;
+  color: var(--dark-grey);
+}
+
 p.help {
-  font-size: @font-size-label-large;
+  font-size: var(--font-size-label-large);
 }
 div.alert {
-  background: @light-yellow url(/images/icons/icon_alert-gold.png) no-repeat
+  background: var(--light-yellow) url(/images/icons/icon_alert-gold.png) no-repeat
     15px 50% !important;
   margin-bottom: 10px;
   margin-top: 20px;
 }
 div.stop {
-  background: @light-yellow url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
+  background: var(--light-yellow) url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }
 div.info {
-  background: @light-yellow url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
+  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }
@@ -135,8 +133,8 @@ div.navBorrow {
   font-size: 0.75em;
 }
 .panel {
-  background-color: @white;
-  border: 1px solid @beige-two;
+  background-color: var(--white);
+  border: 1px solid var(--beige-two);
   padding: 30px 20px;
   margin-bottom: 20px;
 }
@@ -150,39 +148,36 @@ div.navBorrow {
 #borrowThis {
   margin-bottom: 20px;
 }
-.borrow {
-  span.book {
-    font-size: 1em;
-    font-weight: 700;
-  }
-  span.author {
-    font-size: 0.875em;
-    color: @dark-grey;
-  }
-  span.publisher,
-  span.contributor {
-    color: @dark-grey;
-    font-size: 0.875em;
-  }
-  div.date {
-    font-size: 0.75em;
-    color: @grey;
-  }
-  span.expires {
-    font-size: 1em;
-  }
-  table {
-    border-bottom: none;
-  }
+
+.borrow span.book {
+  font-size: 1em;
+  font-weight: 700;
+}
+.borrow span.author {
+  font-size: 0.875em;
+  color: var(--dark-grey);
+}
+.borrow span.publisher,
+.borrow span.contributor {
+  color: var(--dark-grey);
+  font-size: 0.875em;
+}
+.borrow div.date {
+  font-size: 0.75em;
+  color: var(--grey);
+}
+.borrow span.expires {
+  font-size: 1em;
+}
+.borrow table {
+  border-bottom: none;
 }
 
-div#listsWork {
-  p {
-    font-size: 0.75em;
-    padding-left: 0;
-    margin-bottom: 5px !important;
-  }
+div#listsWork p {
+  font-size: 0.75em;
+  padding-left: 0;
+  margin-bottom: 5px !important;
 }
 
-// Import all common components
+/* Import all common components */
 @import (less) "legacy.less";

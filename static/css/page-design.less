@@ -4,8 +4,6 @@
  * Any CSS loaded here will be render blocking.
  */
 
-@import (less) "less/index.less";
-
 .design-pattern-library {
   padding: 0 24px;
 }
@@ -14,7 +12,7 @@
   display: flex;
   gap: 24px;
   padding-bottom: 24px;
-  border-bottom: @border-divider;
+  border-bottom: var(--border-divider);
   margin-bottom: 24px;
 }
 
@@ -31,7 +29,7 @@
 }
 
 .example__title {
-  font-size: @font-size-title-medium;
+  font-size: var(--font-size-title-medium);
   margin-top: 0;
   margin-bottom: 6px;
 }
@@ -43,12 +41,12 @@ p {
 
 .example__code {
   display: block;
-  background-color: @lightest-grey;
+  background-color: var(--lightest-grey);
   padding: 12px;
   margin-bottom: 12px;
-  border-radius: @border-radius-card;
-  font-size: @font-size-body-medium;
-  font-family: @font-family-code;
+  border-radius: var(--border-radius-card);
+  font-size: var(--font-size-body-medium);
+  font-family: var(--font-family-code);
 }
 
 .example__output {
@@ -68,15 +66,15 @@ p {
 }
 
 .color-block-primary-cta {
-  background-color: @primary-blue;
+  background-color: var(--primary-blue);
 }
 .color-block-background {
-  background-color: @beige;
+  background-color: var(--beige);
 }
 .color-block-link-clicked {
-  background-color: @dark-blue;
+  background-color: var(--dark-blue);
 }
 .color-block-link-unclicked {
-  background-color: @link-blue;
+  background-color: var(--link-blue);
 }
 @import (less) "legacy.less";

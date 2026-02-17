@@ -1,15 +1,14 @@
 /* new entry point for subject pages */
-@import (less) "less/index.less";
 
-// Import all base styles
+/* base styles */
 @import (inline) "base/helpers-common.css";
 @import (inline) "base/common.css";
 @import (inline) "base/headings.css";
 
-// layout rules
+/* layout rules */
 @import (inline) "layout/index.css";
 
-// Components
+/* Components */
 @import (inline) "components/header-bar.css";
 @import (inline) "components/buttonGhost.css";
 @import (inline) "components/iaBar.css";
@@ -22,18 +21,20 @@
 @import (inline) "components/category-item.css";
 @import (inline) "components/loading-indicator.css";
 @import (inline) "components/chart.css";
-@import (inline) "components/link-box.css"; // (inline) = verbatim paste, no LESS processing
+@import (inline) "components/link-box.css";
 @import (inline) "components/widget-box.css";
 @import (inline) "components/listLists.css";
 @import (inline) "components/footer.css";
 @import (inline) "components/language.css";
 @import (inline) "components/searchbox.css";
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media only screen and (min-width: 768px) {
   @import (inline) "components/header-bar--tablet.css";
   @import (inline) "components/page-banner--tablet.css";
 }
 
-@media all and (min-width: @width-breakpoint-desktop) {
+/* Desktop: @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
   @import (inline) "components/header-bar--desktop.css";
 }

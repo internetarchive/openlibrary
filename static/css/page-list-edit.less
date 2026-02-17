@@ -1,105 +1,102 @@
 /**
  * Stylesheet entry point for pages with body-edit
-
+ *
  * Used in templates:
  * - openlibrary/templates/type/list/edit.html
  * Used on pages:
  * - /list/add
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/font-families.less";
-@import (less) "less/border-radius.less";
 @import (less) "legacy.less";
 
 #list-edit {
   max-width: 800px;
+}
 
-  [name="name"] {
-    font-size: 1.5em;
+#list-edit [name="name"] {
+  font-size: 1.5em;
+}
+
+#list-edit > *:not(div),
+#list-edit textarea {
+  display: block;
+  width: 100%;
+  resize: vertical;
+}
+
+#list-edit textarea,
+#list-edit input {
+  padding: 4px;
+  max-width: 800px;
+  resize: vertical;
+}
+
+#list-edit > *:not(:first-child) {
+  margin-top: 6px;
+}
+
+#list-edit .multi-input-autocomplete--seeds .seed--controls {
+  display: flex;
+  gap: 10px;
+}
+
+#list-edit .multi-input-autocomplete--seeds .mia__reorder {
+  text-align: left;
+}
+
+/* Mobile: @width-breakpoint-mobile = 450px */
+@media (max-width: 450px) {
+  #list-edit .multi-input-autocomplete--seeds li.mia__input {
+    flex-direction: column;
   }
-
-  > *:not(div),
-  textarea {
-    display: block;
-    width: 100%;
-    resize: vertical;
+  #list-edit .multi-input-autocomplete--seeds .seed--controls {
+    flex-direction: row;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--light-mid-grey);
+    margin-bottom: 4px;
+    justify-content: space-between;
   }
+}
 
-  textarea,
-  input {
-    padding: 4px;
-    max-width: 800px;
-    resize: vertical;
+/* Mobile: @width-breakpoint-mobile = 450px */
+@media (min-width: 450px) {
+  #list-edit .multi-input-autocomplete--seeds li.mia__input {
+    flex-direction: row;
   }
-
-  > *:not(:first-child) {
-    margin-top: 6px;
+  #list-edit .multi-input-autocomplete--seeds .mia__reorder {
+    flex: 1;
   }
-
-  .multi-input-autocomplete--seeds {
-    .seed--controls {
-      display: flex;
-      gap: 10px;
-    }
-    .mia__reorder {
-      text-align: left;
-    }
-
-    @media (max-width: @width-breakpoint-mobile) {
-      li.mia__input {
-        flex-direction: column;
-      }
-      .seed--controls {
-        flex-direction: row;
-        padding-bottom: 4px;
-        border-bottom: 1px solid @light-mid-grey;
-        margin-bottom: 4px;
-        justify-content: space-between;
-      }
-    }
-
-    @media (min-width: @width-breakpoint-mobile) {
-      li.mia__input {
-        flex-direction: row;
-      }
-      .mia__reorder {
-        flex: 1;
-      }
-      .seed--controls {
-        flex-direction: column;
-        padding-right: 4px;
-        border-right: 1px solid @light-mid-grey;
-        margin-right: 4px;
-      }
-    }
-
-    .mia__preview .ac_work .cover {
-      margin-right: 9px;
-    }
+  #list-edit .multi-input-autocomplete--seeds .seed--controls {
+    flex-direction: column;
+    padding-right: 4px;
+    border-right: 1px solid var(--light-mid-grey);
+    margin-right: 4px;
   }
+}
 
-  .mia__input {
-    list-style: none;
-    width: 90%;
-    margin-top: 6px;
-    border: 1px solid @light-grey;
-    border-radius: @border-radius-input;
-    padding: 8px;
-    background: @grey-fafafa;
+#list-edit .multi-input-autocomplete--seeds .mia__preview .ac_work .cover {
+  margin-right: 9px;
+}
 
-    main {
-      flex: 1;
-    }
+#list-edit .mia__input {
+  list-style: none;
+  width: 90%;
+  margin-top: 6px;
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-input);
+  padding: 8px;
+  background: var(--grey-fafafa);
+}
 
-    .ac-input__visible {
-      width: 100%;
-    }
+#list-edit .mia__input main {
+  flex: 1;
+}
 
-    .ac-input__visible.accept {
-      display: none;
-    }
-  }
+#list-edit .mia__input .ac-input__visible {
+  width: 100%;
+}
+
+#list-edit .mia__input .ac-input__visible.accept {
+  display: none;
 }
 
 .new-list__seed__position {

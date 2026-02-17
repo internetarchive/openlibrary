@@ -9,22 +9,16 @@
  * - /account/login
  */
 
-@import (less) "less/index.less";
-
-// Import all base styles
+/* Import all base styles */
 @import (inline) "base/helpers-common.css";
 @import (inline) "base/common.css";
 
-// Import colors
-@import (less) "less/colors.less";
+/* Import fonts */
 
-// Import fonts
-@import (less) "less/font-families.less";
-
-// Layout rules
+/* Layout rules */
 @import (inline) "layout/index.css";
 
-// Components (modules) in order of appearance on page
+/* Components (modules) in order of appearance on page */
 @import (inline) "components/header-bar.css";
 @import (inline) "components/buttonGhost.css";
 @import (inline) "components/iaBar.css";
@@ -39,40 +33,44 @@
 .ol-page-signup {
   display: flex;
   flex-direction: row;
+}
 
-  .ol-signup-hero > *,
-  .ol-signup-form > * {
-    width: 70%;
-  }
+.ol-page-signup .ol-signup-hero > *,
+.ol-page-signup .ol-signup-form > * {
+  width: 70%;
+}
 
-  @media only screen and (max-width: @width-breakpoint-tablet) {
-    .ol-signup-form > * {
-      width: calc(100% - 60px);
-    }
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (max-width: 768px) {
+  .ol-page-signup .ol-signup-form > * {
+    width: calc(100% - 60px);
   }
 }
 
 .ol-signup-hero {
   width: 55%;
-  background-color: @grey-fafafa;
+  background-color: var(--grey-fafafa);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
   border-radius: 5px 0 0 5px;
+}
 
-  .ol-signup-hero__title {
-    color: @black;
-    font-size: @font-size-headline-large;
-  }
+.ol-signup-hero .ol-signup-hero__title {
+  color: var(--black);
+  font-size: var(--font-size-headline-large);
+}
 
-  .ol-signup-hero__subtitle {
-    color: @grey;
-    font-size: @font-size-title-large;
-  }
+.ol-signup-hero .ol-signup-hero__subtitle {
+  color: var(--grey);
+  font-size: var(--font-size-title-large);
+}
 
-  @media only screen and (max-width: @width-breakpoint-tablet) {
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (max-width: 768px) {
+  .ol-signup-hero {
     display: none;
   }
 }
@@ -89,158 +87,162 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  #ia-third-party-logins {
-    margin: 0 auto;
-    display: flex;
-  }
-
-  .ol-signup-form__big-or {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-    max-width: 600px;
-    color: @grey;
-  }
-
-  .ol-signup-form__big-or::before,
-  .ol-signup-form__big-or::after {
-    content: "";
-    display: block;
-    flex: 1;
-    border-bottom: 1px solid @grey;
-    transform: translateY(-50%);
-  }
-
-  .ol-signup-form__info-box {
-    font-size: @font-size-label-large;
-  }
-
-  .ol-signup-form__info {
-    font-size: @font-size-label-large;
-    padding-top: 10px;
-  }
-
-  .ol-signup-form__link {
-    color: inherit;
-  }
-
-  .ol-signup-form__note {
-    font-size: @font-size-label-large;
-    color: @grey;
-  }
-
-  .ol-signup-form__input {
-    padding-top: 6px;
-
-    input {
-      border: 1px solid @light-grey;
-      border-radius: @border-radius-input;
-      width: 100%;
-      padding: 6px 4px;
-    }
-
-    input.invalid {
-      border: 1px solid @red;
-    }
-
-    label,
-    .ol-signup-form__note {
-      display: block;
-      margin-bottom: 4px;
-    }
-  }
-
-  .ol-signup-form__error {
-    font-size: @font-size-label-large;
-    color: @red;
-    background-color: fade(@baby-pink, 50%);
-    border: 0.5px fade(@red, 50%);
-    border-style: solid solid none;
-    border-radius: @border-radius-input @border-radius-input 0 0;
-    margin-bottom: -3px;
-    width: 100%;
-    padding: 10px 5px;
-
-    &:empty {
-      display: none;
-    }
-  }
-
-  .ol-signup-form__suffix {
-    font-size: @font-size-label-medium;
-    color: @grey;
-  }
-
-  .input {
-    position: relative;
-  }
-
-  .ol-signup-form__icon-wrap {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-  }
-
-  .ol-signup-form__icon-wrap > img {
-    width: 22px;
-    height: 22px;
-  }
-
-  .ol-signup-form__checkbox {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    align-items: flex-start;
-    padding-top: 16px;
-    width: 100%;
-    font-size: @font-size-label-large;
-
-    input {
-      margin-top: 2px;
-      flex-shrink: 0;
-    }
-
-    a {
-      color: inherit;
-    }
-  }
-
-  .ol-signup-form__tos {
-    font-size: @font-size-label-large;
-    color: @grey;
-    display: block;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    text-align: center;
-  }
-
-  .ol-signup-form__login-hint {
-    text-align: center;
-    padding-top: 10px;
-
-    a {
-      color: @link-blue;
-    }
-  }
-
-  .ol-signup-form__select {
-    font-size: @font-size-label-large;
-    padding-top: 16px;
-    padding-left: 16px;
-
-    select {
-      margin-bottom: 8px;
-      width: 100%;
-    }
-  }
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
+.ol-signup-form #ia-third-party-logins {
+  margin: 0 auto;
+  display: flex;
+}
+
+.ol-signup-form .ol-signup-form__big-or {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  max-width: 600px;
+  color: var(--grey);
+}
+
+.ol-signup-form .ol-signup-form__big-or::before,
+.ol-signup-form .ol-signup-form__big-or::after {
+  content: "";
+  display: block;
+  flex: 1;
+  border-bottom: 1px solid var(--grey);
+  transform: translateY(-50%);
+}
+
+.ol-signup-form .ol-signup-form__info-box {
+  font-size: var(--font-size-label-large);
+}
+
+.ol-signup-form .ol-signup-form__info {
+  font-size: var(--font-size-label-large);
+  padding-top: 10px;
+}
+
+.ol-signup-form .ol-signup-form__link {
+  color: inherit;
+}
+
+.ol-signup-form .ol-signup-form__note {
+  font-size: var(--font-size-label-large);
+  color: var(--grey);
+}
+
+.ol-signup-form .ol-signup-form__input {
+  padding-top: 6px;
+}
+
+.ol-signup-form .ol-signup-form__input input {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-input);
+  width: 100%;
+  padding: 6px 4px;
+}
+
+.ol-signup-form .ol-signup-form__input input.invalid {
+  border: 1px solid var(--red);
+}
+
+.ol-signup-form .ol-signup-form__input label,
+.ol-signup-form .ol-signup-form__input .ol-signup-form__note {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.ol-signup-form .ol-signup-form__error {
+  font-size: var(--font-size-label-large);
+  color: var(--red);
+  /* fade(@baby-pink, 50%) = hsla(0, 100%, 93%, 0.5) */
+  background-color: hsla(0, 100%, 93%, 0.5);
+  /* fade(@red, 50%) = hsla(8, 78%, 49%, 0.5) */
+  border: 0.5px hsla(8, 78%, 49%, 0.5);
+  border-style: solid solid none;
+  border-radius: var(--border-radius-input) var(--border-radius-input) 0 0;
+  margin-bottom: -3px;
+  width: 100%;
+  padding: 10px 5px;
+}
+
+.ol-signup-form .ol-signup-form__error:empty {
+  display: none;
+}
+
+.ol-signup-form .ol-signup-form__suffix {
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
+}
+
+.ol-signup-form .input {
+  position: relative;
+}
+
+.ol-signup-form .ol-signup-form__icon-wrap {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+}
+
+.ol-signup-form .ol-signup-form__icon-wrap > img {
+  width: 22px;
+  height: 22px;
+}
+
+.ol-signup-form .ol-signup-form__checkbox {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: flex-start;
+  padding-top: 16px;
+  width: 100%;
+  font-size: var(--font-size-label-large);
+}
+
+.ol-signup-form .ol-signup-form__checkbox input {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.ol-signup-form .ol-signup-form__checkbox a {
+  color: inherit;
+}
+
+.ol-signup-form .ol-signup-form__tos {
+  font-size: var(--font-size-label-large);
+  color: var(--grey);
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.ol-signup-form .ol-signup-form__login-hint {
+  text-align: center;
+  padding-top: 10px;
+}
+
+.ol-signup-form .ol-signup-form__login-hint a {
+  color: var(--link-blue);
+}
+
+.ol-signup-form .ol-signup-form__select {
+  font-size: var(--font-size-label-large);
+  padding-top: 16px;
+  padding-left: 16px;
+}
+
+.ol-signup-form .ol-signup-form__select select {
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+/* @width-breakpoint-tablet: 768px */
+@media only screen and (min-width: 768px) {
   @import (inline) "components/header-bar--tablet.css";
   @import (inline) "components/page-banner--tablet.css";
 }
 
-@media all and (min-width: @width-breakpoint-desktop) {
+/* @width-breakpoint-desktop: 960px */
+@media all and (min-width: 960px) {
   @import (inline) "components/header-bar--desktop.css";
 }
