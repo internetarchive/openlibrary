@@ -1,7 +1,9 @@
 *.ttf
 *.gif
-*.css
 *.woff
 *.svg
 *.eot
 *.md
+node_modules/
+static/build/
+static/css/less/generated-custom-properties.css
