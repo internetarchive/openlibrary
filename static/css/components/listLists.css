@@ -1,0 +1,63 @@
+/**
+ * ListLists component
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listslists
+ */
+ul.listLists {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+ul.listLists span {
+  display: block;
+  color: var(--grey);
+}
+ul.listLists li {
+  /* See #1388
+   * This needs to be !important for pages that are not v2
+   * that make use of this component. The legacy CSS has some
+   * overly specific CSS rules for list styles which will be simplified
+   * as part of the new page-book.css entry point.
+   * !important can be removed when that activity has happened. */
+  list-style: none !important;
+  border-radius: 3px;
+  padding: 5px;
+  display: flex;
+  background-color: var(--white);
+  border-bottom: 1px solid var(--lightest-grey);
+}
+/* stylelint-disable max-nesting-depth */
+ul.listLists li .image {
+  width: 42px;
+  min-height: 35px;
+  padding: 0 10px;
+}
+ul.listLists li .image img {
+  width: 32px;
+  max-width: 100%;
+}
+/* stylelint-enable max-nesting-depth */
+ul.listLists li .data {
+  padding: 3px 0;
+}
+ul.listLists li .label {
+  line-height: 1.125em;
+  font-size: var(--font-size-label-medium);
+}
+ul.listLists li .meta,
+ul.listLists li .owner {
+  font-size: 0.6875em;
+  line-height: 1.125em;
+  margin: 5px 0;
+}
+ul.listLists .list-overview-loading-indicator {
+  font-size: 8px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 0;
+  height: 8px;
+  width: calc(100% - 8px);
+  position: absolute;
+  top: -8px;
+  left: 0;
+  opacity: 0.75;
+}
