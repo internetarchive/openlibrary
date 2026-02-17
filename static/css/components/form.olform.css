@@ -1,0 +1,256 @@
+/**
+ * Open Library Form
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#olform
+ */
+
+.olform {
+  font-family: var(--body-family);
+}
+
+.olform .formBack {
+  padding: 10px;
+  background-color: var(--lightest-grey);
+}
+
+.olform .collapse {
+  margin: 0;
+}
+
+.olform > label {
+  display: inline-block;
+  padding: 10px 0 2px;
+}
+
+.olform .label {
+  padding: 10px 0 2px;
+}
+
+.olform .label label {
+  font-size: 1em;
+  font-family: var(--body-family);
+  font-weight: 700;
+}
+
+.olform .label span {
+  font-weight: normal;
+}
+
+.olform textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.olform .multi-input-autocomplete--language hr {
+  flex-basis: 100%;
+  height: 0;
+  margin: 0;
+  border: 0;
+}
+
+.olform .mia__input {
+  display: flex;
+  flex-flow: wrap;
+  flex: 1;
+}
+
+.olform .mia__input + .mia__input {
+  margin-top: 3px;
+}
+
+.olform .mia__input .ac-input__visible {
+  flex: 1;
+  /* Spacing is controlled by parent not individual input elements */
+  margin: 0;
+}
+
+.olform .mia__input .mia__reorder {
+  cursor: move;
+  min-width: 24px;
+  text-align: center;
+}
+
+.olform .mia__input .mia__remove {
+  color: var(--red);
+  text-decoration: none;
+}
+
+.olform .mia__input .mia__preview {
+  flex: 1;
+}
+
+/* Weird glitch where while dragging the element is very offset */
+.olform .mia__input.ui-sortable-helper {
+  margin-top: -20px;
+}
+
+.olform .links-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding-bottom: 20px;
+}
+
+.olform .links-form .links-form__inputs {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 5px;
+  width: 100%;
+}
+
+.olform .links-form .links-form__label,
+.olform .links-form .links-form__url {
+  flex: 1 1 0;
+  min-width: 250px;
+}
+
+.olform input[type="number"],
+.olform input[type="text"],
+.olform input[type="password"],
+.olform input[type="url"],
+.olform input[type="email"] {
+  margin: 0 10px 5px 0;
+}
+
+.olform input[type="number"],
+.olform input[type="text"],
+.olform input[type="email"],
+.olform input[type="password"],
+.olform input[type="url"],
+.olform textarea {
+  font-size: 1em;
+  font-family: var(--body-family);
+  padding: 3px;
+  max-width: 100%;
+  resize: vertical;
+}
+
+.olform input[type="number"] {
+  width: 4em;
+}
+
+.olform input[type="submit"] {
+  padding: 5px;
+}
+
+.olform .required {
+  padding: 8px;
+}
+
+.olform select {
+  font-family: var(--body-family);
+  padding: 3px;
+}
+
+.olform .minor input {
+  max-width: 300px;
+}
+
+/* stylelint-disable selector-max-specificity */
+.olform.books .major input[type="text"],
+.olform.books .major input[type="email"],
+.olform.books .major input[type="password"],
+.olform.books .major input[type="url"],
+.olform.books .major textarea {
+  /* stylelint-disable-next-line max-nesting-depth */
+  font-size: 0.875em;
+  width: 100%;
+  resize: vertical;
+}
+/* stylelint-enable selector-max-specificity */
+
+.olform.books .input,
+.olform.books .label {
+  width: auto !important;
+}
+
+.olform.books .TitleAuthor {
+  margin-bottom: 20px;
+}
+
+/* stylelint-disable selector-max-specificity */
+/* stylelint-disable-next-line max-nesting-depth */
+.olform.books .TitleAuthor input#work-title {
+  font-size: 1.875em !important;
+  margin: 0;
+  width: 100%;
+}
+
+/* stylelint-disable-next-line max-nesting-depth */
+.olform.books .TitleAuthor input#author {
+  font-size: 1em !important;
+  width: 100%;
+}
+/* stylelint-enable selector-max-specificity */
+
+/* Form elements can be accompanied by tips */
+/* e.g. on the book edit page. /books/OL9737752M/The_Odyssey/edit */
+/* "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)." */
+.olform .tip {
+  font-size: var(--font-size-label-small);
+  color: var(--grey);
+  font-family: var(--body-family) !important;
+}
+
+.olform__input--large {
+  height: 265px;
+}
+
+@media all and (min-width: 960px) /* @width-breakpoint-desktop */ {
+  /* formBackLeft and formBackRight are presently only used in */
+  /* openlibrary/templates/books/edit/edition.html (edit form) */
+  .olform .formBackLeft {
+    float: left;
+    width: 670px;
+  }
+
+  .olform .formBackRight {
+    float: left;
+    width: 220px;
+  }
+
+  .olform .formBack:after {
+    display: block;
+    content: "";
+    clear: both;
+  }
+}
+
+@media all and (min-width: 960px) /* @width-breakpoint-desktop */ {
+  /* stylelint-disable selector-max-specificity */
+  .olform input[type="text"],
+  .olform input[type="email"],
+  .olform input[type="password"],
+  .olform input[type="url"],
+  .olform textarea {
+    width: 100%;
+    resize: vertical;
+  }
+
+  .olform .input {
+    width: 100%;
+  }
+
+  .olform .input select {
+    width: 130px;
+  }
+
+  .olform .label {
+    width: 90%;
+  }
+
+  .olform table input {
+    width: 300px;
+  }
+
+  .olform.books .TitleAuthor input#work-title {
+    /* stylelint-disable-next-line max-nesting-depth */
+    width: 900px !important;
+  }
+
+  .olform.books .TitleAuthor input#author {
+    /* stylelint-disable-next-line max-nesting-depth */
+    width: 550px !important;
+  }
+  /* stylelint-enable selector-max-specificity */
+}
