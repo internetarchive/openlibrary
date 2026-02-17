@@ -116,13 +116,17 @@
 
   /* stylelint-disable selector-max-specificity */
   /* stylelint-disable max-nesting-depth */
-  .work-title-and-author .readers-stats__review-count--none li.readers-stats__review-count {
+  .work-title-and-author
+    .readers-stats__review-count--none
+    li.readers-stats__review-count {
     display: none;
   }
   /* stylelint-enable max-nesting-depth */
 
   .work-title-and-author .readers-stats li.avg-ratings .dot,
-  .work-title-and-author .readers-stats li:not(.avg-ratings):not(.readers-stats__review-count) {
+  .work-title-and-author
+    .readers-stats
+    li:not(.avg-ratings):not(.readers-stats__review-count) {
     display: none;
   }
 

@@ -24,7 +24,8 @@
 }
 
 .flash-messages .bookadded span {
-  background: var(--light-yellow) url(/images/icons/icon_check.png) no-repeat 40px 40px;
+  background: var(--light-yellow) url(/images/icons/icon_check.png) no-repeat
+    40px 40px;
   padding: 40px 40px 40px 80px;
   position: relative;
 }

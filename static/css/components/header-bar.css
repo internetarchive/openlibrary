@@ -540,11 +540,25 @@
   text-decoration: none;
 }
 
-.header-bar .search-component .search-dropdown .search-results li a .book-desc .book-title {
+.header-bar
+  .search-component
+  .search-dropdown
+  .search-results
+  li
+  a
+  .book-desc
+  .book-title {
   font-weight: bold;
 }
 
-.header-bar .search-component .search-dropdown .search-results li a .book-desc .book-author {
+.header-bar
+  .search-component
+  .search-dropdown
+  .search-results
+  li
+  a
+  .book-desc
+  .book-author {
   color: var(--dark-blue);
 }
 /* stylelint-enable selector-max-specificity */

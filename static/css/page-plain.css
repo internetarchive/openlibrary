@@ -71,8 +71,8 @@ div.nav {
 div.message {
   padding: 25px 25px 25px 55px;
   margin-bottom: 50px;
-  background: var(--light-yellow) url(/images/icons/icon_lock-msg.png) no-repeat 15px
-    50%;
+  background: var(--light-yellow) url(/images/icons/icon_lock-msg.png) no-repeat
+    15px 50%;
 }
 div.message h2 {
   font-weight: normal;
@@ -109,18 +109,20 @@ p.help {
   font-size: var(--font-size-label-large);
 }
 div.alert {
-  background: var(--light-yellow) url(/images/icons/icon_alert-gold.png) no-repeat
-    15px 50% !important;
+  background: var(--light-yellow) url(/images/icons/icon_alert-gold.png)
+    no-repeat 15px 50% !important;
   margin-bottom: 10px;
   margin-top: 20px;
 }
 div.stop {
-  background: var(--light-yellow) url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
+  background: var(--light-yellow) url(/images/icons/icon_stop.png) no-repeat
+    15px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }
 div.info {
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
+  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
+    17px 50% !important;
   margin-bottom: 45px;
   margin-top: 20px;
 }

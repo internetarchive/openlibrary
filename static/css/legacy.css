@@ -534,7 +534,8 @@ div.note {
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
   margin-top: 10px;
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat 10px 50%;
+  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
+    10px 50%;
   padding: 10px 10px 10px 44px;
 }
 
@@ -1863,7 +1864,6 @@ div#subjectLists p {
     border: 1px solid var(--dark-beige);
   }
 
-  /* stylelint-disable-next-line max-nesting-depth, selector-max-specificity */
   .header-bar .navigation-component li .dropdown-menu {
     width: auto;
     white-space: nowrap;

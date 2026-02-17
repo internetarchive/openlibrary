@@ -279,7 +279,10 @@
 }
 
 /* stylelint-disable selector-max-specificity */
-.Tools .widget-add.old-style-lists div.edition-page-lists-dropdown .arrow-unactivated {
+.Tools
+  .widget-add.old-style-lists
+  div.edition-page-lists-dropdown
+  .arrow-unactivated {
   background-position: 6px -7px;
 }
 /* stylelint-enable selector-max-specificity */

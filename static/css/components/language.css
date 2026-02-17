@@ -34,10 +34,12 @@
   border-bottom: 1px solid var(--beige-two);
 }
 
+/* stylelint-disable-next-line selector-max-specificity */
 .language-dropdown-component .dropdown-menu li:last-child {
   border: none;
 }
 
+/* stylelint-disable-next-line selector-max-specificity */
 .language-dropdown-component .dropdown-menu li:hover {
   background-color: var(--white);
 }
@@ -64,6 +66,7 @@
   z-index: var(--z-index-level-5);
 }
 
+/* stylelint-disable-next-line selector-max-specificity */
 .iaBar .language-component .language-dropdown-component li {
   padding: 8px 12px;
 }

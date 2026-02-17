@@ -222,17 +222,17 @@ a.list-follow-card__username-link {
 
 /* @overlap: 8.5px */
 .list-follow-card__covers img:nth-child(1) {
-  z-index: 3;
+  z-index: var(--z-index-level-3);
   transform: translate(0, 20px);
 }
 
 .list-follow-card__covers img:nth-child(2) {
-  z-index: 2;
+  z-index: var(--z-index-level-2);
   transform: translate(-8.5px, 20px);
 }
 
 .list-follow-card__covers img:nth-child(3) {
-  z-index: 1;
+  z-index: var(--z-index-level-1);
   transform: translate(-17px, 20px);
 }
 

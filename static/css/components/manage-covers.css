@@ -14,7 +14,7 @@
 }
 .manageCoversContainer {
   width: 100%;
-  z-index: 99999; /* @z-index-level-16 */
+  z-index: var(--z-index-level-16);
 }
 .manageCoversContainer a {
   display: block;

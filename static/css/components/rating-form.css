@@ -101,8 +101,7 @@
   text-indent: -999em;
   float: left;
   position: relative;
-  /* @z-index-level-3 */
-  z-index: 3;
+  z-index: var(--z-index-level-3);
   background: transparent;
   cursor: pointer;
 }

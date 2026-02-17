@@ -125,14 +125,16 @@
   border-top: 1px solid var(--light-grey);
 }
 
-.search-subject-row-name.search-subject-row-name-create .search-subject-row-name-create-p {
+.search-subject-row-name.search-subject-row-name-create
+  .search-subject-row-name-create-p {
   font-size: 13px;
   color: var(--black);
   font-weight: 400;
   margin-bottom: 5px;
 }
 
-.search-subject-row-name.search-subject-row-name-create .search-subject-row-name-create-select {
+.search-subject-row-name.search-subject-row-name-create
+  .search-subject-row-name-create-select {
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -210,5 +212,6 @@
 
 .loading-indicator {
   height: 266px;
-  background: var(--white) url(/static/images/ajax-loader.gif) center center no-repeat;
+  background: var(--white) url(/static/images/ajax-loader.gif) center center
+    no-repeat;
 }

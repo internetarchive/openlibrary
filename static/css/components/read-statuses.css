@@ -1,12 +1,14 @@
 .read-statuses {
   border-bottom: 1px solid var(--lightest-grey);
 }
+/* stylelint-disable selector-max-specificity */
 .read-statuses button.remove-from-list {
   color: var(--red);
 }
 .read-statuses button.remove-from-list:hover {
   color: var(--red);
 }
+/* stylelint-enable selector-max-specificity */
 .read-statuses button {
   border: none;
   background: none;
@@ -23,6 +25,7 @@
   color: var(--black);
   background-color: var(--white);
 }
+/* stylelint-disable-next-line selector-max-specificity */
 .read-statuses form:last-child button.nostyle-btn {
   border: none;
 }

@@ -8,3 +8,5 @@ node_modules/
 static/build/
 static/css/tokens.css
 static/css/tokens/
+static/css/lib/
+openlibrary/plugins/openlibrary/js/ile/

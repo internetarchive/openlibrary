@@ -96,20 +96,36 @@
   margin-top: 0;
 }
 
-.generic-dropper__dropdown .reading-lists .my-lists .list .list__status-indicator {
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list
+  .list__status-indicator {
   margin-right: 8px;
   min-width: 13px;
 }
 
-.generic-dropper__dropdown .reading-lists .my-lists .list--active .list__status-indicator::after {
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--active
+  .list__status-indicator::after {
   content: "\2714\FE0F";
 }
 
-.generic-dropper__dropdown .reading-lists .my-lists .list--pending .list__status-indicator {
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--pending
+  .list__status-indicator {
   display: inline-block;
 }
 
-.generic-dropper__dropdown .reading-lists .my-lists .list--pending .list__status-indicator::after {
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--pending
+  .list__status-indicator::after {
   content: "";
   display: block;
   margin-top: 4px;
