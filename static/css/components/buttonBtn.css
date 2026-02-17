@@ -20,7 +20,7 @@ a.btn {
   text-decoration: none;
 }
 
-/* These should be in their own chip.less file */
+/* These should be in their own chip.css file */
 .chip {
   padding: 4px 12px;
   border: 1px solid var(--mid-grey);

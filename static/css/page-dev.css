@@ -8,7 +8,7 @@
  * necessary. It will apply to all page loads.
  * To enable this stylesheet set dev to enabled in conf/openlibrary.yml
  * Note: This stylesheet will be loaded AFTER the default stylesheet for
- * the page. For instance on the homepage, `page-home.less` will apply but
+ * the page. For instance on the homepage, `page-home.css` will apply but
  * this stylesheet will be loaded afterwards.
  */
 

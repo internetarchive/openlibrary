@@ -33,7 +33,7 @@ a.facetSubject:active {
   text-decoration: underline;
 }
 /* Can possibly be removed provided there are no usages of .results
-   class outside search-result-item.less */
+   class outside search-result-item.css */
 a.results:link {
   color: var(--black);
   text-decoration: none;

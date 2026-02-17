@@ -509,7 +509,7 @@ div#contentHead {
   padding: 20px;
 }
 
-/* Reset h1 margin set in common.less */
+/* Reset h1 margin set in common.css */
 div#contentHead h1 {
   margin: 0;
 }
