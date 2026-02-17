@@ -5,7 +5,7 @@
  * http://localhost:8080/account/books/want-to-read
  */
 
-// Layout
+/* Layout */
 .mybooks {
   display: flex;
   flex-direction: row;
@@ -13,17 +13,11 @@
   margin-top: 0;
   font-size: 0.9em;
 }
-@media only screen and (max-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: 768px) {
   .mybooks {
     flex-direction: column;
   }
 }
-@import (inline) "components/searchResultItemCta.css";
-@import (inline) "components/search-result-item.css";
-@import (inline) "components/mybooks-list.css";
-@import (inline) "components/mybooks-menu.css";
-@import (inline) "components/mybooks-details.css";
-@import (inline) "components/list-showcase.css";
 
 .icon-link__image {
   position: relative;
@@ -37,7 +31,7 @@
 }
 
 img.account-avatar {
-  border-radius: @border-radius-avatar;
+  border-radius: var(--border-radius-avatar);
   width: 40px;
   height: 40px;
   margin-right: 5px;
@@ -61,13 +55,14 @@ img.account-avatar--sm {
 
 h2.account-username {
   margin: 20px 10px 20px 5px;
-  a {
-    color: inherit;
-    text-decoration: none;
-  }
 }
 
-@media only screen and (min-width: (@width-breakpoint-tablet + 1)) {
+h2.account-username a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media only screen and (min-width: 769px) {
   .crumb {
     margin: 15px 0;
   }

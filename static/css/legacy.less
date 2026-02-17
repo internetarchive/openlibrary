@@ -38,8 +38,17 @@
 @import (inline) "components/category-item.css";
 @import (inline) "components/loading-indicator.css";
 @import (inline) "components/editions.css";
-@import (less) "components/header.less";
-@import (less) "components/mybooks.less";
+// Header sub-imports
+@import (inline) "components/header-bar.css";
+@import (inline) "components/iaBar.css";
+@import (inline) "components/page-banner.css";
+@import (inline) "components/header.css";
+// MyBooks sub-imports
+@import (inline) "components/mybooks-list.css";
+@import (inline) "components/mybooks-menu.css";
+@import (inline) "components/mybooks-details.css";
+@import (inline) "components/list-showcase.css";
+@import (inline) "components/mybooks.css";
 @import (inline) "components/readinglog-stats.css";
 @import (inline) "components/tagging-menu.css";
 @import (inline) "components/shareLinks.css";
@@ -997,7 +1006,16 @@ div.list {
 }
 
 /* BOOKS */
-@import (less) "components/work.less";
+// Work sub-imports
+@import (inline) "components/compact-title.css";
+@import (inline) "components/nav-bar.css";
+@import (inline) "components/librarian-dashboard.css";
+@import (inline) "components/cover.css";
+@import (inline) "components/readerStats.css";
+@import (inline) "components/check-in.css";
+@import (inline) "components/reading-goal.css";
+@import (inline) "components/work-title-and-author.css";
+@import (inline) "components/work.css";
 @import (inline) "components/navEdition.css";
 
 // openlibrary/templates/books/author-autocomplete.html
@@ -1658,11 +1676,14 @@ div#subjectLists {
       white-space: nowrap;
     }
   }
+  @import (inline) "components/header-bar--tablet.css";
+  @import (inline) "components/page-banner--tablet.css";
   @import (inline) "components/work--tablet.css";
   @import (inline) "components/edit-toolbar--tablet.css";
 }
 
 @media all and (min-width: @width-breakpoint-desktop) {
+  @import (inline) "components/header-bar--desktop.css";
   /** These styles are used on the page for editing a book.
   They may be used in another places as well */
   fieldset {

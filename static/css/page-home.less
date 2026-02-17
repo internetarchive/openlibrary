@@ -12,10 +12,24 @@
 @import (less) "layout/index.less";
 
 // Components (modules) in order of appearance on page
-@import (less) "components/header.less";
+@import (inline) "components/header-bar.css";
+@import (inline) "components/buttonGhost.css";
+@import (inline) "components/iaBar.css";
+@import (inline) "components/buttonBtn.css";
+@import (inline) "components/page-banner.css";
+@import (inline) "components/header.css";
 @import (inline) "components/carousel.css";
 @import (inline) "components/category-item.css";
 @import (inline) "components/loading-indicator.css";
 @import (inline) "components/home.css";
 @import (inline) "components/footer.css";
 @import (inline) "components/language.css";
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (inline) "components/header-bar--tablet.css";
+  @import (inline) "components/page-banner--tablet.css";
+}
+
+@media all and (min-width: @width-breakpoint-desktop) {
+  @import (inline) "components/header-bar--desktop.css";
+}
