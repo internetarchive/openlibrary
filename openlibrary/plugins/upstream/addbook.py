@@ -45,11 +45,7 @@ def get_recaptcha():
         delta = now_dt - create_dt
         return delta.days > 30
 
-    def is_plugin_enabled(name) -> bool:
-        plugin_names = delegate.get_plugins()
-        return name in plugin_names or "openlibrary.plugins." + name in plugin_names
-
-    if is_plugin_enabled('recaptcha') and not recaptcha_exempt():
+    if not recaptcha_exempt():
         public_key = config.plugin_recaptcha.public_key
         private_key = config.plugin_recaptcha.private_key
         return recaptcha.Recaptcha(public_key, private_key)
