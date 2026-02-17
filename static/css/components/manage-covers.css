@@ -1,0 +1,30 @@
+.manageCovers {
+  max-width: 140px;
+  margin: 0 auto;
+  padding: 8px;
+  border-radius: 3px;
+  border: 3px solid var(--dark-grey);
+  background-color: var(--white);
+  color: var(--dark-grey);
+  font-size: var(--font-size-label-medium);
+  cursor: pointer;
+}
+.manageCovers a {
+  color: var(--dark-grey);
+}
+.manageCoversContainer {
+  width: 100%;
+  z-index: 99999; /* @z-index-level-16 */
+}
+.manageCoversContainer a {
+  display: block;
+  text-decoration: none;
+  opacity: 0;
+}
+.manageCoversContainer a:hover,
+.manageCoversContainer a:focus {
+  text-decoration: underline;
+}
+div:hover > .manageCoversContainer a {
+  opacity: 0.9;
+}

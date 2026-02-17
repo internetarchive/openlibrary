@@ -1,0 +1,31 @@
+.page-heading-search-box {
+  padding: 20px;
+}
+.page-heading-search-box form {
+  margin-top: 15px;
+}
+.page-heading-search-box button {
+  font-size: 18px;
+}
+.subjectTagEdit {
+  padding: 3px 1px 0 20px;
+  float: right;
+}
+.subjectTagEdit .editTagButton {
+  border-radius: var(--border-radius-button);
+  background-color: var(--white);
+  padding: 10px;
+  display: inline-block;
+  font-family: var(--body-family);
+  color: var(--grey);
+  border: 1px solid var(--mid-grey);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.subjectTagEdit .editTagButton:hover {
+  background-color: var(--grey-e7e7e7);
+}
+.subjectTagEdit a.editTagButton {
+  text-decoration: none;
+  color: var(--grey);
+}

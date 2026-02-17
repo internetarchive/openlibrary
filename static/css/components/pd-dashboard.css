@@ -1,0 +1,32 @@
+.pd-access-dashboard .dashboard-summary {
+  margin-bottom: 40px;
+}
+.pd-access-dashboard .dashboard-summary .pd-access-stat {
+  display: flex;
+  justify-content: space-between;
+}
+.pd-access-dashboard .pd-request-table {
+  border: 1px solid var(--black);
+  width: 100%;
+}
+.pd-access-dashboard .pd-request-table .table-header,
+.pd-access-dashboard .pd-request-table tr.totals {
+  font-weight: 700;
+}
+.pd-access-dashboard .pd-request-table .table-header {
+  background: var(--white);
+  text-align: center;
+  padding: 8px;
+}
+.pd-access-dashboard .pd-request-table td {
+  padding: 4px 8px;
+}
+.pd-access-dashboard .pd-request-table td:not(:first-child) {
+  text-align: right;
+}
+.pd-access-dashboard .pd-request-table tr {
+  background: var(--white);
+}
+.pd-access-dashboard .pd-request-table tr:nth-child(odd) {
+  background: var(--lightest-grey);
+}
