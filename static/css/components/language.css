@@ -1,0 +1,69 @@
+.translate-icon {
+  width: 1.5em;
+  vertical-align: middle;
+}
+
+.language-component {
+  cursor: pointer;
+}
+
+.language-component summary::marker {
+  content: "";
+  font-size: 0;
+}
+
+.language-component summary::-webkit-details-marker {
+  display: none;
+}
+
+.language-component summary:after {
+  content: " \25BC";
+  zoom: 70%;
+  vertical-align: middle;
+}
+
+.language-dropdown-component .dropdown-menu {
+  width: 150px;
+  text-align: left;
+  background-color: var(--light-beige);
+  border-radius: var(--border-radius-button);
+  cursor: pointer;
+}
+
+.language-dropdown-component .dropdown-menu li {
+  border-bottom: 1px solid var(--beige-two);
+}
+
+.language-dropdown-component .dropdown-menu li:last-child {
+  border: none;
+}
+
+.language-dropdown-component .dropdown-menu li:hover {
+  background-color: var(--white);
+}
+
+.language-dropdown-component .dropdown-menu li a {
+  text-decoration: none;
+  color: var(--dark-grey);
+  white-space: nowrap;
+  font-size: 0.9em;
+  display: block;
+}
+
+.iaBar .language-component {
+  position: relative;
+  display: block;
+  border-radius: var(--border-radius-button);
+  padding: 0.2rem 0.4rem;
+}
+
+.iaBar .language-component .language-dropdown-component {
+  position: absolute;
+  right: 0;
+  top: 30px;
+  z-index: var(--z-index-level-5);
+}
+
+.iaBar .language-component .language-dropdown-component li {
+  padding: 8px 12px;
+}

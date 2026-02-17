@@ -1,0 +1,68 @@
+/**
+ * FlashMessage
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#flashmessage
+ */
+
+.flash-messages {
+  font-size: 1em;
+  font-family: var(--body-family);
+  clear: both;
+}
+
+.flash-messages span {
+  display: block;
+  background-color: var(--light-yellow);
+  background-position: 10px 50%;
+  background-repeat: no-repeat;
+  padding: 15px 52px;
+  text-align: left;
+  background-image: url(/images/icons/icon_check.png);
+}
+
+.flash-messages .error span {
+  background-image: url(/images/icons/icon_alert.png);
+}
+
+.flash-messages .bookadded span {
+  background: var(--light-yellow) url(/images/icons/icon_check.png) no-repeat 40px 40px;
+  padding: 40px 40px 40px 80px;
+  position: relative;
+}
+
+.flash-messages .bookadded span span {
+  display: inline;
+  padding: 0;
+  font-family: var(--body-family);
+}
+
+.flash-messages .bookadded h3 {
+  font-size: 1.5em;
+  font-weight: normal;
+  margin: 0;
+  color: var(--black);
+}
+
+.flash-messages .bookadded .brown {
+  font-size: 1.125em;
+  margin: 15px 0 30px;
+}
+
+.flash-messages .bookadded .list {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+.flash-messages .bookadded h3 em {
+  font-style: italic;
+  font-weight: 700;
+  color: var(--dark-green);
+}
+
+.flash-messages .bookadded .close {
+  position: absolute;
+  display: block;
+  top: 20px;
+  right: 20px;
+  width: 16px;
+  height: 16px;
+}

@@ -1,5 +1,3 @@
-@import (reference) "../less/colors.less";
-
 .review-component {
   padding-bottom: 1em;
 }
@@ -17,7 +15,11 @@
   display: block;
   margin-right: 8px;
   margin-top: 4px;
-  @media (min-width: @width-breakpoint-mobile) {
+}
+
+/* @width-breakpoint-mobile */
+@media (min-width: 450px) {
+  .review__category {
     text-indent: -50px;
     padding-left: 50px;
   }
@@ -26,57 +28,55 @@
 .reviews__label {
   font-weight: bold;
   margin-top: 4px;
-  color: @grey;
-
+  color: var(--grey);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 0.7em;
+}
 
-  @media (max-width: @width-breakpoint-mobile) {
+/* @width-breakpoint-mobile */
+@media (max-width: 450px) {
+  .reviews__label {
     display: block;
     margin-top: 14px;
   }
+}
 
-  .reviews__count {
-    font-weight: 500;
-    margin-right: 5px;
-    font-size: 0.9em;
-    color: @accessible-grey;
-  }
+.reviews__label .reviews__count {
+  font-weight: 500;
+  margin-right: 5px;
+  font-size: 0.9em;
+  color: var(--accessible-grey);
 }
 
 .reviews__pill {
   display: inline-block;
-
   margin-top: 3px;
   margin-right: 3px;
   padding: 4px 8px;
-
-  border: 1px solid @light-grey;
+  border: 1px solid var(--light-grey);
   border-radius: 16px;
-
-  font-size: @font-size-label-large;
+  font-size: var(--font-size-label-large);
   text-indent: 0;
   white-space: nowrap;
+}
 
-  .percentage {
-    font-size: 0.8em;
-    color: @accessible-grey;
-  }
+.reviews__pill .percentage {
+  font-size: 0.8em;
+  color: var(--accessible-grey);
 }
 
 .reviews-header {
   display: flex;
-  h2 {
-    flex: 1;
-  }
 }
 
-.login-link,
-.stats-link {
-  a {
-    text-decoration: none;
-  }
+.reviews-header h2 {
+  flex: 1;
+}
+
+.login-link a,
+.stats-link a {
+  text-decoration: none;
 }
 
 .review-cta {
