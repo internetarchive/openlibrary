@@ -4,11 +4,9 @@
  * This stylesheet will only apply if JS is present on the page.
  */
 
-.search-facet {
-  // Expand select to be clickable
-  select {
-    padding: 10px;
-    top: 2px;
-    left: 2px;
-  }
+/* Expand select to be clickable */
+.search-facet select {
+  padding: 10px;
+  top: 2px;
+  left: 2px;
 }

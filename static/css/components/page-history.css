@@ -1,0 +1,52 @@
+/**
+ * PageHistory
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#page-history
+ */
+/* HISTORY */
+
+/* stylelint-disable-next-line selector-max-specificity */
+#pageHistory {
+  margin-top: 30px;
+}
+
+.pageHistory__list {
+  font-size: 0.8em;
+}
+
+.pageHistory__tools {
+  font-size: 0.7em;
+  float: right;
+  padding-top: 8px;
+}
+
+/* We assume list items in page history will only have 2 items */
+.pageHistory__list li:first-child::after {
+  content: " · ";
+}
+
+table.history {
+  width: 100%;
+  margin-top: 10px;
+  border-top: 1px solid var(--grey-e7e7e7);
+}
+
+table.history tr:last-child {
+  background: var(--lightest-grey);
+}
+
+table.history td {
+  font-size: 0.6875em;
+  font-family: var(--body-family);
+  color: var(--grey);
+  border-bottom: 1px solid var(--grey-e7e7e7);
+}
+
+table.history td.timestamp {
+  padding: 10px;
+  white-space: nowrap;
+}
+
+table.history td.detail {
+  padding: 10px;
+  width: 100%;
+}

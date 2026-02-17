@@ -9,12 +9,12 @@ table.readinglog-stats {
   width: 100%;
   border-radius: 5px;
   padding: 10px;
-  th {
-    font-weight: bold;
-  }
-  tr {
-    &:nth-child(even) {
-      background-color: @lightest-grey;
-    }
-  }
+}
+
+table.readinglog-stats th {
+  font-weight: bold;
+}
+
+table.readinglog-stats tr:nth-child(even) {
+  background-color: var(--lightest-grey);
 }

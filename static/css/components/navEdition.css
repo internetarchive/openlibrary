@@ -5,11 +5,11 @@
 div.navEdition {
   font-size: 0.9em;
   margin-top: 5px;
-  color: @grey-555;
+  color: var(--grey-555);
 }
 
 span.booktitle {
-  color: @dark-grey;
-  font-family: @font-family-title;
+  color: var(--dark-grey);
+  font-family: var(--font-family-title);
   font-weight: bold;
 }

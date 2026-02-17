@@ -1,0 +1,26 @@
+/* workDetails is the parent element.
+   These elements are all children. */
+div.editionCover {
+  padding-right: 0;
+  margin-bottom: 1.5em;
+}
+
+div.editionAbout {
+  margin-top: 2px;
+}
+
+div.editionAbout .book-description {
+  clear: both;
+}
+
+div.editionTools {
+  float: right;
+  width: 250px;
+}
+
+/* clear the floating of the edition* elements. */
+.workDetails::after {
+  content: "";
+  clear: both;
+  display: block;
+}

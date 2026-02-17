@@ -1,5 +1,5 @@
 .loadingIndicator {
   display: flex;
   justify-content: center;
-  background: @lightest-grey;
+  background: var(--lightest-grey);
 }

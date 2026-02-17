@@ -1,0 +1,31 @@
+/* https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#book */
+
+.book > .cta-button-group,
+.book > .cta-btn,
+.book form .cta-button-group {
+  margin-top: 10px;
+}
+
+.book .book-cover {
+  height: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.book .book-cover img,
+.book .book-cover a {
+  display: block;
+}
+
+.book .book-cover a {
+  margin: auto;
+  width: 100%;
+}
+
+.book img.bookcover {
+  margin: 0 auto;
+  box-shadow: 1px 2px 5px 0 var(--book-cover-shadow-color);
+  border-radius: 3px;
+  max-width: 100%;
+  max-height: 200px;
+}
