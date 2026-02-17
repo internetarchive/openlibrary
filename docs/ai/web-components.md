@@ -12,7 +12,7 @@ make lit-components            # One-off build
 ## Naming
 
 - **Tag names:** `ol-<name>` in kebab-case (e.g., `ol-pagination`, `ol-read-more`).
-- **Class names:** PascalCase, prefixed with `Ol` (e.g., `OlPagination`, `OLReadMore`).
+- **Class names:** PascalCase, prefixed with `Ol` (e.g., `OlPagination`). Legacy components may use `OL` (e.g., `OLReadMore`); prefer `Ol` for new work.
 - **File names:** Match the class name (e.g., `OlPagination.js`).
 - Register every new component in `openlibrary/components/lit/index.js`.
 
@@ -64,3 +64,10 @@ make lit-components            # One-off build
 - Event names: kebab-case, `ol-<component>-<action>` format (e.g., `ol-pagination-change`).
 - Set `bubbles: true` and `composed: true` so events cross Shadow DOM boundaries.
 - Document every emitted event in the class JSDoc with `@fires`.
+
+## New Component Checklist
+
+1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
+2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
+3. Add JSDoc to the class with `@element`, `@prop`, `@fires`, and `@example` tags (see `OlPagination.js` for the pattern).
+4. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080.
