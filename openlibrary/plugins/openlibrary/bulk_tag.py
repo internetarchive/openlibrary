@@ -14,6 +14,7 @@ ALLOWED_USERGROUPS: list[str] = [
     "/usergroup/admin",
 ]
 
+
 class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 

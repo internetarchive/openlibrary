@@ -11,9 +11,7 @@ import urllib
 from datetime import datetime
 from typing import Literal
 
-import lxml.etree
 import web
-from lxml import etree
 
 from infogami import config
 from infogami.infobase.utils import parse_datetime
@@ -30,7 +28,6 @@ from openlibrary.core import (
     models,  # noqa: F401 side effects may be needed
     stats,
     vendors,
-    waitinglist,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
