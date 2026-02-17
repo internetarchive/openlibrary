@@ -127,6 +127,12 @@ A Work has many Editions. This is the central relationship in the data model.
 - **CSS/LESS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
 
+## Topic Guides
+
+These companion docs cover specific areas in depth:
+
+- [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
+
 ## Key File Locations
 
 | What | Where |
@@ -147,3 +153,16 @@ A Work has many Editions. This is the central relationship in the data model.
 | Solr config | `conf/solr/` |
 | i18n translations | `openlibrary/i18n/` |
 | Infogami submodule | `vendor/infogami/` |
+
+## Contributing to These Docs
+
+This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
+
+**To add a new topic:**
+1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
+2. Add a link to it in the **Topic Guides** section above.
+3. No changes to the bridge files are needed — agents follow links from this README.
+
+**To update general guidance:** edit this file (`docs/ai/README.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
+
+**To remove a tool's bridge:** delete the bridge file when the team stops using that tool.
