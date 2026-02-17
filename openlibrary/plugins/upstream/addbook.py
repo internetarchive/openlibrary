@@ -945,6 +945,8 @@ class author_edit(delegate.page):
         return render_template("type/author/edit", author)
 
     def POST(self, key):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         author = web.ctx.site.get(key)
         if author is None:
             raise web.notfound()
@@ -1003,6 +1005,8 @@ class work_identifiers(delegate.view):
     types = ["/type/edition"]  # type: ignore[assignment] # noqa: RUF012
 
     def POST(self, edition):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         saveutil = DocSaveHelper()
         i = web.input(isbn="")
         isbn = i.get("isbn")

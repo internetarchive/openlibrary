@@ -379,6 +379,11 @@ class lists_delete(delegate.page):
     encoding = "json"
 
     def POST(self, key):
+        if not (user := get_current_user()):
+            raise web.unauthorized()
+        # Check if current user is admin or list owner
+        if not user.is_admin() and (user.key and not key.startswith(user.key)):
+            raise web.unauthorized()
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()

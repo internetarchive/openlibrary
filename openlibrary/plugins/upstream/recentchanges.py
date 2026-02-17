@@ -182,17 +182,6 @@ class recentchanges_view(delegate.page):
             json.dumps(change.dict()), content_type="application/json"
         )
 
-    def POST(self, id):
-        if not features.is_enabled("undo"):
-            return render_template(
-                "permission_denied", web.ctx.path, "Permission denied to undo."
-            )
-
-        id = int(id)
-        change = web.ctx.site.get_change(id)
-        change._undo()
-        raise web.seeother(change.url())
-
 
 class history(delegate.mode):
     def GET(self, path):
