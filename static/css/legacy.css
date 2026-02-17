@@ -19,35 +19,35 @@
  * and imported directly in one of the entry points that are prefixed
  * with `page-` or `js-`
  */
-@import (inline) "legacy-header.css";
-@import (inline) "legacy-tools.css";
-@import (inline) "legacy-wmd.css";
+@import "legacy-header.css";
+@import "legacy-tools.css";
+@import "legacy-wmd.css";
 
-@import (inline) "components/read-panel.css";
-@import (inline) "components/preview.css";
-@import (inline) "components/diff.css";
-@import (inline) "components/carousel.css";
-@import (inline) "components/category-item.css";
-@import (inline) "components/loading-indicator.css";
-@import (inline) "components/editions.css";
+@import "components/read-panel.css";
+@import "components/preview.css";
+@import "components/diff.css";
+@import "components/carousel.css";
+@import "components/category-item.css";
+@import "components/loading-indicator.css";
+@import "components/editions.css";
 /* Header sub-imports */
-@import (inline) "components/header-bar.css";
-@import (inline) "components/iaBar.css";
-@import (inline) "components/page-banner.css";
-@import (inline) "components/header.css";
+@import "components/header-bar.css";
+@import "components/iaBar.css";
+@import "components/page-banner.css";
+@import "components/header.css";
 /* MyBooks sub-imports */
-@import (inline) "components/mybooks-list.css";
-@import (inline) "components/mybooks-menu.css";
-@import (inline) "components/mybooks-details.css";
-@import (inline) "components/list-showcase.css";
-@import (inline) "components/mybooks.css";
-@import (inline) "components/readinglog-stats.css";
-@import (inline) "components/tagging-menu.css";
-@import (inline) "components/shareLinks.css";
-@import (inline) "components/generic-dropper.css";
-@import (inline) "components/mybooks-dropper.css";
-@import (inline) "components/subNav.css";
-@import (inline) "components/book.css";
+@import "components/mybooks-list.css";
+@import "components/mybooks-menu.css";
+@import "components/mybooks-details.css";
+@import "components/list-showcase.css";
+@import "components/mybooks.css";
+@import "components/readinglog-stats.css";
+@import "components/tagging-menu.css";
+@import "components/shareLinks.css";
+@import "components/generic-dropper.css";
+@import "components/mybooks-dropper.css";
+@import "components/subNav.css";
+@import "components/book.css";
 
 table {
   border-collapse: collapse;
@@ -258,15 +258,15 @@ q:after {
 
 /* SITE DEFAULTS */
 
-@import (inline) "base/common.css";
-@import (inline) "components/buttonCta.css";
-@import (inline) "components/buttonsAndLinks.css";
-@import (inline) "components/buttonLink.css";
-@import (inline) "components/buttonGhost.css";
-@import (inline) "components/buttonBtn.css";
-@import (inline) "base/dl.css";
-@import (inline) "base/helpers-common.css";
-@import (inline) "base/helpers-misc.css";
+@import "base/common.css";
+@import "components/buttonCta.css";
+@import "components/buttonsAndLinks.css";
+@import "components/buttonLink.css";
+@import "components/buttonGhost.css";
+@import "components/buttonBtn.css";
+@import "base/dl.css";
+@import "base/helpers-common.css";
+@import "base/helpers-misc.css";
 
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */
@@ -284,7 +284,7 @@ q:after {
 
 /* TYPOGRAPHY */
 
-@import (inline) "components/widget-box.css";
+@import "components/widget-box.css";
 
 div.unordered {
   margin-top: 10px;
@@ -298,7 +298,7 @@ div.superNav {
   margin-bottom: 5px;
 }
 
-@import (inline) "base/headings.css";
+@import "base/headings.css";
 
 span.link {
   font-size: var(--font-size-label-medium);
@@ -467,7 +467,7 @@ input.highlight {
 }
 
 /* LAYOUT */
-@import (inline) "layout/index.css";
+@import "layout/index.css";
 
 /* openlibrary/data/sitemap.py */
 div#placement {
@@ -628,8 +628,8 @@ fieldset.home legend {
 }
 
 /* ACCOUNT FORMS */
-@import (inline) "components/page-heading-search-box.css";
-@import (inline) "components/form.olform.css";
+@import "components/page-heading-search-box.css";
+@import "components/form.olform.css";
 
 /* openlibrary/templates/account/notifications.html */
 form#notifications input[type="radio"] {
@@ -723,7 +723,7 @@ div.cclicense {
 }
 
 /* TOOLS ACCORDION */
-@import (inline) "components/edit-toolbar.css";
+@import "components/edit-toolbar.css";
 
 /* openlibrary/macros/databarDiff.html */
 /* openlibrary/macros/databarEdit.html */
@@ -794,12 +794,12 @@ div.verify span {
 }
 
 /* FOOTER */
-@import (inline) "components/footer.css";
+@import "components/footer.css";
 
 /* LANGUAGE DROPDOWN */
-@import (inline) "components/language.css";
+@import "components/language.css";
 
-@import (inline) "components/link-box.css";
+@import "components/link-box.css";
 
 /* Various templates */
 .contentQuarter {
@@ -849,7 +849,7 @@ div.verify span {
 /* NEW HOME PAGE */
 
 /* HOME PAGE CAROUSEL SKIN */
-@import (inline) "components/home.css";
+@import "components/home.css";
 
 /* SEARCH RESULTS */
 
@@ -949,9 +949,9 @@ div#searchResults .SRPCoverBlank a {
 
 /* SEARCH FACETS */
 
-@import (inline) "components/search-result-item.css";
-@import (inline) "components/fulltext-snippet.css";
-@import (inline) "components/search-results-container.css";
+@import "components/search-result-item.css";
+@import "components/fulltext-snippet.css";
+@import "components/search-results-container.css";
 
 /* openlibrary/templates/work_search.html */
 div#searchFacets {
@@ -1036,16 +1036,16 @@ div.list .owner {
 
 /* BOOKS */
 /* Work sub-imports */
-@import (inline) "components/compact-title.css";
-@import (inline) "components/nav-bar.css";
-@import (inline) "components/librarian-dashboard.css";
-@import (inline) "components/cover.css";
-@import (inline) "components/readerStats.css";
-@import (inline) "components/check-in.css";
-@import (inline) "components/reading-goal.css";
-@import (inline) "components/work-title-and-author.css";
-@import (inline) "components/work.css";
-@import (inline) "components/navEdition.css";
+@import "components/compact-title.css";
+@import "components/nav-bar.css";
+@import "components/librarian-dashboard.css";
+@import "components/cover.css";
+@import "components/readerStats.css";
+@import "components/check-in.css";
+@import "components/reading-goal.css";
+@import "components/work-title-and-author.css";
+@import "components/work.css";
+@import "components/navEdition.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 /* openlibrary/templates/type/work/view.html */
@@ -1085,7 +1085,7 @@ div.workHelp {
   margin: 0 auto;
 }
 
-@import (inline) "components/illustration.css";
+@import "components/illustration.css";
 
 /* openlibrary/templates/books/author-autocomplete.html */
 div.books {
@@ -1249,7 +1249,7 @@ ul.clean li span.resultTitle {
   margin-top: 0;
 }
 
-@import (inline) "components/page-history.css";
+@import "components/page-history.css";
 
 /* openlibrary/macros/CoverImage.html */
 /* openlibrary/templates/covers/book_cover.html */
@@ -1513,7 +1513,7 @@ div.popAlert {
 /* TABS */
 
 /* Skin */
-@import (inline) "components/chart-stats.css";
+@import "components/chart-stats.css";
 
 /* PAGE HISTORY */
 /* Desktop: @width-breakpoint-desktop = 960px */
@@ -1547,7 +1547,7 @@ div.popAlert {
 }
 
 /* CHARTING */
-@import (inline) "components/chart.css";
+@import "components/chart.css";
 
 /* MERGING */
 /* Merge button */
@@ -1559,7 +1559,7 @@ div.mergeThis {
   background: url(/images/icons/icon_merge.png) no-repeat 0 0;
 }
 
-@import (inline) "components/merge-form.css";
+@import "components/merge-form.css";
 
 /* openlibrary/templates/recentchanges/default/view.html */
 /* openlibrary/templates/recentchanges/merge-authors/view.html */
@@ -1617,7 +1617,7 @@ div.postSubmit {
   background-position: -56px 0;
 }
 
-@import (inline) "components/listLists.css";
+@import "components/listLists.css";
 
 /* openlibrary/templates/lists/widget.html */
 .heart-adjust {
@@ -1721,23 +1721,185 @@ div#subjectLists p {
   display: flex;
 }
 
-@import (inline) "components/rating-form.css";
-@import (inline) "components/searchResultItemCta.css";
+@import "components/rating-form.css";
+@import "components/searchResultItemCta.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @media only screen and (min-width: 768px) {
   span.count {
     white-space: nowrap;
   }
-  @import (inline) "components/header-bar--tablet.css";
-  @import (inline) "components/page-banner--tablet.css";
-  @import (inline) "components/work--tablet.css";
-  @import (inline) "components/edit-toolbar--tablet.css";
+  /* inlined from components/header-bar--tablet.css */
+  .header-bar {
+    padding-top: 5px;
+  }
+
+  /* The width and height attributes of logo-icon should be equal to */
+  /* dimensions of /static/images/openlibrary-logo-tighter.svg */
+  .header-bar .logo-component .logo-icon {
+    height: 47px;
+    width: 189px;
+  }
+
+  .header-bar .auth-component .hide-me {
+    display: inline;
+  }
+
+  .header-bar .navigation-component .dropdown-menu {
+    border-top: none;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+  }
+
+  .header-bar .search-component {
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
+  }
+
+  .header-bar .search-component .search-bar-component {
+    width: 300px;
+  }
+
+  .header-bar .search-component .search-justify-right {
+    min-width: 210px;
+  }
+
+  .header-bar .search-component .search-bar {
+    width: auto;
+    max-width: 310px;
+  }
+
+  .header-bar .header-dropdown .account__icon {
+    width: 45px;
+    height: 45px;
+  }
+  /* inlined from components/page-banner--tablet.css */
+  .page-banner .btn {
+    display: inline;
+  }
+  /* inlined from components/work--tablet.css */
+  /* workDetails is the parent element.
+     These elements are all children. */
+  div.editionCover {
+    padding-right: 0;
+    margin-bottom: 1.5em;
+  }
+
+  div.editionAbout {
+    margin-top: 2px;
+  }
+
+  div.editionAbout .book-description {
+    clear: both;
+  }
+
+  div.editionTools {
+    float: right;
+    width: 250px;
+  }
+
+  /* clear the floating of the edition* elements. */
+  .workDetails::after {
+    content: "";
+    clear: both;
+    display: block;
+  }
+  /* inlined from components/edit-toolbar--tablet.css */
+  /* stylelint-disable selector-max-specificity */
+  div#editTools,
+  div.editButton,
+  div#editHistory {
+    padding: 2px 5px 0 10px;
+    margin-top: -5px;
+    float: right;
+  }
+  div#editInfo {
+    margin-top: 3px;
+    float: right;
+  }
+  div#editTools {
+    display: flex;
+    margin-top: 1px;
+    max-width: 280px;
+  }
 }
 
 /* Desktop: @width-breakpoint-desktop = 960px */
 @media all and (min-width: 960px) {
-  @import (inline) "components/header-bar--desktop.css";
+  /* inlined from components/header-bar--desktop.css */
+  .header-bar {
+    margin: 20px auto;
+    padding-top: 0;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+
+  .header-bar .auth-component {
+    -webkit-box-ordinal-group: 7;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .header-bar .logo-component {
+    /* border-right: 1px solid var(--dark-beige); */
+    padding-right: 15px;
+  }
+
+  .header-bar .navigation-component {
+    display: flex;
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+  }
+
+  .header-bar .navigation-component .dropdown-menu {
+    border-radius: 3px;
+    border: 1px solid var(--dark-beige);
+  }
+
+  /* stylelint-disable-next-line max-nesting-depth, selector-max-specificity */
+  .header-bar .navigation-component li .dropdown-menu {
+    width: auto;
+    white-space: nowrap;
+  }
+
+  .header-bar .search-component .search-bar-component {
+    width: 100%;
+  }
+
+  .header-bar .search-component .search-bar {
+    max-width: 100%;
+  }
+
+  .header-bar .hamburger-component {
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .header-bar .app-drawer {
+    top: 0;
+    height: 100%;
+  }
+
+  .header-bar .mask-menu {
+    top: 0;
+  }
+
+  .header-bar .header-dropdown .account__icon {
+    width: 45px;
+    height: 45px;
+  }
+
+  .header-bar.mobile {
+    display: none;
+  }
   /** These styles are used on the page for editing a book.
   They may be used in another places as well */
   fieldset.minor {

@@ -1,0 +1,86 @@
+/**
+ * Stylesheet entry point for pages with body-book
+ *
+ * This applies to works and books pages
+ * e.g.
+ * - /works/OL3513417W/Physics
+ * - /books/OL9737752M/The_Odyssey
+ */
+/* base styles */
+@import "base/helpers-common.css";
+@import "base/common.css";
+@import "base/headings.css";
+
+/* layout styles */
+@import "layout/index.css";
+
+/* Components in order of appearance */
+/* Header sub-imports */
+@import "components/header-bar.css";
+@import "components/buttonGhost.css";
+@import "components/iaBar.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/navEdition.css";
+@import "components/buttonLink.css";
+@import "components/edit-toolbar.css";
+/* Work sub-imports */
+@import "base/dl.css";
+@import "components/compact-title.css";
+@import "components/nav-bar.css";
+@import "components/librarian-dashboard.css";
+@import "components/cover.css";
+@import "components/illustration.css";
+@import "components/rating-form.css";
+@import "components/generic-dropper.css";
+@import "components/mybooks-dropper.css";
+@import "components/listLists.css";
+@import "components/readerStats.css";
+@import "components/link-box.css";
+@import "components/read-panel.css";
+@import "components/work.css";
+@import "components/carousel.css";
+@import "components/category-item.css";
+@import "components/loading-indicator.css";
+@import "components/page-history.css";
+@import "components/footer.css";
+@import "components/language.css";
+@import "components/editions.css";
+@import "components/donate.css";
+@import "components/metadata-form.css";
+@import "components/toc.css";
+@import "components/observationStats.css";
+@import "components/modal-links.css";
+@import "components/list-follow.css";
+@import "components/check-in.css";
+@import "components/reading-goal.css";
+@import "components/work-title-and-author.css";
+
+/* Mobile: Take into account the header bar + tab bar */
+html {
+  scroll-padding-top: 100px;
+}
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@media only screen and (min-width: 768px) {
+  html {
+    scroll-padding-top: 110px;
+  }
+}
+
+/* Desktop: @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
+  html {
+    scroll-padding-top: 0;
+  }
+}
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+@import "components/work--tablet.css" only screen and (min-width: 768px);
+@import "components/edit-toolbar--tablet.css" only screen and (min-width: 768px);
+
+/* Desktop: @width-breakpoint-desktop = 960px */
+@import "components/header-bar--desktop.css" all and (min-width: 960px);

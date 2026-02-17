@@ -8,7 +8,7 @@
  * - /admin
  */
 
-@import (inline) "components/admin-table.css";
+@import "components/admin-table.css";
 
 .status--0 {
   color: var(--red);
@@ -171,9 +171,9 @@ div.sparkDisplay {
 }
 
 /* Import all common components */
-@import (less) "legacy.less";
+@import "legacy.css";
 /* Import styles specific to the BorrowTable for user pages */
-@import (inline) "legacy-borrowTable-adminUser.css";
+@import "legacy-borrowTable-adminUser.css";
 
 /* @width-breakpoint-tablet: 768px */
 @media only screen and (min-width: 768px) {
@@ -219,4 +219,4 @@ div.sparkDisplay {
   }
 }
 
-@import (inline) "components/pd-dashboard.css";
+@import "components/pd-dashboard.css";

@@ -17,7 +17,7 @@
  * Used on pages:
  * - /people/openlibrary9157?m=edit
  */
-@import (less) "legacy.less";
+@import "legacy.css";
 
 /* stylelint-disable selector-max-specificity */
 body,

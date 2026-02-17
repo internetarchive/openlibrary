@@ -6,7 +6,7 @@
  * Used on pages:
  * - /list/add
  */
-@import (less) "legacy.less";
+@import "legacy.css";
 
 #list-edit {
   max-width: 800px;

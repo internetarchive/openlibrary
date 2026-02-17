@@ -36,8 +36,8 @@
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
-@import (inline) "components/flash-messages.css";
-@import (inline) "components/provider-table.css";
+@import "components/flash-messages.css";
+@import "components/provider-table.css";
 
 body {
   background-color: var(--beige);
@@ -225,29 +225,29 @@ textarea.toc-editor {
   white-space: pre;
 }
 
-@import (inline) "components/ol-message.css";
+@import "components/ol-message.css";
 /* Import styles for fulltext-search-suggestion card */
-@import (inline) "components/fulltext-search-suggestion.css";
+@import "components/fulltext-search-suggestion.css";
 /* Import styles for fulltext-search-suggestion card item */
-@import (inline) "components/fulltext-search-suggestion-item.css";
+@import "components/fulltext-search-suggestion-item.css";
 /* Import styles for fulltext-search-suggestion card item snippet */
-@import (inline) "components/fulltext-snippet.css";
+@import "components/fulltext-snippet.css";
 /* Import styles for author infobox */
-@import (inline) "components/author-infobox.css";
+@import "components/author-infobox.css";
 /* Import all common components */
-@import (less) "legacy.less";
+@import "legacy.css";
 /* Import styles specific to the BorrowTable for user pages */
-@import (inline) "legacy-borrowTable-adminUser.css";
+@import "legacy-borrowTable-adminUser.css";
 /* Import styles for notes and observations views */
-@import (inline) "components/notes-view.css";
+@import "components/notes-view.css";
 /* Import styles for community merge request views */
-@import (inline) "components/merge-request-table.css";
+@import "components/merge-request-table.css";
 /* Import styles for want-to-read buttons */
-@import (inline) "legacy-tools.css";
-@import (inline) "components/generic-dropper.css";
-@import (inline) "components/mybooks-dropper.css";
+@import "legacy-tools.css";
+@import "components/generic-dropper.css";
+@import "components/mybooks-dropper.css";
 /* Import styles for search box */
-@import (inline) "components/searchbox.css";
+@import "components/searchbox.css";
 /* Import styles for sort options */
-@import (inline) "components/sort-dropper.css";
-@import (inline) "components/pagination.css";
+@import "components/sort-dropper.css";
+@import "components/pagination.css";

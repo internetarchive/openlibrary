@@ -77,4 +77,4 @@ p {
 .color-block-link-unclicked {
   background-color: var(--link-blue);
 }
-@import (less) "legacy.less";
+@import "legacy.css";

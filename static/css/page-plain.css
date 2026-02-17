@@ -180,4 +180,4 @@ div#listsWork p {
 }
 
 /* Import all common components */
-@import (less) "legacy.less";
+@import "legacy.css";

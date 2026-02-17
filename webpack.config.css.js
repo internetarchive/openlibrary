@@ -1,43 +1,26 @@
 /* eslint-env node, es6 */
 /*
- * Webpack config for compiling Less and CSS files to independent CSS files in static/build/
- * Supports both .less and .css entry points for gradual migration from LESS to native CSS.
+ * Webpack config for compiling CSS entry points to independent CSS files in static/build/
  *
- * LESS → CSS Migration
- * --------------------
- * We are migrating component styles from LESS to native CSS.
- * During migration, both pipelines coexist:
+ * All page-*.css entry points use native CSS with custom properties (var(--token)).
+ * css-loader resolves @import statements, and css-minimizer-webpack-plugin handles
+ * minification.
  *
- *  1. Component .less files are compiled via less-loader + clean-css (minified).
- *  2. Component .css files use native CSS with custom properties (var(--token)).
- *     They are included in LESS bundles via @import (inline), which pastes them
- *     verbatim without LESS processing — clean-css still minifies the result.
- *  3. When an entire page entry is migrated to .css, it enters the CSS-only pipeline
- *     and is minified by css-minimizer-webpack-plugin.
- *
+ * CSS custom properties are auto-generated from the LESS variable definition files
+ * in static/css/less/ by scripts/generate-css-custom-properties.js before each build.
  */
 const path = require('path');
 const glob = require('glob');
 const { execSync } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const LessPluginCleanCss = require('less-plugin-clean-css');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
 
-// Find all entry files matching static/css/page-*.less or static/css/page-*.css
-const lessFiles = glob.sync('./static/css/page-*.less');
+// Find all CSS entry files matching static/css/page-*.css
 const cssFiles = glob.sync('./static/css/page-*.css');
 const entries = {};
 
-lessFiles.forEach(file => {
-    // e.g. page-home.less -> page-home
-    const name = path.basename(file, '.less');
-    entries[name] = file;
-});
-
 cssFiles.forEach(file => {
-    // e.g. page-home.css -> page-home
-    // CSS files take precedence if both .less and .css exist (migration complete)
     const name = path.basename(file, '.css');
     entries[name] = file;
 });
@@ -53,36 +36,6 @@ module.exports = {
     },
     module: {
         rules: [
-            // Rule for .less files (legacy, to be removed after migration)
-            {
-                test: /\.less$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    {
-                        loader: 'css-loader',
-                        options: { url: false }
-                    },
-                    {
-                        loader: 'less-loader',
-                        options: {
-                            lessOptions: {
-                                paths: [
-                                    path.resolve(__dirname, 'static/css'),
-                                    path.resolve(__dirname, 'static/css/components'),
-                                ],
-                                plugins: [
-                                    new LessPluginCleanCss({
-                                        advanced: true,
-                                        compatibility: '*',
-                                        keepSpecialComments: 0
-                                    })
-                                ]
-                            }
-                        }
-                    }
-                ]
-            },
-            // Rule for .css files (native CSS)
             {
                 test: /\.css$/,
                 use: [
@@ -142,7 +95,6 @@ module.exports = {
     ],
     optimization: {
         minimizer: [
-            // Minify CSS entry points that bypass the LESS/clean-css pipeline
             new CssMinimizerPlugin(),
         ],
         runtimeChunk: false,

@@ -9,7 +9,7 @@
  */
 /* TODO: Only formElement and a few common styles are actually needed in this file
    to render this simple page. We should list them explicitly once that's possible. */
-@import (less) "legacy.less";
+@import "legacy.css";
 
 body {
   text-align: left;

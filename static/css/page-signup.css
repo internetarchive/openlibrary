@@ -1,6 +1,6 @@
 /**
  * Stylesheet for signup and (soon) login forms
-
+ *
  * Used in templates:
  * - openlibrary/templates/account/create.html
  *
@@ -10,25 +10,25 @@
  */
 
 /* Import all base styles */
-@import (inline) "base/helpers-common.css";
-@import (inline) "base/common.css";
+@import "base/helpers-common.css";
+@import "base/common.css";
 
 /* Import fonts */
 
 /* Layout rules */
-@import (inline) "layout/index.css";
+@import "layout/index.css";
 
 /* Components (modules) in order of appearance on page */
-@import (inline) "components/header-bar.css";
-@import (inline) "components/buttonGhost.css";
-@import (inline) "components/iaBar.css";
-@import (inline) "components/buttonBtn.css";
-@import (inline) "components/page-banner.css";
-@import (inline) "components/header.css";
-@import (inline) "components/form.olform.css";
-@import (inline) "components/buttonCta.css";
-@import (inline) "components/footer.css";
-@import (inline) "components/language.css";
+@import "components/header-bar.css";
+@import "components/buttonGhost.css";
+@import "components/iaBar.css";
+@import "components/buttonBtn.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/form.olform.css";
+@import "components/buttonCta.css";
+@import "components/footer.css";
+@import "components/language.css";
 
 .ol-page-signup {
   display: flex;
@@ -236,13 +236,9 @@
   width: 100%;
 }
 
-/* @width-breakpoint-tablet: 768px */
-@media only screen and (min-width: 768px) {
-  @import (inline) "components/header-bar--tablet.css";
-  @import (inline) "components/page-banner--tablet.css";
-}
+/* Tablet: @width-breakpoint-tablet = 768px */
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
 
-/* @width-breakpoint-desktop: 960px */
-@media all and (min-width: 960px) {
-  @import (inline) "components/header-bar--desktop.css";
-}
+/* Desktop: @width-breakpoint-desktop = 960px */
+@import "components/header-bar--desktop.css" all and (min-width: 960px);
