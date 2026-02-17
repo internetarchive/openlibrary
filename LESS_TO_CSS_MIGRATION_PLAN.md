@@ -1,3 +1,55 @@
+
+# Migration Progress
+
+> **Status: COMPLETE.** All LESS has been removed from the codebase. Zero `.less` files remain.
+
+## Phase 1 — Migrate Component Files (COMPLETE)
+
+All ~106 component files in `static/css/components/` converted from `.less` to `.css`:
+- Replaced all `@variable` references with `var(--variable)` CSS custom properties
+- Flattened all LESS nesting (`&` parent selectors) to explicit flat selectors
+- Pre-computed all color functions: `darken()`, `lighten()`, `fade()`, `mix()`, `desaturate()`
+- Converted `//` comments to `/* */`
+- Removed all `@import "../less/index.less"` variable imports
+- Updated parent files to use `@import (inline) "X.css"` during transition
+
+Also converted:
+- Base & layout files (`base/common.less`, `base/helpers-common.less`, `layout/v2.less`, etc.)
+- Legacy files (`legacy.less` — 1,796 lines, `legacy-header.less`, `legacy-tools.less`, `legacy-wmd.less`, `legacy-borrowTable-adminUser.less`, `legacy-datatables.less`)
+
+## Phase 2 — Migrate Page Entry Points (COMPLETE)
+
+All 15 `page-*.less` files converted to `page-*.css`:
+- Replaced `@import (less)` and `@import (inline)` with standard CSS `@import`
+- Used media-conditioned imports for responsive files: `@import "file.css" only screen and (min-width: 768px);`
+- Hardcoded all breakpoint values in `@media` queries
+- Flattened inline nesting and replaced variables
+- Deleted all 15 `.less` originals + `legacy.less`
+
+## Phase 3 — Migrate JS-Bundled Stylesheets (COMPLETE)
+
+- `js-all.less` → `js-all.css` (updated import in `index.js`)
+- `SelectionManager.less` → `SelectionManager.css` (hardcoded local variables, updated import in `SelectionManager.js`)
+- Added CSS loader rule to `webpack.config.js`
+
+## Phase 4 — Clean Up Infrastructure (COMPLETE)
+
+- 4a: Converted design tokens to hand-maintained `static/css/tokens.css`. Deleted the `static/css/less/` directory (8 LESS variable files + `index.less`) and `scripts/generate-css-custom-properties.js`. Updated `head.html` to reference `tokens.css`.
+- 4b: Removed `.less` rule and LESS loader from `webpack.config.css.js` — only scans for `.css`
+- 4c: Removed `.less` rule from `webpack.config.js`
+- 4d: Removed `"customSyntax": "postcss-less"` from `.stylelintrc.json`; updated `package.json` lint scripts to target `*.css`; updated `.stylelintignore` to allow CSS linting
+- 4e: Removed `generate-css-custom-properties.js` call from Makefile and `GenerateCSSVarsPlugin` from webpack
+- 4f: Updated Jest `moduleNameMapper` to only match `.css`
+
+## Phase 5 — Remove LESS Entirely (COMPLETE)
+
+- Removed all LESS npm dependencies: `less`, `less-loader`, `less-plugin-clean-css`, `postcss-less`
+- Removed `generate:css-vars` script from `package.json`
+- Fixed Storybook imports (`Button.stories.js`)
+- Cleaned up stale `.less` references in CSS comments
+- Zero `.less` files remain in the project
+
+
 # LESS to Native CSS Migration Plan
 
 > **Goal:** Fully remove LESS from the Open Library codebase and use only native CSS.

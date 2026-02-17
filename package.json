@@ -4,7 +4,6 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "generate:css-vars": "node scripts/generate-css-custom-properties.js",
     "watch": "env NODE_ENV=development npx webpack --config webpack.config.js --config webpack.config.css.js --watch --progress",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
@@ -57,7 +56,6 @@
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.13.2",
     "jquery-ui-touch-punch": "0.2.3",
-    "less": "^4.2.0",
     "lit": "^3.2.1",
     "lodash": "4.17.21",
     "lucene-query-parser": "1.2.0",

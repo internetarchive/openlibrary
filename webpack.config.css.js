@@ -6,12 +6,10 @@
  * css-loader resolves @import statements, and css-minimizer-webpack-plugin handles
  * minification.
  *
- * CSS custom properties are auto-generated from the LESS variable definition files
- * in static/css/less/ by scripts/generate-css-custom-properties.js before each build.
+ * Design tokens are defined in static/css/tokens.css and loaded separately in <head>.
  */
 const path = require('path');
 const glob = require('glob');
-const { execSync } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
@@ -52,23 +50,6 @@ module.exports = {
         ]
     },
     plugins: [
-        // Re-generate CSS custom properties from LESS variables before each build.
-        // Ensures generated-custom-properties.css stays in sync during watch mode.
-        {
-            apply: (compiler) => {
-                compiler.hooks.beforeCompile.tap('GenerateCSSVarsPlugin', () => {
-                    try {
-                        execSync('node scripts/generate-css-custom-properties.js', {
-                            stdio: 'inherit',
-                            cwd: __dirname,
-                        });
-                    } catch (e) {
-                        // eslint-disable-next-line no-console
-                        console.error('Failed to generate CSS custom properties:', e.message);
-                    }
-                });
-            }
-        },
         new MiniCssExtractPlugin({
             filename: '[name].css',
         }),
