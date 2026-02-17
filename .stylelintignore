@@ -5,6 +5,7 @@
 *.eot
 *.md
 node_modules/
+vendor/
 static/build/
 static/css/tokens.css
 static/css/tokens/
