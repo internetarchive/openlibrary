@@ -1,0 +1,148 @@
+/* Styles for the yearly reading goal form */
+.goal-form {
+  font-size: var(--font-size-title-medium);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.goal-form__question {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.goal-form__learn-more {
+  font-size: var(--font-size-label-small);
+  color: var(--dark-grey);
+  text-decoration: none;
+}
+
+.goal-form__input-section {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 10px;
+}
+
+.goal-form__note {
+  margin: 0;
+  color: var(--dark-grey);
+  font-size: var(--font-size-label-small);
+  text-align: center;
+}
+
+.goal-form__question span {
+  font-weight: 500;
+}
+
+.goal-form__input-section input {
+  width: 80px;
+  padding: 8px 12px;
+  font-size: var(--font-size-label-large);
+  text-align: center;
+  border: 2px solid var(--lighter-grey);
+  border-radius: var(--border-radius-input);
+  outline: none;
+}
+
+.goal-form__input-section input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px hsla(202, 96%, 37%, 0.2);
+}
+
+.goal-form__input-section button {
+  display: inline-block;
+  width: fit-content;
+  margin: 0;
+  padding: 6px 15px;
+  font-size: var(--font-size-label-large);
+}
+
+/* Responsive design for smaller screens */
+@media only screen and (max-width: 768px) /* @width-breakpoint-tablet */ {
+  .goal-form {
+    gap: 12px;
+  }
+
+  .goal-form__question {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .goal-form__question span {
+    font-size: var(--font-size-label-medium);
+  }
+
+  .goal-form__input-section {
+    gap: 10px;
+    justify-content: center;
+    padding-right: 0;
+  }
+
+  .goal-form__input-section input {
+    width: 65px;
+    padding: 7px 8px;
+    font-size: var(--font-size-label-medium);
+  }
+
+  .goal-form__input-section button {
+    padding: 5px 12px;
+    font-size: var(--font-size-label-medium);
+  }
+}
+
+/* Styles for the yearly reading goal progress component */
+.reading-goal-progress {
+  color: var(--dark-grey);
+  padding: 5px 0;
+}
+
+.reading-goal-progress__body {
+  justify-content: center;
+}
+
+.reading-goal-progress__progress-bar {
+  background-color: var(--light-grey);
+  border-radius: 5px;
+  height: 20px;
+  margin: auto;
+  width: 85%;
+  margin-bottom: 10px;
+}
+
+.reading-goal-progress__completed {
+  display: inline-block;
+  background-color: var(--primary-blue);
+  height: inherit;
+  border-radius: inherit;
+}
+
+.reading-goal-progress__details {
+  display: flex;
+  justify-content: space-between;
+  width: 97%;
+  margin: auto;
+}
+
+@media only screen and (max-width: 768px) /* @width-breakpoint-tablet */ {
+  .reading-goal-progress {
+    padding: 15px 0 0;
+  }
+
+  .reading-goal-progress__details {
+    display: flex;
+    justify-content: space-between;
+    width: 85%;
+    margin: auto;
+  }
+}
