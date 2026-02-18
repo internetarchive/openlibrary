@@ -96,7 +96,7 @@ def fulltext_search_suggestion_partial(
     The data parameter is the raw search query string.
     """
     partial = FullTextSuggestionsPartial(query=data)
-    result = FullTextSuggestionsPartial(query=data).generate()
+    result = partial.generate()
 
     if not partial.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"
