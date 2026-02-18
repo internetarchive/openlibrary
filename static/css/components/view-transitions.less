@@ -17,3 +17,11 @@
   animation-duration: 0.3s;
   animation-timing-function: ease-in-out;
 }
+
+// Ensure the target element has dimensions even before the image loads
+// to prevent the transition from collapsing to 0x0
+.bookCover img {
+  min-height: 200px;
+  background-color: @grey-f3f3f3; // Placeholder color
+  object-fit: cover; // Ensure it covers the area without distortion if aspect ratio differs
+}
