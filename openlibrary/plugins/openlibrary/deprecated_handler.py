@@ -46,4 +46,5 @@ DEPRECATED_PATHS = [
     '/search/authors',
     '/search/inside',
     '/languages',
+    '/reading-goal',
 ]
