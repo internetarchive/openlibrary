@@ -77,27 +77,66 @@ class MyBooksDropperListsPartial(PartialDataHandler):
         }
 
 
+class CarouselLoadMoreParams(BaseModel):
+    """Parameters for the carousel load-more partial."""
+
+    queryType: str = ""
+    q: str = ""
+    limit: int = 18
+    page: int = 1
+    sorts: str = ""
+    subject: str = ""
+    hasFulltextOnly: bool = False
+    key: str = ""
+    layout: str | None = None
+    published_in: str = ""
+
+    @classmethod
+    def from_web_input(cls) -> "CarouselLoadMoreParams":
+        """Construct from web.py's web.input(), handling string-encoded booleans."""
+        # TODO: Delete this complicated code after we switch to FastAPI
+        i = web.input(
+            queryType="",
+            q="",
+            limit=18,
+            page=1,
+            sorts="",
+            subject="",
+            hasFulltextOnly=False,
+            key="",
+            layout=None,
+            published_in="",
+        )
+        return cls(
+            queryType=i.queryType,
+            q=i.q,
+            limit=int(i.limit),
+            page=int(i.page),
+            sorts=i.sorts,
+            subject=i.subject,
+            hasFulltextOnly=bool(i.hasFulltextOnly),
+            key=i.key,
+            layout=i.layout,
+            published_in=i.published_in,
+        )
+
+
 class CarouselCardPartial(PartialDataHandler):
     """Handler for carousel "load_more" requests"""
 
     MAX_VISIBLE_CARDS = 5
 
-    def __init__(self):
-        self.i = web.input(params=None)
+    def __init__(self, params: CarouselLoadMoreParams | None = None):
+        self.params = params or CarouselLoadMoreParams.from_web_input()
 
     def generate(self) -> dict:
-        # Determine query type
-        params = self.i or {}
-        query_type = params.get("queryType", "")
+        p = self.params
 
         # Do search
-        search_results = self._make_book_query(query_type, params)
+        search_results = self._make_book_query(p.queryType, p)
 
         # Render cards
         cards = []
-        layout = params.get("layout")
-        key = params.get("key") or ""
-
         for index, work in enumerate(search_results):
             lazy = index > self.MAX_VISIBLE_CARDS
             editions = work.get('editions', {})
@@ -114,14 +153,14 @@ class CarouselCardPartial(PartialDataHandler):
                     "books/custom_carousel_card",
                     web.storage(book),
                     lazy,
-                    layout,
-                    key=key,
+                    p.layout,
+                    key=p.key,
                 )
             )
 
         return {"partials": [str(template) for template in cards]}
 
-    def _make_book_query(self, query_type: str, params: dict) -> list:
+    def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
         if query_type == "SEARCH":
             return self._do_search_query(params)
         if query_type == "BROWSE":
@@ -133,7 +172,7 @@ class CarouselCardPartial(PartialDataHandler):
 
         raise ValueError("Unknown query type")
 
-    def _do_search_query(self, params: dict) -> list:
+    def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
         fields = [
             'key',
             'title',
@@ -149,59 +188,42 @@ class CarouselCardPartial(PartialDataHandler):
             'id_openstax',
             'editions',
         ]
-        query = params.get("q", "")
-        sort = params.get("sorts", "new")  # XXX : check "new" assumption
-        limit = int(params.get("limit", 20))
-        page = int(params.get("page", 1))
-        query_params = {"q": query}
-
-        if params.get("hasFulltextOnly"):
+        query_params: dict = {"q": params.q}
+        if params.hasFulltextOnly:
             query_params['has_fulltext'] = 'true'
 
         results = work_search(
             query_params,
-            sort=sort,
+            sort=params.sorts or "new",
             fields=','.join(fields),
-            limit=limit,
+            limit=params.limit,
             facet=False,
-            offset=page,
+            offset=params.page,
         )
         return results.get("docs", [])
 
-    def _do_browse_query(self, params: dict) -> list:
-        query = params.get("q", "")
-        subject = params.get("subject", "")
-        sorts = params.get("sorts", "").split(',')
-        limit = int(params.get("limit", 18))
-        page = int(params.get("page", 1))
+    def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
         url = compose_ia_url(
-            query=query,
-            limit=limit,
-            page=page,
-            subject=subject,
-            sorts=sorts,
+            query=params.q,
+            limit=params.limit,
+            page=params.page,
+            subject=params.subject,
+            sorts=params.sorts.split(',') if params.sorts else [],
             advanced=True,
             safe_mode=True,
         )
         results = get_available(url=url)
         return results if "error" not in results else []
 
-    def _do_trends_query(self, params: dict) -> list:
-        page = int(params.get("page", 1))
-        limit = int(params.get("limit", 18))
+    def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
         return get_trending_books(
-            minimum=3, limit=limit, page=page, sort_by_count=False
+            minimum=3, limit=params.limit, page=params.page, sort_by_count=False
         )
 
-    def _do_subjects_query(self, params: dict) -> list:
-        pseudoKey = params.get("q", "")
-        offset = int(params.get("page", 1))
-        limit = int(params.get("limit", 18))
-        published_in = params.get("published_in", "")
-        publish_year = date_range_to_publish_year_filter(published_in)
-
+    def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
+        publish_year = date_range_to_publish_year_filter(params.published_in)
         subject = get_subject(
-            pseudoKey, offset=offset, limit=limit, publish_year=publish_year
+            params.q, offset=params.page, limit=params.limit, publish_year=publish_year
         )
         return subject.get("works", [])
 

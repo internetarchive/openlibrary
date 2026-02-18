@@ -14,6 +14,8 @@ from openlibrary.fastapi.auth import (
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
+    CarouselCardPartial,
+    CarouselLoadMoreParams,
     FullTextSuggestionsPartial,
     LazyCarouselParams,
     LazyCarouselPartial,
@@ -146,3 +148,19 @@ async def lazy_carousel_partial(
     Get lazily-loaded carousel HTML.
     """
     return LazyCarouselPartial(params=params).generate()
+
+
+@router.get(
+    "/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
+async def carousel_load_more_partial(
+    params: Annotated[CarouselLoadMoreParams, Query()],
+) -> dict:
+    """
+    Get additional carousel card HTML for paginated carousels.
+
+    Parameters (query string) are defined by CarouselLoadMoreParams:
+    queryType (SEARCH | BROWSE | TRENDING | SUBJECTS), q, limit, page,
+    sorts, subject, hasFulltextOnly, key, layout, published_in.
+    """
+    return CarouselCardPartial(params=params).generate()
