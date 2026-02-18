@@ -15,6 +15,8 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
     FullTextSuggestionsPartial,
+    LazyCarouselParams,
+    LazyCarouselPartial,
     MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
@@ -134,3 +136,13 @@ async def my_books_dropper_lists_partial(
     # Despite the fact we are not yet using the user directly, it gives us faster
     # auth checking and api documentation.
     return MyBooksDropperListsPartial().generate()
+
+
+@router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+def lazy_carousel_partial(
+    params: Annotated[LazyCarouselParams, Query()],
+) -> dict:
+    """
+    Get lazily-loaded carousel HTML.
+    """
+    return LazyCarouselPartial(params=params).generate()

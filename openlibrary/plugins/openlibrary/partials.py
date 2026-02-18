@@ -5,6 +5,7 @@ from typing import cast
 from urllib.parse import parse_qs
 
 import web
+from pydantic import BaseModel
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -344,11 +345,23 @@ class BookPageListsPartial(PartialDataHandler):
         return results
 
 
-class LazyCarouselPartial(PartialDataHandler):
-    """Handler for lazily-loaded query carousels."""
+class LazyCarouselParams(BaseModel):
+    """Parameters for the lazy carousel partial."""
 
-    def __init__(self):
-        self.i = web.input(
+    query: str = ""
+    title: str | None = None
+    sort: str = "new"
+    key: str = ""
+    limit: int = 20
+    search: bool = False
+    has_fulltext_only: bool = True
+    url: str | None = None
+    layout: str = "carousel"
+
+    @classmethod
+    def from_web_input(cls) -> "LazyCarouselParams":
+        """Construct from web.py's web.input(), handling string-encoded booleans."""
+        i = web.input(
             query="",
             title=None,
             sort="new",
@@ -359,8 +372,24 @@ class LazyCarouselPartial(PartialDataHandler):
             url=None,
             layout="carousel",
         )
-        self.i.search = self.i.search != "false"
-        self.i.has_fulltext_only = self.i.has_fulltext_only != "false"
+        return cls(
+            query=i.query,
+            title=i.title,
+            sort=i.sort,
+            key=i.key,
+            limit=int(i.limit),
+            search=i.search != "false",
+            has_fulltext_only=i.has_fulltext_only != "false",
+            url=i.url,
+            layout=i.layout,
+        )
+
+
+class LazyCarouselPartial(PartialDataHandler):
+    """Handler for lazily-loaded query carousels."""
+
+    def __init__(self, params: LazyCarouselParams | None = None):
+        self.i = params or LazyCarouselParams.from_web_input()
 
     def generate(self) -> dict:
         macro = web.template.Template.globals['macros'].CacheableMacro(
@@ -370,7 +399,7 @@ class LazyCarouselPartial(PartialDataHandler):
             title=self.i.title,
             sort=self.i.sort,
             key=self.i.key,
-            limit=int(self.i.limit),
+            limit=self.i.limit,
             search=self.i.search,
             has_fulltext_only=self.i.has_fulltext_only,
             url=self.i.url,
