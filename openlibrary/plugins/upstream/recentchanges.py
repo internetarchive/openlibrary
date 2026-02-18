@@ -185,11 +185,10 @@ class recentchanges_view(delegate.page):
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = [
-            '/usergroup/admin',
-            '/usergroup/super-librarians'
-        ]
-        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
+        allowed_usergroups = ['/usergroup/admin', '/usergroup/super-librarians']
+        if not (user := get_current_user()) or not (
+            user.is_member_of_any(allowed_usergroups)
+        ):
             raise web.unauthorized()
         if not features.is_enabled("undo"):
             return render_template(
