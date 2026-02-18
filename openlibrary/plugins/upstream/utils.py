@@ -314,7 +314,9 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
-    lang = web.ctx.lang or 'en'
+
+    lang = request_context.req_context.get().lang or 'en'
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
     try:
@@ -747,7 +749,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
-        user_lang = web.ctx.lang or 'en'
+        user_lang = request_context.req_context.get().lang or 'en'
         yield safeget(lambda: lang['name_translated'][user_lang][0])
 
         # The language's name translated into its native name (lang_iso_code)
