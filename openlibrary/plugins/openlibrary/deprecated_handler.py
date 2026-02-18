@@ -31,10 +31,10 @@ class DeprecatedEndpointHandler(delegate.page):
 
     encoding = 'json'
 
-    def GET(self):
+    def GET(self, *args):
         return handle_deprecated_request()
 
-    def POST(self):
+    def POST(self, *args):
         return handle_deprecated_request()
 
 
@@ -47,4 +47,6 @@ DEPRECATED_PATHS = [
     '/search/inside',
     '/languages',
     '/reading-goal',
+    '(/subjects/[^/]+)',
+    '(/publishers/[^/]+)',
 ]
