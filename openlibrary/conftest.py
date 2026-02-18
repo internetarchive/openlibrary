@@ -102,6 +102,7 @@ def request_context_fixture():
                 solr_editions=True,
                 print_disabled=False,
                 is_bot=False,
+                sfw=False,
             )
         )
 
@@ -112,6 +113,7 @@ def request_context_fixture():
             solr_editions=overrides.get("solr_editions", current.solr_editions),
             print_disabled=overrides.get("print_disabled", current.print_disabled),
             is_bot=overrides.get("is_bot", current.is_bot),
+            sfw=overrides.get("sfw", current.sfw),
         )
 
         token = req_context.set(new)
