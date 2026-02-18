@@ -8,7 +8,18 @@ Open Library (openlibrary.org) is an open, editable library catalog by the Inter
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+> **Note**: If `docker compose` (with space) fails with "unknown command", use `docker-compose` (with hyphen) instead. This is required when using colima or Docker without the buildx plugin.
+
+Run `make git` to initialize the Infogami submodule, then `docker-compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+
+### Service Ports
+
+When running locally:
+
+- **Main site:** http://localhost:8080
+- **Infobase:** http://localhost:7000
+- **Solr admin:** http://localhost:8983/solr/admin/
+- **Cover store:** http://localhost:7075
 
 ## Build Commands
 
@@ -71,6 +82,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 **Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
 
 **Key plugins:**
+
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
 - `plugins/upstream/` — Core features: book editing, accounts, borrowing, models
 - `plugins/worksearch/` — Solr search integration
@@ -81,6 +93,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 ### Templates (Templetor)
 
 Templates live in `openlibrary/templates/` and use web.py's Templetor syntax (not Jinja2):
+
 - `$def with (arg1, arg2)` — template arguments
 - `$variable` or `$:variable` (unescaped) — variable interpolation
 - `$if`, `$for`, `$while` — control flow
@@ -92,6 +105,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 ### Core Business Logic
 
 `openlibrary/core/` contains the data layer:
+
 - `models.py` — Data models (Work, Edition, Author, etc.)
 - `db.py` — Database access
 - `lending.py` — Book lending/availability
@@ -114,6 +128,7 @@ Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openli
 ### Data Model
 
 Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/infogami/` git submodule. The core entities are:
+
 - **Works** (`/works/OL123W`) — Abstract representation of a book (title, author associations)
 - **Editions** (`/books/OL456M`) — A specific publication of a Work (ISBN, publisher, format)
 - **Authors** (`/authors/OL789A`) — Author records linked from Works
@@ -135,30 +150,31 @@ These companion docs cover specific areas in depth:
 
 ## Key File Locations
 
-| What | Where |
-|---|---|
-| Python app entry | `openlibrary/code.py` |
-| FastAPI app | `openlibrary/asgi_app.py` |
-| Plugin route handlers | `openlibrary/plugins/*/code.py` |
-| HTML templates | `openlibrary/templates/` |
-| Template macros | `openlibrary/macros/` |
-| Core models & logic | `openlibrary/core/` |
-| JS source | `openlibrary/plugins/openlibrary/js/` |
-| CSS/LESS source | `static/css/` |
-| Vue components | `openlibrary/components/*.vue` |
-| Lit components | `openlibrary/components/lit/` |
-| Python tests | `tests/`, `openlibrary/**/tests/` |
-| JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
-| Docker config | `docker/`, `compose.yaml` |
-| Solr config | `conf/solr/` |
-| i18n translations | `openlibrary/i18n/` |
-| Infogami submodule | `vendor/infogami/` |
+| What                  | Where                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| Python app entry      | `openlibrary/code.py`                                               |
+| FastAPI app           | `openlibrary/asgi_app.py`                                           |
+| Plugin route handlers | `openlibrary/plugins/*/code.py`                                     |
+| HTML templates        | `openlibrary/templates/`                                            |
+| Template macros       | `openlibrary/macros/`                                               |
+| Core models & logic   | `openlibrary/core/`                                                 |
+| JS source             | `openlibrary/plugins/openlibrary/js/`                               |
+| CSS/LESS source       | `static/css/`                                                       |
+| Vue components        | `openlibrary/components/*.vue`                                      |
+| Lit components        | `openlibrary/components/lit/`                                       |
+| Python tests          | `tests/`, `openlibrary/**/tests/`                                   |
+| JS tests              | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Docker config         | `docker/`, `compose.yaml`                                           |
+| Solr config           | `conf/solr/`                                                        |
+| i18n translations     | `openlibrary/i18n/`                                                 |
+| Infogami submodule    | `vendor/infogami/`                                                  |
 
 ## Contributing to These Docs
 
 This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
 
 **To add a new topic:**
+
 1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
 2. Add a link to it in the **Topic Guides** section above.
 3. No changes to the bridge files are needed — agents follow links from this README.
@@ -166,3 +182,83 @@ This `docs/ai/` directory is the single source of truth for AI-agent guidance. T
 **To update general guidance:** edit this file (`docs/ai/README.md`). Only update the bridge files if a key command or style rule changes, since those are inlined in the bridges for quick reference.
 
 **To remove a tool's bridge:** delete the bridge file when the team stops using that tool.
+
+## Troubleshooting
+
+### "No module named 'infogami'"
+
+```bash
+docker-compose run --rm home sh -c "git submodule init && git submodule sync && git submodule update"
+```
+
+### "Cannot allocate memory" Errors
+
+Increase Docker's RAM allocation to at least 4GB and swap to 2GB in Docker Desktop settings.
+
+### Port Already in Use
+
+```bash
+# Check what's using the port
+lsof -i :8080
+
+# Stop conflicting services or change ports in compose.yaml
+```
+
+### Container Keeps Restarting
+
+```bash
+# Check logs for errors
+docker-compose logs web
+
+# Common fixes:
+# 1. Rebuild: docker-compose build home
+# 2. Reset volumes: docker-compose down && docker-compose rm -v
+```
+
+### Changes Not Appearing
+
+1. Rebuild assets: `docker-compose run --rm home npm run build-assets`
+2. Restart service: `docker-compose restart web`
+3. Hard refresh browser: Ctrl+Shift+R (Cmd+Shift+R on Mac)
+4. Check volume mounts: `docker-compose exec web ls -la /openlibrary`
+
+## Docker Command Quick Reference
+
+```bash
+# Start/stop services
+docker-compose up -d              # Start all services
+docker-compose down               # Stop all services
+docker-compose restart web        # Restart specific service
+docker-compose logs -f web        # View logs
+
+# Build assets
+docker-compose run --rm home npm run build-assets  # All assets
+docker-compose run --rm home make js              # JS only
+docker-compose run --rm home make css             # CSS only
+
+# Run tests
+docker-compose run --rm home make test           # All tests
+docker-compose run --rm home make test-py        # Python only
+docker-compose run --rm home npm run test:js     # JS only
+
+# Lint
+docker-compose run --rm home make lint           # Python (ruff)
+docker-compose run --rm home npm run lint        # JS + CSS
+
+# Dependencies
+docker-compose run --rm home npm install --no-audit  # Node modules
+docker-compose build home                        # Python deps
+docker-compose run --rm home sh -c "git submodule init && git submodule sync && git submodule update"  # Infogami
+
+# Database
+docker-compose exec db psql -U openlibrary openlibrary  # Connect to PostgreSQL
+```
+
+## Checklist Before Submitting
+
+- [ ] Run tests: `docker-compose run --rm home make test`
+- [ ] Run linters: `docker-compose run --rm home make lint` + `npm run lint`
+- [ ] Verify changes in browser at http://localhost:8080
+- [ ] Check for console errors in browser dev tools
+- [ ] Ensure no unintended files modified
+- [ ] Never commit `node_modules/`, `static/build/` (except `.gitkeep`), or `__pycache__/`
