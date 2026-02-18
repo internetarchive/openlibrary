@@ -1,0 +1,38 @@
+.list-follow-card__subtitle,
+.list-follow-card__description {
+  line-height: 1.2em;
+  max-height: 3.6em;
+  white-space: normal;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  text-overflow: ellipsis;
+}
+
+.list-follow-card {
+  display: flex;
+  flex-direction: column;
+
+  .card-note,
+  .list-note,
+  .notes,
+  .description,
+  .list-follow-card__note,
+  .list-follow-card__description,
+  .list-follow-card__subtitle {
+    line-height: 1.2em;
+    max-height: 3.6em;
+    white-space: normal;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    text-overflow: ellipsis;
+  }
+
+  .list-follow-card__bottom,
+  .list-follow-card__covers {
+    flex-shrink: 0;
+  }
+}
