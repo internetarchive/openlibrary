@@ -19,6 +19,7 @@ import web
 import yaml
 
 import infogami
+from infogami.utils import i18n, macro, template
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -1309,6 +1310,10 @@ def setup():
         status,
         swagger,
     )
+
+    template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
+    macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
+    i18n.load_strings("openlibrary/plugins/openlibrary")
 
     sentry.setup()
     home.setup()

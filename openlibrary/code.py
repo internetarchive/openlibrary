@@ -9,7 +9,6 @@ import os
 import sys
 
 import infogami
-from infogami.utils import i18n, macro, template
 from infogami.utils.app import pages
 from openlibrary.plugins.admin.code import setup as admin_setup
 from openlibrary.plugins.books.code import setup as books_setup
@@ -27,19 +26,15 @@ def setup():
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
 
-    template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
-    macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
-    i18n.load_strings("openlibrary/plugins/openlibrary")
-
     # Calling the setup function itself may not be strictly needed in all cases.
     # However, by importing the functions, we ensure the side effects are executed.
-    admin_setup()
-    books_setup()
-    importapi_setup()
-    inside_setup()
     openlibrary_setup()
-    upstream_setup()
     worksearch_setup()
+    inside_setup()
+    books_setup()
+    admin_setup()
+    upstream_setup()
+    importapi_setup()
 
     # Register deprecated endpoint handlers AFTER all plugins have loaded
     # This must be done here, after all plugins are imported, to ensure our handlers
