@@ -64,6 +64,7 @@ def single_thing_skeleton(**kargs):
 
 cached_bot_accounts = None
 
+
 def get_bot_accounts(thingdb=None) -> list[int]:
     """
     Returns a list of all `thing` table IDs that are associated with
