@@ -139,7 +139,7 @@ async def my_books_dropper_lists_partial(
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def lazy_carousel_partial(
+async def lazy_carousel_partial(
     params: Annotated[LazyCarouselParams, Query()],
 ) -> dict:
     """
