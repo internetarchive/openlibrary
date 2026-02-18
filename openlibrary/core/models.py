@@ -938,10 +938,7 @@ class User(Thing):
         """
         Returns True if `User` is a member of any of the given usergroups.
         """
-        for grp in usergroups:
-            if self.is_usergroup_member(grp):
-                return True
-        return False
+        return any(self.is_usergroup_member(grp) for grp in usergroups)
 
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
