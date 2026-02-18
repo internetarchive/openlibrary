@@ -33,8 +33,13 @@ import requests
 # Base URL for the LazyCarousel partials endpoint
 BASE_URL = "http://localhost:8080/partials/LazyCarousel.json"
 
+# FastAPI endpoint (should produce identical output to BASE_URL)
+FASTAPI_BASE_URL = "http://localhost:18080/partials/LazyCarousel.json"
 
-def build_lazy_carousel_url(params: dict | None = None) -> str:
+
+def build_lazy_carousel_url(
+    params: dict | None = None, base_url: str = BASE_URL
+) -> str:
     """
     Build the URL for the LazyCarousel partial endpoint.
 
@@ -43,19 +48,21 @@ def build_lazy_carousel_url(params: dict | None = None) -> str:
 
     Args:
         params: Optional dict of query parameters
+        base_url: Base URL to use (defaults to web.py endpoint)
 
     Returns:
         Complete URL with query parameters
     """
     if params:
         query_string = urllib.parse.urlencode(params)
-        return f"{BASE_URL}?{query_string}"
-    return BASE_URL
+        return f"{base_url}?{query_string}"
+    return base_url
 
 
 def make_request(
     description: str,
     params: dict | None = None,
+    base_url: str = BASE_URL,
 ) -> dict[str, Any]:
     """
     Make a request to the LazyCarousel endpoint and return the response.
@@ -63,11 +70,12 @@ def make_request(
     Args:
         description: Description of the test case for logging
         params: Optional query parameters to include
+        base_url: Base URL to use (defaults to web.py endpoint)
 
     Returns:
         Parsed JSON response from the server, or dict with error info
     """
-    url = build_lazy_carousel_url(params)
+    url = build_lazy_carousel_url(params, base_url=base_url)
 
     print(f"\n{'=' * 60}")
     print(f"Test: {description}")
@@ -182,6 +190,67 @@ def test_with_limit():
         params={'query': 'travel', 'limit': 5},
     )
     assert 'partials' in result
+
+
+@pytest.mark.integration
+def test_default_search_param_matches_search_false():
+    """
+    Verify that omitting the search param behaves the same as search=false.
+
+    The web.py endpoint had a bug where the boolean default False for `search`
+    in web.input() caused `False != "false"` to evaluate to True, making the
+    default behave like search=true instead of search=false.
+    """
+    result_no_param = make_request(
+        description="No search param (should default to False)",
+        params={'query': 'history'},
+    )
+    result_explicit_false = make_request(
+        description="Explicit search=false",
+        params={'query': 'history', 'search': 'false'},
+    )
+    assert 'partials' in result_no_param
+    assert 'partials' in result_explicit_false
+    assert result_no_param['partials'] == result_explicit_false['partials'], (
+        "Omitting 'search' should produce the same output as search=false, "
+        "but they differ. This likely means search defaults to True instead of False."
+    )
+
+
+@pytest.mark.integration
+def test_webpy_and_fastapi_endpoints_match():
+    """
+    Verify that the web.py (port 8080) and FastAPI (port 18080) endpoints
+    return identical output for the same parameters.
+
+    These two endpoints share the same LazyCarouselParams model, so their
+    output should always be identical.
+    """
+    test_cases = [
+        None,  # no params
+        {'query': 'history'},
+        {'query': 'history', 'search': 'false'},
+        {'query': 'history', 'search': 'true'},
+        {'query': 'cooking', 'has_fulltext_only': 'false'},
+    ]
+    for params in test_cases:
+        webpy_result = make_request(
+            description=f"web.py endpoint, params={params}",
+            params=params,
+            base_url=BASE_URL,
+        )
+        fastapi_result = make_request(
+            description=f"FastAPI endpoint, params={params}",
+            params=params,
+            base_url=FASTAPI_BASE_URL,
+        )
+        assert 'partials' in webpy_result
+        assert 'partials' in fastapi_result
+        assert webpy_result['partials'] == fastapi_result['partials'], (
+            f"web.py and FastAPI endpoints returned different output for params={params}.\n"
+            f"web.py:  {webpy_result['partials'][:300]!r}\n"
+            f"FastAPI: {fastapi_result['partials'][:300]!r}"
+        )
 
 
 def run_all_tests():

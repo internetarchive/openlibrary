@@ -389,7 +389,7 @@ class LazyCarouselParams(BaseModel):
             sort="new",
             key="",
             limit=20,
-            search=False,
+            search="false",
             has_fulltext_only=True,
             url=None,
             layout="carousel",
