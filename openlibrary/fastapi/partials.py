@@ -2,14 +2,20 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, HTTPException, Query, Response
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
 
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    require_authenticated_user,
+)
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
     FullTextSuggestionsPartial,
+    ReadingGoalProgressPartial,
     SearchFacetsPartial,
 )
 
@@ -69,7 +75,6 @@ def book_page_lists_partial(
 
     At least one of workId or editionId must be provided.
     """
-    # TODO: make this work when user is logged in. Blocked on #11816
     return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
 
@@ -92,3 +97,21 @@ def fulltext_search_suggestion_partial(
         response.headers["Cache-Control"] = "public, max-age=300"
 
     return result
+
+
+@router.get(
+    "/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
+async def reading_goal_progress_partial(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    year: int | None = Query(
+        None, description="Year for reading goal (defaults to current year)"
+    ),
+) -> dict:
+    """
+    Get reading goal progress HTML for the current user.
+
+    The year parameter is optional; defaults to the current year.
+    """
+    # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
+    return ReadingGoalProgressPartial(year=year or datetime.now().year).generate()
