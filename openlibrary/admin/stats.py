@@ -59,11 +59,11 @@ def get_config_info(infobase_config):
 
 
 def store_data(data, date):
-    uid = "counts-%s" % date
+    uid = "test-counts-%s" % date
     logger.debug(" Updating stats for %s - %s", uid, data)
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
-    doc['type'] = 'admin-stats'
+    doc['type'] = 'test-admin-stats'
     # as per https://github.com/internetarchive/infogami/blob/master/infogami/infobase/_dbstore/store.py#L79-L83
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
