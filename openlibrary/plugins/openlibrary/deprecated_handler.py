@@ -49,4 +49,5 @@ DEPRECATED_PATHS = [
     '/reading-goal',
     '(/subjects/[^/]+)',
     '(/publishers/[^/]+)',
+    '(/partials/[^/]+)',
 ]
