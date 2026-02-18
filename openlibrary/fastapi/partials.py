@@ -15,6 +15,7 @@ from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
     BookPageListsPartial,
     FullTextSuggestionsPartial,
+    MyBooksDropperListsPartial,
     ReadingGoalProgressPartial,
     SearchFacetsPartial,
 )
@@ -115,3 +116,21 @@ async def reading_goal_progress_partial(
     """
     # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
     return ReadingGoalProgressPartial(year=year or datetime.now().year).generate()
+
+
+@router.get(
+    "/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
+async def my_books_dropper_lists_partial(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    """
+    Get MyBooks dropper lists HTML and list data for the current user.
+
+    Returns:
+    - dropper: HTML string for the dropper lists component
+    - listData: dict mapping list keys to their members and names
+    """
+    # Despite the fact we are not yet using the user directly, it gives us faster
+    # auth checking and api documentation.
+    return MyBooksDropperListsPartial().generate()
