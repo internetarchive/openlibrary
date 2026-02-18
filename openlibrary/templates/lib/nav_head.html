@@ -110,52 +110,97 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
         </form>
         <script>
         (function(){
+          if (typeof window.setupSearchValidation !== 'function') {
+            window.setupSearchValidation = function setupSearchValidation(category, input, form) {
+              if (!input) return;
+
+              var activeCategory = category;
+
+              function isRestrictedCategory() {
+                return activeCategory === 'author' || activeCategory === 'authors';
+              }
+
+              function updateValidation() {
+                if (isRestrictedCategory()) {
+                  input.setAttribute('minlength', '2');
+                  input.setAttribute('pattern', '.*\\S.*\\S.*');
+                } else {
+                  input.removeAttribute('minlength');
+                  input.removeAttribute('pattern');
+                  input.setCustomValidity('');
+                }
+              }
+
+              if (!input._searchValidationListenersBound) {
+                input.addEventListener('invalid', function () {
+                  if (!isRestrictedCategory()) {
+                    input.setCustomValidity('');
+                    return;
+                  }
+
+                  if (input.validity.patternMismatch) {
+                    input.setCustomValidity('Please enter at least 2 characters');
+                  } else {
+                    input.setCustomValidity('');
+                  }
+                });
+
+                input.addEventListener('input', function () {
+                  input.setCustomValidity('');
+                });
+
+                input._searchValidationListenersBound = true;
+              }
+
+              updateValidation();
+
+              if (form && !form._searchValidationSubmitBound) {
+                form.addEventListener('submit', function(e){
+                  if (isRestrictedCategory() && !input.checkValidity()) {
+                    e.preventDefault();
+                    if (typeof input.reportValidity === 'function') {
+                      input.reportValidity();
+                    } else {
+                      input.focus();
+                    }
+                  }
+                }, false);
+                form._searchValidationSubmitBound = true;
+              }
+
+              return {
+                setCategory: function(nextCategory) {
+                  activeCategory = nextCategory;
+                  updateValidation();
+                },
+                update: updateValidation
+              };
+            };
+          }
+
           var input = document.querySelector('.search-bar-input input[type="text"][name="q"]');
           var facetSelect = document.querySelector('select[aria-label="Search by"]');
           var form = document.querySelector('.search-bar-input');
           if (!input || !facetSelect || !form) return;
 
-          function updateValidation() {
-            var isAuthorFacet = facetSelect.value === 'author';
-            if (isAuthorFacet) {
-              input.setAttribute('minlength', '2');
-              input.setAttribute('pattern', '.{2,}');
-              input.setAttribute('oninvalid', 'this.setCustomValidity(this.value.trim().length > 0 && this.value.trim().length < 2 ? "Please enter at least 2 characters" : "")');
-              input.setAttribute('oninput', 'this.setCustomValidity("")');
-            } else {
-              input.removeAttribute('minlength');
-              input.removeAttribute('pattern');
-              input.removeAttribute('oninvalid');
-              input.removeAttribute('oninput');
-              input.setCustomValidity('');
-            }
+          var validation = window.setupSearchValidation(facetSelect.value, input, form);
+
+          function syncCategory() {
+            validation.setCategory(facetSelect.value);
           }
 
-          facetSelect.addEventListener('change', updateValidation);
+          facetSelect.addEventListener('change', syncCategory);
 
-          // Watch for value changes (including programmatic ones from SearchBar.js)
-          var lastValue = facetSelect.value;
-          setInterval(function() {
-            if (facetSelect.value !== lastValue) {
-              lastValue = facetSelect.value;
-              updateValidation();
-            }
-          }, 100);
+          var observer = new MutationObserver(syncCategory);
+          observer.observe(facetSelect, {
+            attributes: true,
+            attributeFilter: ['value'],
+            childList: true,
+            subtree: true
+          });
 
-          // Call once immediately and again after SearchBar.js initializes
-          updateValidation();
-          setTimeout(updateValidation, 500);
-
-          form.addEventListener('submit', function(e){
-            if (facetSelect.value === 'author' && !input.checkValidity()) {
-              e.preventDefault();
-              if (typeof input.reportValidity === 'function') {
-                input.reportValidity();
-              } else {
-                input.focus();
-              }
-            }
-          }, false);
+          syncCategory();
+          setTimeout(syncCategory, 500);
         })();
         </script>
       </div>
