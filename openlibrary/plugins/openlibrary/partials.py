@@ -6,6 +6,7 @@ from urllib.parse import parse_qs
 
 import web
 from pydantic import BaseModel
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
@@ -458,6 +459,7 @@ class PartialRequestResolver:
         raise PartialResolutionError(f'No handler found for key "{component}"')
 
 
+@deprecated("migrated to fastapi")
 class Partials(delegate.page):
     path = r'/partials/([A-Za-z]+)'
     encoding = 'json'
