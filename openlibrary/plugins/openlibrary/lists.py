@@ -28,6 +28,7 @@ from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.utils import olid_to_key
+from openlibrary.utils.request_context import site
 
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
@@ -966,9 +967,7 @@ def get_lists(keys: list[str]):
         sort='last_modified desc',
         request_label="LIST_CAROUSEL",
     )
-    lists = cast(
-        list[List], web.ctx.site.get_many([doc["key"] for doc in response.docs])
-    )
+    lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
 
     return [get_list_data(lst, None) for lst in lists]
 

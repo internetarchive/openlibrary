@@ -29,6 +29,7 @@ class RequestContextVars:
     lang: str | None
     solr_editions: bool | None
     print_disabled: bool
+    sfw: bool = False
     is_bot: bool = False
 
 
@@ -162,6 +163,7 @@ def set_context_from_legacy_web_py() -> None:
     """
     solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get('pd', False))
+    sfw = bool(web.cookies().get('sfw', ''))
 
     # Compute is_bot once during request setup
     is_bot = _compute_is_bot(
@@ -177,6 +179,7 @@ def set_context_from_legacy_web_py() -> None:
             lang=web.ctx.lang,
             solr_editions=solr_editions,
             print_disabled=print_disabled,
+            sfw=sfw,
             is_bot=is_bot,
         )
     )
@@ -205,6 +208,7 @@ def set_context_from_fastapi(request: Request) -> None:
             lang=request.state.lang,
             solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get('pd', False)),
+            sfw=bool(request.cookies.get('sfw', '')),
             is_bot=is_bot,
         )
     )
