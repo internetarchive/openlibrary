@@ -71,7 +71,7 @@ def affiliate_links_partial(
 
 
 @router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def book_page_lists_partial(
+async def book_page_lists_partial(
     workId: str = Query("", description="Work ID (e.g., /works/OL53924W)"),
     editionId: str = Query("", description="Edition ID (e.g., /books/OL7353617M)"),
 ) -> dict:
