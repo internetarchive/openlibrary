@@ -538,6 +538,7 @@ def do_search(
     highlight=False,
     spellcheck_count=None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    sfw: bool = False,
 ):
     """
     :param param: dict of search url parameters
@@ -556,7 +557,7 @@ def do_search(
         extra_fields.add('trending_*')
     fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    if web.cookies(sfw="").sfw == 'yes':
+    if sfw:
         fields |= {'subject'}
 
     return run_solr_query(
@@ -769,6 +770,7 @@ class search(delegate.page):
                 highlight=True,
                 spellcheck_count=3,
                 request_label='BOOK_SEARCH',
+                sfw=web.cookies(sfw="").sfw == 'yes',
             )
         else:
             search_response = SearchResponse(

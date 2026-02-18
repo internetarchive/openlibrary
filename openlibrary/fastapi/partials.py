@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 import os
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Query, Response
+from fastapi import APIRouter, Cookie, HTTPException, Query, Response
 
 from openlibrary.plugins.openlibrary.partials import (
     AffiliateLinksPartial,
@@ -21,6 +22,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 def search_facets_partial(
     data: str = Query(..., description="JSON-encoded data with search parameters"),
+    sfw: Annotated[str | None, Cookie()] = None,
 ) -> dict:
     """
     Get search facets sidebar and selected facets HTML.
@@ -36,7 +38,7 @@ def search_facets_partial(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return SearchFacetsPartial(data=parsed_data).generate()
+    return SearchFacetsPartial(data=parsed_data, sfw=sfw == 'yes').generate()
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

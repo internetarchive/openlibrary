@@ -225,7 +225,8 @@ class AffiliateLinksPartial(PartialDataHandler):
 class SearchFacetsPartial(PartialDataHandler):
     """Handler for search facets sidebar and "selected facets" affordances."""
 
-    def __init__(self, data: dict | None = None):
+    def __init__(self, data: dict | None = None, sfw: bool = False):
+        self.sfw = sfw
         if data is None:
             i = web.input(data=None)
             self.data = json.loads(i.data) if i.data else {}
@@ -246,6 +247,7 @@ class SearchFacetsPartial(PartialDataHandler):
             spellcheck_count=3,
             facet=True,
             request_label='BOOK_SEARCH_FACETS',
+            sfw=self.sfw,
         )
 
         sidebar = render_template(
