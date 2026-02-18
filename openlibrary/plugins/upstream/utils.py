@@ -237,18 +237,17 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
-        lang = web.ctx.lang
+        req_context = request_context.req_context.get()
+        lang = req_context.lang
         key_prefix = f'{name}.{lang}'
-        cookies = web.cookies()
-        if cookies.get('pd', False):
+        if req_context.print_disabled:
             key_prefix += '.pd'
-        if cookies.get('sfw', ''):
+        if req_context.sfw:
             key_prefix += '.sfw'
-        if is_bot():
+        if req_context.is_bot:
             key_prefix += '.bot'
         return key_prefix
 
