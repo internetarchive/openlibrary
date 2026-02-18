@@ -31,7 +31,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def search_facets_partial(
+async def search_facets_partial(
     data: str = Query(..., description="JSON-encoded data with search parameters"),
     sfw: Annotated[str | None, Cookie()] = None,
 ) -> dict:
@@ -53,7 +53,7 @@ def search_facets_partial(
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
-def affiliate_links_partial(
+async def affiliate_links_partial(
     data: str = Query(..., description="JSON-encoded data with book information"),
 ) -> dict:
     """
@@ -86,7 +86,7 @@ async def book_page_lists_partial(
 @router.get(
     "/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
 )
-def fulltext_search_suggestion_partial(
+async def fulltext_search_suggestion_partial(
     response: Response,
     data: str = Query(..., description="Search query string"),
 ) -> dict:
