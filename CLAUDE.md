@@ -1,1 +1,1 @@
-/Users/rayberger/workspace/openlibrary/AGENTS.md
+AGENTS.md
