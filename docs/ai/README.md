@@ -43,6 +43,33 @@ make test-i18n
 make test
 ```
 
+## Troubleshooting
+
+### Books not appearing in search
+
+**Symptom:** You can view a book at `/books/OL1M` (DB has the record) but search returns no results.
+
+**Diagnosis:**
+```bash
+# Check DB record count
+docker compose exec db psql -U openlibrary -t -c "select count(*) from thing"
+
+# Check Solr index count
+curl "http://localhost:8983/solr/openlibrary/select?q=*:*&rows=0"
+```
+
+**Common cause:** New Solr fields were added to `conf/solr/conf/managed-schema.xml` but the local Solr core still has the old schema. The `solr-updater` fails silently when trying to index new field types.
+
+**Manual fix:**
+```bash
+# Option 1: Re-run the reindex
+docker compose run --rm home make reindex-solr
+
+# Option 2: If schema mismatch persists, fully reset Solr volume
+docker compose down -v solr-data && docker compose up -d solr
+docker compose run --rm home make reindex-solr
+```
+
 ## Linting
 
 ```bash
