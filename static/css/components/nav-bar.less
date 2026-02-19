@@ -121,8 +121,9 @@
 
     @media (hover: hover) and (pointer: fine) {
       /* stylelint-disable max-nesting-depth */
-      li:hover {
-        background-color: darken(@blue-5e88B9, 10%);
+      li:hover,
+      li.selected:hover {
+        background-color: @color-link-hovered;
 
         a {
           color: @white;
@@ -131,7 +132,7 @@
     }
 
     li.selected {
-      background-color: @blue-5e88B9;
+      background-color: @color-link;
 
       a {
         color: @white;

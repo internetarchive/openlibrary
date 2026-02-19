@@ -1,132 +1,333 @@
-// blue
-@primary-blue: hsl(202, 96%, 37%);
-@link-blue: hsl(202, 96%, 28%);
-@mid-blue: hsl(204, 70%, 53%);
-@dark-blue: hsl(210, 100%, 20%);
-@darker-brand-blue: hsl(198, 100%, 36%);
-@header-nav-hover-color: hsl(207, 83%, 33%);
-@blue-b0bed9: hsl(220, 35%, 77%);
-@count-blue-grey: hsla(211, 28%, 41%, 1);
-@grey-blue: hsl(211, 37%, 89%);
-@teal: hsl(184, 100%, 21%);
-@button-hover-blue: hsl(202, 57%, 61%);
-@dark-baby-blue: hsl(240, 100%, 75%);
-@mid-baby-blue: hsl(240, 100%, 88%);
-@baby-blue: hsl(240, 100%, 93%);
-@blue-9fafd1: hsl(221, 35%, 72%);
-@blue-3366ff: hsl(225, 100%, 60%);
-@blue-5e88B9: hsl(212, 39%, 55%);
+/*
+ * Color Design Tokens
+ * ===================
+ * Two-tier system: Primitives → Semantic Tokens
+ *
+ * PRIMITIVES (Tier 1): A curated palette of base values. Avoid using directly.
+ * SEMANTIC TOKENS (Tier 2): Map design intent to primitives. Use these in components.
+ *
+ * LEGACY ALIASES: Backward-compatible mappings for gradual migration.
+ *
+ * Migration path:
+ * 1. New code should use semantic tokens (e.g., @color-text, @color-bg-primary)
+ * 2. If no semantic token fits, use a primitive (e.g., @color-blue-500)
+ * 3. Legacy aliases will be removed once all components are migrated
+ */
 
-// green
-@green: hsl(130, 61%, 33%);
-@mid-baby-green: hsl(120, 100%, 88%);
-@baby-green: hsl(120, 100%, 93%);
-@dark-green: hsl(113, 38%, 29%);
-@soft-green: hsl(97, 51%, 77%);
-@soft-green-two: hsl(97, 40%, 70%);
-@olive: hsl(81, 39%, 35%);
-@light-olive-2: hsl(78, 34%, 63%);
-@lime-green: hsl(75, 100%, 85%);
-@check-green: hsl(126, 100%, 36%);
+/* ========================================
+   TIER 1: COLOR PRIMITIVES
+   ========================================
+   Base color values organized by hue family.
 
-// orange
-@orange: hsl(32, 100%, 61%);
-@orange-three: hsl(32, 100%, 78%);
-@orange-four: hsl(23, 51%, 77%);
-@orange-five: hsl(23, 100%, 50%);
-@burnt-sienna: hsl(19, 95%, 40%);
+   Each scale uses consistent hue and saturation, varying only lightness.
+   This creates visual harmony and predictable color relationships.
 
-// reds
-@red: hsl(8, 78%, 49%);
-@dark-red: hsl(8, 70%, 44%);
-@red-two: hsl(4, 90%, 58%);
-@red-three: hsl(0, 100%, 50%);
+   Naming: @color-{hue}-{lightness}
+   - 50 = lightest (near white, ~97% lightness)
+   - 500 = mid-tone (~45% lightness)
+   - 900/950 = darkest (near black, ~10-15% lightness)
+   ======================================== */
 
-// pinks
-@mid-baby-pink: hsl(0, 100%, 88%);
-@baby-pink: hsl(0, 100%, 93%);
-@magenta: hsl(300, 100%, 50%);
+// === CORE ===
+@color-white: hsl(0, 0%, 100%);
+@color-black: hsl(0, 0%, 0%);
 
-// beige
-@dark-yellow: hsl(57, 60%, 72%);
-@beige-bright: #f6f1e6;
-@beige-deep: #ebdfc5;
-@beige-two: hsl(63, 26%, 84%);
-@beige-three: hsl(48, 15%, 74%);
-@beige: hsl(48, 33%, 83%);
-@brown: hsl(40, 32%, 29%);
-@account-icon-border: hsl(45, 7%, 79%); // this color is only used once
-@light-yellow: hsl(58, 100%, 90%);
-@lighter-yellow: hsl(58, 92%, 95%);
-@dark-beige: hsl(64, 9%, 71%);
-@light-beige: hsl(48, 29%, 93%);
-@cream: hsl(49, 30%, 93%);
-@off-white: hsl(45, 100%, 98%);
-@gold: hsl(50, 100%, 50%);
+// === BRAND ===
+// Open Library's primary brand color - a vibrant blue (hue 202°)
+// Used for primary actions, links, and key interactive elements
+@color-brand-primary: hsl(202, 96%, 37%); // main brand blue
+@color-brand-primary-dark: hsl(202, 96%, 28%); // hover/pressed states
+@color-brand-primary-light: hsl(202, 70%, 55%); // lighter variant
 
-// greyscale
-@black: hsl(0, 0%, 0%);
-@boxshadow-black: hsla(0, 0, 0, 0.15);
-@icon-link-grey: hsla(0, 0%, 0%, 0.1);
-@dark-grey: hsl(0, 0%, 20%);
-@grey-464646: hsl(0, 0%, 27%);
-@darker-grey: hsl(0, 0%, 27%);
-@grey-555: hsl(0, 0%, 33%);
-@dark-grey-two: hsl(0, 0%, 35%);
-@grey: hsl(0, 0%, 40%);
-// minimum grey for a white background to be accessible
-@accessible-grey: hsl(0, 0%, 46.3%);
-@mid-grey: hsl(0, 0%, 60%);
-@light-mid-grey: hsl(0, 0%, 67%);
-@background-grey: hsla(0, 0%, 78%, 0.23);
-@light-grey: hsl(0, 0%, 80%);
-@lighter-grey: hsl(0, 0%, 87%);
-@grey-e7e7e7: hsl(0, 0%, 91%);
-@lightest-grey: hsl(0, 0%, 93%);
-@grey-f3f3f3: hsl(0, 0%, 95%);
-@grey-fafafa: hsl(0, 0%, 98%);
-@white: hsl(0, 0%, 100%);
-@gray-a19b9e: hsl(330, 3%, 62%);
-@gray-d1cfd0: hsl(330, 2%, 82%);
-@grey-f4f4f4: hsl(0, 0%, 96%);
+// === NEUTRALS (warm grey scale) ===
+// Warm greys (hue 40°, 4% saturation) for text, borders, and chrome.
+// Subtle warmth creates cohesion with the paper-inspired palette.
+@color-grey-50: hsl(40, 4%, 98%);
+@color-grey-100: hsl(40, 4%, 96%);
+@color-grey-200: hsl(40, 4%, 90%);
+@color-grey-300: hsl(40, 4%, 83%);
+@color-grey-400: hsl(40, 4%, 74%);
+@color-grey-500: hsl(40, 4%, 62%);
+@color-grey-600: hsl(40, 4%, 50%);
+@color-grey-700: hsl(40, 4%, 40%);
+@color-grey-800: hsl(40, 4%, 30%);
+@color-grey-900: hsl(40, 4%, 20%);
+@color-grey-950: hsl(40, 4%, 12%);
 
-// outliers
-@admin-row-background: hsl(58, 66%, 81%);
-@admin-table-border: hsl(48, 26%, 73%);
-@heart-color: hsl(358, 100%, 74%);
-@blue: hsl(240, 100%, 50%);
-@purple: hsl(283, 97%, 61%);
-@header-bar-gradient-start: hsl(41.2, 47.1%, 93.3%);
-@header-bar-gradient-end: hsl(41.5, 48.1%, 89.4%);
-@account-icon-background: hsla(37, 24%, 79%, 0.761);
+// === WARM NEUTRALS (paper-inspired beige scale) ===
+// Open Library's signature warm palette, inspired by book pages and paper.
+// Hue 45° (golden), saturation 30%. Used for backgrounds and warm surfaces.
+@color-warm-50: hsl(45, 30%, 97%);
+@color-warm-100: hsl(45, 30%, 93%);
+@color-warm-200: hsl(45, 30%, 88%);
+@color-warm-300: hsl(45, 30%, 80%);
+@color-warm-400: hsl(45, 25%, 72%);
+@color-warm-500: hsl(45, 20%, 62%);
+@color-warm-600: hsl(45, 20%, 50%);
+@color-warm-700: hsl(45, 25%, 35%);
+@color-warm-800: hsl(45, 30%, 25%);
+@color-warm-900: hsl(45, 35%, 18%);
 
-// book cover carousel component
-@book-cover-carousel-background: hsl(47, 54%, 90%);
-@book-cover-carousel-border-top: hsl(51, 32%, 88%);
-@book-cover-carousel-border-bottom: hsl(50, 32%, 85%);
-@book-cover-carousel-cards: hsl(47, 54%, 98%);
+// === BLUES (hue 205°, saturation 85%) ===
+// Brand-adjacent blue scale for UI elements, links, and information.
+@color-blue-50: hsl(205, 85%, 97%);
+@color-blue-100: hsl(205, 85%, 92%);
+@color-blue-200: hsl(205, 80%, 82%);
+@color-blue-300: hsl(205, 75%, 70%);
+@color-blue-400: hsl(205, 80%, 55%);
+@color-blue-500: hsl(205, 85%, 45%);
+@color-blue-600: hsl(205, 90%, 38%);
+@color-blue-700: hsl(205, 90%, 30%);
+@color-blue-800: hsl(205, 85%, 23%);
+@color-blue-900: hsl(205, 80%, 18%);
+@color-blue-950: hsl(205, 75%, 12%);
 
-// book cover
-@book-cover-shadow-color: hsl(48, 35%, 64%);
+// === REDS (hue 0°, saturation 85%) ===
+// For errors, destructive actions, alerts, and love/heart icons.
+@color-red-50: hsl(0, 85%, 97%);
+@color-red-100: hsl(0, 85%, 92%);
+@color-red-200: hsl(0, 80%, 82%);
+@color-red-300: hsl(0, 75%, 70%);
+@color-red-400: hsl(0, 80%, 58%);
+@color-red-500: hsl(0, 85%, 50%);
+@color-red-600: hsl(0, 80%, 42%);
+@color-red-700: hsl(0, 75%, 35%);
+@color-red-800: hsl(0, 70%, 28%);
+@color-red-900: hsl(0, 65%, 20%);
 
-// nagios
-@nagios-green: hsl(108, 100%, 50%);
+// === GREENS (hue 145°, saturation 65%) ===
+// For success states, confirmations, availability, and positive actions.
+@color-green-50: hsl(145, 65%, 96%);
+@color-green-100: hsl(145, 65%, 90%);
+@color-green-200: hsl(145, 60%, 80%);
+@color-green-300: hsl(145, 55%, 65%);
+@color-green-400: hsl(145, 60%, 48%);
+@color-green-500: hsl(145, 70%, 38%);
+@color-green-600: hsl(145, 75%, 30%);
+@color-green-700: hsl(145, 70%, 24%);
+@color-green-800: hsl(145, 65%, 18%);
+@color-green-900: hsl(145, 60%, 14%);
 
-// merge request table
-@open-green: hsl(126, 100%, 30%);
-@closed-red: hsl(0, 100%, 50%);
-@merged-purple: hsl(266, 100%, 75%);
+// === ORANGES (hue 25°, saturation 95%) ===
+// For warnings, highlights, and warm accents.
+@color-orange-50: hsl(25, 95%, 96%);
+@color-orange-100: hsl(25, 95%, 88%);
+@color-orange-200: hsl(25, 90%, 78%);
+@color-orange-300: hsl(25, 90%, 65%);
+@color-orange-400: hsl(25, 95%, 55%);
+@color-orange-500: hsl(25, 95%, 48%);
+@color-orange-600: hsl(25, 90%, 40%);
+@color-orange-700: hsl(25, 85%, 32%);
+@color-orange-800: hsl(25, 80%, 25%);
+@color-orange-900: hsl(25, 75%, 18%);
 
-/* === BORDER & OUTLINE ROLES === */
-/* Use for visual separation and hierarchy */
+// === YELLOWS (hue 50°, saturation 95%) ===
+// For warnings, highlights, and gold accents.
+@color-yellow-50: hsl(50, 95%, 96%);
+@color-yellow-100: hsl(50, 95%, 90%);
+@color-yellow-200: hsl(50, 90%, 82%);
+@color-yellow-300: hsl(50, 85%, 70%);
+@color-yellow-400: hsl(50, 90%, 58%);
+@color-yellow-500: hsl(50, 95%, 50%);
+@color-yellow-600: hsl(50, 90%, 42%);
+@color-yellow-700: hsl(50, 85%, 32%);
+@color-yellow-800: hsl(50, 80%, 24%);
+@color-yellow-900: hsl(50, 75%, 18%);
 
-/* Default borders - standard UI element borders (inputs, cards, dividers) */
-@color-border: @grey;
-@color-border-hovered: @grey;
-@color-border-focused: @primary-blue;
-@color-border-error: @red;
+// === PURPLES (hue 270°, saturation 70%) ===
+// For merged states, special highlights, and accent elements.
+@color-purple-50: hsl(270, 70%, 97%);
+@color-purple-100: hsl(270, 70%, 92%);
+@color-purple-200: hsl(270, 65%, 82%);
+@color-purple-300: hsl(270, 65%, 72%);
+@color-purple-400: hsl(270, 70%, 60%);
+@color-purple-500: hsl(270, 75%, 50%);
+@color-purple-600: hsl(270, 70%, 42%);
+@color-purple-700: hsl(270, 65%, 34%);
+@color-purple-800: hsl(270, 60%, 26%);
+@color-purple-900: hsl(270, 55%, 18%);
 
-/* Subtle borders - less prominent separation, nested elements */
-@color-border-subtle: @lighter-grey;
+// === SPECIAL COLORS ===
+// Colors that don't fit the standard scales - use sparingly.
+@color-teal-600: hsl(184, 100%, 21%); // distinct accent
+@color-green-neon: hsl(108, 100%, 50%); // system status (nagios)
+@color-magenta-500: hsl(300, 100%, 50%); // vivid accent
 
-@color-focus-ring: @primary-blue;
+// === TRANSPARENCY VARIANTS ===
+// Pre-defined alpha values for common use cases.
+@color-black-15: hsla(0, 0%, 0%, 0.15); // box shadows
+@color-black-10: hsla(0, 0%, 0%, 0.1); // subtle overlays
+@color-warm-100-alpha: hsla(45, 30%, 93%, 0.8); // warm overlay
+
+/* ========================================
+   TIER 2: SEMANTIC TOKENS
+   ========================================
+   Map design intent to primitives.
+   Use these in components - they communicate purpose, not appearance.
+
+   Naming: @color-{category}-{variant}
+   Categories: bg, text, border, link, status
+   ======================================== */
+
+// === PAGE BACKGROUNDS ===
+@color-bg: @color-warm-100; // default page background
+@color-bg-hovered: @color-warm-200; // hovered page areas
+@color-bg-elevated: @color-white; // cards, modals, elevated surfaces
+@color-bg-elevated-hovered: @color-warm-100; // hovered cards
+@color-bg-recessed: @color-warm-300; // inset areas, wells
+
+// === TEXT COLORS ===
+@color-text: @color-grey-700; // body text
+@color-text-strong: @color-grey-900; // headings, emphasis
+@color-text-secondary: @color-grey-500; // captions, metadata
+@color-text-on-primary: @color-white; // text on brand-colored backgrounds
+@color-text-on-dark: @color-white; // text on dark backgrounds
+
+// === INTERACTIVE / LINKS ===
+@color-link: @color-brand-primary;
+@color-link-hovered: @color-brand-primary-dark;
+@color-link-visited: @color-blue-800;
+
+// === PRIMARY ACTIONS ===
+@color-bg-primary: @color-brand-primary;
+@color-bg-primary-hovered: @color-brand-primary-dark;
+
+// === STATUS COLORS ===
+@color-error: @color-red-500;
+@color-error-light: @color-red-100;
+@color-success: @color-green-500;
+@color-success-light: @color-green-100;
+@color-warning: @color-yellow-500;
+@color-warning-light: @color-yellow-100;
+
+// === BORDERS ===
+@color-border: @color-grey-400; // default borders
+@color-border-hovered: @color-grey-500; // hovered borders
+@color-border-focused: @color-brand-primary; // focus indicator
+@color-border-error: @color-red-500; // error states
+@color-border-subtle: @color-grey-200; // subtle dividers
+@color-border-warm: @color-warm-400; // borders on warm backgrounds
+
+// === FOCUS STATES ===
+@color-focus-ring: @color-brand-primary;
+
+/* ========================================
+   LEGACY ALIASES
+   ========================================
+   Backward-compatible mappings from old variable names to new tokens.
+
+   STATUS: Deprecated - do not use in new code.
+   MIGRATION: Replace with semantic tokens or primitives.
+   REMOVAL: Once all 83+ files are migrated, these can be removed.
+   ======================================== */
+
+// --- BLUES ---
+@primary-blue: @color-brand-primary; // 37 usages
+@link-blue: @color-brand-primary-dark; // 44 usages
+@mid-blue: @color-blue-400; // 2 usages
+@dark-blue: @color-blue-900; // 6 usages
+@darker-brand-blue: @color-brand-primary; // 0 usages
+@header-nav-hover-color: @color-blue-700; // 2 usages
+@blue-b0bed9: @color-blue-300; // 2 usages
+@count-blue-grey: @color-blue-600; // 2 usages
+@grey-blue: @color-blue-100; // 3 usages
+@teal: @color-teal-600; // 6 usages
+@button-hover-blue: @color-brand-primary-light; // 2 usages
+@dark-baby-blue: @color-blue-300; // 1 usage
+@mid-baby-blue: @color-blue-100; // 1 usage
+@baby-blue: @color-blue-50; // 7 usages
+@blue-9fafd1: @color-blue-300; // 1 usage
+@blue-3366ff: @color-blue-500; // 2 usages
+@blue-5e88B9: @color-blue-400; // 0 usages
+@blue: @color-blue-600; // 2 usages
+
+// --- GREENS ---
+@green: @color-green-500; // 7 usages
+@mid-baby-green: @color-green-100; // 2 usages
+@baby-green: @color-green-50; // 6 usages
+@dark-green: @color-green-700; // 12 usages
+@soft-green: @color-green-200; // 2 usages
+@soft-green-two: @color-green-200; // 1 usage
+@olive: @color-green-800; // 9 usages
+@light-olive-2: @color-green-300; // 4 usages
+@lime-green: @color-green-100; // 2 usages
+@check-green: @color-green-500; // 2 usages
+@open-green: @color-green-600; // 2 usages
+@nagios-green: @color-green-neon; // 1 usage
+
+// --- ORANGES ---
+@orange: @color-orange-400; // 8 usages
+@orange-three: @color-orange-200; // 3 usages
+@orange-four: @color-orange-200; // 1 usage
+@orange-five: @color-orange-500; // 2 usages
+@burnt-sienna: @color-orange-600; // 1 usage
+
+// --- REDS ---
+@red: @color-red-500; // 26 usages
+@dark-red: @color-red-600; // 2 usages
+@red-two: @color-red-400; // 1 usage
+@red-three: @color-red-500; // 1 usage
+@closed-red: @color-red-500; // 2 usages
+
+// --- PINKS ---
+@mid-baby-pink: @color-red-100; // 1 usage
+@baby-pink: @color-red-50; // 7 usages
+@magenta: @color-magenta-500; // 1 usage
+
+// --- WARM NEUTRALS / BEIGE ---
+@dark-yellow: @color-yellow-600; // 4 usages
+@beige-bright: @color-warm-50; // 0 usages
+@beige-deep: @color-warm-200; // 0 usages
+@beige-two: @color-warm-300; // 4 usages
+@beige-three: @color-warm-400; // 3 usages
+@beige: @color-warm-300; // 19 usages
+@brown: @color-warm-800; // 23 usages
+@account-icon-border: @color-warm-400; // 1 usage
+@light-yellow: @color-yellow-100; // 19 usages
+@lighter-yellow: @color-yellow-50; // 1 usage
+@dark-beige: @color-warm-500; // 14 usages
+@light-beige: @color-warm-100; // 9 usages
+@cream: @color-warm-100; // 3 usages
+@off-white: @color-warm-50; // 9 usages
+@gold: @color-yellow-500; // 3 usages
+
+// --- GREYSCALE ---
+@black: @color-black; // 72 usages
+@boxshadow-black: @color-black-15; // 1 usage
+@icon-link-grey: @color-black-10; // 2 usages
+@dark-grey: @color-grey-900; // 68 usages
+@grey-464646: @color-grey-800; // 1 usage
+@darker-grey: @color-grey-800; // 11 usages
+@grey-555: @color-grey-800; // 6 usages
+@dark-grey-two: @color-grey-700; // 2 usages
+@grey: @color-grey-600; // 95 usages
+@accessible-grey: @color-grey-600; // 5 usages
+@mid-grey: @color-grey-500; // 20 usages
+@light-mid-grey: @color-grey-400; // 7 usages
+@background-grey: hsla(0, 0%, 78%, 0.23); // 3 usages
+@light-grey: @color-grey-400; // 35 usages
+@lighter-grey: @color-grey-300; // 44 usages
+@grey-e7e7e7: @color-grey-200; // 12 usages
+@lightest-grey: @color-grey-200; // 48 usages
+@grey-f3f3f3: @color-grey-100; // 4 usages
+@grey-f4f4f4: @color-grey-100; // 5 usages
+@grey-fafafa: @color-grey-50; // 2 usages
+@white: @color-white; // 106 usages
+@gray-a19b9e: @color-grey-500; // 3 usages
+@gray-d1cfd0: @color-grey-300; // 3 usages
+
+// --- COMPONENT-SPECIFIC ---
+// Consider moving these to component files during migration.
+@admin-row-background: @color-yellow-200; // 2 usages
+@admin-table-border: @color-warm-400; // 4 usages
+@heart-color: @color-red-400; // 2 usages
+@purple: @color-purple-500; // 0 usages
+@header-bar-gradient-start: @color-warm-100; // 1 usage
+@header-bar-gradient-end: @color-warm-200; // 0 usages
+@account-icon-background: @color-warm-100-alpha; // 1 usage
+@book-cover-carousel-background: @color-warm-200; // 2 usages
+@book-cover-carousel-border-top: @color-warm-200; // 1 usage
+@book-cover-carousel-border-bottom: @color-warm-300; // 1 usage
+@book-cover-carousel-cards: @color-warm-50; // 1 usage
+@book-cover-shadow-color: @color-warm-500; // 4 usages
+@merged-purple: @color-purple-300; // 1 usage
