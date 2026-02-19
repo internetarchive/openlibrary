@@ -1,4 +1,4 @@
-$def with (work=None, authors=None, recaptcha=None)
+$def with (work=None, authors=None, recaptcha=None, works=None)
 
 $var title: $_("Add a book")
 
@@ -26,11 +26,9 @@ $ i18n_strings = {
     <form method="post" action="" id="addbook" class="olform addbook1" name="edit" data-i18n="$json_encode(i18n_strings)">
         <div class="formElement">
             <div class="label">
-                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="title">$_("Title")</label> <span class="tip">$:_('Use <b><i>Title: Subtitle</i></b> to add a subtitle. We\'ll do a live check to see if we already know this book.')</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
-            <div class="input">
-                <input type="text" id="title" name="book_title" value="$(work and work.title)" class="title" required/>
-            </div>
+            $:render_template("books/works-autocomplete", works)
         </div>
         <div class="formElement">
             <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
