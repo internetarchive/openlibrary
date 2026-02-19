@@ -191,14 +191,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
           facetSelect.addEventListener('change', syncCategory);
 
-          var observer = new MutationObserver(syncCategory);
-          observer.observe(facetSelect, {
-            attributes: true,
-            attributeFilter: ['value'],
-            childList: true,
-            subtree: true
-          });
-
           syncCategory();
           setTimeout(syncCategory, 500);
         })();
