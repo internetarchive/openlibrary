@@ -1,0 +1,28 @@
+name: Issue Lead Labeler
+on:
+  issues:
+    types: [labeled]
+env:
+  NODE_VERSION: '20'
+jobs:
+  assign_lead_to_pr:
+    if: "${{ github.repository == github.event.repository.full_name && startsWith(github.event.label.name, 'Lead: @') }}"
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/cache@v4
+        id: cache-octokit
+        with:
+          path: 'node_modules'
+          key: ${{ runner.os }}-node${{ env.NODE_VERSION}}-octokit-${{ hashFiles('**/package-lock.json') }}
+      - if: steps.cache-octokit.outputs.cache-hit != 'true'
+        run: npm install @octokit/action
+      - run: node scripts/gh_scripts/issue_lead_labeler.mjs "${{ github.repository }}" "${{ github.event.issue.number }}" "${{ github.event.label.name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
