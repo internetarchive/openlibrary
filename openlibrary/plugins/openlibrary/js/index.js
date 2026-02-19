@@ -171,6 +171,17 @@ jQuery(function () {
             .then(module => module.initLoginForm());
     }
 
+    // conditionally load clamping components
+    const clampers = document.querySelectorAll('.clamp');
+    if (clampers.length) {
+        import(/* webpackChunkName: "clampers" */ './clampers.js')
+            .then(module => {
+                if (clampers.length) {
+                    module.initClampers(clampers);
+                }
+            });
+    }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
