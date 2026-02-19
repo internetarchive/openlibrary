@@ -264,9 +264,6 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
-        # If the template signals a failed result (e.g. Solr error in a carousel),
-        # evict it from cache so subsequent requests get a fresh attempt.
-        # Template $var values are always strings, so we compare to 'True'.
         if page.get('do_not_cache') == 'True':
             mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
