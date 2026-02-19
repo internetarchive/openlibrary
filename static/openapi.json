@@ -45,6 +45,14 @@
         "description": "Find out more",
         "url": "https://openlibrary.org/dev/docs/api/subjects"
       }
+    },
+    {
+      "name": "reading log",
+      "description": "Manage user reading log shelves and check-ins",
+      "externalDocs": {
+        "description": "Full documentation",
+        "url": "https://openlibrary.org/docs/apis/readinglog"
+      }
     }
   ],
   "paths": {
@@ -52,9 +60,7 @@
       "get": {
         "summary": "Read Api Books",
         "operationId": "read_api_books_api_books_get",
-        "tags": [
-          "books"
-        ],
+        "tags": ["books"],
         "parameters": [
           {
             "required": true,
@@ -134,9 +140,7 @@
       "get": {
         "summary": "Read Api Volumes Brief",
         "operationId": "read_api_volumes_brief_api_volumes_brief__key_type___value__json_get",
-        "tags": [
-          "books"
-        ],
+        "tags": ["books"],
         "parameters": [
           {
             "required": true,
@@ -189,9 +193,7 @@
       "get": {
         "summary": "Read Authors",
         "operationId": "read_authors_authors__olid__json_get",
-        "tags": [
-          "authors"
-        ],
+        "tags": ["authors"],
         "parameters": [
           {
             "required": true,
@@ -228,9 +230,7 @@
       "get": {
         "summary": "Read Authors Works",
         "operationId": "read_authors_works_authors__olid__works_json_get",
-        "tags": [
-          "authors"
-        ],
+        "tags": ["authors"],
         "parameters": [
           {
             "required": true,
@@ -276,9 +276,7 @@
       "get": {
         "summary": "Read Books",
         "operationId": "read_books_books__olid__get",
-        "tags": [
-          "books"
-        ],
+        "tags": ["books"],
         "parameters": [
           {
             "required": true,
@@ -312,13 +310,311 @@
         }
       }
     },
+    "/works/{work_id}/bookshelves": {
+      "get": {
+        "summary": "Get bookshelf counts for a work",
+        "description": "Returns the number of users who have placed a work on each reading log shelf (Want to Read, Currently Reading, Already Read).",
+        "operationId": "get_work_bookshelves",
+        "tags": ["reading log"],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Work Id",
+              "type": "string",
+              "example": "OL123W"
+            },
+            "name": "work_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "want_to_read": { "type": "integer" },
+                        "currently_reading": { "type": "integer" },
+                        "already_read": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add or remove a book from a reading log shelf",
+        "description": "Add or remove a work from the authenticated user's reading log shelf. Requires authentication via session cookie.",
+        "operationId": "add_to_bookshelf",
+        "tags": ["reading log"],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Work Id",
+              "type": "string",
+              "example": "OL123W"
+            },
+            "name": "work_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Bookshelf Id",
+              "type": "integer",
+              "description": "1 = Want to Read, 2 = Currently Reading, 3 = Already Read, -1 = Remove from shelf"
+            },
+            "name": "bookshelf_id",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Action",
+              "type": "string",
+              "default": "add"
+            },
+            "name": "action",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Edition Id",
+              "type": "string"
+            },
+            "name": "edition_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bookshelves_affected": {
+                      "type": "array",
+                      "items": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - User not logged in"
+          },
+          "422": {
+            "description": "Validation Error"
+          }
+        }
+      }
+    },
+    "/works/{work_id}/check-ins": {
+      "post": {
+        "summary": "Create or update a reading check-in event",
+        "description": "Record reading progress (start reading, update progress, or finish reading). Requires authentication.",
+        "operationId": "create_check_in",
+        "tags": ["reading log"],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Work Id",
+              "type": "string",
+              "example": "OL123W"
+            },
+            "name": "work_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["event_type", "year"],
+                "properties": {
+                  "event_type": {
+                    "type": "integer",
+                    "description": "1 = Started reading, 2 = Updated progress, 3 = Finished"
+                  },
+                  "year": { "type": "integer" },
+                  "month": { "type": "integer" },
+                  "day": { "type": "integer" },
+                  "edition_key": { "type": "string" },
+                  "event_id": {
+                    "type": "integer",
+                    "description": "If provided, updates existing event"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "id": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Not Found" },
+          "422": { "description": "Validation Error" }
+        }
+      },
+      "delete": {
+        "summary": "Delete a check-in event",
+        "description": "Remove a reading check-in event. Requires authentication.",
+        "operationId": "delete_check_in",
+        "tags": ["reading log"],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Work Id",
+              "type": "string"
+            },
+            "name": "work_id",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Event Id",
+              "type": "integer"
+            },
+            "name": "event_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Successful Response" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" }
+        }
+      }
+    },
+    "/people/{username}/books/{shelf}": {
+      "get": {
+        "summary": "Get public reading log for a user",
+        "description": "Returns a user's public reading log for a specific shelf. Only returns data if the user has made their reading log public.",
+        "operationId": "get_public_reading_log",
+        "tags": ["reading log"],
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "title": "Username",
+              "type": "string"
+            },
+            "name": "username",
+            "in": "path"
+          },
+          {
+            "required": true,
+            "schema": {
+              "title": "Shelf",
+              "type": "string",
+              "enum": ["want-to-read", "currently-reading", "already-read"]
+            },
+            "name": "shelf",
+            "in": "path"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Page",
+              "type": "integer",
+              "default": 1
+            },
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Limit",
+              "type": "integer",
+              "default": 100,
+              "maximum": 100
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "required": false,
+            "schema": {
+              "title": "Query",
+              "type": "string",
+              "description": "Search query - minimum 3 characters"
+            },
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": { "type": "integer" },
+                    "numFound": { "type": "integer" },
+                    "reading_log_entries": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "work": { "type": "object" },
+                          "logged_edition": { "type": "string" },
+                          "logged_date": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "User or shelf not found" }
+        }
+      }
+    },
     "/covers/{key_type}/{value}-{size}.jpg": {
       "get": {
         "summary": "Read Covers Key Type Value Size Jpeg",
         "operationId": "read_covers_key_type_value_size_jpeg_covers__key_type___value___size__jpg_get",
-        "tags": [
-          "covers"
-        ],
+        "tags": ["covers"],
         "parameters": [
           {
             "required": true,
@@ -371,9 +667,7 @@
       "get": {
         "summary": "Read Isbn",
         "operationId": "read_isbn_isbn__isbn__get",
-        "tags": [
-          "books"
-        ],
+        "tags": ["books"],
         "parameters": [
           {
             "required": true,
@@ -410,9 +704,7 @@
       "get": {
         "summary": "Read Search Json",
         "operationId": "read_search_json_search_json_get",
-        "tags": [
-          "search"
-        ],
+        "tags": ["search"],
         "parameters": [
           {
             "required": true,
@@ -458,9 +750,7 @@
       "get": {
         "summary": "Read Search Authors Json",
         "operationId": "read_search_authors_json_search_authors_json_get",
-        "tags": [
-          "search"
-        ],
+        "tags": ["search"],
         "parameters": [
           {
             "required": true,
@@ -497,9 +787,7 @@
       "get": {
         "summary": "Read Subjects",
         "operationId": "read_subjects_subjects__subject__json_get",
-        "tags": [
-          "subjects"
-        ],
+        "tags": ["subjects"],
         "parameters": [
           {
             "required": true,
@@ -546,9 +834,7 @@
       "get": {
         "summary": "Read Works",
         "operationId": "read_works_works__olid__get",
-        "tags": [
-          "books"
-        ],
+        "tags": ["books"],
         "parameters": [
           {
             "required": true,
@@ -599,11 +885,7 @@
       },
       "ValidationError": {
         "title": "ValidationError",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "type": "object",
         "properties": {
           "loc": {
