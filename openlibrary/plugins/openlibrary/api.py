@@ -532,6 +532,11 @@ class patrons_follows_json(delegate.page):
         if not user or user.key != key:
             raise web.seeother(f'/account/login?redir_url={i.redir_url}')
 
+        # Validate that the publisher account exists
+        publisher_account = accounts.find(username=i.publisher)
+        if not publisher_account:
+            raise web.notfound("Publisher not found")
+
         username = user.key.split('/')[2]
         action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
         action(username, i.publisher)
