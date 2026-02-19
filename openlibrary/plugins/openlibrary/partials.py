@@ -11,7 +11,7 @@ from typing_extensions import deprecated
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
-from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.core.lending import compose_ia_url, get_available, get_loans_of_user
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -435,6 +435,79 @@ class LazyCarouselPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
+class ContinueReadingPartial(PartialDataHandler):
+    """Handler for the Continue Reading carousel on the homepage."""
+
+    def __init__(self):
+        self.i = web.input(limit=20)
+
+    def generate(self) -> dict:
+        from openlibrary import accounts
+
+        # Get the currently logged-in user
+        user = accounts.get_current_user()
+        if not user:
+            return {"partials": ""}
+
+        user_key = user.key
+
+        # Fetch active loans
+        loans = get_loans_of_user(user_key)
+
+        if not loans:
+            return {"partials": ""}
+
+        # Convert loans to book format for carousel
+        books = []
+        for loan in loans:
+            book_key = loan.get('book')
+            if book_key:
+                book = web.ctx.site.get(book_key)
+                if book:
+                    books.append(self._format_book(book, loan))
+
+        if not books:
+            return {"partials": ""}
+
+        # Render the carousel using existing template
+        carousel_html = render_template(
+            "books/custom_carousel",
+            books=books,
+            title=_("Continue Reading"),
+            url="/account/loans",
+            key="continue_reading",
+            load_more=None,
+            compact_mode=False,
+        )
+
+        return {"partials": str(carousel_html)}
+
+    def _format_book(self, book, loan=None):
+        """Convert a book document to the format expected by carousel."""
+        authors = []
+        for a in book.get_authors():
+            if a and hasattr(a, 'name'):
+                # Use web.storage so template can access author.name
+                authors.append(
+                    web.storage(
+                        {'name': a.name or 'Unknown', 'key': getattr(a, 'key', '')}
+                    )
+                )
+
+        cover_id = book.get_cover_id() if hasattr(book, 'get_cover_id') else None
+
+        return web.storage(
+            {
+                'key': book.key,
+                'title': book.title or 'Untitled',
+                'authors': authors,
+                'cover_i': cover_id,
+                'ia': [loan.get('ocaid')] if loan and loan.get('ocaid') else [],
+                'availability': {'status': 'borrow_available'},
+            }
+        )
+
+
 class PartialRequestResolver:
     # Maps `_component` values to PartialDataHandler subclasses
     component_mapping = {  # noqa: RUF012
@@ -446,6 +519,7 @@ class PartialRequestResolver:
         "LazyCarousel": LazyCarouselPartial,
         "MyBooksDropperLists": MyBooksDropperListsPartial,
         "ReadingGoalProgress": ReadingGoalProgressPartial,
+        "ContinueReading": ContinueReadingPartial,
     }
 
     @staticmethod

@@ -576,7 +576,7 @@ msgstr ""
 msgid "Failed to fetch carousel."
 msgstr ""
 
-#: RawQueryCarousel.html
+#: RawQueryCarousel.html home/index.html
 msgid "Retry?"
 msgstr ""
 
@@ -1268,6 +1268,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Continue Reading"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/pd.py
@@ -5791,6 +5795,14 @@ msgstr[1] ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
+msgstr ""
+
+#: home/index.html
+msgid "Loading your books..."
+msgstr ""
+
+#: home/index.html
+msgid "Failed to load."
 msgstr ""
 
 #: home/index.html
