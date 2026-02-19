@@ -37,6 +37,8 @@ repos:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
         files: \.sql$
+        # Rule exclusions and their rationale are documented in pyproject.toml
+        # under [tool.sqlfluff.core].
         # patron_data.sql is a dev-instance fixture with synthetic test data.
         # import-partial.sql and prod-partial-dump.sql are auto-generated
         # partial-dump scripts that use psql meta-commands (\copy, \set)

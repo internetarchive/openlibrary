@@ -8,7 +8,7 @@ COPY (
       WHEN (ratings.edition_id IS NULL) THEN NULL
       ELSE concat('/books/OL', ratings.edition_id, 'M')
     END AS edition_key,
-    ratings.rating,
+    ratings.rating AS rating,
     -- Truncate created to day precision as a privacy precaution
     DATE(ratings.created) AS created
   FROM ratings

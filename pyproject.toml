@@ -210,15 +210,27 @@ max-statements = 70
 dialect = "postgres"
 # ── Rule Exclusions ──────────────────────────────────────────────────
 # Only rules that conflict with the existing codebase style are excluded.
-# Each exclusion includes a rationale.
+# Each exclusion includes a rationale so reviewers can evaluate them.
 #
-# LT01/LT02: overlap with pre-commit hooks (trailing-whitespace, end-of-file-fixer)
-# LT05: codebase consistently uses trailing commas
-# CP01-CP05: codebase uses lowercase keywords throughout; changing would touch every SQL file
-# AL01/AL02: queries omit explicit "AS" keyword, valid Postgres convention
-# RF04: SQL keywords used as column names (key, type, action, created) — deeply embedded in schema
-# ST06: column ordering rule conflicts with public dump format (column order is part of the API)
-exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,RF04,ST06"
+# Layout:
+#   LT01 - trailing whitespace: already enforced by pre-commit trailing-whitespace hook
+#   LT02 - newline at end of file: already enforced by pre-commit end-of-file-fixer hook
+# Capitalisation:
+#   CP01-CP05 - keyword/function/datatype casing: codebase consistently uses lowercase
+#               keywords throughout; enforcing upper-case would touch every SQL file
+# Aliasing:
+#   AL01 - implicit aliasing: codebase omits explicit "AS" for table aliases, valid Postgres style
+#   AL02 - implicit column aliasing: same as AL01 but for columns
+#   AL03 - self-alias (e.g. "x AS x"): existing dump scripts use self-aliases for clarity
+# References:
+#   RF04 - keywords as identifiers: columns named "key", "type", "action", "created" are
+#          deeply embedded in the schema and cannot be renamed
+# Structure:
+#   ST06 - SELECT column ordering: dump scripts' column order matches the public dump API
+#          documented at openlibrary.org/developers/dumps
+# Joins:
+#   JJ01 - explicit join type: bare JOIN (implicit INNER) is the codebase convention
+exclude_rules = "LT01,LT02,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,RF04,ST06,JJ01"
 
 [tool.sqlfluff.indentation]
 tab_space_size = 4
