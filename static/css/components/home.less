@@ -132,3 +132,60 @@ div.chartHome a:hover,
     margin: 0;
   }
 }
+
+/* Book Talks carousel styles */
+/* stylelint-disable selector-max-specificity, no-descending-specificity, no-duplicate-selectors */
+.carousel__item:has(.book-talk-title) .book-cover {
+  width: 100%;
+
+  .bookcover {
+    min-height: 180px;
+    width: auto;
+    object-fit: contain;
+  }
+}
+
+.book-talk-title {
+  text-align: center;
+  margin: 5px 0 2px;
+  font-size: 0.85em;
+
+  a {
+    color: @link-blue;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.book-talk-date {
+  text-align: center;
+  margin: 2px 0 5px;
+  font-size: 0.75em;
+  color: @dark-grey;
+
+  .date-text {
+    display: block;
+  }
+}
+
+.cta-btn--watch {
+  background-color: @link-blue;
+  color: @white;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+
+  &:hover {
+    background-color: darken(@link-blue, 10%);
+  }
+}
+
+.carousel__item:has(.book-talk-title) .cta-button-group {
+  width: 100%;
+}
+
+/* stylelint-enable selector-max-specificity, no-descending-specificity, no-duplicate-selectors */
