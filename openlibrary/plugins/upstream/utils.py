@@ -1276,55 +1276,7 @@ def websafe(text: str) -> str:
         return _websafe(text)
 
 
-import memcache
-
-from openlibrary.plugins.upstream import adapter
-from openlibrary.utils import olmemcache
-from openlibrary.utils.olcompress import OLCompressor
-
-
-class UpstreamMemcacheClient:
-    """Wrapper to memcache Client to handle upstream specific conversion and OL specific compression.
-    Compatible with memcache Client API.
-    """
-
-    def __init__(self, servers):
-        self._client = memcache.Client(servers)
-        compressor = OLCompressor()
-        self.compress = compressor.compress
-
-        def decompress(*args, **kw) -> str:
-            d = json.loads(compressor.decompress(*args, **kw))
-            return json.dumps(adapter.unconvert_dict(d))
-
-        self.decompress = decompress
-
-    def get(self, key: str | None):
-        key = adapter.convert_key(key)
-        if key is None:
-            return None
-
-        try:
-            value = self._client.get(web.safestr(key))
-        except memcache.Client.MemcachedKeyError:
-            return None
-
-        return value and self.decompress(value)
-
-    def get_multi(self, keys):
-        keys = [adapter.convert_key(k) for k in keys]
-        keys = [web.safestr(k) for k in keys]
-
-        d = self._client.get_multi(keys)
-        return {
-            web.safeunicode(adapter.unconvert_key(k)): self.decompress(v)
-            for k, v in d.items()
-        }
-
-
 if config.get('upstream_memcache_servers'):
-    olmemcache.Client = UpstreamMemcacheClient  # type: ignore[assignment, misc]
-    # set config.memcache_servers only after olmemcache.Client is updated
     config.memcache_servers = config.upstream_memcache_servers  # type: ignore[attr-defined]
 
 
