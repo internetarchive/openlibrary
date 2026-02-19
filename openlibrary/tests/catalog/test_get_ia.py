@@ -84,8 +84,7 @@ class TestGetIA:
         'zweibchersatir01horauoft',
     )
 
-    @pytest.mark.parametrize('item', bin_items)
-    def test_get_marc_record_from_ia(self, item, monkeypatch):
+    def test_get_marc_record_from_ia(self, subtests, monkeypatch):
         """Tests the method returning MARC records from IA
         used by the import API. It should return a binary MARC if one exists."""
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
@@ -96,33 +95,65 @@ class TestGetIA:
                 '_filenames': [f'{itemid}_{s}' for s in ('marc.xml', 'meta.mrc')]
             },
         )
-        result = get_ia.get_marc_record_from_ia(item)
-        assert isinstance(
-            result, MarcBinary
-        ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
 
-    @pytest.mark.parametrize('item', xml_items)
-    def test_no_marc_xml(self, item, monkeypatch):
-        """When no binary MARC is listed in _filenames, the MARC XML should be fetched."""
+        for item in self.bin_items:
+            with subtests.test(msg=item):
+                result = get_ia.get_marc_record_from_ia(item)
+                assert isinstance(
+                    result, MarcBinary
+                ), f"{item}: expected instanceof MarcBinary, got {type(result)}"
+
+    def test_no_marc_xml(self, subtests, monkeypatch):
+        """When no binary MARC is listed in _filenames, the MARC XML should be fetched.
+
+        This uses pytest 9.0's subtests feature to test all XML MARC items in a single test.
+        Benefits over parametrize:
+        - Reports ALL errors in one run (doesn't stop at first failure)
+        - Cleaner test output (not dozens of separate test cases)
+        - Easier to identify which items have issues
+        """
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
         monkeypatch.setattr(
             ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_marc.xml']}
         )
-        result = get_ia.get_marc_record_from_ia(item)
-        assert isinstance(
-            result, MarcXml
-        ), f"{item}: expected instanceof MarcXml, got {type(result)}"
 
-    @pytest.mark.parametrize('bad_marc', bad_marcs)
-    def test_incorrect_length_marcs(self, bad_marc, monkeypatch):
-        """If a Binary MARC has a different length than stated in the MARC leader, it is probably due to bad character conversions."""
+        for item in self.xml_items:
+            with subtests.test(msg=item):
+                result = get_ia.get_marc_record_from_ia(item)
+                assert isinstance(
+                    result, MarcXml
+                ), f"{item}: expected instanceof MarcXml, got {type(result)}"
+
+    def test_incorrect_length_marcs(self, subtests, monkeypatch):
         monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
         monkeypatch.setattr(
             ia, 'get_metadata', lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']}
         )
-        with pytest.raises(BadLength):
-            get_ia.get_marc_record_from_ia(bad_marc)
+
+        for bad_marc in self.bad_marcs:
+            with subtests.test(msg=bad_marc), pytest.raises(BadLength):
+                get_ia.get_marc_record_from_ia(bad_marc)
 
     def test_bad_binary_data(self):
         with pytest.raises(BadMARC):
             MarcBinary('nonMARCdata')
+
+    @pytest.mark.xfail(
+        reason="Verification test: demonstrates MARC type error detection"
+    )
+    def test_marc_type_error_detection_verification(self, monkeypatch):
+        """Verify that MARC type error detection works.
+
+        This is a simple verification test to prove that error detection works.
+        """
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
+        monkeypatch.setattr(
+            ia,
+            'get_metadata',
+            lambda itemid: {'_filenames': [f'{itemid}_meta.mrc']},
+        )
+
+        result = get_ia.get_marc_record_from_ia('0descriptionofta1682unit')
+
+        # This WILL fail - wrong type check
+        assert isinstance(result, str), f"Result should be string not {type(result)}"
