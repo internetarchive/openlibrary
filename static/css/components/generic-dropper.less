@@ -62,6 +62,7 @@
         flex: 1;
       }
 
+      /* stylelint-disable selector-max-specificity */
       .arrow {
         width: 23px;
         height: 23px;
@@ -71,12 +72,9 @@
         background-position: 0 0;
         background-size: 45px;
 
-        /* stylelint-disable selector-max-specificity */
         &.up {
           background-position: -22px 0;
         }
-        /* stylelint-enable max-nesting-depth */
-        /* stylelint-enable selector-max-specificity */
       }
     }
   }
