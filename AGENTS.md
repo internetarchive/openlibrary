@@ -10,6 +10,10 @@
 
 ### Key Commands
 
+`pre-commit run --all-files` checks for various issues including type checking and linting. Run it directly on the host machine.
+
+The following commands should always be run inside docker like this: `docker compose run --rm home <command>`
+
 ```bash
 make test-py                # Python tests
 npm run test:js             # JS tests
@@ -34,6 +38,5 @@ npm run watch               # Dev mode with hot reload
 | FastAPI | `openlibrary/asgi_app.py` |
 | Route handlers | `openlibrary/plugins/*/code.py` |
 | Templates | `openlibrary/templates/` |
-| Core logic | `openlibrary/core/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
 | CSS source | `static/css/` |
