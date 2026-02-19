@@ -129,6 +129,17 @@ INSERT INTO public.datum_str(key_id, thing_id, value) VALUES ((SELECT id FROM pu
 INSERT INTO public.datum_ref (key_id, thing_id, value) SELECT * FROM (SELECT id FROM public.property WHERE type=35 AND name='seeds') t1 FULL JOIN (SELECT id FROM public.thing WHERE key='/people/openlibrary/lists/OL1L') t2 ON true FULL JOIN (SELECT id FROM public.thing WHERE key IN ('/works/OL20600W', '/works/OL45310W', '/books/OL24293426M', '/books/OL6514192M', '/works/OL61982W')) t3 ON true;
 
 --
+-- Data for Name: store; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Set openlibrary user's reading log to public for testing patron follow cards
+-- Using UPDATE + INSERT pattern for PostgreSQL 9.3 compatibility (no ON CONFLICT support)
+--
+
+UPDATE public.store SET json = '{"public_readlog": "yes"}' WHERE key = '/people/openlibrary/preferences';
+INSERT INTO public.store (key, json)
+SELECT '/people/openlibrary/preferences', '{"public_readlog": "yes"}'
+WHERE NOT EXISTS (SELECT 1 FROM public.store WHERE key = '/people/openlibrary/preferences');
+
+--
 -- PostgreSQL database dump complete
 --
 

@@ -161,7 +161,50 @@ class activity_stream(app.view):
                 since_days=SINCE_DAYS[mode], limit=limit, page=page
             )
         Bookshelves.add_solr_works(logged_books)
+
+        # Add patron info for "now" mode only
+        if mode == "now" and logged_books:
+            self._add_patron_info(logged_books)
+
         return app.render_template("trending", logged_books=logged_books, mode=mode)
+
+    def _add_patron_info(self, logged_books):
+        """Add patron privacy status and follow status to logged books."""
+        from openlibrary import accounts
+
+        # Extract unique usernames
+        usernames = [
+            entry.get('username') for entry in logged_books if entry.get('username')
+        ]
+
+        if not usernames:
+            return
+
+        # Batch fetch privacy status
+        privacy_status = Bookshelves.get_public_readlog_status_for_users(usernames)
+
+        # Get current user for following status
+        current_user = accounts.get_current_user()
+        current_username = current_user.key.split('/')[-1] if current_user else None
+
+        # Add patron info to each entry
+        for entry in logged_books:
+            username = entry.get('username')
+            if username:
+                is_public = privacy_status.get(username, False)
+                entry['patron_public'] = is_public
+
+                # Determine follow status
+                if not current_user:
+                    entry['is_following'] = 0  # Not logged in
+                elif current_username == username:
+                    entry['is_following'] = -1  # Own entry
+                elif is_public:
+                    entry['is_following'] = (
+                        1 if PubSub.is_subscribed(current_username, username) else 0
+                    )
+                else:
+                    entry['is_following'] = 0  # Private user
 
 
 class readinglog_stats(app.view):
