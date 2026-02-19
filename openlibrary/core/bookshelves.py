@@ -800,3 +800,92 @@ class Bookshelves(db.CommonExtras):
         )
         result = oldb.query(query)
         return list(result)
+
+    @classmethod
+    def get_patrons_who_shelved_work(cls, work_id: str, limit: int = 3) -> list[dict]:
+        """
+        Returns the last N patrons who added this work to their reading log,
+        along with their shelf status and 2 other books from their shelf.
+        Only patrons with public reading logs are included.
+
+        Args:
+            work_id: The numeric work ID (e.g., "123" for /works/OL123W)
+            limit: Maximum number of patrons to return
+
+        Returns:
+            List of dicts with keys: username, bookshelf_id, work_id, created, other_books
+        """
+        oldb = db.get_db()
+
+        # Get recent patrons for this work
+        query = """
+            SELECT username, bookshelf_id, work_id, created
+            FROM bookshelves_books
+            WHERE work_id = $work_id
+            ORDER BY created DESC
+            LIMIT $fetch_limit
+        """
+        results = list(
+            oldb.query(query, vars={'work_id': int(work_id), 'fetch_limit': limit * 3})
+        )
+
+        # Filter for public reading logs
+        public_patrons: list[dict] = []
+        for r in results:
+            pref = web.ctx.site.get(f'/people/{r.username}/preferences')
+            if (
+                pref
+                and pref.dict().get('notifications', {}).get('public_readlog') == 'yes'
+            ):
+                patron = dict(r)
+                # Fetch 2 other books from this patron's shelf
+                other_query = """
+                    SELECT work_id FROM bookshelves_books
+                    WHERE username = $username AND work_id != $work_id
+                    ORDER BY created DESC LIMIT 2
+                """
+                other_results = list(
+                    oldb.query(
+                        other_query,
+                        vars={'username': r.username, 'work_id': int(work_id)},
+                    )
+                )
+                patron['other_books'] = [
+                    {'work_id': row.work_id} for row in other_results
+                ]
+                public_patrons.append(patron)
+                if len(public_patrons) >= limit:
+                    break
+
+        return public_patrons
+
+    @classmethod
+    def get_covers_for_works(cls, work_ids: list[int]) -> dict[int, str | None]:
+        """
+        Returns a mapping of work_id -> cover_url (Small size).
+
+        Args:
+            work_ids: List of numeric work IDs
+
+        Returns:
+            Dict mapping work_id to cover URL or None if no cover
+        """
+        from openlibrary.plugins.worksearch.code import get_solr_works
+
+        if not work_ids:
+            return {}
+
+        keys = [f"/works/OL{wid}W" for wid in work_ids]
+        works = get_solr_works(set(keys), fields=['key', 'cover_i'])
+
+        covers: dict[int, str | None] = {}
+        for key, data in works.items():
+            # Extract numeric ID: "/works/OL123W" -> 123
+            wid = int(key.split('/')[-1][2:-1])
+            cover_id = data.get('cover_i')
+            if cover_id:
+                covers[wid] = f"https://covers.openlibrary.org/b/id/{cover_id}-S.jpg"
+            else:
+                covers[wid] = None
+
+        return covers

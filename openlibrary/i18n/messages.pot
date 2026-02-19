@@ -6605,6 +6605,18 @@ msgstr ""
 msgid "by <a href=\"%s\">You</a>"
 msgstr ""
 
+#: lists/readinglog_patrons.html
+msgid "Recently Added By"
+msgstr ""
+
+#: lists/readinglog_patrons.html
+msgid "Book cover"
+msgstr ""
+
+#: lists/readinglog_patrons.html
+msgid "Avatar"
+msgstr ""
+
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
