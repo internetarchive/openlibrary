@@ -7,4 +7,43 @@ python --version
 
 echo "Waiting for postgres..."
 until pg_isready --host db; do sleep 5; done
-make reindex-solr
+
+# DEV ONLY: Auto-detect and fix Solr index issues
+if [ "$LOCAL_DEV" = "true" ]; then
+    echo "Running dev mode Solr health check..."
+
+    # Wait for Solr to be ready
+    until curl -s "http://solr:8983/solr/openlibrary/admin/ping" > /dev/null 2>&1; do
+        echo "Waiting for Solr..."
+        sleep 5
+    done
+
+    # Get DB and Solr counts
+    DB_COUNT=$(psql --host db openlibrary -t -c "select count(*) from thing" | tr -d ' ')
+    SOLR_COUNT=$(curl -s "http://solr:8983/solr/openlibrary/select?q=*:*&rows=0" | grep -oP '"numFound":\K\d+' || echo "0")
+
+    echo "Solr health check: DB=$DB_COUNT records, Solr=$SOLR_COUNT indexed"
+
+    if [ "$DB_COUNT" -gt 0 ] && [ "$SOLR_COUNT" -eq 0 ]; then
+        echo "WARNING: DB has $DB_COUNT records but Solr has 0. Rebuilding Solr..."
+
+        # Delete Solr volume to get fresh core with current schema
+        docker compose down -v solr-data
+
+        # Recreate Solr
+        docker compose up -d solr
+
+        # Wait for Solr to be ready again
+        until curl -s "http://solr:8983/solr/openlibrary/admin/ping" > /dev/null 2>&1; do
+            echo "Waiting for Solr to rebuild..."
+            sleep 5
+        done
+
+        # Reindex all data
+        make reindex-solr
+    else
+        echo "Solr index OK, skipping reindex"
+    fi
+else
+    make reindex-solr
+fi
