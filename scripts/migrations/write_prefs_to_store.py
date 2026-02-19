@@ -13,6 +13,7 @@ from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.utils.request_context import setup_site
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
@@ -25,6 +26,8 @@ def setup(config_path):
         raise FileNotFoundError(f'no config file at {config_path}')
     load_config(config_path)
     infogami._setup()
+    # set up site context for `accounts.get_current_user()` (called by `RunAs`)
+    setup_site()
 
 
 def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
