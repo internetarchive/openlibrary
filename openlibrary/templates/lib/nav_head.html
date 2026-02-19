@@ -139,7 +139,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
                   }
 
                   if (input.validity.patternMismatch) {
-                    input.setCustomValidity('Please enter at least 2 characters');
+                    input.setCustomValidity('$_("Please enter at least 2 characters")');
                   } else {
                     input.setCustomValidity('');
                   }
