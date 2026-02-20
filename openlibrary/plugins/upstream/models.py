@@ -53,7 +53,11 @@ class Edition(models.Edition):
     def edition_solr_builder(self) -> "EditionSolrBuilder":
         from openlibrary.solr.updater.edition import EditionSolrBuilder
 
-        return EditionSolrBuilder(self.dict(), None, None)
+        return EditionSolrBuilder(
+            self.dict(),
+            # FIXME: Slow, we should give it the ebook access in solr?
+            ia_metadata=self.get_ia_meta_fields(),
+        )
 
     @cached_property
     def metadata_scorecard(self):
