@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -188,6 +189,12 @@ def create_app() -> FastAPI | None:
         response = await call_next(request)
         response.headers["X-Served-By"] = "FastAPI"
         return response
+
+    # Add prometheus metrics
+    Instrumentator(
+        should_group_status_codes=False,
+        excluded_handlers=["/health", "/metrics"],
+    ).instrument(app).expose(app, include_in_schema=False)
 
     @app.middleware("http")
     async def set_context(request: Request, call_next):
