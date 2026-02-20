@@ -12,15 +12,14 @@ msgstr ""
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
 "PO-Revision-Date: 2026-02-13 13:01+0100\n"
 "Last-Translator: Milo Ivir <mail@mivirtype.de>\n"
-"Language-Team: \n"
 "Language: hr\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: \n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
-"X-Generator: Poedit 3.8\n"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
@@ -76,8 +75,9 @@ msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
-"Kada kupuješ knjige pomoću ovih poveznica, Internet Archive može zaraditi <a "
-"class=\"nostyle\" href=\"/help/faq/about#selling\">malu proviziju</a>."
+"Kada kupuješ knjige pomoću ovih poveznica, Internet Archive može zaraditi"
+" <a class=\"nostyle\" href=\"/help/faq/about#selling\">malu "
+"proviziju</a>."
 
 #: BatchImportNavigation.html batch_import.html
 msgid "New Batch Import"
@@ -162,45 +162,46 @@ msgstr "Prekini"
 
 #: DisplayCode.html
 msgid ""
-"Templates in the website are disabled now. Editing them will not have any "
-"effect on the live website."
+"Templates in the website are disabled now. Editing them will not have any"
+" effect on the live website."
 msgstr ""
 "Predlošci u web-stranici su sada deaktivirani. Njihovo uređivanje neće "
 "utjecati na web-stranicu uživo."
 
 #: DonateModal.html
 msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet Archive</a> "
-"library."
+"Donate this book to the <a href=\"https://archive.org\">Internet "
+"Archive</a> library."
 msgstr ""
 "Doniraj ovu knjigu knjižnici <a href=\"https://archive.org\">Internet "
 "Archive</a> ."
 
 #: DonateModal.html
 msgid ""
-"Hooray! You've discovered a title that's missing from our <a href=\"https://"
-"help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-"
-"Library\">library</a>. Can you help donate a copy?"
+"Hooray! You've discovered a title that's missing from our <a "
+"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
+"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
 msgstr ""
-"Hura! Otkrio/la si naslov koji nedostaje u <a href=\"https://"
-"help.archive.org/hc/en-us/articles/360016554912-Borrowing-From-The-Lending-"
-"Library\">našoj knjižnici</a>. Možeš li donirati primjerak?"
+"Hura! Otkrio/la si naslov koji nedostaje u <a "
+"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
+"From-The-Lending-Library\">našoj knjižnici</a>. Možeš li donirati "
+"primjerak?"
 
 #: DonateModal.html
 msgid ""
-"If you own this book, you can<a href=\"https://store.usps.com/store/product/"
-"shipping-supplies/priority-mail-express-padded-flat-rate-envelope-"
-"P_EP13PE\">mail</a> it to our address below."
+"If you own this book, you can<a "
+"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
+"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
+"address below."
 msgstr ""
-"Ako si vlasnik ove knjige, možeš je<a href=\"https://store.usps.com/store/"
-"product/shipping-supplies/priority-mail-express-padded-flat-rate-envelope-"
-"P_EP13PE\">poslati e-poštom</a> na našu dolje navedenu adresu."
+"Ako si vlasnik ove knjige, možeš je<a "
+"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
+"mail-express-padded-flat-rate-envelope-P_EP13PE\">poslati e-poštom</a> na"
+" našu dolje navedenu adresu."
 
 #: DonateModal.html
-msgid ""
-"You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-"Ovu knjigu također možeš kupiti od dobavljača i poslati je na našu adresu:"
+msgid "You can also purchase this book from a vendor and ship it to our address:"
+msgstr "Ovu knjigu također možeš kupiti od dobavljača i poslati je na našu adresu:"
 
 #: DonateModal.html
 msgid "Benefits of donating"
@@ -220,37 +221,43 @@ msgstr "Podaci donacije"
 
 #: DonateModal.html
 msgid ""
-"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning\">high-"
-"fidelity digitization</a>"
+"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
+"\">high-fidelity digitization</a>"
 msgstr ""
-"Prekrasno <a target=\"_blank\" href=\"https://archive.org/"
-"scanning\">digitaliziranje u visokoj rezoluciji</a>"
+"Prekrasno <a target=\"_blank\" "
+"href=\"https://archive.org/scanning\">digitaliziranje u visokoj "
+"rezoluciji</a>"
 
 #: DonateModal.html
 msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-"
-"the-new-physical-archive-of-the-internet-archive/\">archival preservation</a>"
+"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
+"books-the-new-physical-archive-of-the-internet-archive/\">archival "
+"preservation</a>"
 msgstr ""
-"Dugoročno <a href=\"https://blog.archive.org/2011/06/06/why-preserve-books-"
-"the-new-physical-archive-of-the-internet-archive/\">čuvanje u arhivi</a>"
+"Dugoročno <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
+"books-the-new-physical-archive-of-the-internet-archive/\">čuvanje u "
+"arhivi</a>"
 
 #: DonateModal.html
 msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital "
-"library access</a> by the <a href=\"https://en.wikipedia.org/wiki/"
-"Print_disability\">print-disabled</a> public"
+"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
+" library access</a> by the <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
+"disabled</a> public"
 msgstr ""
 "Besplatan <a href=\"https://controlleddigitallending.org/\">pristup "
-"kontroliranoj digitalnoj knjižnici</a> za <a href=\"https://en.wikipedia.org/"
-"wiki/Print_disability\">slijepe/slabovidne osobe</a>"
+"kontroliranoj digitalnoj knjižnici</a> za <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">slijepe/slabovidne"
+" osobe</a>"
 
 #: DonateModal.html
 msgid ""
-"Open Library is a project of the <a href=\"https://archive.org/"
-"about\">Internet Archive</a>, a 501(c)(3) non-profit"
+"Open Library is a project of the <a "
+"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
+"profit"
 msgstr ""
-"Open Library je projekt neprofitne organizacije <a href=\"https://"
-"archive.org/about\">Internet Archive</a>"
+"Open Library je projekt neprofitne organizacije <a "
+"href=\"https://archive.org/about\">Internet Archive</a>"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid ""
@@ -262,15 +269,17 @@ msgstr ""
 
 #: EditButtons.html books/add.html type/tag/form.html
 msgid ""
-"By saving a change to this wiki, you agree that your contribution is given "
-"freely to the world under <a href=\"https://creativecommons.org/publicdomain/"
-"zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will "
-"open in a new window\">CC0</a>. Yippee!"
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" title=\"This link to Creative Commons will open in a "
+"new window\">CC0</a>. Yippee!"
 msgstr ""
 "Spremanjem promjena na ovoj wiki-stranici prihvaćaš da je cijeli svijet "
-"slobodno koristi pod <a href=\"https://creativecommons.org/publicdomain/zero/"
-"1.0/\" target=\"_blank\" title=\"Ova poveznica na Creative Commons otvara "
-"novi prozor\">CC0</a> licencom. Super!"
+"slobodno koristi pod <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" title=\"Ova poveznica na Creative Commons otvara novi "
+"prozor\">CC0</a> licencom. Super!"
 
 #: EditButtons.html account/notifications.html account/privacy.html
 #: admin/block.html admin/spamwords.html covers/manage.html
@@ -576,14 +585,15 @@ msgstr "Povijest izdanja"
 
 #: PublishingHistory.html
 msgid ""
-"This is a chart to show the publishing history of editions of works about "
-"this subject. Along the X axis is time, and on the y axis is the count of "
-"editions published. <a href=\"#subjectRelated\">Click here to skip the "
-"chart</a>."
+"This is a chart to show the publishing history of editions of works about"
+" this subject. Along the X axis is time, and on the y axis is the count "
+"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
+" chart</a>."
 msgstr ""
-"Vremenski dijagram za prikaz povijesti objavljivanja izdanja djela u ovom "
-"području. Os x označava vrijeme, os y broj izdanih izdanja. <a "
-"href=\"#subjectRelated\">Za preskakanje prikaza dijagrama pritisni ovdje</a>."
+"Vremenski dijagram za prikaz povijesti objavljivanja izdanja djela u ovom"
+" području. Os x označava vrijeme, os y broj izdanih izdanja. <a "
+"href=\"#subjectRelated\">Za preskakanje prikaza dijagrama pritisni "
+"ovdje</a>."
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
@@ -639,11 +649,11 @@ msgstr "Poseban pristup"
 
 #: ReadButton.html
 msgid ""
-"Special ebook access from the Internet Archive for patrons with qualifying "
-"print disabilities"
+"Special ebook access from the Internet Archive for patrons with "
+"qualifying print disabilities"
 msgstr ""
-"Poseban pristup e-knjigama s Internet Archive stranica za slijepe/slabovidne "
-"članove"
+"Poseban pristup e-knjigama s Internet Archive stranica za "
+"slijepe/slabovidne članove"
 
 #: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
@@ -697,8 +707,7 @@ msgstr "razlika"
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html
 #: recentchanges/render.html
-msgid ""
-"When you see numbers here, that's the IP address of the anonymous editor"
+msgid "When you see numbers here, that's the IP address of the anonymous editor"
 msgstr "Kada ovdje vidiš brojeve, to je IP adresa anonimnog urednika"
 
 #: RecentChanges.html
@@ -818,11 +827,11 @@ msgstr "Napredna pretraga"
 msgid "added to"
 msgstr "dodano u"
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr "Prikaži više"
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show less"
 msgstr "Prikaži manje"
 
@@ -848,8 +857,7 @@ msgstr[2] "%(count)s izdanja"
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
-msgid_plural ""
-"in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
+msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
 msgstr[0] "na <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jeziku</a>"
 msgstr[1] "na <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jezika</a>"
 msgstr[2] "na <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jezika</a>"
@@ -1013,17 +1021,17 @@ msgstr "Huh?"
 
 #: TypeChanger.html
 msgid ""
-"Every piece of Open Library is defined by the type of content it displays, "
-"usually by content definition (e.g. Authors, Editions, Works) but sometimes "
-"by content use (e.g. macro, template, rawtext). Changing this for an "
-"existing page will alter its presentation and the data fields available for "
-"editing its content."
+"Every piece of Open Library is defined by the type of content it "
+"displays, usually by content definition (e.g. Authors, Editions, Works) "
+"but sometimes by content use (e.g. macro, template, rawtext). Changing "
+"this for an existing page will alter its presentation and the data fields"
+" available for editing its content."
 msgstr ""
 "Svaki Open Library element definiran je vrstom sadržaja koji prikazuje, "
 "obično definicijom sadržaja (npr. autori, izdanja, djela), ali ponekad i "
 "upotrebom sadržaja (npr. makronaredba, predložak, neformatirani tekst). "
-"Mijenjanjem elemenata za postojeću stranicu, promijenit će se njen prikaz i "
-"podatkovna polja koja su dostupna za uređivanje sadržaja stranice."
+"Mijenjanjem elemenata za postojeću stranicu, promijenit će se njen prikaz"
+" i podatkovna polja koja su dostupna za uređivanje sadržaja stranice."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
@@ -1031,8 +1039,8 @@ msgstr "Oprez pri mijenjanju vrste stranice!"
 
 #: TypeChanger.html
 msgid ""
-"(Simplest solution: If you aren't sure whether this should be changed, don't "
-"change it.)"
+"(Simplest solution: If you aren't sure whether this should be changed, "
+"don't change it.)"
 msgstr "(Najjednostavnije rješenje: ako si u nedoumici, nemoj mijenjati.)"
 
 #: UserEditRow.html type/work/editions.html
@@ -1309,8 +1317,7 @@ msgstr "Sadrži broj stranica"
 
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
-msgid ""
-"Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr "Stvarno želiš ukloniti <strong>%(title)s</strong> s tvog popisa?"
 
 #: books/mybooks_breadcrumb_select.html
@@ -1377,16 +1384,15 @@ msgstr "Pojavio se problem i nismo te mogli prijaviti."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
-"Pokušaj prijave s neispravnim podacima za prijavu na Internet Archive s3."
+msgstr "Pokušaj prijave s neispravnim podacima za prijavu na Internet Archive s3."
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
-"Servers are experiencing unusually high traffic, please try again later or "
-"email openlibrary@archive.org for help."
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
 msgstr ""
-"Serveri imaju neuobičajeno velik promet. Pokušaj ponovo kasnije ili pošalji "
-"e-mail na openlibrary@archive.org za pomoć."
+"Serveri imaju neuobičajeno velik promet. Pokušaj ponovo kasnije ili "
+"pošalji e-mail na openlibrary@archive.org za pomoć."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
@@ -1402,8 +1408,8 @@ msgstr "Pojavio se problem i nismo te mogli prijaviti"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
-"Login or registration attempt hit an unexpected error, please try again or "
-"contact info@archive.org"
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
 msgstr ""
 "Neočekivana greška prilikom pokušaja prijave ili registracije. Pokušaj "
 "ponovo ili kontaktiraj info@archive.org"
@@ -1416,11 +1422,11 @@ msgstr "Zahtjev nije uspio s kodom greške: %(error_code)s"
 #: openlibrary/plugins/upstream/account.py
 msgid ""
 "Thank you for registering an Open Library account and requesting special "
-"print disability access. You should receive an email detailing next steps in "
-"the process."
+"print disability access. You should receive an email detailing next steps"
+" in the process."
 msgstr ""
-"Hvala ti na otvaranju Open Library računa i traženja posebnog pristupa za "
-"tiskani materijal za slijepe osobe. Primit ćeš e-mail s detaljima o "
+"Hvala ti na otvaranju Open Library računa i traženja posebnog pristupa za"
+" tiskani materijal za slijepe osobe. Primit ćeš e-mail s detaljima o "
 "sljedećim koracima u procesu."
 
 #: openlibrary/plugins/upstream/account.py
@@ -1464,7 +1470,8 @@ msgstr "Nije bilo moguće potvrditi e-mail adresu."
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
-"Your email address couldn't be verified. The verification link seems invalid."
+"Your email address couldn't be verified. The verification link seems "
+"invalid."
 msgstr ""
 "Nije bilo moguće potvrditi tvoju e-mail adresu. Poveznica potvrde je "
 "neispravna."
@@ -1690,11 +1697,13 @@ msgstr ""
 
 #: batch_import.html
 msgid ""
-"See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/"
-"master/olclient/schemata\">olclient import schemata</a> for more."
+"See the <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a> for "
+"more."
 msgstr ""
 "Saznaj više o <a href=\"https://github.com/internetarchive/openlibrary-"
-"client/tree/master/olclient/schemata\">shemema uvoza olclient biblioteke</a>."
+"client/tree/master/olclient/schemata\">shemema uvoza olclient "
+"biblioteke</a>."
 
 #: batch_import.html
 msgid "Attach a file:"
@@ -1715,16 +1724,16 @@ msgstr "Uvoz neuspio."
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
 msgstr ""
-"Uvoz neće biti stavljen u red čekanja sve dok se *svaki* zapis uspješno ne "
-"potvrdi."
+"Uvoz neće biti stavljen u red čekanja sve dok se *svaki* zapis uspješno "
+"ne potvrdi."
 
 #: batch_import.html
 msgid ""
-"Please update the JSONL file and reload this page (there should be no need "
-"to reattach the file)."
+"Please update the JSONL file and reload this page (there should be no "
+"need to reattach the file)."
 msgstr ""
-"Aktualiziraj JSONL datoteku i ponovo učitaj ovu stranicu (ne bi trebalo biti "
-"potrebno ponovo priložiti datoteku)."
+"Aktualiziraj JSONL datoteku i ponovo učitaj ovu stranicu (ne bi trebalo "
+"biti potrebno ponovo priložiti datoteku)."
 
 #: batch_import.html
 msgid "Validation errors:"
@@ -1846,32 +1855,8 @@ msgid "Design Pattern Library"
 msgstr "Knjižnica uzoraka dizajna"
 
 #: design.html
-msgid "Fonts"
-msgstr "Fontovi"
-
-#: design.html
-msgid "Font-size"
-msgstr "Veličina fonta"
-
-#: design.html
-msgid "Font-family"
-msgstr "Obitelj fontova"
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr "Bez serifa: Verdana"
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr "Sa serifima: Georgia"
-
-#: design.html
 msgid "Colors"
 msgstr "Boje"
-
-#: design.html
-msgid "Defaults"
-msgstr "Standardne vrijednosti"
 
 #: design.html
 msgid "Background"
@@ -1888,6 +1873,142 @@ msgstr "Poveznica (nekliknuta)"
 #: design.html
 msgid "Link (clicked)"
 msgstr "Poveznica (kliknuta)"
+
+#: design.html
+#, fuzzy
+msgid "Pagination component"
+msgstr "Paginacija"
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+#, fuzzy
+msgid "Event-based"
+msgstr "događaj"
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+#, fuzzy
+msgid "Selected page:"
+msgstr "Odaberi ulogu"
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+#, fuzzy
+msgid "3 pages"
+msgstr "Stranice"
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+#, fuzzy
+msgid "Read More component"
+msgstr "Prikaži više"
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+#, fuzzy
+msgid "Custom background color"
+msgstr "Pozadina"
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
 
 #: diff.html
 #, python-format
@@ -2021,11 +2142,11 @@ msgstr "Žao nam je, došlo je do problema prilikom odgovaranja na tvoj zahtjev:
 #: internalerror.html
 #, python-format
 msgid ""
-"The reference code %s and Sentry trace ID %s have been created to track this "
-"error and we will investigate as we're able."
+"The reference code %s and Sentry trace ID %s have been created to track "
+"this error and we will investigate as we're able."
 msgstr ""
-"Referentni kod %s i Sentry trace ID %s su stvoreni za praćenje ove greške i "
-"istražit ćemo ih čim budemo mogli."
+"Referentni kod %s i Sentry trace ID %s su stvoreni za praćenje ove greške"
+" i istražit ćemo ih čim budemo mogli."
 
 #: internalerror.html
 #, python-format
@@ -2033,13 +2154,13 @@ msgid ""
 "The reference code %s has been created to track this error and we will "
 "investigate as we're able."
 msgstr ""
-"Referentni kod %s je stvoren za praćenje ove greške i istražit ćemo je čim "
-"budemo mogli."
+"Referentni kod %s je stvoren za praćenje ove greške i istražit ćemo je "
+"čim budemo mogli."
 
 #: internalerror.html
 msgid ""
-"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</"
-"a>?"
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
 msgstr ""
 "Vratiti se na <a class=\"go-back-link\" href=\"javascript:;\">prethodnu "
 "stranicu</a>?"
@@ -2054,8 +2175,8 @@ msgid ""
 "This book is provided by %(book_provider)s, a third-party Open Library "
 "Trusted Book Provider"
 msgstr ""
-"Ovu knjigu osigurava %(book_provider)s, neovisan i pouzdan pružatelj knjiga "
-"u Open Library"
+"Ovu knjigu osigurava %(book_provider)s, neovisan i pouzdan pružatelj "
+"knjiga u Open Library"
 
 #: interstitial.html
 #, python-format
@@ -2082,10 +2203,11 @@ msgstr "Prijava"
 
 #: login.html
 msgid ""
-"This is a development instance, the default credentials are automatically "
-"filled."
+"This is a development instance, the default credentials are automatically"
+" filled."
 msgstr ""
-"Ovo je razvojna instanca, zadani podaci za prijavu se ispunjavaju automatski."
+"Ovo je razvojna instanca, zadani podaci za prijavu se ispunjavaju "
+"automatski."
 
 #: login.html
 msgid "email:"
@@ -2097,8 +2219,8 @@ msgstr "lozinka:"
 
 #: login.html
 msgid ""
-"Log in to use your free Open Library card to borrow digital books from the "
-"nonprofit Internet Archive"
+"Log in to use your free Open Library card to borrow digital books from "
+"the nonprofit Internet Archive"
 msgstr ""
 "Prijavi se za korištenje besplatne Open Library kartice za posuđivanje "
 "digitalnih knjiga od neprofitne organizacije Internet Archive"
@@ -2114,21 +2236,22 @@ msgstr "Već si prijavljen/a na Open Library kao %(user)s."
 
 #: account/create.html login.html
 msgid ""
-"If you'd like to create a new, different Open Library account, you'll need "
-"to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
+"If you'd like to create a new, different Open Library account, you'll "
+"need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
 "logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
 "Ako želiš stvoriti jedan novi Open Library račun, moraš se <a "
-"href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()"
-"\">odjaviti</a> i ponovo započeti postupak registracije."
+"href=\"javascript:;\" onclick=\"document.forms['hamburger-"
+"logout'].submit()\">odjaviti</a> i ponovo započeti postupak registracije."
 
 #: login.html
 msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> email "
-"and password to access your Open Library account."
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
 msgstr ""
-"Za pristup tvom Open Library računu upiši svoju <a href=\"https://"
-"archive.org\">Internet Archive</a> e-mail adresu i lozinku."
+"Za pristup tvom Open Library računu upiši svoju <a "
+"href=\"https://archive.org\">Internet Archive</a> e-mail adresu i "
+"lozinku."
 
 #: login.html
 msgid "Forgot your Internet Archive email?"
@@ -2229,8 +2352,8 @@ msgstr ""
 #: permission_denied.html
 #, python-format
 msgid ""
-"Only logged users are allowed to modify records on Open Library. Please <a "
-"href=\"%s\">log in</a> to edit this page."
+"Only logged users are allowed to modify records on Open Library. Please "
+"<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
 "Samo prijavljeni korisnici smiju mijenjati zapise u Open Library. <a "
 "href=\"%s\">Prijavi se</a> ako želiš dodati knjigu."
@@ -2242,8 +2365,8 @@ msgstr "Možeš se <a href=\"%s\">prijaviti</a>, ako imaš potrebne dozvole."
 
 #: recaptcha.html
 msgid ""
-"Please satisfy the reCAPTCHA below. If you have security settings or privacy "
-"blockers installed, please disable them to see the reCAPTCHA."
+"Please satisfy the reCAPTCHA below. If you have security settings or "
+"privacy blockers installed, please disable them to see the reCAPTCHA."
 msgstr ""
 "Riješi reCAPTCHA. Ako su sigurnosne postavke ili blokeri privatnosti "
 "instalirani, deaktiviraj ih za prikaz reCAPTCHA."
@@ -2511,11 +2634,11 @@ msgstr "Open Library tim"
 
 #: about/index.html
 msgid ""
-"Open Library is made possible because of a dedicated team of staff and over "
-"100 volunteers from around the globe."
+"Open Library is made possible because of a dedicated team of staff and "
+"over 100 volunteers from around the globe."
 msgstr ""
-"Open Library postoji zahvaljujući posvećenom timu zaposlenika i više od 100 "
-"volontera iz cijelog svijeta."
+"Open Library postoji zahvaljujući posvećenom timu zaposlenika i više od "
+"100 volontera iz cijelog svijeta."
 
 #: about/index.html
 msgid "Want to join us?"
@@ -2563,13 +2686,14 @@ msgstr "Knjižničarstvo"
 
 #: about/index.html
 msgid ""
-"If you volunteer with Open Library and would like to be listed as part of "
-"the team, then complete the <a href=\"https://forms.gle/"
-"zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
+"If you volunteer with Open Library and would like to be listed as part of"
+" the team, then complete the <a "
+"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
+"information form</a>."
 msgstr ""
-"Ako volontiraš u Open Library i želiš biti naveden/a kao dio tima, ispuni <a "
-"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">obrazac s podacima za Open "
-"Library tim</a>."
+"Ako volontiraš u Open Library i želiš biti naveden/a kao dio tima, ispuni"
+" <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">obrazac s podacima za "
+"Open Library tim</a>."
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
@@ -2589,8 +2713,8 @@ msgstr "Registriraj se"
 
 #: account/create.html
 msgid ""
-"Get your free Open Library card and borrow digital books from the nonprofit "
-"Internet Archive"
+"Get your free Open Library card and borrow digital books from the "
+"nonprofit Internet Archive"
 msgstr ""
 "Nabavi besplatnu iskaznicu za Open Library i posuđuj digitalne knjige od "
 "neprofitne organizacije Internet Archive"
@@ -2610,17 +2734,18 @@ msgstr "ime ekrana"
 #: account/create.html
 msgid ""
 "I want to receive news, announcements, and resources from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs "
-"Open Library."
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
+"runs Open Library."
 msgstr ""
-"Želim primati novosti, najave i građu od <a href=\"https://archive.org/"
-"\">Internet Archive</a>, neprofitne organizacije koja pokreće Open Library."
+"Želim primati novosti, najave i građu od <a "
+"href=\"https://archive.org/\">Internet Archive</a>, neprofitne "
+"organizacije koja pokreće Open Library."
 
 #: account/create.html
 msgid ""
 "I want to apply* for <a href=\"https://help.archive.org/help/program-"
-"overview/\" target=\"_blank\">special print disability access</a> through a "
-"qualifying program."
+"overview/\" target=\"_blank\">special print disability access</a> through"
+" a qualifying program."
 msgstr ""
 "Želim se prijaviti* za <a href=\"https://help.archive.org/help/program-"
 "overview/\" target=\"_blank\">poseban pristup za tiskani materijal za "
@@ -2632,8 +2757,8 @@ msgstr "Odaberi kvalificirani program."
 
 #: account/create.html
 msgid ""
-"* Please use the email address associated with this qualifying program. You "
-"will receive an email after activation with next steps."
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
 msgstr ""
 "* Koristi e-mail adresu povezanu s ovim kvalificiranim programom. Nakon "
 "aktivacije ćeš dobiti e-mail s daljnjim uputama."
@@ -2645,12 +2770,12 @@ msgstr "Registriraj se putem e-mail adrese"
 #: account/create.html
 msgid ""
 "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
-"form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Terms "
-"of Service</a>."
+"form__link\" href=\"//archive.org/about/terms.php\" "
+"target=\"_blank\">Terms of Service</a>."
 msgstr ""
-"S registracijom prihvaćaš <a class=\"ol-signup-form__link\" href=\"//"
-"archive.org/about/terms.php\" target=\"_blank\">uvjete usluge</a> od "
-"Internet Archive."
+"S registracijom prihvaćaš <a class=\"ol-signup-form__link\" "
+"href=\"//archive.org/about/terms.php\" target=\"_blank\">uvjete "
+"usluge</a> od Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -2674,11 +2799,12 @@ msgstr "Uvezi iz Goodreads"
 
 #: account/import.html
 msgid ""
-"For instructions on exporting data refer to: <a href=\"https://"
-"www.goodreads.com/review/import\">Goodreads Import/Export</a>"
+"For instructions on exporting data refer to: <a "
+"href=\"https://www.goodreads.com/review/import\">Goodreads "
+"Import/Export</a>"
 msgstr ""
-"Upute o izvozu podataka potraži na: <a href=\"https://www.goodreads.com/"
-"review/import\">Goodreads uvoz/izvoz</a>"
+"Upute o izvozu podataka potraži na: <a "
+"href=\"https://www.goodreads.com/review/import\">Goodreads uvoz/izvoz</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
@@ -2818,10 +2944,11 @@ msgstr "Izbriši se iz popisa čekanja"
 
 #: account/loans.html
 msgid ""
-"Are you sure you want to leave the waiting list of<br/><strong>TITLE</"
-"strong>?"
+"Are you sure you want to leave the waiting list "
+"of<br/><strong>TITLE</strong>?"
 msgstr ""
-"Stvarno se želiš izbrisati iz popisa čekanja za<br/><strong>TITLE</strong>?"
+"Stvarno se želiš izbrisati iz popisa čekanja "
+"za<br/><strong>TITLE</strong>?"
 
 #: account/loans.html
 #, python-format
@@ -2845,8 +2972,8 @@ msgstr[2] "Za posuđivanje ti preostaje još %(hours)d sati."
 
 #: account/loans.html
 msgid ""
-"Looking for a book to borrow?  Check out our staff picks, or search for a "
-"book on a specific subject:"
+"Looking for a book to borrow?  Check out our staff picks, or search for a"
+" book on a specific subject:"
 msgstr ""
 "Tražiš knjigu za posudbu? Pogledaj izbor knjiga naših zaposlenika ili "
 "potraži knjigu određenog područja:"
@@ -2911,9 +3038,9 @@ msgstr "E-mail adresa s kojom si se registrirao/la se mora potvrditi."
 #: account/not_verified.html
 #, python-format
 msgid ""
-"When you created your account, we sent an email to %(email)s that contained "
-"a link for you to verify your email address. We need you to click that link, "
-"please."
+"When you created your account, we sent an email to %(email)s that "
+"contained a link for you to verify your email address. We need you to "
+"click that link, please."
 msgstr ""
 "Nakon što stvoriš račun, šaljemo ti e-mail na %(email)s koja sadrži "
 "poveznicu za potvrđivanje tvoje e-mail adrese. Klikni tu poveznicu."
@@ -2966,13 +3093,13 @@ msgstr "Obavijesti"
 
 #: account/notifications.html
 msgid ""
-"Notifications are connected to Lists at the moment. If one of the books on "
-"your list gets edited, or a new book comes into the catalog, we'll let you "
-"know, if you want."
+"Notifications are connected to Lists at the moment. If one of the books "
+"on your list gets edited, or a new book comes into the catalog, we'll let"
+" you know, if you want."
 msgstr ""
 "Obavijesti su trenutačno povezane s popisima. Ako se jedna knjiga s tvog "
-"popisa uredi ili ako se jedna nova knjiga doda u katalog, obavijestit ćemo "
-"te ako želiš."
+"popisa uredi ili ako se jedna nova knjiga doda u katalog, obavijestit "
+"ćemo te ako želiš."
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
@@ -3011,17 +3138,18 @@ msgid ""
 "Would you like to make your <a href=\"/account/books\">Reading Log</a> "
 "public?"
 msgstr ""
-"Želiš li da se tvoj <a href=\"/account/books\">dnevnik čitanja</a> prikazuje "
-"javno?"
+"Želiš li da se tvoj <a href=\"/account/books\">dnevnik čitanja</a> "
+"prikazuje javno?"
 
 #: account/privacy.html
 msgid ""
-"This will enable others to see what books you want to read, are reading, or "
-"have already read. Patrons with reading logs set to public may be followed."
+"This will enable others to see what books you want to read, are reading, "
+"or have already read. Patrons with reading logs set to public may be "
+"followed."
 msgstr ""
-"Ovo će omogućiti drugima da vide koje knjige želiš čitati, koje čitaš ili "
-"koje si već pročitao/la. Korisnici s dnevnicima čitanja koji su postavljeni "
-"na javne se mogu pratiti."
+"Ovo će omogućiti drugima da vide koje knjige želiš čitati, koje čitaš ili"
+" koje si već pročitao/la. Korisnici s dnevnicima čitanja koji su "
+"postavljeni na javne se mogu pratiti."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -3054,8 +3182,8 @@ msgid ""
 "%(username)s is reading %(total)d books. Join %(username)s on "
 "OpenLibrary.org and tell the world what you're reading."
 msgstr ""
-"%(username)s čita %(total)d knjiga. Pridruži se korisniku %(username)s na "
-"OpenLibrary.org i javi svijetu što čitaš."
+"%(username)s čita %(total)d knjiga. Pridruži se korisniku %(username)s na"
+" OpenLibrary.org i javi svijetu što čitaš."
 
 #: account/reading_log.html
 #, python-format
@@ -3082,9 +3210,9 @@ msgid ""
 "%(username)s has read %(total)d books in %(year)d. Join %(username)s on "
 "OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
-"%(username)s je pročitao/la %(total)d knjiga %(year)d. Pridruži se korisniku "
-"%(username)s na OpenLibrary.org i obavijesti svijet o knjigama koje su ti "
-"važne."
+"%(username)s je pročitao/la %(total)d knjiga %(year)d. Pridruži se "
+"korisniku %(username)s na OpenLibrary.org i obavijesti svijet o knjigama "
+"koje su ti važne."
 
 #: account/reading_log.html
 #, python-format
@@ -3094,12 +3222,12 @@ msgstr "Knjige koje je %(username)s čitao/la"
 #: account/reading_log.html
 #, python-format
 msgid ""
-"%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org "
-"and tell the world about the books that you care about."
+"%(username)s has read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world about the books that you care about."
 msgstr ""
 "%(username)s je pročitao/la %(total)d knjiga. Pridruži se korisniku "
-"%(username)s na OpenLibrary.org i obavijesti svijet o knjigama koje su ti "
-"važne."
+"%(username)s na OpenLibrary.org i obavijesti svijet o knjigama koje su ti"
+" važne."
 
 #: account/reading_log.html
 #, python-format
@@ -3149,8 +3277,8 @@ msgid ""
 "<a href=\"/search\">Search for a book</a> to add to your reading log. <a "
 "href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
 msgstr ""
-"<a href=\"/search\">Traži knjigu</a> koju želiš dodati u dnevnik čitanja. <a "
-"href=\"/help/faq/reading-log\">Saznaj više</a> o dnevniku čitanja."
+"<a href=\"/search\">Traži knjigu</a> koju želiš dodati u dnevnik čitanja."
+" <a href=\"/help/faq/reading-log\">Saznaj više</a> o dnevniku čitanja."
 
 #: account/reading_log.html
 msgid ""
@@ -3204,17 +3332,19 @@ msgstr "Djela po zemlji rođenja autora"
 
 #: account/readinglog_stats.html
 msgid ""
-"Demographic statistics powered by <a href=\"https://www.wikidata.org/"
-"\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of "
-"the query used. <br />Improve these stats by adding the Wikidata author "
-"identifier following <a href=\"https://openlibrary.org/help/faq/"
-"editing.en#author-identifiers-purpose\">these instructions</a>."
+"Demographic statistics powered by <a "
+"href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-"
+"query-sample\" href=\"\">sample</a> of the query used. <br />Improve "
+"these stats by adding the Wikidata author identifier following <a "
+"href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
+"purpose\">these instructions</a>."
 msgstr ""
-"Demografsku statistiku pruža <a href=\"https://www.wikidata.org/\">Wikidata</"
-"a>. Ovo je <a id=\"wd-query-sample\" href=\"\">primjer</a> korištenog upita. "
-"<br />Poboljšaj ovu statistiku dodavanjem Wikidata identifikatora autora "
-"slijedeći <a href=\"https://openlibrary.org/help/faq/editing.en#author-"
-"identifiers-purpose\">ove upute</a>."
+"Demografsku statistiku pruža <a "
+"href=\"https://www.wikidata.org/\">Wikidata</a>. Ovo je <a id=\"wd-query-"
+"sample\" href=\"\">primjer</a> korištenog upita. <br />Poboljšaj ovu "
+"statistiku dodavanjem Wikidata identifikatora autora slijedeći <a "
+"href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
+"purpose\">ove upute</a>."
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
@@ -3296,12 +3426,13 @@ msgstr "Zdravo %(user)s"
 #: account/verify.html
 #, python-format
 msgid ""
-"We’ve sent an email to %(email)s containing a link to verify your account. "
-"Click/tap on the link to finish creating your Internet Archive account."
+"We’ve sent an email to %(email)s containing a link to verify your "
+"account. Click/tap on the link to finish creating your Internet Archive "
+"account."
 msgstr ""
-"Poslali smo e-mail na %(email)s koja sadrži poveznicu za potvrđivanje tvog "
-"računa. Klikni/dodirni poveznicu za dovršavanje stvaranja Internet Archive "
-"računa."
+"Poslali smo e-mail na %(email)s koja sadrži poveznicu za potvrđivanje "
+"tvog računa. Klikni/dodirni poveznicu za dovršavanje stvaranja Internet "
+"Archive računa."
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
@@ -3327,7 +3458,8 @@ msgstr "Dijeli"
 #: account/view.html
 msgid "Your book notes are private and cannot be viewed by other patrons."
 msgstr ""
-"Tvoje napomene uz knjigu su privatne i drugi članovi ih ne mogu pregledati."
+"Tvoje napomene uz knjigu su privatne i drugi članovi ih ne mogu "
+"pregledati."
 
 #: account/view.html
 msgid "Your book reviews will be shared anonymously with other patrons."
@@ -3348,8 +3480,8 @@ msgstr "Ne sjećaš se svoje e-mail adrese za Internet Archive?"
 
 #: account/email/forgot-ia.html
 msgid ""
-"Please enter your Open Library email and password, and we’ll retrieve your "
-"Archive.org email."
+"Please enter your Open Library email and password, and we’ll retrieve "
+"your Archive.org email."
 msgstr ""
 "Upiši svoju e-mail adresu i lozinku za Open Library, a mi ćemo obnoviti "
 "tvoju e-mail adresu za Archive.org."
@@ -3404,11 +3536,11 @@ msgstr "Lozinka je uspješno obnovljena"
 
 #: account/password/reset_success.html
 msgid ""
-"Your password has been updated. Please <a href='/account/login?"
-"redirect=/'>log in to continue</a>."
+"Your password has been updated. Please <a "
+"href='/account/login?redirect=/'>log in to continue</a>."
 msgstr ""
-"Tvoja je lozinka aktualizirana. <a href='/account/login?redirect=/'>Prijavi "
-"se i nastavi.</a>."
+"Tvoja je lozinka aktualizirana. <a "
+"href='/account/login?redirect=/'>Prijavi se i nastavi.</a>."
 
 #: account/password/sent.html
 msgid "Done."
@@ -3418,8 +3550,8 @@ msgstr "Gotovo."
 #, python-format
 msgid ""
 "We've sent an email to %(email)s with a reminder of your username and "
-"instructions to help you reset your Open Library password. Please check your "
-"inbox for a note from us."
+"instructions to help you reset your Open Library password. Please check "
+"your inbox for a note from us."
 msgstr ""
 "Poslali smo e-mail na %(email)s s podsjetnikom za tvoje korisničko ime i "
 "uputama, kako bismo ti pomogli obnoviti lozinku za Open Library. Potraži "
@@ -3449,11 +3581,10 @@ msgstr ""
 "neispravna ili je istekla."
 
 #: account/verify/failed.html
-msgid ""
-"Fill your email and hit this button to resend a fresh verification email:"
+msgid "Fill your email and hit this button to resend a fresh verification email:"
 msgstr ""
-"Upiši svoju e-mail adresu i pritisni ovaj gumb za ponovno slanje novog e-"
-"maila za potvrđivanje:"
+"Upiši svoju e-mail adresu i pritisni ovaj gumb za ponovno slanje novog "
+"e-maila za potvrđivanje:"
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -3473,8 +3604,8 @@ msgid ""
 "Yay! Your email address has been verified. Please <a href='%s'>log in to "
 "continue</a>."
 msgstr ""
-"Super! Tvoja e-mail adresa je potvrđena. <a href='%s'>Prijavi se i nastavi</"
-"a>."
+"Super! Tvoja e-mail adresa je potvrđena. <a href='%s'>Prijavi se i "
+"nastavi</a>."
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
@@ -3504,11 +3635,11 @@ msgstr "Blokiraj IP adresu"
 #: admin/block.html
 #, python-format
 msgid ""
-"IP address %(address)s has been added to the textarea. Please click Save to "
-"block that IP."
+"IP address %(address)s has been added to the textarea. Please click Save "
+"to block that IP."
 msgstr ""
-"IP adresa %(address)s je dodana u tekstualno područje. Klikni „Spremi“ za "
-"blokiranje te IP adrese."
+"IP adresa %(address)s je dodana u tekstualno područje. Klikni „Spremi“ za"
+" blokiranje te IP adrese."
 
 #: admin/graphs.html
 msgid "Performance Graphs"
@@ -3643,11 +3774,11 @@ msgstr "Stavke"
 
 #: admin/index.html
 msgid ""
-"<span class=\"login-counts\">0</span> patrons have logged in at least once "
-"over the past 30 days."
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
 msgstr ""
-"<span class=\"login-counts\">0</span> korisnika se prijavilo barem jednom u "
-"zadnjih 30 dana."
+"<span class=\"login-counts\">0</span> korisnika se prijavilo barem jednom"
+" u zadnjih 30 dana."
 
 #: admin/index.html
 msgid "Stats"
@@ -3831,7 +3962,8 @@ msgstr "Čekam od %(date)s"
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr ""
-"%(num_position)d. na redu od %(num_waitlist)d ljudi koji čekaju na ovu knjigu"
+"%(num_position)d. na redu od %(num_waitlist)d ljudi koji čekaju na ovu "
+"knjigu"
 
 #: admin/menu.html
 msgid "Admin Center"
@@ -3923,11 +4055,11 @@ msgstr "Dozvole za aktualiziranje"
 
 #: admin/permissions.html
 msgid ""
-"This updates \"permission\" and \"child_permission\" fields of /, /works, /"
-"books and /authors records in the database."
+"This updates \"permission\" and \"child_permission\" fields of /, /works,"
+" /books and /authors records in the database."
 msgstr ""
-"Ovo aktualizira polja „dozvola“ i „dozvola za djecu“ za /, /djela, /knjige "
-"i /autori u bazi podataka."
+"Ovo aktualizira polja „dozvola“ i „dozvola za djecu“ za /, /djela, "
+"/knjige i /autori u bazi podataka."
 
 #: admin/solr.html
 msgid "Solr Admin"
@@ -3969,8 +4101,7 @@ msgstr "[Centar za administratore] Spam riječi"
 msgid ""
 "Please enter the SPAM regular expressions in the textarea below, one per "
 "line."
-msgstr ""
-"Upiši regularne izraze za spam u donje područje teksta, jedan po retku."
+msgstr "Upiši regularne izraze za spam u donje područje teksta, jedan po retku."
 
 #: admin/spamwords.html
 msgid ""
@@ -3983,12 +4114,15 @@ msgid "If you are adding a domain, prepend the following to the domain:"
 msgstr "Ako dodaješ domenu, domeni dodaj sljedeće:"
 
 #: admin/spamwords.html
+#, fuzzy
 msgid ""
-"For example, if you want to prevent edits containing the domain <code>t.co</"
-"code>, add <code>(\b|https://|http://)t\\.co</code> to the spamwords list."
+"For example, if you want to prevent edits containing the domain "
+"<code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the "
+"spamwords list."
 msgstr ""
-"Na primjer, ako želiš spriječiti uređivanja koja sadrže domenu <code>t.co</"
-"code>, dodaj <code>(\b|https://|http://)t\\.co</code> u popis spam riječi."
+"Na primjer, ako želiš spriječiti uređivanja koja sadrže domenu "
+"<code>t.co</code>, dodaj <code>(\\b|https://|http://)t\\.co</code> u "
+"popis spam riječi."
 
 #: admin/spamwords.html
 msgid "Spam Domains"
@@ -3996,8 +4130,7 @@ msgstr "Spam domene"
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
-"Upiši domene u popis blokiranih u donje područje teksta, jednu po retku."
+msgstr "Upiši domene u popis blokiranih u donje područje teksta, jednu po retku."
 
 #: admin/sync.html
 msgid "Sync"
@@ -4017,17 +4150,19 @@ msgstr "Dodaj djela u izbor zaposlenika"
 
 #: admin/sync.html
 msgid ""
-"This utility will add your work to an Open Library list called `Staff Picks` "
-"under the `openlibrary` user. It will then take the added work and explode "
-"it into a list of all its readable editions. For each Open Library edition, "
-"a metadata field called `openlibrary_subject` will be injected into the "
-"archive.org metadata of the edition's corresponding archive.org item."
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
 msgstr ""
 "Ovaj alat dodaje tvoj rad na Open Library popis pod nazivom `Izbor "
 "zaposlenika` pod korisnikom `openlibrary`. Zatim će uzeti dodatni rad i "
-"pretvoriti ga u popis svih njegovih čitljivih izdanja. Za svako Open Library "
-"izdanje, polje metapodataka nazvano `openlibrary_subject` će se umetnuti u "
-"archive.org metapodatke odgovarajućeg predmeta izdanja na archive.org."
+"pretvoriti ga u popis svih njegovih čitljivih izdanja. Za svako Open "
+"Library izdanje, polje metapodataka nazvano `openlibrary_subject` će se "
+"umetnuti u archive.org metapodatke odgovarajućeg predmeta izdanja na "
+"archive.org."
 
 #: admin/sync.html
 msgid "add"
@@ -4059,19 +4194,19 @@ msgstr "Pregledaj Memcache"
 
 #: admin/inspect/memcache.html
 msgid ""
-"Add one memcache key per line in the text area. Each key must include a '-' "
-"as the last character."
+"Add one memcache key per line in the text area. Each key must include a "
+"'-' as the last character."
 msgstr ""
-"Dodaj jedan memcache ključ po retku u tekstualno područje. Svaka ključ mora "
-"sadržati „-“ kao zadnji znak."
+"Dodaj jedan memcache ključ po retku u tekstualno područje. Svaka ključ "
+"mora sadržati „-“ kao zadnji znak."
 
 #: admin/inspect/memcache.html
 msgid ""
-"For example, <code>observations-</code> should be entered in the text area "
-"if the key is <code>observations</code>."
+"For example, <code>observations-</code> should be entered in the text "
+"area if the key is <code>observations</code>."
 msgstr ""
-"Na primjer, upiši <code>observations-</code> u tekstualno područje ako je "
-"ključ <code>observations</code>."
+"Na primjer, upiši <code>observations-</code> u tekstualno područje ako je"
+" ključ <code>observations</code>."
 
 #: admin/inspect/memcache.html
 msgid "Keys:"
@@ -4305,11 +4440,11 @@ msgstr "prijavi se kao ovaj korisnik"
 #: admin/people/view.html
 #, python-format
 msgid ""
-"Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/"
-"%(ip)s\">%(ip)s</a>."
+"Activated on <span class=\"time\">%(date)s</span> from <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
-"Aktiviran <span class=\"time\">%(date)s</span> od <a href=\"/admin/ip/"
-"%(ip)s\">%(ip)s</a>."
+"Aktiviran <span class=\"time\">%(date)s</span> od <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
@@ -4522,8 +4657,7 @@ msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
-"Preuzmi DAISY datoteku od Internet Archive (format za slijepe/slabovidne)"
+msgstr "Preuzmi DAISY datoteku od Internet Archive (format za slijepe/slabovidne)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
@@ -4688,8 +4822,8 @@ msgstr "Neispravna znamenka ISBN-a"
 
 #: books/add.html
 msgid ""
-"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or "
-"0198534531"
+"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or"
+" 0198534531"
 msgstr ""
 "ID-oznaka mora imati točno 10 znakova [0 – 9 ili X]. Na primjer: "
 "0-19-853453-1 ili 0198534531"
@@ -4699,8 +4833,8 @@ msgid ""
 "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or "
 "9783161484100"
 msgstr ""
-"ID-oznaka mora imati točno 13 znakova [0 – 9]. Na primjer: 978-3-16-148410-0 "
-"ili 9783161484100"
+"ID-oznaka mora imati točno 13 znakova [0 – 9]. Na primjer: "
+"978-3-16-148410-0 ili 9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
@@ -4724,10 +4858,9 @@ msgstr "Dodaj knjigu u Open Library"
 
 #: books/add.html
 msgid ""
-"We require a minimum set of fields to create a new record. These are those "
-"fields."
-msgstr ""
-"Za stvaranje novog zapisa potreban je određen broj polja. Ovo su ta polja."
+"We require a minimum set of fields to create a new record. These are "
+"those fields."
+msgstr "Za stvaranje novog zapisa potreban je određen broj polja. Ovo su ta polja."
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: search/advancedsearch.html type/about/edit.html type/page/edit.html
@@ -4749,8 +4882,8 @@ msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
-"Na primjer „Agatha Christie” ili „Jean-Paul Sartre”. Također ćemo provjeriti "
-"je li već poznamo autora."
+"Na primjer „Agatha Christie” ili „Jean-Paul Sartre”. Također ćemo "
+"provjeriti je li već poznamo autora."
 
 #: books/add.html books/edit/edition.html
 msgid "Who is the publisher?"
@@ -4774,7 +4907,8 @@ msgstr "Ovo bi se trebalo moći pronaći na prvim stranicama knjige."
 
 #: books/add.html
 msgid ""
-"And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
+"And optionally, an ID number &#151; like an ISBN &#151; would be "
+"helpful..."
 msgstr "Opcionalno dodaj ID-oznaku poput ISBN-a …"
 
 #: books/add.html
@@ -4848,19 +4982,19 @@ msgstr "Dodaj knjigu"
 #: books/check.html
 #, python-format
 msgid ""
-"One moment... It looks like we already have <em>some potential matches</em> "
-"for <b>%(title)s</b> by <b>%(author)s</b>."
+"One moment... It looks like we already have <em>some potential "
+"matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
 "Samo malo … Čini se da već imamo <em>neka moguća podudaranja</em> za "
 "<b>%(title)s</b>, autora <b>%(author)s</b>."
 
 #: books/check.html
 msgid ""
-"Rather than creating a duplicate record, please click through the result you "
-"think best matches your book."
+"Rather than creating a duplicate record, please click through the result "
+"you think best matches your book."
 msgstr ""
-"Umjesto dupliciranja zapisa, pritisni rezultat za koji misliš da se najbolje "
-"podudara s tvojom knjigom."
+"Umjesto dupliciranja zapisa, pritisni rezultat za koji misliš da se "
+"najbolje podudara s tvojom knjigom."
 
 #: books/check.html
 msgid "Select this book"
@@ -4905,14 +5039,14 @@ msgid ""
 "It can only be opened on a specialized device with a key issued by the "
 "Library of Congress."
 msgstr ""
-"Može se otvoriti samo na specijaliziranom uređaju s ključem koji je izdala "
-"knjižnica „Library of Congress“."
+"Može se otvoriti samo na specijaliziranom uređaju s ključem koji je "
+"izdala knjižnica „Library of Congress“."
 
 #: books/daisy.html
 #, python-format
 msgid ""
-"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a "
-"href=\"%(url)s\">%(title)s</a>"
+"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
+" <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
 "<a href=\"%(daisy_url)s\"><strong>Preuzmi DAISY.zip</strong></a> za <a "
 "href=\"%(url)s\">%(title)s</a>"
@@ -4924,39 +5058,40 @@ msgstr "Knjige za slijepe/slabovidne osobe?"
 #: books/daisy.html
 msgid ""
 "The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
-"distributing over 1 million books free in a format called DAISY, designed "
-"for those of us who find it challenging to use regular printed media. "
+"distributing over 1 million books free in a format called DAISY, designed"
+" for those of us who find it challenging to use regular printed media. "
 msgstr ""
 "<a href=\"//archive.org\">Internet Archive</a> je ponosan što besplatno "
-"distribuira više od milijun knjiga u DAISY formatu, koji je namijenjen za "
-"slijepe/slabovidne osobe."
+"distribuira više od milijun knjiga u DAISY formatu, koji je namijenjen za"
+" slijepe/slabovidne osobe."
 
 #: books/daisy.html
 msgid ""
-"There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</"
-"i>. Open DAISYs can be read by anyone in the world on many different "
-"devices. Protected DAISYs like this one can only be opened using a key "
-"issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
-"program</a>."
+"There are two types of DAISYs on Open Library: <i>open</i> and "
+"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
+"different devices. Protected DAISYs like this one can only be opened "
+"using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
+"Congress NLS program</a>."
 msgstr ""
-"Postoje dvije vrste DAISY-a na Open Library: <i>otvoreni</i> i <i>zaštićeni</"
-"i>. Otvorene DAISY datoteke može čitati svatko na svijetu na različitim "
-"uređajima. Zaštićene DAISY datoteke poput ove se mogu otvoriti samo pomoću "
-"ključa koji je izdao <a href=\"http://www.loc.gov/nls/\">Library of Congress "
-"NLS program</a>."
-
-#: books/daisy.html
-msgid ""
-"There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</"
-"i>. Open DAISYs can be read by anyone in the world on many different "
-"devices. Protected DAISYs can only be opened using a key issued by the <a "
+"Postoje dvije vrste DAISY-a na Open Library: <i>otvoreni</i> i "
+"<i>zaštićeni</i>. Otvorene DAISY datoteke može čitati svatko na svijetu "
+"na različitim uređajima. Zaštićene DAISY datoteke poput ove se mogu "
+"otvoriti samo pomoću ključa koji je izdao <a "
 "href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr ""
-"Postoje dvije vrste DAISY-a na Open Library: <i>otvoreni</i> i <i>zaštićeni</"
-"i>. Otvorene DAISY datoteke može čitati svatko na svijetu na različitim "
-"uređajima. Zaštićene DAISY datoteke se mogu otvoriti samo pomoću ključa koji "
-"je izdao <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
+
+#: books/daisy.html
+msgid ""
+"There are two types of DAISYs on Open Library: <i>open</i> and "
+"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
+"different devices. Protected DAISYs can only be opened using a key issued"
+" by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
+msgstr ""
+"Postoje dvije vrste DAISY-a na Open Library: <i>otvoreni</i> i "
+"<i>zaštićeni</i>. Otvorene DAISY datoteke može čitati svatko na svijetu "
+"na različitim uređajima. Zaštićene DAISY datoteke se mogu otvoriti samo "
+"pomoću ključa koji je izdao <a href=\"http://www.loc.gov/nls/\">Library "
+"of Congress NLS program</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -4969,14 +5104,14 @@ msgstr "Što je DAISY format?"
 #: books/daisy.html
 msgid ""
 "The DAISY digital format helps people who have challenges using regular "
-"printed media. DAISY digital <span class=\"highlight\">talking books</span> "
-"offer the benefits of regular audiobooks, with navigation within the book, "
-"to chapters or specific pages."
+"printed media. DAISY digital <span class=\"highlight\">talking "
+"books</span> offer the benefits of regular audiobooks, with navigation "
+"within the book, to chapters or specific pages."
 msgstr ""
 "Digitalni format DAISY pomaže ljudima koji imaju poteškoća s korištenjem "
-"običnih tiskanih medija. Digitalne DAISY <span class=\"highlight\">knjige "
-"koje govore</span> nude prednosti običnih audio knjiga, s navigacijom unutar "
-"knjige na poglavlja ili na određene stranice."
+"običnih tiskanih medija. Digitalne DAISY <span class=\"highlight\">knjige"
+" koje govore</span> nude prednosti običnih audio knjiga, s navigacijom "
+"unutar knjige na poglavlja ili na određene stranice."
 
 #: books/daisy.html
 msgid "More information at daisy.org"
@@ -4988,17 +5123,17 @@ msgstr "Što je NLS?"
 
 #: books/daisy.html
 msgid ""
-"The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library "
-"Service for the Blind and Physically Handicapped (NLS)</a> administers a "
-"free library program of braille and audio materials circulated to eligible "
-"borrowers in the United States through a national network of cooperating "
-"libraries."
+"The Library of Congress <a href=\"http://www.loc.gov/nls/\">National "
+"Library Service for the Blind and Physically Handicapped (NLS)</a> "
+"administers a free library program of braille and audio materials "
+"circulated to eligible borrowers in the United States through a national "
+"network of cooperating libraries."
 msgstr ""
-"<a href=\"http://www.loc.gov/nls/\">Služba nacionalne knjižnice za slijepe i "
-"tjelesno hendikepirane (NLS)</a> knjižnice „Library of Congress“ upravlja "
-"besplatnom knjižničnom građom u brajici i audio materijalima koji se "
-"distribuiraju kvalificiranim zajmoprimcima u SAD-u putem nacionalne mreže "
-"surađujućih knjižnica."
+"<a href=\"http://www.loc.gov/nls/\">Služba nacionalne knjižnice za "
+"slijepe i tjelesno hendikepirane (NLS)</a> knjižnice „Library of "
+"Congress“ upravlja besplatnom knjižničnom građom u brajici i audio "
+"materijalima koji se distribuiraju kvalificiranim zajmoprimcima u SAD-u "
+"putem nacionalne mreže surađujućih knjižnica."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
@@ -5012,25 +5147,25 @@ msgstr "Kako mogu pronaći DAISY datoteke na Open Library?"
 msgid ""
 "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: "
 "Accessible book\"> loads of open DAISYs</a>, the Open Library lists a "
-"smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: "
-"Protected DAISY\"> protected DAISY titles</a> accessible to those with a "
-"Library of Congress NLS key. These titles are brought to you by the<a "
-"href=\"//archive.org/\"> Internet Archive</a>."
+"smaller selection of<a href=\"/subjects/protected_DAISY\" "
+"title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible"
+" to those with a Library of Congress NLS key. These titles are brought to"
+" you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
 "Pored <a href=\"/subjects/accessible_book\" title=\"Predmet: Dostupne "
-"knjige\">mnogih otvorenih DAISY-a</a>, Open Library navodi manji izbor <a "
-"href=\"/subjects/protected_DAISY\" title=\"Predmet: Zaštićeni "
-"DAISY\">zaštićenih DAISY naslova</a> koji su dostupni osobama s Library of "
-"Congress NLS ključem. Ove naslove pruža <a href=\"//archive.org/\">Internet "
-"Archive</a>."
+"knjige\">mnogih otvorenih DAISY-a</a>, Open Library navodi manji izbor <a"
+" href=\"/subjects/protected_DAISY\" title=\"Predmet: Zaštićeni "
+"DAISY\">zaštićenih DAISY naslova</a> koji su dostupni osobama s Library "
+"of Congress NLS ključem. Ove naslove pruža <a "
+"href=\"//archive.org/\">Internet Archive</a>."
 
 #: books/daisy.html
 msgid ""
-"Looking for a specific title? The best way to find it is to<a href=\"/"
-"search\"> search for it</a>."
+"Looking for a specific title? The best way to find it is to<a "
+"href=\"/search\"> search for it</a>."
 msgstr ""
-"Tražiš određeni naslov? Najbolji način za pronalaženje je<a href=\"/"
-"search\"> da ga tražiš</a>."
+"Tražiš određeni naslov? Najbolji način za pronalaženje je<a "
+"href=\"/search\"> da ga tražiš</a>."
 
 #: books/daisy.html lib/history.html
 msgid "Need help?"
@@ -5038,8 +5173,8 @@ msgstr "Trebaš pomoć?"
 
 #: books/daisy.html
 msgid ""
-" Please read our <a href=\"/help/faq\">FAQ on accessing books through Open "
-"Library</a>."
+" Please read our <a href=\"/help/faq\">FAQ on accessing books through "
+"Open Library</a>."
 msgstr ""
 "Pročitaj naša <a href=\"/help/faq\">često postavljena pitanja o pristupu "
 "knjigama putem Open Library</a>."
@@ -5050,19 +5185,20 @@ msgstr "Želiš li dodati još malo više?"
 
 #: books/edit.html
 msgid ""
-"Thank you for adding that book! Any more information you could provide would "
-"be wonderful!"
+"Thank you for adding that book! Any more information you could provide "
+"would be wonderful!"
 msgstr "Hvala ti na dodavanju te knjige! Svi dodatni podaci su dobrodošli!"
 
 #: books/edit.html
 #, python-format
 msgid ""
 "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
-"%(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
+"%(publisher)s edition</b>. Thanks! Do you know any more about this "
+"edition?"
 msgstr ""
 "Već poznamo <b>%(work_title)s</b>, ali ne poznamo <b>izdanje izdavača "
-"%(publisher)s od %(year)s. godine</b>. Hvala! Imaš li još podataka o ovom "
-"izdanju?"
+"%(publisher)s od %(year)s. godine</b>. Hvala! Imaš li još podataka o ovom"
+" izdanju?"
 
 #: books/edit.html
 #, python-format
@@ -5095,9 +5231,9 @@ msgstr "Ovo djelo"
 
 #: books/edit.html
 msgid ""
-"You can search by author name (like <em>j k rowling</em>) or by Open Library "
-"ID (like <a href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></"
-"a>)."
+"You can search by author name (like <em>j k rowling</em>) or by Open "
+"Library ID (like <a href=\"/authors/OL23919A\" "
+"target=\"_blank\"><em>OL23919A</em></a>)."
 msgstr ""
 "Možeš tražiti po imenu autora (poput <em>j k rowling</em>) ili po Open "
 "Library ID-oznaci (poput <a href=\"/authors/OL23919A\" "
@@ -5125,13 +5261,13 @@ msgstr "Poznaš li bilo koji identifikator za ovo djelo?"
 
 #: books/edit.html
 msgid ""
-"These identifiers apply to all editions of this work, for example Wikidata "
-"work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to "
-"the edition tab."
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
 msgstr ""
 "Ovi se identifikatori primjenjuju na sva izdanja ovog djela, na primjer "
-"Wikidata identifikatore djela. Za identifikatore specifičnih izdanja, kao "
-"što su ISBN ili LCCN idi na kartici izdanja."
+"Wikidata identifikatore djela. Za identifikatore specifičnih izdanja, kao"
+" što su ISBN ili LCCN idi na kartici izdanja."
 
 #: books/edition-sort.html
 #, python-format
@@ -5170,13 +5306,13 @@ msgstr "Odvoji zarezima."
 
 #: books/edit/about.html
 msgid ""
-"For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/"
-"roman_empire\">Roman Empire</a>, <a href=\"/subjects/"
-"psychology\">psychology</a></i>"
+"For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
+"href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
+"href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
-"Na primjer: <i><a href=\"/subjects/cheese\">sir</a>, <a href=\"/subjects/"
-"roman_empire\">Rimsko carstvo</a>, <a href=\"/subjects/"
-"psychology\">psihologija</a></i>"
+"Na primjer: <i><a href=\"/subjects/cheese\">sir</a>, <a "
+"href=\"/subjects/roman_empire\">Rimsko carstvo</a>, <a "
+"href=\"/subjects/psychology\">psihologija</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -5198,13 +5334,13 @@ msgstr "Želiš li zabilježiti neka spomenuta mjesta?"
 
 #: books/edit/about.html
 msgid ""
-"For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/"
-"subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/"
-"place:Omaha\">Omaha</a></i>"
+"For example: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
-"Na primjer: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/"
-"subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/"
-"place:Omaha\">Omaha</a></i>"
+"Na primjer: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -5212,13 +5348,13 @@ msgstr "Kada se radnja odvija ili o kojem se razdoblju radi?"
 
 #: books/edit/about.html
 msgid ""
-"For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/"
-"subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/"
-"time:1810-1890\">1810-1890</a></i>"
+"For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 msgstr ""
-"Na primjer: <i><a href=\"/subjects/time:1984\">1984.</a>, <a href=\"/"
-"subjects/time:the_middle_ages\">Srednji vijek</a>, <a href=\"/subjects/"
-"time:1810-1890\">1810. – 1890.</a></i>"
+"Na primjer: <i><a href=\"/subjects/time:1984\">1984.</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">Srednji vijek</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810. – 1890.</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -5366,20 +5502,21 @@ msgstr "Sadržaj"
 
 #: books/edit/edition.html
 msgid ""
-"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new "
-"lines. Like this:"
+"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
+"new lines. Like this:"
 msgstr ""
-"Koristi „*” za uvlačenje, „|” za dodavnaje stupca i prelamanje redaka. Ovako:"
+"Koristi „*” za uvlačenje, „|” za dodavnaje stupca i prelamanje redaka. "
+"Ovako:"
 
 #: books/edit/edition.html
 msgid ""
 "This table of contents contains extra information like authors or "
-"descriptions. We don't have a great user interface for this yet, so editing "
-"this data could be difficult. Watch out!"
+"descriptions. We don't have a great user interface for this yet, so "
+"editing this data could be difficult. Watch out!"
 msgstr ""
 "Ovaj sadržaj sadrži dodatne informacije kao što su autori ili opisi. Još "
-"nemamo sjajno korisničko sučelje za to, stoga bi uređivanje ovih podataka "
-"moglo biti teško. Oprez!"
+"nemamo sjajno korisničko sučelje za to, stoga bi uređivanje ovih podataka"
+" moglo biti teško. Oprez!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -5396,8 +5533,8 @@ msgstr "Je li poznato pod drugim naslovom?"
 #: books/edit/edition.html
 msgid ""
 "Use this field if the title is different on the cover or spine. If the "
-"edition is a collection or anthology, you may also add the individual titles "
-"of each work here."
+"edition is a collection or anthology, you may also add the individual "
+"titles of each work here."
 msgstr ""
 "Koristi ovo polje, ako je naslov drugačiji na koricama ili hrptu. Ako je "
 "izdanje zbirka ili antologija, ovdje možeš dodati i pojedinačne naslove "
@@ -5417,18 +5554,19 @@ msgstr "Kojem djelu pripada ovo izdanje?"
 
 #: books/edit/edition.html
 msgid ""
-"Sometimes editions can be associated with the wrong work. You can correct "
-"that here."
+"Sometimes editions can be associated with the wrong work. You can correct"
+" that here."
 msgstr ""
-"Izdanja su ponekad povezana s pogrešnim djelom. To se može odvje ispraviti."
+"Izdanja su ponekad povezana s pogrešnim djelom. To se može odvje "
+"ispraviti."
 
 #: books/edit/edition.html
 msgid ""
-"You can search by title or by Open Library ID (like <a href=\"/works/"
-"OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
+"You can search by title or by Open Library ID (like <a "
+"href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
 msgstr ""
-"Možeš tražiti po naslovu ili po Open Library ID-u (poput <a href=\"/works/"
-"OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
+"Možeš tražiti po naslovu ili po Open Library ID-u (poput <a "
+"href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -5465,7 +5603,8 @@ msgstr "Taj ID već postoji za ovo izdanje."
 #: books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
 msgstr ""
-"ID-oznaka mora imati točno 13 znamenki [0-9]. Na primjer: 978-1-56619-909-4"
+"ID-oznaka mora imati točno 13 znamenki [0-9]. Na primjer: "
+"978-1-56619-909-4"
 
 #: books/edit/edition.html
 msgid "Invalid ID format"
@@ -5618,7 +5757,8 @@ msgstr "Dodatni metapodaci"
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
 msgstr ""
-"Ovo polje može prihvatiti proizvoljne parove za ključ:vrijednosti (key:value)"
+"Ovo polje može prihvatiti proizvoljne parove za ključ:vrijednosti "
+"(key:value)"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
@@ -5630,11 +5770,11 @@ msgstr "Izvadak je predug."
 
 #: books/edit/excerpts.html
 msgid ""
-"If there are particular (short) passages you feel represent the book well, "
-"please feel free to transcribe them here."
+"If there are particular (short) passages you feel represent the book "
+"well, please feel free to transcribe them here."
 msgstr ""
-"Ako postoje određeni (kratki) odlomci za koje smatraš da dobro predstavljaju "
-"knjigu, slobodno ih ovdje zapiši."
+"Ako postoje određeni (kratki) odlomci za koje smatraš da dobro "
+"predstavljaju knjigu, slobodno ih ovdje zapiši."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
@@ -5690,11 +5830,11 @@ msgstr "Navedi ispravnu URL adresu."
 
 #: books/edit/web.html
 msgid ""
-"Please connect Open Library records to <u>good</u><span class=\"orange\">*</"
-"span> online resources."
+"Please connect Open Library records to <u>good</u><span "
+"class=\"orange\">*</span> online resources."
 msgstr ""
-"Poveži Open Library zapise s <u>dobrim</u><span class=\"orange\">*</span> "
-"internetskim resursima."
+"Poveži Open Library zapise s <u>dobrim</u><span class=\"orange\">*</span>"
+" internetskim resursima."
 
 #: books/edit/web.html
 msgid "Give your link a label"
@@ -5722,8 +5862,9 @@ msgid ""
 "Irrelevant sites may be removed. Blatant spam will be deleted without "
 "remorse."
 msgstr ""
-"„Dobre” poveznice znači da su relevantne za knjigu. Irelevatne web-stranice "
-"će se možda ukloniti. Očiti spam će se izbrisati bez grižnje savjesti."
+"„Dobre” poveznice znači da su relevantne za knjigu. Irelevatne web-"
+"stranice će se možda ukloniti. Očiti spam će se izbrisati bez grižnje "
+"savjesti."
 
 #: bulk_search/bulk_search.html
 msgid "Bulk Search (beta)"
@@ -5881,8 +6022,8 @@ msgid ""
 "You can drag and drop thumbnails to reorder, or into the trash to delete "
 "them."
 msgstr ""
-"Povuci-i-ispusti minijature za mijenjanje redoslijeda ili za premještanja u "
-"smeće."
+"Povuci-i-ispusti minijature za mijenjanje redoslijeda ili za premještanja"
+" u smeće."
 
 #: covers/saved.html
 msgid "New book cover"
@@ -5915,10 +6056,11 @@ msgstr "Hvala ti na napomeni. Javit ćemo ti se u najkraćem mogućem roku."
 #: email/case_created.html
 msgid ""
 "It might take us a little while to read it because we receive lots of "
-"messages, but rest assured we will, and we'll get back to you if required."
+"messages, but rest assured we will, and we'll get back to you if "
+"required."
 msgstr ""
-"Možda će malo potrajati da je pročitamo jer primamo puno poruka. Mi ćemo je "
-"svakako pročitati te ćemo ti se javiti ako bude potrebno."
+"Možda će malo potrajati da je pročitamo jer primamo puno poruka. Mi ćemo "
+"je svakako pročitati te ćemo ti se javiti ako bude potrebno."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
@@ -5946,23 +6088,23 @@ msgstr "Informacije o projektu"
 
 #: home/about.html
 msgid ""
-"Open Library is an open, editable library catalog, building towards a web "
-"page for every book ever published."
+"Open Library is an open, editable library catalog, building towards a web"
+" page for every book ever published."
 msgstr ""
-"Open Library je otvoren i urediv knjižnični katalog, smišljen za izradu web-"
-"stranice za svaku ikada izdanu knjigu."
+"Open Library je otvoren i urediv knjižnični katalog, smišljen za izradu "
+"web-stranice za svaku ikada izdanu knjigu."
 
 #: home/about.html
 msgid ""
-"Just like Wikipedia, you can contribute new information or corrections to "
-"the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a "
-"href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have "
-"created. If you love books, why not help build a library?"
+"Just like Wikipedia, you can contribute new information or corrections to"
+" the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a "
+"href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members "
+"have created. If you love books, why not help build a library?"
 msgstr ""
 "Baš kao i kod Wikipedije, katalog možeš nadopuniti i ispravljati. Možeš "
-"pregledati po <a href=\"/subjects\">područjima</a>, <a href=\"/"
-"authors\">autorima</a> ili <a href=\"/lists\">popisima</a> koje su stvorili "
-"članovi. Ako voliš knjige, pomogni izgraditi knjižnicu!"
+"pregledati po <a href=\"/subjects\">područjima</a>, <a "
+"href=\"/authors\">autorima</a> ili <a href=\"/lists\">popisima</a> koje "
+"su stvorili članovi. Ako voliš knjige, pomogni izgraditi knjižnicu!"
 
 #: home/about.html
 msgid "Latest Blog Posts"
@@ -5995,8 +6137,8 @@ msgstr "Authors Alliance i MIT Press"
 #: home/loans.html
 #, python-format
 msgid ""
-"You can still <a href=\"/borrow\">borrow</a> one more book until you've hit "
-"the limit!"
+"You can still <a href=\"/borrow\">borrow</a> one more book until you've "
+"hit the limit!"
 msgid_plural ""
 "You can still <a href=\"/borrow\">borrow</a> %(count)d more books until "
 "you've hit the limit!"
@@ -6004,19 +6146,19 @@ msgstr[0] ""
 "Možeš <a href=\"/borrow\">posuditi</a> još jednu knjigu prije nego što "
 "dosegneš ograničenje!"
 msgstr[1] ""
-"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjige prije nego što "
-"dosegneš ograničenje!"
+"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjige prije nego "
+"što dosegneš ograničenje!"
 msgstr[2] ""
-"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjiga prije nego što "
-"dosegneš ograničenje!"
+"Možeš <a href=\"/borrow\">posuditi</a> još %(count)d knjiga prije nego "
+"što dosegneš ograničenje!"
 
 #: home/loans.html
 msgid ""
 "You have reached the borrowing limit. Please return a book to checkout "
 "something new."
 msgstr ""
-"Dosegnuo/la si ograničenje posudbi. Vrati jednu knjigu kako bi posudio/la "
-"nešto novo."
+"Dosegnuo/la si ograničenje posudbi. Vrati jednu knjigu kako bi posudio/la"
+" nešto novo."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -6024,11 +6166,11 @@ msgstr "O knjižnici"
 
 #: home/stats.html
 msgid ""
-"Here's what's happened over the last 28 days. More <a href=\"/"
-"recentchanges\">recent changes</a>"
+"Here's what's happened over the last 28 days. More <a "
+"href=\"/recentchanges\">recent changes</a>"
 msgstr ""
-"Evo što se dogodilo u zadnjih 28 dana. Detaljni prikaz <a href=\"/"
-"recentchanges\">nedavnih promjena</a>"
+"Evo što se dogodilo u zadnjih 28 dana. Detaljni prikaz <a "
+"href=\"/recentchanges\">nedavnih promjena</a>"
 
 #: home/stats.html
 msgid "See all visitors to OpenLibrary.org"
@@ -6278,12 +6420,13 @@ msgstr "Tvoj se novi zapis nalazi u knjižnici. Hvala!"
 
 #: lib/message_addbook.html
 msgid ""
-"There are a few other simple things you can add while you're here to improve "
-"your new record quickly, and make it much easier for other people to find "
-"later."
+"There are a few other simple things you can add while you're here to "
+"improve your new record quickly, and make it much easier for other people"
+" to find later."
 msgstr ""
-"Postoji još nekoliko jednostavnih stvari koje možeš dodati i na taj način "
-"brzo poboljšati tvoj novi zapis te drugima olakšati da ga kasnije pronađu."
+"Postoji još nekoliko jednostavnih stvari koje možeš dodati i na taj način"
+" brzo poboljšati tvoj novi zapis te drugima olakšati da ga kasnije "
+"pronađu."
 
 #: lib/message_addbook.html
 msgid "Upload a cover image"
@@ -6476,27 +6619,29 @@ msgstr "Open Library logotip"
 #: lib/nav_foot.html
 msgid ""
 "Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
-"Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet "
-"sites and other cultural artifacts in  digital form. Other <a href=\"//"
-"archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/"
-"\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a "
-"href=\"//archive-it.org\">archive-it.org</a>"
+"Archive</a>, a 501(c)(3) non-profit, building a digital library of "
+"Internet sites and other cultural artifacts in  digital form. Other <a "
+"href=\"//archive.org/projects/\">projects</a> include the <a "
+"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
+"\">archive-it.org</a>"
 msgstr ""
-"Open Library je inicijativa neprofitne organizacije <a href=\"//archive.org/"
-"\">Internet Archive</a>, koja gradi digitalnu knjižnicu internetskih "
-"stranica i drugih kulturnih predmeta u digitalnom obliku. Ostali <a href=\"//"
-"archive.org/projects/\">projekti</a> uključuju <a href=\"//archive.org/web/"
-"\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org </a> i <a "
-"href=\"//archive-it.org\">archive-it.org</a>"
+"Open Library je inicijativa neprofitne organizacije <a "
+"href=\"//archive.org/\">Internet Archive</a>, koja gradi digitalnu "
+"knjižnicu internetskih stranica i drugih kulturnih predmeta u digitalnom "
+"obliku. Ostali <a href=\"//archive.org/projects/\">projekti</a> uključuju"
+" <a href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org </a> i <a href=\"//archive-it.org"
+"\">archive-it.org</a>"
 
 #: lib/nav_foot.html
 #, python-format
 msgid ""
-"version <a href=\"https://github.com/internetarchive/openlibrary/commit/"
-"%s\">%s</a>"
+"version <a "
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 msgstr ""
-"verzija <a href=\"https://github.com/internetarchive/openlibrary/commit/"
-"%s\">%s</a>"
+"verzija <a "
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
@@ -6576,18 +6721,19 @@ msgstr "Traži pomoću barkoda"
 
 #: lib/not_logged.html
 msgid ""
-"<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged "
-"in</a>.</strong> Open Library will record your IP address and include it in "
-"this page's publicly accessible edit history. If you <a href=\"/account/"
-"create\" title=\"Create an Open Library account\">create an account</a>, "
-"your IP address is concealed and you can more easily keep track of all your "
-"edits and additions."
+"<strong>You are not <a href=\"/account/login\" title=\"Log in "
+"now\">logged in</a>.</strong> Open Library will record your IP address "
+"and include it in this page's publicly accessible edit history. If you <a"
+" href=\"/account/create\" title=\"Create an Open Library account\">create"
+" an account</a>, your IP address is concealed and you can more easily "
+"keep track of all your edits and additions."
 msgstr ""
-"<strong>Nisi<a href=\"/account/login\" title=\"Prijavi se sada\">prijavljen/"
-"a</a>.</strong>Open Library će zabilježiti tvoju IP adresu i uključiti je u "
-"ovu javno dostupnu povijest promjena. Ako <a href=\"/account/create\" "
-"title=\"Stvori Open Library račun\">otvoriš račun</a>, tvoja se IP adresa "
-"skriva i možeš lakše pratiti sve tvoje promjene i dodavanja."
+"<strong>Nisi<a href=\"/account/login\" title=\"Prijavi se "
+"sada\">prijavljen/a</a>.</strong>Open Library će zabilježiti tvoju IP "
+"adresu i uključiti je u ovu javno dostupnu povijest promjena. Ako <a "
+"href=\"/account/create\" title=\"Stvori Open Library račun\">otvoriš "
+"račun</a>, tvoja se IP adresa skriva i možeš lakše pratiti sve tvoje "
+"promjene i dodavanja."
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Reload"
@@ -6686,20 +6832,20 @@ msgstr "Stvori popis bilo kojih područja, autora, djela ili određenih izdanja.
 #: lists/home.html
 msgid ""
 "Once you've made a list, you can <strong>watch for updates</strong> or "
-"<strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. "
-"See all your lists and any activity using the \"Lists\" link on your Account "
-"page."
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or "
+"JSON. See all your lists and any activity using the \"Lists\" link on "
+"your Account page."
 msgstr ""
-"Nakon što izradiš popis, možeš <strong>pratiti aktualiziranja</strong> ili "
-"<strong>izvesti</strong> sva izdanja s popisa u formatima HTML, BibTeX ili "
-"JSON. Sve svoje popise i sve aktivnosti mogu se pogledati pomoću poveznice "
-"„Popisi” na stranici tvog računa."
+"Nakon što izradiš popis, možeš <strong>pratiti aktualiziranja</strong> "
+"ili <strong>izvesti</strong> sva izdanja s popisa u formatima HTML, "
+"BibTeX ili JSON. Sve svoje popise i sve aktivnosti mogu se pogledati "
+"pomoću poveznice „Popisi” na stranici tvog računa."
 
 #: lists/home.html
 #, python-format
 msgid ""
-"For the top 2000+ most requested eBooks in California for the print disabled "
-"<a href=\"%(url)s\">click here</a>."
+"For the top 2000+ most requested eBooks in California for the print "
+"disabled <a href=\"%(url)s\">click here</a>."
 msgstr ""
 "Za popis više od 2.000 najtraženijih e-knjiga za slijepe/slabovidne u "
 "Kaliforniji <a href=\"%(url)s\">pritisni ovdje</a>."
@@ -6816,8 +6962,7 @@ msgstr "Ukloni"
 
 #: lists/lists.html
 #, python-format
-msgid ""
-"Are you sure you want to remove <strong>%(title)s</strong> from this list?"
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
 msgstr "Stvarno želiš ukloniti <strong>%(title)s</strong> s ovog popisa?"
 
 #: lists/lists.html
@@ -7069,8 +7214,8 @@ msgid ""
 "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
 "class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
-"Zahtjev za sjedinjavanje #%(id)s otvoren %(date)s od <a href=\"/people/"
-"%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
+"Zahtjev za sjedinjavanje #%(id)s otvoren %(date)s od <a "
+"href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
@@ -7265,9 +7410,9 @@ msgstr "0 e-knjiga"
 
 #: publishers/view.html
 msgid ""
-"This is a chart to show the when this publisher published books. Along the X "
-"axis is time, and on the y axis is the count of editions published. <a "
-"href=\"#subjectRelated\">Click here to skip the chart</a>."
+"This is a chart to show the when this publisher published books. Along "
+"the X axis is time, and on the y axis is the count of editions published."
+" <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 "Vremenski dijagram za prikaz izdanih knjiga ovog izdavača. Os x označava "
 "vrijeme, os y broj objavljenih izdanja. <a href=\"#subjectRelated\">Za "
@@ -7275,11 +7420,11 @@ msgstr ""
 
 #: publishers/view.html
 msgid ""
-"This graph charts editions from this publisher over time. Click to view a "
-"single year, or drag across a range."
+"This graph charts editions from this publisher over time. Click to view a"
+" single year, or drag across a range."
 msgstr ""
-"Dijagram prikazuje izdanja ovog izdavača u odnosu na vrijeme. Pritisni za "
-"prikaz određene godine ili povuci mišem preko raspona godina."
+"Dijagram prikazuje izdanja ovog izdavača u odnosu na vrijeme. Pritisni za"
+" prikaz određene godine ili povuci mišem preko raspona godina."
 
 #: publishers/view.html
 msgid "Common Subjects"
@@ -7303,20 +7448,21 @@ msgid "How many books would you like to read this year?"
 msgstr "Koliko knjiga želiš pročitati ove godine?"
 
 #: reading_goals/reading_goal_form.html
-msgid ""
-"Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
+msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
 msgstr ""
-"Upiši „0” za poništavanje tvog cilja čitanja. Podaci tvojih vraćanja će se "
-"sačuvati."
+"Upiši „0” za poništavanje tvog cilja čitanja. Podaci tvojih vraćanja će "
+"se sačuvati."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid ""
-"<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/"
-"<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Books"
 msgstr ""
-"<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/"
-"<span class=\"reading-goal-progress__goal\">%(goal)d</span> knjiga"
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> knjiga"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
@@ -7387,12 +7533,9 @@ msgstr "Pogledaj <a href=\"%s\">detalje</a>."
 #, python-format
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
-msgstr[0] ""
-"Sjedinjen je %(count)d dupli zapis za „%(type)s“ u ovaj primarni zapis."
-msgstr[1] ""
-"Sjedinjena su %(count)d dupla zapisa za „%(type)s“ u ovaj primarni zapis."
-msgstr[2] ""
-"Sjedinjeno je %(count)d duplih zapisa za „%(type)s“ u ovaj primarni zapis."
+msgstr[0] "Sjedinjen je %(count)d dupli zapis za „%(type)s“ u ovaj primarni zapis."
+msgstr[1] "Sjedinjena su %(count)d dupla zapisa za „%(type)s“ u ovaj primarni zapis."
+msgstr[2] "Sjedinjeno je %(count)d duplih zapisa za „%(type)s“ u ovaj primarni zapis."
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
@@ -7498,7 +7641,8 @@ msgstr "Traži %s u Open Library"
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
 msgstr ""
-"Nijedan <strong>Traži unutar</strong> tekst se ne poklapa s tvojom pretragom"
+"Nijedan <strong>Traži unutar</strong> tekst se ne poklapa s tvojom "
+"pretragom"
 
 #: search/inside.html
 #, python-format
@@ -7742,13 +7886,13 @@ msgstr "Čini se da nisi povezan/a na internet."
 
 #: site/neck.html
 msgid ""
-"Open Library is an open, editable library catalog, building towards a web "
-"page for every book ever published. Read, borrow, and discover more than 3M "
-"books for free."
+"Open Library is an open, editable library catalog, building towards a web"
+" page for every book ever published. Read, borrow, and discover more than"
+" 3M books for free."
 msgstr ""
-"Open Library je otvoren i urediv knjižnični katalog, smišljen za izradu web-"
-"stranice za svaku ikada izdanu knjigu. Čitaj, posudi i pronađi više od 3 "
-"milijuna knjiga besplatno."
+"Open Library je otvoren i urediv knjižnični katalog, smišljen za izradu "
+"web-stranice za svaku ikada izdanu knjigu. Čitaj, posudi i pronađi više "
+"od 3 milijuna knjiga besplatno."
 
 #: site/stats.html
 msgid "Debug Stats"
@@ -7778,8 +7922,8 @@ msgstr "Broj jedinstvenih korisnika koji bilježe knjige"
 
 #: stats/readinglog.html
 msgid ""
-"The total number of unique users who have logged at least one book using the "
-"Reading Log feature"
+"The total number of unique users who have logged at least one book using "
+"the Reading Log feature"
 msgstr ""
 "Ukupni broj jedinstvenih korisnika koji su zabilježili barem jednju "
 "pročitanu knjigu koristeći funkciju „Dnevnik čitanja”"
@@ -7844,7 +7988,8 @@ msgstr "Uredi %(title)s"
 
 #: type/about/edit.html
 msgid ""
-"This only appears in the document head, and gets attached to bookmark labels"
+"This only appears in the document head, and gets attached to bookmark "
+"labels"
 msgstr ""
 "Ovo se pojavljuje samo u zaglavlju dokumenta i pridružuje se oznakama "
 "zabilješki"
@@ -7891,8 +8036,8 @@ msgstr "Kratka biografija?"
 
 #: type/author/edit.html
 msgid ""
-"If you \"borrow\" information from somewhere, please make sure to cite the "
-"source."
+"If you \"borrow\" information from somewhere, please make sure to cite "
+"the source."
 msgstr "Ako odnekud „posudiš” podatak, navedi izvor."
 
 #: type/author/edit.html
@@ -7905,8 +8050,8 @@ msgstr "Datum smrti"
 
 #: type/author/edit.html
 msgid ""
-"We're not storing structured dates (yet) so a date like \"21 May 2000\" is "
-"recommended."
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
+"is recommended."
 msgstr ""
 "Ne spremamo strukturirane datume (još ne), stoga preporučujemo navoditi "
 "datume u obliku „21. svibnja 2000.”."
@@ -7914,11 +8059,11 @@ msgstr ""
 #: type/author/edit.html
 msgid ""
 "This is a deprecated field. You can help improve this record by removing "
-"this date and populating the \"Date of birth\" and \"Date of death\" fields. "
-"Thanks!"
+"this date and populating the \"Date of birth\" and \"Date of death\" "
+"fields. Thanks!"
 msgstr ""
-"Ovo je zastarjelo polje. Možeš poboljšati ovaj zapis uklanjanjem ovog datuma "
-"i popunjavanjem polja „Datum rođenja” i „Datum smrti”. Hvala!"
+"Ovo je zastarjelo polje. Možeš poboljšati ovaj zapis uklanjanjem ovog "
+"datuma i popunjavanjem polja „Datum rođenja” i „Datum smrti”. Hvala!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
@@ -7926,11 +8071,11 @@ msgstr "Je li ovaj autor poznat pod drugim imenima?"
 
 #: type/author/edit.html
 msgid ""
-"For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please "
-"list one name per line."
+"For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
+"Please list one name per line."
 msgstr ""
-"Na primjer: Lav Nikolajevič Tolstoj je bio poznat i kao Lav Tolstoj. Navedi "
-"jedno ime po retku."
+"Na primjer: Lav Nikolajevič Tolstoj je bio poznat i kao Lav Tolstoj. "
+"Navedi jedno ime po retku."
 
 #: type/author/edit.html
 msgid "Identifiers"
@@ -7964,8 +8109,8 @@ msgstr "Aktualizirati stranicu?"
 
 #: type/author/view.html
 msgid ""
-"OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> "
-"the update.</i>"
+"OK. The merge is in motion. <i>It will take <u>a few minutes to "
+"finish</u> the update.</i>"
 msgstr ""
 "U redu. Provodi se sjedinjavanje. <i>Aktualiziranje će potrajati <u>par "
 "minuta</u>.</i>"
@@ -7976,8 +8121,7 @@ msgstr "K vragu!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
-"Sjedinjavanje nije uspjelo. Radi se o našoj grešci te smo ju zabilježili."
+msgstr "Sjedinjavanje nije uspjelo. Radi se o našoj grešci te smo ju zabilježili."
 
 #: type/author/view.html
 msgid "Add another?"
@@ -8008,8 +8152,7 @@ msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
-"Poveznice <span class=\"gray small sansserif\">izvan Open Library</span>"
+msgstr "Poveznice <span class=\"gray small sansserif\">izvan Open Library</span>"
 
 #: type/author/view.html
 msgid "No links yet."
@@ -8083,10 +8226,11 @@ msgstr "Prikaži manje"
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid ""
-"This work doesn't have a description yet. Can you <b><a href='%(url)s'>add "
-"one</a></b>?"
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
 msgstr ""
-"Ovo djelo još nema opisa. Možeš li <b><a href='%(url)s'>dodati opis</a></b>?"
+"Ovo djelo još nema opisa. Možeš li <b><a href='%(url)s'>dodati "
+"opis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
@@ -8094,8 +8238,8 @@ msgid ""
 "This edition doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
-"Ovo izdanje još nema opisa. Možeš li <b><a href='%(url)s'>dodati opis</a></"
-"b>?"
+"Ovo izdanje još nema opisa. Možeš li <b><a href='%(url)s'>dodati "
+"opis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
@@ -8243,8 +8387,7 @@ msgstr "Trenutačno"
 
 #: type/language/view.html
 #, python-format
-msgid ""
-"Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
+msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr "Pokušati <a href=\"%(href)s\">tražiti knjige za %(language)s</a>?"
 
 #: type/list/edit.html
@@ -8340,7 +8483,8 @@ msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
 "%(count)s."
 msgstr ""
-"Izvesti se mogu samo popisi s najviše %(max)s izdanja. Ovaj sadrži %(count)s."
+"Izvesti se mogu samo popisi s najviše %(max)s izdanja. Ovaj sadrži "
+"%(count)s."
 
 #: type/list/exports.html
 #, python-format
@@ -8400,11 +8544,11 @@ msgstr "Ovaj popis nema stavki."
 
 #: type/list/view_body.html
 msgid ""
-"<a href=\"/search\" target=\"_blank\">Search for book, subjects, or authors</"
-"a> to add to your list."
+"<a href=\"/search\" target=\"_blank\">Search for book, subjects, or "
+"authors</a> to add to your list."
 msgstr ""
-"<a href=\"/search\" target=\"_blank\">Traži knjigu, predmete ili autore</a> "
-"za dodavanje u popis."
+"<a href=\"/search\" target=\"_blank\">Traži knjigu, predmete ili "
+"autore</a> za dodavanje u popis."
 
 #: type/list/view_body.html
 msgid "Learn more."
@@ -8576,15 +8720,15 @@ msgstr "stranica za administratore"
 #: type/user/view.html
 #, python-format
 msgid ""
-"You are publicly sharing the books you are <a href=\"%(username)s/books/"
-"currently-reading\">currently reading</a>, <a href=\"%(username)s/books/"
-"already-read\">have already read</a>, and <a href=\"%(username)s/books/want-"
-"to-read\">want to read</a>."
+"You are publicly sharing the books you are <a href=\"%(username)s/books"
+"/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
+"/already-read\">have already read</a>, and <a href=\"%(username)s/books"
+"/want-to-read\">want to read</a>."
 msgstr ""
 "Javno dijeliš knjige koje <a href=\"%(username)s/books/currently-"
-"reading\">trenutačno čitaš</a>, koje si <a href=\"%(username)s/books/already-"
-"read\">već pročitao/la</a> i koje <a href=\"%(username)s/books/want-to-"
-"read\">želiš čitati</a>."
+"reading\">trenutačno čitaš</a>, koje si <a href=\"%(username)s/books"
+"/already-read\">već pročitao/la</a> i koje <a href=\"%(username)s/books"
+"/want-to-read\">želiš čitati</a>."
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -8607,9 +8751,9 @@ msgid ""
 "read\">want to read</a>!"
 msgstr ""
 "Ovdje su knjige koje %(user)s <a href=\"%(username)s/books/currently-"
-"reading\">trenutačno čita</a>, koje je <a href=\"%(username)s/books/already-"
-"read\">već pročitao/la</a> i koje <a href=\"%(username)s/books/want-to-"
-"read\">želi čitati</a>!"
+"reading\">trenutačno čita</a>, koje je <a href=\"%(username)s/books"
+"/already-read\">već pročitao/la</a> i koje <a href=\"%(username)s/books"
+"/want-to-read\">želi čitati</a>!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -8660,17 +8804,17 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Hmm..."
 #~ msgstr "Hmm …"
 
-#~ msgid ""
-#~ "Sorry. There seems to be a problem with what you were just looking at."
+#~ msgid "Sorry. There seems to be a problem with what you were just looking at."
 #~ msgstr "Žao nam je. Čini se da postoji problem s onime što upravo gledaš."
 
-#, python-format
 #~ msgid ""
-#~ "We've noted the error %s and will look into it as soon as possible. Head "
-#~ "for <a href=\"/\">home</a>?"
+#~ "We've noted the error %s and will"
+#~ " look into it as soon as "
+#~ "possible. Head for <a href=\"/\">home</a>?"
 #~ msgstr ""
-#~ "Zabilježili smo grešku %s i pregledat ćemo je što prije. Natrag na <a "
-#~ "href=\"/\">naslovnicu</a>?"
+#~ "Zabilježili smo grešku %s i pregledat"
+#~ " ćemo je što prije. Natrag na "
+#~ "<a href=\"/\">naslovnicu</a>?"
 
 #~ msgid "Thank you very much for adding that new book!"
 #~ msgstr "Puno ti hvala na dodavanju te nove knjige!"
@@ -8679,22 +8823,29 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgstr "Kako možemo pomoći?"
 
 #~ msgid ""
-#~ "Your question has been sent to our support team. We'll get back to you "
-#~ "shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact "
-#~ "us on Twitter</a>."
+#~ "Your question has been sent to our"
+#~ " support team. We'll get back to "
+#~ "you shortly. You can also <a "
+#~ "href=\"https://twitter.com/openlibrary\">contact us on "
+#~ "Twitter</a>."
 #~ msgstr ""
-#~ "Tvoje je pitanje poslano našem timu podrške. Uskoro ćemo ti se javiti. "
-#~ "Kontatkirati nas možeš i na <a href=\"https://twitter.com/"
-#~ "openlibrary\">Twitteru</a>."
+#~ "Tvoje je pitanje poslano našem timu "
+#~ "podrške. Uskoro ćemo ti se javiti. "
+#~ "Kontatkirati nas možeš i na <a "
+#~ "href=\"https://twitter.com/openlibrary\">Twitteru</a>."
 
 #~ msgid ""
-#~ "Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/"
-#~ "faq\">Frequently Asked Questions</a> (FAQ) to see if your question is "
-#~ "answered there. Thank you."
+#~ "Please check our <a href=\"/help/\">Help "
+#~ "Pages</a> and <a href=\"/help/faq\">Frequently "
+#~ "Asked Questions</a> (FAQ) to see if "
+#~ "your question is answered there. Thank"
+#~ " you."
 #~ msgstr ""
-#~ "Provjeri je li tvoje pitanje već odgovorena na našim <a href=\"/help/"
-#~ "\">stranicama pomoći</a> ili na stranici <a href=\"/help/faq\">često "
-#~ "postavljenih pitanja</a> (ČPP). Hvala."
+#~ "Provjeri je li tvoje pitanje već "
+#~ "odgovorena na našim <a "
+#~ "href=\"/help/\">stranicama pomoći</a> ili na "
+#~ "stranici <a href=\"/help/faq\">često postavljenih"
+#~ " pitanja</a> (ČPP). Hvala."
 
 #~ msgid "Your Name"
 #~ msgstr "Tvoje ime"
@@ -8706,26 +8857,34 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgstr "Ovo trebamo ako želiš dobiti odgovor"
 
 #~ msgid ""
-#~ "If you wish to be contacted by other means, please add your contact "
+#~ "If you wish to be contacted by "
+#~ "other means, please add your contact "
 #~ "preference and details to your question."
 #~ msgstr ""
-#~ "Ako želiš da te kontaktiramo na neki drugi način, dodaj svoje podatke za "
-#~ "kontaktiranje te pojedinosti o tvom pitanju."
+#~ "Ako želiš da te kontaktiramo na "
+#~ "neki drugi način, dodaj svoje podatke"
+#~ " za kontaktiranje te pojedinosti o "
+#~ "tvom pitanju."
 
 #~ msgid "Your Question"
 #~ msgstr "Tvoje pitanje"
 
 #~ msgid "Note: our staff will likely only be able respond in English."
 #~ msgstr ""
-#~ "Napomena: naši će suradnici vjerojatno moći odgovoriti samo na engleskom "
+#~ "Napomena: naši će suradnici vjerojatno "
+#~ "moći odgovoriti samo na engleskom "
 #~ "jeziku."
 
 #~ msgid ""
-#~ "If you encounter an error message, please include it. For questions about "
-#~ "our books, please provide the title/author or Open Library ID."
+#~ "If you encounter an error message, "
+#~ "please include it. For questions about"
+#~ " our books, please provide the "
+#~ "title/author or Open Library ID."
 #~ msgstr ""
-#~ "Ako naiđeš na poruku o grešci, dodaj je. Za pitanja o našim knjigama "
-#~ "navedi naslov/autora ili Open Library ID-oznaku."
+#~ "Ako naiđeš na poruku o grešci, "
+#~ "dodaj je. Za pitanja o našim "
+#~ "knjigama navedi naslov/autora ili Open "
+#~ "Library ID-oznaku."
 
 #~ msgid "Send"
 #~ msgstr "Pošalji"
@@ -8743,119 +8902,161 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgstr "Čitaj e-knjigu od Cita Press"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://citapress.org/\">Cita "
-#~ "Press</a>. Cita Press is a trusted book provider of works written by "
-#~ "women, pairing contemporary authors and designers with open access texts "
-#~ "to make carefully designed books available for free and open source."
+#~ "This book is available from <a "
+#~ "href=\"https://citapress.org/\">Cita Press</a>. Cita "
+#~ "Press is a trusted book provider "
+#~ "of works written by women, pairing "
+#~ "contemporary authors and designers with "
+#~ "open access texts to make carefully "
+#~ "designed books available for free and"
+#~ " open source."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://citapress.org/\">Cita Press</"
-#~ "a>. Cita Press je pouzdan pružatelj knjiga za djela koja su napisale "
-#~ "žene, spajajući suvremene autore i dizajnere s tekstovima otvorenog "
-#~ "pristupa kako bi pažljivo dizajnirane knjige učinili dostupnima besplatno "
-#~ "i otvorenog koda."
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://citapress.org/\">Cita Press</a>. Cita "
+#~ "Press je pouzdan pružatelj knjiga za "
+#~ "djela koja su napisale žene, spajajući"
+#~ " suvremene autore i dizajnere s "
+#~ "tekstovima otvorenog pristupa kako bi "
+#~ "pažljivo dizajnirane knjige učinili dostupnima"
+#~ " besplatno i otvorenog koda."
 
 #~ msgid "Learn more"
 #~ msgstr "Saznaj više"
 
-#, python-format
 #~ msgid ""
-#~ "This book is freely available from <a href=\"%s\">%s</a>, an external "
-#~ "third-party book provider."
+#~ "This book is freely available from "
+#~ "<a href=\"%s\">%s</a>, an external third-"
+#~ "party book provider."
 #~ msgstr ""
-#~ "Ova je knjiga besplatno dostupna od <a href=\"%s\">%s</a>, eksternog "
-#~ "pružatelja knjiga."
+#~ "Ova je knjiga besplatno dostupna od "
+#~ "<a href=\"%s\">%s</a>, eksternog pružatelja "
+#~ "knjiga."
 
 #~ msgid "Read eBook from Project Gutenberg"
 #~ msgstr "Čitaj e-knjigu od Project Gutenberg"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://www.gutenberg.org/"
-#~ "\">Project Gutenberg</a>. Project Gutenberg is a trusted book provider of "
-#~ "classic ebooks, supporting thousands of volunteers in the creation and "
-#~ "distribution of over 60,000 free eBooks."
+#~ "This book is available from <a "
+#~ "href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. "
+#~ "Project Gutenberg is a trusted book "
+#~ "provider of classic ebooks, supporting "
+#~ "thousands of volunteers in the creation"
+#~ " and distribution of over 60,000 free"
+#~ " eBooks."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://www.gutenberg.org/\">Project "
-#~ "Gutenberg</a>. Project Gutenberg je pouzdan pružatelj klasičnih e-knjiga, "
-#~ "podržavajući tisuće volontera u stvaranju i distribuciji više od 60.000 "
-#~ "besplatnih e-knjiga."
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. "
+#~ "Project Gutenberg je pouzdan pružatelj "
+#~ "klasičnih e-knjiga, podržavajući tisuće "
+#~ "volontera u stvaranju i distribuciji "
+#~ "više od 60.000 besplatnih e-knjiga."
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://librivox.org/\">LibriVox</"
-#~ "a>. LibriVox is a trusted book provider of public domain audiobooks, "
-#~ "narrated by volunteers, distributed for free on the internet."
+#~ "This book is available from <a "
+#~ "href=\"https://librivox.org/\">LibriVox</a>. LibriVox is"
+#~ " a trusted book provider of public"
+#~ " domain audiobooks, narrated by volunteers,"
+#~ " distributed for free on the "
+#~ "internet."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://librivox.org/\">LibriVoxu</"
-#~ "a>. LibriVox je pouzdan pružatelj audio-knjiga u javnom vlasništvu koje "
-#~ "čitaju volonteri i distribuiraju se besplatno na internetu."
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://librivox.org/\">LibriVoxu</a>. LibriVox je"
+#~ " pouzdan pružatelj audio-knjiga u "
+#~ "javnom vlasništvu koje čitaju volonteri "
+#~ "i distribuiraju se besplatno na "
+#~ "internetu."
 
 #~ msgid "Read eBook from OpenStax"
 #~ msgstr "Čitaj e-knjigu od OpenStax"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://www.openstax.org/"
-#~ "\">OpenStax</a>. OpenStax is a trusted book provider and a 501(c)(3) "
-#~ "nonprofit charitable corporation dedicated to providing free high-"
-#~ "quality, peer-reviewed, openly licensed textbooks online."
+#~ "This book is available from <a "
+#~ "href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax "
+#~ "is a trusted book provider and a"
+#~ " 501(c)(3) nonprofit charitable corporation "
+#~ "dedicated to providing free high-"
+#~ "quality, peer-reviewed, openly licensed "
+#~ "textbooks online."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://www.openstax.org/\">OpenStax</"
-#~ "a>. OpenStax je pouzdan pružatelj knjiga i neprofitna dobrotvorna "
-#~ "korporacija posvećena pružanju besplatnih visokokvalitetnih, "
-#~ "recenziranih, otvoreno licenciranih udžbenika na internetu."
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax "
+#~ "je pouzdan pružatelj knjiga i neprofitna"
+#~ " dobrotvorna korporacija posvećena pružanju "
+#~ "besplatnih visokokvalitetnih, recenziranih, otvoreno"
+#~ " licenciranih udžbenika na internetu."
 
 #~ msgid "Read eBook from Project Runeberg"
 #~ msgstr "Čitaj e-knjigu od Project Runeberg"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://runeberg.org/\">Project "
-#~ "Runeberg</a>. Project Runeberg is a trusted book provider of classic "
-#~ "Nordic (Scandinavian) literature in electronic form."
+#~ "This book is available from <a "
+#~ "href=\"https://runeberg.org/\">Project Runeberg</a>. "
+#~ "Project Runeberg is a trusted book "
+#~ "provider of classic Nordic (Scandinavian) "
+#~ "literature in electronic form."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://runeberg.org/\">Project "
-#~ "Runeberg</a>. Project Runeberg je pouzdan pružatelj knjiga klasične "
-#~ "nordijske (skandinavske) literature u elektroničkom formatu."
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://runeberg.org/\">Project Runeberg</a>. "
+#~ "Project Runeberg je pouzdan pružatelj "
+#~ "knjiga klasične nordijske (skandinavske) "
+#~ "literature u elektroničkom formatu."
 
 #~ msgid "Read eBook from Standard eBooks"
 #~ msgstr "Čitaj e-knjigu od Standard Ebooks"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://standardebooks.org/"
-#~ "\">Standard Ebooks</a>. Standard Ebooks is a trusted book provider and a "
-#~ "volunteer-driven project that produces new editions of public domain "
-#~ "ebooks that are lovingly formatted, open source, free of copyright "
-#~ "restrictions, and free of cost."
+#~ "This book is available from <a "
+#~ "href=\"https://standardebooks.org/\">Standard Ebooks</a>. "
+#~ "Standard Ebooks is a trusted book "
+#~ "provider and a volunteer-driven project"
+#~ " that produces new editions of public"
+#~ " domain ebooks that are lovingly "
+#~ "formatted, open source, free of "
+#~ "copyright restrictions, and free of "
+#~ "cost."
 #~ msgstr ""
-#~ "Ova je knjiga dostupna na <a href=\"https://standardebooks.org/"
-#~ "\">Standard Ebooks</a>. Standard Ebooks je pouzdan pružatelj knjiga i "
-#~ "volonterski vođen projekt koji proizvodi nova izdanja e-knjiga u javnom "
-#~ "vlasništvu, lijepo formatirana, otvorenog koda, bez ograničenja autorskih "
+#~ "Ova je knjiga dostupna na <a "
+#~ "href=\"https://standardebooks.org/\">Standard Ebooks</a>. "
+#~ "Standard Ebooks je pouzdan pružatelj "
+#~ "knjiga i volonterski vođen projekt koji"
+#~ " proizvodi nova izdanja e-knjiga u "
+#~ "javnom vlasništvu, lijepo formatirana, "
+#~ "otvorenog koda, bez ograničenja autorskih "
 #~ "prava i besplatna."
 
 #~ msgid "Read eBook on Wikisource"
 #~ msgstr "Čitaj e-knjigu na Wikisource"
 
 #~ msgid ""
-#~ "This book is available from <a href=\"https://wikisource.org/"
-#~ "\">Wikisource</a>. Wikisource, a <a href=\"https://www.wikimedia.org/"
-#~ "\">Wikimedia Foundation</a> project, is a trusted book provider of works "
-#~ "available under the <a href=\"https://creativecommons.org/licenses/by-sa/"
-#~ "4.0/\">CC-BY-SA</a> open content license, such as essays, historical "
-#~ "documents, letters, speeches, and public domain books."
+#~ "This book is available from <a "
+#~ "href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, "
+#~ "a <a href=\"https://www.wikimedia.org/\">Wikimedia "
+#~ "Foundation</a> project, is a trusted "
+#~ "book provider of works available under"
+#~ " the <a href=\"https://creativecommons.org/licenses"
+#~ "/by-sa/4.0/\">CC-BY-SA</a> open content "
+#~ "license, such as essays, historical "
+#~ "documents, letters, speeches, and public "
+#~ "domain books."
 #~ msgstr ""
-#~ "Ova knjiga je dostupna na <a href=\"https://wikisource.org/\">Wikisource</"
-#~ "a>. Wikisource, projekt zaklade <a href=\"https://www.wikimedia.org/"
-#~ "\">Wikimedia Foundation</a> je pouzdan pružatelj knjiga za djela koja su "
-#~ "dostupna pod licencom otvorenog sadržaja <a href=\"https://https://"
-#~ "creativecommons.org/licenses/by-sa/4.0/deed.hr\">CC-BY-SA</a>, kao što su "
-#~ "eseji, povijesni dokumenti, pisma, govori i knjige u javnom vlasništvu."
+#~ "Ova knjiga je dostupna na <a "
+#~ "href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, "
+#~ "projekt zaklade <a "
+#~ "href=\"https://www.wikimedia.org/\">Wikimedia Foundation</a> "
+#~ "je pouzdan pružatelj knjiga za djela "
+#~ "koja su dostupna pod licencom otvorenog"
+#~ " sadržaja <a "
+#~ "href=\"https://https://creativecommons.org/licenses/by-"
+#~ "sa/4.0/deed.hr\">CC-BY-SA</a>, kao što "
+#~ "su eseji, povijesni dokumenti, pisma, "
+#~ "govori i knjige u javnom vlasništvu."
 
 #~ msgid "View a larger book cover"
 #~ msgstr "Pogledaj veće korice knjige"
 
-#, python-format
 #~ msgid "browse %(subject)s books"
 #~ msgstr "pregledaj knjige u području %(subject)s"
 
-#, python-format
 #~ msgid "%s book"
 #~ msgid_plural "%s books"
 #~ msgstr[0] "%s knjiga"
@@ -8865,7 +9066,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "by <a href=\"$owner.key\">You</a>"
 #~ msgstr "od <a href=\"$owner.key\">tebe</a>"
 
-#, python-format
 #~ msgid "%(count)d List"
 #~ msgid_plural "%(count)d Lists"
 #~ msgstr[0] "%(count)d popis"
@@ -8875,39 +9075,44 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Location"
 #~ msgstr "Lokacija"
 
-#, python-format
 #~ msgid ""
-#~ "Showing all works by author. Would you like to see <a "
-#~ "href=\"%(url)s\">only ebooks</a>?"
+#~ "Showing all works by author. Would "
+#~ "you like to see <a href=\"%(url)s\">only"
+#~ " ebooks</a>?"
 #~ msgstr ""
-#~ "Prikazuju se sva djela autora. Želiš li vidjeti <a href=\"%(url)s\">samo "
+#~ "Prikazuju se sva djela autora. Želiš "
+#~ "li vidjeti <a href=\"%(url)s\">samo "
 #~ "e-knjige</a>?"
 
 #~ msgid "Loading Related Books"
 #~ msgstr "Učitavanje srodnih knjiga"
 
 #~ msgid ""
-#~ "⚠️ Saving global lists is admin-only while the feature is under "
+#~ "⚠️ Saving global lists is admin-"
+#~ "only while the feature is under "
 #~ "development."
 #~ msgstr ""
-#~ "⚠️ Spremanje globalnih popisa je samo za administratore dok se funkcija "
+#~ "⚠️ Spremanje globalnih popisa je samo"
+#~ " za administratore dok se funkcija "
 #~ "nalazi u fazi razvoja."
 
 #~ msgid "Library.link"
 #~ msgstr "Library.link"
 
-#, python-format
 #~ msgid ""
-#~ "We've sent the verification email to %(email)s. You'll need to read that "
-#~ "and click on the verification link to verify your email."
+#~ "We've sent the verification email to "
+#~ "%(email)s. You'll need to read that "
+#~ "and click on the verification link "
+#~ "to verify your email."
 #~ msgstr ""
-#~ "Poslali smo e-mail za potvrđivanje na %(email)s. Za potvrđivanje tvoje e-"
-#~ "mail adrese, pročitaj poruku i pritisni poveznicu za potvrđivanje."
+#~ "Poslali smo e-mail za potvrđivanje na"
+#~ " %(email)s. Za potvrđivanje tvoje e-mail"
+#~ " adrese, pročitaj poruku i pritisni "
+#~ "poveznicu za potvrđivanje."
 
 #~ msgid "Point your camera at a barcode! 📷"
 #~ msgstr "Usmjeri kameru na barkod! 📷"
 
-#, python-format
 #~ msgid "%d person waiting"
 #~ msgid_plural "%d people waiting"
 #~ msgstr[0] "%d osoba čeka"
@@ -8947,7 +9152,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "on "
 #~ msgstr "o "
 
-#, python-format
 #~ msgid "Search for books containing the phrase \"%s\"?"
 #~ msgstr "Tražiti knjige s izrazom „%s”?"
 
@@ -8978,7 +9182,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Each field is required"
 #~ msgstr "Sva polja su obavezna"
 
-#, python-format
 #~ msgid "Books %(userdisplayname)s is sponsoring"
 #~ msgstr "Knjige koje %(userdisplayname)s sponzorira"
 
@@ -9028,10 +9231,12 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgstr "Dodaj napomenu: Zašto je ova klasifikacija korisna?"
 
 #~ msgid ""
-#~ "Can you direct us to more information about this classification system "
-#~ "online?"
+#~ "Can you direct us to more "
+#~ "information about this classification system"
+#~ " online?"
 #~ msgstr ""
-#~ "Možeš li nas uputiti na daljnje informacije o ovom sustavu klasifikacije "
+#~ "Možeš li nas uputiti na daljnje "
+#~ "informacije o ovom sustavu klasifikacije "
 #~ "na internetu?"
 
 #~ msgid "is an alternate title for"
@@ -9043,35 +9248,45 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Or, paste in the image URL if it's on the web."
 #~ msgstr "Ili umetni URL adresu slike ako postoji na internetu."
 
-#, python-format
 #~ msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
 #~ msgstr "Uvezeno iz %(source)s <a href=\"%(url)s\">%(type)s zapis</a>."
 
-#, python-format
 #~ msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
-#~ msgstr ""
-#~ "Pronađen je <a href=\"%(url)s\">odgovarajući zapis</a> iz %(source)s."
+#~ msgstr "Pronađen je <a href=\"%(url)s\">odgovarajući zapis</a> iz %(source)s."
 
 #~ msgid ""
-#~ "We use a system called Markdown to format the text in your edits on Open "
-#~ "Library. Some HTML formatting is also accepted. Paragraphs are "
-#~ "automatically generated from any hard-break returns (blank lines) within "
-#~ "your text. You can preview your work in real time below the editing field."
+#~ "We use a system called Markdown to"
+#~ " format the text in your edits "
+#~ "on Open Library. Some HTML formatting"
+#~ " is also accepted. Paragraphs are "
+#~ "automatically generated from any hard-"
+#~ "break returns (blank lines) within your"
+#~ " text. You can preview your work "
+#~ "in real time below the editing "
+#~ "field."
 #~ msgstr ""
-#~ "Za formatiranje teksta tvojih promjena, na Open Library stranicama "
-#~ "koristimo sustav zvan Markdown. Moguća su i neka HTML formatiranja. "
-#~ "Odlomci se automatski generiraju pri svakom prekidu retka (prazni redci). "
-#~ "Promjene možeš pregledati uživo ispod polja za uređivanje."
+#~ "Za formatiranje teksta tvojih promjena, "
+#~ "na Open Library stranicama koristimo "
+#~ "sustav zvan Markdown. Moguća su i "
+#~ "neka HTML formatiranja. Odlomci se "
+#~ "automatski generiraju pri svakom prekidu "
+#~ "retka (prazni redci). Promjene možeš "
+#~ "pregledati uživo ispod polja za "
+#~ "uređivanje."
 
 #~ msgid "Formatting marks should envelope the effected text, for example:"
 #~ msgstr "Oznake formatiranja moraju ograditi željeni tekst, na primjer:"
 
 #~ msgid ""
-#~ "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
-#~ "rather than emphasizing text) place a backslash \\ prior to the character."
+#~ "To \"escape\" any Markdown tags (i.e."
+#~ " use an asterisk as an asterisk "
+#~ "rather than emphasizing text) place a"
+#~ " backslash \\ prior to the character."
 #~ msgstr ""
-#~ "Za „izbjegavanje” Markdown oznaka (npr. kad želiš zvjezdicu koristi kao "
-#~ "zvjezdicu, umjesto za isticanje teksta) koristi kosu crtu \\ ispred znaka."
+#~ "Za „izbjegavanje” Markdown oznaka (npr. "
+#~ "kad želiš zvjezdicu koristi kao "
+#~ "zvjezdicu, umjesto za isticanje teksta) "
+#~ "koristi kosu crtu \\ ispred znaka."
 
 #~ msgid "Problems"
 #~ msgstr "Problemi"
@@ -9088,7 +9303,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Just now"
 #~ msgstr "Upravo sada"
 
-#, python-format
 #~ msgid "Showing requests reviewed by %(reviewer)s only."
 #~ msgstr "Prikaz zahtjeva koje je samo %(reviewer)s pregledao/la."
 
@@ -9104,13 +9318,12 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Work"
 #~ msgstr "Djelo"
 
-#, python-format
 #~ msgid ""
-#~ "<strong>%(type)s</strong> merge request for <span class=\"book-"
-#~ "title\">%(title)s</span>"
+#~ "<strong>%(type)s</strong> merge request for "
+#~ "<span class=\"book-title\">%(title)s</span>"
 #~ msgstr ""
-#~ "<strong>%(type)s</strong> zahtjev za sjedinjavanje za <span class=\"book-"
-#~ "title\">%(title)s</span>"
+#~ "<strong>%(type)s</strong> zahtjev za sjedinjavanje"
+#~ " za <span class=\"book-title\">%(title)s</span>"
 
 #~ msgid "Showing most recent comment only."
 #~ msgstr "Prikazuju se samo nedavni komentari."
@@ -9124,7 +9337,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "No hits"
 #~ msgstr "Nema rezultata"
 
-#, python-format
 #~ msgid "No hits for: %(query)s"
 #~ msgstr "Nema rezultata za: %(query)s"
 
@@ -9161,7 +9373,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Return eBook"
 #~ msgstr "Vrati e-knjigu"
 
-#, python-format
 #~ msgid "%s previewable"
 #~ msgstr "pregledivo %s"
 
@@ -9174,7 +9385,6 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Add new list"
 #~ msgstr "Dodaj novi popis"
 
-#, python-format
 #~ msgid "This book was generously donated by %(donor)s"
 #~ msgstr "Ovu je knjigu donirao/la %(donor)s"
 
@@ -9220,11 +9430,30 @@ msgstr "Dodati jedno drugo izdanje?"
 #~ msgid "Donate Book"
 #~ msgstr "Doniraj knjigu"
 
-#~ msgid ""
-#~ "We don't have this book yet. Can you donate it to the Lending Library?"
+#~ msgid "We don't have this book yet. Can you donate it to the Lending Library?"
 #~ msgstr ""
-#~ "Ovu knjigu još nemamo. Možeš li je dodati u našu „Knjižnicu iznajmljene "
+#~ "Ovu knjigu još nemamo. Možeš li je"
+#~ " dodati u našu „Knjižnicu iznajmljene "
 #~ "građe”?"
 
 #~ msgid "Choose a screen name"
 #~ msgstr "Odaberi ime za prikaz"
+
+#~ msgid "Fonts"
+#~ msgstr "Fontovi"
+
+#~ msgid "Font-size"
+#~ msgstr "Veličina fonta"
+
+#~ msgid "Font-family"
+#~ msgstr "Obitelj fontova"
+
+#~ msgid "Sans-serif: Verdana"
+#~ msgstr "Bez serifa: Verdana"
+
+#~ msgid "Serif: Georgia"
+#~ msgstr "Sa serifima: Georgia"
+
+#~ msgid "Defaults"
+#~ msgstr "Standardne vrijednosti"
+
