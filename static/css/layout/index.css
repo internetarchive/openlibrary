@@ -1,0 +1,67 @@
+/* === v2 layout === */
+
+#test-body-mobile {
+  box-sizing: border-box;
+  max-width: 1060px;
+  width: 100%;
+  margin: 0 auto;
+  background-color: var(--white);
+  border-radius: 5px;
+  border: 1px solid var(--dark-beige);
+  z-index: var(--z-index-level-1);
+  position: relative;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+body.full-width #test-body-mobile {
+  max-width: initial;
+  border: 0;
+  border-radius: 0;
+}
+
+/* The border-box padding model is much more friendly for responsive layouts
+   so we adopt it in all pages
+   https://www.paulirish.com/2012/box-sizing-border-box-ftw/ */
+* {
+  box-sizing: border-box;
+}
+
+/* Desktop: min-width: 960px */
+@media all and (min-width: 960px) {
+  .contentQuarter {
+    float: left;
+    width: 25%;
+    padding-right: 19px;
+  }
+}
+
+/* === layout === */
+
+#contentHead {
+  padding: 10px;
+}
+/* Reset h1 margin set in common.css */
+#contentHead h1 {
+  margin: 0;
+}
+div.contentBody,
+div#contentBody {
+  /* @contentBody-padding: 20px */
+  padding: 0 20px 20px;
+}
+div.contentBody img,
+div#contentBody img {
+  max-width: 100%;
+}
+div.contentBody pre,
+div#contentBody pre {
+  overflow-x: auto;
+}
+div.contentBody p a,
+div#contentBody p a {
+  word-wrap: break-word;
+}
+.section,
+section {
+  margin-bottom: 20px;
+}

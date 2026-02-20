@@ -1,0 +1,34 @@
+@media screen and (min-width: 769px /* @width-breakpoint-tablet */) {
+  .compact-title {
+    background: var(--white);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    z-index: var(--z-index-level-5);
+    position: fixed;
+    top: 0;
+    height: 35px; /* @compact-title-height */
+    width: calc(100% - 20px /* @contentBody-padding */);
+    padding: 0 14px;
+  }
+
+  .compact-title__edit-btn {
+    transform: translateY(6px);
+  }
+
+  .compact-title__heading {
+    font-size: 1.25em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-title);
+    font-weight: 600;
+  }
+}
+
+@media only screen and (min-width: 960px /* @width-breakpoint-desktop */) {
+  .compact-title {
+    width: calc(100% - 285px /* @sidebar-width-with-margin */);
+    max-width: 775px; /* @desktop-title-max-width: 1060px - 285px */
+  }
+}

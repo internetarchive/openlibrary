@@ -1,0 +1,12 @@
+.cta-btn--available--load,
+a.cta-btn--available--load {
+  background: url(/static/images/indicator.gif) center center no-repeat;
+  background-color: var(--primary-blue) !important;
+  opacity: 0.6;
+}
+.cta-btn--unavailable--load,
+a.cta-btn--unavailable--load {
+  background: url(/static/images/indicator.gif) center center no-repeat;
+  background-color: var(--primary-blue) !important;
+  opacity: 0.6;
+}

@@ -1,0 +1,69 @@
+/**
+ * Chart component
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#chart
+ *
+ * Local constants (formerly LESS variables):
+ *   chart-height: 140px
+ *   chart-width: 998px
+ *   chart-bottom-padding: 20px
+ */
+.chart {
+  position: relative;
+  height: 160px; /* 140px + 20px (chart-height + chart-bottom-padding) */
+  width: 100%;
+  padding: 0 8px 20px 20px;
+  margin-top: 0;
+  font-size: 0.6875em;
+  font-family: var(--body-family);
+  background-color: transparent;
+  background-image: url(/images/ajax-loader-bar.gif);
+  background-repeat: no-repeat;
+  background-position: 340px 60px;
+  box-sizing: border-box;
+}
+.chartYaxis {
+  position: absolute;
+  left: -65px;
+  top: 60px;
+  text-align: center;
+  vertical-align: middle;
+  -webkit-transform: rotate(-90deg);
+  -moz-transform: rotate(-90deg);
+  -o-transform: rotate(-90deg);
+  filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+  font-size: 10px;
+  color: var(--olive);
+  text-transform: uppercase;
+}
+.chartXaxis {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  color: var(--olive);
+  text-transform: uppercase;
+}
+.chartZoom {
+  white-space: nowrap;
+}
+.chart .thisChart {
+  height: 140px;
+  width: 100%;
+  overflow-y: hidden;
+}
+
+/* --width-breakpoint-desktop: 960px */
+@media all and (min-width: 960px) {
+  .chart {
+    float: left;
+    max-width: 998px;
+  }
+  .chartYaxis {
+    width: 140px;
+  }
+  .chart .thisChart {
+    max-width: 998px;
+  }
+}
