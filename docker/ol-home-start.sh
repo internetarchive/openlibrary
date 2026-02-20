@@ -25,22 +25,14 @@ if [ "$LOCAL_DEV" = "true" ]; then
     echo "Solr health check: DB=$DB_COUNT records, Solr=$SOLR_COUNT indexed"
 
     if [ "$DB_COUNT" -gt 0 ] && [ "$SOLR_COUNT" -eq 0 ]; then
-        echo "WARNING: DB has $DB_COUNT records but Solr has 0. Rebuilding Solr..."
-
-        # Delete Solr volume to get fresh core with current schema
-        docker compose down -v solr-data
-
-        # Recreate Solr
-        docker compose up -d solr
-
-        # Wait for Solr to be ready again
-        until curl -s "http://solr:8983/solr/openlibrary/admin/ping" > /dev/null 2>&1; do
-            echo "Waiting for Solr to rebuild..."
-            sleep 5
-        done
-
-        # Reindex all data
-        make reindex-solr
+        echo "WARNING: DB has $DB_COUNT records but Solr has 0."
+        echo "This usually means Solr schema has been updated but Solr hasn't reloaded."
+        echo ""
+        echo "To fix, run on your host machine:"
+        echo "  docker-compose restart solr"
+        echo ""
+        echo "Then re-run indexing:"
+        docker/solr-rebuild.sh
     else
         echo "Solr index OK, skipping reindex"
     fi
