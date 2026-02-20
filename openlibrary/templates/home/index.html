@@ -14,6 +14,8 @@ $add_metatag(property="og:site_name", content="Open Library")
 
 <div id="contentBody">
 
+  $:macros.BookPreview('')
+
   $:render_template("home/welcome", test=test)
 
   $if not test:
