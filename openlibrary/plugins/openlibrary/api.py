@@ -821,18 +821,15 @@ class opds_search(delegate.page):
             mode="ebooks",
         )
 
-        query = i.query
-        if i.mode == "ebooks" and "ebook_access:" not in query:
-            query = f"{query} ebook_access:[borrowable TO *]"
-
         provider = get_opds_data_provider()
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
             response=provider.search(
-                query=query,
+                query=i.query,
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
                 sort=i.sort,
+                facets={'mode': i.mode},
             ),
             links=[
                 Link(
@@ -842,7 +839,7 @@ class opds_search(delegate.page):
                 ),
                 Link(
                     rel="search",
-                    href=f"{provider.BASE_URL}/opds/search{{?query}}",
+                    href=f"{provider.BASE_URL}/opds/search{{?query,mode}}",
                     type="application/opds+json",
                     templated=True,
                 ),
