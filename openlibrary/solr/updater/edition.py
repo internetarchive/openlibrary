@@ -332,28 +332,44 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
     def get_scorecard(self) -> EditionScorecard:
-        sc = EditionScorecard()
+        scorecard = EditionScorecard()
+        dsc = scorecard.discovery
+        esc = scorecard.evaluation
 
         if self.title:
-            sc.passing_checks.add(sc.has_title)
+            dsc.passing_checks.add(dsc.has_title)
+            esc.passing_checks.add(esc.has_title)
         if self.cover_i:
-            sc.passing_checks.add(sc.has_cover)
+            esc.passing_checks.add(esc.has_cover)
         if len(self._edition.get('description') or '') > 50:
-            sc.passing_checks.add(sc.has_short_description)
+            esc.passing_checks.add(esc.has_short_description)
         if len(self._edition.get('description') or '') > 100:
-            sc.passing_checks.add(sc.has_long_description)
+            esc.passing_checks.add(esc.has_long_description)
         if self.language:
-            sc.passing_checks.add(sc.has_language)
-        if self._solr_work and self._solr_work.author_key:
-            sc.passing_checks.add(sc.has_author)
+            dsc.passing_checks.add(dsc.has_language)
+            esc.passing_checks.add(esc.has_language)
+        # if self._solr_work and self._solr_work.author_key:
+        #     msc.passing_checks.add(msc.has_author)
         if self.publish_year:
-            sc.passing_checks.add(sc.has_publish_year)
+            esc.passing_checks.add(esc.has_publish_year)
         if self.isbn or self.lccn or self.ia or self.identifiers:
-            sc.passing_checks.add(sc.has_identifiers)
+            dsc.passing_checks.add(dsc.has_identifiers)
         if self.lexile:
-            sc.passing_checks.add(sc.has_lexile)
+            dsc.passing_checks.add(dsc.has_lexile)
+        if self._edition.get('dewey_decimal_class'):
+            dsc.passing_checks.add(dsc.has_ddc)
+        if self._edition.get('lc_classifications'):
+            dsc.passing_checks.add(dsc.has_lcc)
 
-        return sc
+        asc = scorecard.access
+        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
+            asc.passing_checks.add(asc.is_readable)
+        if self.ebook_access >= bp.EbookAccess.PUBLIC:
+            asc.passing_checks.add(asc.is_fully_public)
+        if self.ebook_access >= bp.EbookAccess.PRINTDISABLED:
+            asc.passing_checks.add(asc.allows_search_inside)
+
+        return scorecard
 
     @cached_property
     def metadata_score(self) -> int:
