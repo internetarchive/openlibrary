@@ -49,9 +49,9 @@ function initConfirmationDialogs() {
 }
 
 
-export function initPreviewDialogs() {
+export function initPreviewDialogs(context = document) {
     // Colorbox modal + iframe for Book Preview Button
-    const $buttons = $('.cta-btn--preview');
+    const $buttons = $(context).find('.cta-btn--preview').not('.cboxElement');
     $buttons.each((i, button) => {
         const $button = $(button);
         $button.colorbox({
