@@ -19,7 +19,7 @@ isbnlib==3.10.14
 luqum==0.11.0
 lxml==4.9.4
 multipart==0.2.4
-Pillow==10.4.0
+Pillow==12.1.1
 prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.6
 pydantic==2.12.5
