@@ -1,49 +1,113 @@
 $def with (scorecard)
 
 $ percentage = int((scorecard.score / scorecard.max_score * 100)) if scorecard.max_score > 0 else 0
+$ sections = scorecard.get_sections()
 
-<style>
-.ol-scorecard {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 10px;
-    margin: 10px 0;
-}
+$if render_once('ol-scorecard-style'):
+    <style>
+    :root {
+        --scorecard-excellent: #4CAF50;
+        --scorecard-good: #8BC34A;
+        --scorecard-moderate: #FFC107;
+        --scorecard-needs-work: #FF9800;
+        --scorecard-poor: #F44336;
+    }
 
-.ol-scorecard summary {
-    cursor: pointer;
-    font-weight: bold;
-    padding: 5px;
-}
+    .ol-scorecard {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 10px;
+        margin: 10px 0;
+    }
 
-.ol-scorecard-check {
-    margin: 8px 0;
-    border-left: 3px solid #ddd;
-}
+    .ol-scorecard-header {
+        font-weight: bold;
+        padding: 10px;
+        font-size: 1.1em;
+    }
 
-.ol-scorecard-check summary {
-    cursor: pointer;
-    font-weight: normal;
-}
+    .ol-scorecard-tabs {
+        display: flex;
+        gap: 20px;
+        padding: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 
-.ol-scorecard-check-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+    .ol-scorecard-tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
 
-.ol-scorecard-check-details {
-    margin-top: 8px;
-    padding: 8px;
-    background-color: #f9f9f9;
-    border-radius: 3px;
-    font-size: 0.9em;
-    color: #555;
-}
-</style>
+    .ol-scorecard-tab-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3em;
+        font-weight: bold;
+        background-color: var(--circle-bg-color);
+        color: color-mix(in srgb, var(--circle-bg-color) 20%, black);
+        border: 3px solid color-mix(in srgb, var(--circle-bg-color) 40%, black);
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
 
-$def render_scorecard_check(check):
-    $ is_passing = check in scorecard.passing_checks
+    .ol-scorecard-tab:hover .ol-scorecard-tab-circle {
+        transform: scale(1.05);
+    }
+
+    .ol-scorecard-tab.active .ol-scorecard-tab-circle {
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--circle-bg-color) 30%, transparent);
+    }
+
+    .ol-scorecard-tab-label {
+        margin-top: 8px;
+        font-size: 0.9em;
+        text-align: center;
+        max-width: 120px;
+    }
+
+    .ol-scorecard-section-content {
+        display: none;
+        padding: 15px;
+    }
+
+    .ol-scorecard-section-content.active {
+        display: block;
+    }
+
+    .ol-scorecard-check {
+        margin: 8px 0;
+        border-left: 3px solid #ddd;
+    }
+
+    .ol-scorecard-check summary {
+        cursor: pointer;
+        font-weight: normal;
+    }
+
+    .ol-scorecard-check-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ol-scorecard-check-details {
+        margin-top: 8px;
+        padding: 8px;
+        background-color: #f9f9f9;
+        border-radius: 3px;
+        font-size: 0.9em;
+        color: #555;
+    }
+    </style>
+
+$def render_scorecard_check(check, section):
+    $ is_passing = check in section.passing_checks
     $ emoji = "✅" if is_passing else "❌"
 
     <details class="ol-scorecard-check">
@@ -56,20 +120,91 @@ $def render_scorecard_check(check):
         </div>
     </details>
 
-<details class="ol-scorecard">
-    <summary>$_("Score"): $scorecard.score/$scorecard.max_score ($percentage%)</summary>
-    $ failing_checks = [check for check in scorecard.get_checks() if check not in scorecard.passing_checks]
-    $ passing_checks = [check for check in scorecard.get_checks() if check in scorecard.passing_checks]
+$def get_color_var_for_score(pct):
+    $if pct >= 80:
+        var(--scorecard-excellent)
+    $elif pct >= 60:
+        var(--scorecard-good)
+    $elif pct >= 40:
+        var(--scorecard-moderate)
+    $elif pct >= 20:
+        var(--scorecard-needs-work)
+    $else:
+        var(--scorecard-poor)
 
-    <details open>
-        <summary>$_("Failing Checks (%d)", len(failing_checks))</summary>
-        $for check in sorted(failing_checks, key=lambda c: c.score, reverse=True):
-            $:render_scorecard_check(check)
-    </details>
+<div class="ol-scorecard">
+    <div class="ol-scorecard-header">
+        $_("Score"): $scorecard.score/$scorecard.max_score ($percentage%)
+    </div>
 
-    <details>
-        <summary>$_("Passing Checks (%d)", len(passing_checks))</summary>
-        $for check in sorted(passing_checks, key=lambda c: c.score, reverse=True):
-            $:render_scorecard_check(check)
-    </details>
-</details>
+    <div class="ol-scorecard-tabs">
+        $for i, section in enumerate(sections):
+            $ section_percentage = int((section.score / section.max_score * 100)) if section.max_score > 0 else 0
+            $ color_var = get_color_var_for_score(section_percentage)
+            <div class="ol-scorecard-tab ${'active' if i == 0 else ''}" data-section="$i">
+                <div class="ol-scorecard-tab-circle" style="--circle-bg-color: $color_var;">
+                    $section_percentage%
+                </div>
+                <div class="ol-scorecard-tab-label">$section.name</div>
+            </div>
+    </div>
+
+    $for i, section in enumerate(sections):
+        $ failing_checks = [check for check in section.get_checks() if check not in section.passing_checks]
+        $ passing_checks = [check for check in section.get_checks() if check in section.passing_checks]
+
+        <div class="ol-scorecard-section-content ${'active' if i == 0 else ''}" id="section-$i">
+            <details open>
+                <summary>$_("Failing Checks (%d)", len(failing_checks))</summary>
+                $for check in sorted(failing_checks, key=lambda c: c.score, reverse=True):
+                    $:render_scorecard_check(check, section)
+            </details>
+
+            <details open>
+                <summary>$_("Passing Checks (%d)", len(passing_checks))</summary>
+                $for check in sorted(passing_checks, key=lambda c: c.score, reverse=True):
+                    $:render_scorecard_check(check, section)
+            </details>
+        </div>
+</div>
+
+$if render_once('ol-scorecard-script'):
+    <script>
+    class Scorecard {
+        constructor(element) {
+            this.element = element;
+            this.attachEventHandlers();
+        }
+
+        attachEventHandlers() {
+            this.element.querySelectorAll('.ol-scorecard-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const sectionIndex = tab.dataset.section;
+
+                    // Remove active class from all tabs and content in this scorecard
+                    this.element.querySelectorAll('.ol-scorecard-tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    this.element.querySelectorAll('.ol-scorecard-section-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+
+                    // Add active class to clicked tab and corresponding content
+                    tab.classList.add('active');
+                    const correspondingContent = this.element.querySelector(`#section-$${sectionIndex}`);
+                    if (correspondingContent) correspondingContent.classList.add('active');
+                });
+            });
+        }
+
+        static initAll() {
+            document.querySelectorAll('.ol-scorecard').forEach(scorecard => {
+                if (scorecard.dataset.initialized) return;
+                scorecard.dataset.initialized = 'true';
+                new Scorecard(scorecard);
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => Scorecard.initAll());
+    </script>
