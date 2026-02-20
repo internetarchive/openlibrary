@@ -57,7 +57,7 @@ services:
       - SOLR_MODULES=analysis-extras
     volumes:
       - solr-data:/var/solr
-      - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
+      - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro,z
     networks:
       - webnet
     logging:
