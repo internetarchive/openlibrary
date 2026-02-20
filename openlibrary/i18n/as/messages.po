@@ -1,4 +1,4 @@
-# Translations template for Open Library.
+# Assamese translations for Open Library.
 # Copyright (C) 2024 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
@@ -12,19 +12,1543 @@ msgstr ""
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: \n"
-"Language-Team: \n"
 "Language: as\n"
+"Language-Team: \n"
+"Plural-Forms: nplurals=1; plural=1;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural = 1"
+"Generated-By: Babel 2.12.1\n"
+
+#: openlibrary/core/bookshelves.py
+msgid "[Record deleted]"
+msgstr ""
+
+#: merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Declined"
+msgstr ""
+
+#: admin/imports_by_date.html openlibrary/core/edits.py
+msgid "Pending"
+msgstr ""
+
+#: merge_request_table/table_header.html openlibrary/core/edits.py
+msgid "Merged"
+msgstr ""
+
+#: openlibrary/core/edits.py
+msgid "Unknown"
+msgstr ""
+
+#: AffiliateLinks.html
+#, python-format
+msgid "Look for this edition for sale at %(store)s"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid "Fetching prices"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid "Better World Books"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid " - includes shipping"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid "Amazon"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid "Bookshop.org"
+msgstr ""
+
+#: AffiliateLinks.html home/about.html
+msgid "More"
+msgstr ""
+
+#: AffiliateLinks.html
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: BatchImportNavigation.html batch_import.html
+msgid "New Batch Import"
+msgstr ""
+
+#: BatchImportNavigation.html
+msgid "Pending Imports"
+msgstr ""
+
+#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
+#: account/notes.html account/observations.html
+msgid "Unknown author"
+msgstr ""
+
+#: BookByline.html
+#, python-format
+msgid "%(n)s other"
+msgid_plural "%(n)s others"
+msgstr[0] ""
+
+#: BookByline.html type/list/embed.html
+#, python-format
+msgid "by %(name)s"
+msgstr ""
+
+#: BookByline.html
+msgid "by an <em>unknown author</em>"
+msgstr ""
+
+#: BookPreview.html
+msgid "Preview Only"
+msgstr ""
+
+#: BookPreview.html book_providers/read_button.html books/edit/edition.html
+#: editpage.html import_preview.html
+msgid "Preview"
+msgstr ""
+
+#: BookPreview.html
+msgid "Preview Book"
+msgstr ""
+
+#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
+#: ObservationsModal.html ShareModal.html covers/author_photo.html
+#: covers/book_cover.html covers/change.html lib/history.html
+#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
+#: native_dialog.html
+msgid "Close"
+msgstr ""
+
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html search/snippets.html
+msgid "Search Inside"
+msgstr ""
+
+#: CreateListModal.html my_books/dropdown_content.html
+msgid "Create a new list"
+msgstr ""
+
+#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
+msgid "Name:"
+msgstr ""
+
+#: CreateListModal.html my_books/dropdown_content.html
+#: type/permission/edit.html type/usergroup/edit.html
+msgid "Description:"
+msgstr ""
+
+#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+msgid "Create new list"
+msgstr ""
+
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html interstitial.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/tag/form.html
+msgid "Cancel"
+msgstr ""
+
+#: DisplayCode.html
+msgid ""
+"Templates in the website are disabled now. Editing them will not have any"
+" effect on the live website."
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Donate this book to the <a href=\"https://archive.org\">Internet "
+"Archive</a> library."
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Hooray! You've discovered a title that's missing from our <a "
+"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
+"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"If you own this book, you can<a "
+"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
+"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
+"address below."
+msgstr ""
+
+#: DonateModal.html
+msgid "You can also purchase this book from a vendor and ship it to our address:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Benefits of donating"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"When you donate a physical book to the Internet Archive, your book will "
+"enjoy:"
+msgstr ""
+
+#: DonateModal.html
+msgid "Donation info"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
+"\">high-fidelity digitization</a>"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
+"books-the-new-physical-archive-of-the-internet-archive/\">archival "
+"preservation</a>"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
+" library access</a> by the <a "
+"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
+"disabled</a> public"
+msgstr ""
+
+#: DonateModal.html
+msgid ""
+"Open Library is a project of the <a "
+"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
+"profit"
+msgstr ""
+
+#: EditButtons.html admin/ip/view.html admin/people/edits.html
+msgid ""
+"Please, leave a short note about what you changed: <span class=\"small "
+"gray\">(Optional, but very useful!)</span>"
+msgstr ""
+
+#: EditButtons.html books/add.html type/tag/form.html
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" title=\"This link to Creative Commons will open in a "
+"new window\">CC0</a>. Yippee!"
+msgstr ""
+
+#: EditButtons.html account/notifications.html account/privacy.html
+#: admin/block.html admin/spamwords.html covers/manage.html
+msgid "Save"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Go to previous section"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Overview"
+msgstr ""
+
+#: EditionNavBar.html
+#, python-format
+msgid "View %(count)s Edition"
+msgid_plural "View %(count)s Editions"
+msgstr[0] ""
+
+#: EditionNavBar.html search/layout_options.html site/stats.html
+msgid "Details"
+msgstr ""
+
+#: EditionNavBar.html
+#, python-format
+msgid "%(reviews)s Review"
+msgid_plural "%(reviews)s Reviews"
+msgstr[0] ""
+
+#: EditionNavBar.html account/observations.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+msgid "Reviews"
+msgstr ""
+
+#: EditionNavBar.html SearchNavigation.html account/sidebar.html
+#: lib/nav_head.html lists/home.html recentchanges/index.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
+msgid "Lists"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Related Books"
+msgstr ""
+
+#: EditionNavBar.html
+msgid "Go to next section"
+msgstr ""
+
+#: Follow.html lists/list_follow.html
+msgid "Follow"
+msgstr ""
+
+#: Follow.html
+msgid "Unfollow"
+msgstr ""
+
+#: Follow.html
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
+#: FormatExpiry.html
+msgid "Expires"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "Checking for Search Inside matches"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "Search Inside Icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "search inside icon"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "%(book_count)s books found with matching passages"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+#, python-format
+msgid "See all %(results_count)s Search Inside Matches"
+msgstr ""
+
+#: FulltextSearchSuggestion.html
+msgid "right chevron"
+msgstr ""
+
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
+#, python-format
+msgid "Cover of: %(title)s"
+msgstr ""
+
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
+msgid "❝"
+msgstr ""
+
+#: FulltextSnippet.html FulltextSuggestionSnippet.html
+msgid "❞"
+msgstr ""
+
+#: FulltextSuggestionSnippet.html
+#, python-format
+msgid "Page: %(page)s"
+msgstr ""
+
+#: IABook.html
+#, python-format
+msgid "Borrowed from Internet Archive: %(title)s"
+msgstr ""
+
+#: LoadingIndicator.html
+msgid "Loading indicator"
+msgstr ""
+
+#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
+#: book_providers/read_button.html books/edit/edition.html trending.html
+#: type/list/embed.html widget.html
+msgid "Read"
+msgstr ""
+
+#: LoanStatus.html
+msgid "You are <strong>next</strong> on the waiting list"
+msgstr ""
+
+#: LoanStatus.html
+#, python-format
+msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr ""
+
+#: LoanStatus.html
+msgid "Leave waiting list"
+msgstr ""
+
+#: LoanStatus.html widget.html
+msgid "Join Waitlist"
+msgstr ""
+
+#: LoanStatus.html
+#, python-format
+msgid "Readers in line: %(count)s"
+msgstr ""
+
+#: LoanStatus.html
+msgid "You'll be next in line."
+msgstr ""
+
+#: LoanStatus.html
+msgid "This book is currently checked out, please check back later."
+msgstr ""
+
+#: LoanStatus.html
+msgid "Checked Out"
+msgstr ""
+
+#: LocateButton.html
+msgid "Locate"
+msgstr ""
+
+#: ManageLoansButtons.html admin/loans_table.html
+#, python-format
+msgid "Borrowed %(date)s"
+msgstr ""
+
+#: ManageLoansButtons.html
+#, python-format
+msgid "There is one person waiting for this book."
+msgid_plural "There are %(n)s people waiting for this book."
+msgstr[0] ""
+
+#: ManageLoansButtons.html account/loans.html
+msgid "Not yet downloaded."
+msgstr ""
+
+#: ManageLoansButtons.html account/loans.html
+msgid "Download Now"
+msgstr ""
+
+#: ManageWaitlistButton.html
+#, python-format
+msgid "Waiting for %d day"
+msgid_plural "Waiting for %d days"
+msgstr[0] ""
+
+#: ManageWaitlistButton.html account/loans.html
+#, python-format
+msgid "There is one person ahead of you in the waiting list."
+msgid_plural "There are %(count)d people ahead of you in the waiting list."
+msgstr[0] ""
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "You have less than an hour to borrow it."
+msgstr ""
+
+#: ManageWaitlistButton.html
+#, python-format
+msgid "You have %(count)d more hour to borrow it."
+msgid_plural "You have %(count)d more hours to borrow it."
+msgstr[0] ""
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "Borrow Now"
+msgstr ""
+
+#: ManageWaitlistButton.html account/loans.html
+msgid "Leave the waiting list?"
+msgstr ""
+
+#: NotInLibrary.html
+msgid "Not in Library"
+msgstr ""
+
+#: NotesModal.html
+msgid "My Book Notes"
+msgstr ""
+
+#: NotesModal.html
+msgid "My private notes about this edition:"
+msgstr ""
+
+#: NotesModal.html account/notes.html
+msgid "Delete Note"
+msgstr ""
+
+#: NotesModal.html account/notes.html
+msgid "Save Note"
+msgstr ""
+
+#: OLID.html
+#, python-format
+msgid "by  %(authors)s"
+msgstr ""
+
+#: ObservationsModal.html
+msgid "My Book Review"
+msgstr ""
+
+#: Pager.html Pager_loanhistory.html
+msgid "First"
+msgstr ""
+
+#: Pager.html Pager_loanhistory.html lib/pagination.html
+msgid "Previous"
+msgstr ""
+
+#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
+#: lib/pagination.html showmarc.html
+msgid "Next"
+msgstr ""
+
+#: Profile.html
+msgid "Component"
+msgstr ""
+
+#: Profile.html type/author/view.html
+msgid "Time"
+msgstr ""
+
+#: ProlificAuthors.html
+msgid "Prolific Authors"
+msgstr ""
+
+#: ProlificAuthors.html
+msgid "who have written the most books on this subject"
+msgstr ""
+
+#: ProlificAuthors.html publishers/view.html
+msgid "See more books by, and learn about, this author"
+msgstr ""
+
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/list_follow.html lists/showcase.html publishers/view.html
+#: search/authors.html search/publishers.html search/subjects.html
+#, python-format
+msgid "%(count)d book"
+msgid_plural "%(count)d books"
+msgstr[0] ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Publishing History"
+msgstr ""
+
+#: PublishingHistory.html
+msgid ""
+"This is a chart to show the publishing history of editions of works about"
+" this subject. Along the X axis is time, and on the y axis is the count "
+"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
+" chart</a>."
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Reset chart"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "or continue zooming in."
+msgstr ""
+
+#: PublishingHistory.html
+msgid "This graph charts editions published on this subject."
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Editions Published"
+msgstr ""
+
+#: PublishingHistory.html admin/imports.html publishers/view.html
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr ""
+
+#: PublishingHistory.html publishers/view.html
+msgid "Year of Publication"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Loading carousel"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Failed to fetch carousel."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry?"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "No books match the current filters."
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Retry without filters?"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Search collection"
+msgstr ""
+
+#: ReadButton.html
+msgid "Special Access"
+msgstr ""
+
+#: ReadButton.html
+msgid ""
+"Special ebook access from the Internet Archive for patrons with "
+"qualifying print disabilities"
+msgstr ""
+
+#: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
+msgid "Borrow"
+msgstr ""
+
+#: ReadButton.html
+msgid "Borrow ebook from Internet Archive"
+msgstr ""
+
+#: ReadButton.html
+msgid "Read ebook from Internet Archive"
+msgstr ""
+
+#: ReadButton.html
+msgid "Listen"
+msgstr ""
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
+msgid "When"
+msgstr ""
+
+#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
+#: recentchanges/updated_records.html
+msgid "What"
+msgstr ""
+
+#: RecentChanges.html admin/history.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html history.html
+#: recentchanges/render.html
+msgid "Who"
+msgstr ""
+
+#: RecentChanges.html RecentChangesUsers.html admin/history.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
+msgid "Comment"
+msgstr ""
+
+#: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
+msgid "Review what's changed from the previous revision"
+msgstr ""
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/memory/index.html recentchanges/default/path.html
+#: recentchanges/updated_records.html
+msgid "diff"
+msgstr ""
+
+#: RecentChanges.html admin/ip/view.html admin/people/edits.html
+#: recentchanges/render.html
+msgid "When you see numbers here, that's the IP address of the anonymous editor"
+msgstr ""
+
+#: RecentChanges.html
+msgid "View MARC"
+msgstr ""
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/people/edits.html recentchanges/render.html
+msgid "Older"
+msgstr ""
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/people/edits.html recentchanges/render.html
+msgid "Newer"
+msgstr ""
+
+#: RecentChanges.html recentchanges/index.html
+msgid "By Humans"
+msgstr ""
+
+#: RecentChanges.html recentchanges/index.html
+msgid "By Bots"
+msgstr ""
+
+#: RecentChanges.html recentchanges/index.html work_search.html
+msgid "Everything"
+msgstr ""
+
+#: RecentChangesAdmin.html
+msgid "Path"
+msgstr ""
+
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
+msgid "Comments"
+msgstr ""
+
+#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
+msgid "Actions"
+msgstr ""
+
+#: RecentChangesAdmin.html
+msgid "view"
+msgstr ""
+
+#: RecentChangesAdmin.html
+msgid "edit"
+msgstr ""
+
+#: RecentChangesAdmin.html RecentChangesUsers.html
+msgid "No edit history available."
+msgstr ""
+
+#: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
+msgid "Recent Activity"
+msgstr ""
+
+#: RecentChangesUsers.html type/user/view.html
+msgid "No edits. Yet."
+msgstr ""
+
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
+#: subjects/notfound.html type/author/view.html type/list/view_body.html
+msgid "Subjects"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/author/view.html type/list/view_body.html
+msgid "Places"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html
+#: openlibrary/plugins/worksearch/code.py type/author/view.html
+#: type/list/view_body.html
+msgid "People"
+msgstr ""
+
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/list/view_body.html
+msgid "Times"
+msgstr ""
+
+#: RelatedSubjects.html
+msgid "Related..."
+msgstr ""
+
+#: RelatedSubjects.html publishers/view.html
+msgid "None found."
+msgstr ""
+
+#: ReturnForm.html
+msgid "Really return this book?"
+msgstr ""
+
+#: ReturnForm.html
+msgid "Return book"
+msgstr ""
+
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py
+msgid "Books"
+msgstr ""
+
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html
+msgid "Authors"
+msgstr ""
+
+#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
+#: search/advancedsearch.html
+msgid "Advanced Search"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "added to"
+msgstr ""
+
+#: SearchResultsWork.html design.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html design.html
+msgid "Show less"
+msgstr ""
+
+#: SearchResultsWork.html
+#, python-format
+msgid "Cover of edition %(id)s"
+msgstr ""
+
+#: SearchResultsWork.html type/work/editions.html
+#, python-format
+msgid "First published in %(year)s"
+msgstr ""
+
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+
+#: SearchResultsWork.html
+#, python-format
+msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
+msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
+msgstr[0] ""
+
+#: SearchResultsWork.html TrendingBadge.html
+msgid "This is only visible to librarians."
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Work Title"
+msgstr ""
+
+#: SearchResultsWork.html type/edition/admin_bar.html
+msgid "Orphaned Edition"
+msgstr ""
+
+#: ShareModal.html
+#, python-format
+msgid "Share on %(share_link)s"
+msgstr ""
+
+#: ShareModal.html
+msgid "Embed this book in your website"
+msgstr ""
+
+#: ShareModal.html
+msgid "Embed icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "Embed"
+msgstr ""
+
+#: ShareModal.html
+msgid "Copy url to clipboard"
+msgstr ""
+
+#: ShareModal.html
+msgid "Copy URL icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "Copy URL"
+msgstr ""
+
+#: ShareModal.html
+msgid "Open QR code"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR code icon"
+msgstr ""
+
+#: ShareModal.html
+msgid "QR Code"
+msgstr ""
+
+#: StarRatings.html
+msgid "Clear my rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "rating"
+msgstr ""
+
+#: StarRatingsByline.html StarRatingsComponent.html
+msgid "ratings"
+msgstr ""
+
+#: StarRatingsByline.html
+#, python-format
+msgid "%(want_to_read_count)s Want to read"
+msgstr ""
+
+#: StarRatingsComponent.html
+#, python-format
+msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
+msgstr ""
+
+#: StarRatingsStats.html
+msgid "Want to read"
+msgstr ""
+
+#: StarRatingsStats.html
+msgid "Currently reading"
+msgstr ""
+
+#: StarRatingsStats.html
+msgid "Have read"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Developer Center (Home)"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Web API"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Client Library"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Data Dumps"
+msgstr ""
+
+#: Subnavigation.html book_providers/standard_ebooks_download_options.html
+msgid "Source Code"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Report an Issue"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Licensing"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Welcome"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Searching Open Library"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Reading Books"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Adding & Editing Books"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Using Subjects"
+msgstr ""
+
+#: Subnavigation.html
+msgid "Open Library F.A.Q."
+msgstr ""
+
+#: TableOfContents.html
+#, python-format
+msgid "Page %s"
+msgstr ""
+
+#: TrendingBadge.html
+#, python-format
+msgid "Trending: %(score).2f"
+msgstr ""
+
+#: TypeChanger.html
+msgid "Page Type"
+msgstr ""
+
+#: TypeChanger.html
+msgid "Huh?"
+msgstr ""
+
+#: TypeChanger.html
+msgid ""
+"Every piece of Open Library is defined by the type of content it "
+"displays, usually by content definition (e.g. Authors, Editions, Works) "
+"but sometimes by content use (e.g. macro, template, rawtext). Changing "
+"this for an existing page will alter its presentation and the data fields"
+" available for editing its content."
+msgstr ""
+
+#: TypeChanger.html
+msgid "Please use caution changing Page Type!"
+msgstr ""
+
+#: TypeChanger.html
+msgid ""
+"(Simplest solution: If you aren't sure whether this should be changed, "
+"don't change it.)"
+msgstr ""
+
+#: UserEditRow.html type/work/editions.html
+msgid "Add another"
+msgstr ""
+
+#: WorkInfo.html
+msgid "No link to Wikipedia in your language"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "Check nearby libraries"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "Check WorldCat for an edition near you"
+msgstr ""
+
+#: WorldcatLink.html
+msgid "WorldCat"
+msgstr ""
+
+#: databarDiff.html databarEdit.html
+msgid "View the editing history of this page"
+msgstr ""
+
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
+msgid "History"
+msgstr ""
+
+#: databarDiff.html
+msgid "View this page (exit Comparison view)"
+msgstr ""
+
+# There's a different translation for the term privacy, however here I've
+# transliterated
+#: account.html databarDiff.html
+msgid "View"
+msgstr " চাওক"
+
+#: databarEdit.html
+msgid "View this page (exit Edit mode)"
+msgstr ""
+
+#: databarHistory.html databarView.html
+#, python-format
+msgid "Last edited by %(author_link)s"
+msgstr ""
+
+#: databarHistory.html databarView.html
+msgid "Last edited anonymously"
+msgstr ""
+
+#: databarHistory.html databarView.html type/edition/compact_title.html
+msgid "Edit this page"
+msgstr ""
+
+#: account.html databarHistory.html databarTemplate.html databarView.html
+#: my_books/check_ins/check_in_prompt.html
+#: reading_goals/reading_goal_progress.html subjects.html
+#: type/edition/compact_title.html type/user/view.html
+msgid "Edit"
+msgstr "বোডলাউক"
+
+#: databarTemplate.html databarView.html
+msgid "View this template's edit history"
+msgstr ""
+
+#: databarTemplate.html
+msgid "Edit this template"
+msgstr ""
+
+#: databarWork.html lib/nav_head.html
+msgid "Browse"
+msgstr ""
+
+#: databarWork.html
+#, python-format
+msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html type/edition/view.html type/work/view.html
+msgid "Buy this book"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/api.py
+msgid "Search Results"
+msgstr ""
+
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+msgid "Open Library"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
+msgid "Trending Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Classic Books"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Romance"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Kids"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+msgid "Thrillers"
+msgstr ""
+
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Textbooks"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Arabic"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Czech"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "German"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "English"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Spanish"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "French"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Hindi"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Croatian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Italian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Portuguese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Romanian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Sardinian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Telugu"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Ukrainian"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Chinese"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Art"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science Fiction"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Fantasy"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Biographies"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Recipes"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Children"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Medicine"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Religion"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Mystery and Detective Stories"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Plays"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 subject"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 author"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 1 edition"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has work (orphaned)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publication year"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has cover"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has language"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has publisher"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "At least 2 editions"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has dewey decimal"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has LoC classification"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/librarian_dashboard.py
+msgid "Has number of pages"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/openlibrary/lists.py
+#, python-format
+msgid "Lists (%(count)d)"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "This work does not appear on any lists."
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/pd.py
+msgid "I don't have one yet"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The email address you entered is invalid"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been blocked"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This account has been locked"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "No account was found with this email. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "The password you entered is incorrect. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Wrong password. Please try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Open Library account before logging in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please verify your Internet Archive account before logging in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Please fill out all fields and try again"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This email is already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "This username is already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Login attempted with invalid Internet Archive s3 credentials."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email provider not recognized."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Password requirements not met."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "A problem occurred and we were unable to log you in"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+#, python-format
+msgid "Request failed with error code: %(error_code)s"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Thank you for registering an Open Library account and requesting special "
+"print disability access. You should receive an email detailing next steps"
+" in the process."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Username unavailable"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+#: openlibrary/plugins/upstream/forms.py
+msgid "Email already registered"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "An Internet Archive account already exists with this email"
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email address is already used."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address couldn't be updated. The specified email address is "
+"already used."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email verification successful."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address has been successfully verified and updated in your "
+"account."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Email address couldn't be verified."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid ""
+"Your email address couldn't be verified. The verification link seems "
+"invalid."
+msgstr ""
+
+#: openlibrary/plugins/upstream/account.py
+msgid "Notification preferences have been updated successfully."
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Imports and Exports"
+msgstr ""
+
+#: admin/people/view.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/account.py type/user/view.html
+msgid "Loans"
+msgstr ""
+
+#: account/mybooks.html account/sidebar.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+msgid "Loan History"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Username"
+msgstr ""
+
+#: account/email/forgot-ia.html login.html
+#: openlibrary/plugins/upstream/forms.py
+msgid "Password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "No user registered with this email address"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Disposable email not permitted"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Your email provider is not recognized."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Username already used"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Must be between 3 and 20 letters and numbers"
+msgstr ""
+
+#: account/create.html openlibrary/plugins/upstream/forms.py
+msgid "Must be between 3 and 20 characters"
+msgstr ""
+
+#: account/create.html openlibrary/plugins/upstream/forms.py
+msgid "Must be a valid email address"
+msgstr ""
+
+#: login.html openlibrary/plugins/upstream/forms.py
+msgid "Email"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Screen Name"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Public and cannot be changed later."
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Invalid password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Your email address"
+msgstr ""
+
+#: openlibrary/plugins/upstream/forms.py
+msgid "Choose a password"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: type/edition/modal_links.html
+msgid "Notes"
+msgstr ""
+
+#: account/sidebar.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/mybooks.py
+msgid "My Feed"
+msgstr ""
+
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+msgid "Already Read"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+#, fuzzy, python-format
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py type/edition/view.html
+#: type/work/view.html
+msgid "Language"
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
+#: search/work_search_selected_facets.html
+msgid "Author"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "First published"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py publishers/view.html
+#: search/advancedsearch.html type/edition/view.html type/work/view.html
+msgid "Publisher"
+msgstr ""
+
+#: openlibrary/plugins/worksearch/code.py
+msgid "Classic eBooks"
+msgstr ""
+
 # Note - The Assamese language has no noun,
 # verb, etcetera extensions coincinding against
 # singulars or plurals. Eg- One hour has passed
 # Tr. : "Ek ghonta hoi gol"; Two hours have passed
 # Tr. : :"Dui ghonta hoi gol".
-"Generated-By: Babel 2.12.1\n"
-
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
 msgid "Settings"
@@ -33,28 +1557,16 @@ msgstr "ছেটিংছ"
 #: account.html
 msgid "Settings & Privacy"
 msgstr "ছেটিংছ আৰু প্ৰাইভেছি"
-# There's a different translation for the term privacy, however here I've transliterated
-
-#: account.html databarDiff.html
-msgid "View"
-msgstr " চাওক"
 
 #: account.html
 msgid "or"
 msgstr "অথবা"
 
-#: account.html check_ins/check_in_prompt.html
-#: check_ins/reading_goal_progress.html databarHistory.html
-#: databarTemplate.html databarView.html subjects.html
-#: type/edition/compact_title.html type/user/view.html
-msgid "Edit"
-msgstr "বোডলাউক"
-
 #: account.html
 msgid "Your Profile Page"
 msgstr "আপোনাৰ প্ৰফাইল পৃষ্ঠা"
-# Note - change the last word to assamese transliteration of page
 
+# Note - change the last word to assamese transliteration of page
 #: account.html
 msgid "View or Edit your Reading Log"
 msgstr ""
@@ -124,7 +1636,7 @@ msgstr ""
 msgid "Or copy/paste JSONL text:"
 msgstr ""
 
-#: batch_import.html
+#: batch_import.html import_preview.html
 msgid "Import"
 msgstr ""
 
@@ -190,18 +1702,14 @@ msgstr ""
 
 #: account/import.html account/loans.html admin/imports.html
 #: admin/imports_by_date.html admin/loans_table.html admin/menu.html
-#: batch_import_pending_view.html batch_import_view.html status.html
+#: batch_import_pending_view.html batch_import_view.html
+#: librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr ""
 
 #: batch_import_pending_view.html batch_import_view.html
 #: merge_request_table/table_header.html
 msgid "Submitter"
-msgstr ""
-
-#: RecentChangesAdmin.html batch_import_pending_view.html
-#: batch_import_view.html
-msgid "Comments"
 msgstr ""
 
 #: batch_import_view.html
@@ -241,7 +1749,7 @@ msgid "Import Time"
 msgstr ""
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
-#: batch_import_view.html
+#: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
 msgstr ""
 
@@ -266,31 +1774,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
@@ -309,9 +1793,156 @@ msgstr ""
 msgid "Link (clicked)"
 msgstr ""
 
+#: design.html
+msgid "Pagination component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+msgid "Event-based"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+msgid "Selected page:"
+msgstr ""
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+msgid "3 pages"
+msgstr ""
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Read More component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+msgid "Custom background color"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
+msgstr ""
+
+#: diff.html
+#, python-format
+msgid "Revision %d"
+msgstr ""
+
+#: books/check.html covers/book_cover.html diff.html jsdef/LazyWorkPreview.html
+msgid "by"
+msgstr ""
+
+#: diff.html
+msgid "by Anonymous"
+msgstr ""
+
+#: diff.html
+msgid "history"
 msgstr ""
 
 #: diff.html
@@ -328,21 +1959,6 @@ msgstr ""
 
 #: diff.html
 msgid "Not changed"
-msgstr ""
-
-#: diff.html
-#, python-format
-msgid "Revision %d"
-msgstr ""
-
-#: books/check.html books/show.html covers/book_cover.html
-#: covers/book_cover_single_edition.html covers/book_cover_work.html diff.html
-#: jsdef/LazyWorkPreview.html lists/preview.html
-msgid "by"
-msgstr ""
-
-#: diff.html
-msgid "by Anonymous"
 msgstr ""
 
 #: diff.html
@@ -365,35 +1981,12 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html book_providers/direct_read_button.html
-#: books/edit/edition.html editpage.html
-msgid "Preview"
-msgstr ""
-
 #: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
 msgid "Revision"
-msgstr ""
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "When"
-msgstr ""
-
-#: RecentChanges.html admin/history.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html history.html
-#: recentchanges/render.html
-msgid "Who"
-msgstr ""
-
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "Comment"
 msgstr ""
 
 #: history.html
@@ -425,9 +2018,26 @@ msgstr ""
 msgid "Back"
 msgstr ""
 
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
+#: import_preview.html
+msgid "Import Preview"
+msgstr ""
+
+#: import_preview.html
+msgid "Preview Import"
+msgstr ""
+
+#: import_preview.html
+msgid "Show Raw Import Data"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "New %(thing_type)s record will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Changes to %(key)s"
 msgstr ""
 
 #: internalerror.html
@@ -435,25 +2045,59 @@ msgid "Internal Error"
 msgstr ""
 
 #: internalerror.html
-msgid "Hmm..."
+msgid "A Problem Occurred"
 msgstr ""
 
 #: internalerror.html
-msgid "Sorry. There seems to be a problem with what you were just looking at."
+msgid "We're sorry, a problem occurred while responding to your request:"
 msgstr ""
 
 #: internalerror.html
 #, python-format
 msgid ""
-"We've noted the error %s and will look into it as soon as possible. Head "
-"for <a href=\"/\">home</a>?"
+"The reference code %s and Sentry trace ID %s have been created to track "
+"this error and we will investigate as we're able."
+msgstr ""
+
+#: internalerror.html
+#, python-format
+msgid ""
+"The reference code %s has been created to track this error and we will "
+"investigate as we're able."
+msgstr ""
+
+#: internalerror.html
+msgid ""
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
+msgstr ""
+
+#: interstitial.html
+msgid "You are being redirected to your book"
+msgstr ""
+
+#: interstitial.html
+#, python-format
+msgid ""
+"This book is provided by %(book_provider)s, a third-party Open Library "
+"Trusted Book Provider"
+msgstr ""
+
+#: interstitial.html
+#, python-format
+msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
+msgstr ""
+
+#: interstitial.html
+msgid "Continue without waiting"
 msgstr ""
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
 msgstr ""
 
-#: account/create.html books/custom_carousel.html login.html
+#: account/create.html books/custom_carousel.html
+#: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
 msgstr ""
@@ -486,12 +2130,6 @@ msgstr ""
 msgid "OR"
 msgstr ""
 
-#: login.html
-msgid ""
-"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
-"email and password to access your Open Library account."
-msgstr ""
-
 #: account/create.html login.html
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
@@ -504,16 +2142,14 @@ msgid ""
 "logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
 
-#: forms.py login.html
-msgid "Email"
+#: login.html
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
 msgstr ""
 
 #: login.html
 msgid "Forgot your Internet Archive email?"
-msgstr ""
-
-#: account/email/forgot-ia.html forms.py login.html
-msgid "Password"
 msgstr ""
 
 #: login.html
@@ -549,26 +2185,7 @@ msgid "Added new book."
 msgstr ""
 
 #: messages.html
-msgid "Thank you very much for adding that new book!"
-msgstr ""
-
-#: messages.html
-msgid "Thank you very much for improving that record!"
-msgstr ""
-
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html covers/author_photo.html
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_work.html covers/change.html lib/history.html
-#: my_books/dropdown_content.html native_dialog.html
-msgid "Close"
+msgid "Thank you for improving the Open Library catalog!"
 msgstr ""
 
 #: notfound.html
@@ -619,15 +2236,17 @@ msgid "Permission denied."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to add records on Open Library. Please <a "
-"href=\"/account/login?redirect=$path\">log in</a> to add a book."
+"href=\"%s\">log in</a> to add a book."
 msgstr ""
 
 #: permission_denied.html
+#, python-format
 msgid ""
 "Only logged users are allowed to modify records on Open Library. Please "
-"<a href=\"/account/login?redirect=$path\">log in</a> to edit this page."
+"<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
 
 #: permission_denied.html
@@ -661,7 +2280,8 @@ msgstr ""
 msgid "Source"
 msgstr ""
 
-#: books/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr ""
 
@@ -706,6 +2326,10 @@ msgid "Staged"
 msgstr ""
 
 #: status.html
+msgid "View PRs on GitHub"
+msgstr ""
+
+#: status.html
 msgid "Show changed files"
 msgstr ""
 
@@ -715,7 +2339,11 @@ msgid "Name"
 msgstr ""
 
 #: subjects.html
-msgid "Edit Subject Tag"
+msgid "Edit tag for this subject"
+msgstr ""
+
+#: subjects.html
+msgid "Create tag for this subject"
 msgstr ""
 
 #: subjects.html
@@ -727,84 +2355,22 @@ msgstr ""
 msgid "%(count)d work"
 msgid_plural "%(count)d works"
 msgstr[0] ""
-msgstr[1] ""
 
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
 msgstr ""
 
-#: support.html
-msgid "How can we help?"
-msgstr ""
-
-#: support.html
-msgid ""
-"Your question has been sent to our support team. We'll get back to you "
-"shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact"
-" us on Twitter</a>."
-msgstr ""
-
-#: support.html
-msgid ""
-"Please check our <a href=\"/help/\">Help Pages</a> and <a "
-"href=\"/help/faq\">Frequently Asked Questions</a> (FAQ) to see if your "
-"question is answered there. Thank you."
-msgstr ""
-
-#: support.html
-msgid "Your Name"
-msgstr ""
-
-#: support.html
-msgid "Your Email Address"
-msgstr ""
-
-#: support.html
-msgid "We'll need this if you want a reply"
-msgstr ""
-
-#: support.html
-msgid ""
-"If you wish to be contacted by other means, please add your contact "
-"preference and details to your question."
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html support.html
-msgid "Subject"
-msgstr ""
-
-#: support.html
-msgid "Your Question"
-msgstr ""
-
-#: support.html
-msgid "Note: our staff will likely only be able respond in English."
-msgstr ""
-
-#: support.html
-msgid ""
-"If you encounter an error message, please include it. For questions about"
-" our books, please provide the title/author or Open Library ID."
-msgstr ""
-
-#: support.html
-msgid "Send"
-msgstr ""
-
-#: CreateListModal.html EditButtons.html account/notifications.html
-#: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html merge/authors.html
-#: my_books/dropdown_content.html support.html tag/add.html
-msgid "Cancel"
+#: subjects.html
+msgid "Disambiguations"
 msgstr ""
 
 #: trending.html
 msgid "Now"
 msgstr ""
 
-#: admin/graphs.html admin/index.html check_ins/check_in_form.html
-#: check_ins/check_in_prompt.html trending.html
+#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
+#: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
 msgstr ""
 
@@ -820,13 +2386,8 @@ msgstr ""
 msgid "This Year"
 msgstr ""
 
-#: account/view.html admin/index.html books/year_breadcrumb_select.html
-#: trending.html
+#: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
-
-#: home/index.html trending.html
-msgid "Trending Books"
 msgstr ""
 
 #: trending.html
@@ -846,18 +2407,6 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
-msgstr ""
-
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html books/custom_carousel.html
-#: books/edit/edition.html books/show.html books/works-show.html trending.html
-#: type/list/embed.html widget.html
-msgid "Read"
 msgstr ""
 
 #: trending.html
@@ -888,18 +2437,9 @@ msgstr ""
 msgid "Borrow \"%(title)s\""
 msgstr ""
 
-#: ReadButton.html books/custom_carousel.html books/edit/edition.html
-#: type/list/embed.html widget.html
-msgid "Borrow"
-msgstr ""
-
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
-
-#: LoanStatus.html books/custom_carousel.html widget.html
-msgid "Join Waitlist"
 msgstr ""
 
 #: widget.html
@@ -907,7 +2447,7 @@ msgstr ""
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
 msgstr ""
 
-#: widget.html
+#: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
 msgstr ""
 
@@ -924,16 +2464,8 @@ msgstr ""
 msgid "Keywords"
 msgstr ""
 
-#: RecentChanges.html recentchanges/index.html work_search.html
-msgid "Everything"
-msgstr ""
-
 #: work_search.html
 msgid "Ebooks"
-msgstr ""
-
-#: work_search.html
-msgid "Print Disabled"
 msgstr ""
 
 #: work_search.html
@@ -945,25 +2477,36 @@ msgid "Solr Editions"
 msgstr ""
 
 #: work_search.html
+msgid "The search engine returned an error."
+msgstr ""
+
+#: work_search.html
+msgid "Solr Debugging:"
+msgstr ""
+
+#: work_search.html
+msgid "Full URL:"
+msgstr ""
+
+#: work_search.html
 #, python-format
-msgid "No <strong>%(path_id)s</strong> directly matched your search"
+msgid "No <strong>%(path_id)s</strong> directly matched your search."
+msgstr ""
+
+#: work_search.html
+msgid "Add a new book?"
 msgstr ""
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
-#: account/reading_log.html search/authors.html search/subjects.html
-#: work_search.html
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
-msgstr[1] ""
-
-#: work_search.html
-msgid "BARF! Search engine ERROR!"
-msgstr ""
 
 #: work_search.html
 #, python-format
@@ -1032,16 +2575,12 @@ msgid ""
 "information form</a>."
 msgstr ""
 
-#: account/create.html forms.py
-msgid "Must be a valid email address"
-msgstr ""
-
-#: account/create.html forms.py
-msgid "Must be between 3 and 20 characters"
+#: account/create.html
+msgid "Username may only contain numbers, letters, - or _"
 msgstr ""
 
 #: account/create.html
-msgid "Username may only contain numbers, letters, - or _"
+msgid "A qualifying program must be selected"
 msgstr ""
 
 #: account/create.html
@@ -1068,6 +2607,30 @@ msgstr ""
 
 #: account/create.html
 msgid "screenname"
+msgstr ""
+
+#: account/create.html
+msgid ""
+"I want to receive news, announcements, and resources from the <a "
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
+"runs Open Library."
+msgstr ""
+
+#: account/create.html
+msgid ""
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\">special print disability access</a> through"
+" a qualifying program."
+msgstr ""
+
+#: account/create.html
+msgid "Select qualifying program"
+msgstr ""
+
+#: account/create.html
+msgid ""
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
 msgstr ""
 
 #: account/create.html
@@ -1125,7 +2688,7 @@ msgid "Download a copy of your reading log."
 msgstr ""
 
 #: account/import.html
-msgid "What is this?"
+msgid "What is a reading log?"
 msgstr ""
 
 #: account/import.html
@@ -1209,7 +2772,6 @@ msgstr ""
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
@@ -1224,15 +2786,6 @@ msgstr ""
 msgid "There is %(count)d person waiting for this book."
 msgid_plural "There are %(count)d people waiting for this book."
 msgstr[0] ""
-msgstr[1] ""
-
-#: ManageLoansButtons.html account/loans.html
-msgid "Not yet downloaded."
-msgstr ""
-
-#: ManageLoansButtons.html account/loans.html
-msgid "Download Now"
-msgstr ""
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
@@ -1256,39 +2809,14 @@ msgid ""
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
 
-#: ProlificAuthors.html account/loans.html authors/index.html
-#: lists/showcase.html publishers/view.html search/authors.html
-#: search/publishers.html search/subjects.html
-#, python-format
-msgid "%(count)d book"
-msgid_plural "%(count)d books"
-msgstr[0] ""
-msgstr[1] ""
-
-#: RecentChangesAdmin.html account/loans.html admin/loans_table.html
-msgid "Actions"
-msgstr ""
-
 #: account/loans.html
 #, python-format
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
 msgstr[0] ""
-msgstr[1] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
-
-#: ManageWaitlistButton.html account/loans.html
-#, python-format
-msgid "There is one person ahead of you in the waiting list."
-msgid_plural "There are %(count)d people ahead of you in the waiting list."
-msgstr[0] ""
-msgstr[1] ""
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "You have less than an hour to borrow it."
 msgstr ""
 
 #: account/loans.html
@@ -1296,15 +2824,6 @@ msgstr ""
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
 msgstr[0] ""
-msgstr[1] ""
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "Borrow Now"
-msgstr ""
-
-#: ManageWaitlistButton.html account/loans.html
-msgid "Leave the waiting list?"
-msgstr ""
 
 #: account/loans.html
 msgid ""
@@ -1321,15 +2840,6 @@ msgid "Or, check out our <a href=\"/collections\">special collections</a>."
 msgstr ""
 
 #: account/mybooks.html
-#, python-format
-msgid "Set %(year_span)s reading goal"
-msgstr ""
-
-#: account/mybooks.html
-msgid "Yearly Reading Goal"
-msgstr ""
-
-#: account/mybooks.html
 msgid "No books are on this shelf"
 msgstr ""
 
@@ -1337,18 +2847,13 @@ msgstr ""
 msgid "My Loans"
 msgstr ""
 
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
-#: my_books/dropdown_content.html my_books/primary_action.html mybooks.py
-#: search/sort_options.html
-msgid "Already Read"
-msgstr ""
-
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
 msgstr ""
 
-#: account/mybooks.html account/sidebar.html
-msgid "Untitled list"
+#: account/mybooks.html
+#, python-format
+msgid "%(year_span)s reading goal"
 msgstr ""
 
 #: account/mybooks.html
@@ -1361,11 +2866,6 @@ msgstr ""
 
 #: account/mybooks.html account/sidebar.html account/topmenu.html
 msgid "My Reading Stats"
-msgstr ""
-
-#: account.py account/mybooks.html account/sidebar.html
-#: books/mybooks_breadcrumb_select.html
-msgid "Loan History"
 msgstr ""
 
 #: account/mybooks.html account/sidebar.html
@@ -1408,11 +2908,6 @@ msgstr ""
 msgid "Thanks!"
 msgstr ""
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
-#: account/notes.html account/observations.html
-msgid "Unknown author"
-msgstr ""
-
 #: account/notes.html
 msgid "My notes for an edition of "
 msgstr ""
@@ -1425,22 +2920,14 @@ msgstr ""
 msgid "Publish date unknown"
 msgstr ""
 
-#: account/notes.html books/edition-sort.html books/works-show.html
-#: lists/export_as_html.html type/work/editions.html
+#: account/notes.html books/edition-sort.html lists/export_as_html.html
+#: type/work/editions.html
 msgid "Publisher unknown"
 msgstr ""
 
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
-
-#: NotesModal.html account/notes.html
-msgid "Delete Note"
-msgstr ""
-
-#: NotesModal.html account/notes.html
-msgid "Save Note"
 msgstr ""
 
 #: account/notes.html
@@ -1474,16 +2961,6 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html admin/spamwords.html covers/manage.html
-msgid "Save"
-msgstr ""
-
-#: EditionNavBar.html account/observations.html
-#: books/mybooks_breadcrumb_select.html mybooks.py
-msgid "Reviews"
-msgstr ""
-
 #: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
 msgstr ""
@@ -1513,7 +2990,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Public accounts can be seen and followed by others."
+"or have already read. Patrons with reading logs set to public may be "
+"followed."
 msgstr ""
 
 #: account/privacy.html admin/people/view.html
@@ -1715,8 +3193,14 @@ msgstr ""
 msgid "Click on a bar to see matching works"
 msgstr ""
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html mybooks.py
-msgid "My Feed"
+#: account/sidebar.html
+#, python-format
+msgid "%(year)d Reading Goal"
+msgstr ""
+
+#: account/sidebar.html
+#, python-format
+msgid "Set %(year_span)s reading goal"
 msgstr ""
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
@@ -1727,20 +3211,16 @@ msgstr ""
 msgid "My lists"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/user/view.html
-#: type/work/view.html
-msgid "Lists"
-msgstr ""
-
-#: account/sidebar.html type/edition/view.html type/user/view.html
-#: type/work/view.html
+#: account/sidebar.html type/user/view.html
 msgid "See All"
 msgstr ""
 
 #: account/sidebar.html type/list/edit.html
 msgid "Create a list"
+msgstr ""
+
+#: account/sidebar.html
+msgid "Untitled list"
 msgstr ""
 
 #: account/topmenu.html
@@ -1756,7 +3236,7 @@ msgstr ""
 msgid "Verification email sent"
 msgstr ""
 
-#: account.py account/password/reset_success.html account/verify.html
+#: account/password/reset_success.html account/verify.html
 #: account/verify/activated.html account/verify/success.html
 #, python-format
 msgid "Hi, %(user)s"
@@ -1772,6 +3252,10 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
+msgstr ""
+
+#: account/view.html
+msgid "Yearly Reading Goal"
 msgstr ""
 
 #: account/view.html books/mybooks_breadcrumb_select.html
@@ -1991,7 +3475,7 @@ msgid "Imports"
 msgstr ""
 
 #: admin/imports-add.html books/add.html books/edit/edition.html
-#: books/edit/excerpts.html covers/change.html tag/add.html
+#: books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr ""
 
@@ -2004,8 +3488,8 @@ msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html check_ins/check_in_form.html
-#: check_ins/reading_goal_form.html
+#: admin/people/edits.html admin/permissions.html
+#: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr ""
 
@@ -2013,11 +3497,8 @@ msgstr ""
 msgid "New Books Imported Per Day"
 msgstr ""
 
-#: PublishingHistory.html admin/imports.html publishers/view.html
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
-
-#: admin/imports.html admin/imports_by_date.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
+#: site/stats.html
 msgid "Summary"
 msgstr ""
 
@@ -2070,7 +3551,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
 msgstr ""
 
@@ -2087,11 +3568,13 @@ msgid "Failed"
 msgstr ""
 
 #: admin/imports_by_date.html
-msgid "Pending"
+msgid "Items"
 msgstr ""
 
-#: admin/imports_by_date.html
-msgid "Items"
+#: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
 msgstr ""
 
 #: admin/index.html
@@ -2230,6 +3713,14 @@ msgstr ""
 msgid "Borrows, last 2 years graph"
 msgstr ""
 
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
+msgstr ""
+
 #: admin/loans_table.html
 msgid "BookReader"
 msgstr ""
@@ -2256,13 +3747,6 @@ msgstr ""
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
 msgstr[0] ""
-msgstr[1] ""
-
-#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
-#: recentchanges/updated_records.html
-msgid "What"
-msgstr ""
 
 #: admin/loans_table.html
 #, python-format
@@ -2274,19 +3758,12 @@ msgstr ""
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr ""
 
-#: ManageLoansButtons.html admin/loans_table.html
-#, python-format
-msgid "Borrowed %(date)s"
-msgstr ""
-
 #: admin/menu.html
 msgid "Admin Center"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html admin/menu.html
-#: admin/people/index.html admin/people/view.html type/author/view.html
-#: type/list/view_body.html
-msgid "People"
+#: admin/menu.html
+msgid "PD Access Requests"
 msgstr ""
 
 #: admin/menu.html
@@ -2311,6 +3788,30 @@ msgstr ""
 
 #: admin/menu.html
 msgid "Inspect memcache"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Print Disability Access Requests"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Breakdown by Qualifying Authority"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "PDA"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Emailed"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Fulfilled"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Totals"
 msgstr ""
 
 #: admin/permissions.html
@@ -2347,8 +3848,8 @@ msgstr ""
 
 #: admin/permissions.html
 msgid ""
-"This updates  and  fields of /, /works, /books and /authors records in "
-"the database."
+"This updates \"permission\" and \"child_permission\" fields of /, /works,"
+" /books and /authors records in the database."
 msgstr ""
 
 #: admin/solr.html
@@ -2414,6 +3915,49 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
+msgstr ""
+
+#: admin/sync.html
+msgid "Sync"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+
+#: admin/sync.html
+msgid "Add Works to Staff Picks"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
+msgstr ""
+
+#: admin/sync.html
+msgid "add"
+msgstr ""
+
+#: admin/sync.html
+msgid "remove"
+msgstr ""
+
+#: admin/sync.html
+#, fuzzy, python-format
+msgid "Update edition"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -2550,20 +4094,9 @@ msgstr ""
 msgid "Please select the changesets to revert."
 msgstr ""
 
-#: RecentChanges.html admin/ip/view.html admin/people/edits.html
-#: recentchanges/render.html
-msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
-
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
-msgstr ""
-
-#: EditButtons.html admin/ip/view.html admin/people/edits.html
-msgid ""
-"Please, leave a short note about what you changed: <span class=\"small "
-"gray\">(Optional, but very useful!)</span>"
 msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
@@ -2584,12 +4117,6 @@ msgstr ""
 
 #: admin/memory/index.html
 msgid "mark"
-msgstr ""
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/memory/index.html recentchanges/default/path.html
-#: recentchanges/updated_records.html
-msgid "diff"
 msgstr ""
 
 #: admin/memory/index.html
@@ -2615,16 +4142,6 @@ msgstr ""
 
 #: admin/people/edits.html
 msgid "edits"
-msgstr ""
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
-msgid "Older"
-msgstr ""
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
-msgid "Newer"
 msgstr ""
 
 #: admin/people/index.html
@@ -2684,10 +4201,6 @@ msgid "block this account"
 msgstr ""
 
 #: admin/people/view.html
-msgid "send password reset email"
-msgstr ""
-
-#: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
 msgstr ""
@@ -2722,10 +4235,6 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "Resend activation link"
-msgstr ""
-
-#: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
-msgid "Name:"
 msgstr ""
 
 #: admin/people/view.html
@@ -2780,11 +4289,6 @@ msgstr ""
 msgid "Anonymize Account"
 msgstr ""
 
-#: account.py admin/people/view.html books/mybooks_breadcrumb_select.html
-#: type/user/view.html
-msgid "Loans"
-msgstr ""
-
 #: admin/people/view.html
 msgid "Account not activated yet."
 msgstr ""
@@ -2812,11 +4316,6 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "None found"
-msgstr ""
-
-#: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
-msgid "Authors"
 msgstr ""
 
 #: authors/index.html
@@ -2857,6 +4356,7 @@ msgstr ""
 #: book_providers/ia_download_options.html
 #: book_providers/librivox_download_options.html
 #: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
@@ -2870,45 +4370,12 @@ msgstr ""
 msgid "More at Cita Press"
 msgstr ""
 
-#: book_providers/cita_press_read_button.html
-msgid "Read eBook from Cita Press"
-msgstr ""
-
-#: book_providers/cita_press_read_button.html
-msgid ""
-"This book is available from <a href=\"https://citapress.org/\">Cita "
-"Press</a>. Cita Press is a trusted book provider of works written by "
-"women, pairing contemporary authors and designers with open access texts "
-"to make carefully designed books available for free and open source."
-msgstr ""
-
-#: book_providers/cita_press_read_button.html
-#: book_providers/direct_read_button.html
-#: book_providers/gutenberg_read_button.html
-#: book_providers/librivox_read_button.html
-#: book_providers/openstax_read_button.html
-#: book_providers/standard_ebooks_read_button.html
-#: book_providers/wikisource_read_button.html
-#: check_ins/reading_goal_progress.html
-msgid "Learn more"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-msgid "Read free online"
-msgstr ""
-
-#: book_providers/direct_read_button.html
-#, python-format
-msgid ""
-"This book is freely available from <a href=\"%s\">%s</a>, an external "
-"third-party book provider."
-msgstr ""
-
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
 msgstr ""
 
 #: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr ""
@@ -2936,19 +4403,6 @@ msgstr ""
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid "Read eBook from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. Project "
-"Gutenberg is a trusted book provider of classic ebooks, supporting "
-"thousands of volunteers in the creation and distribution of over 60,000 "
-"free eBooks."
 msgstr ""
 
 #: book_providers/ia_download_options.html
@@ -2999,22 +4453,6 @@ msgstr ""
 msgid "More at LibriVox"
 msgstr ""
 
-#: book_providers/librivox_read_button.html
-msgid "Listen to a reading from LibriVox"
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid "Audiobook"
-msgstr ""
-
-#: book_providers/librivox_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://librivox.org/\">LibriVox</a>. LibriVox is a trusted book "
-"provider of public domain audiobooks, narrated by volunteers, distributed"
-" for free on the internet."
-msgstr ""
-
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
 msgstr ""
@@ -3023,17 +4461,58 @@ msgstr ""
 msgid "More at OpenStax"
 msgstr ""
 
-#: book_providers/openstax_read_button.html
-msgid "Read eBook from OpenStax"
+#: book_providers/read_button.html
+#, python-format
+msgid "Listen to a reading from %s"
 msgstr ""
 
-#: book_providers/openstax_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax is a trusted "
-"book provider and a 501(c)(3) nonprofit charitable corporation dedicated "
-"to providing free high-quality, peer-reviewed, openly licensed textbooks "
-"online."
+#: book_providers/read_button.html
+msgid "Audiobook"
+msgstr ""
+
+#: book_providers/read_button.html
+#, python-format
+msgid "Read free online from %s"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all scanned images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Scanned images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all color images from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Color images"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all HTML files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all text and index files from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Text and index files"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "Download all OCR text from Project Runeberg"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "OCR text"
+msgstr ""
+
+#: book_providers/runeberg_download_options.html
+msgid "More at Project Runeberg"
 msgstr ""
 
 #: book_providers/standard_ebooks_download_options.html
@@ -3064,25 +4543,8 @@ msgstr ""
 msgid "View the source code for this Standard Ebook at GitHub"
 msgstr ""
 
-#: Subnavigation.html book_providers/standard_ebooks_download_options.html
-msgid "Source Code"
-msgstr ""
-
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_read_button.html
-msgid "Read eBook from Standard eBooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
-" is a trusted book provider and a volunteer-driven project that produces "
-"new editions of public domain ebooks that are lovingly formatted, open "
-"source, free of copyright restrictions, and free of cost."
 msgstr ""
 
 #: book_providers/wikisource_download_options.html
@@ -3109,21 +4571,6 @@ msgstr ""
 msgid "Read at Wikisource"
 msgstr ""
 
-#: book_providers/wikisource_read_button.html
-msgid "Read eBook on Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_read_button.html
-msgid ""
-"This book is available from <a "
-"href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, a <a "
-"href=\"https://www.wikimedia.org/\">Wikimedia Foundation</a> project, is "
-"a trusted book provider of works available under the <a "
-"href=\"https://creativecommons.org/licenses/by-sa/4.0/\">CC-BY-SA</a> "
-"open content license, such as essays, historical documents, letters, "
-"speeches, and public domain books."
-msgstr ""
-
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
 msgstr ""
@@ -3132,7 +4579,6 @@ msgstr ""
 msgid "More by this author"
 msgid_plural "More by these authors"
 msgstr[0] ""
-msgstr[1] ""
 
 #: books/add.html books/check.html
 msgid "Add a book"
@@ -3159,6 +4605,10 @@ msgid "Invalid LC Control Number format"
 msgstr ""
 
 #: books/add.html
+msgid "Invalid OCLC/WorldCat Control Number format"
+msgstr ""
+
+#: books/add.html
 msgid "Please enter a value for the selected identifier"
 msgstr ""
 
@@ -3170,7 +4620,7 @@ msgstr ""
 msgid "Add a book to Open Library"
 msgstr ""
 
-#: books/add.html tag/add.html
+#: books/add.html
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
@@ -3189,11 +4639,6 @@ msgstr ""
 #: books/add.html books/edit.html type/author/edit.html
 #: type/tag/tag_form_inputs.html
 msgid "Required field"
-msgstr ""
-
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html search/work_search_selected_facets.html
-msgid "Author"
 msgstr ""
 
 #: books/add.html
@@ -3257,6 +4702,10 @@ msgid "LibriVox"
 msgstr ""
 
 #: books/add.html
+msgid "OCLC/WorldCat"
+msgstr ""
+
+#: books/add.html
 msgid "Project Gutenberg"
 msgstr ""
 
@@ -3266,15 +4715,6 @@ msgstr ""
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
-
-#: EditButtons.html books/add.html tag/add.html
-msgid ""
-"By saving a change to this wiki, you agree that your contribution is "
-"given freely to the world under <a "
-"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a>. Yippee!"
 msgstr ""
 
 #: books/add.html
@@ -3318,14 +4758,6 @@ msgstr ""
 msgid "Select this book"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html
-#, python-format
-msgid "%(count)s edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
-
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
@@ -3339,15 +4771,11 @@ msgstr ""
 msgid "Continue"
 msgstr ""
 
-#: NotInLibrary.html books/custom_carousel.html
-msgid "Not in Library"
-msgstr ""
-
-#: books/custom_carousel.html type/author/view.html
+#: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
 msgstr ""
 
-#: books/custom_carousel.html books/mobile_carousel.html
+#: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
 msgstr ""
@@ -3537,12 +4965,19 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
-#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
-#: lists/preview.html lists/snippet.html lists/widget.html
-#: my_books/dropdown_content.html type/work/editions.html
-#, python-format
-msgid "Cover of: %(title)s"
+#: books/edit.html type/edition/view.html type/work/view.html
+msgid "Work Identifiers"
+msgstr ""
+
+#: books/edit.html
+msgid "Do you know any identifiers for this work?"
+msgstr ""
+
+#: books/edit.html
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
 msgstr ""
 
 #: books/edition-sort.html
@@ -3558,40 +4993,6 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
-
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
-#: mybooks.py
-msgid "Books"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html mybooks.py
-#, python-format
-msgid "Want to Read (%(count)d)"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html mybooks.py
-#, python-format
-msgid "Currently Reading (%(count)d)"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html mybooks.py
-#, python-format
-msgid "Already Read (%(count)d)"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html
-#, python-format
-msgid "Lists (%(count)d)"
-msgstr ""
-
-#: books/mybooks_breadcrumb_select.html mybooks.py
-#: type/edition/modal_links.html
-msgid "Notes"
-msgstr ""
-
-#: account.py books/mybooks_breadcrumb_select.html
-msgid "Imports and Exports"
 msgstr ""
 
 #: books/edit/about.html
@@ -3892,8 +5293,7 @@ msgstr ""
 msgid "Invalid ID format"
 msgstr ""
 
-#: books/edit/edition.html type/author/view.html type/edition/view.html
-#: type/work/view.html
+#: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
 msgstr ""
 
@@ -4144,135 +5544,6 @@ msgstr ""
 msgid "Bulk Search (beta)"
 msgstr ""
 
-#: check_ins/check_in_form.html
-msgid "January"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "February"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "March"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "April"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "May"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "June"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "July"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "August"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "September"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "October"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "November"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "December"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid ""
-"Add an optional check-in date.  Check-in dates are used to track yearly "
-"reading goals."
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "End Date:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Year"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Month"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day:"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Day"
-msgstr ""
-
-#: check_ins/check_in_form.html
-msgid "Delete Event"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-#, python-format
-msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "When did you finish this book?"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Other"
-msgstr ""
-
-#: check_ins/check_in_prompt.html
-msgid "Check-In"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "How many books would you like to read this year?"
-msgstr ""
-
-#: check_ins/reading_goal_form.html
-msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid "%(year)d Reading Goal:"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid ""
-"<span class=\"reading-goal-progress__books-"
-"read\">%(books_read)d</span>/<span class=\"reading-goal-"
-"progress__goal\">%(goal)d</span> books"
-msgstr ""
-
-#: check_ins/reading_goal_progress.html
-#, python-format
-msgid "Edit %(year)d Reading Goal"
-msgstr ""
-
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
 msgstr ""
@@ -4313,7 +5584,7 @@ msgid "Use this image"
 msgstr ""
 
 #: covers/add.html
-msgid "Choose a JPG, GIF or PNG on your computer"
+msgid "Choose a JPG, GIF, PNG or WebP on your computer"
 msgstr ""
 
 #: covers/add.html
@@ -4321,11 +5592,31 @@ msgid "Upload"
 msgstr ""
 
 #: covers/add.html
-msgid "Or, use the the cover from Internet Archive"
+msgid "Or, paste an image from your clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "Paste image from clipboard"
+msgstr ""
+
+#: covers/add.html
+msgid "Paste Image"
+msgstr ""
+
+#: covers/add.html
+msgid "Upload image"
+msgstr ""
+
+#: covers/add.html covers/external_image.html
+msgid "Upload Image"
 msgstr ""
 
 #: covers/add.html
 msgid "Uploading..."
+msgstr ""
+
+#: covers/add.html
+msgid "Wikidata"
 msgstr ""
 
 #: covers/author_photo.html
@@ -4350,25 +5641,19 @@ msgstr ""
 msgid "Pull up a bigger book cover"
 msgstr ""
 
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_small.html covers/book_cover_work.html
+#: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_work.html
-msgid "View a larger book cover"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_small.html
-#: covers/book_cover_work.html
-#, python-format
-msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
+msgstr ""
+
+#: covers/book_cover_small.html
+#, python-format
+msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/change.html
@@ -4397,6 +5682,11 @@ msgstr ""
 
 #: covers/change.html
 msgid "Manage"
+msgstr ""
+
+#: covers/external_image.html
+#, python-format
+msgid "Or, use a cover from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -4440,6 +5730,10 @@ msgid ""
 "required."
 msgstr ""
 
+#: email/account/pd_request.html
+msgid "Qualifying for Print Disability Special Access"
+msgstr ""
+
 #: history/comment.html
 msgid "Imported from"
 msgstr ""
@@ -4466,10 +5760,6 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html home/about.html
-msgid "More"
-msgstr ""
-
 #: home/about.html
 msgid ""
 "Just like Wikipedia, you can contribute new information or corrections to"
@@ -4488,22 +5778,12 @@ msgstr ""
 
 #: home/categories.html
 #, python-format
-msgid "browse %(subject)s books"
-msgstr ""
-
-#: home/categories.html
-#, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
-msgstr[1] ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr ""
-
-#: home/index.html
-msgid "Classic Books"
 msgstr ""
 
 #: home/index.html
@@ -4511,19 +5791,7 @@ msgid "Recently Returned"
 msgstr ""
 
 #: home/index.html
-msgid "Romance"
-msgstr ""
-
-#: home/index.html
-msgid "Kids"
-msgstr ""
-
-#: home/index.html
-msgid "Thrillers"
-msgstr ""
-
-#: home/index.html
-msgid "Textbooks"
+msgid "Authors Alliance & MIT Press"
 msgstr ""
 
 #: home/loans.html
@@ -4535,7 +5803,6 @@ msgid_plural ""
 "You can still <a href=\"/borrow\">borrow</a> %(count)d more books until "
 "you've hit the limit!"
 msgstr[0] ""
-msgstr[1] ""
 
 #: home/loans.html
 msgid ""
@@ -4682,63 +5949,16 @@ msgid "editions"
 msgstr ""
 
 #: languages/index.html
-#, python-format
-msgid "%s book"
-msgid_plural "%s books"
+#, fuzzy, python-format
+msgid "%s work"
+msgid_plural "%s works"
 msgstr[0] ""
-msgstr[1] ""
 
-#: languages/language_list.html
-msgid "Czech"
-msgstr ""
-
-#: languages/language_list.html
-msgid "German"
-msgstr ""
-
-#: languages/language_list.html
-msgid "English"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Spanish"
-msgstr ""
-
-#: languages/language_list.html
-msgid "French"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Croatian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Italian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Portuguese"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Hindi"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Sardinian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Telugu"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Ukrainian"
-msgstr ""
-
-#: languages/language_list.html
-msgid "Chinese"
-msgstr ""
+#: languages/index.html
+#, fuzzy, python-format
+msgid "%s ebook edition"
+msgid_plural "%s ebook editions"
+msgstr[0] ""
 
 #: languages/notfound.html
 #, python-format
@@ -4775,11 +5995,6 @@ msgstr ""
 msgid "New!"
 msgstr ""
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html
-msgid "History"
-msgstr ""
-
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
@@ -4790,7 +6005,6 @@ msgstr ""
 msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
-msgstr[1] ""
 
 #: lib/history.html
 msgid "Download catalog record:"
@@ -4885,10 +6099,6 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr ""
@@ -4945,23 +6155,12 @@ msgstr ""
 msgid "Explore subjects"
 msgstr ""
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html subjects/notfound.html
-#: type/author/view.html type/list/view_body.html
-msgid "Subjects"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Explore collections"
 msgstr ""
 
 #: lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
-msgstr ""
-
-#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
-#: search/advancedsearch.html
-msgid "Advanced Search"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -5013,11 +6212,11 @@ msgid "Help Center"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Problems"
+msgid "Contact"
 msgstr ""
 
 #: lib/nav_foot.html
-msgid "Report A Problem"
+msgid "Contact Us"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -5034,6 +6233,10 @@ msgstr ""
 
 #: lib/nav_foot.html
 msgid "Release Notes"
+msgstr ""
+
+#: lib/nav_foot.html
+msgid "Bluesky"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -5086,7 +6289,7 @@ msgstr ""
 msgid "Pending Merge Requests"
 msgstr ""
 
-#: lib/nav_head.html
+#: lib/nav_head.html search/sort_options.html
 msgid "Trending"
 msgstr ""
 
@@ -5118,10 +6321,6 @@ msgstr ""
 msgid "My Open Library"
 msgstr ""
 
-#: databarWork.html lib/nav_head.html
-msgid "Browse"
-msgstr ""
-
 #: lib/nav_head.html
 msgid "Contribute"
 msgstr ""
@@ -5136,6 +6335,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Text"
+msgstr ""
+
+#: lib/nav_head.html search/advancedsearch.html
+msgid "Subject"
 msgstr ""
 
 #: lib/nav_head.html
@@ -5156,8 +6359,24 @@ msgid ""
 "keep track of all your edits and additions."
 msgstr ""
 
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
+#: librarian_dashboard/data_quality_table.html
+msgid "Reload"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "failing"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Data quality table"
+msgstr ""
+
+#: librarian_dashboard/data_quality_table.html
+msgid "Quality Criteria"
+msgstr ""
+
+#: lists/carousel.html lists/home.html lists/showcase.html
+msgid "See all"
 msgstr ""
 
 #: lists/export_as_html.html
@@ -5191,35 +6410,30 @@ msgstr ""
 msgid "This author is on <strong>1 list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html
 #, python-format
 msgid "This is edition is on <strong>1 list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html
 #, python-format
 msgid "This work is on <strong>1 list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html
 #, python-format
 msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/header.html
 msgid "Hm. Can't find it."
@@ -5263,7 +6477,6 @@ msgstr ""
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
 msgstr[0] ""
-msgstr[1] ""
 
 #: lists/home.html lists/preview.html lists/snippet.html
 #, python-format
@@ -5274,12 +6487,33 @@ msgstr ""
 msgid "No description."
 msgstr ""
 
-#: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
-msgid "Recent Activity"
+#: lists/list_follow.html
+msgid "Cover of book"
 msgstr ""
 
-#: lists/home.html lists/showcase.html
-msgid "See all"
+#: lists/list_follow.html
+msgid "Avatar of the owner of the list"
+msgstr ""
+
+#: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
+msgid "You"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "This patron has not enabled following"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "🔒︎"
+msgstr ""
+
+#: lists/list_follow.html
+msgid "OpenLibrary Logo"
+msgstr ""
+
+#: lists/list_follow.html
+#, fuzzy, python-format
+msgid "Community List"
 msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
@@ -5351,7 +6585,8 @@ msgid "Learn how to create your first list."
 msgstr ""
 
 #: lists/preview.html
-msgid "by <a href=\"$owner.key\">You</a>"
+#, python-format
+msgid "by <a href=\"%s\">You</a>"
 msgstr ""
 
 #: lists/showcase.html
@@ -5363,19 +6598,8 @@ msgstr ""
 msgid "You have no lists."
 msgstr ""
 
-#: lists/widget.html
-#, python-format
-msgid "%(count)d List"
-msgid_plural "%(count)d Lists"
-msgstr[0] ""
-msgstr[1] ""
-
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
-
-#: lists/widget.html my_books/dropdown_content.html
-msgid "You"
 msgstr ""
 
 #: lists/widget.html
@@ -5520,14 +6744,6 @@ msgid "Request Status"
 msgstr ""
 
 #: merge_request_table/table_header.html
-msgid "Merged"
-msgstr ""
-
-#: merge_request_table/table_header.html
-msgid "Declined"
-msgstr ""
-
-#: merge_request_table/table_header.html
 msgid "Submitter ▾"
 msgstr ""
 
@@ -5610,8 +6826,8 @@ msgstr ""
 msgid "Click to close this Merge Request"
 msgstr ""
 
-#: merge_request_table/table_row.html type/edition/modal_links.html
-msgid "Review"
+#: merge_request_table/table_row.html
+msgid "Review <!-- (merge request) -->"
 msgstr ""
 
 #: merge_request_table/table_row.html
@@ -5634,29 +6850,115 @@ msgstr ""
 msgid "Use this Work"
 msgstr ""
 
-#: CreateListModal.html my_books/dropdown_content.html
-msgid "Create a new list"
-msgstr ""
-
-#: CreateListModal.html my_books/dropdown_content.html
-#: type/permission/edit.html type/usergroup/edit.html
-msgid "Description:"
-msgstr ""
-
-#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
-msgid "Create new list"
-msgstr ""
-
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
 
-#: observations/review_component.html
-msgid "Community Reviews"
+#: my_books/check_ins/check_in_form.html
+msgid "January"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "February"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "March"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "April"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "May"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "June"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "July"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "August"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "September"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "October"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "November"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "December"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid ""
+"Add an optional check-in date. Check-in dates are used to track yearly "
+"reading goals."
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "End Date:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Year"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Month"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day:"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Day"
+msgstr ""
+
+#: my_books/check_ins/check_in_form.html
+msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+#, python-format
+msgid "Read <time class=\"check-in-date\">%(date)s</time>"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "When did you finish this book?"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Other"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Check-In"
 msgstr ""
 
 #: observations/review_component.html
-msgid "Feedback?"
+msgid "Community Reviews"
 msgstr ""
 
 #: observations/review_component.html
@@ -5697,24 +6999,14 @@ msgstr ""
 msgid "Publisher: %(name)s"
 msgstr ""
 
-#: publishers/view.html search/advancedsearch.html type/edition/view.html
-#: type/work/view.html
-msgid "Publisher"
-msgstr ""
-
 #: publishers/view.html
 #, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
 msgstr[0] ""
-msgstr[1] ""
 
 #: publishers/view.html
 msgid "0 ebooks"
-msgstr ""
-
-#: PublishingHistory.html publishers/view.html
-msgid "Publishing History"
 msgstr ""
 
 #: publishers/view.html
@@ -5724,26 +7016,10 @@ msgid ""
 " <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
-#: PublishingHistory.html publishers/view.html
-msgid "Reset chart"
-msgstr ""
-
-#: PublishingHistory.html publishers/view.html
-msgid "or continue zooming in."
-msgstr ""
-
 #: publishers/view.html
 msgid ""
 "This graph charts editions from this publisher over time. Click to view a"
 " single year, or drag across a range."
-msgstr ""
-
-#: PublishingHistory.html publishers/view.html
-msgid "Editions Published"
-msgstr ""
-
-#: PublishingHistory.html publishers/view.html
-msgid "Year of Publication"
 msgstr ""
 
 #: publishers/view.html
@@ -5755,20 +7031,33 @@ msgstr ""
 msgid "Search for books published by %(publisher)s"
 msgstr ""
 
-#: RelatedSubjects.html publishers/view.html
-msgid "None found."
-msgstr ""
-
-#: ProlificAuthors.html publishers/view.html
-msgid "See more books by, and learn about, this author"
-msgstr ""
-
 #: publishers/view.html
 msgid "published most by this publisher"
 msgstr ""
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "How many books would you like to read this year?"
+msgstr ""
+
+#: reading_goals/reading_goal_form.html
+msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Books"
+msgstr ""
+
+#: reading_goals/reading_goal_progress.html
+#, python-format
+msgid "Edit %(year)d Reading Goal"
 msgstr ""
 
 #: recentchanges/header.html
@@ -5799,14 +7088,6 @@ msgstr ""
 msgid "Books Added"
 msgstr ""
 
-#: RecentChanges.html recentchanges/index.html
-msgid "By Humans"
-msgstr ""
-
-#: RecentChanges.html recentchanges/index.html
-msgid "By Bots"
-msgstr ""
-
 #: recentchanges/render.html
 msgid "Admin view"
 msgstr ""
@@ -5822,10 +7103,6 @@ msgstr ""
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
-msgstr ""
-
-#: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
-msgid "Review what's changed from the previous revision"
 msgstr ""
 
 #: recentchanges/default/view.html recentchanges/merge/view.html
@@ -5848,7 +7125,6 @@ msgstr ""
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
@@ -5864,14 +7140,12 @@ msgstr ""
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
@@ -5890,7 +7164,6 @@ msgstr ""
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
 msgstr[0] ""
-msgstr[1] ""
 
 #: recentchanges/undo/view.html
 #, python-format
@@ -5948,11 +7221,6 @@ msgstr ""
 msgid "Search Open Library for %s"
 msgstr ""
 
-#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
-#: search/inside.html search/snippets.html
-msgid "Search Inside"
-msgstr ""
-
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
 msgstr ""
@@ -5962,14 +7230,23 @@ msgstr ""
 msgid "About %(count)s result found"
 msgid_plural "About %(count)s results found"
 msgstr[0] ""
-msgstr[1] ""
 
 #: search/inside.html
 #, python-format
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
 msgstr[0] ""
-msgstr[1] ""
+
+#: search/layout_options.html
+msgid "Grid"
+msgstr ""
+
+# There's a different translation for the term privacy, however here I've
+# transliterated
+#: search/layout_options.html
+#, fuzzy
+msgid "View as: "
+msgstr " চাওক"
 
 #: search/lists.html
 msgid "Search results for Lists"
@@ -5997,7 +7274,23 @@ msgid "Relevance"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Work Count"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Random"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Name (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (oldest) (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Birth Date (youngest) (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
@@ -6006,6 +7299,14 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Last Modified"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Language Name"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
@@ -6025,15 +7326,11 @@ msgid "Top Rated"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Work Title (beta: Librarian only)"
-msgstr ""
-
-#: search/sort_options.html
-msgid "Work Count"
-msgstr ""
-
-#: search/sort_options.html
 msgid "Any"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Work Title (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
@@ -6178,10 +7475,6 @@ msgstr ""
 msgid "Debug Stats"
 msgstr ""
 
-#: EditionNavBar.html site/stats.html
-msgid "Details"
-msgstr ""
-
 #: stats/readinglog.html
 msgid "Reading Log Stats"
 msgstr ""
@@ -6229,7 +7522,6 @@ msgstr ""
 msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
 msgstr[0] ""
-msgstr[1] ""
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
@@ -6257,18 +7549,6 @@ msgstr ""
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
-
-#: tag/add.html
-msgid "Add a tag"
-msgstr ""
-
-#: tag/add.html
-msgid "Add a tag to Open Library"
-msgstr ""
-
-#: tag/add.html
-msgid "Add this tag now"
 msgstr ""
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
@@ -6403,25 +7683,7 @@ msgid "That merge didn't work. It's our fault, and we've made a note of it."
 msgstr ""
 
 #: type/author/view.html
-msgid "Location"
-msgstr ""
-
-#: type/author/view.html
 msgid "Add another?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"Showing all works by author. Would you like to see <a "
-"href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
-msgid ""
-"Showing ebooks only. Would you like to see <a "
-"href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: type/author/view.html
@@ -6429,13 +7691,14 @@ msgstr ""
 msgid "Search %(author)s books"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html type/author/view.html
-#: type/list/view_body.html
-msgid "Places"
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
-#: Profile.html type/author/view.html
-msgid "Time"
+#: type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: type/author/view.html
@@ -6448,10 +7711,6 @@ msgstr ""
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
-
-#: type/author/view.html type/edition/view.html type/work/view.html
-msgid "Wikipedia"
 msgstr ""
 
 #: type/author/view.html
@@ -6483,15 +7742,15 @@ msgid "View the previous version"
 msgstr ""
 
 #: type/delete/view.html
-msgid "Recreate it"
-msgstr ""
-
-#: type/delete/view.html
 msgid "See the page's history"
 msgstr ""
 
+#: type/delete/view.html
+msgid "Recreate it"
+msgstr ""
+
 #: type/edition/admin_bar.html
-msgid "Add to Staff Picks"
+msgid "Add IA Book to Staff Picks"
 msgstr ""
 
 #: type/edition/admin_bar.html
@@ -6502,12 +7761,8 @@ msgstr ""
 msgid "View Book on Archive.org"
 msgstr ""
 
-#: SearchResultsWork.html type/edition/admin_bar.html
-msgid "Orphaned Edition"
-msgstr ""
-
-#: databarHistory.html databarView.html type/edition/compact_title.html
-msgid "Edit this page"
+#: type/edition/modal_links.html
+msgid "Review"
 msgstr ""
 
 #: type/edition/title_and_author.html
@@ -6517,6 +7772,21 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+#, python-format
+msgid ""
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6541,19 +7811,11 @@ msgid "Search for other books from %(publisher)s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Language"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "Pages"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
-
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -6621,6 +7883,10 @@ msgid "Weight"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Edition Identifiers"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Source records"
 msgstr ""
 
@@ -6651,11 +7917,11 @@ msgid "added anonymously."
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "This work does not appear on any lists."
+msgid "Wikipedia"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Loading Related Books"
+msgid "Loading Lists"
 msgstr ""
 
 #: type/language/view.html
@@ -6689,9 +7955,7 @@ msgid "Edit List"
 msgstr ""
 
 #: type/list/edit.html
-msgid ""
-"⚠️ Saving global lists is admin-only while the feature is under "
-"development."
+msgid "Move..."
 msgstr ""
 
 #: type/list/edit.html
@@ -6738,11 +8002,6 @@ msgstr ""
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
-
-#: BookByline.html type/list/embed.html
-#, python-format
-msgid "by %(name)s"
 msgstr ""
 
 #: type/list/exports.html
@@ -6848,10 +8107,6 @@ msgstr ""
 msgid "Derived from seed metadata"
 msgstr ""
 
-#: RelatedSubjects.html SubjectTags.html type/list/view_body.html
-msgid "Times"
-msgstr ""
-
 #: type/local_id/view.html
 msgid "Local IDs"
 msgstr ""
@@ -6900,8 +8155,25 @@ msgstr ""
 msgid "Writers"
 msgstr ""
 
-#: type/tag/edit.html
-msgid "Edit Tag"
+#: type/tag/form.html
+#, fuzzy
+msgid "Edit tag"
+msgstr "বোডলাউক"
+
+#: type/tag/form.html
+msgid "Add a tag"
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add a tag to Open Library"
+msgstr ""
+
+#: type/tag/form.html
+msgid "We require a minimum set of fields to create a new collection tag."
+msgstr ""
+
+#: type/tag/form.html
+msgid "Add this tag now"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
@@ -6913,7 +8185,28 @@ msgid "Tag Description"
 msgstr ""
 
 #: type/tag/tag_form_inputs.html
+msgid "Page Body"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
 msgid "Tag type"
+msgstr ""
+
+#: type/tag/tag_form_inputs.html
+msgid "Tag Deputy"
+msgstr ""
+
+#: type/tag/view.html
+#, python-format
+msgid "<strong>Type:</strong> %(tag_type)s"
+msgstr ""
+
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: type/tag/view.html
+msgid "Tag Body"
 msgstr ""
 
 #: type/tag/view.html
@@ -6966,10 +8259,6 @@ msgstr ""
 msgid "Display Name"
 msgstr ""
 
-#: type/user/edit.html
-msgid "Description"
-msgstr ""
-
 #: type/user/view.html
 msgid "admin page"
 msgstr ""
@@ -7008,26 +8297,13 @@ msgstr ""
 msgid "My Lists"
 msgstr ""
 
-#: RecentChangesUsers.html type/user/view.html
-msgid "No edits. Yet."
-msgstr ""
-
 #: type/usergroup/edit.html
 msgid "Members:"
-msgstr ""
-
-#: SearchResultsWork.html type/work/editions.html
-#, python-format
-msgid "First published in %(year)s"
 msgstr ""
 
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
-
-#: UserEditRow.html type/work/editions.html
-msgid "Add another"
 msgstr ""
 
 #: type/work/editions.html
@@ -7039,7 +8315,6 @@ msgstr ""
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
 msgstr[0] ""
-msgstr[1] ""
 
 #: type/work/editions_datatable.html
 #, python-format
@@ -7062,775 +8337,321 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
-#: AffiliateLinks.html
-#, python-format
-msgid "Look for this edition for sale at %(store)s"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Fetching prices"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Better World Books"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid " - includes shipping"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Amazon"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Bookshop.org"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid ""
-"When you buy books using these links the Internet Archive may earn a <a "
-"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
-
-#: BookByline.html
-#, python-format
-msgid "%(n)s other"
-msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
-
-#: BookByline.html
-msgid "by an <em>unknown author</em>"
-msgstr ""
-
-#: BookPreview.html
-msgid "Preview Only"
-msgstr ""
-
-#: BookPreview.html
-msgid "Preview Book"
-msgstr ""
-
-#: DisplayCode.html
-msgid ""
-"Templates in the website are disabled now. Editing them will not have any"
-" effect on the live website."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet "
-"Archive</a> library."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Hooray! You've discovered a title that's missing from our <a "
-"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
-"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"If you own this book, you can<a "
-"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
-"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
-"address below."
-msgstr ""
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"When you donate a physical book to the Internet Archive, your book will "
-"enjoy:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
-"\">high-fidelity digitization</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
-"books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
-" library access</a> by the <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
-"disabled</a> public"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Open Library is a project of the <a "
-"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
-"profit"
-msgstr ""
-
-#: EditionNavBar.html
-msgid "Overview"
-msgstr ""
-
-#: EditionNavBar.html
-#, python-format
-msgid "View %(count)s Edition"
-msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: EditionNavBar.html
-#, python-format
-msgid "%(reviews)s Review"
-msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
-
-#: EditionNavBar.html
-msgid "Related Books"
-msgstr ""
-
-#: EditionNavBar.html
-msgid "Go to next section"
-msgstr ""
-
-#: Follow.html
-msgid "UnfollowFollow"
-msgstr ""
-
-#: Follow.html
-msgid "Follow"
-msgstr ""
-
-#: FormatExpiry.html
-msgid "Expires"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "Checking for Search Inside matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "Search Inside Icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "search inside icon"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "%(book_count)s books found with matching passages"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-#, python-format
-msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
-
-#: FulltextSearchSuggestion.html
-msgid "right chevron"
-msgstr ""
-
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
-msgid "❝"
-msgstr ""
-
-#: FulltextSnippet.html FulltextSuggestionSnippet.html
-msgid "❞"
-msgstr ""
-
-#: FulltextSuggestionSnippet.html
-#, python-format
-msgid "Page: %(page)s"
-msgstr ""
-
-#: IABook.html
-#, python-format
-msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
-
-#: LoadingIndicator.html
-msgid "Loading indicator"
-msgstr ""
-
-#: LoanStatus.html
-msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
-
-#: LoanStatus.html
-#, python-format
-msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
-
-#: LoanStatus.html
-msgid "Leave waiting list"
-msgstr ""
-
-#: LoanStatus.html
-#, python-format
-msgid "Readers in line: %(count)s"
-msgstr ""
-
-#: LoanStatus.html
-msgid "You'll be next in line."
-msgstr ""
-
-#: LoanStatus.html
-msgid "This book is currently checked out, please check back later."
-msgstr ""
-
-#: LoanStatus.html
-msgid "Checked Out"
-msgstr ""
-
-#: LocateButton.html
-msgid "Locate"
-msgstr ""
-
-#: ManageLoansButtons.html
-#, python-format
-msgid "There is one person waiting for this book."
-msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
-
-#: ManageWaitlistButton.html
-#, python-format
-msgid "Waiting for %d day"
-msgid_plural "Waiting for %d days"
-msgstr[0] ""
-msgstr[1] ""
-
-#: ManageWaitlistButton.html
-#, python-format
-msgid "You have %(count)d more hour to borrow it."
-msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
-
-#: NotesModal.html
-msgid "My Book Notes"
-msgstr ""
-
-#: NotesModal.html
-msgid "My private notes about this edition:"
-msgstr ""
-
-#: ObservationsModal.html
-msgid "My Book Review"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr ""
-
-#: Profile.html
-msgid "Component"
-msgstr ""
-
-#: ProlificAuthors.html
-msgid "Prolific Authors"
-msgstr ""
-
-#: ProlificAuthors.html
-msgid "who have written the most books on this subject"
-msgstr ""
-
-#: PublishingHistory.html
-msgid ""
-"This is a chart to show the publishing history of editions of works about"
-" this subject. Along the X axis is time, and on the y axis is the count "
-"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
-" chart</a>."
-msgstr ""
-
-#: PublishingHistory.html
-msgid "This graph charts editions published on this subject."
-msgstr ""
-
-#: RawQueryCarousel.html
-msgid "Search collection"
-msgstr ""
-
-#: ReadButton.html
-msgid "Special Access"
-msgstr ""
-
-#: ReadButton.html
-msgid ""
-"Special ebook access from the Internet Archive for patrons with "
-"qualifying print disabilities"
-msgstr ""
-
-#: ReadButton.html
-msgid "Borrow ebook from Internet Archive"
-msgstr ""
-
-#: ReadButton.html
-msgid "Read ebook from Internet Archive"
-msgstr ""
-
-#: ReadButton.html
-msgid "Listen"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read more"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read less"
-msgstr ""
-
-#: RecentChanges.html
-msgid "View MARC"
-msgstr ""
-
-#: RecentChangesAdmin.html
-msgid "Path"
-msgstr ""
-
-#: RecentChangesAdmin.html
-msgid "view"
-msgstr ""
-
-#: RecentChangesAdmin.html
-msgid "edit"
-msgstr ""
-
-#: RecentChangesAdmin.html RecentChangesUsers.html
-msgid "No edit history available."
-msgstr ""
-
-#: RelatedSubjects.html
-msgid "Related..."
-msgstr ""
-
-#: ReturnForm.html
-msgid "Really return this book?"
-msgstr ""
-
-#: ReturnForm.html
-msgid "Return book"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "added to"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "Cover of edition %(id)s"
-msgstr ""
-
-#: SearchResultsWork.html
-#, python-format
-msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
-msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
-
-#: SearchResultsWork.html
-msgid "This is only visible to librarians."
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Work Title"
-msgstr ""
-
-#: ShareModal.html
-#, python-format
-msgid "Share on %(share_link)s"
-msgstr ""
-
-#: ShareModal.html
-msgid "Embed this book in your website"
-msgstr ""
-
-#: ShareModal.html
-msgid "Embed icon"
-msgstr ""
-
-#: ShareModal.html
-msgid "Embed"
-msgstr ""
-
-#: ShareModal.html
-msgid "Copy url to clipboard"
-msgstr ""
-
-#: ShareModal.html
-msgid "Copy URL icon"
-msgstr ""
-
-#: ShareModal.html
-msgid "Copy URL"
-msgstr ""
-
-#: ShareModal.html
-msgid "Open QR code"
-msgstr ""
-
-#: ShareModal.html
-msgid "QR code icon"
-msgstr ""
-
-#: ShareModal.html
-msgid "QR Code"
-msgstr ""
-
-#: StarRatings.html
-msgid "Clear my rating"
-msgstr ""
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "rating"
-msgstr ""
-
-#: StarRatingsByline.html StarRatingsComponent.html
-msgid "ratings"
-msgstr ""
-
-#: StarRatingsByline.html
-#, python-format
-msgid "%(want_to_read_count)s Want to read"
-msgstr ""
-
-#: StarRatingsComponent.html
-#, python-format
-msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
-
-#: StarRatingsStats.html
-msgid "Want to read"
-msgstr ""
-
-#: StarRatingsStats.html
-msgid "Currently reading"
-msgstr ""
-
-#: StarRatingsStats.html
-msgid "Have read"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Developer Center (Home)"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Web API"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Client Library"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Data Dumps"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Report an Issue"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Licensing"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Welcome"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Searching Open Library"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Reading Books"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Adding & Editing Books"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Using Subjects"
-msgstr ""
-
-#: Subnavigation.html
-msgid "Open Library F.A.Q."
-msgstr ""
-
-#: TableOfContents.html
-#, python-format
-msgid "Page %s"
-msgstr ""
-
-#: TypeChanger.html
-msgid "Page Type"
-msgstr ""
-
-#: TypeChanger.html
-msgid "Huh?"
-msgstr ""
-
-#: TypeChanger.html
-msgid ""
-"Every piece of Open Library is defined by the type of content it "
-"displays, usually by content definition (e.g. Authors, Editions, Works) "
-"but sometimes by content use (e.g. macro, template, rawtext). Changing "
-"this for an existing page will alter its presentation and the data fields"
-" available for editing its content."
-msgstr ""
-
-#: TypeChanger.html
-msgid "Please use caution changing Page Type!"
-msgstr ""
-
-#: TypeChanger.html
-msgid ""
-"(Simplest solution: If you aren't sure whether this should be changed, "
-"don't change it.)"
-msgstr ""
-
-#: WorkInfo.html
-msgid "No link to Wikipedia in your language"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Check nearby libraries"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Library.link"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "Check WorldCat for an edition near you"
-msgstr ""
-
-#: WorldcatLink.html
-msgid "WorldCat"
-msgstr ""
-
-#: databarDiff.html databarEdit.html
-msgid "View the editing history of this page"
-msgstr ""
-
-#: databarDiff.html
-msgid "View this page (exit Comparison view)"
-msgstr ""
-
-#: databarEdit.html
-msgid "View this page (exit Edit mode)"
-msgstr ""
-
-#: databarHistory.html databarView.html
-#, python-format
-msgid "Last edited by %(author_link)s"
-msgstr ""
-
-#: databarHistory.html databarView.html
-msgid "Last edited anonymously"
-msgstr ""
-
-#: databarTemplate.html databarView.html
-msgid "View this template's edit history"
-msgstr ""
-
-#: databarTemplate.html
-msgid "Edit this template"
-msgstr ""
-
-#: databarWork.html
-#, python-format
-msgid "View Volume %(num)d"
-msgstr ""
-
-#: account.py
-msgid "The email address you entered is invalid"
-msgstr ""
-
-#: account.py
-msgid "This account has been blocked"
-msgstr ""
-
-#: account.py
-msgid "This account has been locked"
-msgstr ""
-
-#: account.py
-msgid "No account was found with this email. Please try again"
-msgstr ""
-
-#: account.py
-msgid "The password you entered is incorrect. Please try again"
-msgstr ""
-
-#: account.py
-msgid "Wrong password. Please try again"
-msgstr ""
-
-#: account.py
-msgid "Please verify your Open Library account before logging in"
-msgstr ""
-
-#: account.py
-msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
-
-#: account.py
-msgid "Please fill out all fields and try again"
-msgstr ""
-
-#: account.py
-msgid "This email is already registered"
-msgstr ""
-
-#: account.py
-msgid "This username is already registered"
-msgstr ""
-
-#: account.py
-msgid "A problem occurred and we were unable to log you in."
-msgstr ""
-
-#: account.py
-msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
-
-#: account.py
-msgid "A problem occurred and we were unable to log you in"
-msgstr ""
-
-#: account.py
-#, python-format
-msgid ""
-"We've sent the verification email to %(email)s. You'll need to read that "
-"and click on the verification link to verify your email."
-msgstr ""
-
-#: account.py
-msgid "Username unavailable"
-msgstr ""
-
-#: account.py forms.py
-msgid "Email already registered"
-msgstr ""
-
-#: account.py
-msgid "An Internet Archive account already exists with this email"
-msgstr ""
-
-#: account.py
-msgid "Email address is already used."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
-msgstr ""
-
-#: account.py
-msgid "Email verification successful."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
-msgstr ""
-
-#: account.py
-msgid "Email address couldn't be verified."
-msgstr ""
-
-#: account.py
-msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
-msgstr ""
-
-#: account.py
-msgid "Password reset failed."
-msgstr ""
-
-#: account.py
-msgid "Notification preferences have been updated successfully."
-msgstr ""
-
-#: borrow.py
-msgid ""
-"Your account has hit a lending limit. Please try again later or contact "
-"info@archive.org."
-msgstr ""
-
-#: forms.py
-msgid "Username"
-msgstr ""
-
-#: forms.py
-msgid "No user registered with this email address"
-msgstr ""
-
-#: forms.py
-msgid "Disposable email not permitted"
-msgstr ""
-
-#: forms.py
-msgid "Your email provider is not recognized."
-msgstr ""
-
-#: forms.py
-msgid "Username already used"
-msgstr ""
-
-#: forms.py
-msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
-
-#: forms.py
-msgid "Screen Name"
-msgstr ""
-
-#: forms.py
-msgid "Public and cannot be changed later."
-msgstr ""
-
-#: forms.py
-msgid ""
-"I want to receive news, announcements, and resources from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
-"runs Open Library."
-msgstr ""
-
-#: forms.py
-msgid "Invalid password"
-msgstr ""
-
-#: forms.py
-msgid "Your email address"
-msgstr ""
-
-#: forms.py
-msgid "Choose a password"
-msgstr ""
+#~ msgid "Fonts"
+#~ msgstr ""
+
+#~ msgid "Font-size"
+#~ msgstr ""
+
+#~ msgid "Font-family"
+#~ msgstr ""
+
+#~ msgid "Sans-serif: Verdana"
+#~ msgstr ""
+
+#~ msgid "Serif: Georgia"
+#~ msgstr ""
+
+#~ msgid "Defaults"
+#~ msgstr ""
+
+#~ msgid "Hmm..."
+#~ msgstr ""
+
+#~ msgid "Sorry. There seems to be a problem with what you were just looking at."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "We've noted the error %s and will"
+#~ " look into it as soon as "
+#~ "possible. Head for <a href=\"/\">home</a>?"
+#~ msgstr ""
+
+#~ msgid "Thank you very much for adding that new book!"
+#~ msgstr ""
+
+#~ msgid "Thank you very much for improving that record!"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Only logged users are allowed to "
+#~ "add records on Open Library. Please "
+#~ "<a href=\"/account/login?redirect=$path\">log in</a> "
+#~ "to add a book."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Only logged users are allowed to "
+#~ "modify records on Open Library. Please"
+#~ " <a href=\"/account/login?redirect=$path\">log in</a>"
+#~ " to edit this page."
+#~ msgstr ""
+
+#~ msgid "Edit Subject Tag"
+#~ msgstr ""
+
+#~ msgid "How can we help?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Your question has been sent to our"
+#~ " support team. We'll get back to "
+#~ "you shortly. You can also <a "
+#~ "href=\"https://twitter.com/openlibrary\">contact us on "
+#~ "Twitter</a>."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Please check our <a href=\"/help/\">Help "
+#~ "Pages</a> and <a href=\"/help/faq\">Frequently "
+#~ "Asked Questions</a> (FAQ) to see if "
+#~ "your question is answered there. Thank"
+#~ " you."
+#~ msgstr ""
+
+#~ msgid "Your Name"
+#~ msgstr ""
+
+#~ msgid "Your Email Address"
+#~ msgstr ""
+
+#~ msgid "We'll need this if you want a reply"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If you wish to be contacted by "
+#~ "other means, please add your contact "
+#~ "preference and details to your question."
+#~ msgstr ""
+
+#~ msgid "Your Question"
+#~ msgstr ""
+
+#~ msgid "Note: our staff will likely only be able respond in English."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "If you encounter an error message, "
+#~ "please include it. For questions about"
+#~ " our books, please provide the "
+#~ "title/author or Open Library ID."
+#~ msgstr ""
+
+#~ msgid "Send"
+#~ msgstr ""
+
+#~ msgid "Print Disabled"
+#~ msgstr ""
+
+#~ msgid "No <strong>%(path_id)s</strong> directly matched your search"
+#~ msgstr ""
+
+#~ msgid "BARF! Search engine ERROR!"
+#~ msgstr ""
+
+#~ msgid "What is this?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This will enable others to see "
+#~ "what books you want to read, are"
+#~ " reading, or have already read. "
+#~ "Public accounts can be seen and "
+#~ "followed by others."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This updates  and  fields of /, "
+#~ "/works, /books and /authors records in"
+#~ " the database."
+#~ msgstr ""
+
+#~ msgid "send password reset email"
+#~ msgstr ""
+
+#~ msgid "Read eBook from Cita Press"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://citapress.org/\">Cita Press</a>. Cita "
+#~ "Press is a trusted book provider "
+#~ "of works written by women, pairing "
+#~ "contemporary authors and designers with "
+#~ "open access texts to make carefully "
+#~ "designed books available for free and"
+#~ " open source."
+#~ msgstr ""
+
+#~ msgid "Learn more"
+#~ msgstr ""
+
+#~ msgid "Read free online"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is freely available from "
+#~ "<a href=\"%s\">%s</a>, an external third-"
+#~ "party book provider."
+#~ msgstr ""
+
+#~ msgid "Read eBook from Project Gutenberg"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://www.gutenberg.org/\">Project Gutenberg</a>. "
+#~ "Project Gutenberg is a trusted book "
+#~ "provider of classic ebooks, supporting "
+#~ "thousands of volunteers in the creation"
+#~ " and distribution of over 60,000 free"
+#~ " eBooks."
+#~ msgstr ""
+
+#~ msgid "Listen to a reading from LibriVox"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://librivox.org/\">LibriVox</a>. LibriVox is"
+#~ " a trusted book provider of public"
+#~ " domain audiobooks, narrated by volunteers,"
+#~ " distributed for free on the "
+#~ "internet."
+#~ msgstr ""
+
+#~ msgid "Read eBook from OpenStax"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://www.openstax.org/\">OpenStax</a>. OpenStax "
+#~ "is a trusted book provider and a"
+#~ " 501(c)(3) nonprofit charitable corporation "
+#~ "dedicated to providing free high-"
+#~ "quality, peer-reviewed, openly licensed "
+#~ "textbooks online."
+#~ msgstr ""
+
+#~ msgid "Read eBook from Standard eBooks"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://standardebooks.org/\">Standard Ebooks</a>. "
+#~ "Standard Ebooks is a trusted book "
+#~ "provider and a volunteer-driven project"
+#~ " that produces new editions of public"
+#~ " domain ebooks that are lovingly "
+#~ "formatted, open source, free of "
+#~ "copyright restrictions, and free of "
+#~ "cost."
+#~ msgstr ""
+
+#~ msgid "Read eBook on Wikisource"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This book is available from <a "
+#~ "href=\"https://wikisource.org/\">Wikisource</a>. Wikisource, "
+#~ "a <a href=\"https://www.wikimedia.org/\">Wikimedia "
+#~ "Foundation</a> project, is a trusted "
+#~ "book provider of works available under"
+#~ " the <a href=\"https://creativecommons.org/licenses"
+#~ "/by-sa/4.0/\">CC-BY-SA</a> open content "
+#~ "license, such as essays, historical "
+#~ "documents, letters, speeches, and public "
+#~ "domain books."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Add an optional check-in date.  "
+#~ "Check-in dates are used to track "
+#~ "yearly reading goals."
+#~ msgstr ""
+
+#~ msgid "%(year)d Reading Goal:"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "<span class=\"reading-goal-progress__books-"
+#~ "read\">%(books_read)d</span>/<span class=\"reading-"
+#~ "goal-progress__goal\">%(goal)d</span> books"
+#~ msgstr ""
+
+#~ msgid "Choose a JPG, GIF or PNG on your computer"
+#~ msgstr ""
+
+#~ msgid "Or, use the the cover from Internet Archive"
+#~ msgstr ""
+
+#~ msgid "View a larger book cover"
+#~ msgstr ""
+
+#~ msgid "browse %(subject)s books"
+#~ msgstr ""
+
+#~ msgid "Problems"
+#~ msgstr ""
+
+#~ msgid "Report A Problem"
+#~ msgstr ""
+
+#~ msgid "by <a href=\"$owner.key\">You</a>"
+#~ msgstr ""
+
+#~ msgid "Feedback?"
+#~ msgstr ""
+
+#~ msgid "Location"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Showing all works by author. Would "
+#~ "you like to see <a href=\"%(url)s\">only"
+#~ " ebooks</a>?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Showing ebooks only. Would you like "
+#~ "to see <a href=\"%(url)s\">everything</a> by"
+#~ " this author?"
+#~ msgstr ""
+
+#~ msgid "Add to Staff Picks"
+#~ msgstr ""
+
+#~ msgid "Loading Related Books"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "⚠️ Saving global lists is admin-"
+#~ "only while the feature is under "
+#~ "development."
+#~ msgstr ""
+
+#~ msgid "Edit Tag"
+#~ msgstr ""
+
+#~ msgid "UnfollowFollow"
+#~ msgstr ""
+
+#~ msgid "Read more"
+#~ msgstr ""
+
+#~ msgid "Read less"
+#~ msgstr ""
+
+#~ msgid "Library.link"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "We've sent the verification email to "
+#~ "%(email)s. You'll need to read that "
+#~ "and click on the verification link "
+#~ "to verify your email."
+#~ msgstr ""
+
+#~ msgid "Password reset failed."
+#~ msgstr ""
+
