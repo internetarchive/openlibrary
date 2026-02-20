@@ -327,12 +327,7 @@ export default {
 };
 </script>
 
-<style lang="less">
-@row-height: 105px;
-@row-padding: 8px;
-@table-background: rgb(248, 248, 248);
-@selection-background: rgb(220, 224, 238);
-
+<style>
 body {
   font-size: .85em;
 }
@@ -343,133 +338,147 @@ time {
 table.main {
   border-collapse: collapse;
   min-width: 100%;
+}
+table.main thead,
+table.main tfoot {
+  position: sticky;
+  z-index: 300;
+}
+table.main > thead {
+  top: 0;
+}
+table.main > thead > tr > th {
+  font-variant: small-caps;
+  margin-right: 4px;
+  background: rgb(240, 237, 226);
+}
+table.main > tbody {
+  background: rgb(248, 248, 248);
+}
+table.main > tfoot {
+  background: rgb(220, 224, 238);
+  bottom: 0;
+}
+table.main > tfoot > tr {
+  border-top: 4px double;
+  box-shadow: 0 2px 4px inset black;
+}
+table.main > tfoot > tr > td > div {
+  min-height: 105px;
+}
 
-  thead,
-  tfoot {
-    position: sticky;
-    z-index: 300;
-  }
-  & > thead {
-    top: 0;
-    & > tr > th {
-      font-variant: small-caps;
-      margin-right: 4px;
-      background: rgb(240, 237, 226);
-    }
-  }
-  & > tbody {
-    background: @table-background;
-  }
-  & > tfoot {
-    background: @selection-background;
-    bottom: 0;
-
-    & > tr {
-      border-top: 4px double;
-      box-shadow: 0 2px 4px inset black;
-
-      & > td > div {
-        min-height: @row-height;
-      }
-    }
-  }
-
-  & > tbody > tr,
-  & > tfoot > tr {
-    &:hover {
-      background: rgba(200, 200, 0, .1);
-    }
-    & > td {
-      max-height: @row-height;
-      max-width: 300px;
-      position: relative;
-      vertical-align: top;
-      border-bottom: 4px solid rgba(255, 255, 255, 0.9);
-      box-sizing: border-box;
-      padding: 0;
-
-      & > div {
-        height: calc(@row-height - @row-padding * 2);
-        max-height: calc(@row-height - @row-padding * 2);
-        overflow-y: auto;
-        padding: @row-padding;
-        margin-right: 4px;
-      }
-
-      & > div.field-covers {
-        width: 100px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        float: left;
-        margin-right: 8px;
-        .wrapper {
-          img {
-            width: 100%;
-          }
-        }
-      }
-
-      & > div.wrap-key--title--subtitle--authors--error {
-        min-width: 500px;
-        padding: 0 0 calc(@row-padding * 2) 0;
-
-        & > div {
-          padding: @row-padding @row-padding 0 @row-padding;
-          white-space: normal;
-          word-wrap: break-word;
-          overflow-wrap: break-word;
-          &:last-child {
-            padding-bottom: @row-padding;
-          }
-        }
-
-        div.field-subtitle {
-          padding-left: 1em;
-          padding-top: 0;
-        }
-      }
-
-      & > div.wrap-created--last_modified--revision--type--location {
-        white-space: nowrap;
-        padding: @row-padding 0 @row-padding 0;
-
-        & > div {
-          padding: calc(@row-padding/2) @row-padding 0 @row-padding;
-          &:nth-child(1), &:nth-child(2) {
-            padding-top: @row-padding;
-          }
-          &:last-child {
-            padding-bottom: @row-padding;
-          }
-        }
-
-        & > div.field-created { padding-right: 0; }
-        & > div.field-last_modified { padding-left: 0; }
-        & > div.field-created, & > div.field-last_modified {
-          display: inline;
-          font-size: 0.95em;
-        }
-        & > div.field-last_modified::before { content: "…"; }
-        & > div.field-revision > div::before { content: "v"; }
-
-      }
-
-      & > .td-container {
-        overflow-y: auto;
-        resize: vertical;
-      }
-    }
-
-    & > td.col-key--title--subtitle--authors--error,
-    & > .col-subjects--subject_people--subject_places--subject_times,
-    & > td.col-editions  {
-      max-width: 100vw;
-    }
-  }
-
-  & > tbody .work:not(.selected) {
-    opacity: .5;
-  }
+table.main > tbody > tr:hover,
+table.main > tfoot > tr:hover {
+  background: rgba(200, 200, 0, .1);
+}
+table.main > tbody > tr > td,
+table.main > tfoot > tr > td {
+  max-height: 105px;
+  max-width: 300px;
+  position: relative;
+  vertical-align: top;
+  border-bottom: 4px solid rgba(255, 255, 255, 0.9);
+  box-sizing: border-box;
+  padding: 0;
+}
+table.main > tbody > tr > td > div,
+table.main > tfoot > tr > td > div {
+  height: calc(105px - 8px * 2);
+  max-height: calc(105px - 8px * 2);
+  overflow-y: auto;
+  padding: 8px;
+  margin-right: 4px;
+}
+table.main > tbody > tr > td > div.field-covers,
+table.main > tfoot > tr > td > div.field-covers {
+  width: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  float: left;
+  margin-right: 8px;
+}
+table.main > tbody > tr > td > div.field-covers .wrapper img,
+table.main > tfoot > tr > td > div.field-covers .wrapper img {
+  width: 100%;
+}
+table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error,
+table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error {
+  min-width: 500px;
+  padding: 0 0 calc(8px * 2) 0;
+}
+table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div,
+table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div {
+  padding: 8px 8px 0 8px;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child,
+table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child {
+  padding-bottom: 8px;
+}
+table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle,
+table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle {
+  padding-left: 1em;
+  padding-top: 0;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location {
+  white-space: nowrap;
+  padding: 8px 0 8px 0;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div {
+  padding: calc(8px / 2) 8px 0 8px;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2),
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2) {
+  padding-top: 8px;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child {
+  padding-bottom: 8px;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created {
+  padding-right: 0;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
+  padding-left: 0;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
+  display: inline;
+  font-size: 0.95em;
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before {
+  content: "…";
+}
+table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before,
+table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before {
+  content: "v";
+}
+table.main > tbody > tr > td > .td-container,
+table.main > tfoot > tr > td > .td-container {
+  overflow-y: auto;
+  resize: vertical;
+}
+table.main > tbody > tr > td.col-key--title--subtitle--authors--error,
+table.main > tbody > tr > .col-subjects--subject_people--subject_places--subject_times,
+table.main > tbody > tr > td.col-editions,
+table.main > tfoot > tr > td.col-key--title--subtitle--authors--error,
+table.main > tfoot > tr > .col-subjects--subject_people--subject_places--subject_times,
+table.main > tfoot > tr > td.col-editions {
+  max-width: 100vw;
+}
+table.main > tbody .work:not(.selected) {
+  opacity: .5;
 }
 
 .field-container {
@@ -477,7 +486,7 @@ table.main {
 }
 
 .field-container.selected {
-  background: @selection-background;
+  background: rgb(220, 224, 238);
 }
 
 td.col-controls {
@@ -494,15 +503,24 @@ td.col-description {
   min-width: 200px;
 }
 
-td.col-description, td.col-excerpts, td.col-first_sentence, td.col-links {
+td.col-description,
+td.col-excerpts,
+td.col-first_sentence,
+td.col-links {
   font-size: .9em;
-  div {
-    max-height: @row-height;
-  }
-  ul {
-    padding: 0;
-    margin: 0;
-  }
+}
+td.col-description div,
+td.col-excerpts div,
+td.col-first_sentence div,
+td.col-links div {
+  max-height: 105px;
+}
+td.col-description ul,
+td.col-excerpts ul,
+td.col-first_sentence ul,
+td.col-links ul {
+  padding: 0;
+  margin: 0;
 }
 
 div.field-lc_classifications li, div.field-dewey_number li {
@@ -516,38 +534,39 @@ li.excerpt-item {
 
 .col-subjects--subject_people--subject_places--subject_times >
   div.wrap-subjects--subject_people--subject_places--subject_times {
-  height: @row-height;
-  max-height: @row-height;
+  height: 105px;
+  max-height: 105px;
   display: flex;
   flex-direction: column;
   padding: 0;
-  .field-container {
-    min-height: 16px;
-    padding: 4px;
-    border-bottom: 2px solid @table-background;
-    flex: 1 1 auto;
-    &:last-child{
-        border-bottom: 0;
-    }
-  }
+}
+.col-subjects--subject_people--subject_places--subject_times >
+  div.wrap-subjects--subject_people--subject_places--subject_times .field-container {
+  min-height: 16px;
+  padding: 4px;
+  border-bottom: 2px solid rgb(248, 248, 248);
+  flex: 1 1 auto;
+}
+.col-subjects--subject_people--subject_places--subject_times >
+  div.wrap-subjects--subject_people--subject_places--subject_times .field-container:last-child {
+  border-bottom: 0;
 }
 
-.field-authors {
-  td.author-author {
-    padding-right: 6px;
-  }
-
-  thead, td.author-index, td.author-type {
-    display: none;
-  }
+.field-authors td.author-author {
+  padding-right: 6px;
+}
+.field-authors thead,
+.field-authors td.author-index,
+.field-authors td.author-type {
+  display: none;
 }
 
 ul.reset {
   padding: 0;
   margin: 0;
-  & > li {
-    list-style: none;
-  }
+}
+ul.reset > li {
+  list-style: none;
 }
 
 .pill-list {
@@ -584,14 +603,14 @@ ul.reset {
 
 td.col-editions div.td-container {
   width: 400px;
-  max-height: calc(@row-height - 30px);
+  max-height: calc(105px - 30px);
 }
 
 .col-references > div {
   white-space: nowrap;
-  & > div {
-    padding-bottom: @row-padding;
-  }
+}
+.col-references > div > div {
+  padding-bottom: 8px;
 }
 
 div.field-links li {
