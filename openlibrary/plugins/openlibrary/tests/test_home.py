@@ -129,6 +129,8 @@ class TestHomeTemplates:
                 }
             ]
 
+        macros = web.template.Template.globals.setdefault("macros", web.storage())
+        macros.BookPreview = lambda *args, **kwargs: ""
         html = str(render_template("home/index", stats=stats, test=True))
 
         assert "Recently Returned" in html
