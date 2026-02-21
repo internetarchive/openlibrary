@@ -1,5 +1,6 @@
 import 'jquery';
 import { exposeGlobally } from './jsdef';
+import './view-transitions';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
