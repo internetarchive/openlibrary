@@ -605,6 +605,7 @@ def get_doc(doc: SolrDocument):
         first_edition=doc.get('first_edition', None),
         subtitle=doc.get('subtitle', None),
         cover_edition_key=doc.get('cover_edition_key', None),
+        cover_i=doc.get('cover_i', None),
         languages=doc.get('language', []),
         id_project_gutenberg=doc.get('id_project_gutenberg', []),
         id_project_runeberg=doc.get('id_project_runeberg', []),
