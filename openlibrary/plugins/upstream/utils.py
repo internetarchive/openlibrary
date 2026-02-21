@@ -670,7 +670,7 @@ def set_share_links(
         view_context (object that has/can-have share_links attribute)
     """
     encoded_url = url_quote(url)
-    text = url_quote("Check this out: " + entity_decode(title))
+    text = url_quote("Check this out: " + unescape(title))
     links = [
         {
             'text': 'Facebook',
