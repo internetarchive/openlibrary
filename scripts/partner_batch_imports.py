@@ -11,6 +11,7 @@ PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary
 """
 
 import datetime
+import html
 import logging
 import os
 import re
@@ -18,8 +19,6 @@ from collections.abc import Mapping
 from typing import cast
 
 import requests
-
-import html
 
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config

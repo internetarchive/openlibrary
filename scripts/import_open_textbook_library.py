@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import html
 import json
 import time
 from collections.abc import Generator
@@ -6,8 +7,6 @@ from itertools import islice
 from typing import Any
 
 import requests
-
-import html
 
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
@@ -57,14 +56,18 @@ def map_data(data) -> dict[str, Any]:
 
     if data.get('subjects'):
         subjects = [
-            html.unescape(subject["name"]) for subject in data['subjects'] if subject.get("name")
+            html.unescape(subject["name"])
+            for subject in data['subjects']
+            if subject.get("name")
         ]
         if subjects:
             import_record['subjects'] = subjects
 
     if data.get('publishers'):
         import_record['publishers'] = [
-            html.unescape(publisher["name"]) for publisher in data["publishers"] if publisher.get("name")
+            html.unescape(publisher["name"])
+            for publisher in data["publishers"]
+            if publisher.get("name")
         ]
 
     if data.get("copyright_year"):
