@@ -20,7 +20,7 @@ if [ "$LOCAL_DEV" = "true" ]; then
 
     # Get DB and Solr counts
     DB_COUNT=$(psql --host db openlibrary -t -c "select count(*) from thing" | tr -d ' ')
-    SOLR_COUNT=$(curl -s "http://solr:8983/solr/openlibrary/select?q=*:*&rows=0" | grep -oP '"numFound":\K\d+' || echo "0")
+    SOLR_COUNT=$(curl -s "http://solr:8983/solr/openlibrary/select?q=*:*&rows=0&wt=json" | grep -oP '"numFound":\K\d+' || echo "0")
 
     echo "Solr health check: DB=$DB_COUNT records, Solr=$SOLR_COUNT indexed"
 
