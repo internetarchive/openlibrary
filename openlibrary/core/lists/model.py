@@ -106,6 +106,23 @@ class List(Thing):
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
     ):
         """Adds a new seed to this list."""
+        # Validate that the seed key is not empty
+        if isinstance(seed, dict):
+            # Handle both ThingReferenceDict and AnnotatedSeedDict
+            if 'thing' in seed and 'notes' in seed:
+                # This is an AnnotatedSeedDict
+                annotated_seed = cast(AnnotatedSeedDict, seed)
+                key = annotated_seed['thing']['key']
+            elif 'key' in seed:
+                # This is a ThingReferenceDict
+                thing_ref = cast(ThingReferenceDict, seed)
+                key = thing_ref['key']
+            else:
+                key = None
+
+            if key is not None and (not key or not key.strip()):
+                raise ValueError("Seed key cannot be empty")
+
         seed_object = Seed.from_json(self, seed)
 
         if self._index_of_seed(seed_object.key) >= 0:
@@ -453,21 +470,30 @@ class Seed:
             if 'thing' in seed_json:
                 annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
 
+                # Validate that the key is not empty
+                key = annotated_seed['thing']['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(
-                            list._site, annotated_seed['thing']['key'], None
-                        ),
+                        'thing': Thing(list._site, key, None),
                         'notes': annotated_seed['notes'],
                     },
                 )
             elif 'key' in seed_json:
                 thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
+
+                # Validate that the key is not empty
+                key = thing_ref['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(list._site, thing_ref['key'], None),
+                        'thing': Thing(list._site, key, None),
                         'notes': '',
                     },
                 )
