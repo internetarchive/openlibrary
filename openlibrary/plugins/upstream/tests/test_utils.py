@@ -36,11 +36,6 @@ def test_urlencode():
     assert f({'q': 'αβγ'}) == 'q=%CE%B1%CE%B2%CE%B3', 'unicode'
 
 
-def test_entity_decode():
-    assert utils.entity_decode('&gt;foo') == '>foo'
-    assert utils.entity_decode('<h1>') == '<h1>'
-
-
 def test_set_share_links():
     class TestContext:
         def __init__(self):

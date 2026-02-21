@@ -659,11 +659,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
 
 
 @public
-def entity_decode(text: str) -> str:
-    return unescape(text)
-
-
-@public
 def set_share_links(
     url: str = '#', title: str = '', view_context: InfogamiContext | None = None
 ) -> None:
@@ -676,7 +671,7 @@ def set_share_links(
         view_context (object that has/can-have share_links attribute)
     """
     encoded_url = url_quote(url)
-    text = url_quote("Check this out: " + entity_decode(title))
+    text = url_quote("Check this out: " + unescape(title))
     links = [
         {
             'text': 'Facebook',
