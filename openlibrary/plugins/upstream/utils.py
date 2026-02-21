@@ -638,6 +638,31 @@ def add_metatag(tag: str = "meta", **attrs) -> None:
 
 
 @public
+def is_rtl(text: str) -> bool:
+    """
+    Check if the given text is right-to-left (RTL) using Unicode bidirectional properties.
+
+    Args:
+        text: The text to check for RTL characters
+
+    Returns:
+        bool: True if the text contains RTL characters, False otherwise
+
+    Examples:
+        >>> is_rtl("Hello World")
+        False
+        >>> is_rtl("مدرسة العذاب")
+        True
+        >>> is_rtl("Hello مرحبا World")
+        True
+    """
+    if not text:
+        return False
+    # 'R' = Right-to-Left, 'AL' = Arabic Letter
+    return any(unicodedata.bidirectional(char) in ('R', 'AL') for char in text)
+
+
+@public
 def url_quote(text: str | bytes) -> str:
     if isinstance(text, str):
         text = text.encode('utf8')
