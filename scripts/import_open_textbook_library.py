@@ -7,9 +7,10 @@ from typing import Any
 
 import requests
 
+import html
+
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
-from openlibrary.plugins.upstream.utils import sanitize_book_title
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 FEED_URL = 'https://open.umn.edu/opentextbooks/textbooks.json?'
@@ -40,7 +41,7 @@ def map_data(data) -> dict[str, Any]:
     import_record["source_records"] = ['open_textbook_library:%s' % data['id']]
 
     if data.get("title"):
-        import_record["title"] = sanitize_book_title(data["title"])
+        import_record["title"] = html.unescape(data["title"])
 
     if data.get('ISBN10'):
         import_record['isbn_10'] = [data['ISBN10']]
@@ -52,18 +53,18 @@ def map_data(data) -> dict[str, Any]:
         import_record['languages'] = [data['language']]
 
     if data.get('description'):
-        import_record['description'] = data['description']
+        import_record['description'] = html.unescape(data['description'])
 
     if data.get('subjects'):
         subjects = [
-            subject["name"] for subject in data['subjects'] if subject.get("name")
+            html.unescape(subject["name"]) for subject in data['subjects'] if subject.get("name")
         ]
         if subjects:
             import_record['subjects'] = subjects
 
     if data.get('publishers'):
         import_record['publishers'] = [
-            publisher["name"] for publisher in data["publishers"]
+            html.unescape(publisher["name"]) for publisher in data["publishers"] if publisher.get("name")
         ]
 
     if data.get("copyright_year"):
@@ -83,6 +84,7 @@ def map_data(data) -> dict[str, Any]:
                 )
                 if name
             )
+            name = html.unescape(name) if name else name
 
             if (
                 contributor.get("primary") is True

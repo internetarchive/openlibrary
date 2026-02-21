@@ -27,12 +27,14 @@ import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPA
 import ijson
 import requests
 
+import html
+
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core import stats
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import stage_bookworm_metadata
-from openlibrary.plugins.upstream.utils import safeget, sanitize_book_title
+from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -57,9 +59,13 @@ def map_book_to_olbook(book, promise_id):
     asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
     product_json = book.get('ProductJSON', {})
     publish_date = clean_null(product_json.get('PublicationDate'))
-    title = sanitize_book_title(product_json.get('Title'))
+    title = product_json.get('Title')
+    title = html.unescape(title) if title else None
     isbn = book.get('ISBN') or ' '
     sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
+    author_name = clean_null(product_json.get('Author'))
+    publisher_name = clean_null(product_json.get('Publisher'))
+    publisher_name = html.unescape(publisher_name) if publisher_name else '????'
     olbook = {
         'local_id': [f"urn:bwbsku:{sku.upper()}"],
         'identifiers': {
@@ -69,12 +75,8 @@ def map_book_to_olbook(book, promise_id):
         **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
         **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
         **({'title': title} if title else {}),
-        'authors': (
-            [{"name": clean_null(product_json.get('Author'))}]
-            if clean_null(product_json.get('Author'))
-            else []
-        ),
-        'publishers': [clean_null(product_json.get('Publisher')) or '????'],
+        'authors': [{"name": html.unescape(author_name)}] if author_name else [],
+        'publishers': [publisher_name],
         'source_records': [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
         'publish_date': (
