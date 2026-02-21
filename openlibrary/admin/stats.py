@@ -11,6 +11,7 @@ import web
 import yaml
 
 from openlibrary.admin import numbers
+from openlibrary.core import stats
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +69,14 @@ def store_data(data, date):
     # avoid document collisions if multiple tasks updating stats in competition (race)
     doc["_rev"] = None
     web.ctx.site.store[uid] = doc
+
+    # Also report to statsd
+    for key, value in data.items():
+        if isinstance(value, dict):
+            for subkey, subvalue in value.items():
+                stats.gauge(f"ol.stats.daily.{key}.{subkey}", subvalue)
+        elif isinstance(value, (int, float)):
+            stats.gauge(f"ol.stats.daily.{key}", value)
 
 
 def run_gathering_functions(

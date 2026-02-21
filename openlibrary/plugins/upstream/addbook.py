@@ -853,8 +853,9 @@ class book_edit(delegate.page):
             work = None
 
         try:
+            inputs = web.input()
             helper = SaveBookHelper(work, edition)
-            helper.save(web.input())
+            helper.save(inputs)
 
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
@@ -864,12 +865,27 @@ class book_edit(delegate.page):
                 url = edition.url()
 
             raise safe_seeother(url)
-        except ClientException as e:
-            add_flash_message('error', e.args[-1] or e.json)
-            return self.GET(key)
-        except ValidationException as e:
+        except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
-            return self.GET(key)
+            inputs = web.input()
+            formdata = utils.unflatten(inputs)
+            try:
+                work_data, edition_data = helper.process_input(formdata)
+            except (ClientException, ValidationException):
+                # If processing failed (e.g. ocaid check), we still want to
+                # populate as much data as possible from the unflattened form.
+                work_data = formdata.get('work')
+                edition_data = formdata.get('edition')
+
+            if work and work_data:
+                work.update(work_data)
+                work.comment_ = inputs.get('_comment')
+            if edition and edition_data:
+                edition.update(edition_data)
+                edition.comment_ = inputs.get('_comment')
+            return render_template(
+                'books/edit', work, edition, recaptcha=get_recaptcha()
+            )
 
 
 class work_edit(delegate.page):
@@ -915,13 +931,24 @@ class work_edit(delegate.page):
             raise web.notfound()
 
         try:
+            inputs = web.input()
             helper = SaveBookHelper(work, None)
-            helper.save(web.input())
+            helper.save(inputs)
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
-            return self.GET(key)
+            inputs = web.input()
+            formdata = utils.unflatten(inputs)
+            try:
+                work_data, _edition_data = helper.process_input(formdata)
+            except (ClientException, ValidationException):
+                work_data = formdata.get('work')
+
+            if work and work_data:
+                work.update(work_data)
+                work.comment_ = inputs.get('_comment')
+            return render_template('books/edit', work, recaptcha=get_recaptcha())
 
 
 class author_edit(delegate.page):
