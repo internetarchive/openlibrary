@@ -313,7 +313,7 @@ class SubjectEngine:
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
-            current_year = datetime.datetime.utcnow().year
+            current_year = datetime.datetime.now(datetime.UTC).year
             subject.publishing_history = [
                 [year, count]
                 for year, count in cast(  # These are fetched in a different format, we need to fix the types

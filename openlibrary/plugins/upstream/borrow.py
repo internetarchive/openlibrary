@@ -8,7 +8,7 @@ import logging
 import re
 import time
 import urllib
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
 import web
@@ -371,7 +371,7 @@ def datetime_from_isoformat(expiry):
 
 @public
 def datetime_from_utc_timestamp(seconds):
-    return datetime.utcfromtimestamp(seconds)
+    return datetime.fromtimestamp(seconds, UTC)
 
 
 @public
@@ -477,7 +477,11 @@ def is_loaned_out(resource_id: str) -> bool | None:
 
     # Find the loan and check if it has expired
     loan = web.ctx.site.store.get(loan_key)
-    return bool(loan and datetime_from_isoformat(loan['expiry']) < datetime.utcnow())
+    return bool(
+        loan
+        and datetime_from_isoformat(loan['expiry'])
+        < datetime.now(UTC).replace(tzinfo=None)
+    )
 
 
 def is_loaned_out_from_status(status) -> bool:
