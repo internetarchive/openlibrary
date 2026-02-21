@@ -10,6 +10,7 @@ import urllib
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 from collections.abc import Callable, Generator, Iterable, Iterator, MutableMapping
+from html import unescape
 from html.parser import HTMLParser
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 from urllib.parse import (
