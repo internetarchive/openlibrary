@@ -33,7 +33,7 @@ class subjects(delegate.page):
         # q=public_scan_b:true+OR+lending_edition_s:*
         subj = get_subject(
             key,
-            details=True,
+            details=False,
             filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
             sort=web.input(sort='readinglog').sort,
             request_label='SUBJECT_ENGINE_PAGE',
@@ -281,6 +281,7 @@ class SubjectEngine:
             work_count=result.num_found,
             works=add_availability([self.work_wrapper(d) for d in result.docs]),
         )
+        subject.has_details = details
 
         if details:
             result.facet_counts = {
