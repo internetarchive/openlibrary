@@ -181,9 +181,80 @@ class addbook(delegate.page):
         if not self.has_permission():
             return safe_seeother(f"/account/login?redirect={self.path}")
 
-        i = web.input(work=None, author=None)
+        # Accept optional ?duplicate=/books/OLxxxM
+        i = web.input(work=None, author=None, duplicate=None)
+
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
+
+        # Look up the source edition if duplicate is provided
+        duplicate_edition = None
+        if i.duplicate:
+            try:
+                duplicate_edition = web.ctx.site.get(i.duplicate)
+            except Exception:
+                # Fail safe: if anything goes wrong, just ignore duplicate
+                duplicate_edition = None
+
+        # If we have a valid duplicate_edition, create a new edition by copying it
+        if duplicate_edition is not None:
+            # Decide which work to attach the new edition to:
+            #   1) if ?work=... was passed, use that
+            #   2) otherwise, use the first work of the source edition (if any)
+            if work is None:
+                if getattr(duplicate_edition, "works", None):
+                    work = duplicate_edition.works[0]
+
+            if work is not None:
+                # Create a brand new edition object attached to this work
+                new_edition = new_doc(
+                    "/type/edition",
+                    works=[{"key": work.key}],
+                )
+
+                # Copy fields from the source edition into a dict
+                src = duplicate_edition.dict()
+
+                # Remove internal keys we must not copy
+                for k in [
+                    "key",
+                    "type",
+                    "revision",
+                    "created",
+                    "last_modified",
+                    "works",
+                ]:
+                    src.pop(k, None)
+
+                # Remove unique identifiers so we don't create an exact duplicate
+                unique_fields = [
+                    "isbn_10",
+                    "isbn_13",
+                    "lccn",
+                    "oclc_numbers",
+                    "ocaid",
+                    "identifiers",  # nested IDs like Goodreads, LibraryThing, etc.
+                    "source_records",  # MARC / ingest references
+                    "ia_box_id",
+                    "ia_loaded_id",
+                ]
+                for k in unique_fields:
+                    src.pop(k, None)
+
+                # Apply the remaining fields to the new edition
+                new_edition.update(src)
+
+                # Save the new edition
+                saveutil = DocSaveHelper()
+                saveutil.save(new_edition)
+                comment = utils.get_message("comment_add_book")
+                saveutil.commit(comment=comment, action="add-book")
+
+                # Redirect straight to the edit page for the NEW edition
+                raise safe_seeother(new_edition.url("/edit?mode=duplicate"))
+            # If we *can't* determine a work, fall through to normal /books/add UI
+
+        # ===== Normal behaviour (no duplicate) below =====
 
         # pre-filling existing author(s) if adding new edition from existing work page
         authors = (work and work.authors) or []
