@@ -9,7 +9,8 @@ import { LitElement, html, css } from 'lit';
  *
  * @property {String} background-color - Background color for the gradient fade (default: white)
  * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
- * @property {String} padding-left - Left padding for toggle button on non-mobile (e.g., "8" or "8px")
+ *
+ * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
  *
  * @example
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">
@@ -29,7 +30,6 @@ export class OLReadMore extends LitElement {
         lessText: { type: String, attribute: 'less-text' },
         backgroundColor: { type: String, attribute: 'background-color' },
         labelSize: { type: String, attribute: 'label-size' },
-        paddingLeft: { type: String, attribute: 'padding-left' },
         // Internal state
         _expanded: { type: Boolean, state: true },
         _unnecessary: { type: Boolean, state: true },
@@ -42,7 +42,6 @@ export class OLReadMore extends LitElement {
             --ol-readmore-link-color: hsl(202, 96%, 28%);
             --ol-readmore-gradient-color: white;
             --ol-readmore-gradient-color-transparent: rgba(255, 255, 255, 0);
-            --ol-readmore-padding-left: 0;
         }
 
         .content-wrapper {
@@ -94,8 +93,8 @@ export class OLReadMore extends LitElement {
 
         @media only screen and (min-width: 800px) {
             .toggle-btn {
-                padding-left: var(--ol-readmore-padding-left);
                 text-align: left;
+                padding-left: 0;
             }
         }
 
@@ -130,7 +129,6 @@ export class OLReadMore extends LitElement {
         this.lessText = 'Read Less';
         this.backgroundColor = null;
         this.labelSize = 'medium';
-        this.paddingLeft = null;
         this._expanded = false;
         this._unnecessary = false;
     }
@@ -138,28 +136,17 @@ export class OLReadMore extends LitElement {
     firstUpdated() {
         this._checkIfTruncationNeeded();
         this._updateBackgroundColor();
-        this._updatePaddingLeft();
     }
 
     updated(changedProperties) {
         if (changedProperties.has('backgroundColor')) {
             this._updateBackgroundColor();
         }
-        if (changedProperties.has('paddingLeft')) {
-            this._updatePaddingLeft();
-        }
     }
 
     _updateBackgroundColor() {
         if (this.backgroundColor) {
             this.style.setProperty('--ol-readmore-gradient-color', this.backgroundColor);
-        }
-    }
-
-    _updatePaddingLeft() {
-        if (this.paddingLeft) {
-            const value = /^\d+$/.test(this.paddingLeft) ? `${this.paddingLeft}px` : this.paddingLeft;
-            this.style.setProperty('--ol-readmore-padding-left', value);
         }
     }
 
@@ -223,6 +210,7 @@ export class OLReadMore extends LitElement {
                 <slot></slot>
             </div>
             <button
+                part="toggle-btn"
                 class="toggle-btn more ${sizeClass} ${showMoreBtn ? '' : 'hidden'}"
                 aria-expanded="false"
                 @click="${this._handleMoreClick}"
@@ -231,6 +219,7 @@ export class OLReadMore extends LitElement {
                 <svg class="chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
             </button>
             <button
+                part="toggle-btn"
                 class="toggle-btn less ${sizeClass} ${showLessBtn ? '' : 'hidden'}"
                 aria-expanded="true"
                 @click="${this._handleLessClick}"
