@@ -115,6 +115,93 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
           >
           </a>
         </form>
+        <script>
+        (function(){
+          if (typeof window.setupSearchValidation !== 'function') {
+            window.setupSearchValidation = function setupSearchValidation(category, input, form) {
+              if (!input) return;
+
+              var activeCategory = category;
+
+              function isRestrictedCategory() {
+                return activeCategory === 'author' || activeCategory === 'authors';
+              }
+
+              function updateValidation() {
+                if (isRestrictedCategory()) {
+                  input.setAttribute('minlength', '2');
+                  input.setAttribute('pattern', '.*\\S.*\\S.*');
+                } else {
+                  input.removeAttribute('minlength');
+                  input.removeAttribute('pattern');
+                  input.setCustomValidity('');
+                }
+              }
+
+              if (!input._searchValidationListenersBound) {
+                input.addEventListener('invalid', function () {
+                  if (!isRestrictedCategory()) {
+                    input.setCustomValidity('');
+                    return;
+                  }
+
+                  if (input.validity.patternMismatch) {
+                    input.setCustomValidity('$_("Please enter at least 2 characters")');
+                  } else {
+                    input.setCustomValidity('');
+                  }
+                });
+
+                input.addEventListener('input', function () {
+                  input.setCustomValidity('');
+                });
+
+                input._searchValidationListenersBound = true;
+              }
+
+              updateValidation();
+
+              if (form && !form._searchValidationSubmitBound) {
+                form.addEventListener('submit', function(e){
+                  if (isRestrictedCategory() && !input.checkValidity()) {
+                    e.preventDefault();
+                    if (typeof input.reportValidity === 'function') {
+                      input.reportValidity();
+                    } else {
+                      input.focus();
+                    }
+                  }
+                }, false);
+                form._searchValidationSubmitBound = true;
+              }
+
+              return {
+                setCategory: function(nextCategory) {
+                  activeCategory = nextCategory;
+                  updateValidation();
+                },
+                update: updateValidation
+              };
+            };
+          }
+
+          var input = document.querySelector('.search-bar-input input[type="text"][name="q"]');
+          var facetSelect = document.querySelector('select[aria-label="Search by"]');
+          var form = document.querySelector('.search-bar-input');
+          if (!input || !facetSelect || !form) return;
+
+          var validation = window.setupSearchValidation(facetSelect.value, input, form);
+
+          function syncCategory() {
+            validation.setCategory(facetSelect.value);
+          }
+
+          facetSelect.addEventListener('change', syncCategory);
+
+          syncCategory();
+          setTimeout(syncCategory, 500);
+        })();
+        </script>
       </div>
       <div class="search-dropdown">
         <ul class="search-results">
