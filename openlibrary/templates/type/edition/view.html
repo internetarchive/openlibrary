@@ -136,6 +136,11 @@ $def display_value(label, value, itemprop=None):
             <dd itemprop="$itemprop" class="object">$:thingrepr(value)</dd>
         $else:
             <dd class="object">$:thingrepr(value)</dd>
+    $if page.type.key in ["/type/redirect"]:
+        <div class="pageRedirect">
+            $if page.location:
+                <p>Redirected from <a href="$page.url()" rel="nofollow" title="$page.title">$page.title</a></p>
+        </div>
 
 $def display_identifiers(label, ids, itemprop=None):
     $if label != "Goodreads":
