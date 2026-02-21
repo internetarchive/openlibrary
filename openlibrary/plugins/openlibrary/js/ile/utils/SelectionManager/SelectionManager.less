@@ -1,37 +1,28 @@
-@selection-outline: #009fff;
-@selection-background: #c2e8ff;
+@selection-blue: #009fff;
 @ile-toolbar-background: #0067d5;
 @ile-toolbar-text-color: white;
 // Not sure where to put this...
 @ile-toolbar-z-index: 10;
+@z-index-1: 1;
 
-.ile-drag-over {
-  box-shadow: 0 0 10px 2px inset @selection-outline;
-}
-.ile-selectable {
-  box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
-  transition-duration: 0.2s;
-  transition-property: background-color, box-shadow;
-  border-radius: 4px;
-}
-.ile-selected {
-  box-shadow: 0 0 0 2px inset @selection-outline;
-  background: @selection-background;
-}
 #ile-toolbar {
   display: flex;
+  flex-wrap: wrap;
   position: sticky;
   bottom: 12px;
-  padding: 7px;
   margin: 0 15px;
   border-radius: 5px;
   background: @ile-toolbar-background;
   color: @ile-toolbar-text-color;
   z-index: @ile-toolbar-z-index;
   font-size: 0.9em;
+  white-space: nowrap;
+}
+#ile-drag-actions {
+  overflow-x: auto;
 }
 #ile-toolbar a {
-  padding: 4px 16px;
+  padding: 10px 16px;
   display: inline-block;
   color: @ile-toolbar-text-color;
   text-decoration: none;
@@ -77,21 +68,112 @@
   background: rgba(0, 0, 0, 0.15);
 }
 
-a.ile-selectable[href^="/authors/OL"] {
-  padding-right: 4px;
-  text-decoration: none;
+.ile-drag-over {
+  box-shadow: 0 0 10px 2px inset @selection-blue;
+}
+.ile-selectable {
+  position: relative;
+  transition-duration: 0.2s;
+  transition-property: background-color, box-shadow;
+  border-radius: 4px;
+
+  & .bookcover {
+    transition: scale 0.2s;
+  }
+
+  &.ile-selected .bookcover {
+    scale: 0.9;
+  }
+}
+
+.ile-selectable:not(.ile-selected) {
+  box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
+}
+
+.ile-selected {
+  box-shadow:
+    0 0 12px 2px inset fade(@selection-blue, 15%),
+    0 0 0 2px inset fade(@selection-blue, 66%);
+  background: fade(@selection-blue, 10%);
+}
+
+.carousel {
+  // can only click checkbox in carousel
+  .ile-selectable:not(.ile-selected) {
+    box-shadow: none;
+  }
+
+  // Can't drag in carousel because that just moves the carousel
+  .ile-selected {
+    cursor: default;
+  }
 }
 
 .ile-select-handle {
-  padding: 0 5px;
-  text-decoration: none;
-  opacity: 0.2;
+  opacity: 0;
+
   cursor: default;
   transition: opacity 0.2s;
-  color: @selection-outline;
+  color: @selection-blue;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 12px;
+  z-index: @z-index-1;
+  scale: 1.4;
+
+  .carousel &,
+  .layout-books--grid & {
+    opacity: 0.4;
+  }
+
+  .ile-selected &,
+  &:hover {
+    opacity: 1;
+  }
 }
 
-.ile-selected .ile-select-handle,
-.ile-select-handle:hover {
+.ile-selectable--inline {
+  padding-right: 12px;
+  border-radius: 8px;
+
+  a& {
+    // Can't seem to disable this just for the handle
+    text-decoration: none;
+  }
+
+  .ile-select-handle {
+    position: static;
+    opacity: 0.5;
+    cursor: pointer;
+    scale: 1;
+    margin: 0;
+    padding: 0 6px 0 10px;
+    color: rgba(0, 0, 0, 0.4);
+    transition:
+      color 0.2s,
+      opacity 0.2s;
+    text-decoration: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    &:hover {
+      color: @selection-blue;
+      opacity: 0.8;
+    }
+  }
+
+  &.ile-selected .ile-select-handle {
+    opacity: 1;
+    color: @selection-blue;
+  }
+}
+
+body:has(.ile-selected)
+  .ile-selectable:not(.ile-selectable--inline)
+  .ile-select-handle {
   opacity: 1;
 }

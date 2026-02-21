@@ -1,5 +1,9 @@
 import {Carousel} from './Carousel';
 
+/**
+ * Initializes carousels on the page.
+ * @param elems {NodeList<HTMLElement>} Collection of carousel elements
+ */
 export function initialzeCarousels(elems) {
     elems.forEach(elem => {
         new Carousel($(elem)).init()
@@ -10,5 +14,7 @@ export function initialzeCarousels(elems) {
                 $slide.attr('id',$(this).attr('aria-describedby'));
             }
         })
+
+        window.ILE?.handleNewDom(elem);
     })
 }

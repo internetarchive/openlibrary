@@ -8,6 +8,7 @@ import { MenuOption, MenuOptionState } from './BulkTagger/MenuOption';
 import { SortedMenuOptionContainer } from './BulkTagger/SortedMenuOptionContainer';
 import { Tag } from './models/Tag'
 import { FadingToast } from '../Toast'
+import '../../../../../static/css/components/tagging-menu.less';
 
 /**
  * Maximum amount of search result to be returned by subject
