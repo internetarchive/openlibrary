@@ -78,7 +78,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -vF ' "-" ' \
                 | grep -vE '\\.(opds|json|rdf)' \
                 | obfi_match_range {start_ts} {end_ts} \
-                {extra_grep if extra_grep else ''} \
+                {extra_grep or ''} \
         """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -339,6 +339,6 @@ def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
     if dry_run:
         print("Dry run mode enabled, not sending updates to Solr.")
     else:
-        resp = get_solr().update_in_place(request_body, commit=True)
+        resp = get_solr().update_in_place(request_body, commit=True, _timeout=None)
         print(resp)
     print("Hourly update completed.")

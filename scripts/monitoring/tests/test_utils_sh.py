@@ -32,8 +32,7 @@ def test_log_recent_bot_traffic():
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
         # alias the obfi commands to return some noise
-        aliases_fp.write(
-            f"""
+        aliases_fp.write(f"""
                 obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
@@ -48,8 +47,7 @@ def test_log_recent_bot_traffic():
                 date() {{
                     echo "1741054377"
                 }}
-            """
-        )
+            """)
         aliases_fp.close()
         nc_fp.close()
 
@@ -75,8 +73,7 @@ def test_log_recent_http_statuses():
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
         # alias the obfi commands to return some noise
-        aliases_fp.write(
-            f"""
+        aliases_fp.write(f"""
                 obfi_in_docker() {{
                     cat scripts/monitoring/tests/sample_covers_nginx_logs.log
                 }}
@@ -91,8 +88,7 @@ def test_log_recent_http_statuses():
                 date() {{
                     echo "1741054377"
                 }}
-            """
-        )
+            """)
         aliases_fp.close()
         nc_fp.close()
 

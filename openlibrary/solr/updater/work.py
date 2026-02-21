@@ -343,6 +343,10 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         }
 
     @property
+    def chapter(self) -> set[str]:
+        return {chapter for ed in self._solr_editions for chapter in ed.chapter}
+
+    @property
     def edition_count(self) -> int:
         return len(self._editions)
 
@@ -406,7 +410,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
     @property
     def oclc(self) -> set[str]:
-        return {v for e in self._editions for v in e.get('oclc_numbers', [])}
+        return {oclc for ed in self._solr_editions for oclc in ed.oclc}
 
     @property
     def contributor(self) -> set[str]:
@@ -495,10 +499,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def ia_collection(self) -> list[str]:
         return sorted(uniq(c for e in self._solr_editions for c in e.ia_collection))
-
-    @property
-    def ia_collection_s(self) -> str:
-        return ';'.join(self.ia_collection)
 
     @cached_property
     def _ia_editions(self) -> list[EditionSolrBuilder]:
@@ -604,27 +604,9 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         return {lang for ed in self._solr_editions for lang in ed.language}
 
     def build_legacy_ia_fields(self) -> dict:
-        ia_loaded_id = set()
         ia_box_id = set()
 
         for e in self._editions:
-            # When do we write these to the actual edition?? This code might
-            # be dead.
-            if e.get('ia_loaded_id'):
-                if isinstance(e['ia_loaded_id'], str):
-                    ia_loaded_id.add(e['ia_loaded_id'])
-                else:
-                    try:
-                        assert isinstance(e['ia_loaded_id'], list)
-                        assert isinstance(e['ia_loaded_id'][0], str)
-                    except AssertionError:
-                        logger.error(
-                            "AssertionError: ia=%s, ia_loaded_id=%s",
-                            e.get("ia"),
-                            e['ia_loaded_id'],
-                        )
-                        raise
-                    ia_loaded_id.update(e['ia_loaded_id'])
             if e.get('ia_box_id'):
                 if isinstance(e['ia_box_id'], str):
                     ia_box_id.add(e['ia_box_id'])
@@ -639,8 +621,6 @@ class WorkSolrBuilder(AbstractSolrBuilder):
 
         doc = {}
 
-        if ia_loaded_id:
-            doc['ia_loaded_id'] = list(ia_loaded_id)
         if ia_box_id:
             doc['ia_box_id'] = list(ia_box_id)
         return doc

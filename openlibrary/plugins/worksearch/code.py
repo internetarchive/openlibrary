@@ -1,7 +1,6 @@
 import copy
 import functools
 import itertools
-import json
 import logging
 import re
 import time
@@ -44,6 +43,7 @@ from openlibrary.solr.query_utils import fully_escape_query
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.utils.request_context import req_context
 from openlibrary.utils.solr import (
     DEFAULT_PASS_TIME_ALLOWED,
     DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -60,6 +60,7 @@ re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
 
+default_spellcheck_count = 10
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
         config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
@@ -135,7 +136,13 @@ def process_facet(
                 key, name = read_author_facet(val)
                 yield (key, name, count)
             elif field == 'language':
-                yield (val, get_language_name(f'/languages/{val}'), count)
+                yield (
+                    val,
+                    get_language_name(
+                        f'/languages/{val}', req_context.get().lang or 'en'
+                    ),
+                    count,
+                )
             else:
                 yield (val, val, count)
 
@@ -149,7 +156,7 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
-async def async_execute_solr_query(
+async def execute_solr_query_async(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
     _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
@@ -173,7 +180,7 @@ async def async_execute_solr_query(
     return response
 
 
-execute_solr_query = async_bridge.wrap(async_execute_solr_query)
+execute_solr_query = async_bridge.wrap(execute_solr_query_async)
 
 # Expose this publicly
 public(has_solr_editions_enabled)
@@ -197,7 +204,7 @@ def get_remembered_layout():
     return 'details'
 
 
-def _prepare_solr_query_params(
+def _prepare_solr_query_params(  # noqa: PLR0912
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -269,6 +276,8 @@ def _prepare_solr_query_params(
         if field == 'author_facet':
             field = 'author_key'
         values = param[field]
+        if isinstance(values, str):
+            values = [values]
         params += [('fq', f'{field}:"{val}"') for val in values if val]
 
     # Many fields in solr use the convention of `*_facet` both
@@ -372,7 +381,7 @@ def run_solr_query(
     )
 
 
-async def async_run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     **kwargs,
@@ -384,7 +393,7 @@ async def async_run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = await async_execute_solr_query(solr_select_url, params)
+    response = await execute_solr_query_async(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -529,6 +538,7 @@ def do_search(
     highlight=False,
     spellcheck_count=None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    sfw: bool = False,
 ):
     """
     :param param: dict of search url parameters
@@ -547,7 +557,7 @@ def do_search(
         extra_fields.add('trending_*')
     fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    if web.cookies(sfw="").sfw == 'yes':
+    if sfw:
         fields |= {'subject'}
 
     return run_solr_query(
@@ -576,9 +586,7 @@ def get_doc(doc: SolrDocument):
         url=f"{doc['key']}/{urlsafe(doc['title'])}",
         edition_count=doc['edition_count'],
         ia=doc.get('ia', []),
-        collections=(
-            doc['ia_collection_s'].split(';') if doc.get('ia_collection_s') else []
-        ),
+        collections=(doc.get('ia_collection') or []),
         has_fulltext=doc.get('has_fulltext', False),
         public_scan=doc.get('public_scan_b', bool(doc.get('ia'))),
         lending_edition=doc.get('lending_edition_s', None),
@@ -762,6 +770,7 @@ class search(delegate.page):
                 highlight=True,
                 spellcheck_count=3,
                 request_label='BOOK_SEARCH',
+                sfw=web.cookies(sfw="").sfw == 'yes',
             )
         else:
             search_response = SearchResponse(
@@ -907,47 +916,6 @@ class list_search(delegate.page):
         )
 
 
-# inherits from list_search but modifies the GET response to return results in JSON format
-class list_search_json(list_search):
-    # used subject_search_json as a reference
-    path = '/search/lists'
-    encoding = 'json'
-
-    def GET(self):
-        req = ListSearchRequest.from_web_input(web.input())
-        resp = self.get_results(req, 'LIST_SEARCH_API')
-
-        web.header('Content-Type', 'application/json')
-        if req.api == 'next':
-            # Match search.json
-            return delegate.RawText(
-                json.dumps(
-                    {
-                        'numFound': resp.num_found,
-                        'num_found': resp.num_found,
-                        'start': req.offset,
-                        'q': req.q,
-                        'docs': resp.docs,
-                    }
-                )
-            )
-        else:
-            # Default to the old API shape for a while, then we'll flip
-            return delegate.RawText(
-                json.dumps(
-                    {
-                        'start': req.offset,
-                        'docs': [
-                            lst.preview()
-                            for lst in web.ctx.site.get_many(
-                                [doc['key'] for doc in resp.docs]
-                            )
-                        ],
-                    }
-                )
-            )
-
-
 class subject_search(delegate.page):
     path = '/search/subjects'
 
@@ -974,33 +942,6 @@ class subject_search(delegate.page):
         )
 
         return response
-
-
-class subject_search_json(subject_search):
-    path = '/search/subjects'
-    encoding = 'json'
-
-    def GET(self):
-        i = web.input(q='', offset=0, limit=100)
-        offset = safeint(i.offset, 0)
-        limit = safeint(i.limit, 100)
-        limit = min(1000, limit)  # limit limit to 1000.
-
-        response = self.get_results(
-            i.q,
-            request_label='SUBJECT_SEARCH_API',
-            offset=offset,
-            limit=limit,
-        )
-
-        # Backward compatibility :/
-        raw_resp = response.raw_resp['response']
-        for doc in raw_resp['docs']:
-            doc['type'] = doc.get('subject_type', 'subject')
-            doc['count'] = doc.get('work_count', 0)
-
-        web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(raw_resp))
 
 
 class author_search(delegate.page):
@@ -1030,32 +971,6 @@ class author_search(delegate.page):
         )
 
         return resp
-
-
-class author_search_json(author_search):
-    path = '/search/authors'
-    encoding = 'json'
-
-    def GET(self):
-        i = web.input(q='', offset=0, limit=100, fields='*', sort='')
-        offset = safeint(i.offset, 0)
-        limit = safeint(i.limit, 100)
-        limit = min(1000, limit)  # limit limit to 1000.
-
-        response = self.get_results(
-            i.q,
-            request_label='AUTHOR_SEARCH_API',
-            offset=offset,
-            limit=limit,
-            fields=i.fields,
-            sort=i.sort,
-        )
-        raw_resp = response.raw_resp['response']
-        for doc in raw_resp['docs']:
-            # SIGH the public API exposes the key like this :(
-            doc['key'] = doc['key'].split('/')[-1]
-        web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(raw_resp))
 
 
 @public
@@ -1223,7 +1138,7 @@ async def work_search_async(
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
     scheme = WorkSearchScheme(lang=lang)
-    resp = await async_run_solr_query(
+    resp = await run_solr_query_async(
         scheme,
         prepared.query,
         rows=prepared.limit,
@@ -1239,71 +1154,17 @@ async def work_search_async(
     return _process_solr_search_response(resp, fields)
 
 
-class search_json(delegate.page):
-    path = "/search"
-    encoding = "json"
+def validate_search_json_query(q: str | None) -> str | None:
+    if q and len(q) < 3:
+        return 'Query too short, must be at least 3 characters'
 
-    def GET(self):
-        i = web.input(
-            author_key=[],
-            subject_facet=[],
-            person_facet=[],
-            place_facet=[],
-            time_facet=[],
-            first_publish_year=[],
-            publisher_facet=[],
-            language=[],
-            public_scan_b=[],
-        )
-        if 'query' in i:
-            query = json.loads(i.query)
-        else:
-            query = i
-
-        sort = query.get('sort', None)
-
-        limit = safeint(query.pop("limit", "100"), default=100)
-        if "offset" in query:
-            offset = safeint(query.pop("offset", 0), default=0)
-            page = None
-        else:
-            offset = None
-            page = safeint(query.pop("page", "1"), default=1)
-
-        fields = WorkSearchScheme.default_fetched_fields
-        if _fields := query.pop('fields', ''):
-            fields = _fields.split(',')
-
-        spellcheck_count = safeint(
-            query.pop("_spellcheck_count", default_spellcheck_count),
-            default=default_spellcheck_count,
+    BLOCKED_QUERIES = {'the'}
+    if q and q.lower() in BLOCKED_QUERIES:
+        return (
+            f"Invalid query; the following queries are not allowed: {', '.join(sorted(BLOCKED_QUERIES))}",
         )
 
-        # If the query is a /list/ key, create custom list_editions_query
-        q = query.get('q', '').strip()
-        query['q'], page, offset, limit = rewrite_list_query(q, page, offset, limit)
-        response = work_search(
-            query,
-            sort=sort,
-            page=page,
-            offset=offset,
-            limit=limit,
-            fields=fields,
-            # We do not support returning facets from /search.json,
-            # so disable it. This makes it much faster.
-            facet=False,
-            spellcheck_count=spellcheck_count,
-            request_label='BOOK_SEARCH_API',
-        )
-        response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
-        response['q'] = q
-        response['offset'] = offset
-        # force all other params to appear before `docs` in json
-        docs = response['docs']
-        del response['docs']
-        response['docs'] = docs
-        web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(response, indent=4))
+    return None
 
 
 def setup():

@@ -35,7 +35,7 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
         check=True,
         # Mainly for testing:
         capture_output=capture_output,
-        text=capture_output if capture_output else None,
+        text=capture_output or None,
     )
 
 

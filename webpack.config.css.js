@@ -4,6 +4,7 @@
  */
 const path = require('path');
 const glob = require('glob');
+const { execSync } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const LessPluginCleanCss = require('less-plugin-clean-css');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
@@ -59,6 +60,23 @@ module.exports = {
         ]
     },
     plugins: [
+        // Re-generate CSS custom properties from LESS variables before each build.
+        // Ensures generated-custom-properties.css stays in sync during watch mode.
+        {
+            apply: (compiler) => {
+                compiler.hooks.beforeCompile.tap('GenerateCSSVarsPlugin', () => {
+                    try {
+                        execSync('node scripts/generate-css-custom-properties.js', {
+                            stdio: 'inherit',
+                            cwd: __dirname,
+                        });
+                    } catch (e) {
+                        // eslint-disable-next-line no-console
+                        console.error('Failed to generate CSS custom properties:', e.message);
+                    }
+                });
+            }
+        },
         new MiniCssExtractPlugin({
             filename: '[name].css',
         }),

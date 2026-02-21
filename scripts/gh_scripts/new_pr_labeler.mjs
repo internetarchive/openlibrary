@@ -19,6 +19,8 @@
  */
 import { Octokit } from "@octokit/action";
 
+const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i
+
 console.log('Script starting....')
 const octokit = new Octokit()
 await main()
@@ -123,7 +125,6 @@ function parseArgs() {
  *                   "Closes" statement is found.
  */
 function findLinkedIssue(body) {
-    let lowerBody = body.toLowerCase()
-    const matches = lowerBody.match(/closes #(\d+)/)
+    const matches = body.match(CLOSES_REGEX)
     return matches?.length ? Number(matches[1]) : ''
 }

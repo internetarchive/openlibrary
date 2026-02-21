@@ -1,8 +1,12 @@
 from unittest.mock import Mock, patch
 
+import pytest
+
 from openlibrary.core import lending
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
+@pytest.mark.usefixtures("request_context_fixture")
 class TestAddAvailability:
     def test_reads_ocaids(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
@@ -41,6 +45,23 @@ class TestAddAvailability:
 
 
 class TestGetAvailability:
+    @pytest.fixture(autouse=True)
+    def setup_context(self):
+        """Set up RequestContextVars with specific values for this test class."""
+        token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for="ol-internal",
+                user_agent="test-user-agent",
+                lang=None,
+                solr_editions=True,
+                print_disabled=False,
+                is_bot=False,
+            )
+        )
+        yield
+        # Cleanup
+        req_context.reset(token)
+
     def test_cache(self):
         with patch("openlibrary.core.ia.session.get") as mock_get:
             mock_get.return_value = Mock()

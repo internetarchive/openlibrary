@@ -9,7 +9,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     ports:
       # Debugger
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -30,8 +30,13 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    ports:
+      # Debugger
+      - 127.0.0.1:3001:3000
     volumes:
       - .:/openlibrary
+    environment:
+      - LOCAL_DEV=true
 
   solr:
     environment:

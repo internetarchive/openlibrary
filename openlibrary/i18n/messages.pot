@@ -1,8 +1,8 @@
 # Translations template for Open Library.
-# Copyright (C) 2025 Internet Archive
+# Copyright (C) 2026 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
@@ -107,7 +107,7 @@ msgid "Preview Only"
 msgstr ""
 
 #: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html
+#: editpage.html import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -117,8 +117,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_work.html covers/change.html lib/history.html
+#: covers/book_cover.html covers/change.html lib/history.html
 #: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
 #: native_dialog.html
 msgid "Close"
@@ -279,7 +278,7 @@ msgid "Reviews"
 msgstr ""
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html lists/widget.html recentchanges/index.html
+#: lib/nav_head.html lists/home.html recentchanges/index.html
 #: type/edition/view.html type/list/embed.html type/user/view.html
 #: type/work/view.html
 msgid "Lists"
@@ -366,8 +365,8 @@ msgid "Loading indicator"
 msgstr ""
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
-#: book_providers/read_button.html books/edit/edition.html books/show.html
-#: books/works-show.html trending.html type/list/embed.html widget.html
+#: book_providers/read_button.html books/edit/edition.html trending.html
+#: type/list/embed.html widget.html
 msgid "Read"
 msgstr ""
 
@@ -619,14 +618,6 @@ msgstr ""
 msgid "Listen"
 msgstr ""
 
-#: ReadMore.html
-msgid "Read more"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read less"
-msgstr ""
-
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
@@ -781,6 +772,14 @@ msgstr ""
 
 #: SearchResultsWork.html
 msgid "added to"
+msgstr ""
+
+#: SearchResultsWork.html design.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html design.html
+msgid "Show less"
 msgstr ""
 
 #: SearchResultsWork.html
@@ -1070,8 +1069,8 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
-#: home/index.html home/welcome.html openlibrary/plugins/openlibrary/api.py
-msgid "Welcome to Open Library"
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+msgid "Open Library"
 msgstr ""
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
@@ -1480,20 +1479,6 @@ msgid "Public and cannot be changed later."
 msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
-msgid ""
-"I want to receive news, announcements, and resources from the <a "
-"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
-"runs Open Library."
-msgstr ""
-
-#: openlibrary/plugins/upstream/forms.py
-msgid ""
-"I want to apply* for <a href=\"https://help.archive.org/help/program-"
-"overview/\" target=\"_blank\">special print disability access</a> through"
-" a qualifying program."
-msgstr ""
-
-#: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
 msgstr ""
 
@@ -1788,31 +1773,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
@@ -1831,9 +1792,156 @@ msgstr ""
 msgid "Link (clicked)"
 msgstr ""
 
+#: design.html
+msgid "Pagination component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+msgid "Event-based"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+msgid "Selected page:"
+msgstr ""
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+msgid "3 pages"
+msgstr ""
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Read More component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+msgid "Custom background color"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
+msgstr ""
+
+#: diff.html
+#, python-format
+msgid "Revision %d"
+msgstr ""
+
+#: books/check.html covers/book_cover.html diff.html jsdef/LazyWorkPreview.html
+msgid "by"
+msgstr ""
+
+#: diff.html
+msgid "by Anonymous"
+msgstr ""
+
+#: diff.html
+msgid "history"
 msgstr ""
 
 #: diff.html
@@ -1850,25 +1958,6 @@ msgstr ""
 
 #: diff.html
 msgid "Not changed"
-msgstr ""
-
-#: diff.html
-#, python-format
-msgid "Revision %d"
-msgstr ""
-
-#: books/check.html books/show.html covers/book_cover.html
-#: covers/book_cover_single_edition.html covers/book_cover_work.html diff.html
-#: jsdef/LazyWorkPreview.html
-msgid "by"
-msgstr ""
-
-#: diff.html
-msgid "by Anonymous"
-msgstr ""
-
-#: diff.html
-msgid "history"
 msgstr ""
 
 #: diff.html
@@ -1934,6 +2023,20 @@ msgstr ""
 
 #: import_preview.html
 msgid "Preview Import"
+msgstr ""
+
+#: import_preview.html
+msgid "Show Raw Import Data"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "New %(thing_type)s record will be created"
+msgstr ""
+
+#: import_preview.html
+#, python-format
+msgid "Changes to %(key)s"
 msgstr ""
 
 #: internalerror.html
@@ -2508,6 +2611,20 @@ msgid "screenname"
 msgstr ""
 
 #: account/create.html
+msgid ""
+"I want to receive news, announcements, and resources from the <a "
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
+"runs Open Library."
+msgstr ""
+
+#: account/create.html
+msgid ""
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\">special print disability access</a> through"
+" a qualifying program."
+msgstr ""
+
+#: account/create.html
 msgid "Select qualifying program"
 msgstr ""
 
@@ -2808,8 +2925,8 @@ msgstr ""
 msgid "Publish date unknown"
 msgstr ""
 
-#: account/notes.html books/edition-sort.html books/works-show.html
-#: lists/export_as_html.html type/work/editions.html
+#: account/notes.html books/edition-sort.html lists/export_as_html.html
+#: type/work/editions.html
 msgid "Publisher unknown"
 msgstr ""
 
@@ -3439,7 +3556,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
 msgstr ""
 
@@ -3457,6 +3574,12 @@ msgstr ""
 
 #: admin/imports_by_date.html
 msgid "Items"
+msgstr ""
+
+#: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
 msgstr ""
 
 #: admin/index.html
@@ -3595,6 +3718,14 @@ msgstr ""
 msgid "Borrows, last 2 years graph"
 msgstr ""
 
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
+msgstr ""
+
 #: admin/loans_table.html
 msgid "BookReader"
 msgstr ""
@@ -3667,6 +3798,26 @@ msgstr ""
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Breakdown by Qualifying Authority"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "PDA"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Emailed"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Fulfilled"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Totals"
 msgstr ""
 
 #: admin/permissions.html
@@ -3770,6 +3921,48 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
+msgstr ""
+
+#: admin/sync.html
+msgid "Sync"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+
+#: admin/sync.html
+msgid "Add Works to Staff Picks"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
+msgstr ""
+
+#: admin/sync.html
+msgid "add"
+msgstr ""
+
+#: admin/sync.html
+msgid "remove"
+msgstr ""
+
+#: admin/sync.html
+msgid "Update edition"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -5454,25 +5647,19 @@ msgstr ""
 msgid "Pull up a bigger book cover"
 msgstr ""
 
-#: covers/book_cover.html covers/book_cover_single_edition.html
-#: covers/book_cover_small.html covers/book_cover_work.html
+#: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_work.html
-msgid "View a larger book cover"
-msgstr ""
-
-#: covers/book_cover_single_edition.html covers/book_cover_small.html
-#: covers/book_cover_work.html
-#, python-format
-msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
+msgstr ""
+
+#: covers/book_cover_small.html
+#, python-format
+msgid "We need a book cover for: %(title)s"
 msgstr ""
 
 #: covers/change.html
@@ -5601,6 +5788,10 @@ msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
 msgstr[0] ""
 msgstr[1] ""
+
+#: home/index.html home/welcome.html
+msgid "Welcome to Open Library"
+msgstr ""
 
 #: home/index.html
 msgid "Recently Returned"
@@ -5919,10 +6110,6 @@ msgstr ""
 msgid "Just a sentence or two is good."
 msgstr ""
 
-#: lib/nav_foot.html site/neck.html
-msgid "Open Library"
-msgstr ""
-
 #: lib/nav_foot.html
 msgid "Vision"
 msgstr ""
@@ -6057,6 +6244,10 @@ msgstr ""
 
 #: lib/nav_foot.html
 msgid "Release Notes"
+msgstr ""
+
+#: lib/nav_foot.html
+msgid "Bluesky"
 msgstr ""
 
 #: lib/nav_foot.html
@@ -6195,6 +6386,10 @@ msgstr ""
 msgid "Quality Criteria"
 msgstr ""
 
+#: lists/carousel.html lists/home.html lists/showcase.html
+msgid "See all"
+msgstr ""
+
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
@@ -6309,10 +6504,6 @@ msgstr ""
 msgid "No description."
 msgstr ""
 
-#: lists/home.html lists/showcase.html lists/widget.html
-msgid "See all"
-msgstr ""
-
 #: lists/list_follow.html
 msgid "Cover of book"
 msgstr ""
@@ -6422,13 +6613,6 @@ msgstr ""
 #: lists/showcase.html
 msgid "You have no lists."
 msgstr ""
-
-#: lists/widget.html
-#, python-format
-msgid "%(count)d List"
-msgid_plural "%(count)d Lists"
-msgstr[0] ""
-msgstr[1] ""
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
@@ -7609,6 +7793,14 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

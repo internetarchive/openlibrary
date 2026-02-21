@@ -3,8 +3,8 @@
 
 div.tutorial__item {
   background-color: @book-cover-carousel-cards;
-  border: 1px solid hsl(0, 0%, 87%);
-  border-radius: 5px;
+  border: @border-card;
+  border-radius: @border-radius-card;
   padding: 10px;
   min-width: 220px;
 
@@ -12,16 +12,17 @@ div.tutorial__item {
     min-width: 310px;
   }
   &:focus {
-    border: 1px solid hsl(202, 97%, 28%);
+    box-shadow: @box-shadow-focus;
   }
   p {
     margin: 4% 5% 5%;
     font-size: 1rem;
     font-weight: 500;
-    line-height: normal;
+    line-height: @line-height-tight;
   }
   p.small {
     font-size: 0.8rem;
+    line-height: @line-height-snug;
   }
   a {
     display: flex;
@@ -45,7 +46,7 @@ div.chartHome a:hover,
 }
 #home {
   &-stats-charts {
-    .display-flex();
+    display: flex;
     flex-wrap: wrap;
     .statschart {
       flex: 1;
@@ -70,7 +71,7 @@ div.chartHome a:hover,
         }
         .ticks {
           margin-top: 2px;
-          font-family: @georgia_serif-2;
+          font-family: @font-family-serif;
           font-size: 1.125em;
           font-weight: 700;
           padding-top: 5px;
@@ -90,7 +91,7 @@ div.chartHome a:hover,
     text-align: left;
   }
   &-about {
-    .display-flex();
+    display: flex;
     flex-wrap: wrap;
     font-size: 13px;
   }
@@ -100,14 +101,14 @@ div.chartHome a:hover,
     max-width: 439px;
     min-height: 100px;
     margin-bottom: 20px;
-    font-family: @georgia_serif-2;
+    font-family: @font-family-serif;
   }
   &-about-mission-tldr {
     padding: 0;
     margin: 0;
     font-size: 18px;
-    line-height: 1.5em;
-    font-family: @georgia_serif-2;
+    line-height: @line-height-body;
+    font-family: @font-family-serif;
     color: @dark-grey;
     font-weight: normal;
   }

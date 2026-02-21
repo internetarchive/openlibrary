@@ -28,6 +28,7 @@ from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.utils import olid_to_key
+from openlibrary.utils.request_context import site
 
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
@@ -39,7 +40,7 @@ def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
 
 
 def is_seed_subject_string(seed: str) -> bool:
-    subject_type = seed.split(":")[0]
+    subject_type = seed.split(":", maxsplit=1)[0]
     return subject_type in ("subject", "place", "person", "time")
 
 
@@ -379,6 +380,11 @@ class lists_delete(delegate.page):
     encoding = "json"
 
     def POST(self, key):
+        if not (user := get_current_user()):
+            raise web.unauthorized()
+        # Check if current user is admin or list owner
+        if not user.is_admin() and (user.key and not key.startswith(user.key)):
+            raise web.unauthorized()
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
@@ -941,6 +947,29 @@ def get_active_lists_in_random(limit=20, preload=True):
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
     return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+
+
+@public
+def get_lists(keys: list[str]):
+    # Fetches and caches the lists through Solr, rather than through the DB.
+    from openlibrary.core.lists.model import List
+    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+
+    or_query = ' OR '.join(f'"{k}"' for k in keys)
+    response = run_solr_query(
+        param={"q": f'seed:({or_query})'},
+        scheme=ListSearchScheme(),
+        fields=["key"],
+        offset=0,
+        rows=20,
+        extra_params=[('fq', "seed_count:[2 TO *]")],
+        sort='last_modified desc',
+        request_label="LIST_CAROUSEL",
+    )
+    lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
+
+    return [get_list_data(lst, None) for lst in lists]
 
 
 class lists_preview(delegate.page):

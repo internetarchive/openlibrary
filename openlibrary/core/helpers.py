@@ -4,26 +4,18 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any
+from typing import Any, cast
 from urllib.parse import urlsplit
 
 import babel
 import babel.core
 import babel.dates
 import babel.numbers
+import genshi
+import genshi.filters
 import web
 from babel.core import Locale
-
-try:
-    import genshi
-    import genshi.filters
-except ImportError:
-    genshi = None
-
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    BeautifulSoup = None
+from bs4 import BeautifulSoup
 
 from infogami import config
 from infogami.infobase.client import Nothing
@@ -60,17 +52,13 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html: str, encoding: str = 'utf8') -> str:
+def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
     encoding="utf8" matches default format for earlier versions of Genshi
     https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
     """
-
-    # Can't sanitize unless genshi module is available
-    if genshi is None:
-        return html
 
     def get_nofollow(name, event):
         attrs = event[1][1]
@@ -82,29 +70,25 @@ def sanitize(html: str, encoding: str = 'utf8') -> str:
                 return 'nofollow'
 
     try:
-        html = genshi.HTML(html, encoding=encoding)
+        html_stream = genshi.HTML(html, encoding=encoding)
 
     # except (genshi.ParseError, UnicodeDecodeError, UnicodeError) as e:
     # don't catch Unicode errors so we can tell if we're getting bytes
     except genshi.ParseError:
-        if BeautifulSoup:
-            # Bad html. Tidy it up using BeautifulSoup
+        # Bad html. Tidy it up using BeautifulSoup
+        if beautify:
             html = str(BeautifulSoup(html, "lxml"))
-            try:
-                html = genshi.HTML(html)
-            except Exception:
-                # Failed to sanitize.
-                # We can't do any better than returning the original HTML, without sanitizing.
-                return html
+            # Avoid infinite recursion by disabling beautify on the next call
+            return sanitize(html, encoding=encoding, beautify=False)
         else:
             raise
 
     stream = (
-        html
+        html_stream
         | genshi.filters.HTMLSanitizer()
         | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     )
-    return stream.render()
+    return cast(str, stream.render())
 
 
 class NothingEncoder(json.JSONEncoder):

@@ -89,7 +89,7 @@ class read_multiget(delegate.page):
             m = self.path_re.match(decoded_path)
             if len(m.groups()) != 2:
                 return json.dumps({})
-            (brief_or_full, req) = m.groups()
+            _brief_or_full, req = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)

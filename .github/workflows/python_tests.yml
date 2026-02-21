@@ -12,6 +12,7 @@ on:
       - '**.vue'
       - '**.less'
       - '**.css'
+      - '**.md'
 permissions:
   contents: read
 
@@ -19,13 +20,13 @@ jobs:
   python_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: true
       - uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: ${{ env.pythonLocation }}
           key: ${{ runner.os }}-venv-${{ env.pythonLocation }}-${{ hashFiles('requirements*.txt') }}
@@ -35,7 +36,7 @@ jobs:
           # https://lxml.de/installation.html#requirements
           sudo apt-get install -y libxml2 libxslt-dev
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
       - name: Install dependencies
         env:
           UV_SYSTEM_PYTHON: 1
@@ -60,6 +61,6 @@ jobs:
           make test-py
           source scripts/run_doctests.sh
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

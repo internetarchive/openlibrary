@@ -37,7 +37,7 @@
   height: 150px;
 
   border: 1px solid fade(@black, 25%);
-  border-radius: 4px;
+  border-radius: @border-radius-card;
   box-shadow: 2px 2px 4px fade(@black, 15%);
 
   &__header {
@@ -46,7 +46,7 @@
     justify-content: center;
     align-items: center;
     padding: 7px 10px;
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 @border-radius-card @border-radius-card;
     width: 100%;
     a& {
       text-decoration: none;
@@ -63,7 +63,7 @@
     padding-top: 5px;
     gap: 0.5em;
     width: 100%;
-    border-radius: 0 0 4px 4px;
+    border-radius: 0 0 @border-radius-card @border-radius-card;
   }
   &__user {
     display: flex;
@@ -74,7 +74,7 @@
     min-width: 0;
 
     img {
-      border-radius: 8px;
+      border-radius: @border-radius-thumbnail;
       width: 30px;
       height: 30px;
       margin-right: 5px;

@@ -107,7 +107,7 @@ async def main(
     dry_run=True,
     fetch_freq=10,
     commit_freq=30,
-    agg: Literal['max', 'min', 'sum', None] = None,
+    agg: Literal['max', 'min', 'sum'] | None = None,
 ):
     graphite_address_tuple = tuple(graphite_address.split(':', 1))
     graphite_address_tuple = (graphite_address_tuple[0], int(graphite_address_tuple[1]))

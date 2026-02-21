@@ -74,7 +74,8 @@ def test_build_query(add_languages):
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
     assert q['translated_from'] == [{'key': '/languages/yid'}]
 
-    pytest.raises(InvalidLanguage, import_record_to_edition, {'languages': ['wtf']})
+    with pytest.raises(InvalidLanguage):
+        import_record_to_edition({'languages': ['wtf']})
 
 
 class TestImportAuthor:

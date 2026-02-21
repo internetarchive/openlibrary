@@ -1,5 +1,10 @@
 # Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
 
+find_worker_pids() {
+    ps aux | grep -E 'openlibrary-server|coverstore-server' | grep -v 'grep' | awk '{print $2}'
+}
+export -f find_worker_pids
+
 py_spy_cur_fn() {
     pid=$1
 
@@ -12,7 +17,7 @@ py_spy_cur_fn() {
 
     py-spy dump --nonblocking --pid $pid \
     | grep -vE '^(Process|Python|Thread)' \
-    | grep -vE '(\bssl\.py|(readinto) .*socket\.py|http/client\.py|sentry_sdk|urllib3/connection\.py|<genexpr>|urllib3/connectionpool\.py|requests/(api|adapters|sessions)\.py)' \
+    | grep -vE '(\bssl\.py|(readinto) .*socket\.py|http/client\.py|sentry_sdk|urllib3/connection\.py|<genexpr>|urllib3/connectionpool\.py|requests/(api|adapters|sessions)\.py|httpcore/|httpx/)' \
     | head -n2 | tail -n1
 }
 export -f py_spy_cur_fn
@@ -59,7 +64,7 @@ log_workers_cur_fn() {
     #       related to requests connection pooling
     # - get_availability|get_api_response: Main time block for IA requests
 
-    for pid in $(ps aux | grep -E 'openlibrary-server|coverstore-server' | grep -v 'grep' | awk '{print $2}'); do
+    for pid in $(find_worker_pids); do
         echo "$pid $(py_spy_cur_fn $pid)";
     done 2>/dev/null \
         | awk '{$1=""; print}' \

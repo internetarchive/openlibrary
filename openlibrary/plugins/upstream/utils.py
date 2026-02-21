@@ -36,7 +36,9 @@ from web.template import TemplateResult
 from web.utils import Storage
 
 from infogami import config
+from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
+from infogami.infobase.common import parse_query
 from infogami.utils import delegate, features, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
@@ -48,6 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.utils import request_context
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -234,18 +237,17 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
-        lang = web.ctx.lang
+        req_context = request_context.req_context.get()
+        lang = req_context.lang
         key_prefix = f'{name}.{lang}'
-        cookies = web.cookies()
-        if cookies.get('pd', False):
+        if req_context.print_disabled:
             key_prefix += '.pd'
-        if cookies.get('sfw', ''):
+        if req_context.sfw:
             key_prefix += '.sfw'
-        if is_bot():
+        if req_context.is_bot:
             key_prefix += '.bot'
         return key_prefix
 
@@ -312,7 +314,9 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
-    lang = web.ctx.lang or 'en'
+
+    lang = request_context.req_context.get().lang or 'en'
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
     try:
@@ -728,10 +732,9 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
-    return {
-        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
-    }
+    site = request_context.site.get()
+    keys = site.things({"type": "/type/language", "limit": limit})
+    return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
 
 def word_prefix_match(prefix: str, text: str) -> bool:
@@ -752,7 +755,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
-        user_lang = web.ctx.lang or 'en'
+        user_lang = request_context.req_context.get().lang or 'en'
         yield safeget(lambda: lang['name_translated'][user_lang][0])
 
         # The language's name translated into its native name (lang_iso_code)
@@ -1176,7 +1179,9 @@ def get_marc21_language(language: str) -> str | None:
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
+def get_language_name(
+    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -1184,7 +1189,6 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     else:
         lang = lang_or_key
 
-    user_lang = web.ctx.lang or 'en'
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
@@ -1457,6 +1461,18 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
+
+
+@public
+def create_thing(data: dict) -> Thing:
+    """
+    Helper method to convert a data object recursively to the correct `Thing`
+    classes. Will change the dict to be the same type as when fetched from
+    the database via `web.ctx.site.get`.
+    """
+    return client.create_thing(
+        web.ctx.site, data['key'], web.ctx.site._process_dict(parse_query(data))
+    )
 
 
 @public

@@ -4,7 +4,7 @@
   margin-bottom: 20px;
   font-weight: bold;
 
-  display: block;
+  display: flex;
   overflow-x: auto;
   white-space: nowrap;
   scroll-behavior: smooth;
@@ -15,11 +15,15 @@
   }
 
   li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
     text-decoration: none;
     color: @grey;
-    padding: 12px 15px 8px;
-    display: inline-block;
-    line-height: 1.5em;
+    padding: 0 12px;
+    line-height: @line-height-control;
+    border-bottom: 2px solid transparent;
   }
 
   /* stylelint-disable selector-max-specificity */
@@ -32,12 +36,6 @@
     border-bottom: 2px solid @link-blue;
   }
   /* stylelint-enable selector-max-specificity */
-}
-
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  .nav-bar li a {
-    padding-top: 4px;
-  }
 }
 
 .nav-bar-wrapper {
@@ -100,18 +98,18 @@
     padding: 8px 20px 0;
     background: @white;
     z-index: @z-index-level-5;
+    gap: 4px;
     scrollbar-width: thin;
 
     /* stylelint-disable selector-max-specificity */
     li {
       display: inline-block;
-      height: 30px;
       border-radius: 11px;
       margin-bottom: 6px;
     }
 
     li a {
-      padding: 4px 15px;
+      padding: 0 12px;
       vertical-align: text-top;
     }
     li:first-child {

@@ -4,14 +4,17 @@
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
+    "generate:css-vars": "node scripts/generate-css-custom-properties.js",
     "watch": "env NODE_ENV=development npx webpack --config webpack.config.js --config webpack.config.css.js --watch --progress",
     "watch-polling": "env FORCE_POLLING=true npm run watch",
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "env NODE_ENV=development npx webpack --config webpack.config.css.js --watch --progress",
-    "build-assets": "make js && make css && make components",
+    "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
+    "build-assets": "make js && make css && make components && make lit-components",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
     "build-assets:js": "make js",
+    "build-assets:lit-components": "make lit-components",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint --ext js,vue .",
@@ -56,13 +59,14 @@
     "less": "^4.2.0",
     "less-loader": "^12.2.0",
     "less-plugin-clean-css": "^1.6.0",
+    "lit": "^3.2.1",
     "lodash": "4.17.21",
     "lucene-query-parser": "1.2.0",
     "mini-css-extract-plugin": "^2.9.2",
     "prettier": "^3.5.3",
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
-    "sinon": "20.0.0",
+    "sinon": "21.0.1",
     "slick-carousel": "1.6.0",
     "style-loader": "^4.0.0",
     "stylelint": "^16.22.0",
@@ -74,10 +78,12 @@
     "vue": "^3.5.13",
     "vue-async-computed": "^4.0.1",
     "vue-multiselect": "^3.1.0",
-    "vue-web-component-wrapper": "^1.6.11",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
     "workbox-webpack-plugin": "^7.3.0"
+  },
+  "engines": {
+    "node": "^24.0.0"
   },
   "jest": {
     "roots": [

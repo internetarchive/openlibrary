@@ -4,6 +4,7 @@
  */
 @import "components/buttonBtn.less";
 @import "less/breakpoints.less";
+@import (reference) "less/border-radius.less";
 
 .page-banner {
   display: block;
@@ -25,7 +26,7 @@
     padding: 5px;
     .cta {
       padding: 4px 8px;
-      border-radius: 5px;
+      border-radius: @border-radius-button;
       border: 1px solid @grey-555;
       font-weight: 500;
       text-decoration: none;
@@ -34,7 +35,7 @@
     }
   }
   .button {
-    border-radius: 5px;
+    border-radius: @border-radius-button;
     padding: 8px 10px;
     cursor: pointer;
     display: inline;

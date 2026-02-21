@@ -25,10 +25,15 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
+
 
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
@@ -42,12 +47,32 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
+
+def setup_contextvars(handler):
+    """Processor that sets up context variables for the entire request lifecycle.
+
+    This ensures RequestContextVars are available during template rendering
+    and throughout the entire request.
+
+    IMPORTANT: We DON'T wrap in a new context here because that would isolate
+    the context variables to just this processor. Instead, we set them in the
+    current context so they're available to all subsequent processors and templates.
+    """
+    # Set context variables for this request
+    set_context_from_legacy_web_py()
+
+    # Run the handler (and all subsequent processors)
+    return handler()
+
+
+# Add processors in order - setup_contextvars must come BEFORE the handler
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
 delegate.app.add_processor(
@@ -59,6 +84,9 @@ delegate.app.add_processor(
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
+# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
+# It's added here (not as a loadhook) so it runs in the same request context
+delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
@@ -264,7 +292,7 @@ class widget(delegate.page):
     path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
     def GET(self, key: str):  # type: ignore[override]
-        olid = key.split('/')[-1]
+        olid = key.rsplit('/', maxsplit=1)[-1]
         item = web.ctx.site.get(key)
         is_work = key.startswith('/works/')
         item['olid'] = olid
@@ -310,6 +338,8 @@ class addauthor(delegate.page):
     path = '/addauthor'
 
     def POST(self):
+        if not (get_current_user()):
+            raise web.unauthorized()
         i = web.input('name')
         if len(i.name) < 2:
             return web.badrequest()
@@ -1198,71 +1228,8 @@ class memory(delegate.page):
 
 
 def is_bot():
-    r"""Generated on ol-www1 within /var/log/nginx with:
-
-    cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
-    cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'
-
-    Manually removed singleton `bot` (to avoid overly complex grep regex)
-    """
-    if 'is_bot' in web.ctx:
-        return web.ctx.is_bot
-
-    user_agent_bots = [
-        'sputnikbot',
-        'dotbot',
-        'semrushbot',
-        'googlebot',
-        'yandexbot',
-        'monsidobot',
-        'kazbtbot',
-        'seznambot',
-        'dubbotbot',
-        '360spider',
-        'redditbot',
-        'yandexmobilebot',
-        'linkdexbot',
-        'musobot',
-        'mojeekbot',
-        'focuseekbot',
-        'behloolbot',
-        'startmebot',
-        'yandexaccessibilitybot',
-        'uptimerobot',
-        'femtosearchbot',
-        'pinterestbot',
-        'toutiaospider',
-        'yoozbot',
-        'parsijoobot',
-        'equellaurlbot',
-        'donkeybot',
-        'paperlibot',
-        'nsrbot',
-        'discordbot',
-        'ahrefsbot',
-        '`googlebot',
-        'coccocbot',
-        'buzzbot',
-        'laserlikebot',
-        'baiduspider',
-        'bingbot',
-        'mj12bot',
-        'yoozbotadsbot',
-        'ahrefsbot',
-        'amazonbot',
-        'applebot',
-        'bingbot',
-        'brightbot',
-        'gptbot',
-        'petalbot',
-        'semanticscholarbot',
-        'yandex.com/bots',
-        'icc-crawler',
-    ]
-    if not web.ctx.env.get('HTTP_USER_AGENT'):
-        return True
-    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
-    return any(bot in user_agent for bot in user_agent_bots)
+    """Check if the current request is from a bot."""
+    return req_context.get().is_bot
 
 
 def setup_template_globals():

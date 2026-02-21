@@ -10,12 +10,12 @@ from openlibrary.utils.ddc import (
 # Src: https://www.oclc.org/bibformats/en/0xx/082.html
 TESTS_FROM_OCLC = [
     ("370.19'342", ['370.19342'], "Segmentation (prime) marks"),
-    ("370.19/342", ['370.19342'], "Segmentation (prime) marks"),
+    ("370.19/342", ['370.19342'], "Segmentation (prime) marks 2"),
     ("j574", ['j574', '574'], "Juvenile works."),
     ("[E]", ['[E]'], "Juvenile works with [E]"),
     ("[Fic]", ['[Fic]'], "Juvenile works with [Fic]."),
     ("658.404 92", ['658.404 92'], "Dewey numbers followed by 92 or 920."),
-    ("658.404 920", ['658.404 920'], "Dewey numbers followed by 92 or 920."),
+    ("658.404 920", ['658.404 920'], "Dewey numbers followed by 92 or 920. 2"),
     ("942.082 [B]", ['942.082 B'], "Uppercase B in post-1971 numbers."),
     (
         "*657.6",
@@ -27,10 +27,10 @@ TESTS_FROM_OCLC = [
         "*735.29 735.42",
         ['735.29*', '735.42'],
         "LC assigned Dewey numbers according to both the 14th and the 15th editions of "
-        "the Dewey schedules.",
+        "the Dewey schedules. 2",
     ),
     ("081s", ['081 s'], "Series numbers."),
-    ("081 s", ['081 s'], "Series numbers."),
+    ("081 s", ['081 s'], "Series numbers. 2"),
     (
         "(015.73)",
         ['015.73 s'],
@@ -39,7 +39,7 @@ TESTS_FROM_OCLC = [
     (
         "015.73 s",
         ['015.73 s'],
-        "Parentheses indicating Dewey numbers assigned to a series.",
+        "Parentheses indicating Dewey numbers assigned to a series. 2",
     ),
     (
         "(015.73) 015.791",
@@ -47,9 +47,9 @@ TESTS_FROM_OCLC = [
         "Two Dewey numbers: one in parentheses, one not.",
     ),
     ("-222.14", ['-222.14'], "Dewey numbers with minus signs."),
-    ("-222.14 (927.5)", ['-222.14', '927.5 s'], "Dewey numbers with minus signs."),
+    ("-222.14 (927.5)", ['-222.14', '927.5 s'], "Dewey numbers with minus signs. 2"),
     ("[320.9777]", ['320.9777'], "Dewey numbers in brackets."),
-    ("[016.3584] 012", ['016.3584'], "Dewey numbers in brackets."),
+    ("[016.3584] 012", ['016.3584'], "Dewey numbers in brackets. 2"),
     (
         "081s [370.19'342]",
         ['081 s', '370.19342'],
@@ -60,8 +60,8 @@ TESTS_FROM_OCLC = [
 TESTS = [
     ('123', ['123'], 'whole number'),
     ('1', ['001'], 'whole number padding'),
-    ('hello world!', [], 'junk'),
-    ('978123412341', [], 'junk'),
+    ('hello world!', [], 'junk text'),
+    ('978123412341', [], 'junk isbn'),
     (
         '338.9/009171/7 019',
         ['338.90091717'],
@@ -136,7 +136,7 @@ def test_normalize_ddc_prefix(prefix, normed, name):
 
 RANGE_TESTS = [
     (['0', '3'], ['000', '003'], 'Single numbers'),
-    (['100', '300'], ['100', '300'], 'Single numbers'),
+    (['100', '300'], ['100', '300'], 'Bigger single numbers'),
     (['100', '*'], ['100', '*'], 'Star'),
 ]
 

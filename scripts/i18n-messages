@@ -2,6 +2,7 @@
 """Utility script to extract all translatable messages from templates and
 macros and write to openlibrary/i18n/messages.pot file.
 """
+
 import subprocess
 import sys
 

@@ -61,9 +61,8 @@ describe('URL Matchers', () => {
             expect(matchStaticBuild(_u('https://testing.openlibrary.org/static/build/css/page-book.css?v=097b69dc350c972d96da0c70cebe7b75'))).toBe(true);
         });
 
-        test('does not match localhost or gitpod URLs', () => {
+        test('does not match localhost URLs', () => {
             expect(matchStaticBuild(_u('http://localhost:8080/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(false);
-            expect(matchStaticBuild(_u('https://8080-internetarc-openlibrary-feliyig0grl.ws-eu110.gitpod.io/static/build/js/4290.a0ae80aacde14696d322.js'))).toBe(false);
         });
     });
 

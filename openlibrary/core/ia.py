@@ -42,6 +42,48 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     return api_response
 
 
+def save_page_now(
+    url: str, access_key: str | None = None, secret_key: str | None = None
+) -> str:
+    """Archive a URL using the Internet Archive Save Page Now API.
+
+    Returns job_id on success, or an error string like "NO_CREDENTIALS",
+    "ERROR_HTTP_<code>", or "ERROR_EXCEPTION_<msg>" on failure.
+    """
+    if not access_key or not secret_key:
+        access_key, secret_key = get_ia_s3_keys()
+
+    if not access_key or not secret_key:
+        return "NO_CREDENTIALS"
+
+    headers = {
+        "Authorization": f"LOW {access_key}:{secret_key}",
+        "Accept": "application/json",
+    }
+    data = {"url": url}
+
+    try:
+        r = session.post(
+            "https://web.archive.org/save", headers=headers, data=data, timeout=30
+        )
+        if r.status_code == 200:
+            try:
+                result = r.json()
+            except ValueError:
+                return f"ERROR_NO_JOB_ID_{r.status_code}"
+            return result.get('job_id', f"ERROR_NO_JOB_ID_{r.status_code}")
+        else:
+            return f"ERROR_HTTP_{r.status_code}"
+    except (httpx.RequestException, ValueError) as e:
+        return f"ERROR_EXCEPTION_{str(e)[:50]}"
+
+
+def get_ia_s3_keys() -> tuple[str | None, str | None]:
+    """Resolve IA S3 creds via infogami config."""
+    spn_config = config.get("ol_spn_api_s3", {})
+    return spn_config.get("s3_key"), spn_config.get("s3_secret")
+
+
 def get_metadata_direct(
     itemid: str, only_metadata: bool = True, cache: bool = True
 ) -> dict:

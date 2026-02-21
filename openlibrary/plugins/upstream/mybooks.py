@@ -1,6 +1,7 @@
 import json
+from datetime import datetime
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final, Literal, cast
+from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
 from web.template import TemplateResult
@@ -10,11 +11,12 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
 from openlibrary import accounts
 from openlibrary.accounts.model import (
-    OpenLibraryAccount,  # noqa: F401 side effects may be needed
+    OpenLibraryAccount,
 )
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.bookshelves_events import BookshelvesEvents
+from openlibrary.core.cache import memcache_memoize
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     add_availability,
@@ -23,7 +25,8 @@ from openlibrary.core.lending import (
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
@@ -56,9 +59,15 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb):
+    def render_template(self, mb: 'MyBooksTemplate') -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
-        want_to_read, currently_reading, already_read, loans = [], [], [], []
+
+        docs: dict[str, Any] = {
+            'loans': [],
+            'want-to-read': [],
+            'currently-reading': [],
+            'already-read': [],
+        }
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
@@ -69,30 +78,33 @@ class mybooks_home(delegate.page):
                 if book := web.ctx.site.get(loan['book']):
                     book.loan = loan
                     loans.docs.append(book)
+            docs['loans'] = loans
 
         if mb.me or mb.is_public:
-            params = {'sort': 'created', 'limit': 6, 'sort_order': 'desc', 'page': 1}
-            want_to_read = mb.readlog.get_works(key='want-to-read', **params)
-            currently_reading = mb.readlog.get_works(key='currently-reading', **params)
-            already_read = mb.readlog.get_works(key='already-read', **params)
+            want_to_read = mb.readlog.get_works('want-to-read', limit=6)
+            currently_reading = mb.readlog.get_works('currently-reading', limit=6)
+            already_read = mb.readlog.get_works('already-read', limit=6)
+            works = want_to_read.docs + currently_reading.docs + already_read.docs
 
-            # Ideally, do all 3 lookups in one add_availability call
-            want_to_read.docs = add_availability(
-                [d for d in want_to_read.docs if d.get('title')]
-            )[:5]
-            currently_reading.docs = add_availability(
-                [d for d in currently_reading.docs if d.get('title')]
-            )[:5]
-            already_read.docs = add_availability(
-                [d for d in already_read.docs if d.get('title')]
-            )[:5]
+            def get_edition(solr_doc: web.Storage | dict) -> dict | None:
+                editions_raw = cast(dict | list[dict], solr_doc.get('editions'))
+                if isinstance(editions_raw, dict):
+                    editions = editions_raw.get('docs', [])
+                else:
+                    editions = editions_raw or []
 
-        docs = {
-            'loans': loans,
-            'want-to-read': want_to_read,
-            'currently-reading': currently_reading,
-            'already-read': already_read,
-        }
+                return editions[0] if editions else None
+
+            add_availability(
+                [get_edition(doc) or doc for doc in works if doc.get('title')]
+            )
+
+            docs |= {
+                'want-to-read': want_to_read,
+                'currently-reading': currently_reading,
+                'already-read': already_read,
+            }
+
         return render['account/mybooks'](
             mb.user,
             docs,
@@ -526,7 +538,7 @@ class ReadingLog:
         sort_order: str = 'desc',
         q: str = "",
         year: int | None = None,
-    ) -> LoggedBooksData:
+    ) -> 'LoggedBooksData':
         """
         Get works for want-to-read, currently-reading, and already-read as
         determined by {key}.
@@ -638,3 +650,92 @@ class PatronBooknotes:
             'notes': Booknotes.count_works_with_notes_by_user(username),
             'observations': Observations.count_distinct_observations(username),
         }
+
+
+class ActivityFeed:
+
+    @classmethod
+    def get_activity_feed(cls, username):
+        """Returns up to three of the most recent events from one of two feeds.
+        If the given user is not following others, the feed will contain recently
+        logged books.  Otherwise, the feed will contain events from the patron's
+        `PubSub.get_feed` results.
+        """
+        following = PubSub.is_following(username)
+        if following:
+            feed = cls.get_cached_pub_sub_feed(username)
+        else:
+            feed = cls.get_cached_trending_feed(username)
+
+        return feed or [], following
+
+    @classmethod
+    def get_pub_sub_feed(cls, username):
+        feed = PubSub.get_feed(username, limit=3)
+        return feed
+
+    @classmethod
+    def get_cached_pub_sub_feed(cls, username):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(
+            cls.get_pub_sub_feed,
+            key_prefix="mybooks.pubsub.feed",
+            timeout=five_minutes,
+            prethread=caching_prethread(),
+        )
+        results = mc(username)
+
+        for r in results:
+            if isinstance(
+                r['created'], str
+            ):  # `datetime` objects are stored in cache as strings
+                # Update `created` to datetime, which is the type expected by `datestr` (called in card template)
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
+
+    @classmethod
+    def get_trending_feed(cls, username):
+        def has_public_reading_log(_username):
+            if acct := OpenLibraryAccount.get_by_username(_username):
+                user = acct.get_user()
+                return user and user.preferences().get('public_readlog', 'no') == 'yes'
+            return False
+
+        logged_books = Bookshelves.get_recently_logged_books(limit=10)
+        Bookshelves.add_solr_works(logged_books)
+
+        feed = []
+        for idx, item in enumerate(logged_books):
+            if (
+                item['work']
+                and item['username'] != username
+                and has_public_reading_log(item['username'])
+            ):
+                feed.append(item)
+            if len(feed) > 2:
+                break
+
+        return feed
+
+    @classmethod
+    def get_cached_trending_feed(cls, username):
+        five_minutes = 5 * dateutil.MINUTE_SECS
+        mc = memcache_memoize(
+            cls.get_trending_feed,
+            key_prefix="mybooks.trending.feed",
+            timeout=five_minutes,
+            prethread=caching_prethread(),
+        )
+        results = mc(username)
+
+        for r in results:
+            if isinstance(
+                r['created'], str
+            ):  # `datetime` objects are stored in cache as strings
+                r['created'] = datetime.fromisoformat(r['created'])
+        return results
+
+
+@public
+def get_activity_feed(username):
+    return ActivityFeed.get_activity_feed(username)

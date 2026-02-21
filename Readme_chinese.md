@@ -42,9 +42,6 @@
 需要更多信息？请查看 [Docker指南](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 或者[视频教程](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4)。
 
-***或者***，如果您不想在本地的电脑上安装公共图书馆，您可以尝试Gitpod！这可以让您在不安装任何插件的前提下，在浏览器中使用公共图书馆。警告：此集成仍在实验中。
-[![Open In Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
-
 ### 给开发者的指南
 
 有关管理公共图书馆实例的说明，请参考开发者的[快速入门](https://github.com/internetarchive/openlibrary/wiki/Getting-Started)指南。
@@ -53,11 +50,11 @@
 
 ## 代码组成
 
-* openlibrary/core - 公共图书馆的核心功能，由www导入和使用
-* openlibrary/plugins - 其它模型、控制器和视图帮助器
-* openlibrary/views - 网页视图的呈现
-* openlibrary/templates - 所有在网页里使用的模板
-* openlibrary/macros - macros和模板类似，但可以被wikitext调用
+* [*openlibrary/core*](/openlibrary/core) - 公共图书馆的核心功能，由www导入和使用
+* [*openlibrary/plugins*](/openlibrary/plugins) - 其它模型、控制器和视图帮助器
+* [*openlibrary/views*](/openlibrary/views) - 网页视图的呈现
+* [*openlibrary/templates*](/openlibrary/templates) - 所有在网页里使用的模板
+* [*openlibrary/macros*](/openlibrary/macros) - macros和模板类似，但可以被wikitext调用
 
 ## 结构
 

@@ -25,6 +25,7 @@
 
 .social-wrapper {
   display: flex;
+  align-items: baseline;
 }
 
 .follow-row {
@@ -52,7 +53,7 @@
 
 .dropdown {
   box-shadow: 0 0 0 1px @lightest-grey;
-  border-radius: 4px;
+  border-radius: @border-radius-button;
 }
 
 .down-chevron {
@@ -116,6 +117,10 @@
 @media only screen and (max-width: @width-breakpoint-tablet) {
   .breadcrumb-wrapper {
     align-items: self-end;
+  }
+
+  .social-wrapper {
+    flex-direction: column;
   }
 
   .mybooks-details {

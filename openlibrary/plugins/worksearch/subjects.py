@@ -1,19 +1,18 @@
 """Subject pages."""
 
 import datetime
-import json
 from dataclasses import dataclass
 from typing import cast
 
 import web
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
@@ -80,66 +79,6 @@ class subjects(delegate.page):
                 )
 
 
-class subjects_json(delegate.page):
-    path = '(/subjects/[^/]+)'
-    encoding = 'json'
-    solr_label: SolrRequestLabel = 'SUBJECT_ENGINE_API'
-
-    @jsonapi
-    def GET(self, key):
-        web.header('Content-Type', 'application/json')
-        # If the key is not in the normalized form, redirect to the normalized form.
-        if (nkey := self.normalize_key(key)) != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(
-            offset=0,
-            limit=DEFAULT_RESULTS,
-            details='false',
-            has_fulltext='false',
-            sort='editions',
-            available='false',
-        )
-        i.limit = safeint(i.limit, DEFAULT_RESULTS)
-        i.offset = safeint(i.offset, 0)
-        if i.limit > MAX_RESULTS:
-            msg = json.dumps(
-                {'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS}
-            )
-            raise web.HTTPError('400 Bad Request', data=msg)
-
-        filters = {}
-        if i.get('has_fulltext') == 'true':
-            filters['has_fulltext'] = 'true'
-
-        if publish_year_filter := date_range_to_publish_year_filter(
-            i.get('published_in')
-        ):
-            filters['publish_year'] = publish_year_filter
-
-        subject_results = get_subject(
-            key,
-            offset=i.offset,
-            limit=i.limit,
-            sort=i.sort,
-            details=i.details.lower() == 'true',
-            request_label='SUBJECT_ENGINE_API',
-            **filters,
-        )
-        if i.has_fulltext == 'true':
-            subject_results['ebook_count'] = subject_results['work_count']
-        return json.dumps(subject_results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
-
-
 def date_range_to_publish_year_filter(published_in: str) -> str:
     if published_in:
         if '-' in published_in:
@@ -161,7 +100,7 @@ The key-like paths for a subject, eg:
 """
 
 
-def get_subject(
+async def get_subject_async(
     key: SubjectPseudoKey,
     details=False,
     offset=0,
@@ -175,7 +114,7 @@ def get_subject(
     By default, it returns a storage object with key, name, work_count and works.
     The offset and limit arguments are used to get the works.
 
-        >>> get_subject("/subjects/Love") #doctest: +SKIP
+        >>> await get_subject_async("/subjects/Love") #doctest: +SKIP
         {
             "key": "/subjects/Love",
             "name": "Love",
@@ -185,7 +124,7 @@ def get_subject(
 
     When details=True, facets and ebook_count are additionally added to the result.
 
-    >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
+    >>> await get_subject_async("/subjects/Love", details=True) #doctest: +SKIP
     {
         "key": "/subjects/Love",
         "name": "Love",
@@ -230,7 +169,7 @@ def get_subject(
     if not engine:
         raise NotImplementedError(f"No SubjectEngine for key: {key}")
 
-    return engine.get_subject(
+    return await engine.get_subject_async(
         key,
         details=details,
         offset=offset,
@@ -241,6 +180,9 @@ def get_subject(
     )
 
 
+get_subject = async_bridge.wrap(get_subject_async)
+
+
 @dataclass
 class SubjectEngine:
     name: str
@@ -249,7 +191,7 @@ class SubjectEngine:
     facet: str
     facet_key: str
 
-    def get_subject(
+    async def get_subject_async(
         self,
         key,
         details=False,
@@ -260,7 +202,10 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import WorkSearchScheme, run_solr_query
+        from openlibrary.plugins.worksearch.code import (
+            WorkSearchScheme,
+            run_solr_query_async,
+        )
 
         subject_type = self.name
         path = web.lstrips(key, self.prefix)
@@ -270,7 +215,7 @@ class SubjectEngine:
         if 'publish_year' in filters:
             # Don't want this escaped or used in fq for perf reasons
             unescaped_filters['publish_year'] = filters.pop('publish_year')
-        result = run_solr_query(
+        result = await run_solr_query_async(
             WorkSearchScheme(),
             {
                 'q': query_dict_to_str(
@@ -296,7 +241,7 @@ class SubjectEngine:
                 "cover_edition_key",
                 "has_fulltext",
                 "subject",
-                "ia_collection_s",
+                "ia_collection",
                 "public_scan_b",
                 "lending_edition_s",
                 "lending_identifier_s",
@@ -419,7 +364,7 @@ class SubjectEngine:
         These docs are weird :/ We should be using more standardized results
         across our search APIs, but that would be a big breaking change.
         """
-        ia_collection = w.get('ia_collection_s', '').split(';')
+        ia_collection = w.get('ia_collection') or []
         return web.storage(
             key=w['key'],
             title=w["title"],

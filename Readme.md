@@ -5,7 +5,6 @@
 ![Python Build](https://github.com/internetarchive/openlibrary/actions/workflows/python_tests.yml/badge.svg)
 ![JS Build](https://github.com/internetarchive/openlibrary/actions/workflows/javascript_tests.yml/badge.svg)
 [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Open in Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 [![contributors](https://img.shields.io/github/contributors/internetarchive/openlibrary.svg)](https://github.com/internetarchive/openlibrary/graphs/contributors)
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
@@ -45,10 +44,6 @@ Run `docker compose up` and visit http://localhost:8080
 Need more details? Checkout the [Docker instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 or [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
-***Alternatively***, if you do not want to set up Open Library on your local computer, try Gitpod!
-This lets you work on Open Library entirely in your browser without having to install anything on your personal computer.
-Warning: This integration is still experimental.
-[![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
 
 ### Developer's Guide
 
@@ -56,11 +51,11 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ## Code Organization
 
-* openlibrary/core - core openlibrary functionality, imported and used by www
-* openlibrary/plugins - other models, controllers, and view helpers
-* openlibrary/views - views for rendering web pages
-* openlibrary/templates - all the templates used in the website
-* openlibrary/macros - macros are like templates, but can be called from wikitext
+* [*openlibrary/core*](/openlibrary/core) - core openlibrary functionality, imported and used by www
+* [*openlibrary/plugins*](/openlibrary/plugins) - other models, controllers, and view helpers
+* [*openlibrary/views*](/openlibrary/views) - views for rendering web pages
+* [*openlibrary/templates*](/openlibrary/templates) - all the templates used in the website
+* [*openlibrary/macros*](/openlibrary/macros) - macros are like templates, but can be called from wikitext
 
 ## Architecture
 

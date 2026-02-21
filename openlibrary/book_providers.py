@@ -381,7 +381,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                 access=access,
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}',
+                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}?view=theater&wrapper=false',
                 provider_name=self.short_name,
             )
         ]
@@ -835,7 +835,7 @@ def get_best_edition(
         ],
     )
 
-    return best if best else (None, None)
+    return best or (None, None)
 
 
 def get_solr_keys() -> list[str]:

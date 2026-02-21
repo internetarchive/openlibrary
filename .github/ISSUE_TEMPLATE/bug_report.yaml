@@ -20,6 +20,7 @@ body:
       label: Reproducing the bug
       description: Being as specific as possible, what steps result in triggering this bug?
       value: |
+
         1. Go to ...
         2. Do ...
 
@@ -40,6 +41,9 @@ body:
       description: |
         Detailed instructions for resolving this issue. Please leave these sections blank for maintainers if you are unsure what to enter
       value: |
+        <details>
+        <summary><strong>Implementation Details</strong> (for maintainers)</summary>
+
         <!-- Overview of the proposed solution / implementation? -->
 
         #### Requirements Checklist
@@ -58,6 +62,8 @@ body:
         <!-- Please leave the following reminder section as is to help new contributors and add instructions where necessary -->
 
         - Please [run these commands](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#working-on-your-branch) to ensure your repository is up to date **before** [creating a new branch](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#making-changes-and-creating-a-pull-request) to work on this issue and **each time after** pushing code to Github, because the pre-commit bot may add commits to your PRs upstream.
+
+        </details>
   - type: markdown
     attributes:
       value: |

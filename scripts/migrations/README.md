@@ -12,8 +12,7 @@ This script was created in support of [issue #10887](https://github.com/internet
 
 ## `write_prefs_to_store.py`
 
-Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes
-a subset of existing preferences to the store.
+Created as a follow-up to [issue #10920](https://github.com/internetarchive/openlibrary/pull/10920), this script writes preferences from the `thing` table to the `store`.  If executed with the `--legacy` flag, _all_ preferences in the `thing` table will be written to `store`.
 
 ## `update_legacy_preferences.py`
 

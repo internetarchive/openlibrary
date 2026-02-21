@@ -3,15 +3,19 @@ from __future__ import annotations
 import logging
 import os
 import re
+import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
@@ -34,7 +38,7 @@ def _https_middleware(app):
     return wrapper
 
 
-def _load_legacy_wsgi(ol_config_file: str):
+def _load_legacy_wsgi():
     """Initialize legacy configuration and side-effects as in scripts/openlibrary-server.
 
     This function does not return a WSGI callable; it is called for its side effects only.
@@ -44,6 +48,9 @@ def _load_legacy_wsgi(ol_config_file: str):
 
     # match scripts/openlibrary-server behavior
     from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
+
+    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
+    ol_config_file = os.environ.get("OL_CONFIG", str(ol_config_path))
 
     config.plugin_path += ["openlibrary.plugins"]
     config.site = "openlibrary.org"
@@ -110,34 +117,58 @@ def setup_i18n(app: FastAPI):
         return response
 
 
+def setup_debugpy():
+    import debugpy  # noqa: T100
+
+    # Start listening for debugger connections
+    debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
+    logger.info(
+        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'."
+    )
+
+
 sentry: Sentry | None = None
 
 
-def create_app() -> FastAPI:
-    _setup_env()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown events."""
+    # Startup
+    if os.environ.get("LOCAL_DEV", "false").lower() == "true":
+        setup_debugpy()
+    yield
+    # Shutdown (if needed in the future)
 
-    if os.environ.get("CI"):
-        import pytest
 
-        pytest.skip("Skipping in CI", allow_module_level=True)
+def create_app() -> FastAPI | None:
+    if "pytest" not in sys.modules:
+        _setup_env()
 
-    ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
-    ol_config = os.environ.get("OL_CONFIG", str(ol_config_path))
-    try:
-        # We still call this even though we don't use it because of the side effects
-        legacy_wsgi = _load_legacy_wsgi(ol_config)  # noqa: F841
+        if os.environ.get("CI"):
+            import pytest
 
-        global sentry
-        if sentry is not None:
-            return
-        sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
-        set_tag("fastapi", True)
+            pytest.skip("Skipping in CI", allow_module_level=True)
 
-    except Exception:
-        logger.exception("Failed to initialize legacy WSGI app")
-        raise
+        try:
+            # We still call this even though we don't use it because of the side effects
+            _load_legacy_wsgi()
 
-    app = FastAPI(title="OpenLibrary ASGI", version="0.0.1")
+            global sentry
+            if sentry is not None:
+                return None
+            sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+            set_tag("fastapi", True)
+
+        except Exception:
+            logger.exception("Failed to initialize legacy WSGI app")
+            raise
+
+    app = FastAPI(
+        title="OpenLibrary ASGI",
+        version="0.0.1",
+        debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
+        lifespan=lifespan,
+    )
 
     app.add_middleware(
         CORSMiddleware,
@@ -152,6 +183,27 @@ def create_app() -> FastAPI:
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
+    @app.middleware("http")
+    async def add_fastapi_header(request: Request, call_next):
+        """Middleware to add a header indicating the response came from FastAPI."""
+        response = await call_next(request)
+        response.headers["X-Served-By"] = "FastAPI"
+        return response
+
+    # Add prometheus metrics
+    Instrumentator(
+        should_group_status_codes=False,
+        excluded_handlers=["/health", "/metrics"],
+    ).instrument(app).expose(app, include_in_schema=False)
+
+    @app.middleware("http")
+    async def set_context(request: Request, call_next):
+        set_context_from_fastapi(request)
+        response = await call_next(request)
+        return response
+
+    # setup_i18n is below set_context so that it can use the request.state.lang in set_context
+    # because the handlers are called in reverse order
     setup_i18n(app)
 
     # --- Fast routes (mounted within this app) ---
@@ -159,9 +211,24 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.search import router as search_router  # type: ignore
+    from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.partials import router as partials_router
+    from openlibrary.fastapi.publishers import router as publishers_router
+    from openlibrary.fastapi.search import router as search_router
+    from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.yearly_reading_goals import (
+        router as yearly_reading_goals_router,
+    )
 
+    # Include routers
+    app.include_router(languages_router)
+    app.include_router(partials_router)
+    app.include_router(publishers_router)
     app.include_router(search_router)
+    app.include_router(subjects_router)
+    app.include_router(account_router)
+    app.include_router(yearly_reading_goals_router)
 
     return app
 
