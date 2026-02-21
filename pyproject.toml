@@ -205,3 +205,38 @@ max-statements = 70
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
+
+[tool.sqlfluff.core]
+dialect = "postgres"
+# ── Rule Exclusions ──────────────────────────────────────────────────
+# Only rules that conflict with the existing codebase style are excluded.
+# Each exclusion includes a rationale so reviewers can evaluate them.
+#
+# Layout:
+#   LT01 - trailing whitespace: already enforced by pre-commit trailing-whitespace hook
+#   LT02 - newline at end of file: already enforced by pre-commit end-of-file-fixer hook
+#   LT05 - line length (80 chars): existing SQL files (schema, dump scripts) have many lines
+#          exceeding 80 chars; enforcing would require major reformatting of stable schema files
+# Capitalisation:
+#   CP01-CP05 - keyword/function/datatype casing: codebase consistently uses lowercase
+#               keywords throughout; enforcing upper-case would touch every SQL file
+# Aliasing:
+#   AL01 - implicit aliasing: codebase omits explicit "AS" for table aliases, valid Postgres style
+#   AL02 - implicit column aliasing: same as AL01 but for columns
+#   AL03 - self-alias (e.g. "x AS x"): existing dump scripts use self-aliases for clarity
+#   AL09 - self-aliased columns: same pattern as AL03, catches additional self-alias variants
+# References:
+#   RF04 - keywords as identifiers: columns named "key", "type", "action", "created" are
+#          deeply embedded in the schema and cannot be renamed
+# Structure:
+#   ST06 - SELECT column ordering: dump scripts' column order matches the public dump API
+#          documented at openlibrary.org/developers/dumps
+# Ambiguous:
+#   AM05 - fully qualified joins: some dump scripts use implicit join conditions; these are
+#          stable scripts where changing join syntax risks introducing bugs
+# Joins:
+#   JJ01 - explicit join type: bare JOIN (implicit INNER) is the codebase convention
+exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01"
+
+[tool.sqlfluff.indentation]
+tab_space_size = 4

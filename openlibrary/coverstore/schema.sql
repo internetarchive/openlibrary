@@ -1,4 +1,3 @@
-
 create table category (
     id serial primary key,
     name text
@@ -43,4 +42,3 @@ create table log (
 );
 
 create index log_timestamp_idx on log(timestamp);
-
