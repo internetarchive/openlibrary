@@ -1,6 +1,6 @@
 services:
   web:
-    image: "${OLIMAGE:-oldev:latest}"
+    image: "${OLIMAGE:-oldev:web}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 4 --timeout 180}
@@ -17,7 +17,7 @@ services:
         max-file: "4"
 
   fast_web:
-    image: "${OLIMAGE:-oldev:latest}"
+    image: "${OLIMAGE:-oldev:fast_web}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
       - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
