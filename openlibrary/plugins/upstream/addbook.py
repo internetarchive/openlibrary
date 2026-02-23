@@ -45,11 +45,7 @@ def get_recaptcha():
         delta = now_dt - create_dt
         return delta.days > 30
 
-    def is_plugin_enabled(name) -> bool:
-        plugin_names = delegate.get_plugins()
-        return name in plugin_names or "openlibrary.plugins." + name in plugin_names
-
-    if is_plugin_enabled('recaptcha') and not recaptcha_exempt():
+    if not recaptcha_exempt():
         public_key = config.plugin_recaptcha.public_key
         private_key = config.plugin_recaptcha.private_key
         return recaptcha.Recaptcha(public_key, private_key)
@@ -945,6 +941,8 @@ class author_edit(delegate.page):
         return render_template("type/author/edit", author)
 
     def POST(self, key):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         author = web.ctx.site.get(key)
         if author is None:
             raise web.notfound()
@@ -1003,6 +1001,8 @@ class work_identifiers(delegate.view):
     types = ["/type/edition"]  # type: ignore[assignment] # noqa: RUF012
 
     def POST(self, edition):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         saveutil = DocSaveHelper()
         i = web.input(isbn="")
         isbn = i.get("isbn")

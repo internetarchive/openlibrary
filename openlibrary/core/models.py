@@ -934,6 +934,12 @@ class User(Thing):
             usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
 
+    def is_member_of_any(self, usergroups: list[str]) -> bool:
+        """
+        Returns True if `User` is a member of any of the given usergroups.
+        """
+        return any(self.is_usergroup_member(grp) for grp in usergroups)
+
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
         return (

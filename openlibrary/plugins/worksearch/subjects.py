@@ -1,14 +1,11 @@
 """Subject pages."""
 
 import datetime
-import json
 from dataclasses import dataclass
 from typing import cast
 
 import web
-from typing_extensions import deprecated
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
@@ -80,67 +77,6 @@ class subjects(delegate.page):
                     if tag.tag_type == "subject"
                     else f"/subjects/{tag.tag_type}:{tag.name}"
                 )
-
-
-@deprecated("migrated to fastapi")
-class subjects_json(delegate.page):
-    path = '(/subjects/[^/]+)'
-    encoding = 'json'
-    solr_label: SolrRequestLabel = 'SUBJECT_ENGINE_API'
-
-    @jsonapi
-    def GET(self, key):
-        web.header('Content-Type', 'application/json')
-        # If the key is not in the normalized form, redirect to the normalized form.
-        if (nkey := self.normalize_key(key)) != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(
-            offset=0,
-            limit=DEFAULT_RESULTS,
-            details='false',
-            has_fulltext='false',
-            sort='editions',
-            available='false',
-        )
-        i.limit = safeint(i.limit, DEFAULT_RESULTS)
-        i.offset = safeint(i.offset, 0)
-        if i.limit > MAX_RESULTS:
-            msg = json.dumps(
-                {'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS}
-            )
-            raise web.HTTPError('400 Bad Request', data=msg)
-
-        filters = {}
-        if i.get('has_fulltext') == 'true':
-            filters['has_fulltext'] = 'true'
-
-        if publish_year_filter := date_range_to_publish_year_filter(
-            i.get('published_in')
-        ):
-            filters['publish_year'] = publish_year_filter
-
-        subject_results = get_subject(
-            key,
-            offset=i.offset,
-            limit=i.limit,
-            sort=i.sort,
-            details=i.details.lower() == 'true',
-            request_label='SUBJECT_ENGINE_API',
-            **filters,
-        )
-        if i.has_fulltext == 'true':
-            subject_results['ebook_count'] = subject_results['work_count']
-        return json.dumps(subject_results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
