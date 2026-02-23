@@ -7840,6 +7840,10 @@ msgid "ISBNs"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Edit Subjects"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Book Details"
 msgstr ""
 
