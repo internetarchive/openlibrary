@@ -59,6 +59,7 @@
 @import "components/check-in.css";
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
+@import "components/shareLinks.css";
 
 /* Mobile: Take into account the header bar + tab bar */
 html {
