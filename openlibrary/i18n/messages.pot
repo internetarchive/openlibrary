@@ -910,7 +910,7 @@ msgstr ""
 msgid "Data Dumps"
 msgstr ""
 
-#: Subnavigation.html book_providers/standard_ebooks_download_options.html
+#: Subnavigation.html
 msgid "Source Code"
 msgstr ""
 
@@ -3730,16 +3730,13 @@ msgstr ""
 msgid "BookReader"
 msgstr ""
 
-#: admin/loans_table.html book_providers/cita_press_download_options.html
-#: book_providers/ia_download_options.html
-#: book_providers/openstax_download_options.html
-#: book_providers/wikisource_download_options.html books/edit/edition.html
+#: admin/loans_table.html book_providers/download_options.html
+#: books/edit/edition.html
 msgid "PDF"
 msgstr ""
 
-#: admin/loans_table.html book_providers/gutenberg_download_options.html
-#: book_providers/ia_download_options.html
-#: book_providers/standard_ebooks_download_options.html books/edit/edition.html
+#: admin/loans_table.html book_providers/download_options.html
+#: books/edit/edition.html
 msgid "ePub"
 msgstr ""
 
@@ -4356,114 +4353,24 @@ msgstr ""
 msgid "Died"
 msgstr ""
 
-#: book_providers/cita_press_download_options.html
-#: book_providers/gutenberg_download_options.html
-#: book_providers/ia_download_options.html
-#: book_providers/librivox_download_options.html
-#: book_providers/openstax_download_options.html
-#: book_providers/runeberg_download_options.html
-#: book_providers/standard_ebooks_download_options.html
-#: book_providers/wikisource_download_options.html
+#: book_providers/download_options.html
+msgid "Read Online"
+msgstr ""
+
+#: book_providers/download_options.html
+msgid "Audio"
+msgstr ""
+
+#: book_providers/download_options.html
 msgid "Download Options"
 msgstr ""
 
-#: book_providers/cita_press_download_options.html
-msgid "Download PDF from Cita Press"
+#: book_providers/download_options.html
+msgid "Download from"
 msgstr ""
 
-#: book_providers/cita_press_download_options.html
-msgid "More at Cita Press"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "Download an HTML from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-#: book_providers/runeberg_download_options.html
-#: book_providers/standard_ebooks_download_options.html type/list/exports.html
-msgid "HTML"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "Download a text version from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-#: book_providers/ia_download_options.html
-msgid "Plain text"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "Download an ePub from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "Kindle"
-msgstr ""
-
-#: book_providers/gutenberg_download_options.html
-msgid "More at Project Gutenberg"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "Download a PDF from Internet Archive"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "Download a text version from Internet Archive"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "Download an ePub from Internet Archive"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "Download a MOBI file from Internet Archive"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "MOBI"
-msgstr ""
-
-#: book_providers/ia_download_options.html
-msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
-
-#: book_providers/ia_download_options.html type/list/embed.html
-msgid "DAISY"
-msgstr ""
-
-#: book_providers/librivox_download_options.html
-msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr ""
-
-#: book_providers/librivox_download_options.html
-msgid "Whole Book MP3"
-msgstr ""
-
-#: book_providers/librivox_download_options.html
-msgid "Get the RSS Feed from LibriVox"
-msgstr ""
-
-#: book_providers/librivox_download_options.html
-msgid "RSS Feed"
-msgstr ""
-
-#: book_providers/librivox_download_options.html
-msgid "More at LibriVox"
-msgstr ""
-
-#: book_providers/openstax_download_options.html
-msgid "Download PDF from OpenStax"
-msgstr ""
-
-#: book_providers/openstax_download_options.html
-msgid "More at OpenStax"
+#: book_providers/download_options.html
+msgid "Download"
 msgstr ""
 
 #: book_providers/read_button.html
@@ -4478,102 +4385,6 @@ msgstr ""
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all scanned images from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Scanned images"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all color images from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Color images"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all HTML files from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all text and index files from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Text and index files"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "Download all OCR text from Project Runeberg"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "OCR text"
-msgstr ""
-
-#: book_providers/runeberg_download_options.html
-msgid "More at Project Runeberg"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Download an HTML from Standard Ebooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Download an ePub from Standard Ebook."
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Kindle (azw3)"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "Kobo (kepub)"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
-
-#: book_providers/standard_ebooks_download_options.html
-msgid "More at Standard Ebooks"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "Download PDF from Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "Download MOBI from Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "MOBI (for Kindle)"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "Download EPUB from Wikisource"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "EPUB (for most other e-readers)"
-msgstr ""
-
-#: book_providers/wikisource_download_options.html
-msgid "Read at Wikisource"
 msgstr ""
 
 #: books/RelatedWorksCarousel.html
@@ -8027,6 +7838,14 @@ msgstr ""
 
 #: type/list/embed.html
 msgid "Protected DAISY"
+msgstr ""
+
+#: type/list/embed.html
+msgid "DAISY"
+msgstr ""
+
+#: type/list/exports.html
+msgid "HTML"
 msgstr ""
 
 #: type/list/exports.html

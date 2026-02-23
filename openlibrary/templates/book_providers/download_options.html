@@ -1,0 +1,30 @@
+$def with(acquisitions)
+
+$if not acquisitions:
+    $return
+
+$def get_label(acq):
+    $if acq.label:
+        $return _(acq.label)
+    $elif acq.format == 'web':
+        $return _('Read Online')
+    $elif acq.format == 'pdf':
+        $return _('PDF')
+    $elif acq.format == 'epub':
+        $return _('ePub')
+    $elif acq.format == 'audio':
+        $return _('Audio')
+    $else:
+        $return acq.format.upper()
+
+<hr>
+<div class="cta-section">
+<p class="cta-section-title">$_("Download Options")</p>
+<ul class="ebook-download-options">
+    $for acq in acquisitions:
+        $if acq.provider_name:
+            <li><a href="$acq.url" data-ol-link-track="Download|$(acq.format)_$(acq.provider_name)" title="$_('Download from') $acq.provider_name">$(get_label(acq))</a></li>
+        $else:
+            <li><a href="$acq.url" data-ol-link-track="Download|$(acq.format)" title="$_('Download')">$(get_label(acq))</a></li>
+</ul>
+</div>
