@@ -810,8 +810,13 @@ class opds_search(delegate.page):
         from pyopds2 import Catalog, Link, Metadata
 
         i = web.input(
-            query="trending_score_hourly_sum:[1 TO *]", limit=25, page=1, sort=None
+            query="trending_score_hourly_sum:[1 TO *]",
+            limit=25,
+            page=1,
+            sort=None,
+            mode="ebooks",
         )
+
         provider = get_opds_data_provider()
         catalog = Catalog.create(
             metadata=Metadata(title=_("Search Results")),
@@ -820,6 +825,7 @@ class opds_search(delegate.page):
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
                 sort=i.sort,
+                facets={'mode': i.mode},
             ),
             links=[
                 Link(
@@ -829,7 +835,7 @@ class opds_search(delegate.page):
                 ),
                 Link(
                     rel="search",
-                    href=f"{provider.BASE_URL}/opds/search{{?query}}",
+                    href=f"{provider.BASE_URL}/opds/search{{?query,mode}}",
                     type="application/opds+json",
                     templated=True,
                 ),

@@ -44,6 +44,14 @@
   overflow-wrap: anywhere;
 }
 
+.chip-group + .mybooks-list {
+  margin-top: 20px;
+}
+
+.mybooks-list .search-results-stats {
+  margin-top: 8px;
+}
+
 .mybooks-list--clean ul {
   display: flex;
   margin: 0;
