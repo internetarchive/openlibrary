@@ -29,7 +29,7 @@ if [ "$LOCAL_DEV" = "true" ]; then
         echo "This usually means Solr schema has been updated but Solr hasn't reloaded."
         echo ""
         echo "To fix, run on your host machine:"
-        echo "  docker-compose restart solr"
+        echo "  docker compose restart solr"
         echo ""
         echo "Then re-run indexing:"
         docker/solr-rebuild.sh
