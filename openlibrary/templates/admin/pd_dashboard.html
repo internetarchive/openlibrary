@@ -32,13 +32,13 @@ $code:
         </div>
     </div>
 
-    <h2>Breakdown by Qualifying Authority</h2>
+    <h2>$:_('Breakdown by Qualifying Authority')</h2>
     <table class="pd-request-table">
         <thead>
-            <th class="table-header" scope="col">PDA</th>
-            <th class="table-header" scope="col">Emailed</th>
-            <th class="table-header" scope="col">Fulfilled</th>
-            <th class="table-header" scope="col">Total</th>
+            <th class="table-header" scope="col">$:_('PDA')</th>
+            <th class="table-header" scope="col">$:_('Emailed')</th>
+            <th class="table-header" scope="col">$:_('Fulfilled')</th>
+            <th class="table-header" scope="col">$:_('Total')</th>
         </thead>
         <tbody>
             $for d in request_data:
@@ -57,7 +57,7 @@ $code:
                   <td>$total</td>
               </tr>
           <tr class="totals">
-              <td>Totals</td>
+              <td>$:_('Totals')</td>
               <td>$emailed_total</td>
               <td>$fulfilled_total</td>
               <td>$totals.get('total')</td>

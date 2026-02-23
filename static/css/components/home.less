@@ -4,7 +4,7 @@
 div.tutorial__item {
   background-color: @book-cover-carousel-cards;
   border: @border-card;
-  border-radius: 5px;
+  border-radius: @border-radius-card;
   padding: 10px;
   min-width: 220px;
 
@@ -18,10 +18,11 @@ div.tutorial__item {
     margin: 4% 5% 5%;
     font-size: 1rem;
     font-weight: 500;
-    line-height: normal;
+    line-height: @line-height-tight;
   }
   p.small {
     font-size: 0.8rem;
+    line-height: @line-height-snug;
   }
   a {
     display: flex;
@@ -106,7 +107,7 @@ div.chartHome a:hover,
     padding: 0;
     margin: 0;
     font-size: 18px;
-    line-height: 1.5em;
+    line-height: @line-height-body;
     font-family: @font-family-serif;
     color: @dark-grey;
     font-weight: normal;

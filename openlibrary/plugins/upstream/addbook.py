@@ -3,7 +3,6 @@
 import csv
 import datetime
 import io
-import json
 import logging
 import urllib
 from typing import Literal, NoReturn, overload
@@ -21,7 +20,6 @@ from openlibrary.core.helpers import uniq
 from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
@@ -47,11 +45,7 @@ def get_recaptcha():
         delta = now_dt - create_dt
         return delta.days > 30
 
-    def is_plugin_enabled(name) -> bool:
-        plugin_names = delegate.get_plugins()
-        return name in plugin_names or "openlibrary.plugins." + name in plugin_names
-
-    if is_plugin_enabled('recaptcha') and not recaptcha_exempt():
+    if not recaptcha_exempt():
         public_key = config.plugin_recaptcha.public_key
         private_key = config.plugin_recaptcha.private_key
         return recaptcha.Recaptcha(public_key, private_key)
@@ -560,9 +554,6 @@ class SaveBookHelper:
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
-        if not delete:
-            self.process_new_fields(formdata)
-
         saveutil = DocSaveHelper()
 
         if delete:
@@ -676,47 +667,6 @@ class SaveBookHelper:
     def delete(key, comment=""):
         doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
         doc._save(comment=comment)
-
-    def process_new_fields(self, formdata: dict):
-        def f(name: str):
-            val = formdata.get(name)
-            return val and json.loads(val)
-
-        new_roles = f('select-role-json')
-        new_ids = f('select-id-json')
-        new_classifications = f('select-classification-json')
-
-        if new_roles or new_ids or new_classifications:
-            edition_config = web.ctx.site.get('/config/edition')
-
-            # TODO: take care of duplicate names
-
-            if new_roles:
-                edition_config.roles += [d.get('value') or '' for d in new_roles]
-
-            if new_ids:
-                edition_config.identifiers += [
-                    {
-                        "name": d.get('value') or '',
-                        "label": d.get('label') or '',
-                        "website": d.get("website") or '',
-                        "notes": d.get("notes") or '',
-                    }
-                    for d in new_ids
-                ]
-
-            if new_classifications:
-                edition_config.classifications += [
-                    {
-                        "name": d.get('value') or '',
-                        "label": d.get('label') or '',
-                        "website": d.get("website") or '',
-                        "notes": d.get("notes") or '',
-                    }
-                    for d in new_classifications
-                ]
-
-            as_admin(edition_config._save)("add new fields")
 
     def process_input(self, i):
         if 'edition' in i:
@@ -902,21 +852,11 @@ class book_edit(delegate.page):
         else:
             work = None
 
-        add = (
-            edition.revision == 1
-            and work
-            and work.revision == 1
-            and work.edition_count == 1
-        )
-
         try:
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
 
-            if add:
-                add_flash_message("info", utils.get_message("flash_catalog_updated"))
-            else:
-                add_flash_message("info", utils.get_message("flash_catalog_updated"))
+            add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
             if i.work_key and i.work_key.startswith('/works/'):
                 url = i.work_key
@@ -1001,6 +941,8 @@ class author_edit(delegate.page):
         return render_template("type/author/edit", author)
 
     def POST(self, key):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         author = web.ctx.site.get(key)
         if author is None:
             raise web.notfound()
@@ -1059,6 +1001,8 @@ class work_identifiers(delegate.view):
     types = ["/type/edition"]  # type: ignore[assignment] # noqa: RUF012
 
     def POST(self, edition):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         saveutil = DocSaveHelper()
         i = web.input(isbn="")
         isbn = i.get("isbn")

@@ -19,6 +19,6 @@ def test_doctest(module):
     print(f"Doctests found in {module}: {[len(m.examples) for m in tests]}\n")
     for test in tests:
         runner = doctest.DocTestRunner(verbose=True)
-        failures, tries = runner.run(test)
+        failures, _tries = runner.run(test)
         if failures:
             pytest.fail("doctest failed: " + test.name)

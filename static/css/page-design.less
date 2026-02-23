@@ -4,68 +4,63 @@
  * Any CSS loaded here will be render blocking.
  */
 
-@import (less) "less/colors.less";
-@import (less) "less/font-families.less";
+@import (less) "less/index.less";
 
-html {
-  font-size: 1em;
+.design-pattern-library {
+  padding: 0 24px;
 }
 
-body {
-  line-height: 1.45;
-  font-family: @font-family-body;
+.design-pattern {
+  display: flex;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: @border-divider;
+  margin-bottom: 24px;
+}
+
+.design-pattern__title {
+  margin-top: 0;
+}
+
+.design-pattern__header {
+  flex: 0 0 300px;
+}
+
+.example {
+  margin-bottom: 24px;
+}
+
+.example__title {
+  font-size: @font-size-title-medium;
+  margin-top: 0;
+  margin-bottom: 6px;
 }
 
 p {
-  margin-bottom: 1.3em;
-}
-
-h1,
-h2,
-h3,
-h4 {
-  margin: 1.414em 0 0.5em;
-  font-weight: inherit;
-  line-height: 1.2;
-}
-
-h1 {
-  color: @dark-grey;
   margin-top: 0;
-  font-size: 2.441em;
+  margin-bottom: 8px;
 }
 
-h2 {
-  font-size: 1.953em;
+.example__code {
+  display: block;
+  background-color: @lightest-grey;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: @border-radius-card;
+  font-size: @font-size-body-medium;
+  font-family: @font-family-code;
 }
 
-h3 {
-  font-size: 1.563em;
+.example__output {
+  margin-bottom: 24px;
 }
 
-h4 {
-  font-size: 1.25em;
-}
-
-.design-pattern-library {
-  margin: 15px;
-}
-
-article.design-pattern {
-  margin: 15px;
-}
-
-article.design-pattern section {
-  padding: 15px;
-  box-shadow: 0 0 3px 2px @mid-grey;
-  border-radius: 3px;
-}
-
-ul.color-swatch li {
+.color-swatch {
   display: flex;
+  gap: 4px;
 }
 
-ul.color-swatch li span.color-block {
+.color-swatch .color-block {
   width: 1em;
   height: 1em;
   display: block;

@@ -6,7 +6,6 @@ https://colab.research.google.com/drive/1HETHnP9bCS7zgli6YU32z5dWzlq0F1sY?authus
 PYTHONPATH=. python ./scripts/bulk_load_ia_query.py /olsystem/etc/openlibrary.yml --idfile "ids.json" --no-test
 """
 
-
 import datetime
 import importlib.util
 import json

@@ -50,7 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.utils import async_utils
+from openlibrary.utils import request_context
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -237,18 +237,17 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
-        lang = web.ctx.lang
+        req_context = request_context.req_context.get()
+        lang = req_context.lang
         key_prefix = f'{name}.{lang}'
-        cookies = web.cookies()
-        if cookies.get('pd', False):
+        if req_context.print_disabled:
             key_prefix += '.pd'
-        if cookies.get('sfw', ''):
+        if req_context.sfw:
             key_prefix += '.sfw'
-        if is_bot():
+        if req_context.is_bot:
             key_prefix += '.bot'
         return key_prefix
 
@@ -315,7 +314,9 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
-    lang = web.ctx.lang or 'en'
+
+    lang = request_context.req_context.get().lang or 'en'
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
     try:
@@ -725,7 +726,7 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    site = async_utils.site.get()
+    site = request_context.site.get()
     keys = site.things({"type": "/type/language", "limit": limit})
     return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
@@ -748,7 +749,7 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
-        user_lang = web.ctx.lang or 'en'
+        user_lang = request_context.req_context.get().lang or 'en'
         yield safeget(lambda: lang['name_translated'][user_lang][0])
 
         # The language's name translated into its native name (lang_iso_code)
@@ -1437,7 +1438,7 @@ def _get_blog_feeds():
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=60 * 60 * 24
 )
 
 

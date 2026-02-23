@@ -121,7 +121,7 @@ class upload:
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
 
         def error(code__msg):
-            (code, msg) = code__msg
+            code, msg = code__msg
             print("ERROR: upload failed, ", i.olid, code, repr(msg), file=web.debug)
             _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
@@ -168,7 +168,7 @@ class upload2:
         web.ctx.pop("_data", None)
 
         def error(code__msg):
-            (code, msg) = code__msg
+            code, msg = code__msg
             _cleanup()
             e = web.badrequest()
             e.data = json.dumps({"code": code, "message": msg})
@@ -515,7 +515,7 @@ def render_list_preview_image(lst_key: str):
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
 
-    W, H = background.size
+    W, _H = background.size
     image = []
     for cover in five_covers:
         response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")

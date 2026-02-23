@@ -351,10 +351,6 @@ class TestOpenAPIDocumentation:
         assert 'paths' in openapi
         assert '/search.json' in openapi['paths']
 
-    @pytest.mark.xfail(
-        reason="FastAPI doesn't propagate descriptions from Pydantic models used via Depends(). "
-        "See: https://github.com/tiangolo/fastapi/discussions/10410"
-    )
     def test_openapi_parameters_have_descriptions(self, client):
         """Test that query parameters in the OpenAPI spec have descriptions.
 

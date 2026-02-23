@@ -236,12 +236,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <div class="book-description read-more">
-            <div class="read-more__content markdown-content" style="max-height:81px">
-                $:sanitize(format(overview_desc))
-            </div>
-            $:macros.ReadMore()
-        </div>
+        <ol-read-more max-lines="4" class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+          $:sanitize(format(overview_desc))
+        </ol-read-more>
       $elif edition:
         <div class="book-description">
             <div class="book-description-content">
@@ -366,12 +363,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
           $ table_of_contents = edition.get_table_of_contents()
           $if table_of_contents and len(table_of_contents.entries) > 1:
-            <div class="section read-more">
+            <div class="section">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="max-height:350px"')
+              <ol-read-more max-height="200px" more-text="$_('Read More')" less-text="$_('Read Less')">
+                $:macros.TableOfContents(table_of_contents, ocaid)
+              </ol-read-more>
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
-              $:macros.ReadMore()
             </div>
 
           $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
@@ -487,12 +485,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <div class="work-description read-more">
-                <div class="read-more__content" style="max-height:81px">
-                  $:sanitize(format(work.description))
-                </div>
-                $:macros.ReadMore()
-              </div>
+              <ol-read-more max-lines="4" more-text="$_('Read More')" less-text="$_('Read Less')">
+                $:sanitize(format(work.description))
+              </ol-read-more>
 
             $if work.original_languages:
               <div class="sansserif smallest">$_("Original languages")</div>
@@ -503,7 +498,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               <h4>$_("Excerpts")</h4>
               <div class="section">
                 $for excerpt in work.excerpts:
-                  <div class="excerpt addReadMore showlesscontent">
+                  <div class="excerpt">
                     <div class="text">
                       $for line in excerpt.excerpt.split('\n'):
                         $line<br/>

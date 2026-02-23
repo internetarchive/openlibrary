@@ -26,29 +26,24 @@ from openlibrary.plugins.openlibrary.processors import (
 
 t = web.template.Template
 
-t_sitemap = t(
-    """$def with (docs)
+t_sitemap = t("""$def with (docs)
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 $for path, title, created, last_modified in docs:
     <url><loc>http://openlibrary.org$path</loc><lastmod>${last_modified}Z</lastmod></url>
 </urlset>
-"""
-)
+""")
 
-t_siteindex = t(
-    """$def with (base_url, rows)
+t_siteindex = t("""$def with (base_url, rows)
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 $for filename, timestamp in rows:
     <sitemap><loc>$base_url/$filename</loc><lastmod>$timestamp</lastmod></sitemap>
 </sitemapindex>
-"""
-)
+""")
 
 
-t_html_layout = t(
-    """$def with (page)
+t_html_layout = t("""$def with (page)
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -64,19 +59,16 @@ t_html_layout = t(
 <div id="position">$:page</div>
 </div>
 </div>
-</body></html>"""
-)
+</body></html>""")
 
-t_html_sitemap = t(
-    """$def with (back, docs)
+t_html_sitemap = t("""$def with (back, docs)
 $var title: Index
 <p><a href="$back">&larr; Back to Index</a></p>
 <ul>
 $for path, title in docs:
     <li><a href="$path">$title</a></li>
 </ul>
-"""
-)
+""")
 
 
 def gzwrite(path, data):

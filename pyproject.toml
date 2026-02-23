@@ -37,7 +37,20 @@ module = ["openlibrary.core.wikidata", "openlibrary.core.yearly_reading_goals"]
 disallow_untyped_defs = true
 
 [tool.pytest.ini_options]
+strict = true
 asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = [
+    # Ignore warnings from webob, which doesn't have a fix.
+    # It comes from webtest, which we will remove when fastapi is done
+    'ignore::DeprecationWarning:webob',
+    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.12 deprecation)
+    'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
+]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: marks tests as integration tests that require external services (deselect with '-m \"not integration\"')"
+]
 
 [tool.ruff]
 target-version = "py312"
@@ -58,8 +71,9 @@ lint.ignore = [
   "SLF001",  # private-member-access - unfortunately we use these quite often for infogami
   "UP031",   # printf-string-formatting - a ton of work to fix to 224 errors
   # TODO: these could be fixed one day
+  "TC003",   # Move standard library import into a type-checking block. Should enable later
+  "TC006",   # runtime-cast-value - we don't do this now but could in a future PR
   "B905",    # zip-without-explicit-strict - TODO: seems like we should fix this one
-  "UP038",   # non-pep604-isinstance - This rule is deprecated and will be removed in a future ruff release.
   "E402",    # module-import-not-at-top-of-file - TODO: we should probably enable this and and add exceptions
     # openlibrary/plugins/admin/code.py - maybe it can be fixed
     # openlibrary/plugins/openlibrary/code.py - unclear but has many
@@ -98,6 +112,7 @@ lint.select = [
   "SLF",     # flake8-self
   "SLOT",    # flake8-slots
   "T10",     # flake8-debugger
+  "TC",      # flake8-type-checking
   "UP",      # pyupgrade
   "W",       # pycodestyle
   "YTT",     # flake8-2020
@@ -126,7 +141,6 @@ lint.select = [
   # "RET",   # flake8-return
   # "S",     # flake8-bandit
   # "T20",   # flake8-print
-  # "TCH",   # flake8-type-checking
   # "TD",    # flake8-todos
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops

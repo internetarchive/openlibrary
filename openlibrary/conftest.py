@@ -28,8 +28,7 @@ def no_requests(monkeypatch):
 @pytest.fixture(autouse=True)
 def no_sleep(monkeypatch):
     def mock_sleep(*args, **kwargs):
-        raise Warning(
-            '''
+        raise Warning('''
             Sleeping is blocked in the testing environment.
             Use monkeytime instead; it stubs time.time() and time.sleep().
 
@@ -40,8 +39,7 @@ def no_sleep(monkeypatch):
                     assert time.time() == 2
 
             If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
-            '''
-        )
+            ''')
 
     monkeypatch.setattr("time.sleep", mock_sleep)
 
@@ -81,6 +79,53 @@ def monkeytime(monkeypatch):
 
     monkeypatch.setattr("time.time", time)
     monkeypatch.setattr("time.sleep", sleep)
+
+
+@pytest.fixture
+def request_context_fixture():
+    """
+    Set up RequestContextVars for tests that need context variables.
+
+    Provides defaults and allows tests to override any subset of fields.
+    Automatically cleans up after the test.
+    """
+    from openlibrary.utils.request_context import RequestContextVars, req_context
+
+    tokens = []
+
+    def set_context(**overrides):
+        current = req_context.get(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent=None,
+                lang=None,
+                solr_editions=True,
+                print_disabled=False,
+                is_bot=False,
+                sfw=False,
+            )
+        )
+
+        new = RequestContextVars(
+            x_forwarded_for=overrides.get("x_forwarded_for", current.x_forwarded_for),
+            user_agent=overrides.get("user_agent", current.user_agent),
+            lang=overrides.get("lang", current.lang),
+            solr_editions=overrides.get("solr_editions", current.solr_editions),
+            print_disabled=overrides.get("print_disabled", current.print_disabled),
+            is_bot=overrides.get("is_bot", current.is_bot),
+            sfw=overrides.get("sfw", current.sfw),
+        )
+
+        token = req_context.set(new)
+        tokens.append(token)
+        return token
+
+    set_context()
+
+    yield set_context
+
+    for token in tokens:
+        req_context.reset(token)
 
 
 @pytest.fixture

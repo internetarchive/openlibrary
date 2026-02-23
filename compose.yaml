@@ -20,7 +20,7 @@ services:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
-      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 2 --timeout 180 --max-requests 500}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
     command: docker/ol-web-fastapi-start.sh
     ports:
       - ${FAST_WEB_PORT:-18080}:8080

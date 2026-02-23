@@ -77,7 +77,6 @@ CREATE TABLE yearly_reading_goals (
     username text not null,
     year integer not null,
     target integer not null,
-    current integer default 0,
     updated timestamp
 );
 """
@@ -504,19 +503,16 @@ SETUP_ROWS = [
         'username': '@billy_pilgrim',
         'year': 2022,
         'target': 5,
-        'current': 6,
     },
     {
         'username': '@billy_pilgrim',
         'year': 2023,
         'target': 7,
-        'current': 0,
     },
     {
         'username': '@kilgore_trout',
         'year': 2022,
         'target': 4,
-        'current': 4,
     },
 ]
 
@@ -563,42 +559,11 @@ class TestYearlyReadingGoals:
             )
         )
         assert len(new_row) == 1
-        assert new_row[0]['current'] == 0
 
     def test_select_by_username_and_year(self):
         assert (
             len(YearlyReadingGoals.select_by_username_and_year('@billy_pilgrim', 2022))
             == 1
-        )
-
-    def test_has_reached_goal(self):
-        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022)
-        assert not YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023)
-        assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022)
-
-    def test_update_current_count(self):
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
-                    )
-                )
-            )['current']
-            == 0
-        )
-        YearlyReadingGoals.update_current_count('@billy_pilgrim', 2023, 10)
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
-                    )
-                )
-            )['current']
-            == 10
         )
 
     def test_update_target(self):

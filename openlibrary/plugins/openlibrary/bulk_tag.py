@@ -3,17 +3,27 @@ import json
 import web
 
 from infogami.utils import delegate
+from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.utils import uniq
+
+# Usergroups that may use the bulk tagger
+ALLOWED_USERGROUPS: list[str] = [
+    "/usergroup/librarians",
+    "/usergroup/super-librarians",
+    "/usergroup/admin",
+]
 
 
 class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 
     def POST(self):
-        i = web.input(
-            work_ids='', tags_to_add='', tags_to_remove='', book_page_edit=False
-        )
+        user = get_current_user()
+        if not user or not user.is_member_of_any(ALLOWED_USERGROUPS):
+            raise web.unauthorized()
+
+        i = web.input(work_ids='', tags_to_add='', tags_to_remove='')
 
         works = i.work_ids.split(',')
         tags_to_add = json.loads(i.tags_to_add or '{}')

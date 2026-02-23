@@ -13,10 +13,14 @@ beforeEach(() => {
       <label for="password">Password</label>
       <input type="password" id="password">
       <div id="rpd-checkbox" class="ol-signup-form__checkbox">
-        <input id="pd_request" type="checkbox">
-        <label for="pd_request">PD Checkbox</label>
+        <input id="pd-request" type="checkbox">
+        <label for="pd-request">PD Checkbox</label>
       </div>
-      <div id="pda-selector" class="ol-signup-form__select hidden"></div>
+      <div id="pda-selector" class="ol-signup-form__select hidden">
+        <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')" aria-describedby="pd-program-advisory" aria-invalid="false" aria-required="false">
+            <option value="" disabled selected>"Select qualifying program"</option>
+        </select>
+      </div>
     </form>
   `;
 });
@@ -223,7 +227,7 @@ describe('Print disability tests', () => {
     beforeEach(() => {
         initSignupForm();
 
-        checkbox = document.querySelector('#pd_request');
+        checkbox = document.querySelector('#pd-request');
         selector = document.querySelector('#pda-selector')
     })
 

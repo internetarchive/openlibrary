@@ -1,6 +1,5 @@
 import logging
 import re
-import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
@@ -9,6 +8,7 @@ from typing import Any, cast
 
 import luqum.tree
 import web
+from typing_extensions import deprecated
 
 import infogami
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
@@ -35,6 +35,7 @@ from openlibrary.utils.lcc import (
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
 )
+from openlibrary.utils.request_context import req_context
 
 logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r'(OL\d+A)')
@@ -362,7 +363,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
+        if req_context.get().solr_editions and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
@@ -730,26 +731,15 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
+@deprecated('remove once we fully switch search to fastapi')
 def has_solr_editions_enabled():
-    if 'pytest' in sys.modules:
-        return True
+    """Check if Solr editions is enabled for the current request.
 
-    def read_query_string():
-        return web.input(editions=None).get('editions')
-
-    def read_cookie():
-        if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
-            return web.cookies().get('SOLR_EDITIONS')
-
-    if (qs_value := read_query_string()) is not None:
-        return qs_value == 'true'
-
-    if (cookie_value := read_cookie()) is not None:
-        return cookie_value == 'true'
-
-    return True
+    TODO: Remove once we fully switch search to fastapi, it's only used by templator right now.
+    """
+    return req_context.get().solr_editions
 
 
 def get_fulltext_min():
-    is_printdisabled = web.cookies().get('pd', False)
+    is_printdisabled = req_context.get().print_disabled
     return 'printdisabled' if is_printdisabled else 'borrowable'

@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 50 --timeout 300 --max-requests 500
+      - GUNICORN_OPTS= --workers 30 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       # Note this won't work with uv pip, because uv makes a network request
       - BEFORE_START=pip install -e /booklending_utils
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 2 --timeout 300 --max-requests 500
+      - GUNICORN_OPTS= --workers 2 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../booklending_utils:/booklending_utils
@@ -337,7 +337,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-home0"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile

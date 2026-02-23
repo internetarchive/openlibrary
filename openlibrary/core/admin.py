@@ -9,6 +9,8 @@ import web
 from infogami import config
 from openlibrary.core import cache
 
+from . import db
+
 
 class Stats:
     def __init__(self, docs, key, total_key):
@@ -173,6 +175,39 @@ def get_stats(ndays=30, use_mock_data=False):
         'authors': Stats(docs, "authors", "total_authors"),
         'subjects': Stats(docs, "subjects", "total_subjects"),
     }
+
+
+def get_unique_logins_since(since_days=30):
+    since_date = datetime.datetime.now() - datetime.timedelta(days=since_days)
+    date_str = since_date.strftime("%Y-%m-%d")
+
+    query = """
+        SELECT COUNT(id) FROM store_index
+            WHERE type = 'account'
+            AND name = 'last_login'
+            AND value > $date
+    """
+
+    oldb = db.get_db()
+    results = list(oldb.query(query, vars={"date": date_str}))
+
+    if not results:
+        return 0
+    return results[0].get('count', 0)
+
+
+def get_cached_unique_logins_since(since_days=30):
+    from openlibrary.plugins.openlibrary.home import caching_prethread
+
+    twelve_hours = 60 * 60 * 12
+    key_prefix = 'logins_since'
+    mc = cache.memcache_memoize(
+        get_unique_logins_since,
+        key_prefix=key_prefix,
+        timeout=twelve_hours,
+        prethread=caching_prethread(),
+    )
+    return mc(since_days=since_days)
 
 
 def mock_get_stats():

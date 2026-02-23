@@ -124,12 +124,12 @@ def test_isbndb_get_languages(language, expected, get_isbndb_data):
 @pytest.mark.parametrize(
     ('year', 'expected'),
     [
-        (2000, "2000"),
-        ("2000", "2000"),
-        ("December 2000", "2000"),
-        ("-", None),
-        ("123", None),
-        (None, None),
+        pytest.param(2000, "2000", id="integer_year"),
+        pytest.param("2000", "2000", id="string_year"),
+        pytest.param("December 2000", "2000", id="full_date_string"),
+        pytest.param("-", None, id="invalid_placeholder"),
+        pytest.param("123", None, id="too_short_string"),
+        pytest.param(None, None, id="null_input"),
     ],
 )
 def test_isbndb_get_year(year, expected, get_isbndb_data):

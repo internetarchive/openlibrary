@@ -298,17 +298,10 @@ class account_create(delegate.page):
         return f
 
     def get_recap(self):
-        if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_invisible_recaptcha.public_key
-            private_key = config.plugin_invisible_recaptcha.private_key
-            if public_key and private_key:
-                return recaptcha.Recaptcha(public_key, private_key)
-
-    def is_plugin_enabled(self, name):
-        return (
-            name in delegate.get_plugins()
-            or "openlibrary.plugins." + name in delegate.get_plugins()
-        )
+        public_key = config.plugin_invisible_recaptcha.public_key
+        private_key = config.plugin_invisible_recaptcha.private_key
+        if public_key and private_key:
+            return recaptcha.Recaptcha(public_key, private_key)
 
     def POST(self):
         f: forms.RegisterForm = self.get_form()

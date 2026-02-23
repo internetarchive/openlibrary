@@ -5,36 +5,153 @@ $ _x = ctx.setdefault('cssfile', 'design')
 <div class="design-pattern-library">
   <h1>$_("Design Pattern Library")</h1>
   <article class="design-pattern">
-    <h2>$_("Fonts")</h2>
-    <hr/>
-    <h3>$_("Font-size")</h3>
-    <section>
-      <code>
-        <h1>h1.</h1> $# detect-missing-i18n-skip-line
-        <h2>h2.</h2> $# detect-missing-i18n-skip-line
-        <h3>h3.</h3> $# detect-missing-i18n-skip-line
-        <h4>h4.</h4> $# detect-missing-i18n-skip-line
-      </code>
-    </section>
-
-    <h3>$_("Font-family")</h3>
-    <section>
-      <li class="sansserif">$_("Sans-serif: Verdana")</li>
-      <li class="serif">$_("Serif: Georgia")</li>
-    </section>
+    <div class="design-pattern__header">
+      <h2 class="design-pattern__title">$_("Colors")</h2>
+    </div>
+    <div class="design-pattern__content">
+      <ul>
+        <li class="color-swatch"><span class="color-block color-block-background"></span> $_("Background")</li>
+        <li class="color-swatch"><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
+        <li class="color-swatch"><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
+        <li class="color-swatch"><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
+      </ul>
+    </div>
   </article>
 
   <article class="design-pattern">
-    <h2>$_("Colors")</h2>
-    <hr/>
-    <h3>$_("Defaults")</h3>
-    <section>
-      <ul class="color-swatch">
-        <li><span class="color-block color-block-background"></span> $_("Background")</li>
-        <li><span class="color-block color-block-primary-cta"></span> $_("Primary Call To Action")</li>
-        <li><span class="color-block color-block-link-unclicked"></span> $_("Link (unclicked)")</li>
-        <li><span class="color-block color-block-link-clicked"></span> $_("Link (clicked)")</li>
-      </ul>
-    </section>
-  </article>
+    <div class="design-pattern__header">
+      <h2 class="design-pattern__title">$_("Pagination component")</h2>
+      <p>$_("The ol-pagination component provides support for both event-based and URL-based navigation.")</p>
+    </div>
+    <div class="design-pattern__content">
+      <section class="example">
+        <h3 class="example__title">$_("Event-based")</h3>
+        <p>$:_("When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s.", update_page="<code>update:page</code>", event_detail="<code>event.detail</code>")</p>
+        <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
+        <div class="example__output">
+          <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
+        </div>
+        <p>$_("Selected page:"): <strong id="demo-selected-page">1</strong></p>
+        <script>
+          document.getElementById('demo-pagination').addEventListener('update:page', (e) => {
+            document.getElementById('demo-selected-page').textContent = e.detail;
+            e.target.setAttribute('current-page', e.detail);
+          });
+        </script>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("URL-based Navigation")</h3>
+        <p>$_("When base-url is provided, pagination renders anchor tags for SEO-friendly links.")</p>
+        <code class="example__code">&lt;ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"&gt;&lt;/ol-pagination&gt;</code>
+        <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"></ol-pagination>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("First page (no previous arrow)")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="20" current-page="1"></ol-pagination>
+        </div>
+
+        <h3 class="example__title">$_("Middle page (both arrows visible)")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="20" current-page="10"></ol-pagination>
+        </div>
+
+        <h3 class="example__title">$_("Last page (no next arrow)")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="20" current-page="20"></ol-pagination>
+        </div>
+
+        <h3 class="example__title">$_("3 pages")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="3" current-page="2"></ol-pagination>
+        </div>
+
+        <h3 class="example__title">$_("5 pages (no ellipsis needed)")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="5" current-page="3"></ol-pagination>
+        </div>
+
+        <h3 class="example__title">$_("100 pages with ellipsis:")</h3>
+        <div class="example__output">
+          <ol-pagination total-pages="100" current-page="50"></ol-pagination>
+        </div>
+      </section>
+      </div>
+    </article>
+
+  <article class="design-pattern">
+    <div class="design-pattern__header">
+      <h2 class="design-pattern__title">$_("Read More component")</h2>
+      <p>$_("The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based.")</p>
+    </div>
+    <div class="design-pattern__content">
+      <section class="example">
+        <h3 class="example__title">$_("Height-based truncation")</h3>
+        <p>$:_("Use %(max_height)s to limit content by pixel height.", max_height="<code>max-height</code>")</p>
+        <code class="example__code">&lt;ol-read-more max-height="80px"&gt;...content...&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px;">
+          <ol-read-more max-height="80px">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          </ol-read-more>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Line-based truncation")</h3>
+        <p>$:_("Use %(max_lines)s to limit content by number of lines.", max_lines="<code>max-lines</code>")</p>
+        <code class="example__code">&lt;ol-read-more max-lines="3"&gt;...content...&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px;">
+          <ol-read-more max-lines="3">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          </ol-read-more>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Custom button text")</h3>
+        <p>$:_("Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example.", more_text="<code>more-text</code>", less_text="<code>less-text</code>")</p>
+        <code class="example__code">&lt;ol-read-more max-lines="2" more-text="$$_('Show more')" less-text="$$_('Show less')"&gt;...&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px;">
+          <ol-read-more max-lines="2" more-text="$_('Show more')" less-text="$_('Show less')">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+          </ol-read-more>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Custom background color")</h3>
+        <p>$:_("Use %(background_color)s to match the gradient fade to your container background.", background_color="<code>background-color</code>")</p>
+        <code class="example__code">&lt;ol-read-more max-lines="2" background-color="#cef"&gt;...&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px; background: #cef; padding: 12px 12px 0 12px; border-radius: 4px;">
+          <ol-read-more max-lines="2" background-color="#cef">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+          </ol-read-more>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Small label size")</h3>
+        <p>$:_("Use %(label_size)s for a smaller toggle button.", label_size='<code>label-size="small"</code>')</p>
+        <code class="example__code">&lt;ol-read-more max-lines="2" label-size="small"&gt;...&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px;">
+          <ol-read-more max-lines="2" label-size="small">
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
+          </ol-read-more>
+        </div>
+      </section>
+
+      <section class="example">
+        <h3 class="example__title">$_("Content shorter than limit (no button)")</h3>
+        <p>$_("When content fits within the limit, no toggle button is shown.")</p>
+        <code class="example__code">&lt;ol-read-more max-lines="5"&gt;Short content&lt;/ol-read-more&gt;</code>
+        <div class="example__output" style="max-width: 360px;">
+          <ol-read-more max-lines="5">
+            <p>$_("This is short content that fits within 5 lines, so no button appears.")</p>
+          </ol-read-more>
+        </div>
+      </section>
+    </div>
+    </article>
 </div>

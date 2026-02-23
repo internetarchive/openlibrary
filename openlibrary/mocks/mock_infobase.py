@@ -14,7 +14,7 @@ from infogami.infobase import account, client, common
 from infogami.infobase import config as infobase_config
 from openlibrary.plugins.upstream.models import Changeset
 from openlibrary.plugins.upstream.utils import safeget
-from openlibrary.utils import async_utils
+from openlibrary.utils.request_context import site as site_context
 
 key_patterns = {
     'work': '/works/OL%dW',
@@ -443,7 +443,7 @@ def mock_site(request):
     old_ctx = dict(web.ctx)
     web.ctx.clear()
     web.ctx.site = site
-    async_utils.site.set(site)
+    site_context.set(site)
     web.ctx.conn = MockConnection()
     web.ctx.env = web.ctx.environ = web.storage()
     web.ctx.headers = []

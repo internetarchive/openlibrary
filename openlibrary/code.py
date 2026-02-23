@@ -10,6 +10,8 @@ import sys
 
 import infogami
 from infogami.utils import delegate, i18n, macro, template
+from infogami.utils.app import pages
+from openlibrary.plugins.openlibrary import deprecated_handler
 
 old_plugins = [
     "openlibrary",
@@ -19,7 +21,6 @@ old_plugins = [
     "admin",
     "upstream",
     "importapi",
-    "recaptcha",
 ]
 
 
@@ -42,6 +43,21 @@ def setup():
         delegate._make_plugin_module('openlibrary.plugins.' + name)
         for name in old_plugins
     ]
+
+    # Register deprecated endpoint handlers AFTER all plugins have loaded
+    # This must be done here, after all plugins are imported, to ensure our handlers
+    # override the deprecated ones
+    # This is only temporary while we move to fastapi
+
+    for path in deprecated_handler.DEPRECATED_PATHS:
+        if path not in pages:
+            pages[path] = {}
+        old_handler = pages[path].get('json')
+        print(
+            f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}",
+            file=sys.stderr,
+        )
+        pages[path]['json'] = deprecated_handler.DeprecatedEndpointHandler
 
     load_views()
 

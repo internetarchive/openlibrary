@@ -1,9 +1,0 @@
-$def with(more_text=None, less_text=None)
-
-$ more_text = more_text or _("Read more")
-$ less_text = less_text or _("Read less")
-
-$# detect-missing-i18n-skip-line
-<button class="read-more__toggle read-more__toggle--more">$more_text &#9662</button>
-$# detect-missing-i18n-skip-line
-<button class="read-more__toggle read-more__toggle--less">$less_text &#9650</button>

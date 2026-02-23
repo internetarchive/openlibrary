@@ -4,6 +4,9 @@ import pytest
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
+pytestmark = pytest.mark.usefixtures("request_context_fixture")
+
+
 # {'Test name': ('query', fields[])}
 QUERY_PARSER_TESTS = {
     'No fields': ('query here', 'query here'),

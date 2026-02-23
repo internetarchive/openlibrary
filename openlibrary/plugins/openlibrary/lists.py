@@ -28,6 +28,7 @@ from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.utils import olid_to_key
+from openlibrary.utils.request_context import site
 
 
 def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
@@ -39,7 +40,7 @@ def subject_key_to_seed(key: subjects.SubjectPseudoKey) -> SeedSubjectString:
 
 
 def is_seed_subject_string(seed: str) -> bool:
-    subject_type = seed.split(":")[0]
+    subject_type = seed.split(":", maxsplit=1)[0]
     return subject_type in ("subject", "place", "person", "time")
 
 
@@ -379,6 +380,11 @@ class lists_delete(delegate.page):
     encoding = "json"
 
     def POST(self, key):
+        if not (user := get_current_user()):
+            raise web.unauthorized()
+        # Check if current user is admin or list owner
+        if not user.is_admin() and (user.key and not key.startswith(user.key)):
+            raise web.unauthorized()
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != '/type/list':
             raise web.notfound()
@@ -961,9 +967,7 @@ def get_lists(keys: list[str]):
         sort='last_modified desc',
         request_label="LIST_CAROUSEL",
     )
-    lists = cast(
-        list[List], web.ctx.site.get_many([doc["key"] for doc in response.docs])
-    )
+    lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
 
     return [get_list_data(lst, None) for lst in lists]
 
