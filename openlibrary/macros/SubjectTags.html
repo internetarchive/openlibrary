@@ -1,19 +1,23 @@
-$def with(work, tags=[])
+$def with(work, tags=[], edit_mode=False)
 
-$def render_subjects(label, subjects, track_value, prefix=""):
+$def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
   $if subjects:
     <div class="section link-box">
       <span class="clamp" data-before="&#9656; ">
       <h3>$label</h3>
         $for subject in subjects:
           <a href="$subject_name_to_key(subject, prefix=prefix)" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
+        $if edit_mode:
+          <button class="edit-subject-btn"
+		  data-work-olid="$work.key.split('/')[-1]"
+		  title="Edit $label">✏️</button>
       </span>
     </div>
 
 $if work:
   $for tag in tags:
     $if tag=="Subjects":
-      $:render_subjects(_("Subjects"), work.get_subjects(),"BookOverview|SubjectClick")
+      $:render_subjects(_("Subjects"), work.get_subjects(),"BookOverview|SubjectClick", edit_mode=edit_mode)
     $if tag=="People":
       $:render_subjects(_("People"), work.subject_people,"BookOverview|SubjectPeopleClick", prefix="person:")
     $if tag=="Places":
