@@ -50,11 +50,10 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $ layout = get_remembered_layout()
       $:render_template("search/layout_options.html", selected_layout=layout)
 
-      $if doc_count > 1:
-        $if mode == "everything":
-          <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-        $else:
-          <span>$:_('— Show <a href="%(url)s">everything</a> in this shelf?', url=changequery(mode='everything'))</span>
+      $if mode == "everything" and doc_count > 1:
+        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
+      $elif mode != "everything":
+        <span>$:_('— Show <a href="%(url)s">everything</a> in this shelf?', url=changequery(mode='everything'))</span>
     </div>
 
     $if not checkin_year:
