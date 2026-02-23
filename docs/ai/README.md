@@ -66,7 +66,9 @@ curl "http://localhost:8983/solr/openlibrary/select?q=*:*&rows=0"
 docker compose run --rm home make reindex-solr
 
 # Option 2: If schema mismatch persists, fully reset Solr volume
-docker compose down -v solr-data && docker compose up -d solr
+docker compose stop solr
+docker volume rm openlibrary_solr-data
+docker compose up -d solr
 docker compose run --rm home make reindex-solr
 ```
 
