@@ -1438,7 +1438,7 @@ def _get_blog_feeds():
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=60 * 60 * 24
 )
 
 
