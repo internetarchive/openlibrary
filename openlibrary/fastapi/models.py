@@ -5,6 +5,29 @@ from typing import Self
 from pydantic import BaseModel, Field, model_validator
 
 
+def parse_comma_separated_list(v: str | list[str]) -> list[str]:
+    """
+    Parse comma-separated string values into a list of strings.
+
+    This validator handles both string and list inputs, converting:
+    - "a,b,c" → ["a", "b", "c"]
+    - ["a", "b,c"] → ["a", "b", "c"]
+
+    Used for query parameters that accept comma-separated values like:
+    - Search fields: "key,name,author_key"
+    - Bibliography keys: "ISBN1,ISBN2,ISBN3"
+
+    Args:
+        v: Input value (string or list of strings)
+
+    Returns:
+        List of trimmed strings with empty items filtered out
+    """
+    if isinstance(v, str):
+        v = [v]
+    return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
+
+
 class Pagination(BaseModel):
     """Reusable pagination parameters for API endpoints."""
 

@@ -5,12 +5,14 @@ import re
 import urllib
 
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from openlibrary.plugins.books import dynlinks, readlinks
 
 
+@deprecated("migrated to fastapi")
 class books_json(delegate.page):
     """
     Endpoint for mapping bib keys (e.g. ISBN, LCCN) to certain links associated
