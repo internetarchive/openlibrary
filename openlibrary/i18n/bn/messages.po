@@ -213,120 +213,120 @@ msgstr "ডিফ"
 
 #: history.html:42 history.html:73
 msgid "Compare"
-msgstr "तुलना"
+msgstr "তুলনা"
 
 #: history.html:42 history.html:73
 msgid "See Diff"
-msgstr "डिफ़ देखें"
+msgstr "ডিফ দেখুন"
 
 #: history.html:48 lib/history.html:76
 #, python-format
 msgid "View revision %s"
-msgstr "संशोधन %s देखें"
+msgstr "সংশোধন %s দেখুন"
 
 #: history.html:85
 msgid "Back"
-msgstr "पीछे"
+msgstr "পিছনে"
 
 #: Pager.html:34 history.html:87 lib/pagination.html:37 showmarc.html:54
 msgid "Next"
-msgstr "अगला"
+msgstr "পরবর্তী"
 
 #: internalerror.html:14
 msgid "Sorry. There seems to be a problem with what you were just looking at."
-msgstr "माफ़ करें। लगता है कि आप जो देख रहे थे उसमें कोई समस्या है।"
+msgstr "ক্ষমা করবেন. মনে হচ্ছে আপনি এখন যা দেখতে চান তাতে কোনো সমস্যা আছে|"
 
 #: internalerror.html:15
 #, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head for <a href=\"/\">home</a>?"
-msgstr "हमने %s की गड़बड़ी नोट कर ली है और हम जल्द - से - जल्द इसकी जाँच करेंगे। <a href=\"/\">home</a>?"
+msgstr "আমরা %s এর ত্রূটি নোট করেছি ও দ্রুত এব্যাপারে কাজ করা শুরু করবো। <a href=\"/\">home</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
-msgstr "लाइब्रेरी एक्सप्लोरर"
+msgstr "লাইব্রেরি এক্সপ্লোরার"
 
 #: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10 login.html:75
 msgid "Log In"
-msgstr "लॉग इन करें"
+msgstr "লগ ইন করুন"
 
 #: account/create.html:19 login.html:16
 msgid "OR"
-msgstr "या"
+msgstr "বা"
 
 #: login.html:18
 msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access "
 "your Open Library account."
 msgstr ""
-"कृपया अपना <a href=\"https://archive.org\">इंटरनेट आर्काइव</a> ईमेल और पासवर्ड दर्ज करें "
-"ओपन लाइब्रेरी एक्सेस करने के लिए।"
+"অনুগ্রহ করে আপনার <a href=\"https://archive.org\">इंইন্টারনেট আর্কাইভের</a> ইমেইল ও পাসওয়ার্ড দিন "
+"নিজের লাইব্রেরি ব্যবহার করতে।"
 
 #: account/create.html:50 login.html:21
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "आप पहले से ही %(user)s के रूप में ओपन लाइब्रेरी में लॉग इन हैं।"
+msgstr "আপনি আগে থেকেই %(user)s রূপে ওপেন লাইব্রেরিতে লগড ইন আছেন।"
 
 #: account/create.html:51 login.html:22
 msgid ""
 "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" "
 "onclick=\"document.forms['logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
-"यदि आप एक नया, अलग ओपन लाइब्रेरी खाता बनाना चाहते हैं, तो आपको <a href=\"javascript:;\" onclick=\"document."
-"forms['logout'].submit()\">लॉग आउट</a> करना होगा और साइन अप प्रक्रिया को नए सिरे से शुरू करना होगा।"
+"আপনি যদি আলাদা করে নতুন একটি ওপেন লাইব্রেরির একাউন্ট খুলতে চান তবে আপনাকে <a href=\"javascript:;\" onclick=\"document."
+"forms['logout'].submit()\">লগ আউট</a> করে আবার নতুন করে সাইন আপ এর প্রক্রিয়া শুরু করতে হবে।"
 
 #: login.html:42
 msgid "Email"
-msgstr "ईमेल"
+msgstr "ইমেইল"
 
 #: login.html:44
 msgid "Forgot your Internet Archive email?"
-msgstr "अपना इंटरनेट आर्काइव ईमेल भूल गए?"
+msgstr "নিজের ইন্টারনেট আর্কাইভের ইমেইল ভুলে গেছেন?"
 
 #: account/email/forgot-ia.html:33 forms.py:31 login.html:54
 msgid "Password"
-msgstr "पासवर्ड"
+msgstr "পাসওয়ার্ড"
 
 #: login.html:64
 msgid "Remember me"
-msgstr "मुझे याद रखें"
+msgstr "আমাকে মনে রাখুন"
 
 #: account/email/forgot.html:48 login.html:79
 msgid "Forgot your Password?"
-msgstr "अपना पासवर्ड भूल गए?"
+msgstr "পাসওয়ার্ড ভুলে গেছেন?"
 
 #: login.html:81
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
-msgstr "ओपन लाइब्रेरी का सदस्य नहीं है? <a href=\"/account/create\">अभी साइन अप करें</a>।"
+msgstr "ওপেন লাইব্রেরির সদস্য নন? <a href=\"/account/create\">এখনই সাইন আপ করুন</a>।"
 
 #: messages.html:11
 msgid "Created new author record."
-msgstr "नया लेखक रिकॉर्ड बनाया गया।"
+msgstr "নতুন লেখক রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:12
 msgid "Created new edition record."
-msgstr "नया संस्करण रिकॉर्ड बनाया गया।"
+msgstr "নতুন সংস্করণ রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:13
 msgid "Created new work record."
-msgstr "नया कार्य रिकॉर्ड बनाया गया।"
+msgstr "নতুন কর্ম রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:14
 msgid "Added new book."
-msgstr "नई किताब जोड़ी गई।"
+msgstr "নতুন বই যোগ করা হয়েছে।"
 
 #: messages.html:16
 msgid "Thank you very much for adding that new book!"
-msgstr "नई किताब को जोड़ने के लिए बहुत - बहुत धन्यवाद!"
+msgstr "নতুন এই বইটি যোগ করার জন্য অনেক ধন্যবাদ!"
 
 #: messages.html:17 messages.html:18
 msgid "Thank you very much for improving that record!"
-msgstr "रिकॉर्ड को बेहतर बनाने के लिए बहुत - बहुत धन्यवाद!"
+msgstr "এই সংস্করণকে উন্নততর করার জন্য অনেক ধন্যবাদ!"
 
 #: notfound.html:7
 #, python-format
 msgid "%(path)s is not found"
-msgstr "%(path)s नहीं मिला"
+msgstr "%(path)s পাওয়া যায়নি"
 
 #: languages/notfound.html:10 notfound.html:14
 msgid "404 - Page Not Found"
@@ -335,23 +335,23 @@ msgstr "404 - Page Not Found"
 #: notfound.html:18
 #, python-format
 msgid "%(path)s does not exist."
-msgstr "%(path)s मौजूद नहीं है."
+msgstr "%(path)s এর অস্তিত্ব নেই."
 
 #: notfound.html:22
 msgid "Create it?"
-msgstr "इसे बनाएं?"
+msgstr "এটি বানান?"
 
 #: notfound.html:26
 msgid "Looking for a template/macro?"
-msgstr "टेम्पलेट/मैक्रो की तलाश है?"
+msgstr "টেম্পলেট/ম্যাক্রো খুঁজছেন?"
 
 #: permission.html:10
 msgid "Permission of"
-msgstr "की अनुमति"
+msgstr "এর অনুমতি"
 
 #: permission.html:18
 msgid "Permission"
-msgstr "अनुमति"
+msgstr "অনুমতি"
 
 #: permission.html:28
 msgid "Child Permission"
@@ -359,74 +359,74 @@ msgstr "Child Permission"
 
 #: permission_denied.html:10
 msgid "Permission denied."
-msgstr "अनुमति अस्वीकृत।"
+msgstr "অনুমতি নিষিদ্ধ।"
 
 #: permission_denied.html:30
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr "अगर आपके पास ज़रूरी अनुमतियाँ हैं, तो आप <a href=\"%s\">लॉग इन</a> कर सकते हैं।"
+msgstr "প্রয়োজনীয় অনুমতি থাকলে, <a href=\"%s\">লগ ইন</a> করুন।"
 
 #: showamazon.html:8 showamazon.html:11 showbwb.html:8 showbwb.html:11
 msgid "Record details of"
-msgstr "का विवरण रिकॉर्ड करें"
+msgstr "এর বিবরণ রেকর্ড করুন"
 
 #: showamazon.html:15 showbwb.html:15
 msgid "This record came from"
-msgstr "यह रिकॉर्ड यहाँ से आया है"
+msgstr "এই রেকর্ড এখন থেকে এসেছে"
 
 #: showia.html:42 showmarc.html:48
 msgid "Invalid MARC record."
-msgstr "अमान्य MARC रिकॉर्ड।"
+msgstr "অমান্য MARC রেকর্ড।"
 
 #: status.html:17
 msgid "Server status"
-msgstr "सर्वर की स्थिति"
+msgstr "সার্ভারের অবস্থা"
 
 #: SearchNavigation.html:24 SubjectTags.html:23 lib/nav_foot.html:28 lib/nav_head.html:28 subjects.html:9
 #: subjects/notfound.html:11 type/author/view.html:176 type/list/view_body.html:280 work_search.html:75
 msgid "Subjects"
-msgstr "विषय"
+msgstr "বিষয়"
 
 #: SubjectTags.html:27 subjects.html:9 type/author/view.html:177 type/list/view_body.html:282
 #: work_search.html:79
 msgid "Places"
-msgstr "जगहें"
+msgstr "স্থান"
 
 #: SubjectTags.html:25 admin/menu.html:20 subjects.html:9 type/author/view.html:178
 #: type/list/view_body.html:281 work_search.html:78
 msgid "People"
-msgstr "लोग"
+msgstr "ব্যক্তিসকল"
 
 #: SubjectTags.html:29 subjects.html:9 type/list/view_body.html:283 work_search.html:80
 msgid "Times"
-msgstr "टाइम्स (बार)"
+msgstr "সময়"
 
 #: subjects.html:19
 msgid "See all works"
-msgstr "सभी काम देखें"
+msgstr "সব কাজ দেখুন"
 
 #: merge/authors.html:89 publishers/view.html:13 subjects.html:15 type/author/view.html:117
 #, python-format
 msgid "%(count)d work"
 msgid_plural "%(count)d works"
-msgstr[0] "%(count)d किताब"
-msgstr[1] "%(count)d किताबें"
+msgstr[0] "%(count)d টি বই"
+msgstr[1] "%(count)d গুলি বই"
 
 #: subjects.html:22
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr "विषय %(name)s वाली पुस्तकें खोजें।"
+msgstr "%(name)s বিষয়ক বই খুজুন।"
 
 #: authors/index.html:21 lib/nav_head.html:102 lists/home.html:25 publishers/notfound.html:19
 #: publishers/view.html:115 search/advancedsearch.html:48 search/authors.html:27 search/inside.html:17
 #: search/lists.html:17 search/publishers.html:19 search/subjects.html:28 subjects.html:27
 #: subjects/notfound.html:19 type/local_id/view.html:42 work_search.html:91
 msgid "Search"
-msgstr "किताबें खोजें"
+msgstr "বই খুজুন"
 
 #: publishers/view.html:32 subjects.html:37
 msgid "Publishing History"
-msgstr "पब्लिशिंग हिस्ट्री"
+msgstr "প্রকাশনার ইতিহাস"
 
 #: subjects.html:39
 msgid ""
@@ -434,44 +434,44 @@ msgid ""
 "axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click "
 "here to skip the chart</a>."
 msgstr ""
-"यह कृतियों के संस्करणों के प्रकाशन इतिहास को दिखाने के लिए एक चार्ट है। X अक्ष के साथ समय है, और y "
-"अक्ष पर प्रकाशित संस्करणों की गणना है। <a href=\"#subjectRelated\">चार्ट को छोड़ने के लिए यहाँ क्लिक करें</a>।"
+"এটি এই বিষয়ের ওপরে থাকা রচনাগুলির সংস্করণের প্রকাশের ইতিহাস দেখানোর জন্য একটি চার্ট। X অক্ষে সময় আছে, এবং Y"
+" অক্ষে প্রকাশিত সংস্করণের সংখ্যা আছে। <a href=\"#subjectRelated\">চার্টটি ছাড়তে এখানে ক্লিক করুন</a>।"
 
 #: publishers/view.html:34 subjects.html:40
 msgid "Reset chart"
-msgstr "चार्ट रीसेट करें"
+msgstr "চার্ট রিসেট করুন"
 
 #: publishers/view.html:34 subjects.html:40
 msgid "or continue zooming in."
-msgstr "या ज़ूम इन करना जारी रखें।"
+msgstr "বা জুম্ ইন করতে থাকুন।"
 
 #: subjects.html:41
 msgid "This graph charts editions published on this subject."
-msgstr "यह ग्राफ़ इस विषय पर प्रकाशित संस्करणों को चार्ट करता है।"
+msgstr "এই গ্রাফটি এই বিষয়ে প্রকাশিত সংস্করণগুলিকে চার্টে প্রদর্শন করে।"
 
 #: publishers/view.html:42 subjects.html:47
 msgid "Editions Published"
-msgstr "प्रकाशन प्रकाशित"
+msgstr "প্রকাশিত সংস্করণসমূহ"
 
 #: admin/imports.html:18 publishers/view.html:44 subjects.html:49
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr "निफ्टी चार्ट देखने के लिए आपको जावास्क्रिप्ट चालू करनी होगी!"
+msgstr "এই নিফটি চার্টটি দেখতে জাভাস্ক্রিপ্ট চালু করুন!"
 
 #: publishers/view.html:46 subjects.html:51
 msgid "Year of Publication"
-msgstr "प्रकाशन का वर्ष"
+msgstr "প্রকাশনার বছর"
 
 #: subjects.html:57
 msgid "Related..."
-msgstr "संबंधित..."
+msgstr "সম্পর্কিত..."
 
 #: publishers/view.html:64 subjects.html:71
 msgid "None found."
-msgstr "कुछ नहीं मिला।"
+msgstr "কিছু খুঁজে পাওয়া যায়নি।"
 
 #: publishers/view.html:81 subjects.html:86
 msgid "See more books by, and learn about, this author"
-msgstr "इस लेखक द्वारा और किताबें देखें, और इसके बारे में जानें"
+msgstr "এই লেখকের আরো বই দেখুন ও এনার সম্পর্কে জানুন"
 
 #: account/loans.html:143 authors/index.html:24 publishers/view.html:79 search/authors.html:56
 #: search/publishers.html:29 search/subjects.html:66 subjects.html:84
@@ -483,77 +483,77 @@ msgstr[1] "%(count)d किताबें"
 
 #: subjects.html:92
 msgid "Prolific Authors"
-msgstr "विपुल लेखक"
+msgstr "বিপুল লেখক"
 
 #: subjects.html:93
 msgid "who have written the most books on this subject"
-msgstr "जिन्होंने इस विषय पर सबसे अधिक किताबें लिखी हैं"
+msgstr "যারা এই বিষয়ের ওপর সর্বাধিক বই লিখেছেন"
 
 #: publishers/view.html:104 subjects.html:109
 msgid "Get more information about this publisher"
-msgstr "इस प्रकाशक के बारे में अधिक जानकारी प्राप्त करें"
+msgstr "এই প্রকাশকের ব্যাপারে আরো জানুন"
 
 #: SearchResultsWork.html:82 books/check.html:32 merge/authors.html:82 publishers/view.html:102
 #: subjects.html:107
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] "%(count)s संस्करण"
-msgstr[1] "%(count)s संस्करण"
+msgstr[0] "%(count)s টি সংস্করণ"
+msgstr[1] "%(count)s গুলি সংস্করণ"
 
 #: support.html:7 support.html:10
 msgid "How can we help?"
-msgstr "हम आपकी कैसे मदद कर सकते हैं?"
+msgstr "আমরা কিভাবে আপনার সাহায্য করতে পারি?"
 
 #: support.html:16
 msgid ""
 "Your question has been sent to our support team. We'll get back to you shortly. You can also <a "
 "href=\"https://twitter.com/openlibrary\">contact us on Twitter</a>."
 msgstr ""
-"आपका सवाल हमारी सपोर्ट टीम को भेज दिया गया है। हम जल्द ही आपसे संपर्क करेंगे। आप <a href=\"https://twitter.com/"
-"openlibrary\">हमसे ट्विटर पर भी संपर्क</a> कर सकते हैं।"
+"আপনার প্রশ্ন আমাদের সাপোর্ট টীম কে পাঠানো হয়েছ। শীঘ্রই আপনার সাথে আমরা যোগাযোগ করার চেষ্টা করব। আমাদের সাথে <a href=\"https://twitter.com/"
+"openlibrary\"> টুইটার </a> এও যোগাযোগ স্থাপন করতে পারেন।"
 
 #: support.html:19
 msgid ""
 "Please check our <a href=\"/help/\">Help Pages</a> and <a href=\"/help/faq\">Frequently Asked "
 "Questions</a> (FAQ) to see if your question is answered there. Thank you."
 msgstr ""
-"कृपया हमारे <a href=\"/help/\">सहायता पेज</a> और <a href=\"/help/faq\">अक्सर पूछे जाने वाले सवाल</a> (FAQ) देखें "
-"और देखें कि आपके सवाल का जवाब वहाँ दिया गया है या नहीं। धन्यवाद।"
+"অনুগ্রহ করে আমাদের <a href=\"/help/\">সহায়তা পেজ</a> ও <a href=\"/help/faq\">প্রায়শই করা প্রশ্ন</a> (FAQ)দেখুন।"
+"ও দেখুন যে আপনার প্রশ্নের উত্তর সেখানে আছে কিনা। ধন্যবাদ।"
 
 #: support.html:22
 msgid "Your Name"
-msgstr "आपका नाम"
+msgstr "আপনার নাম"
 
 #: support.html:27
 msgid "Your Email Address"
-msgstr "आपका ईमेल"
+msgstr "আপনার ইমেইল এড্রেস"
 
 #: support.html:28
 msgid "We'll need this if you want a reply"
-msgstr "अगर आपको जवाब चाहिए, तो हमें इसकी ज़रूरत होगी"
+msgstr "আপনার উত্তর চাইলে, এটি আমাদের দরকার"
 
 #: support.html:29
 msgid ""
 "If you wish to be contacted by other means, please add your contact preference and details to your "
 "question."
-msgstr "यदि आप किसी अन्य माध्यम से संपर्क करना चाहते हैं, तो कृपया अपने प्रश्न में अपनी संपर्क प्राथमिकता और विवरण जोड़ें।"
+msgstr "অন্য কোনো মাধ্যমের দ্বারা যোগাযোগ করতে চাইলে, দয়া করে আপনার প্রশ্নে আপনার পছন্দসই যোগাযোগের বিবরণ যোগ করুন।"
 
 #: support.html:33
 msgid "Topic"
-msgstr "विषय"
+msgstr "বিষয়"
 
 #: support.html:36
 msgid "Select..."
-msgstr "चुनें..."
+msgstr "বাছাই করুন..."
 
 #: support.html:37
 msgid "Borrowing Help"
-msgstr "उधार लेने में मदद"
+msgstr "ধার করায় সাহায্য"
 
 #: support.html:38
 msgid "Developer/Code Question"
-msgstr "डेवलपर/कोड प्रश्न"
+msgstr "ডেভেলপার/কোড সম্পর্কিত প্রশ্নन"
 
 #: support.html:39
 msgid "Editing Issue"
@@ -561,23 +561,23 @@ msgstr "समस्या में बदलाव करना"
 
 #: support.html:40
 msgid "Login Trouble"
-msgstr "लॉग इन करने में परेशानी"
+msgstr "লগ ইন এ সমস্যা"
 
 #: support.html:41
 msgid "Spam Report"
-msgstr "स्पैम रिपोर्ट"
+msgstr "স্প্যাম রিপোর্ট"
 
 #: support.html:42
 msgid "Waiting List"
-msgstr "प्रतीक्षा सूची"
+msgstr "প্রতীক্ষা সূচি"
 
 #: support.html:43
 msgid "Other Question"
-msgstr "अन्य सवाल"
+msgstr "অন্য প্রশ্ন"
 
 #: support.html:49
 msgid "Your Question"
-msgstr "आपका सवाल"
+msgstr "আপনার প্রশ্ন"
 
 #: support.html:50
 msgid "Note: our staff will likely only be able respond in English."
