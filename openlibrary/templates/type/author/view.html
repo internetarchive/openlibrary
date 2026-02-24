@@ -134,11 +134,11 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $if books_count > 0:
                         $:render_template("search/layout_options.html", selected_layout=layout)
 
-                    $if books_count > 1:
-                        $if input(mode="everything").mode == "everything":
+                    $if input(mode="everything").mode == "everything":
+                        $if books_count > 0:
                             <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-                        $else:
-                            <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
+                    $else:
+                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
                 </div>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
@@ -223,3 +223,4 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
     $:render_template("lib/history", page)
 </div>
+
