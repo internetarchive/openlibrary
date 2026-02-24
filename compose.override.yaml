@@ -131,6 +131,8 @@ services:
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
       - .:/openlibrary
+      # For OSP download persistence across restarts
+      - solr-updater-data:/solr-updater-data
 
 volumes:
   ol-vendor:
