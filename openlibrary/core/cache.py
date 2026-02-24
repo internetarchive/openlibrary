@@ -18,7 +18,6 @@ from infogami import config
 from infogami.infobase.client import Nothing
 from infogami.utils import stats
 from openlibrary.core.helpers import NothingEncoder
-from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
@@ -303,7 +302,7 @@ class MemcacheCache(Cache):
     @functools.cached_property
     def memcache(self):
         if servers := config.get("memcache_servers", None):
-            return olmemcache.Client(servers)
+            return memcache.Client(servers)
         else:
             web.debug(
                 "Could not find memcache_servers in the configuration. Used dummy memcache."

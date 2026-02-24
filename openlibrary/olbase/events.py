@@ -11,10 +11,10 @@ List of events:
 import logging
 
 import eventer
+import memcache
 import web
 
 from infogami.infobase import config, server
-from openlibrary.utils import olmemcache
 
 logger = logging.getLogger("openlibrary.olbase")
 
@@ -131,4 +131,4 @@ def get_memcache():
     """Returns memcache client created from infobase configuration."""
     cache = config.get("cache", {})
     if cache.get("type") == "memcache":
-        return olmemcache.Client(cache['servers'])
+        return memcache.Client(cache['servers'])

@@ -10,6 +10,7 @@ import re
 import sys
 import traceback
 
+import memcache
 import requests
 import web
 
@@ -385,7 +386,7 @@ class MemcacheInvalidater:
     def get_memcache_client(self):
         _cache = config.get('cache', {})
         if _cache.get('type') == 'memcache' and 'servers' in _cache:
-            return olmemcache.Client(_cache['servers'])
+            return memcache.Client(_cache['servers'])
 
     def to_dict(self, d):
         if isinstance(d, dict):
@@ -442,15 +443,12 @@ class MemcacheInvalidater:
         yield old.key
 
 
-# openlibrary.utils can't be imported directly because
-# openlibrary.plugins.openlibrary masks openlibrary module
-olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
-
-
 def MemcachedDict(servers=None):
+    """Cache implementation with OL customized memcache client.
+    Compatible with memcache.Client API, handles unicode keys via web.safestr().
+    """
     servers = servers or []
-    """Cache implementation with OL customized memcache client."""
-    client = olmemcache.Client(servers)
+    client = memcache.Client(servers)
     return cache.MemcachedDict(memcache_client=client)
 
 
@@ -596,7 +594,7 @@ class OLIndexer(_Indexer):  # type: ignore[misc,valid-type]
         return norm.replace(' ', '')[:25]
 
     def expand_isbns(self, isbns):
-        """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse."""
+        """Expands isbns by adding ISBN-10 for ISBN-13 and vice-verse."""
         s = set(isbns)
         for isbn in isbns:
             if len(isbn) == 10:
