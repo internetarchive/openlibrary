@@ -55,19 +55,16 @@ services:
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=dev
       - SOLR_MODULES=analysis-extras
-      - LOCAL_DEV=${LOCAL_DEV:-false}
     volumes:
       - solr-data:/var/solr
       - ./conf/solr:/opt/solr/server/solr/configsets/olconfig:ro
-      - ./docker/ol-solr-start.sh:/docker/ol-solr-start.sh:ro
     networks:
       - webnet
     logging:
       options:
         max-size: "512m"
         max-file: "4"
-    # Run the wrapper script which handles schema migrations in dev mode
-    command: /docker/ol-solr-start.sh
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:
     image: "${OLIMAGE:-oldev:latest}"
