@@ -1,0 +1,348 @@
+name: Issue PM AI (Adaptive Mode)
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: read
+  issues: write
+  models: read
+
+# This check prevents duplicate requests from being processed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  respond:
+    # Only run if the 'actor' is a real human, not another bot
+    if: github.event.issue.user.type != 'Bot'
+    runs-on: ubuntu-latest
+
+    # Timeout to prevent infinite runs
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            .github/prompts/issue_pmai_instructions_guide.md
+            .github/prompts/issue_pmai_instructions_review.md
+          sparse-checkout-cone-mode: false
+
+      # Detect issue quality to choose the right mode
+      - name: Analyze issue quality
+        id: quality
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          echo "Analyzing issue quality..."
+
+          TITLE="$ISSUE_TITLE"
+          BODY="${ISSUE_BODY:-}"
+
+          # Initialize quality score
+          SCORE=0
+
+          # Quality indicators (each adds to score)
+
+          # 1. Title quality (max 2 points)
+          TITLE_LENGTH=$(echo "$TITLE" | wc -w)
+          if [ "$TITLE_LENGTH" -ge 5 ] && [ "$TITLE_LENGTH" -le 15 ]; then
+            SCORE=$((SCORE + 2))
+            echo "Good title length (+2)"
+          elif [ "$TITLE_LENGTH" -lt 3 ]; then
+            echo "Title too short"
+          fi
+
+          # 2. Body length (max 2 points)
+          BODY_LENGTH=$(echo "$BODY" | wc -w)
+          if [ "$BODY_LENGTH" -ge 30 ]; then
+            SCORE=$((SCORE + 2))
+            echo "Sufficient description (+2)"
+          else
+            echo "Description too short"
+          fi
+
+          # 3. Has reproduction steps (max 3 points)
+          if echo "$BODY" | grep -iE "(steps to reproduce|how to reproduce|reproduction|to reproduce|steps:)" > /dev/null; then
+            SCORE=$((SCORE + 3))
+            echo "Has reproduction steps (+3)"
+          else
+            echo "No reproduction steps mentioned"
+          fi
+
+          # 4. Has expected/actual behavior (max 2 points)
+          if echo "$BODY" | grep -iE "(expected|actual|should|but instead|currently)" > /dev/null; then
+            SCORE=$((SCORE + 2))
+            echo "Describes expected/actual behavior (+2)"
+          else
+            echo "No expected/actual behavior"
+          fi
+
+          # 5. Has technical details (max 2 points)
+          if echo "$BODY" | grep -iE "(version|browser|os|environment|error|stack trace|console)" > /dev/null; then
+            SCORE=$((SCORE + 2))
+            echo "Includes technical details (+2)"
+          else
+            echo "Missing technical details"
+          fi
+
+          # 6. Has code/examples (max 2 points)
+          if echo "$BODY" | grep -E '```|`[^`]+`' > /dev/null; then
+            SCORE=$((SCORE + 2))
+            echo "Includes code/examples (+2)"
+          else
+            echo "No code examples"
+          fi
+
+          # 7. Not too vague (max 2 points)
+          if ! echo "$TITLE $BODY" | grep -iE "(doesn't work|broken|fix|issue|problem|help)$" > /dev/null; then
+            SCORE=$((SCORE + 2))
+            echo "Specific (not vague) (+2)"
+          else
+            echo "Vague language detected"
+          fi
+
+          # Calculate total (max 15 points)
+          echo "Total quality score: $SCORE/15"
+
+          # Determine mode based on threshold
+          # High quality (≥10): Reviewer mode (concise)
+          # Medium quality (6-9): Balanced mode
+          # Low quality (<6): Guide mode (Contextual)
+
+          if [ "$SCORE" -ge 10 ]; then
+            MODE="reviewer"
+            echo "Using REVIEWER MODE (concise, professional)"
+          elif [ "$SCORE" -ge 6 ]; then
+            MODE="balanced"
+            echo "Using BALANCED MODE (moderate detail)"
+          else
+            MODE="guide"
+            echo "Using GUIDE MODE (Contextual, detailed)"
+          fi
+
+          echo "MODE=$MODE" >> "$GITHUB_OUTPUT"
+          echo "SCORE=$SCORE" >> "$GITHUB_OUTPUT"
+
+      - name: Load appropriate AI instructions
+        id: pm
+        env:
+          MODE: ${{ steps.quality.outputs.MODE }}
+        run: |
+          echo "Loading instructions for mode: $MODE"
+
+          if [ "$MODE" = "reviewer" ]; then
+            INSTRUCTIONS_FILE=".github/prompts/issue_pmai_instructions_review.md"
+          elif [ "$MODE" = "balanced" ]; then
+            # For balanced mode, use reviewer mode with relaxed constraints
+            INSTRUCTIONS_FILE=".github/prompts/issue_pmai_instructions_review.md"
+            EXTRA_INSTRUCTION=$'\n\n'"NOTE: This issue has moderate detail. Provide a bit more context than usual, but stay concise (≤150 words)."
+          else
+            INSTRUCTIONS_FILE=".github/prompts/issue_pmai_instructions_guide.md"
+          fi
+
+          if [ ! -f "$INSTRUCTIONS_FILE" ]; then
+            echo "Error: Instructions file not found: $INSTRUCTIONS_FILE"
+            exit 1
+          fi
+
+          {
+            echo "INSTRUCTIONS<<EOF"
+            cat "$INSTRUCTIONS_FILE"
+            echo "${EXTRA_INSTRUCTION:-}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Search for Related Context
+        id: search
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Search for top 3 related open issues/PRs using title keywords
+          KEYWORDS=$(echo "${{ github.event.issue.title }}" | awk '{print $1, $2, $3}')
+          RESULTS=$(gh search issues "$KEYWORDS" --repo ${{ github.repository }} --state open --limit 3 --json number,title,url)
+
+          # Save to environment for the next step
+          echo "RELATED_SEARCH_RESULTS<<EOF" >> $GITHUB_ENV
+          echo "$RESULTS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Generate issue response (GitHub Models)
+        id: generate
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          INSTRUCTIONS: ${{ steps.pm.outputs.INSTRUCTIONS }}
+        run: |
+          echo "Processing issue: #$ISSUE_NUMBER by author: @$ISSUE_AUTHOR"
+          echo "Issue URL: $ISSUE_URL"
+
+          # Construct the user message content with additional context
+          USER_MESSAGE="Issue #${ISSUE_NUMBER} opened by @${ISSUE_AUTHOR}"$'\n\n'"Issue title: $ISSUE_TITLE"$'\n\n'"Issue body:"$'\n'"${ISSUE_BODY:-No description provided}"
+
+          # Build JSON payload using jq for proper escaping
+          # temperature: 0.7 for consistent responses
+          # max_tokens: 2000 to prevent overly long comments
+          PAYLOAD=$(jq -n \
+            --arg model "gpt-4o-mini" \
+            --arg system "$INSTRUCTIONS" \
+            --arg user "$USER_MESSAGE" \
+            '{
+              model: $model,
+              messages: [
+                {role: "system", content: $system},
+                {role: "user", content: $user}
+              ],
+              temperature: 0.7,
+              max_tokens: 2000
+            }')
+
+          echo "Calling GitHub Models API..."
+
+          # Make API call to GitHub Models with retry logic (tries up to 3 times)
+          MAX_RETRIES=3
+          RETRY_COUNT=0
+          SUCCESS=false
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SUCCESS" = false ]; do
+            if [ $RETRY_COUNT -gt 0 ]; then
+              WAIT_TIME=$((RETRY_COUNT * 2))
+              echo "Retry attempt $RETRY_COUNT after ${WAIT_TIME}s delay..."
+              sleep $WAIT_TIME
+            fi
+
+            # Timeout after 30 seconds
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              --max-time 30 \
+              https://models.github.ai/inference/chat/completions \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: application/json" \
+              -H "User-Agent: GitHub-Actions-Issue-PM-AI" \
+              -d "$PAYLOAD")
+
+            # Extract HTTP status code (last line)
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+
+            echo "HTTP Status Code: $HTTP_CODE"
+
+            # Handle different response scenarios (edge cases)
+            if [ "$HTTP_CODE" -eq 200 ]; then
+              # Extract AI's response
+              CONTENT=$(echo "$RESPONSE_BODY" | jq -r '.choices[0].message.content // empty')
+
+              if [ -n "$CONTENT" ] && [ "$CONTENT" != "null" ]; then
+                echo "Successfully generated AI response"
+
+                # Save AI response for the next step
+                {
+                  echo "CONTENT<<EOF"
+                  echo "$CONTENT"
+                  echo "EOF"
+                } >> "$GITHUB_OUTPUT"
+
+                SUCCESS=true
+              else
+                # Retry when the response is empty or not generated
+                echo "Warning: Empty content in API response"
+                echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+              fi
+            elif [ "$HTTP_CODE" -eq 429 ]; then
+              # Retry after a delay if the rate limit hits
+              echo "Rate limit hit, retrying..."
+              echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            elif [ "$HTTP_CODE" -ge 500 ]; then
+              # Retry if there is a server-side error
+              echo "Server error ($HTTP_CODE), retrying..."
+              echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+            else
+              # Client error (4xx) - don't retry, just fail
+              echo "Error: API request failed with status $HTTP_CODE"
+              echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+              exit 1
+            fi
+          done
+
+          # Edge case: When all retries get exhausted
+          if [ "$SUCCESS" = false ]; then
+            echo "Error: Failed after $MAX_RETRIES retry attempts"
+            exit 1
+          fi
+
+      # This only runs when all previous steps are successful
+      - name: Post response to issue
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          BODY: ${{ steps.generate.outputs.CONTENT }}
+        run: |
+          echo "Posting AI response to issue #$ISSUE_NUMBER..."
+
+          # Add HTML comment marker (invisible to users)
+          COMMENT_HEADER="<!-- Generated by Issue PM AI -->"$'\n\n'
+          FULL_BODY="${COMMENT_HEADER}${BODY}"
+
+          # Create JSON payload with proper escaping
+          PAYLOAD=$(jq -n --arg body "$FULL_BODY" '{body: $body}')
+
+          # Post comment to issue via GitHub API (with 15 second timeout)
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --max-time 15 \
+            -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "User-Agent: GitHub-Actions-Issue-PM-AI" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+            -d "$PAYLOAD")
+
+          # Check if the comment was posted successfully
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            COMMENT_URL=$(echo "$RESPONSE_BODY" | jq -r '.html_url // empty')
+            echo "Successfully posted comment to issue #$ISSUE_NUMBER"
+            [ -n "$COMMENT_URL" ] && echo "Comment URL: $COMMENT_URL"
+            echo "$RESPONSE_BODY" | jq -c '{id, created_at, updated_at}' || true
+          else
+            echo "Error: Failed to post comment with status $HTTP_CODE"
+            echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+            exit 1
+          fi
+
+      # Posts a friendly message if the workflow fails
+      - name: Handle failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          echo "Workflow failed - posting fallback comment"
+
+          FALLBACK_MESSAGE="Thanks for opening this issue! The AI assistant encountered an error while analyzing your issue. A team member will review it shortly."
+
+          PAYLOAD=$(jq -n --arg body "$FALLBACK_MESSAGE" '{body: $body}')
+
+          # Try to post fallback (don't fail if this fails too)
+          curl -s -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments" \
+            -d "$PAYLOAD" || true
