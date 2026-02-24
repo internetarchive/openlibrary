@@ -9,7 +9,7 @@ This welcome section is intended for new contributors.
 3. **Getting Started:**
     * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs)
 4. **Contributing:**
-    * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
+    * [How we use git](https://github.com/internetarchive/openlibrary/wiki#using-gitgub)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
     * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
     * [Enabling debugging & profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling)
@@ -71,7 +71,9 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Submitting Issues
 
-[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Interacting-with-GitHub-Issues) and [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues) explain how GitHub issues are triaged, labeled, and prioritized.
+[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki#using-github) and 
+[Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki#managed-labels-by-group) 
+explain how GitHub issues are triaged, labeled, and prioritized.
 
 ### Tagging
 - If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
