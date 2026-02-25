@@ -31,16 +31,34 @@ repos:
     hooks:
       - id: auto-walrus
 
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.3.1
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+        files: \.sql$
+        # Rule exclusions and their rationale are documented in pyproject.toml
+        # under [tool.sqlfluff.core].
+        # patron_data.sql is a dev-instance fixture with synthetic test data.
+        # import-partial.sql and prod-partial-dump.sql are auto-generated
+        # partial-dump scripts that use psql meta-commands (\copy, \set)
+        # which sqlfluff cannot parse.
+        # See: https://github.com/sqlfluff/sqlfluff/issues/7512
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/(import-partial|prod-partial-dump)\.sql)$
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.0
     hooks:
       - id: ruff-check
         args: [ --fix ]
+      - id: ruff-format
+        files: ^openlibrary/fastapi/
 
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 26.1.0
     hooks:
       - id: black  # See pyproject.toml for args
+        exclude: ^openlibrary/fastapi/
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

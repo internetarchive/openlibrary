@@ -18,4 +18,3 @@ COPY (
   -- We need to go up a day to get <= behaviour
   WHERE bookshelves_books.created <= (:'upto'::date + '1 day'::interval)
 ) TO stdout WITH (format csv, delimiter E'\t')
-

@@ -88,9 +88,7 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
 
 async def get_authenticated_user(
-    session: str | None = Cookie(
-        None, alias=config.get("login_cookie_name", "session")
-    ),
+    session: str | None = Cookie(None, alias=config.get("login_cookie_name", "session")),
 ) -> AuthenticatedUser | None:
     """FastAPI dependency to get the authenticated user from the session cookie.
 

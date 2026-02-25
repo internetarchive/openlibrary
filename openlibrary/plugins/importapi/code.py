@@ -527,3 +527,11 @@ class ia_importapi(importapi):
 
 add_hook("import", importapi)
 add_hook("import/ia", ia_importapi)
+
+
+def setup():
+    """
+    This is just here to make sure this file is imported.
+    The two add_hook calls above are doing the work
+    """
+    pass

@@ -28,17 +28,11 @@ class AuthTestResponse(BaseModel):
 
     username: str | None = Field(None, description="The username if authenticated")
     user_key: str | None = Field(None, description="The full user key if authenticated")
-    timestamp: str | None = Field(
-        None, description="The cookie timestamp if authenticated"
-    )
+    timestamp: str | None = Field(None, description="The cookie timestamp if authenticated")
     is_authenticated: bool = Field(..., description="Whether the user is authenticated")
-    error: str | None = Field(
-        None, description="Error message if authentication failed"
-    )
+    error: str | None = Field(None, description="Error message if authentication failed")
     cookie_name: str = Field(..., description="The name of the session cookie")
-    cookie_value: str | None = Field(
-        None, description="The raw cookie value (for debugging)"
-    )
+    cookie_value: str | None = Field(None, description="The raw cookie value (for debugging)")
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
@@ -83,9 +77,7 @@ async def check_authentication(
         if len(parts) == 3:
             cookie_parsed["user_key"] = parts[0]
             cookie_parsed["timestamp"] = parts[1]
-            cookie_parsed["hash"] = (
-                parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
-            )
+            cookie_parsed["hash"] = parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
 
     return AuthTestResponse(
         username=user.username if user else None,
@@ -94,11 +86,7 @@ async def check_authentication(
         is_authenticated=user is not None,
         error=None,
         cookie_name=cookie_name,
-        cookie_value=(
-            cookie_value[:50] + "..."
-            if cookie_value and len(cookie_value) > 50
-            else cookie_value
-        ),
+        cookie_value=(cookie_value[:50] + "..." if cookie_value and len(cookie_value) > 50 else cookie_value),
         cookie_parsed=cookie_parsed,
     )
 
@@ -192,7 +180,7 @@ async def login(
     )
 
     # Check for authentication errors
-    if error := audit.get('error'):
+    if error := audit.get("error"):
         from fastapi import HTTPException
 
         raise HTTPException(
@@ -201,7 +189,7 @@ async def login(
         )
 
     # Extract user info from audit result
-    ol_username = audit.get('ol_username')
+    ol_username = audit.get("ol_username")
     if not ol_username:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -232,12 +220,12 @@ async def login(
     # Set print disability flag if user has special access
     response.set_cookie(
         "pd",
-        str(int(audit.get('special_access', 0))) if audit.get('special_access') else "",
+        str(int(audit.get("special_access", 0))) if audit.get("special_access") else "",
         max_age=expires,
     )
 
     # Increment stats (same as web.py)
-    stats.increment('ol.account.xauth.login')
+    stats.increment("ol.account.xauth.login")
 
     return response
 
