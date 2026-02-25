@@ -146,7 +146,7 @@ export function init() {
                     const t = (term || '').toString().trim().toLowerCase();
                     const nBaseA = baseA.toLowerCase();
                     const nBaseB = baseB.toLowerCase();
-                    
+
                     if (t) {
                         const aExact = nBaseA === t;
                         const bExact = nBaseB === t;
@@ -165,7 +165,7 @@ export function init() {
                     if (aHasComma !== bHasComma) return aHasComma ? 1 : -1;
 
                     return A.localeCompare(B, undefined, { sensitivity: 'base' });
-                    });
+                });
 
 
                 response(
