@@ -4,7 +4,7 @@ on:
     types:
       - opened
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 jobs:
   label_pr:
     # Continue only if the PR is not a draft, and was opened in the same repository that is running this action:

@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
@@ -189,6 +190,12 @@ def create_app() -> FastAPI | None:
         response.headers["X-Served-By"] = "FastAPI"
         return response
 
+    # Add prometheus metrics
+    Instrumentator(
+        should_group_status_codes=False,
+        excluded_handlers=["/health", "/metrics"],
+    ).instrument(app).expose(app, include_in_schema=False)
+
     @app.middleware("http")
     async def set_context(request: Request, call_next):
         set_context_from_fastapi(request)
@@ -206,16 +213,22 @@ def create_app() -> FastAPI | None:
 
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.languages import router as languages_router
+    from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.subjects import router as subjects_router
+    from openlibrary.fastapi.yearly_reading_goals import (
+        router as yearly_reading_goals_router,
+    )
 
     # Include routers
     app.include_router(languages_router)
+    app.include_router(partials_router)
     app.include_router(publishers_router)
     app.include_router(search_router)
     app.include_router(subjects_router)
     app.include_router(account_router)
+    app.include_router(yearly_reading_goals_router)
 
     return app
 

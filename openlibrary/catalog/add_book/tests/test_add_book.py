@@ -173,7 +173,8 @@ def test_match_wikisource_edition(mock_site, add_languages, ia_writeback):
 
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
-    pytest.raises(RequiredFields, load, rec)
+    with pytest.raises(RequiredFields):
+        load(rec)
 
 
 def test_load_test_item(mock_site, add_languages, ia_writeback):

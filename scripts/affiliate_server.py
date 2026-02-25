@@ -287,8 +287,8 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
         elif identifier.get("type") == "ISBN_13":
             isbn_13.append(identifier.get("identifier"))
 
-    result["isbn_10"] = isbn_10 if isbn_10 else []
-    result["isbn_13"] = isbn_13 if isbn_13 else []
+    result["isbn_10"] = isbn_10 or []
+    result["isbn_13"] = isbn_13 or []
 
     result["title"] = book.get("title", "")
     result["subtitle"] = book.get("subtitle")

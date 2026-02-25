@@ -236,7 +236,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <ol-read-more max-lines="4" class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+        <ol-read-more class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
           $:sanitize(format(overview_desc))
         </ol-read-more>
       $elif edition:
@@ -336,6 +336,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
         $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
       </div>
+      $if is_privileged_user or is_librarian:
+        $ work_olid = work.key.split('/')[-1]
+        <div class="edit-subject">
+            <button type="button" class="edit-subject-btn cta-btn cta-btn--primary" data-work-olid="$work_olid">$_("Edit Subjects")</button>
+        </div>
     </div>
 
       <a id="editions-list" name="editions-list" class="section-anchor"></a>
@@ -361,7 +366,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <div class="section">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              <ol-read-more max-height="200px" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
                 $:macros.TableOfContents(table_of_contents, ocaid)
               </ol-read-more>
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
@@ -480,7 +485,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <ol-read-more max-lines="4" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
                 $:sanitize(format(work.description))
               </ol-read-more>
 

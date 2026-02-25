@@ -128,6 +128,13 @@ export class BulkTagger {
          * @member {Array<Tag>}
          */
         this.tagsToRemove = []
+
+        /**
+         * `true` if the bulk tagger appears on a book page.
+         *
+         * @type {boolean}
+         */
+        this.isBookPageEdit = false
     }
 
     /**
@@ -519,10 +526,14 @@ export class BulkTagger {
 
         const url = this.rootElement.action
         this.prepareFormForSubmission()
+        const formData = new FormData(this.rootElement)
+        if (this.isBookPageEdit) {
+            formData.append('book_page_edit', true)
+        }
 
         fetch(url, {
             method: 'post',
-            body: new FormData(this.rootElement)
+            body: formData
         })
             .then(response => {
                 if (!response.ok) {
@@ -535,6 +546,10 @@ export class BulkTagger {
                     this.submitButton.textContent = 'Submit';
                     this.updateFetchedSubjects();
                     this.resetTaggingMenu();
+                    if (this.isBookPageEdit) {
+                        window.ILE.clearAndReset()
+                        window.location.reload()
+                    }
                 }
             })
     }

@@ -17,6 +17,7 @@ from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingRefere
 from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.utils.solr import Solr
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -250,7 +251,6 @@ class List(Thing):
         return " OR ".join(t for t in terms if t)
 
     def _get_all_subjects(self):
-        solr = get_solr()
         q = self._get_solr_query_for_subjects()
 
         # Solr has a maxBooleanClauses constraint there too many seeds, the
@@ -262,7 +262,7 @@ class List(Thing):
 
         facet_names = ['subject_facet', 'place_facet', 'person_facet', 'time_facet']
         try:
-            result = solr.select(
+            result = get_solr().select(
                 q, fields=[], facets=facet_names, facet_limit=20, facet_mincount=1
             )
         except OSError:
@@ -513,7 +513,7 @@ class Seed:
         if self.type == 'subject':
             typ, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
-            value = get_solr().escape(value)
+            value = Solr.escape(value)
             return f"{typ}_key:{value}"
         else:
             doc_basekey = self.document.key.split("/")[-1]

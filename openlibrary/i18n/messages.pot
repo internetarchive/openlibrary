@@ -774,11 +774,11 @@ msgstr ""
 msgid "added to"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show less"
 msgstr ""
 
@@ -1773,31 +1773,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
@@ -1814,6 +1790,136 @@ msgstr ""
 
 #: design.html
 msgid "Link (clicked)"
+msgstr ""
+
+#: design.html
+msgid "Pagination component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+msgid "Event-based"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+msgid "Selected page:"
+msgstr ""
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+msgid "3 pages"
+msgstr ""
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Read More component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+msgid "Custom background color"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
 msgstr ""
 
 #: diff.html
@@ -2973,16 +3079,14 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/sort_options.html
-msgid "Sorting by"
+#: account/reading_log.html type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
 #: account/reading_log.html
-msgid "Date Added (newest)"
-msgstr ""
-
-#: account/reading_log.html
-msgid "Date Added (oldest)"
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
 msgstr ""
 
 #: account/reading_log.html
@@ -3450,7 +3554,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
 msgstr ""
 
@@ -3694,6 +3798,26 @@ msgstr ""
 msgid "Print Disability Access Requests"
 msgstr ""
 
+#: admin/pd_dashboard.html
+msgid "Breakdown by Qualifying Authority"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "PDA"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Emailed"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Fulfilled"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Totals"
+msgstr ""
+
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
 msgstr ""
@@ -3795,6 +3919,48 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
+msgstr ""
+
+#: admin/sync.html
+msgid "Sync"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+
+#: admin/sync.html
+msgid "Add Works to Staff Picks"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
+msgstr ""
+
+#: admin/sync.html
+msgid "add"
+msgstr ""
+
+#: admin/sync.html
+msgid "remove"
+msgstr ""
+
+#: admin/sync.html
+msgid "Update edition"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -7162,6 +7328,14 @@ msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Date Added (newest)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Date Added (oldest)"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Most Editions"
 msgstr ""
 
@@ -7183,6 +7357,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Sorting by"
 msgstr ""
 
 #: search/sort_options.html
@@ -7546,11 +7724,6 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
@@ -7669,6 +7842,10 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Edit Subjects"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

@@ -18,7 +18,10 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
-from openlibrary.utils.request_context import set_context_from_legacy_web_py
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -88,7 +91,7 @@ def caching_prethread():
     from openlibrary.plugins.openlibrary.code import is_bot
 
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = web.ctx.lang
+    lang = req_context.get().lang
     host = web.ctx.host
     _is_bot = is_bot()
 
@@ -322,7 +325,7 @@ def format_book_data(book, fetch_availability=True):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
-    d.authors = get_authors(work if work else book)
+    d.authors = get_authors(work or book)
     d.work_key = work.key if work else book.key
 
     if cover := book.get_cover():

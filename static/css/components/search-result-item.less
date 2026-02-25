@@ -47,7 +47,7 @@
 .searchResultItem {
   list-style-type: none;
   background-color: @grey-fafafa;
-  border-radius: 5px;
+  border-radius: @border-radius-card;
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
@@ -114,7 +114,7 @@
     margin-bottom: 5px;
   }
   .preview-covers img {
-    border-radius: 4px;
+    border-radius: @border-radius-thumbnail;
     opacity: 0.7;
   }
   .preview-covers--blur {
@@ -128,7 +128,7 @@
     text-align: center;
 
     img {
-      border-radius: 4px;
+      border-radius: @border-radius-thumbnail;
       max-width: 100%;
       max-height: 300px;
       width: 175px;
@@ -160,7 +160,7 @@
     font-size: @font-size-label-medium;
     line-height: @font-size-label-medium;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: @border-radius-badge;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -247,7 +247,7 @@
 .trending-badge {
   display: inline-block;
   background-color: fade(@olive, 12%);
-  border-radius: 50px;
+  border-radius: @border-radius-pill;
   padding: 0 13px;
 
   .trending-badge__chart {

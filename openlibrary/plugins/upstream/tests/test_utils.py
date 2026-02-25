@@ -334,8 +334,8 @@ def test_get_location_and_publisher() -> None:
     ],
 )
 def test_commify_list(
-    name: str, seq: Sequence[str], locale: str, expected: str
+    name: str, seq: Sequence[str], locale: str, expected: str, request_context_fixture
 ) -> None:
-    web.ctx.lang = locale
+    request_context_fixture(lang=locale)
     got = utils.commify_list(seq)
     assert got == expected

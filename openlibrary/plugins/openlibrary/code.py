@@ -47,6 +47,7 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
@@ -291,7 +292,7 @@ class widget(delegate.page):
     path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
     def GET(self, key: str):  # type: ignore[override]
-        olid = key.split('/')[-1]
+        olid = key.rsplit('/', maxsplit=1)[-1]
         item = web.ctx.site.get(key)
         is_work = key.startswith('/works/')
         item['olid'] = olid
@@ -337,6 +338,8 @@ class addauthor(delegate.page):
     path = '/addauthor'
 
     def POST(self):
+        if not (get_current_user()):
+            raise web.unauthorized()
         i = web.input('name')
         if len(i.name) < 2:
             return web.badrequest()

@@ -59,7 +59,6 @@ extend-exclude = [
   "vendor",
 ]
 lint.ignore = [
-  "RUF059",  # enabled again after pre-commit updates per https://github.com/internetarchive/openlibrary/issues/11745
   "B007",    # unused-loop-control-variable - not a big deal for us
   "B023",    # function-uses-loop-variable - doesn't matter for our lambdas but it's a good rule
   "B904",    # raise-without-from-inside-except - not sure but it seems fine for now
@@ -72,6 +71,8 @@ lint.ignore = [
   "SLF001",  # private-member-access - unfortunately we use these quite often for infogami
   "UP031",   # printf-string-formatting - a ton of work to fix to 224 errors
   # TODO: these could be fixed one day
+  "TC003",   # Move standard library import into a type-checking block. Should enable later
+  "TC006",   # runtime-cast-value - we don't do this now but could in a future PR
   "B905",    # zip-without-explicit-strict - TODO: seems like we should fix this one
   "E402",    # module-import-not-at-top-of-file - TODO: we should probably enable this and and add exceptions
     # openlibrary/plugins/admin/code.py - maybe it can be fixed
@@ -111,6 +112,7 @@ lint.select = [
   "SLF",     # flake8-self
   "SLOT",    # flake8-slots
   "T10",     # flake8-debugger
+  "TC",      # flake8-type-checking
   "UP",      # pyupgrade
   "W",       # pycodestyle
   "YTT",     # flake8-2020
@@ -139,7 +141,6 @@ lint.select = [
   # "RET",   # flake8-return
   # "S",     # flake8-bandit
   # "T20",   # flake8-print
-  # "TCH",   # flake8-type-checking
   # "TD",    # flake8-todos
   # "TID",   # flake8-tidy-imports
   # "TRY",   # tryceratops
@@ -204,3 +205,38 @@ max-statements = 70
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
+
+[tool.sqlfluff.core]
+dialect = "postgres"
+# ── Rule Exclusions ──────────────────────────────────────────────────
+# Only rules that conflict with the existing codebase style are excluded.
+# Each exclusion includes a rationale so reviewers can evaluate them.
+#
+# Layout:
+#   LT01 - trailing whitespace: already enforced by pre-commit trailing-whitespace hook
+#   LT02 - newline at end of file: already enforced by pre-commit end-of-file-fixer hook
+#   LT05 - line length (80 chars): existing SQL files (schema, dump scripts) have many lines
+#          exceeding 80 chars; enforcing would require major reformatting of stable schema files
+# Capitalisation:
+#   CP01-CP05 - keyword/function/datatype casing: codebase consistently uses lowercase
+#               keywords throughout; enforcing upper-case would touch every SQL file
+# Aliasing:
+#   AL01 - implicit aliasing: codebase omits explicit "AS" for table aliases, valid Postgres style
+#   AL02 - implicit column aliasing: same as AL01 but for columns
+#   AL03 - self-alias (e.g. "x AS x"): existing dump scripts use self-aliases for clarity
+#   AL09 - self-aliased columns: same pattern as AL03, catches additional self-alias variants
+# References:
+#   RF04 - keywords as identifiers: columns named "key", "type", "action", "created" are
+#          deeply embedded in the schema and cannot be renamed
+# Structure:
+#   ST06 - SELECT column ordering: dump scripts' column order matches the public dump API
+#          documented at openlibrary.org/developers/dumps
+# Ambiguous:
+#   AM05 - fully qualified joins: some dump scripts use implicit join conditions; these are
+#          stable scripts where changing join syntax risks introducing bugs
+# Joins:
+#   JJ01 - explicit join type: bare JOIN (implicit INNER) is the codebase convention
+exclude_rules = "LT01,LT02,LT05,CP01,CP02,CP03,CP04,CP05,AL01,AL02,AL03,AL09,RF04,ST06,AM05,JJ01"
+
+[tool.sqlfluff.indentation]
+tab_space_size = 4

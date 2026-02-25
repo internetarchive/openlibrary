@@ -23,6 +23,7 @@
       "name": "OL: Attach to FastAPI Container",
       "type": "debugpy",
       "request": "attach",
+      "justMyCode": false,
       "connect": {
         "host": "localhost",
         "port": 3001

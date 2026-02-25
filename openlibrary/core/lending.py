@@ -690,7 +690,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
         delegate.fakeload()
         set_context_from_legacy_web_py()
 
-    account = OpenLibraryAccount.get_by_username(user_key.split('/')[-1])
+    account = OpenLibraryAccount.get_by_username(user_key.rsplit('/', maxsplit=1)[-1])
 
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata]
@@ -1004,7 +1004,7 @@ def resolve_identifier(identifier: str) -> str | None:
 
 
 def userkey2userid(user_key: str) -> str:
-    username = user_key.split("/")[-1]
+    username = user_key.rsplit("/", maxsplit=1)[-1]
     return "ol:" + username
 
 
@@ -1027,7 +1027,7 @@ def get_resource_id(identifier: str, resource_type: str) -> str | None:
 
         # The external identifiers will be of the format
         # acs:epub:<resource_id> or acs:pdf:<resource_id>
-        acs, rtype, resource_id = eid.split(":", 2)
+        _acs, rtype, resource_id = eid.split(":", 2)
         if rtype == resource_type:
             return resource_id
     return None

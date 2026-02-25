@@ -3,14 +3,26 @@ import json
 import web
 
 from infogami.utils import delegate
+from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.utils import uniq
+
+# Usergroups that may use the bulk tagger
+ALLOWED_USERGROUPS: list[str] = [
+    "/usergroup/librarians",
+    "/usergroup/super-librarians",
+    "/usergroup/admin",
+]
 
 
 class bulk_tag_works(delegate.page):
     path = "/tags/bulk_tag_works"
 
     def POST(self):
+        user = get_current_user()
+        if not user or not user.is_member_of_any(ALLOWED_USERGROUPS):
+            raise web.unauthorized()
+
         i = web.input(work_ids='', tags_to_add='', tags_to_remove='')
 
         works = i.work_ids.split(',')
@@ -66,8 +78,12 @@ class bulk_tag_works(delegate.page):
 
         # Number of times the handler was hit:
         stats.increment('ol.tags.bulk_update')
-        stats.increment('ol.tags.bulk_update.add', n=docs_adding)
-        stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
+        if i.book_page_edit:
+            stats.increment('ol.tags.bulk_update.book_page.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.book_page.remove', n=docs_removing)
+        else:
+            stats.increment('ol.tags.bulk_update.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
 
         return response('Tagged works successfully')
 

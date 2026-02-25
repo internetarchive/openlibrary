@@ -13,6 +13,7 @@ from openlibrary.utils import (
     find_olid_in_string,
     olid_to_key,
 )
+from openlibrary.utils.solr import Solr
 
 
 def to_json(d):
@@ -50,10 +51,8 @@ class autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        solr = get_solr()
-
         # look for ID in query string here
-        q = solr.escape(i.q).strip()
+        q = Solr.escape(i.q).strip()
         embedded_olid = None
         if self.olid_suffix:
             embedded_olid = find_olid_in_string(q, self.olid_suffix)
@@ -73,7 +72,7 @@ class autocomplete(delegate.page):
             **({'sort': self.sort} if self.sort else {}),
         }
 
-        data = solr.select(solr_q, **params)
+        data = get_solr().select(solr_q, **params)
         docs = data['docs']
 
         if embedded_olid and not docs:

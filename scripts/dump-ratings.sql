@@ -3,7 +3,7 @@
 --     docker compose exec web psql -h db --set=upto="$(date +%Y-%m-%d)" -f scripts/dump-ratings.sql
 COPY (
   SELECT
-    concat('/works/OL', work_id, 'W') AS work_key,
+    concat('/works/OL', ratings.work_id, 'W') AS work_key,
     CASE
       WHEN (ratings.edition_id IS NULL) THEN NULL
       ELSE concat('/books/OL', ratings.edition_id, 'M')

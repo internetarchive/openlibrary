@@ -338,7 +338,7 @@ class ia_importapi(importapi):
             # Get binary MARC by identifier = ocaid/filename:offset:length
             re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
-                ocaid, filename, offset, length = re_bulk_identifier.match(
+                ocaid, filename, offset, _length = re_bulk_identifier.match(
                     identifier
                 ).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
