@@ -51,11 +51,14 @@ repos:
     hooks:
       - id: ruff-check
         args: [ --fix ]
+      - id: ruff-format
+        files: ^openlibrary/fastapi/
 
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 26.1.0
     hooks:
       - id: black  # See pyproject.toml for args
+        exclude: ^openlibrary/fastapi/
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1

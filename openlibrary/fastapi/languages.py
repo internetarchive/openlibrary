@@ -22,9 +22,7 @@ router = APIRouter()
 @router.get("/languages.json", response_model=list[Language])
 async def list_languages(
     request: Request,
-    sort: Literal["count", "name", "ebook_edition_count"] = Query(
-        "count", description="The field to sort by."
-    ),
+    sort: Literal["count", "name", "ebook_edition_count"] = Query("count", description="The field to sort by."),
     limit: int = Query(15, gt=0, description="The max number of results to return."),
 ):
     """
