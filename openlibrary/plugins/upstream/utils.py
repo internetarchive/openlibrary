@@ -769,13 +769,18 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     for lang in get_languages().values():
         for lang_name in get_names_to_try(lang):
             if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
-                matches.append(Storage(
-                    key=lang.key,
-                    code=lang.code,
-                    name=lang_name,
-                ))
+                matches.append(
+                    Storage(
+                        key=lang.key,
+                        code=lang.code,
+                        name=lang_name,
+                    )
+                )
                 break
-    yield from sorted(matches, key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name))
+    yield from sorted(
+        matches,
+        key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name),
+    )
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
