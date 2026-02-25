@@ -342,7 +342,7 @@ class TestImportAuthor:
         searched_author = {
             "name": "Фёдор Д.",
             "alternate_names": ["Fyodor Dostoevsky"],
-            #"alternate_names": ["Dostoevsky, Fyodor"],  # for testing comma flipped name
+            # "alternate_names": ["Dostoevsky, Fyodor"],  # for testing comma flipped name
             "birth_date": "1821",
             "death_date": "1881",
         }
