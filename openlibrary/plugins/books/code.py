@@ -50,6 +50,7 @@ class books_json(delegate.page):
         return dynlinks.dynlinks(bib_keys=i.bibkeys.split(","), options=i)
 
 
+@deprecated("migrated to fastapi")
 class read_singleget(delegate.page):
     """Handle the single-lookup form of the Hathi-style API"""
 

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.fastapi.models import parse_comma_separated_list
-from openlibrary.plugins.books import dynlinks
+from openlibrary.plugins.books import dynlinks, readlinks
 
 router = APIRouter()
 
@@ -75,3 +75,45 @@ async def get_books(
 
     # Parse and return JSON result (direct dict to match exact old format)
     return json.loads(result_str)
+
+
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json")
+async def get_volume(
+    request: Request,
+    brief_or_full: Literal["brief", "full"],
+    idtype: Literal["oclc", "lccn", "issn", "isbn", "htid", "olid", "recordnumber"],
+    idval: str,
+    callback: str | None = Query(None, description="JSONP callback function name"),
+    show_all_items: bool = Query(
+        False, description="Show all items including restricted ones"
+    ),
+) -> dict | list:
+    """
+    Get volume information by identifier type and value.
+
+    This endpoint provides detailed information about a specific volume,
+    modeled after HathiTrust Bibliographic API. Includes information
+    about loans and other editions of same work.
+
+    Example:
+        GET /api/volumes/brief/isbn/059035342X.json
+    """
+    # Set up web context for readlinks compatibility
+    # This ensures web.ctx.get("home") returns correct base URL
+    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
+
+    # Build request identifier
+    req = f"{idtype}:{idval}"
+
+    # Build options dict from query parameters
+    options: dict[str, str | bool] = {}
+    if callback:
+        options["callback"] = callback
+    if show_all_items:
+        options["show_all_items"] = show_all_items
+
+    # Call existing business logic
+    result = readlinks.readlinks(req, options)
+
+    # Return the result for this specific request key
+    return result.get(req, [])
