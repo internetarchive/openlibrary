@@ -49,7 +49,7 @@ class read_json(delegate.page):
 def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
+    t_start = datetime.datetime.fromtimestamp(loan['loaned_at'], datetime.UTC)
     d = {
         "book": loan['book'],
         "identifier": loan['ocaid'],
@@ -65,8 +65,8 @@ def on_loan_created_statsdb(loan):
 def on_loan_completed_statsdb(loan):
     """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
-    t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
+    t_start = datetime.datetime.fromtimestamp(loan['loaned_at'], datetime.UTC)
+    t_end = datetime.datetime.fromtimestamp(loan['returned_at'], datetime.UTC)
     d = {
         "book": loan['book'],
         "identifier": loan['ocaid'],

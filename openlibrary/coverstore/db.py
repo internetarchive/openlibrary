@@ -38,7 +38,7 @@ def new(
     height,
 ):
     category_id = get_category_id(category)
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
 
     db = getdb()
 
