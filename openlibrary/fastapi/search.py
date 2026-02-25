@@ -185,7 +185,7 @@ async def search_json(
 @router.get("/search/inside.json")
 async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
-    q: str = Query(..., title="Search query"),
+    q: Annotated[str, Query(title="Search query")],
 ):
     return await fulltext_search_async(
         q,
@@ -200,7 +200,7 @@ async def search_inside_json(
 @router.get("/search/subjects.json")
 async def search_subjects_json(
     pagination: Annotated[Pagination, Depends()],
-    q: str = Query("", description="The search query"),
+    q: Annotated[str, Query(description="The search query")] = "",
 ):
     response = await run_solr_query_async(
         SubjectSearchScheme(),

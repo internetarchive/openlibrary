@@ -59,8 +59,8 @@ async def get_public_my_books_json(
     key: ReadingLogKey,
     logged_in_user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
     pagination: Annotated[Pagination, Depends()],
-    q: str = Query("", min_length=0, max_length=100),
-    mode: str = Query("everything"),
+    q: Annotated[str, Query(min_length=0, max_length=100)] = "",
+    mode: Annotated[str, Query()] = "everything",
 ) -> ReadingLogResponse:
     """Get public reading log for a user.
 
