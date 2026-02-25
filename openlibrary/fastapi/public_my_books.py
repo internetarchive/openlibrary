@@ -79,10 +79,9 @@ async def get_public_my_books_json(
     user_obj = current_site.get("/people/%s" % username)
 
     if not user_obj:
-        return ReadingLogResponse(
-            page=page,
-            numFound=0,
-            reading_log_entries=[],
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
         )
 
     is_public = user_obj.preferences().get("public_readlog", "no") == "yes"
