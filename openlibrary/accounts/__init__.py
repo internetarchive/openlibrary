@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 import web
 
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site_ctx
 
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
@@ -56,7 +56,7 @@ def get_current_user() -> "User | None":
     """
     Returns the currently logged in user. None if not logged in.
     """
-    return site.get().get_user()
+    return site_ctx.get_user()
 
 
 def find(

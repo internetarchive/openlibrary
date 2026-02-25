@@ -36,7 +36,30 @@ class RequestContextVars:
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
-site: ContextVar[Site] = ContextVar("site")
+# Internal ContextVar for the site
+site_contextvar: ContextVar[Site] = ContextVar("site")
+
+
+class SiteProxy:
+    """
+    Proxy to the site ContextVar.
+
+    This allows code to use `site.get(key)` instead of having to
+    call `site.get().get(key)` or a helper function.
+    """
+
+    def __getattr__(self, name: str):
+        return getattr(site_contextvar.get(), name)
+
+    def _set_site(self, value: Site):
+        """Set the site in the ContextVar (for internal/middleware use)."""
+        site_contextvar.set(value)
+
+
+# Public export
+# temporary name to make it easy to replace site without search challenges
+# should eventually just be named site
+site_ctx = SiteProxy()
 
 
 def setup_site(request: Request | None = None):
@@ -51,7 +74,7 @@ def setup_site(request: Request | None = None):
         cookie_value = unquote(cookie_value) if cookie_value else ""
         web.ctx._parsed_cookies = {cookie_name: cookie_value}
 
-    site.set(create_site())
+    site_ctx._set_site(create_site())
 
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
