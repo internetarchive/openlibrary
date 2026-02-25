@@ -338,6 +338,18 @@ class TestImportAuthor:
         assert isinstance(found, Author)
         assert found.key == author_alternate_name_with_dates["key"]
 
+        # Also search for author match on incmming alternate name:
+        searched_author = {
+            "name": "Фёдор Д.",
+            "alternate_names": ["Fyodor Dostoevsky"],
+            # "alternate_names": ["Dostoevsky, Fyodor"],  # for testing comma flipped name
+            "birth_date": "1821",
+            "death_date": "1881",
+        }
+        found = author_import_record_to_author(searched_author)
+        assert isinstance(found, Author)
+        assert found.key == author_alternate_name_with_dates["key"]
+
     def test_last_match_on_surname_and_dates(self, mock_site):
         """
         The lowest priority match is an exact surname match + birth and death date matches.
@@ -387,12 +399,14 @@ class TestImportAuthor:
         mock_site.save(author)
 
         searched_author = {
-            "name": "Mr. William J. Brewer",
+            'name': 'Mr. William J. Brewer',
+            'alternate_names': ['Bill Brewer'],
         }
         found = author_import_record_to_author(searched_author)
         # No match, so a new author is created.
         assert found == {
             'name': 'Mr. William J. Brewer',
+            'alternate_names': ['Bill Brewer'],
             'type': {'key': '/type/author'},
         }
 
