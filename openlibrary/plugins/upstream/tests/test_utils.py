@@ -339,3 +339,47 @@ def test_commify_list(
     request_context_fixture(lang=locale)
     got = utils.commify_list(seq)
     assert got == expected
+
+
+def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
+    """
+    When a rendered macro returns `do_not_cache='True'` (e.g. because
+    `work_search` returned a Solr error in RawQueryCarousel), the bad result
+    must be evicted from memcache so subsequent requests get a fresh attempt.
+    """
+    from unittest.mock import MagicMock, patch
+
+    # Simulate the rendered macro result indicating failure
+    error_page = {'do_not_cache': 'True', 'content': '<div></div>'}
+
+    mock_mc = MagicMock()
+    mock_mc.return_value = error_page  # mc(name, args, **kwargs) returns the error page
+
+    # Patch memcache_memoize to return our mock mc object and
+    # set up web.ctx with the minimum required attributes
+    monkeypatch.setattr(web, 'ctx', web.storage(lang='en'))
+    web.ctx.env = {}
+
+    with (
+        patch(
+            'openlibrary.plugins.upstream.utils.cache.memcache_memoize',
+            return_value=mock_mc,
+        ),
+        patch(
+            'openlibrary.plugins.upstream.utils.render_macro',
+        ),
+        patch(
+            'openlibrary.plugins.openlibrary.code.is_bot',
+            return_value=False,
+        ),
+        patch(
+            'openlibrary.plugins.openlibrary.home.caching_prethread',
+            return_value=None,
+        ),
+    ):
+        utils.render_cached_macro('RawQueryCarousel', ('subject:fantasy',))
+
+    # The cache entry must have been evicted
+    mock_mc.memcache_delete_by_args.assert_called_once_with(
+        'RawQueryCarousel', ('subject:fantasy',)
+    )
