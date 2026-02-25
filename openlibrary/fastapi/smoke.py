@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import httpx
 from fastapi import APIRouter, Request
@@ -58,6 +59,7 @@ class SmokeTestsResponse(BaseModel):
     total: int = Field(description="Total number of tests")
     base_url: str = Field(description="Base URL used for smoke tests")
     average_duration_ms: float = Field(description="Average response time across all tests in milliseconds")
+    timestamp: str = Field(description="ISO 8601 timestamp of when the tests were run")
     tests: list[SmokeTestResult] = Field(description="Individual test results")
 
 
@@ -117,5 +119,6 @@ async def smoke_tests(request: Request) -> SmokeTestsResponse:
         total=len(CHECKS),
         base_url=base_url,
         average_duration_ms=average_duration_ms,
+        timestamp=datetime.now(UTC).isoformat(),
         tests=results,
     )

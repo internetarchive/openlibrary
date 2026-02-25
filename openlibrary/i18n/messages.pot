@@ -2317,6 +2317,18 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
+msgid "Smoke tests status"
+msgstr ""
+
+#: status.html
+msgid "System information"
+msgstr ""
+
+#: status.html
+msgid "Features enabled"
+msgstr ""
+
+#: status.html
 msgid "Staged"
 msgstr ""
 
