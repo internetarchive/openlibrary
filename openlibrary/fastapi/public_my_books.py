@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from openlibrary.fastapi.auth import (
@@ -88,10 +88,9 @@ async def get_public_my_books_json(
     is_public = user_obj.preferences().get("public_readlog", "no") == "yes"
 
     if not is_public and (not logged_in_user or logged_in_user.username != username):
-        return ReadingLogResponse(
-            page=page,
-            numFound=0,
-            reading_log_entries=[],
+        raise HTTPException(
+            status_code=403,
+            detail="This reading log is private",
         )
 
     fq = None
