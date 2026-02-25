@@ -14,10 +14,8 @@ def get_base_url() -> str:
     # TODO: do this better
     if os.getenv("LOCAL_DEV") is not None:
         return "http://host.docker.internal:8080"
-    elif os.getenv("OL_SENTRY_ENVIRONMENT") == "testing":
-        return "https://staging.openlibrary.org"
     else:
-        return "https://openlibrary.org"
+        return "https://testing.openlibrary.org"
 
 
 @dataclass
