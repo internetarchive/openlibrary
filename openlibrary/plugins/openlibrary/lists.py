@@ -70,6 +70,8 @@ class ListRecord:
         seed: ThingReferenceDict | AnnotatedSeedDict | str,
     ) -> Seed:
         if isinstance(seed, str):
+            if not seed.strip():
+                raise ValueError("Seed key cannot be empty")
             if seed.startswith('/subjects/'):
                 return subject_key_to_seed(seed)
             elif seed.startswith('/'):
@@ -81,17 +83,28 @@ class ListRecord:
         elif 'thing' in seed:
             annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
 
+            # Validate that the key is not empty
+            if not annotated_seed['thing']['key'].strip():
+                raise ValueError("Seed key cannot be empty")
+
             if is_empty_annotated_seed(annotated_seed):
                 return ListRecord.normalize_input_seed(annotated_seed['thing'])
             elif annotated_seed['thing']['key'].startswith('/subjects/'):
                 return subject_key_to_seed(annotated_seed['thing']['key'])
             else:
                 return annotated_seed
-        elif seed['key'].startswith('/subjects/'):
-            thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
-            return subject_key_to_seed(thing_ref['key'])
+        elif 'key' in seed:
+            # Validate that the key is not empty
+            if not seed['key'].strip():
+                raise ValueError("Seed key cannot be empty")
+
+            if seed['key'].startswith('/subjects/'):
+                thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
+                return subject_key_to_seed(thing_ref['key'])
+            else:
+                return seed
         else:
-            return seed
+            raise ValueError("Invalid seed")
 
     @staticmethod
     def from_input():
@@ -609,8 +622,11 @@ class list_seeds(delegate.page):
         data.setdefault("remove", [])
 
         # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
-        for seed in lists_json.process_seeds(data["add"]):
-            lst.add_seed(seed)
+        try:
+            for seed in lists_json.process_seeds(data["add"]):
+                lst.add_seed(seed)
+        except ValueError as e:
+            raise web.badrequest(json.dumps({"message": str(e)}))
 
         for seed in lists_json.process_seeds(data["remove"]):
             lst.remove_seed(seed)
