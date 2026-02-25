@@ -19,7 +19,7 @@ services:
       - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
       - LOCAL_DEV=true
     depends_on:
@@ -34,7 +34,7 @@ services:
       # Debugger
       - 127.0.0.1:3001:3000
     volumes:
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
       - LOCAL_DEV=true
 
@@ -60,7 +60,7 @@ services:
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
     image: postgres:${POSTGRES_VERSION:-9.3}
@@ -71,7 +71,7 @@ services:
       # This allows postgres access for psql user w/o password required
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
       # if the db is empty (which as of now is always, since we don't store the
       # postgres data anywhere).
@@ -86,7 +86,7 @@ services:
       - 7075:7075
     volumes:
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   infobase:
     build:
@@ -101,7 +101,7 @@ services:
     #  - 7000:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
     depends_on:
       - db
 
@@ -123,7 +123,7 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
 
 volumes:
   ol-vendor:
