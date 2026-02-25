@@ -19,6 +19,7 @@ export class SmokeTestStatus extends LitElement {
         _loading: { type: Boolean, state: true },
         _error: { type: String, state: true },
         _timeAgo: { type: String, state: true },
+        _smokeTestUrl: { type: String, state: true },
     };
 
     static styles = css`
@@ -31,6 +32,9 @@ export class SmokeTestStatus extends LitElement {
         "Segoe UI",
         sans-serif;
       font-size: 14px;
+      min-width: 280px;
+      min-height: 44px;
+      box-sizing: border-box;
     }
 
     .status {
@@ -105,6 +109,7 @@ export class SmokeTestStatus extends LitElement {
         this._error = null;
         this._timeAgo = '';
         this._intervalId = null;
+        this._smokeTestUrl = '';
     }
 
     connectedCallback() {
@@ -131,7 +136,8 @@ export class SmokeTestStatus extends LitElement {
 
     async _fetchData() {
         try {
-            const response = await fetch(this._getSmokeTestUrl());
+            this._smokeTestUrl = this._getSmokeTestUrl();
+            const response = await fetch(this._smokeTestUrl);
             this._data = await response.json();
             this._error = null;
             this._startTimer();
@@ -218,7 +224,7 @@ export class SmokeTestStatus extends LitElement {
         const metaText = this._getMetaText();
 
         return html`
-      <a href="/smoke.json" class="link">
+      <a href="${this._smokeTestUrl}" class="link">
         <div class="status">
           <div class="indicator ${indicatorClass}"></div>
           <div class="info">
