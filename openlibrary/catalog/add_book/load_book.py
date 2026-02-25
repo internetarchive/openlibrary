@@ -104,6 +104,7 @@ class AuthorImportDict(TypedDict):
 
     name: str
     personal_name: NotRequired[str]
+    alternate_names: NotRequired[list]
     entity_type: NotRequired[str]
     remote_ids: NotRequired[dict]
     birth_date: NotRequired[str]
@@ -335,6 +336,8 @@ def author_import_record_to_author(
         'death_date',
         'date',
         'remote_ids',
+        'entity_type',
+        'alternate_names',
     ):
         if f in author_import_record:
             a[f] = author_import_record[f]
