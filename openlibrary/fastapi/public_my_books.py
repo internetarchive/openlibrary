@@ -13,6 +13,7 @@ from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     get_authenticated_user,
 )
+from openlibrary.fastapi.models import Pagination  # noqa: TC001
 from openlibrary.plugins.upstream.mybooks import ReadingLog
 from openlibrary.utils.request_context import site
 
@@ -57,8 +58,7 @@ async def get_public_my_books_json(
     username: str,
     key: ReadingLogKey,
     logged_in_user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
-    page: int = Query(1, ge=1),
-    limit: int = Query(100, ge=1, le=1000),
+    pagination: Annotated[Pagination, Depends()],
     q: str = Query("", min_length=0, max_length=100),
     mode: str = Query("everything"),
 ) -> ReadingLogResponse:
@@ -98,8 +98,9 @@ async def get_public_my_books_json(
 
         fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
+    page = pagination.page or 1
     readlog = ReadingLog(user=user_obj)
-    books = readlog.get_works(key, page, limit, q=q, fq=fq).docs
+    books = readlog.get_works(key, page, pagination.limit, q=q, fq=fq).docs
 
     records_json = [
         ReadingLogEntry(
@@ -120,7 +121,7 @@ async def get_public_my_books_json(
         for w in books
     ]
 
-    if page == 1 and len(records_json) < limit:
+    if page == 1 and len(records_json) < pagination.limit:
         num_found = len(records_json)
     else:
         num_found = readlog.count_shelf(key)
