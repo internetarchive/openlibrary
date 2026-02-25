@@ -4,6 +4,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
+from typing_extensions import deprecated
 from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
@@ -320,6 +321,7 @@ class mybooks_readinglog(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class public_my_books_json(delegate.page):
     path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
     encoding = "json"
