@@ -70,6 +70,7 @@ class read_singleget(delegate.page):
         return json.dumps(result)
 
 
+@deprecated("migrated to fastapi")
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API"""
 

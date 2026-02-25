@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import urllib.parse
 from typing import Annotated, Literal
 
 import web
@@ -22,7 +24,6 @@ class BooksAPIQueryParams(BaseModel):
         ...,
         description="Comma-separated list of bibliography keys (ISBN, LCCN, OCLC, etc.)",
     )
-    callback: str | None = Field(None, description="JSONP callback function name")
     details: Literal["true", "false"] = Field(
         "false", description="Include detailed book information"
     )
@@ -61,8 +62,6 @@ async def get_books(
     }
 
     # TODO: we should be passing down BooksAPIQueryParams not creating options
-    if params.callback:
-        options['callback'] = params.callback
     if params.details:
         options['details'] = params.details
     if params.jscmd:
@@ -77,13 +76,46 @@ async def get_books(
     return json.loads(result_str)
 
 
+MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
+
+
+@router.get("/api/volumes/{brief_or_full}/json/{req}.json")
+async def get_volumes_multiget(
+    request: Request,
+    brief_or_full: Literal["brief", "full"],
+    req: str,
+) -> dict:
+    """
+    Get volume information for multiple identifiers.
+
+    This endpoint handles multi-lookup form of Hathi-style API,
+    allowing multiple identifiers in a single request.
+
+    Example:
+        GET /api/volumes/brief/json/isbn:059035342X|oclc:123456.json
+    """
+    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
+
+    raw_uri = request.url.path
+
+    decoded_path = urllib.parse.unquote(raw_uri)
+
+    m = MULTIGET_PATH_RE.match(decoded_path)
+    if not m or len(m.groups()) != 2:
+        return {}
+
+    _brief_or_full, req = m.groups()
+
+    result = readlinks.readlinks(req, {})
+    return result
+
+
 @router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json")
 async def get_volume(
     request: Request,
     brief_or_full: Literal["brief", "full"],
     idtype: Literal["oclc", "lccn", "issn", "isbn", "htid", "olid", "recordnumber"],
     idval: str,
-    callback: str | None = Query(None, description="JSONP callback function name"),
     show_all_items: bool = Query(
         False, description="Show all items including restricted ones"
     ),
@@ -107,8 +139,6 @@ async def get_volume(
 
     # Build options dict from query parameters
     options: dict[str, str | bool] = {}
-    if callback:
-        options["callback"] = callback
     if show_all_items:
         options["show_all_items"] = show_all_items
 
