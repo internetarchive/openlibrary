@@ -3,6 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
+import { initPWAIntegration } from './pwa-integration.js';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
@@ -18,6 +19,8 @@ window.Promise = Promise;
 
 // Init the service worker first since it does caching
 initServiceWorker();
+
+initPWAIntegration();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
