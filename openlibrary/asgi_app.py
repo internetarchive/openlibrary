@@ -223,9 +223,9 @@ def create_app() -> FastAPI | None:
     )
 
     # Include routers
+    app.include_router(public_my_books_router)
     app.include_router(languages_router)
     app.include_router(partials_router)
-    app.include_router(public_my_books_router)
     app.include_router(publishers_router)
     app.include_router(search_router)
     app.include_router(subjects_router)
