@@ -95,7 +95,7 @@ class ListRecord:
                 return annotated_seed
         elif 'key' in seed:
             # Validate that the key is not empty
-            if not seed['key'] or not seed['key'].strip():
+            if not seed['key'].strip():
                 raise ValueError("Seed key cannot be empty")
 
             if seed['key'].startswith('/subjects/'):
