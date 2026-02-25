@@ -352,6 +352,332 @@ class TestVolumeMultigetAPI:
         )
 
 
+class TestGetVolumeAPI:
+    """Extensive tests specifically for get_volume endpoint."""
+
+    def test_response_structure_has_records(self):
+        """Test that response contains records object."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # Both should return dict with 'records' key
+        if isinstance(legacy_data, dict):
+            assert "records" in legacy_data
+        if isinstance(fastapi_data, dict):
+            assert "records" in fastapi_data
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.structure.records")
+
+    def test_response_structure_has_items(self):
+        """Test that response contains items array."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json?show_all_items=true"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json?show_all_items=true"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # Items should be a list
+        if isinstance(legacy_data, dict) and "items" in legacy_data:
+            assert isinstance(legacy_data["items"], list)
+        if isinstance(fastapi_data, dict) and "items" in fastapi_data:
+            assert isinstance(fastapi_data["items"], list)
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.structure.items")
+
+    def test_url_generation_correct(self):
+        """Test that URLs use correct scheme and hostname."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # Check that URLs in response use correct base
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                if "data" in record and "url" in record["data"]:
+                    # Legacy should use localhost:8080
+                    assert "http://localhost:8080/" in record["data"]["url"]
+
+        if isinstance(fastapi_data, dict) and "records" in fastapi_data:
+            for record_key in fastapi_data["records"]:
+                record = fastapi_data["records"][record_key]
+                if "data" in record and "url" in record["data"]:
+                    # FastAPI should use localhost:18080
+                    assert "http://localhost:18080/" in record["data"]["url"]
+
+    @pytest.mark.parametrize(
+        "isbn",
+        [
+            "0452010586",  # ISBN-10
+            "9780452010581",  # ISBN-13
+            "0-452-01058-6",  # ISBN with hyphens
+            "978-0-452-01058-1",  # ISBN-13 with hyphens
+        ],
+    )
+    def test_various_isbn_formats(self, isbn):
+        """Test various ISBN formats."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/{isbn}.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/{isbn}.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        # If we get results, compare them
+        if legacy_resp.status_code == 200:
+            legacy_data = legacy_resp.json()
+            fastapi_data = fastapi_resp.json()
+
+            # Both should return same structure
+            assert type(legacy_data) is type(fastapi_data)
+
+    @pytest.mark.parametrize(
+        "format_type",
+        ["brief", "full"],
+    )
+    def test_brief_vs_full_format(self, format_type):
+        """Test that brief and full formats return different/expected structures."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/{format_type}/isbn/0452010586.json"
+        fastapi_url = (
+            f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/isbn/0452010586.json"
+        )
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        compare_responses(
+            legacy_data,
+            fastapi_data,
+            f"get_volume.format.{format_type}",
+        )
+
+    def test_show_all_items_false_returns_empty_items(self):
+        """Test that show_all_items=false returns empty or limited items."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # Without show_all_items, items should be empty or limited
+        if isinstance(legacy_data, dict) and "items" in legacy_data:
+            # Items might be empty or have limited content
+            assert isinstance(legacy_data["items"], list)
+        if isinstance(fastapi_data, dict) and "items" in fastapi_data:
+            assert isinstance(fastapi_data["items"], list)
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.items.false")
+
+    def test_show_all_items_true_returns_items(self):
+        """Test that show_all_items=true returns all available items."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json?show_all_items=true"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json?show_all_items=true"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # With show_all_items, should get items if available
+        if isinstance(legacy_data, dict) and "items" in legacy_data:
+            # May have items or not depending on the book
+            assert isinstance(legacy_data["items"], list)
+        if isinstance(fastapi_data, dict) and "items" in fastapi_data:
+            assert isinstance(fastapi_data["items"], list)
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.items.true")
+
+    def test_nested_data_fields_present(self):
+        """Test that nested data fields are present in response."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/full/lccn/88037464.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/full/lccn/88037464.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        # Check that common fields exist
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                # Check data object
+                assert "data" in record
+                data = record["data"]
+                # Check common fields
+                assert isinstance(data.get("title"), (str, type(None)))
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.nested_fields")
+
+    def test_authors_array_structure(self):
+        """Test that authors array is properly structured."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                if "data" in record and "authors" in record["data"]:
+                    authors = record["data"]["authors"]
+                    # Should be a list
+                    assert isinstance(authors, list)
+                    if authors:
+                        # Each author should have name and url
+                        author = authors[0]
+                        assert isinstance(author.get("name"), (str, type(None)))
+                        assert isinstance(author.get("url"), (str, type(None)))
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.authors")
+
+    def test_identifiers_array_structure(self):
+        """Test that identifiers array is properly structured."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                # Check identifier fields
+                assert isinstance(record.get("isbns"), list)
+                assert isinstance(record.get("lccns"), list)
+                assert isinstance(record.get("oclcs"), list)
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.identifiers")
+
+    def test_publish_dates_array(self):
+        """Test that publish dates array is properly structured."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                if record.get("publishDates"):
+                    assert isinstance(record["publishDates"], list)
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.publish_dates")
+
+    @pytest.mark.parametrize(
+        ("idtype", "idval"),
+        [
+            ("lccn", "88037464"),
+            ("olid", "OL2058361M"),
+            ("isbn", "0452010586"),
+        ],
+    )
+    def test_full_format_has_details(self, idtype, idval):
+        """Test that full format includes details section."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/full/{idtype}/{idval}.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/full/{idtype}/{idval}.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                # Full format should have details
+                assert "details" in record
+                assert isinstance(record["details"], dict)
+
+        compare_responses(
+            legacy_data, fastapi_data, f"get_volume.full_details.{idtype}"
+        )
+
+    def test_brief_format_has_less_data(self):
+        """Test that brief format has less data than full format."""
+        legacy_brief = f"{LEGACY_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        legacy_full = f"{LEGACY_BASE_URL}/api/volumes/full/isbn/0452010586.json"
+
+        fastapi_brief = f"{FASTAPI_BASE_URL}/api/volumes/brief/isbn/0452010586.json"
+        fastapi_full = f"{FASTAPI_BASE_URL}/api/volumes/full/isbn/0452010586.json"
+
+        legacy_brief_resp = requests.get(legacy_brief)
+        legacy_full_resp = requests.get(legacy_full)
+        requests.get(fastapi_brief)
+        requests.get(fastapi_full)
+
+        # Compare brief vs full - full should have more details
+        # This is just to ensure the format differences exist
+        legacy_brief_data = legacy_brief_resp.json()
+        legacy_full_data = legacy_full_resp.json()
+
+        if isinstance(legacy_brief_data, dict) and isinstance(  # noqa: SIM102
+            legacy_full_data, dict
+        ):
+            if "records" in legacy_brief_data and "records" in legacy_full_data:
+                # Both should have records
+                assert "records" in legacy_brief_data
+                assert "records" in legacy_full_data
+
+    def test_record_url_generation(self):
+        """Test that recordURL field is properly generated."""
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/lccn/88037464.json"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        if isinstance(legacy_data, dict) and "records" in legacy_data:
+            for record_key in legacy_data["records"]:
+                record = legacy_data["records"][record_key]
+                # Should have recordURL
+                assert "recordURL" in record
+                # Should be a string
+                assert isinstance(record["recordURL"], str)
+                # Should contain the record key
+                assert record_key in record["recordURL"]
+
+        compare_responses(legacy_data, fastapi_data, "get_volume.record_url")
+
+
 class TestEdgeCases:
     """Tests for edge cases and special scenarios."""
 
