@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 
 from openlibrary.fastapi.services.subject_service import (
     BaseSubjectRequestParams,
@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/publishers/{key:path}.json")
 async def publisher_json(
-    key: str,
+    key: Annotated[str, Path()],
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> dict[str, Any]:
     # Replace underscores with spaces in the key
