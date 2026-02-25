@@ -24,15 +24,9 @@ class BooksAPIQueryParams(BaseModel):
         ...,
         description="Comma-separated list of bibliography keys (ISBN, LCCN, OCLC, etc.)",
     )
-    details: Literal["true", "false"] = Field(
-        "false", description="Include detailed book information"
-    )
-    jscmd: Literal["details", "data", "viewapi"] | None = Field(
-        None, description="Format of returned data"
-    )
-    high_priority: bool = Field(
-        False, description="Attempt import immediately for missing ISBNs"
-    )
+    details: Literal["true", "false"] = Field("false", description="Include detailed book information")
+    jscmd: Literal["details", "data", "viewapi"] | None = Field(None, description="Format of returned data")
+    high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
 
 
 @router.get("/api/books.json")
@@ -58,16 +52,16 @@ async def get_books(
 
     # Build options dict compatible with existing dynlinks function
     options: dynlinks.DynlinksOptions = {
-        'format': 'json',
+        "format": "json",
     }
 
     # TODO: we should be passing down BooksAPIQueryParams not creating options
     if params.details:
-        options['details'] = params.details
+        options["details"] = params.details
     if params.jscmd:
-        options['jscmd'] = params.jscmd
+        options["jscmd"] = params.jscmd
     if params.high_priority:
-        options['high_priority'] = params.high_priority
+        options["high_priority"] = params.high_priority
 
     # Call existing business logic (bibkeys already parsed by validator)
     result_str = dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
@@ -116,9 +110,7 @@ async def get_volume(
     brief_or_full: Literal["brief", "full"],
     idtype: Literal["oclc", "lccn", "issn", "isbn", "htid", "olid", "recordnumber"],
     idval: str,
-    show_all_items: bool = Query(
-        False, description="Show all items including restricted ones"
-    ),
+    show_all_items: bool = Query(False, description="Show all items including restricted ones"),
 ) -> dict | list:
     """
     Get volume information by identifier type and value.
