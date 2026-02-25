@@ -146,10 +146,7 @@ export function init() {
                     const t = (term || '').toString().trim().toLowerCase();
                     const nBaseA = baseA.toLowerCase();
                     const nBaseB = baseB.toLowerCase();
-
-                    // 1) If the user typed something, prioritize items whose BASE matches the typed language
-                    //    - exact base match first (when user types full "English")
-                    //    - then base prefix match (so "eng" brings "English, ..." above "..., English-based")
+                    
                     if (t) {
                         const aExact = nBaseA === t;
                         const bExact = nBaseB === t;
@@ -160,16 +157,13 @@ export function init() {
                         if (aPrefix !== bPrefix) return aPrefix ? -1 : 1;
                     }
 
-                    // 2) Otherwise (or after that), sort by base language alphabetically
                     const baseCmp = baseA.localeCompare(baseB, undefined, { sensitivity: 'base' });
                     if (baseCmp !== 0) return baseCmp;
 
-                    // 3) Same base: put the exact match WITHOUT a comma first
                     const aHasComma = A.includes(',');
                     const bHasComma = B.includes(',');
                     if (aHasComma !== bHasComma) return aHasComma ? 1 : -1;
 
-                    // 4) Alphabetical among remaining variants
                     return A.localeCompare(B, undefined, { sensitivity: 'base' });
                     });
 
