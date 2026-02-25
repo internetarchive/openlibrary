@@ -31,12 +31,15 @@ class HealthCheck:
 CHECKS: list[HealthCheck] = [
     HealthCheck("homepage", "/", must_contain="Welcome to Open Library"),
     HealthCheck("login page", "/account/login", must_contain="Log In"),
-    HealthCheck("trending page", "/trending/now", must_contain="trending/now | Open Library"),
-    HealthCheck("lists page", "/lists", must_contain="Lists | Open Library"),
+    HealthCheck("edition search", "/search?q=%22OL23269118M%22&mode=everything", must_contain="adventures in Wonderland"),
     HealthCheck("book page", "/books/OL23269118M/Alice%27s_adventures_in_Wonderland", must_contain="An edition of"),
     HealthCheck("author page", "/authors/OL22098A/Lewis_Carroll", must_contain="Lewis Carroll"),
+    HealthCheck("subject page", "/subjects/quotations", must_contain="Quotations | Open Library"),
+    HealthCheck("trending page", "/trending/now", must_contain="trending/now | Open Library"),
+    HealthCheck("lists page", "/lists", must_contain="Lists | Open Library"),
+    # Endpoints
     HealthCheck("health endpoint", "/health", must_contain="OK"),
-    HealthCheck("search endpoint", "/search.json?q=mark", must_contain="numFound"),
+    HealthCheck("search endpoint", "/search.json?q=OL23269118M", must_contain="Lewis Carroll"),
 ]
 
 
