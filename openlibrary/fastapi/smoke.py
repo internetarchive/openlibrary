@@ -31,6 +31,10 @@ class HealthCheck:
 CHECKS: list[HealthCheck] = [
     HealthCheck("homepage", "/", must_contain="Welcome to Open Library"),
     HealthCheck("login page", "/account/login", must_contain="Log In"),
+    HealthCheck("trending page", "/trending/now", must_contain="trending/now | Open Library"),
+    HealthCheck("lists page", "/lists", must_contain="Lists | Open Library"),
+    HealthCheck("book page", "/books/OL23269118M/Alice%27s_adventures_in_Wonderland", must_contain="An edition of"),
+    HealthCheck("author page", "/authors/OL22098A/Lewis_Carroll", must_contain="Lewis Carroll"),
     HealthCheck("health endpoint", "/health", must_contain="OK"),
     HealthCheck("search endpoint", "/search.json?q=mark", must_contain="numFound"),
 ]
@@ -51,6 +55,7 @@ class SmokeTestsResponse(BaseModel):
     passed: int = Field(description="Number of tests that passed")
     total: int = Field(description="Total number of tests")
     base_url: str = Field(description="Base URL used for smoke tests")
+    average_duration_ms: float = Field(description="Average response time across all tests in milliseconds")
     tests: list[SmokeTestResult] = Field(description="Individual test results")
 
 
@@ -103,10 +108,12 @@ async def smoke_tests(request: Request) -> SmokeTestsResponse:
 
     passed = sum(1 for r in results if r.passed)
     base_url = get_base_url()
+    average_duration_ms = round(sum(r.duration_ms for r in results) / len(results), 2) if results else 0.0
 
     return SmokeTestsResponse(
         passed=passed,
         total=len(CHECKS),
         base_url=base_url,
+        average_duration_ms=average_duration_ms,
         tests=results,
     )
