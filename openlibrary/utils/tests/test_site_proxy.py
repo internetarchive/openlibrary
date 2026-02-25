@@ -57,7 +57,7 @@ class TestSiteProxy:
 
     def test_nested_context_isolation(self):
         """Nested contexts should have isolated site values."""
-        from openlibrary.utils.request_context import site_contextvar, site_ctx
+        from openlibrary.utils.request_context import _site_contextvar, site_ctx
 
         mock_site_outer = Mock()
         mock_site_outer.name = "outer"
@@ -68,7 +68,7 @@ class TestSiteProxy:
         site_ctx._set_site(mock_site_outer)
 
         # Simulate inner context
-        old = site_contextvar.get()
+        old = _site_contextvar.get()
         site_ctx._set_site(mock_site_inner)
         try:
             assert site_ctx.name == "inner"

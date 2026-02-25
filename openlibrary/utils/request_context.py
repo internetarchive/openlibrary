@@ -37,7 +37,7 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
 # Internal ContextVar for the site
-site_contextvar: ContextVar[Site] = ContextVar("site")
+_site_contextvar: ContextVar[Site] = ContextVar("site")
 
 
 class SiteProxy:
@@ -49,11 +49,11 @@ class SiteProxy:
     """
 
     def __getattr__(self, name: str):
-        return getattr(site_contextvar.get(), name)
+        return getattr(_site_contextvar.get(), name)
 
     def _set_site(self, value: Site):
         """Set the site in the ContextVar (for internal/middleware use)."""
-        site_contextvar.set(value)
+        _site_contextvar.set(value)
 
 
 # Public export
