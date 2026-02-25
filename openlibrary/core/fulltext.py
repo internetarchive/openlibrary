@@ -8,7 +8,7 @@ from infogami import config
 from openlibrary.core.lending import get_availability
 from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.request_context import req_context, site
+from openlibrary.utils.request_context import req_context, site_ctx
 
 logger = logging.getLogger("openlibrary.inside")
 
@@ -68,11 +68,11 @@ async def fulltext_search_async(
             availability = {}
 
         edition_keys = list(
-            site.get().things(
+            site_ctx.things(
                 {'type': '/type/edition', 'ocaid': ocaids, 'limit': len(ocaids)}
             )
         )
-        editions = site.get().get_many(edition_keys)
+        editions = site_ctx.get_many(edition_keys)
         for ed in editions:
             idx = ocaids.index(ed.ocaid)
             hit = ia_results['hits']['hits'][idx]
