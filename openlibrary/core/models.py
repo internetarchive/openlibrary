@@ -913,13 +913,9 @@ class User(Thing):
         def query_store(_key):
             return web.ctx.site.store.get(_key)
 
-        def query_fallback(_key):
-            results = web.ctx.site.get(_key)
-            return results and results.dict().get('notifications')
-
         key = f"{self.key}/preferences"
 
-        return query_store(key) or query_fallback(key) or self.get_default_preferences()
+        return query_store(key) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs) -> None:
         key = f'{self.key}/preferences'
