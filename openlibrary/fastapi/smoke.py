@@ -8,6 +8,8 @@ import httpx
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
 
+from openlibrary.core import cache
+
 router = APIRouter()
 
 
@@ -105,8 +107,8 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
         )
 
 
-@router.get("/smoke.json", response_model=SmokeTestsResponse)
-async def smoke_tests(request: Request) -> SmokeTestsResponse:
+@cache.memoize(engine="memcache", key="smoke_tests", expires=300, cacheable=lambda k, v: True)
+async def _run_smoke_tests() -> dict:
     async with httpx.AsyncClient() as client:
         results = [await run_health_check(check, client) for check in CHECKS]
 
@@ -121,4 +123,9 @@ async def smoke_tests(request: Request) -> SmokeTestsResponse:
         average_duration_ms=average_duration_ms,
         timestamp=datetime.now(UTC).isoformat(),
         tests=results,
-    )
+    ).model_dump()
+
+
+@router.get("/smoke.json", include_in_schema=False)
+async def smoke_tests(request: Request):
+    return await _run_smoke_tests()
