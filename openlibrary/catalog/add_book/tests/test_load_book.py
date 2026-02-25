@@ -387,12 +387,14 @@ class TestImportAuthor:
         mock_site.save(author)
 
         searched_author = {
-            "name": "Mr. William J. Brewer",
+            'name': 'Mr. William J. Brewer',
+            'alternate_names': ['Bill Brewer'],
         }
         found = author_import_record_to_author(searched_author)
         # No match, so a new author is created.
         assert found == {
             'name': 'Mr. William J. Brewer',
+            'alternate_names': ['Bill Brewer'],
             'type': {'key': '/type/author'},
         }
 
