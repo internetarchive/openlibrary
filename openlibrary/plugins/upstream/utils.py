@@ -739,11 +739,13 @@ def word_prefix_match(prefix: str, text: str) -> bool:
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of the following:
-        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
-        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
+    Given, e.g., "English", this returns an iterator of the following,
+    sorted so that names starting with the prefix appear first (alphabetically),
+    followed by names that contain the prefix elsewhere (also alphabetically):
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
+        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
     """
 
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
@@ -763,15 +765,17 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         return strip_accents(s).lower()
 
     prefix = normalize_for_search(prefix)
+    matches = []
     for lang in get_languages().values():
         for lang_name in get_names_to_try(lang):
             if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
-                yield Storage(
+                matches.append(Storage(
                     key=lang.key,
                     code=lang.code,
                     name=lang_name,
-                )
+                ))
                 break
+    yield from sorted(matches, key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name))
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
