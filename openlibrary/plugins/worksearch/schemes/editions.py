@@ -28,7 +28,6 @@ class EditionSearchScheme(SearchScheme):
             "isbn",
             "publisher",
             "has_fulltext",
-            "title_suggest",
             "publish_year",
             "language",
             "publisher_facet",
