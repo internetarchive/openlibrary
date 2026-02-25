@@ -11,6 +11,7 @@ PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary
 """
 
 import datetime
+import html
 import logging
 import os
 import re
@@ -241,9 +242,9 @@ class Biblio:
         self.isbn = data[124]
         self.source_id = f'bwb:{self.isbn}'
         self.isbn_13 = [self.isbn]
-        self.title = data[10]
+        self.title = html.unescape(data[10]) if data[10] else None
         self.publish_date = data[20][:4]  # YYYY
-        self.publishers = [data[135]]
+        self.publishers = [html.unescape(data[135])] if data[135] else []
         self.weight = data[39]
         self.authors = self.contributors(data)
         self.lc_classifications = [data[147]] if data[147] else []
@@ -256,7 +257,7 @@ class Biblio:
         self.languages = [data[37].lower()]
         self.source_records = [self.source_id]
         self.subjects = [
-            s.capitalize().replace('_', ', ')
+            html.unescape(s.capitalize().replace('_', ', '))
             for s in data[91:100]
             # + data[101:120]
             # + data[153:158]
@@ -284,7 +285,7 @@ class Biblio:
     @staticmethod
     def contributors(data):
         def make_author(name, _, typ):
-            author = {'name': name}
+            author = {'name': html.unescape(name) if name else name}
             if typ == 'X':
                 # set corporate contributor
                 author['entity_type'] = 'org'
