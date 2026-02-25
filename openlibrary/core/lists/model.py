@@ -105,23 +105,6 @@ class List(Thing):
         self, seed: ThingReferenceDict | AnnotatedSeedDict | SeedSubjectString
     ):
         """Adds a new seed to this list."""
-        # Validate that the seed key is not empty
-        if isinstance(seed, dict):
-            # Handle both ThingReferenceDict and AnnotatedSeedDict
-            if 'thing' in seed and 'notes' in seed:
-                # This is an AnnotatedSeedDict
-                annotated_seed = cast(AnnotatedSeedDict, seed)
-                key = annotated_seed['thing']['key']
-            elif 'key' in seed:
-                # This is a ThingReferenceDict
-                thing_ref = cast(ThingReferenceDict, seed)
-                key = thing_ref['key']
-            else:
-                key = None
-
-            if key is not None and (not key or not key.strip()):
-                raise ValueError("Seed key cannot be empty")
-
         seed_object = Seed.from_json(self, seed)
 
         if self._index_of_seed(seed_object.key) >= 0:

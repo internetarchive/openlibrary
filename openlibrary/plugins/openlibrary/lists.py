@@ -69,6 +69,8 @@ class ListRecord:
         seed: ThingReferenceDict | AnnotatedSeedDict | str,
     ) -> Seed:
         if isinstance(seed, str):
+            if not seed.strip():
+                raise ValueError("Seed key cannot be empty")
             if seed.startswith('/subjects/'):
                 return subject_key_to_seed(seed)
             elif seed.startswith('/'):
@@ -101,7 +103,7 @@ class ListRecord:
             else:
                 return seed
         else:
-            return seed
+            raise ValueError("Invalid seed")
 
     @staticmethod
     def from_input():
