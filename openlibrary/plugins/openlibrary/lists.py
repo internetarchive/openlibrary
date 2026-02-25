@@ -81,10 +81,7 @@ class ListRecord:
             annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
 
             # Validate that the key is not empty
-            if (
-                not annotated_seed['thing']['key']
-                or not annotated_seed['thing']['key'].strip()
-            ):
+            if not annotated_seed['thing']['key'].strip():
                 raise ValueError("Seed key cannot be empty")
 
             if is_empty_annotated_seed(annotated_seed):
