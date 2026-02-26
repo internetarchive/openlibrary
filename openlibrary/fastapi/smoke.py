@@ -109,7 +109,7 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
 
 @cache.memoize(engine="memcache", key="smoke_tests", expires=300, cacheable=lambda k, v: True)
 async def _run_smoke_tests() -> dict:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=20) as client:
         results = [await run_health_check(check, client) for check in CHECKS]
 
     passed = sum(1 for r in results if r.passed)
