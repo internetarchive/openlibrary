@@ -1,5 +1,6 @@
 #!/bin/bash
 # Test script to compare patron_check_in endpoints between web.py and FastAPI
+# TODO: DELETE BEFORE MERGEING, ONLY NEEDED FOR COMPARISON TESTING
 
 set -e
 
