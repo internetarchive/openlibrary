@@ -9,7 +9,7 @@ from typing import Annotated, Any, Literal
 
 import web
 from fastapi import APIRouter, Query, Request
-from pydantic import BaseModel, BeforeValidator, Field
+from pydantic import BaseModel, BeforeValidator, Field, RootModel
 
 from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
 from openlibrary.plugins.books import dynlinks, readlinks
@@ -29,10 +29,25 @@ class BooksAPIQueryParams(BaseModel):
     high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
 
 
+class BookEntry(BaseModel):
+    """Individual book entry in the Books API response."""
+
+    bib_key: str = Field(..., description="The bibliography key (ISBN, LCCN, etc.)")
+    info_url: str = Field(..., description="URL to the book's Open Library page")
+    preview: Literal["noview", "free", "restricted", "full"] = Field(..., description="Preview availability status")
+    preview_url: str = Field(..., description="URL to access the preview")
+    thumbnail_url: str | None = Field(None, description="Cover thumbnail URL")
+    details: dict[str, Any] | None = Field(None, description="Full book details (when jscmd=details)")
+
+
+class BooksAPIResponse(RootModel[dict[str, BookEntry]]):
+    """Response model for the Books API endpoint."""
+
+
 # For these endpoints we set the response model to dict, but we return a string if there is a JSONP callback specified
 # because we wrap the result in JSONP.
-@router.get("/api/books", response_model=dict)
-@router.get("/api/books.json", response_model=dict)
+@router.get("/api/books", response_model=BooksAPIResponse, response_model_exclude_none=True, include_in_schema=False)
+@router.get("/api/books.json", response_model=BooksAPIResponse, response_model_exclude_none=True)
 async def get_books(
     request: Request,
     params: Annotated[BooksAPIQueryParams, Query()],
@@ -74,7 +89,7 @@ async def get_books(
 MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
 
 
-@router.get("/api/volumes/{brief_or_full}/json/{req}", response_model=dict)
+@router.get("/api/volumes/{brief_or_full}/json/{req}", response_model=dict, include_in_schema=False)
 @router.get("/api/volumes/{brief_or_full}/json/{req}.json", response_model=dict)
 async def get_volumes_multiget(
     request: Request,
@@ -106,7 +121,7 @@ async def get_volumes_multiget(
     return wrap_jsonp(request, result)
 
 
-@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", response_model=dict)
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", response_model=dict, include_in_schema=False)
 @router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json", response_model=dict)
 async def get_volume(
     request: Request,
