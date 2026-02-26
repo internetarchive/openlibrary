@@ -403,7 +403,7 @@ msgstr "সময়"
 
 #: subjects.html:19
 msgid "See all works"
-msgstr "সব কাজ দেখুন"
+msgstr "सभी काम देखें"
 
 #: merge/authors.html:89 publishers/view.html:13 subjects.html:15 type/author/view.html:117
 #, python-format
