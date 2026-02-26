@@ -741,3 +741,222 @@ class TestEdgeCases:
             assert isinstance(data2["items"], list)
 
         compare_responses(data1, data2, "edge.items_empty")
+
+
+class TestJSONPCallbackSupport:
+    """Tests for JSONP callback parameter support."""
+
+    @pytest.mark.parametrize(
+        "endpoint", ["/api/books.json", "/api/volumes/brief/isbn/0452010586.json"]
+    )
+    def test_jsonp_callback_basic(self, endpoint):
+        """Test that callback parameter wraps response in JSONP."""
+        callback_name = "myCallback123"
+        legacy_url = f"{LEGACY_BASE_URL}{endpoint}?bibkeys=ISBN:0452010586&callback={callback_name}"
+        if "/api/volumes" in endpoint:
+            legacy_url = f"{LEGACY_BASE_URL}{endpoint}?callback={callback_name}"
+
+        fastapi_url = legacy_url.replace(":8080", ":18080")
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code == 200
+
+        # Both should be wrapped in callback (though Content-Type may be application/json)
+        legacy_text = legacy_resp.text
+        fastapi_text = fastapi_resp.text
+
+        assert legacy_text.startswith(f"{callback_name}(")
+        assert fastapi_text.startswith(f"{callback_name}(")
+        assert legacy_text.endswith(");")
+        assert fastapi_text.endswith(");")
+
+        # Extract and compare JSON content
+        legacy_json = json.loads(legacy_text[len(callback_name) + 1 : -2])
+        fastapi_json = json.loads(fastapi_text[len(callback_name) + 1 : -2])
+
+        # Normalize URLs for comparison
+        normalized_legacy = normalize_response_for_comparison(legacy_json, 8080)
+        normalized_fastapi = normalize_response_for_comparison(fastapi_json, 18080)
+
+        assert normalized_legacy == normalized_fastapi
+
+    def test_jsonp_callback_multiget(self):
+        """Test JSONP callback with multiget endpoint."""
+        callback_name = "jQuery1234567890"
+        req = "id:0;isbn:0545202051|id:1;isbn:0545003962"
+        encoded_req = quote_plus(req, safe="/|:")
+
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/json/{encoded_req}?callback={callback_name}&show_all_items=true"
+        fastapi_url = legacy_url.replace(":8080", ":18080")
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code == 200
+
+        # Both should be wrapped in callback (though Content-Type may be application/json)
+        legacy_text = legacy_resp.text
+        fastapi_text = fastapi_resp.text
+
+        assert legacy_text.startswith(f"{callback_name}(")
+        assert fastapi_text.startswith(f"{callback_name}(")
+
+
+class TestBooksAPIEdgeCases:
+    """Tests for Books API edge cases from real-world traffic."""
+
+    def test_url_encoded_bibkeys(self):
+        """Test books API with URL-encoded bibliography keys."""
+        bibkeys = "isbn%3A9784827200225"
+        legacy_url = f"{LEGACY_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
+        fastapi_url = (
+            f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
+        )
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        # Even with URL encoding, both should interpret correctly
+        legacy_data = legacy_resp.json()
+        fastapi_data = fastapi_resp.json()
+
+        compare_responses(legacy_data, fastapi_data, "books.url_encoded_bibkeys")
+
+    def test_nested_colon_bibkeys(self):
+        """Test books API with local_id containing nested colons."""
+        # This tests that the bibkey parser handles nested colons correctly
+        bibkeys = "local_id:urn:bwbsku:Y0-DLA-903"
+        legacy_url = f"{LEGACY_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
+        fastapi_url = (
+            f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
+        )
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        # Both should handle nested colons the same way
+        if legacy_resp.status_code == 200 and legacy_resp.json():
+            legacy_data = legacy_resp.json()
+            fastapi_data = fastapi_resp.json()
+            compare_responses(legacy_data, fastapi_data, "books.nested_colons")
+
+    def test_empty_bibkeys(self):
+        """Test books API with empty bibkeys parameter."""
+        # Empty bibkeys should not crash and return empty result
+        legacy_url = f"{LEGACY_BASE_URL}/api/books?bibkeys=&jscmd=data"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/books?bibkeys=&jscmd=data"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        # Both should handle gracefully (might return 200 with empty result or 4xx error)
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+    def test_jscmd_data_with_callback(self):
+        """Test books API with jscmd=data and JSONP callback."""
+        bibkeys = "ISBN:0452010586,ISBN:059035342X"
+        callback = "foo.olCallBack"
+
+        legacy_url = f"{LEGACY_BASE_URL}/api/books?bibkeys={bibkeys}&callback={callback}&jscmd=data"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/books?bibkeys={bibkeys}&callback={callback}&jscmd=data"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        # Both should be wrapped in callback
+        legacy_text = legacy_resp.text
+        fastapi_text = fastapi_resp.text
+
+        if legacy_resp.status_code == 200:
+            assert legacy_text.startswith(f"{callback}(")
+            assert fastapi_text.startswith(f"{callback}(")
+
+            # Extract and compare
+            legacy_json = json.loads(legacy_text[len(callback) + 1 : -2])
+            fastapi_json = json.loads(fastapi_text[len(callback) + 1 : -2])
+
+            normalized_legacy = normalize_response_for_comparison(legacy_json, 8080)
+            normalized_fastapi = normalize_response_for_comparison(fastapi_json, 18080)
+
+            assert normalized_legacy == normalized_fastapi
+
+
+class TestVolumeAPIEdgeCases:
+    """Tests for Volume API edge cases from real-world traffic."""
+
+    def test_multiget_complex_separators(self):
+        """Test multiget with complex semicolon and pipe separators."""
+        # Example: id:0;lccn:67077305_/r924|id:1;isbn:0677203101;lccn:78092622_/r926
+        req = "id:0;isbn:0545202051|id:1;isbn:0545003962"
+        encoded_req = quote_plus(req, safe="/|:")
+
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/json/{encoded_req}?show_all_items=true"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/json/{encoded_req}?show_all_items=true"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        if legacy_resp.status_code == 200:
+            legacy_data = legacy_resp.json()
+            fastapi_data = fastapi_resp.json()
+
+            compare_responses(legacy_data, fastapi_data, "volume.complex_separators")
+
+    def test_multiget_without_json_extension(self):
+        """Test multiget endpoint without .json extension."""
+        # Some clients call /api/volumes/brief/json/isbn:9780062858191 without .json
+        isbn = "9780062858191"
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/json/isbn:{isbn}"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/json/isbn:{isbn}"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        if legacy_resp.status_code == 200:
+            legacy_data = legacy_resp.json()
+            fastapi_data = fastapi_resp.json()
+
+            compare_responses(legacy_data, fastapi_data, "volume.no_json_extension")
+
+    def test_multiget_many_identifiers_with_callback(self):
+        """Test multiget with many identifiers and JSONP callback."""
+        # Simulate real-world traffic with many identifiers
+        req = "id:0;isbn:0230632602|id:1;isbn:0230331963|id:2;isbn:0230324444"
+        encoded_req = quote_plus(req, safe="/|:")
+        callback = "jQuery34109836958233199882_1772041688238"
+
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/brief/json/{encoded_req}?callback={callback}&show_all_items=true"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/brief/json/{encoded_req}?callback={callback}&show_all_items=true"
+
+        legacy_resp = requests.get(legacy_url)
+        fastapi_resp = requests.get(fastapi_url)
+
+        assert legacy_resp.status_code == fastapi_resp.status_code
+
+        if legacy_resp.status_code == 200:
+            # Both should be wrapped in callback
+            legacy_text = legacy_resp.text
+            fastapi_text = fastapi_resp.text
+
+            assert legacy_text.startswith(f"{callback}(")
+            assert fastapi_text.startswith(f"{callback}(")
+
+            # Extract and compare
+            legacy_json = json.loads(legacy_text[len(callback) + 1 : -2])
+            fastapi_json = json.loads(fastapi_text[len(callback) + 1 : -2])
+
+            compare_responses(
+                legacy_json, fastapi_json, "volume.many_identifiers_callback"
+            )
