@@ -10,8 +10,8 @@ from .. import account
 def open_test_data(filename):
     """Returns a file handle to file with specified filename inside test_data directory."""
     root = os.path.dirname(__file__)
-    fullpath = os.path.join(root, 'test_data', filename)
-    return open(fullpath, mode='rb')
+    fullpath = os.path.join(root, "test_data", filename)
+    return open(fullpath, mode="rb")
 
 
 def test_create_list_doc(wildcard):
@@ -35,7 +35,7 @@ def test_create_list_doc(wildcard):
 
 class TestGoodReadsImport:
     def setup_method(self, method):
-        with open_test_data('goodreads_library_export.csv') as reader:
+        with open_test_data("goodreads_library_export.csv") as reader:
             self.csv_data = reader.read()
 
         self.expected_books = {
@@ -143,21 +143,15 @@ class TestGoodReadsImport:
             }
         }
 
-    @pytest.mark.skipif(
-        sys.version_info < (3, 0), reason="Python2's csv module doesn't support Unicode"
-    )
+    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python2's csv module doesn't support Unicode")
     def test_process_goodreads_csv_with_utf8(self):
-        books, books_wo_isbns = account.process_goodreads_csv(
-            web.storage({'csv': self.csv_data.decode('utf-8')})
-        )
+        books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data.decode("utf-8")}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
 
     def test_process_goodreads_csv_with_bytes(self):
         # Note: In Python2, reading data as bytes returns a string, which should
         # also be supported by account.process_goodreads_csv()
-        books, books_wo_isbns = account.process_goodreads_csv(
-            web.storage({'csv': self.csv_data})
-        )
+        books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns

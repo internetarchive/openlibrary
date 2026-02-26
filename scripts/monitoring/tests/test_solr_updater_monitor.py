@@ -40,20 +40,16 @@ async def test_get_solr_updater_lag_event(httpx_mock):
 
     with (
         patch(
-            'scripts.monitoring.solr_updater_monitor.bash_run',
+            "scripts.monitoring.solr_updater_monitor.bash_run",
             return_value=mock_bash_result,
         ),
         patch(
-            'scripts.monitoring.solr_updater_monitor.time.time',
+            "scripts.monitoring.solr_updater_monitor.time.time",
             return_value=now_epoch,
         ),
     ):
         event = await get_solr_updater_lag_event(solr_next=False)
-        assert event == GraphiteEvent(
-            path="stats.ol.solr.solr_updater_lag", value=600, timestamp=now_epoch
-        )
+        assert event == GraphiteEvent(path="stats.ol.solr.solr_updater_lag", value=600, timestamp=now_epoch)
 
         event = await get_solr_updater_lag_event(solr_next=True)
-        assert event == GraphiteEvent(
-            path="stats.ol.solr_next.solr_updater_lag", value=600, timestamp=now_epoch
-        )
+        assert event == GraphiteEvent(path="stats.ol.solr_next.solr_updater_lag", value=600, timestamp=now_epoch)

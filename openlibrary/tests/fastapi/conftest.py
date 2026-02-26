@@ -21,7 +21,7 @@ def mock_work_search_async():
 
     Used by FastAPI endpoint tests.
     """
-    with patch('openlibrary.fastapi.search.work_search_async', autospec=True) as mock:
+    with patch("openlibrary.fastapi.search.work_search_async", autospec=True) as mock:
         mock.return_value = _default_search_response()
         yield mock
 
@@ -32,9 +32,7 @@ def mock_work_search():
 
     Used by webpy endpoint tests.
     """
-    with patch(
-        'openlibrary.plugins.worksearch.code.work_search', autospec=True
-    ) as mock:
+    with patch("openlibrary.plugins.worksearch.code.work_search", autospec=True) as mock:
         mock.return_value = _default_search_response()
         yield mock
 
@@ -45,10 +43,8 @@ def mock_fulltext_search_async():
 
     Used by FastAPI search/inside endpoint tests.
     """
-    with patch(
-        'openlibrary.fastapi.search.fulltext_search_async', autospec=True
-    ) as mock:
-        mock.return_value = {'docs': [], 'numFound': 0}
+    with patch("openlibrary.fastapi.search.fulltext_search_async", autospec=True) as mock:
+        mock.return_value = {"docs": [], "numFound": 0}
         yield mock
 
 
@@ -58,10 +54,8 @@ def mock_fulltext_search():
 
     Used by webpy search_inside endpoint tests.
     """
-    with patch(
-        'openlibrary.plugins.inside.code.fulltext_search', autospec=True
-    ) as mock:
-        mock.return_value = {'docs': [], 'numFound': 0}
+    with patch("openlibrary.plugins.inside.code.fulltext_search", autospec=True) as mock:
+        mock.return_value = {"docs": [], "numFound": 0}
         yield mock
 
 
@@ -71,9 +65,7 @@ def mock_async_run_solr_query():
 
     Used by FastAPI search/subjects endpoint tests.
     """
-    with patch(
-        'openlibrary.fastapi.search.async_run_solr_query', autospec=True
-    ) as mock:
+    with patch("openlibrary.fastapi.search.async_run_solr_query", autospec=True) as mock:
         mock.return_value = _default_subjects_response()
         yield mock
 
@@ -84,9 +76,7 @@ def mock_run_solr_query():
 
     Used by webpy search/subjects endpoint tests.
     """
-    with patch(
-        'openlibrary.plugins.worksearch.code.run_solr_query', autospec=True
-    ) as mock:
+    with patch("openlibrary.plugins.worksearch.code.run_solr_query", autospec=True) as mock:
         mock.return_value = _default_subjects_response()
         yield mock
 
@@ -94,16 +84,16 @@ def mock_run_solr_query():
 def _default_search_response():
     """Default mock response shared by both sync and async mocks."""
     return {
-        'numFound': 2,
-        'numFoundExact': True,
-        'num_found': 2,
-        'start': 0,
-        'docs': [
-            {'key': '/works/OL1W', 'title': 'Test Work 1'},
-            {'key': '/works/OL2W', 'title': 'Test Work 2'},
+        "numFound": 2,
+        "numFoundExact": True,
+        "num_found": 2,
+        "start": 0,
+        "docs": [
+            {"key": "/works/OL1W", "title": "Test Work 1"},
+            {"key": "/works/OL2W", "title": "Test Work 2"},
         ],
-        'q': '',
-        'offset': None,
+        "q": "",
+        "offset": None,
     }
 
 
@@ -113,27 +103,27 @@ def _default_subjects_response():
 
     return SearchResponse(
         facet_counts=None,
-        sort='work_count desc',
+        sort="work_count desc",
         docs=[
             {
-                'key': '/subjects/subject1',
-                'name': 'Subject 1',
-                'subject_type': 'subject',
-                'work_count': 10,
+                "key": "/subjects/subject1",
+                "name": "Subject 1",
+                "subject_type": "subject",
+                "work_count": 10,
             }
         ],
         num_found=1,
         raw_resp={
-            'response': {
-                'docs': [
+            "response": {
+                "docs": [
                     {
-                        'key': '/subjects/subject1',
-                        'name': 'Subject 1',
-                        'subject_type': 'subject',
-                        'work_count': 10,
+                        "key": "/subjects/subject1",
+                        "name": "Subject 1",
+                        "subject_type": "subject",
+                        "work_count": 10,
                     }
                 ]
             }
         },
-        solr_select='mock',
+        solr_select="mock",
     )

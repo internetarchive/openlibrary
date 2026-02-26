@@ -13,7 +13,7 @@ from .. import stats
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
-        kargs['_key'] = _id
+        kargs["_key"] = _id
         super().__init__(*largs, **kargs)
 
     def __repr__(self):
