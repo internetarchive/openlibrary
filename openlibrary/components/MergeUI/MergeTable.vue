@@ -328,6 +328,21 @@ export default {
 </script>
 
 <style>
+/*
+ * MergeTable styles.
+ *
+ * This component is rendered as a custom element (<ol-merge-ui>) with Shadow
+ * DOM, so these styles are already encapsulated — they cannot leak to the
+ * outer page. We intentionally keep <style> unscoped because many rules
+ * target elements inside child components (MergeRow, MergeRowField, etc.).
+ *
+ * Not using <style scoped> because:
+ *   - Shadow DOM already provides encapsulation
+ *   - Scoped styles would require :deep() on every cross-component rule
+ */
+
+/* --- Custom properties --- */
+
 :root {
   --row-height: 105px;
   --row-padding: 8px;
@@ -335,51 +350,67 @@ export default {
   --selection-background: rgb(220, 224, 238);
 }
 
-body {
-  font-size: .85em;
-}
-time {
-  white-space: nowrap;
-}
+/* --- Table layout --- */
 
-table.main {
+.main {
   border-collapse: collapse;
   min-width: 100%;
+  font-size: .85em;
 }
-table.main thead,
-table.main tfoot {
+
+.main thead,
+.main tfoot {
   position: sticky;
   z-index: 300;
 }
-table.main > thead {
+
+.main thead {
   top: 0;
 }
-table.main > thead > tr > th {
+
+/* Specificity 0,1,1 — bare th is acceptable here: only <th> elements in
+   this shadow root live inside .main thead. */
+.main th {
   font-variant: small-caps;
   margin-right: 4px;
   background: rgb(240, 237, 226);
 }
-table.main > tbody {
+
+.main tbody {
   background: var(--table-background);
 }
-table.main > tfoot {
+
+.main tfoot {
   background: var(--selection-background);
   bottom: 0;
 }
-table.main > tfoot > tr {
+
+.main tfoot tr {
   border-top: 4px double;
   box-shadow: 0 2px 4px inset black;
 }
-table.main > tfoot > tr > td > div {
+
+.main tfoot td > div {
   min-height: var(--row-height);
 }
 
-table.main > tbody > tr:hover,
-table.main > tfoot > tr:hover {
+/* --- Row styles --- */
+
+.main tbody tr:hover,
+.main tfoot tr:hover {
   background: rgba(200, 200, 0, .1);
 }
-table.main > tbody > tr > td,
-table.main > tfoot > tr > td {
+
+.main tbody .work:not(.selected) {
+  opacity: .5;
+}
+
+/* --- Cell defaults ---
+   Bare td/div descendant selectors are used here because every <td> and its
+   direct child <div> in this table follow the same structure from MergeRow. */
+
+.main tbody td,
+.main tfoot td {
   max-height: var(--row-height);
   max-width: 300px;
   position: relative;
@@ -388,105 +419,78 @@ table.main > tfoot > tr > td {
   box-sizing: border-box;
   padding: 0;
 }
-table.main > tbody > tr > td > div,
-table.main > tfoot > tr > td > div {
+
+.main td > div {
   height: calc(var(--row-height) - var(--row-padding) * 2);
   max-height: calc(var(--row-height) - var(--row-padding) * 2);
   overflow-y: auto;
   padding: var(--row-padding);
   margin-right: 4px;
 }
-table.main > tbody > tr > td > div.field-covers,
-table.main > tfoot > tr > td > div.field-covers {
-  width: 100px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  float: left;
-  margin-right: var(--row-padding);
-}
-table.main > tbody > tr > td > div.field-covers .wrapper img,
-table.main > tfoot > tr > td > div.field-covers .wrapper img {
-  width: 100%;
-}
-table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error,
-table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error {
-  min-width: 500px;
-  padding: 0 0 calc(var(--row-padding) * 2) 0;
-}
-table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div,
-table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div {
-  padding: var(--row-padding) var(--row-padding) 0 var(--row-padding);
-  white-space: normal;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-}
-table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child,
-table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child {
-  padding-bottom: var(--row-padding);
-}
-table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle,
-table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle {
-  padding-left: 1em;
-  padding-top: 0;
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location {
-  white-space: nowrap;
-  padding: var(--row-padding) 0 var(--row-padding) 0;
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div {
-  padding: calc(var(--row-padding) / 2) var(--row-padding) 0 var(--row-padding);
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2),
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2) {
-  padding-top: var(--row-padding);
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child {
-  padding-bottom: var(--row-padding);
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created {
-  padding-right: 0;
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
-  padding-left: 0;
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified {
-  display: inline;
-  font-size: 0.95em;
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-last_modified::before {
-  content: "…";
-}
-table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before,
-table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-revision > div::before {
-  content: "v";
-}
-table.main > tbody > tr > td > .td-container,
-table.main > tfoot > tr > td > .td-container {
+
+.main .td-container {
   overflow-y: auto;
   resize: vertical;
 }
-table.main > tbody > tr > td.col-key--title--subtitle--authors--error,
-table.main > tbody > tr > .col-subjects--subject_people--subject_places--subject_times,
-table.main > tbody > tr > td.col-editions,
-table.main > tfoot > tr > td.col-key--title--subtitle--authors--error,
-table.main > tfoot > tr > .col-subjects--subject_people--subject_places--subject_times,
-table.main > tfoot > tr > td.col-editions {
+
+/* --- Column overrides (.col-* classes are on <td> elements from MergeRow) --- */
+
+.col-controls {
+  text-align: center;
+  line-height: 2em;
+}
+
+.col-key--title--subtitle--authors--error,
+.col-subjects--subject_people--subject_places--subject_times,
+.col-editions {
   max-width: 100vw;
 }
-table.main > tbody .work:not(.selected) {
-  opacity: .5;
+
+.col-description {
+  min-width: 200px;
 }
+
+.col-description,
+.col-excerpts,
+.col-first_sentence,
+.col-links {
+  font-size: .9em;
+}
+
+/* Bare div descendant — targets field-container and TextDiff inner divs
+   inside these columns. Child components don't expose a class on these. */
+.col-description div,
+.col-excerpts div,
+.col-first_sentence div,
+.col-links div {
+  max-height: var(--row-height);
+}
+
+/* All <ul> elements in these columns have class="reset" */
+.col-description .reset,
+.col-excerpts .reset,
+.col-first_sentence .reset,
+.col-links .reset {
+  padding: 0;
+  margin: 0;
+}
+
+.col-editions .td-container {
+  width: 400px;
+  max-height: calc(var(--row-height) - 30px);
+}
+
+/* MergeRowReferencesField root is a bare <div> with no class —
+   the > div > div pattern is needed until that component adds a root class. */
+.col-references > div {
+  white-space: nowrap;
+}
+
+.col-references > div > div {
+  padding-bottom: var(--row-padding);
+}
+
+/* --- Field containers (.field-container is the root of MergeRowField) --- */
 
 .field-container {
   overflow-y: auto;
@@ -496,83 +500,160 @@ table.main > tbody .work:not(.selected) {
   background: var(--selection-background);
 }
 
-td.col-controls {
-  text-align: center;
-  line-height: 2em;
-}
-
-div.field-error {
+/* stylelint-disable color-named -- design tokens are unavailable in Shadow DOM;
+   hsl(0, 100%, 50%) is equivalent to the project's --red-three token */
+.field-error {
   font-weight: 700;
-  color: red;
+  color: hsl(0, 100%, 50%);
 }
 
-td.col-description {
-  min-width: 200px;
+/* --- Cover field --- */
+
+.main .field-covers {
+  width: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  float: left;
+  margin-right: var(--row-padding);
 }
 
-td.col-description,
-td.col-excerpts,
-td.col-first_sentence,
-td.col-links {
-  font-size: .9em;
-}
-td.col-description div,
-td.col-excerpts div,
-td.col-first_sentence div,
-td.col-links div {
-  max-height: var(--row-height);
-}
-td.col-description ul,
-td.col-excerpts ul,
-td.col-first_sentence ul,
-td.col-links ul {
-  padding: 0;
-  margin: 0;
+/* Bare img — the <img> inside .wrapper has no class in MergeRowField */
+.main .field-covers .wrapper img {
+  width: 100%;
 }
 
-div.field-lc_classifications li, div.field-dewey_number li {
-  font-size: .9em;
+/* --- Joint field: key | title | subtitle | authors | error --- */
+
+.wrap-key--title--subtitle--authors--error {
+  min-width: 500px;
+  padding: 0 0 calc(var(--row-padding) * 2) 0;
+}
+
+/* > div targets each MergeRowField root inside the joint wrapper */
+.wrap-key--title--subtitle--authors--error > div {
+  padding: var(--row-padding) var(--row-padding) 0 var(--row-padding);
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.wrap-key--title--subtitle--authors--error > div:last-child {
+  padding-bottom: var(--row-padding);
+}
+
+.wrap-key--title--subtitle--authors--error .field-subtitle {
+  padding-left: 1em;
+  padding-top: 0;
+}
+
+/* --- Joint field: created | last_modified | revision | type | location --- */
+
+.wrap-created--last_modified--revision--type--location {
   white-space: nowrap;
+  padding: var(--row-padding) 0 var(--row-padding) 0;
 }
 
-li.excerpt-item {
-  padding-bottom: 0.4em;
+/* > div targets each MergeRowField root inside the joint wrapper */
+.wrap-created--last_modified--revision--type--location > div {
+  padding: calc(var(--row-padding) / 2) var(--row-padding) 0 var(--row-padding);
 }
+
+.wrap-created--last_modified--revision--type--location > div:nth-child(1),
+.wrap-created--last_modified--revision--type--location > div:nth-child(2) {
+  padding-top: var(--row-padding);
+}
+
+.wrap-created--last_modified--revision--type--location > div:last-child {
+  padding-bottom: var(--row-padding);
+}
+
+.wrap-created--last_modified--revision--type--location .field-created {
+  padding-right: 0;
+}
+
+.wrap-created--last_modified--revision--type--location .field-last_modified {
+  padding-left: 0;
+}
+
+.wrap-created--last_modified--revision--type--location .field-created,
+.wrap-created--last_modified--revision--type--location .field-last_modified {
+  display: inline;
+  font-size: 0.95em;
+}
+
+.wrap-created--last_modified--revision--type--location .field-last_modified::before {
+  content: "…";
+}
+
+/* Bare > div targets the inner <div> rendered by MergeRowField for revision
+   (no class on that inner div) */
+.wrap-created--last_modified--revision--type--location .field-revision > div::before {
+  content: "v";
+}
+
+/* --- Joint field: subjects --- */
 
 .col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times {
+  .wrap-subjects--subject_people--subject_places--subject_times {
   height: var(--row-height);
   max-height: var(--row-height);
   display: flex;
   flex-direction: column;
   padding: 0;
 }
+
 .col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times .field-container {
+  .wrap-subjects--subject_people--subject_places--subject_times .field-container {
   min-height: 16px;
   padding: 4px;
   border-bottom: 2px solid var(--table-background);
   flex: 1 1 auto;
 }
+
 .col-subjects--subject_people--subject_places--subject_times >
-  div.wrap-subjects--subject_people--subject_places--subject_times .field-container:last-child {
+  .wrap-subjects--subject_people--subject_places--subject_times .field-container:last-child {
   border-bottom: 0;
 }
 
-.field-authors td.author-author {
+.field-subject_people::before {
+  content: "👤";
+  float: left;
+  padding-left: 3px;
+}
+
+.field-subject_places::before {
+  content: "🌎";
+  float: left;
+  padding-left: 3px;
+}
+
+.field-subject_times::before {
+  content: "🕗";
+  float: left;
+  padding-left: 3px;
+}
+
+/* --- Authors field (targets AuthorRoleTable internals) --- */
+
+.field-authors .author-author {
   padding-right: 6px;
 }
+
+/* Hide the table header and non-essential columns in AuthorRoleTable */
 .field-authors thead,
-.field-authors td.author-index,
-.field-authors td.author-type {
+.field-authors .author-index,
+.field-authors .author-type {
   display: none;
 }
 
-ul.reset {
+/* --- Lists and pills --- */
+
+.reset {
   padding: 0;
   margin: 0;
 }
-ul.reset > li {
+
+.reset > li {
   list-style: none;
 }
 
@@ -580,6 +661,7 @@ ul.reset > li {
   min-width: 250px;
   text-align: center;
 }
+
 .pill {
   font-size: .9em;
   display: inline-block;
@@ -592,37 +674,29 @@ ul.reset > li {
   background: rgba(255, 255, 255, .4);
 }
 
-.field-subject_people::before {
-  content: "👤";
-  float: left;
-  padding-left: 3px;
-}
-.field-subject_places::before {
-  content: "🌎";
-  float: left;
-  padding-left: 3px;
-}
-.field-subject_times::before {
-  content: "🕗";
-  float: left;
-  padding-left: 3px;
-}
+/* --- Classification fields ---
+   Bare li — the <li> elements inside these fields have no class in
+   MergeRowField's dewey_number/lc_classifications template branch. */
 
-td.col-editions div.td-container {
-  width: 400px;
-  max-height: calc(var(--row-height) - 30px);
-}
-
-.col-references > div {
+.field-lc_classifications li,
+.field-dewey_number li {
+  font-size: .9em;
   white-space: nowrap;
 }
-.col-references > div > div {
-  padding-bottom: var(--row-padding);
+
+/* --- Excerpts --- */
+
+.excerpt-item {
+  padding-bottom: 0.4em;
 }
 
-div.field-links li {
+/* --- Links field --- */
+
+.field-links .link {
   margin-bottom: var(--row-padding);
 }
+
+/* --- Bookshelf counts (inside MergeRowReferencesField) --- */
 
 .bookshelf-counts span:not(:first-child)::before {
   content: " / ";
