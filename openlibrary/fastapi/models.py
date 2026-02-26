@@ -9,7 +9,9 @@ class Pagination(BaseModel):
     """Reusable pagination parameters for API endpoints."""
 
     limit: int = Field(100, ge=0, description="Maximum number of results to return.")
-    offset: int | None = Field(None, ge=0, description="Number of results to skip.", exclude=True)
+    offset: int | None = Field(
+        None, ge=0, description="Number of results to skip.", exclude=True
+    )
     page: int | None = Field(None, ge=1, description="Page number (1-indexed).")
 
     @model_validator(mode="after")

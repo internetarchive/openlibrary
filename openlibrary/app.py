@@ -31,7 +31,7 @@ class view(_app.page):
 # view is just a base class.
 # Defining a class extending from _app.page auto-registers it inside infogami.
 # Undoing that.
-del _app.pages['/view']
+del _app.pages["/view"]
 
 
 class subview(_app.view):

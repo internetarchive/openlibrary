@@ -83,7 +83,9 @@ async def book_page_lists_partial(
     return BookPageListsPartial(workId=workId, editionId=editionId).generate()
 
 
-@router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+@router.get(
+    "/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
 async def fulltext_search_suggestion_partial(
     response: Response,
     data: str = Query(..., description="Search query string"),
@@ -102,10 +104,14 @@ async def fulltext_search_suggestion_partial(
     return result
 
 
-@router.get("/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+@router.get(
+    "/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
 async def reading_goal_progress_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    year: int | None = Query(None, description="Year for reading goal (defaults to current year)"),
+    year: int | None = Query(
+        None, description="Year for reading goal (defaults to current year)"
+    ),
 ) -> dict:
     """
     Get reading goal progress HTML for the current user.
@@ -116,7 +122,9 @@ async def reading_goal_progress_partial(
     return ReadingGoalProgressPartial(year=year or datetime.now().year).generate()
 
 
-@router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+@router.get(
+    "/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
 async def my_books_dropper_lists_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
@@ -142,7 +150,9 @@ async def lazy_carousel_partial(
     return LazyCarouselPartial(params=params).generate()
 
 
-@router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+@router.get(
+    "/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA
+)
 async def carousel_load_more_partial(
     params: Annotated[CarouselLoadMoreParams, Query()],
 ) -> dict:

@@ -31,8 +31,12 @@ class BaseSubjectRequestParams(Pagination):
 
     details: bool = Field(False, description="Include facets and detailed metadata")
     has_fulltext: bool = Field(False, description="Filter to works with fulltext")
-    sort: str = Field("editions", description="Sort order: editions, old, new, ranking, etc.")
-    published_in: str | None = Field(None, description="Date range filter: YYYY or YYYY-YYYY")
+    sort: str = Field(
+        "editions", description="Sort order: editions, old, new, ranking, etc."
+    )
+    published_in: str | None = Field(
+        None, description="Date range filter: YYYY or YYYY-YYYY"
+    )
     limit: int = Field(
         DEFAULT_RESULTS,
         ge=0,
@@ -65,7 +69,9 @@ async def fetch_subject_data(
     filters = {}
     if params.has_fulltext:
         filters["has_fulltext"] = "true"
-    if publish_year_filter := date_range_to_publish_year_filter(params.published_in or ""):
+    if publish_year_filter := date_range_to_publish_year_filter(
+        params.published_in or ""
+    ):
         filters["publish_year"] = publish_year_filter
 
     subject: Subject = await get_subject_async(

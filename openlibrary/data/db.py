@@ -45,7 +45,7 @@ mc = None
 def setup_database(**db_params):
     """Setup the database. This must be called before using any other functions in this module."""
     global db, db_parameters
-    db_params.setdefault('dbn', 'postgres')
+    db_params.setdefault("dbn", "postgres")
     db = web.database(**db_params)
     db.printing = False
     db_parameters = db_params
@@ -63,11 +63,11 @@ def iterdocs(type=None):
     """Returns an iterator over all docs in the database.
     If type is specified, then only docs of that type will be returned.
     """
-    q = 'SELECT id, key, latest_revision as revision FROM thing'
+    q = "SELECT id, key, latest_revision as revision FROM thing"
     if type:
         type_id = get_thing_id(type)
-        q += ' WHERE type=$type_id'
-    q += ' ORDER BY id'
+        q += " WHERE type=$type_id"
+    q += " ORDER BY id"
 
     for chunk in longquery(q, locals()):
         docs = chunk
@@ -93,9 +93,7 @@ def longquery(query, vars, chunk_size=10000):
     try:
         db.query("DECLARE longquery NO SCROLL CURSOR FOR " + query, vars=vars)
         while True:
-            chunk = db.query(
-                "FETCH FORWARD $chunk_size FROM longquery", vars=locals()
-            ).list()
+            chunk = db.query("FETCH FORWARD $chunk_size FROM longquery", vars=locals()).list()
             if chunk:
                 yield chunk
             else:
@@ -171,9 +169,9 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         for row in rows:
             doc = docdict[row.id]
             doc.revision = row.latest_revision + 1
-            doc.data['revision'] = doc.revision
-            doc.data['latest_revision'] = doc.revision
-            doc.data['last_modified']['value'] = now.isoformat()
+            doc.data["revision"] = doc.revision
+            doc.data["latest_revision"] = doc.revision
+            doc.data["last_modified"]["value"] = now.isoformat()
 
         tx_id = db.insert(
             "transaction",
@@ -186,20 +184,12 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         debug("INSERT version")
         db.multiple_insert(
             "version",
-            [
-                {"thing_id": doc.id, "transaction_id": tx_id, "revision": doc.revision}
-                for doc in docs
-            ],
+            [{"thing_id": doc.id, "transaction_id": tx_id, "revision": doc.revision} for doc in docs],
             seqname=False,
         )
 
         debug("INSERT data")
-        data = [
-            web.storage(
-                thing_id=doc.id, revision=doc.revision, data=json.dumps(doc.data)
-            )
-            for doc in docs
-        ]
+        data = [web.storage(thing_id=doc.id, revision=doc.revision, data=json.dumps(doc.data)) for doc in docs]
         db.multiple_insert("data", data, seqname=False)
 
         debug("UPDATE thing")

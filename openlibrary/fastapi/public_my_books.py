@@ -57,7 +57,9 @@ ReadingLogKey = Literal["want-to-read", "currently-reading", "already-read"]
 async def get_public_my_books_json(
     username: str,
     key: ReadingLogKey,
-    logged_in_user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    logged_in_user: Annotated[
+        AuthenticatedUser | None, Depends(get_authenticated_user)
+    ],
     pagination: Annotated[Pagination, Depends()],
     q: str = Query("", min_length=0, max_length=100),
     mode: str = Query("everything"),
@@ -116,7 +118,11 @@ async def get_public_my_books_json(
                 cover_edition_key=w.get("cover_edition_key") or None,
             ),
             logged_edition=w.get("logged_edition") or None,
-            logged_date=w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None,
+            logged_date=(
+                w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S")
+                if w.get("logged_date")
+                else None
+            ),
         )
         for w in books
     ]

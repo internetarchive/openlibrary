@@ -55,21 +55,31 @@ class PublicQueryOptions(BaseModel):
     public_scan_b: list[Literal["true", "false"]] = []
 
     # List fields (facets)
-    author_key: list[str] = Field([], description="Filter by author key.", examples=["OL1394244A"])
-    subject_facet: list[str] = Field([], description="Filter by subject.", examples=["Fiction", "City planning"])
+    author_key: list[str] = Field(
+        [], description="Filter by author key.", examples=["OL1394244A"]
+    )
+    subject_facet: list[str] = Field(
+        [], description="Filter by subject.", examples=["Fiction", "City planning"]
+    )
     person_facet: list[str] = Field(
         [],
         description="Filter by person. Not the author but the person who is the subject of the work.",
         examples=["Jane Jacobs (1916-2006)", "Cory Doctorow"],
     )
-    place_facet: list[str] = Field([], description="Filter by place.", examples=["New York", "Xiamen Shi"])
+    place_facet: list[str] = Field(
+        [], description="Filter by place.", examples=["New York", "Xiamen Shi"]
+    )
     time_facet: list[str] = Field(
         [],
         description="Filter by time. It can be formatted many ways.",
         examples=["20th century", "To 70 A.D."],
     )
-    first_publish_year: list[str] = Field([], description="Filter by first publish year.", examples=["2020"])
-    publisher_facet: list[str] = Field([], description="Filter by publisher.", examples=["Urban Land Institute"])
+    first_publish_year: list[str] = Field(
+        [], description="Filter by first publish year.", examples=["2020"]
+    )
+    publisher_facet: list[str] = Field(
+        [], description="Filter by publisher.", examples=["Urban Land Institute"]
+    )
     language: list[str] = Field(
         [],
         description="Filter by language using three-letter language codes.",
@@ -247,7 +257,8 @@ def create_sort_option_type(sorts_map: Mapping):
         WithJsonSchema(
             {
                 "type": "string",
-                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
+                "enum": list(sorts_map.keys())
+                + [""],  # Include empty string for default
             }
         ),
     ]
@@ -260,7 +271,9 @@ class ListSearchRequestParams(PaginationLimit20):
     q: str = Field("", description="The search query")
     fields: str = Field("", description="Fields to return")
     sort: ListSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
-    api: Literal["next", ""] = Field("", description="API version: 'next' for new format, empty for old format")
+    api: Literal["next", ""] = Field(
+        "", description="API version: 'next' for new format, empty for old format"
+    )
 
     @model_validator(mode="after")
     def handle_legacy_logic(self) -> Self:

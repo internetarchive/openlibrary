@@ -32,7 +32,9 @@ class ReadingGoalsResponse(BaseModel):
     """Response model for reading goals GET endpoint."""
 
     status: str = Field(default="ok", description="Response status")
-    goal: list[ReadingGoalItem] = Field(default_factory=list, description="List of reading goals")
+    goal: list[ReadingGoalItem] = Field(
+        default_factory=list, description="List of reading goals"
+    )
 
 
 class ReadingGoalUpdateResponse(BaseModel):

@@ -28,32 +28,30 @@ root = os.path.dirname(__file__)
 
 def error_color_fn(text: str) -> str:
     """Styles the text for printing to console with error color."""
-    return '\033[91m' + text + '\033[0m'
+    return "\033[91m" + text + "\033[0m"
 
 
 def success_color_fn(text: str) -> str:
     """Styles the text for printing to console with success color."""
-    return '\033[92m' + text + '\033[0m'
+    return "\033[92m" + text + "\033[0m"
 
 
 def warning_color_fn(text: str) -> str:
     """Styles the text for printing to console with warning color."""
-    return '\033[93m' + text + '\033[0m'
+    return "\033[93m" + text + "\033[0m"
 
 
-def get_untracked_files(
-    dirs: list[str], extensions: tuple[str, str] | str
-) -> set[Path]:
+def get_untracked_files(dirs: list[str], extensions: tuple[str, str] | str) -> set[Path]:
     """Returns a set of all currently untracked files with specified extension(s)."""
     untracked_files = {
         Path(line)
         for dir in dirs
         for line in subprocess.run(
-            ['git', 'ls-files', '--others', '--exclude-standard', dir],
+            ["git", "ls-files", "--others", "--exclude-standard", dir],
             stdout=subprocess.PIPE,
             text=True,
             check=True,
-        ).stdout.split('\n')
+        ).stdout.split("\n")
         if line.endswith(extensions)
     }
 
@@ -62,14 +60,14 @@ def get_untracked_files(
 
 def _compile_translation(po, mo):
     try:
-        with open(po, 'rb') as po_file:
+        with open(po, "rb") as po_file:
             catalog = read_po(po_file)
 
-        with open(mo, 'wb') as mo_file:
+        with open(mo, "wb") as mo_file:
             write_mo(mo_file, catalog)
-        print('compiled', po, file=web.debug)
+        print("compiled", po, file=web.debug)
     except Exception as e:
-        print('failed to compile', po, file=web.debug)
+        print("failed to compile", po, file=web.debug)
         raise e
 
 
@@ -100,36 +98,26 @@ def validate_translations(args: list[str]):
     results = {}
 
     for locale in locales:
-        po_path = os.path.join(root, locale, 'messages.po')
+        po_path = os.path.join(root, locale, "messages.po")
 
         if os.path.exists(po_path):
             num_errors = 0
             error_print: list[str] = []
-            with open(po_path, 'rb') as po_file:
+            with open(po_path, "rb") as po_file:
                 catalog = read_po(po_file)
             for message, warnings, errors in _validate_catalog(catalog):
                 for w in warnings:
-                    print(
-                        warning_color_fn(
-                            f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: '
-                        )
-                        + w
-                    )
+                    print(warning_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + w)
 
                     if errors:
                         num_errors += len(errors)
                         error_print.append(
-                            error_color_fn(
-                                f'openlibrary/i18n/{locale}/messages.po:{message.lineno}: '
-                            )
-                            + repr(message.string),
+                            error_color_fn(f"openlibrary/i18n/{locale}/messages.po:{message.lineno}: ") + repr(message.string),
                         )
                         error_print.extend(errors)
 
             if num_errors == 0:
-                print(
-                    success_color_fn(f'Translations for locale "{locale}" are valid!')
-                )
+                print(success_color_fn(f'Translations for locale "{locale}" are valid!'))
             else:
                 for e in error_print:
                     print(e)
@@ -143,26 +131,19 @@ def validate_translations(args: list[str]):
 
 
 def get_locales():
-    return [
-        d
-        for d in os.listdir(root)
-        if (
-            os.path.isdir(os.path.join(root, d))
-            and os.path.exists(os.path.join(root, d, 'messages.po'))
-        )
-    ]
+    return [d for d in os.listdir(root) if (os.path.isdir(os.path.join(root, d)) and os.path.exists(os.path.join(root, d, "messages.po")))]
 
 
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
     try:
-        instring = fileobj.read().decode('utf-8')
+        instring = fileobj.read().decode("utf-8")
         # Replace/remove inline js '\$' which interferes with the Babel python parser:
-        cleaned_string = instring.replace(r'\$', '')
+        cleaned_string = instring.replace(r"\$", "")
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
-        f = BytesIO(code.encode('utf-8'))  # Babel wants bytes, not strings
+        f = BytesIO(code.encode("utf-8"))  # Babel wants bytes, not strings
     except Exception as e:
-        print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
+        print("Failed to extract " + fileobj.name + ":", repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
 
@@ -170,10 +151,10 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
     # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
-    fixed_creation_date = datetime.fromisoformat('2024-05-01 18:58-0400')
+    fixed_creation_date = datetime.fromisoformat("2024-05-01 18:58-0400")
     catalog = Catalog(
-        project='Open Library',
-        copyright_holder='Internet Archive',
+        project="Open Library",
+        copyright_holder="Internet Archive",
         creation_date=fixed_creation_date,
     )
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
@@ -181,7 +162,7 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
 
     skipped_files = set()
     if skip_untracked:
-        skipped_files = get_untracked_files(sources, ('.py', '.html'))
+        skipped_files = get_untracked_files(sources, (".py", ".html"))
 
     # Note the must be sorted to avoid the messages.pot file constantly jumping around
     for source in map(Path, sorted(sources)):
@@ -212,27 +193,25 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
             if file_path in skipped_files:
                 continue
             counts[file_path] = counts.get(file_path, 0) + 1
-            catalog.add(
-                message, None, [(str(partial_path), lineno)], auto_comments=comments
-            )
+            catalog.add(message, None, [(str(partial_path), lineno)], auto_comments=comments)
 
         if verbose:
             for file_path, count in counts.items():
                 print(f"{count}\t{file_path}", file=sys.stderr)
 
-    path = os.path.join(root, 'messages.pot')
-    with open(path, 'wb') as f:
+    path = os.path.join(root, "messages.pot")
+    with open(path, "wb") as f:
         write_po(f, catalog, include_lineno=False)
 
-    print('Updated strings written to', path)
+    print("Updated strings written to", path)
 
 
 def compile_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
 
     for locale in locales_to_update:
-        po_path = os.path.join(root, locale, 'messages.po')
-        mo_path = os.path.join(root, locale, 'messages.mo')
+        po_path = os.path.join(root, locale, "messages.po")
+        mo_path = os.path.join(root, locale, "messages.mo")
 
         if os.path.exists(po_path):
             _compile_translation(po_path, mo_path)
@@ -242,20 +221,20 @@ def update_translations(locales: list[str]):
     locales_to_update = locales or get_locales()
     print(f"Updating {locales_to_update}")
 
-    pot_path = os.path.join(root, 'messages.pot')
-    with open(pot_path, 'rb') as pot_file:
+    pot_path = os.path.join(root, "messages.pot")
+    with open(pot_path, "rb") as pot_file:
         template = read_po(pot_file)
 
     for locale in locales_to_update:
-        po_path = os.path.join(root, locale, 'messages.po')
+        po_path = os.path.join(root, locale, "messages.po")
 
         if os.path.exists(po_path):
-            with open(po_path, 'rb') as po_file:
+            with open(po_path, "rb") as po_file:
                 catalog = read_po(po_file)
             catalog.update(template)
-            with open(po_path, 'wb') as f:
+            with open(po_path, "wb") as f:
                 write_po(f, catalog)
-            print('updated', po_path)
+            print("updated", po_path)
         else:
             print(f"ERROR: {po_path} does not exist...")
 
@@ -264,22 +243,18 @@ def update_translations(locales: list[str]):
 
 def check_status(locales: list[str]):
     locales_to_update = locales or get_locales()
-    pot_path = os.path.join(root, 'messages.pot')
+    pot_path = os.path.join(root, "messages.pot")
 
-    with open(pot_path, 'rb') as f:
+    with open(pot_path, "rb") as f:
         message_ids = {message.id for message in read_po(f)}
 
     for locale in locales_to_update:
-        po_path = os.path.join(root, locale, 'messages.po')
+        po_path = os.path.join(root, locale, "messages.po")
 
         if os.path.exists(po_path):
-            with open(po_path, 'rb') as f:
+            with open(po_path, "rb") as f:
                 catalog = read_po(f)
-                ids_with_translations = {
-                    message.id
-                    for message in catalog
-                    if ''.join(message.string or '').strip()
-                }
+                ids_with_translations = {message.id for message in catalog if "".join(message.string or "").strip()}
 
             ids_completed = message_ids.intersection(ids_with_translations)
             validation_errors = _validate_catalog(catalog)
@@ -290,35 +265,27 @@ def check_status(locales: list[str]):
                 total_errors += len(errors)
 
             percent_complete = len(ids_completed) / len(message_ids) * 100
-            all_green = (
-                percent_complete == 100 and total_warnings == 0 and total_errors == 0
-            )
+            all_green = percent_complete == 100 and total_warnings == 0 and total_errors == 0
             total_color = success_color_fn if all_green else lambda x: x
-            warnings_color = (
-                warning_color_fn if total_warnings > 0 else success_color_fn
-            )
+            warnings_color = warning_color_fn if total_warnings > 0 else success_color_fn
             errors_color = error_color_fn if total_errors > 0 else success_color_fn
-            percent_color = (
-                success_color_fn
-                if percent_complete == 100
-                else warning_color_fn if percent_complete > 25 else error_color_fn
-            )
+            percent_color = success_color_fn if percent_complete == 100 else warning_color_fn if percent_complete > 25 else error_color_fn
             print(
                 total_color(
-                    '\t'.join(
+                    "\t".join(
                         [
                             locale,
-                            percent_color(f'{percent_complete:6.2f}% complete'),
-                            warnings_color(f'{total_warnings:2d} warnings'),
-                            errors_color(f'{total_errors:2d} errors'),
-                            f'openlibrary/i18n/{locale}/messages.po',
+                            percent_color(f"{percent_complete:6.2f}% complete"),
+                            warnings_color(f"{total_warnings:2d} warnings"),
+                            errors_color(f"{total_errors:2d} errors"),
+                            f"openlibrary/i18n/{locale}/messages.po",
                         ]
                     )
                 )
             )
 
             if len(locales) == 1:
-                print(f'---- validate {locale} ----')
+                print(f"---- validate {locale} ----")
                 validate_translations(locales)
         else:
             print(f"ERROR: {po_path} does not exist...")
@@ -327,8 +294,8 @@ def check_status(locales: list[str]):
 def generate_po(args):
     if args:
         po_dir = os.path.join(root, args[0])
-        pot_src = os.path.join(root, 'messages.pot')
-        po_dest = os.path.join(po_dir, 'messages.po')
+        pot_src = os.path.join(root, "messages.pot")
+        po_dest = os.path.join(po_dir, "messages.po")
 
         if os.path.exists(po_dir):
             if os.path.exists(po_dest):
@@ -349,10 +316,10 @@ def generate_po(args):
 
 @web.memoize
 def load_translations(lang):
-    mo_path = os.path.join(root, lang, 'messages.mo')
+    mo_path = os.path.join(root, lang, "messages.mo")
 
     if os.path.exists(mo_path):
-        return Translations(open(mo_path, 'rb'))
+        return Translations(open(mo_path, "rb"))
 
 
 @web.memoize
@@ -381,7 +348,7 @@ class GetText:
         from infogami.utils.i18n import strings
 
         # for backward-compatability
-        return strings.get('', key)
+        return strings.get("", key)
 
 
 class LazyGetText:
