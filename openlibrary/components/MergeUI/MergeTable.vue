@@ -328,21 +328,6 @@ export default {
 </script>
 
 <style>
-/*
- * MergeTable styles.
- *
- * This component is rendered as a custom element (<ol-merge-ui>) with Shadow
- * DOM, so these styles are already encapsulated — they cannot leak to the
- * outer page. We intentionally keep <style> unscoped because many rules
- * target elements inside child components (MergeRow, MergeRowField, etc.).
- *
- * Not using <style scoped> because:
- *   - Shadow DOM already provides encapsulation
- *   - Scoped styles would require :deep() on every cross-component rule
- */
-
-/* --- Custom properties --- */
-
 :root {
   --row-height: 105px;
   --row-padding: 8px;
@@ -500,8 +485,7 @@ export default {
   background: var(--selection-background);
 }
 
-/* stylelint-disable color-named -- design tokens are unavailable in Shadow DOM;
-   hsl(0, 100%, 50%) is equivalent to the project's --red-three token */
+/* stylelint-disable color-named */
 .field-error {
   font-weight: 700;
   color: hsl(0, 100%, 50%);
