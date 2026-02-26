@@ -30,7 +30,7 @@ python-multipart==0.0.21
 PyYAML==6.0.1
 qrcode==7.4.2
 requests==2.32.4
-sentry-sdk[fastapi]==2.49.0
+sentry-sdk[fastapi]==2.53.0
 simplejson==3.19.1
 statsd==4.0.1
 uvicorn[standard]==0.30.6
