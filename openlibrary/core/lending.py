@@ -869,7 +869,7 @@ class Loan(dict):
                 config_bookreader_host, identifier
             )
             expiry = (
-                datetime.datetime.now(datetime.timezone.utc)
+                datetime.datetime.now(datetime.UTC)
                 + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
             ).isoformat()
         else:
@@ -959,7 +959,8 @@ class Loan(dict):
 
     def is_expired(self) -> bool:
         return (
-            self['expiry'] and self['expiry'] < datetime.datetime.now(datetime.timezone.utc).isoformat()
+            self['expiry']
+            and self['expiry'] < datetime.datetime.now(datetime.UTC).isoformat()
         )
 
     def is_yet_to_be_fulfilled(self) -> bool:

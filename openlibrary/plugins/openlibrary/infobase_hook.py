@@ -18,7 +18,7 @@ def hook(object):
     Add this hook to infobase.hooks to log all book modifications.
     """
     site = object._site
-    timestamp = datetime.datetime.now(datetime.timezone.utc)
+    timestamp = datetime.datetime.now(datetime.UTC)
     if object.type.key == '/type/edition':
         d = object._get_data(expand=True)
         # save some space by not expanding type
