@@ -117,7 +117,7 @@ async def get_volume(
     brief_or_full: Literal["brief", "full"],
     idtype: Literal["oclc", "lccn", "issn", "isbn", "htid", "olid", "recordnumber"],
     idval: str,
-    show_all_items: bool = Query(False, description="Show all items including restricted ones"),
+    show_all_items: Annotated[bool, Query(description="Show all items including restricted ones")] = False,
 ) -> Any:
     """
     Get volume information by identifier type and value.
