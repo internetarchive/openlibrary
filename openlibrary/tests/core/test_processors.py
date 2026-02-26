@@ -17,16 +17,16 @@ class MockSite:
         doc = common.parse_query(doc)
         doc = client.Site(None, None)._process_dict(doc)
 
-        key = doc['key']
+        key = doc["key"]
         self.docs[key] = client.create_thing(self, key, doc)
 
         olid = key.split("/")[-1]
-        if web.re_compile(r'OL\d+[A-Z]').match(olid):
+        if web.re_compile(r"OL\d+[A-Z]").match(olid):
             self.olids[olid] = key
 
     def _request(self, path, method=None, data=None):
         if path == "/olid_to_key":
-            olid = data['olid']
+            olid = data["olid"]
             return web.storage(key=self.olids.get(olid))
 
     def _get_backreferences(self):
@@ -43,9 +43,7 @@ def test_MockSite():
     assert site.get("/books/OL1M") is not None
     assert site.get("/books/OL1M").dict() == book
 
-    assert site._request("/olid_to_key", data={"olid": "OL1M"}) == {
-        "key": "/books/OL1M"
-    }
+    assert site._request("/olid_to_key", data={"olid": "OL1M"}) == {"key": "/books/OL1M"}
 
 
 def _get_mock_site():

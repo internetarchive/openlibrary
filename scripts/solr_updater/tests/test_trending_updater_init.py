@@ -22,19 +22,19 @@ class TestTrendingUpdaterInit:
 
         with (
             patch(
-                'scripts.solr_updater.trending_updater_init.run_daily_update',
+                "scripts.solr_updater.trending_updater_init.run_daily_update",
                 side_effect=fake_daily,
             ),
             patch(
-                'scripts.solr_updater.trending_updater_init.run_hourly_update',
+                "scripts.solr_updater.trending_updater_init.run_hourly_update",
                 side_effect=fake_hourly,
             ),
             patch(
-                'scripts.solr_updater.trending_updater_init.datetime.datetime',
+                "scripts.solr_updater.trending_updater_init.datetime.datetime",
                 PatchedDateTime,
             ),
         ):
-            trending_updater_init.main('conf/openlibrary.yml', **main_kwargs)
+            trending_updater_init.main("conf/openlibrary.yml", **main_kwargs)
 
         return calls
 
@@ -77,9 +77,7 @@ class TestTrendingUpdaterInit:
             },
         )
 
-        expected_calls = [
-            ("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0).isoformat())
-        ]
+        expected_calls = [("hourly", datetime.datetime(2025, 6, 27, 2, 5, 0).isoformat())]
         assert actual_calls == expected_calls
 
     def test_main_three_hours(self):
@@ -103,5 +101,5 @@ class TestTrendingUpdaterInit:
         assert actual_calls == expected_calls
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

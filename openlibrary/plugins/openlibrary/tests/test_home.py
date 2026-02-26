@@ -12,7 +12,7 @@ from openlibrary.plugins.openlibrary import home
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
-        kargs['_key'] = _id
+        kargs["_key"] = _id
         super().__init__(*largs, **kargs)
 
     def __repr__(self):
@@ -33,7 +33,7 @@ class TestHomeTemplates:
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
         self._load_fake_context()
-        web.ctx.lang = 'en'
+        web.ctx.lang = "en"
         web.ctx.site = MockSite()
 
     def _load_fake_context(self):
@@ -96,18 +96,18 @@ class TestHomeTemplates:
             )
         ] * 100
         stats = {
-            'human_edits': Stats(docs, "human_edits", "human_edits"),
-            'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
-            'lists': Stats(docs, "lists", "total_lists"),
-            'visitors': Stats(docs, "visitors", "visitors"),
-            'loans': Stats(docs, "loans", "loans"),
-            'members': Stats(docs, "members", "total_members"),
-            'works': Stats(docs, "works", "total_works"),
-            'editions': Stats(docs, "editions", "total_editions"),
-            'ebooks': Stats(docs, "ebooks", "total_ebooks"),
-            'covers': Stats(docs, "covers", "total_covers"),
-            'authors': Stats(docs, "authors", "total_authors"),
-            'subjects': Stats(docs, "subjects", "total_subjects"),
+            "human_edits": Stats(docs, "human_edits", "human_edits"),
+            "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+            "lists": Stats(docs, "lists", "total_lists"),
+            "visitors": Stats(docs, "visitors", "visitors"),
+            "loans": Stats(docs, "loans", "loans"),
+            "members": Stats(docs, "members", "total_members"),
+            "works": Stats(docs, "works", "total_works"),
+            "editions": Stats(docs, "editions", "total_editions"),
+            "ebooks": Stats(docs, "ebooks", "total_ebooks"),
+            "covers": Stats(docs, "covers", "total_covers"),
+            "authors": Stats(docs, "authors", "total_authors"),
+            "subjects": Stats(docs, "subjects", "total_subjects"),
         }
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
@@ -119,9 +119,7 @@ class TestHomeTemplates:
                     "key": "/books/OL1M",
                     "url": "/books/OL1M",
                     "title": "The Great Book",
-                    "authors": [
-                        web.storage({"key": "/authors/OL1A", "name": "Some Author"})
-                    ],
+                    "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
                     "read_url": "http://archive.org/stream/foo",
                     "borrow_url": "/books/OL1M/foo/borrow",
                     "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
@@ -152,7 +150,7 @@ class Test_format_book_data:
         )
 
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        assert home.format_book_data(book)['authors'] == []
+        assert home.format_book_data(book)["authors"] == []
 
         # when there is no work and authors, the authors field must be picked from the book
         book = mock_site.quicksave(
@@ -161,9 +159,7 @@ class Test_format_book_data:
             title="Foo",
             authors=[{"key": "/authors/OL1A"}],
         )
-        assert home.format_book_data(book)['authors'] == [
-            {"key": "/authors/OL1A", "name": "A1"}
-        ]
+        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL1A", "name": "A1"}]
 
         # when there is work, the authors field must be picked from the work
         book = mock_site.quicksave(
@@ -173,6 +169,4 @@ class Test_format_book_data:
             authors=[{"key": "/authors/OL1A"}],
             works=[{"key": "/works/OL1W"}],
         )
-        assert home.format_book_data(book)['authors'] == [
-            {"key": "/authors/OL2A", "name": "A2"}
-        ]
+        assert home.format_book_data(book)["authors"] == [{"key": "/authors/OL2A", "name": "A2"}]

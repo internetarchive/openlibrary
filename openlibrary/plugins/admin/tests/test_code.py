@@ -19,8 +19,8 @@ def make_test_account(username: str) -> OpenLibraryAccount:
     return cast(OpenLibraryAccount, OpenLibraryAccount.get_by_username(username))
 
 
-def make_thing(key: str, title: str = '', thing_type: str | None = None) -> dict:
-    if thing_type == '/type/delete':
+def make_thing(key: str, title: str = "", thing_type: str | None = None) -> dict:
+    if thing_type == "/type/delete":
         return {
             "key": key,
             "type": {"key": "/type/delete"},
@@ -31,16 +31,14 @@ def make_thing(key: str, title: str = '', thing_type: str | None = None) -> dict
             "type": {"key": "/type/work"},
             "title": title,
         }
-    elif '/lists/' in key:
+    elif "/lists/" in key:
         return {
             "key": key,
             "type": {"key": "/type/list"},
             "name": title,
         }
     else:
-        raise NotImplementedError(
-            f"make_thing not implemented for {key} or {thing_type}"
-        )
+        raise NotImplementedError(f"make_thing not implemented for {key} or {thing_type}")
 
 
 class TestRevertAllUserEdits:
@@ -56,22 +54,22 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL123W", "Good Book Title"),
-            action='add-book',
+            action="add-book",
         )
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL789W", "Spammy New Book"),
-            action='add-book',
+            action="add-book",
         )
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL345W", "Spammy New Book 2"),
-            action='add-book',
+            action="add-book",
         )
         web.ctx.site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL12333W", "Good Book Title 2"),
-            action='add-book',
+            action="add-book",
         )
 
         revert_all_user_edits(spam_alice)
@@ -95,12 +93,12 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=good_alice.get_user(),
             query=make_thing("/works/OL123W", "Good Book Title"),
-            action='add-book',
+            action="add-book",
         )
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL123W", "Spammy Book Title"),
-            action='edit-book',
+            action="edit-book",
         )
 
         revert_all_user_edits(spam_alice)
@@ -116,23 +114,18 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/people/spam_alice/lists/OL123L", "spam spam spam"),
-            action='lists',
+            action="lists",
         )
         web.ctx.site.save(
             author=spam_alice.get_user(),
-            query=make_thing(
-                "/people/spam_alice/lists/OL123L", thing_type='/type/delete'
-            ),
-            action='lists',
+            query=make_thing("/people/spam_alice/lists/OL123L", thing_type="/type/delete"),
+            action="lists",
         )
 
         revert_all_user_edits(spam_alice)
 
         assert web.ctx.site.get("/people/spam_alice/lists/OL123L").revision == 2
-        assert (
-            web.ctx.site.get("/people/spam_alice/lists/OL123L").type.key
-            == "/type/delete"
-        )
+        assert web.ctx.site.get("/people/spam_alice/lists/OL123L").type.key == "/type/delete"
 
     def test_two_spammy_editors(self, mock_site):
         spam_alice = make_test_account("spam_alice")
@@ -141,23 +134,23 @@ class TestRevertAllUserEdits:
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL1W", "Alice is Awesome"),
-            action='add-book',
+            action="add-book",
         )
         web.ctx.site.save(
             author=spam_bob.get_user(),
             query=make_thing("/works/OL2W", "Bob is Awesome"),
-            action='add-book',
+            action="add-book",
         )
 
         web.ctx.site.save(
             author=spam_alice.get_user(),
             query=make_thing("/works/OL2W", "Bob Sucks"),
-            action='edit-book',
+            action="edit-book",
         )
         web.ctx.site.save(
             author=spam_bob.get_user(),
             query=make_thing("/works/OL1W", "Alice Sucks"),
-            action='edit-book',
+            action="edit-book",
         )
 
         revert_all_user_edits(spam_alice)

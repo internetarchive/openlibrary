@@ -33,14 +33,14 @@ def test_seed_from_json_with_blank_key():
 
     # Blank keys should now raise ValueError
     with pytest.raises(ValueError, match="Seed key cannot be empty"):
-        Seed.from_json(lst, {'key': ''})
+        Seed.from_json(lst, {"key": ""})
 
 
 def test_seed_from_json_with_valid_key():
     """Test that Seed.from_json works correctly with valid keys."""
     lst = List(None, "/list/OL1L", None)
-    seed = Seed.from_json(lst, {'key': '/books/OL1M'})
-    assert seed.key == '/books/OL1M'
+    seed = Seed.from_json(lst, {"key": "/books/OL1M"})
+    assert seed.key == "/books/OL1M"
 
 
 def test_list_add_seed_with_blank_key():
@@ -54,16 +54,16 @@ def test_list_add_seed_with_blank_key():
         None,
         "/people/test/lists/OL1L",
         {
-            'key': '/people/test/lists/OL1L',
-            'type': {'key': '/type/list'},
-            'name': 'Test List',
-            'seeds': [],
+            "key": "/people/test/lists/OL1L",
+            "type": {"key": "/type/list"},
+            "name": "Test List",
+            "seeds": [],
         },
     )
 
     # Blank keys should now raise ValueError
     with pytest.raises(ValueError, match="Seed key cannot be empty"):
-        lst.add_seed({'key': ''})
+        lst.add_seed({"key": ""})
 
 
 def test_list_add_seed_with_blank_annotated_seed():
@@ -77,13 +77,13 @@ def test_list_add_seed_with_blank_annotated_seed():
         None,
         "/people/test/lists/OL1L",
         {
-            'key': '/people/test/lists/OL1L',
-            'type': {'key': '/type/list'},
-            'name': 'Test List',
-            'seeds': [],
+            "key": "/people/test/lists/OL1L",
+            "type": {"key": "/type/list"},
+            "name": "Test List",
+            "seeds": [],
         },
     )
 
     # AnnotatedSeedDict with blank key should raise ValueError
     with pytest.raises(ValueError, match="Seed key cannot be empty"):
-        lst.add_seed({'thing': {'key': ''}, 'notes': 'some notes'})
+        lst.add_seed({"thing": {"key": ""}, "notes": "some notes"})
