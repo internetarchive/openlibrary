@@ -229,6 +229,32 @@ textarea.toc-editor {
   white-space: pre;
 }
 
+#select-classification {
+  max-width: 300px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+table.classifications.identifiers {
+  @media only screen and (max-width: @width-breakpoint-tablet) {
+    tr {
+      display: flex;
+      flex-wrap: wrap;
+      border-bottom: 1px solid @lightest-grey;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    td:first-child {
+      width: 100%;
+      text-align: left !important;
+      font-weight: bold;
+      color: @grey-555;
+      margin-bottom: 4px;
+    }
+  }
+}
+
 @import (less) "components/ol-message.less";
 // Import styles for fulltext-search-suggestion card
 @import (less) "components/fulltext-search-suggestion.less";
