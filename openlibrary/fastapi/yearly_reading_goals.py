@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, Query
 from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
@@ -84,7 +84,7 @@ class ReadingGoalForm(BaseModel):
 @router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
 async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    year: int | None = None,
+    year: Annotated[int | None, Query(description="The year to filter goals by")] = None,
 ) -> ReadingGoalsResponse:
     """Get reading goals for the authenticated user."""
     if year:

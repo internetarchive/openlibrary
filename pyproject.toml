@@ -94,6 +94,7 @@ lint.select = [
   "E",       # pycodestyle
   "F",       # Pyflakes
   "FA",      # flake8-future-annotations
+  "FAST",    # FastAPI rules
   "FLY",     # flynt
   "FURB",    # refurb
   "G010",    # flake8-logging-format

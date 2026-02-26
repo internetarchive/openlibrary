@@ -32,7 +32,7 @@ SHOW_PARTIALS_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
 
 @router.get("/partials/SearchFacets.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def search_facets_partial(
-    data: str = Query(..., description="JSON-encoded data with search parameters"),
+    data: Annotated[str, Query(description="JSON-encoded data with search parameters")],
     sfw: Annotated[str | None, Cookie()] = None,
 ) -> dict:
     """
@@ -54,7 +54,7 @@ async def search_facets_partial(
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def affiliate_links_partial(
-    data: str = Query(..., description="JSON-encoded data with book information"),
+    data: Annotated[str, Query(description="JSON-encoded data with book information")],
 ) -> dict:
     """
     Get affiliate links HTML for a book.
@@ -72,8 +72,8 @@ async def affiliate_links_partial(
 
 @router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def book_page_lists_partial(
-    workId: str = Query("", description="Work ID (e.g., /works/OL53924W)"),
-    editionId: str = Query("", description="Edition ID (e.g., /books/OL7353617M)"),
+    workId: Annotated[str, Query(description="Work ID (e.g., /works/OL53924W)")] = "",
+    editionId: Annotated[str, Query(description="Edition ID (e.g., /books/OL7353617M)")] = "",
 ) -> dict:
     """
     Get book page lists section HTML.
@@ -86,7 +86,7 @@ async def book_page_lists_partial(
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def fulltext_search_suggestion_partial(
     response: Response,
-    data: str = Query(..., description="Search query string"),
+    data: Annotated[str, Query(description="Search query string")],
 ) -> dict:
     """
     Get full-text search suggestions HTML.
@@ -105,7 +105,7 @@ async def fulltext_search_suggestion_partial(
 @router.get("/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def reading_goal_progress_partial(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    year: int | None = Query(None, description="Year for reading goal (defaults to current year)"),
+    year: Annotated[int | None, Query(description="Year for reading goal (defaults to current year)")] = None,
 ) -> dict:
     """
     Get reading goal progress HTML for the current user.
