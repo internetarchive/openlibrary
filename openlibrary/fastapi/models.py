@@ -1,7 +1,8 @@
-from __future__ import annotations
-
+import json
 from typing import Self
 
+from fastapi import Request, Response
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -47,3 +48,11 @@ class Pagination(BaseModel):
 # This is a simple class to have a pagination with a limit of 20. Can be turned into a factory as needed.
 class PaginationLimit20(Pagination):
     limit: int = Field(20, ge=0, description="Maximum number of results to return.")
+
+
+def wrap_jsonp(request: Request, data: dict) -> dict | Response:
+    """Wrap data in JSONP callback if callback param is present."""
+    if callback := request.query_params.get("callback"):
+        json_string = json.dumps(jsonable_encoder(data))
+        return Response(content=f"{callback}({json_string});", media_type="application/javascript")
+    return data

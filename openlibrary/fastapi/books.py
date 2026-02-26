@@ -5,13 +5,13 @@ from __future__ import annotations
 import json
 import re
 import urllib.parse
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 import web
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field
 
-from openlibrary.fastapi.models import parse_comma_separated_list
+from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
 from openlibrary.plugins.books import dynlinks, readlinks
 
 router = APIRouter()
@@ -29,12 +29,14 @@ class BooksAPIQueryParams(BaseModel):
     high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
 
 
-@router.get("/api/books")
-@router.get("/api/books.json")
+# For these endpoints we set the response model to dict, but we return a string if there is a JSONP callback specified
+# because we wrap the result in JSONP.
+@router.get("/api/books", response_model=dict)
+@router.get("/api/books.json", response_model=dict)
 async def get_books(
     request: Request,
     params: Annotated[BooksAPIQueryParams, Query()],
-) -> dict:
+) -> Any:
     """
     Get book metadata by bibliography keys.
 
@@ -66,21 +68,19 @@ async def get_books(
 
     # Call existing business logic (bibkeys already parsed by validator)
     result_str = dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
-
-    # Parse and return JSON result (direct dict to match exact old format)
-    return json.loads(result_str)
+    return wrap_jsonp(request, json.loads(result_str))
 
 
 MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
 
 
-@router.get("/api/volumes/{brief_or_full}/json/{req}")
-@router.get("/api/volumes/{brief_or_full}/json/{req}.json")
+@router.get("/api/volumes/{brief_or_full}/json/{req}", response_model=dict)
+@router.get("/api/volumes/{brief_or_full}/json/{req}.json", response_model=dict)
 async def get_volumes_multiget(
     request: Request,
     brief_or_full: Literal["brief", "full"],
     req: str,
-) -> dict:
+) -> Any:
     """
     Get volume information for multiple identifiers.
 
@@ -103,18 +103,19 @@ async def get_volumes_multiget(
     _brief_or_full, req = m.groups()
 
     result = readlinks.readlinks(req, {})
+    # TODO: jsonp support
     return result
 
 
-@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}")
-@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json")
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", response_model=dict)
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json", response_model=dict)
 async def get_volume(
     request: Request,
     brief_or_full: Literal["brief", "full"],
     idtype: Literal["oclc", "lccn", "issn", "isbn", "htid", "olid", "recordnumber"],
     idval: str,
     show_all_items: bool = Query(False, description="Show all items including restricted ones"),
-) -> dict | list:
+) -> Any:
     """
     Get volume information by identifier type and value.
 
@@ -141,4 +142,6 @@ async def get_volume(
     result = readlinks.readlinks(req, options)
 
     # Return the result for this specific request key
-    return result.get(req, [])
+    result = result.get(req, [])
+    # TODO: support jsonp
+    return result
