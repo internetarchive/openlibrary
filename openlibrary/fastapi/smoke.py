@@ -79,8 +79,11 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
         status_ok = actual_status == check.expected_status
 
         content_ok = True
+        error = None
         if check.must_contain:
             content_ok = check.must_contain in response.text
+            if not content_ok:
+                error = f"Response does not contain expected text: {check.must_contain}"
 
         duration_ms = (time.perf_counter() - start_time) * 1000
 
@@ -92,6 +95,7 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
             must_contain=check.must_contain,
             passed=status_ok and content_ok,
             duration_ms=round(duration_ms, 2),
+            error=error,
         )
     except httpx.HTTPError as e:
         duration_ms = (time.perf_counter() - start_time) * 1000
