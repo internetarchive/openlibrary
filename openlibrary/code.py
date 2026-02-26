@@ -44,12 +44,12 @@ def setup():
     for path in deprecated_handler.DEPRECATED_PATHS:
         if path not in pages:
             pages[path] = {}
-        old_handler = pages[path].get('json')
+        old_handler = pages[path].get("json")
         print(
             f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}",
             file=sys.stderr,
         )
-        pages[path]['json'] = deprecated_handler.DeprecatedEndpointHandler
+        pages[path]["json"] = deprecated_handler.DeprecatedEndpointHandler
 
     load_views()
 
