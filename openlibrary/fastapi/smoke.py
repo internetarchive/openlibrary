@@ -37,7 +37,7 @@ CHECKS: list[HealthCheck] = [
     HealthCheck("edition page", "/books/OL23269118M/Alice%27s_adventures_in_Wonderland", must_contain="An edition of"),
     HealthCheck("author page", "/authors/OL22098A/Lewis_Carroll", must_contain="Lewis Carroll"),
     HealthCheck("subject page", "/subjects/quotations", must_contain="Quotations | Open Library"),
-    HealthCheck("trending page", "/trending/now", must_contain="trending/now | Open Library"),
+    HealthCheck("trending page", "/trending/now", must_contain="readers from the community"),
     HealthCheck("lists page", "/lists", must_contain="Lists | Open Library"),
     # Endpoints
     HealthCheck("health endpoint", "/health", must_contain="OK"),
