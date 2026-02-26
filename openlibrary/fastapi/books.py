@@ -1,4 +1,8 @@
-"""FastAPI Books API endpoints."""
+"""FastAPI Books API endpoints.
+
+DO NOT follow the example of this code... it is horrible and not following
+the best practices like Response Models because JSONP makes it quite complicated.
+"""
 
 from __future__ import annotations
 
