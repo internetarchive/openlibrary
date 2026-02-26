@@ -7,7 +7,6 @@
 node_modules/
 vendor/
 static/build/
+static/css/lib/
 static/css/tokens.css
 static/css/tokens/
-static/css/lib/
-openlibrary/plugins/openlibrary/js/ile/

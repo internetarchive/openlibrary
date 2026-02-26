@@ -1,8 +1,10 @@
 :root {
+  /* stylelint-disable color-no-hex, color-named */
   --selection-outline: #009fff;
   --selection-background: #c2e8ff;
   --ile-toolbar-background: #0067d5;
   --ile-toolbar-text-color: white;
+  /* stylelint-enable color-no-hex, color-named */
   --ile-toolbar-z-index: 10;
 }
 
