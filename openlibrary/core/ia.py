@@ -14,7 +14,7 @@ from openlibrary.utils.dateutil import date_n_days_ago
 
 logger = logging.getLogger('openlibrary.ia')
 
-IA_BASE_URL = None
+IA_BASE_URL = 'https://archive.org'
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
