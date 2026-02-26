@@ -1,0 +1,42 @@
+[35mopenlibrary/accounts/model.py[m[36m:[m            self['last_login'] = datetime.datetime.[1;31mutcnow([m).isoformat()
+[35mopenlibrary/accounts/model.py[m[36m:[m        last_login = datetime.datetime.[1;31mutcnow([m).isoformat()
+[35mopenlibrary/core/admin.py[m[36m:[m    today = datetime.datetime.[1;31mutcnow([m).date()
+[35mopenlibrary/core/edits.py[m[36m:[m                updated=datetime.datetime.[1;31mutcnow([m),
+[35mopenlibrary/core/edits.py[m[36m:[m            updated=datetime.datetime.[1;31mutcnow([m),
+[35mopenlibrary/core/edits.py[m[36m:[m            updated=datetime.datetime.[1;31mutcnow([m),
+[35mopenlibrary/core/edits.py[m[36m:[m            updated=datetime.datetime.[1;31mutcnow([m),
+[35mopenlibrary/core/edits.py[m[36m:[m            "timestamp": datetime.datetime.[1;31mutcnow([m).isoformat(),
+[35mopenlibrary/core/imports.py[m[36m:[m            "import_time": datetime.datetime.[1;31mutcnow([m),
+[35mopenlibrary/core/lending.py[m[36m:[m                datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/core/lending.py[m[36m:[m            self['expiry'] and self['expiry'] < datetime.datetime.[1;31mutcnow([m).isoformat()
+[35mopenlibrary/core/statsdb.py[m[36m:[m    timestamp = timestamp or datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/core/statsdb.py[m[36m:[m    timestamp = timestamp or datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/core/waitinglist.py[m[36m:[m        delta = datetime.datetime.[1;31mutcnow([m) - since
+[35mopenlibrary/core/waitinglist.py[m[36m:[m            delta = h.parse_datetime(self['expiry']) - datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/core/waitinglist.py[m[36m:[m            and self['expiry'] < datetime.datetime.[1;31mutcnow([m).isoformat()
+[35mopenlibrary/coverstore/db.py[m[36m:[m    now = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/coverstore/db.py[m[36m:[m    now = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/coverstore/db.py[m[36m:[m    now = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/data/db.py[m[36m:[m    now = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/data/sitemap.py[m[36m:[m    timestamp = datetime.datetime.[1;31mutcnow([m).isoformat() + 'Z'
+[35mopenlibrary/plugins/admin/code.py[m[36m:[m    date = datetime.datetime.[1;31mutcnow([m).date()
+[35mopenlibrary/plugins/ol_infobase.py[m[36m:[m        now = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/plugins/openlibrary/code.py[m[36m:[m    t = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/plugins/openlibrary/connection.py[m[36m:[m                    "created": datetime.datetime.[1;31mutcnow([m).isoformat(),
+[35mopenlibrary/plugins/openlibrary/infobase_hook.py[m[36m:[m    timestamp = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/plugins/upstream/addbook.py[m[36m:[m        now_dt = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/plugins/upstream/borrow.py[m[36m:[m    return bool(loan and datetime_from_isoformat(loan['expiry']) < datetime.[1;31mutcnow([m))
+[35mopenlibrary/plugins/upstream/code.py[m[36m:[m            self.last_modified = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/plugins/worksearch/subjects.py[m[36m:[m            current_year = datetime.datetime.[1;31mutcnow([m).year
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m            datetime.datetime.[1;31mutcnow([m) - datetime.timedelta(hours=1)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m            datetime.datetime.[1;31mutcnow([m) - datetime.timedelta(hours=1)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m            datetime.datetime.[1;31mutcnow([m) + datetime.timedelta(hours=1)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        today = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        week_ago = datetime.datetime.[1;31mutcnow([m) - datetime.timedelta(days=7)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        expiry_time = datetime.datetime.[1;31mutcnow([m) + datetime.timedelta(
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        past_time = datetime.datetime.[1;31mutcnow([m) - datetime.timedelta(hours=5)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        five_seconds_ago = datetime.datetime.[1;31mutcnow([m) - datetime.timedelta(seconds=5)
+[35mopenlibrary/tests/core/test_waitinglist.py[m[36m:[m        dt = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/utils/bulkimport.py[m[36m:[m        timestamp = datetime.datetime.[1;31mutcnow([m)
+[35mopenlibrary/utils/bulkimport.py[m[36m:[m        timestamp = datetime.datetime.[1;31mutcnow([m)
+[35mscripts/sitemaps/sitemap.py[m[36m:[m    timestamp = datetime.[1;31mutcnow([m).strftime('%Y-%m-%dT%H:%M:%SZ')

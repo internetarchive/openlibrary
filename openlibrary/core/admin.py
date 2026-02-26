@@ -146,7 +146,7 @@ def _get_count_docs(ndays):
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = datetime.datetime.utcnow().date()
+    today = datetime.datetime.now(datetime.timezone.utc).date()
     dates = [today - datetime.timedelta(days=i) for i in range(ndays)]
 
     # we want the dates in reverse order

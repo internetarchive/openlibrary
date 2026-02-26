@@ -70,13 +70,13 @@ class WaitingLoan(dict):
 
     def get_waiting_in_days(self) -> int:
         since = h.parse_datetime(self['since'])
-        delta = datetime.datetime.utcnow() - since
+        delta = datetime.datetime.now(datetime.timezone.utc) - since
         # Adding 1 to round off the the extra seconds in the delta
         return delta.days + 1
 
     def get_expiry_in_hours(self) -> float:
         if "expiry" in self:
-            delta = h.parse_datetime(self['expiry']) - datetime.datetime.utcnow()
+            delta = h.parse_datetime(self['expiry']) - datetime.datetime.now(datetime.timezone.utc)
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
             return max(0.0, delta_hours)
@@ -85,7 +85,7 @@ class WaitingLoan(dict):
     def is_expired(self) -> bool:
         return (
             self['status'] == 'available'
-            and self['expiry'] < datetime.datetime.utcnow().isoformat()
+            self['expiry'] < datetime.datetime.now(datetime.timezone.utc).isoformat()
         )
 
     def dict(self) -> dict:

@@ -29,7 +29,7 @@ def add_entry(key, data, timestamp=None):
     and no changes will be made to the database.
     """
     jsontext = json.dumps(data)
-    timestamp = timestamp or datetime.datetime.utcnow()
+    timestamp = timestamp or datetime.datetime.now(datetime.timezone.utc)
     t = timestamp.isoformat()
 
     db = get_db()
@@ -55,7 +55,7 @@ def update_entry(key, data, timestamp=None):
     after logging a warn message.
     """
     jsontext = json.dumps(data)
-    timestamp = timestamp or datetime.datetime.utcnow()
+    timestamp = timestamp or datetime.datetime.now(datetime.timezone.utc)
     t = timestamp.isoformat()
 
     db = get_db()

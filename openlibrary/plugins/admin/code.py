@@ -613,7 +613,7 @@ def get_admin_stats():
             'members': sum(doc['members'] for doc in docs),
         }
 
-    date = datetime.datetime.utcnow().date()
+    date = datetime.datetime.now(datetime.timezone.utc).date()
 
     if has_doc(date):
         today = f([date])

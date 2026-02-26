@@ -253,7 +253,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self['last_login'] = datetime.datetime.utcnow().isoformat()
+            self['last_login'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
             self._save()
             return "ok"
 
@@ -609,7 +609,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = web.ctx.site.store.get(self._key)
-        last_login = datetime.datetime.utcnow().isoformat()
+        last_login = datetime.datetime.now(datetime.timezone.utc).isoformat()
         _ol_account['last_login'] = last_login
         web.ctx.site.store[self._key] = _ol_account
         self.last_login = last_login
