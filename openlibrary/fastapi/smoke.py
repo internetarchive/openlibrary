@@ -99,6 +99,8 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
         )
     except httpx.HTTPError as e:
         duration_ms = (time.perf_counter() - start_time) * 1000
+        # httpx timeout errors often have empty strings, so fallback to the class name
+        error_msg = str(e) or e.__class__.__name__
         return SmokeTestResult(
             name=check.name,
             path=check.path,
@@ -107,7 +109,7 @@ async def run_health_check(check: HealthCheck, client: httpx.AsyncClient) -> Smo
             must_contain=check.must_contain,
             passed=False,
             duration_ms=round(duration_ms, 2),
-            error=str(e),
+            error=error_msg,
         )
 
 
