@@ -1,3 +1,7 @@
+:root {
+  --contentBody-padding: 20px;
+}
+
 /* === v2 layout === */
 
 #test-body-mobile {
@@ -46,8 +50,7 @@ body.full-width #test-body-mobile {
 }
 div.contentBody,
 div#contentBody {
-  /* @contentBody-padding: 20px */
-  padding: 0 20px 20px;
+  padding: 0 var(--contentBody-padding) var(--contentBody-padding);
 }
 div.contentBody img,
 div#contentBody img {

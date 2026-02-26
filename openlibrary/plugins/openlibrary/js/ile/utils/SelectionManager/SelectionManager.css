@@ -1,5 +1,13 @@
+:root {
+  --selection-outline: #009fff;
+  --selection-background: #c2e8ff;
+  --ile-toolbar-background: #0067d5;
+  --ile-toolbar-text-color: white;
+  --ile-toolbar-z-index: 10;
+}
+
 .ile-drag-over {
-  box-shadow: 0 0 10px 2px inset #009fff;
+  box-shadow: 0 0 10px 2px inset var(--selection-outline);
 }
 .ile-selectable {
   box-shadow: 0 0 0 2px inset rgba(0, 0, 0, 0.1);
@@ -8,8 +16,8 @@
   border-radius: 4px;
 }
 .ile-selected {
-  box-shadow: 0 0 0 2px inset #009fff;
-  background: #c2e8ff;
+  box-shadow: 0 0 0 2px inset var(--selection-outline);
+  background: var(--selection-background);
 }
 #ile-toolbar {
   display: flex;
@@ -18,17 +26,17 @@
   padding: 7px;
   margin: 0 15px;
   border-radius: 5px;
-  background: #0067d5;
-  color: white;
-  z-index: 10;
+  background: var(--ile-toolbar-background);
+  color: var(--ile-toolbar-text-color);
+  z-index: var(--ile-toolbar-z-index);
   font-size: 0.9em;
 }
 #ile-toolbar a {
   padding: 4px 16px;
   display: inline-block;
-  color: white;
+  color: var(--ile-toolbar-text-color);
   text-decoration: none;
-  border-left: 2px dotted white;
+  border-left: 2px dotted var(--ile-toolbar-text-color);
   transition: background 0.2s;
   cursor: pointer;
 }
@@ -46,7 +54,7 @@
 }
 #ile-drag-status .text {
   border-radius: 100px;
-  background: #0067d5;
+  background: var(--ile-toolbar-background);
   padding: 4px 16px;
 }
 #ile-drag-status .images {
@@ -81,7 +89,7 @@ a.ile-selectable[href^="/authors/OL"] {
   opacity: 0.2;
   cursor: default;
   transition: opacity 0.2s;
-  color: #009fff;
+  color: var(--selection-outline);
 }
 
 .ile-selected .ile-select-handle,

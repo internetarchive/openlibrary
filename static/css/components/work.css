@@ -1,3 +1,9 @@
+:root {
+  --sidebar-width: 225px;
+  --sidebar-width-with-margin: calc(60px + 225px); /* 285px */
+  --test-body-mobile-width: 1060px;
+}
+
 /* stylelint-disable no-descending-specificity */
 .workDetails {
   padding: 0 0 20px;
@@ -203,7 +209,7 @@ div.editionTools p {
     padding: 20px 0;
   }
   div.editionCover {
-    width: 225px;
+    width: var(--sidebar-width);
     margin-right: 1.5em;
     margin-bottom: 0;
   }

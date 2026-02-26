@@ -1,3 +1,8 @@
+:root {
+  --height-blank-cover: 200px;
+  --height-cover-compact: 125px;
+}
+
 /**
  * Carousel
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
@@ -140,7 +145,7 @@
   background: var(--lighter-grey);
   font-size: 1em;
   color: var(--black);
-  height: 200px; /* @height-blank-cover */
+  height: var(--height-blank-cover);
 }
 
 /* White border */
@@ -172,15 +177,15 @@
 }
 
 .carousel--compact .book .book-cover {
-  height: 125px; /* @height-cover-compact */
+  height: var(--height-cover-compact);
 }
 
 .carousel--compact .book .bookcover {
-  height: 125px; /* @height-cover-compact */
+  height: var(--height-cover-compact);
 }
 
 .carousel--compact .carousel__item__blankcover {
-  height: 125px; /* @height-cover-compact */
+  height: var(--height-cover-compact);
   padding: 20% 10px 10px;
   margin: 0 auto;
 }

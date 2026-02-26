@@ -328,6 +328,13 @@ export default {
 </script>
 
 <style>
+:root {
+  --row-height: 105px;
+  --row-padding: 8px;
+  --table-background: rgb(248, 248, 248);
+  --selection-background: rgb(220, 224, 238);
+}
+
 body {
   font-size: .85em;
 }
@@ -353,10 +360,10 @@ table.main > thead > tr > th {
   background: rgb(240, 237, 226);
 }
 table.main > tbody {
-  background: rgb(248, 248, 248);
+  background: var(--table-background);
 }
 table.main > tfoot {
-  background: rgb(220, 224, 238);
+  background: var(--selection-background);
   bottom: 0;
 }
 table.main > tfoot > tr {
@@ -364,7 +371,7 @@ table.main > tfoot > tr {
   box-shadow: 0 2px 4px inset black;
 }
 table.main > tfoot > tr > td > div {
-  min-height: 105px;
+  min-height: var(--row-height);
 }
 
 table.main > tbody > tr:hover,
@@ -373,7 +380,7 @@ table.main > tfoot > tr:hover {
 }
 table.main > tbody > tr > td,
 table.main > tfoot > tr > td {
-  max-height: 105px;
+  max-height: var(--row-height);
   max-width: 300px;
   position: relative;
   vertical-align: top;
@@ -383,10 +390,10 @@ table.main > tfoot > tr > td {
 }
 table.main > tbody > tr > td > div,
 table.main > tfoot > tr > td > div {
-  height: calc(105px - 8px * 2);
-  max-height: calc(105px - 8px * 2);
+  height: calc(var(--row-height) - var(--row-padding) * 2);
+  max-height: calc(var(--row-height) - var(--row-padding) * 2);
   overflow-y: auto;
-  padding: 8px;
+  padding: var(--row-padding);
   margin-right: 4px;
 }
 table.main > tbody > tr > td > div.field-covers,
@@ -395,7 +402,7 @@ table.main > tfoot > tr > td > div.field-covers {
   overflow-y: auto;
   overflow-x: hidden;
   float: left;
-  margin-right: 8px;
+  margin-right: var(--row-padding);
 }
 table.main > tbody > tr > td > div.field-covers .wrapper img,
 table.main > tfoot > tr > td > div.field-covers .wrapper img {
@@ -404,18 +411,18 @@ table.main > tfoot > tr > td > div.field-covers .wrapper img {
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error {
   min-width: 500px;
-  padding: 0 0 calc(8px * 2) 0;
+  padding: 0 0 calc(var(--row-padding) * 2) 0;
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div {
-  padding: 8px 8px 0 8px;
+  padding: var(--row-padding) var(--row-padding) 0 var(--row-padding);
   white-space: normal;
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error > div:last-child {
-  padding-bottom: 8px;
+  padding-bottom: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle,
 table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error div.field-subtitle {
@@ -425,21 +432,21 @@ table.main > tfoot > tr > td > div.wrap-key--title--subtitle--authors--error div
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location {
   white-space: nowrap;
-  padding: 8px 0 8px 0;
+  padding: var(--row-padding) 0 var(--row-padding) 0;
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div {
-  padding: calc(8px / 2) 8px 0 8px;
+  padding: calc(var(--row-padding) / 2) var(--row-padding) 0 var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2),
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(1),
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:nth-child(2) {
-  padding-top: 8px;
+  padding-top: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div:last-child {
-  padding-bottom: 8px;
+  padding-bottom: var(--row-padding);
 }
 table.main > tbody > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created,
 table.main > tfoot > tr > td > div.wrap-created--last_modified--revision--type--location > div.field-created {
@@ -486,7 +493,7 @@ table.main > tbody .work:not(.selected) {
 }
 
 .field-container.selected {
-  background: rgb(220, 224, 238);
+  background: var(--selection-background);
 }
 
 td.col-controls {
@@ -513,7 +520,7 @@ td.col-description div,
 td.col-excerpts div,
 td.col-first_sentence div,
 td.col-links div {
-  max-height: 105px;
+  max-height: var(--row-height);
 }
 td.col-description ul,
 td.col-excerpts ul,
@@ -534,8 +541,8 @@ li.excerpt-item {
 
 .col-subjects--subject_people--subject_places--subject_times >
   div.wrap-subjects--subject_people--subject_places--subject_times {
-  height: 105px;
-  max-height: 105px;
+  height: var(--row-height);
+  max-height: var(--row-height);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -544,7 +551,7 @@ li.excerpt-item {
   div.wrap-subjects--subject_people--subject_places--subject_times .field-container {
   min-height: 16px;
   padding: 4px;
-  border-bottom: 2px solid rgb(248, 248, 248);
+  border-bottom: 2px solid var(--table-background);
   flex: 1 1 auto;
 }
 .col-subjects--subject_people--subject_places--subject_times >
@@ -603,18 +610,18 @@ ul.reset > li {
 
 td.col-editions div.td-container {
   width: 400px;
-  max-height: calc(105px - 30px);
+  max-height: calc(var(--row-height) - 30px);
 }
 
 .col-references > div {
   white-space: nowrap;
 }
 .col-references > div > div {
-  padding-bottom: 8px;
+  padding-bottom: var(--row-padding);
 }
 
 div.field-links li {
-  margin-bottom: 8px;
+  margin-bottom: var(--row-padding);
 }
 
 .bookshelf-counts span:not(:first-child)::before {

@@ -1,3 +1,10 @@
+:root {
+  --compact-title-height: 35px;
+  --desktop-title-max-width: calc(
+    var(--test-body-mobile-width) - var(--sidebar-width-with-margin)
+  );
+}
+
 @media screen and (min-width: 769px /* @width-breakpoint-tablet */) {
   .compact-title {
     background: var(--white);
@@ -7,8 +14,8 @@
     z-index: var(--z-index-level-5);
     position: fixed;
     top: 0;
-    height: 35px; /* @compact-title-height */
-    width: calc(100% - 20px /* @contentBody-padding */);
+    height: var(--compact-title-height);
+    width: calc(100% - var(--contentBody-padding));
     padding: 0 14px;
   }
 
@@ -28,7 +35,7 @@
 
 @media only screen and (min-width: 960px /* @width-breakpoint-desktop */) {
   .compact-title {
-    width: calc(100% - 285px /* @sidebar-width-with-margin */);
-    max-width: 775px; /* @desktop-title-max-width: 1060px - 285px */
+    width: calc(100% - var(--sidebar-width-with-margin));
+    max-width: var(--desktop-title-max-width);
   }
 }
