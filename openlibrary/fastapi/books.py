@@ -103,8 +103,7 @@ async def get_volumes_multiget(
     _brief_or_full, req = m.groups()
 
     result = readlinks.readlinks(req, {})
-    # TODO: jsonp support
-    return result
+    return wrap_jsonp(request, result)
 
 
 @router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}", response_model=dict)
@@ -143,5 +142,4 @@ async def get_volume(
 
     # Return the result for this specific request key
     result = result.get(req, [])
-    # TODO: support jsonp
-    return result
+    return wrap_jsonp(request, result)
