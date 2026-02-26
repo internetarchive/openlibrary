@@ -29,6 +29,7 @@ class BooksAPIQueryParams(BaseModel):
     high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
 
 
+@router.get("/api/books")
 @router.get("/api/books.json")
 async def get_books(
     request: Request,
@@ -73,6 +74,7 @@ async def get_books(
 MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
 
 
+@router.get("/api/volumes/{brief_or_full}/json/{req}")
 @router.get("/api/volumes/{brief_or_full}/json/{req}.json")
 async def get_volumes_multiget(
     request: Request,
@@ -104,6 +106,7 @@ async def get_volumes_multiget(
     return result
 
 
+@router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}")
 @router.get("/api/volumes/{brief_or_full}/{idtype}/{idval}.json")
 async def get_volume(
     request: Request,
