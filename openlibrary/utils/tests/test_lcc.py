@@ -9,59 +9,55 @@ from openlibrary.utils.lcc import (
 )
 
 TESTS = [
-    ('PZ-0073.00000000', 'pz73', 'PZ73', 'lower case'),
-    ('PZ-0000.00000000', 'PZ', 'PZ', 'just class'),
-    ('PZ-0123.00000000 [P]', 'PZ123 [P]', 'PZ123 [P]', 'keeps brackets at end'),
+    ("PZ-0073.00000000", "pz73", "PZ73", "lower case"),
+    ("PZ-0000.00000000", "PZ", "PZ", "just class"),
+    ("PZ-0123.00000000 [P]", "PZ123 [P]", "PZ123 [P]", "keeps brackets at end"),
     (
-        'BP-0166.94000000.S277 1999',
-        '\\BP\\166.94\\.S277\\1999',
-        'BP166.94.S277 1999',
-        'backslashes instead of spaces',
+        "BP-0166.94000000.S277 1999",
+        "\\BP\\166.94\\.S277\\1999",
+        "BP166.94.S277 1999",
+        "backslashes instead of spaces",
     ),
     (
-        'LC-6252.00000000.T4 T4 vol. 33, no. 10',
-        '[LC6252.T4 T4 vol. 33, no. 10]',
-        'LC6252.T4 T4 vol. 33, no. 10',
-        'brackets',
+        "LC-6252.00000000.T4 T4 vol. 33, no. 10",
+        "[LC6252.T4 T4 vol. 33, no. 10]",
+        "LC6252.T4 T4 vol. 33, no. 10",
+        "brackets",
     ),
-    ('SF-0427.00000000.G74', 'SF427 . G74', 'SF427.G74', 'space in cutter1'),
+    ("SF-0427.00000000.G74", "SF427 . G74", "SF427.G74", "space in cutter1"),
 ]
 
 
-@pytest.mark.parametrize(
-    ('sortable_lcc', 'raw_lcc', 'short_lcc', 'name'), TESTS, ids=[t[-1] for t in TESTS]
-)
+@pytest.mark.parametrize(("sortable_lcc", "raw_lcc", "short_lcc", "name"), TESTS, ids=[t[-1] for t in TESTS])
 def test_to_sortable(sortable_lcc, raw_lcc, short_lcc, name):
     assert short_lcc_to_sortable_lcc(raw_lcc) == sortable_lcc
 
 
-@pytest.mark.parametrize(
-    ('sortable_lcc', 'raw_lcc', 'short_lcc', 'name'), TESTS, ids=[t[-1] for t in TESTS]
-)
+@pytest.mark.parametrize(("sortable_lcc", "raw_lcc", "short_lcc", "name"), TESTS, ids=[t[-1] for t in TESTS])
 def test_to_short_lcc(sortable_lcc, raw_lcc, short_lcc, name):
     assert sortable_lcc_to_short_lcc(sortable_lcc) == short_lcc
 
 
 INVALID_TESTS = [
-    pytest.param('6113 .136', id='dewey_decimal'),
-    pytest.param('9608 BOOK NOT YET IN LC', id='noise_lc_missing'),
-    pytest.param('#M8184', id='hash_prefixed'),
-    pytest.param('', id='empty_string'),
-    pytest.param('MLCS 92/14990', id='excessive_class_info'),
-    pytest.param('PZ123.234.234', id='too_many_decimals'),
+    pytest.param("6113 .136", id="dewey_decimal"),
+    pytest.param("9608 BOOK NOT YET IN LC", id="noise_lc_missing"),
+    pytest.param("#M8184", id="hash_prefixed"),
+    pytest.param("", id="empty_string"),
+    pytest.param("MLCS 92/14990", id="excessive_class_info"),
+    pytest.param("PZ123.234.234", id="too_many_decimals"),
     # "Real world" data from Open Library
-    pytest.param('IN PROCESS', id='noise_in_process'),
-    pytest.param('African Section Pamphlet Coll', id='ol_african_section'),
-    pytest.param('Microfilm 99/20', id='ol_microfilm_99_20'),
-    pytest.param('Microfilm 61948 E', id='ol_microfilm_61948'),
-    pytest.param('Microfiche 92/80965 (G)', id='ol_microfiche_92'),
-    pytest.param('MLCSN+', id='ol_mlcsn_plus'),
-    pytest.param('UNCLASSIFIED 809 (S)', id='ol_unclassified_809'),
-    pytest.param('CPB Box no. 1516 vol. 17', id='cpb_box_number'),
+    pytest.param("IN PROCESS", id="noise_in_process"),
+    pytest.param("African Section Pamphlet Coll", id="ol_african_section"),
+    pytest.param("Microfilm 99/20", id="ol_microfilm_99_20"),
+    pytest.param("Microfilm 61948 E", id="ol_microfilm_61948"),
+    pytest.param("Microfiche 92/80965 (G)", id="ol_microfiche_92"),
+    pytest.param("MLCSN+", id="ol_mlcsn_plus"),
+    pytest.param("UNCLASSIFIED 809 (S)", id="ol_unclassified_809"),
+    pytest.param("CPB Box no. 1516 vol. 17", id="cpb_box_number"),
 ]
 
 
-@pytest.mark.parametrize('text', INVALID_TESTS)
+@pytest.mark.parametrize("text", INVALID_TESTS)
 def test_invalid_lccs(text):
     assert short_lcc_to_sortable_lcc(text) is None
 
@@ -70,21 +66,21 @@ def test_invalid_lccs(text):
 # be, but we handle enough (See lcc.py)
 # Src: https://ejournals.bc.edu/index.php/ital/article/download/11585/9839/
 WAGNER_2019_EXAMPLES = [
-    ('B--1190.00000000 1951', 'B1190 1951', 'no Cutter string'),
-    ('DT-0423.00000000.E26 9th.ed. 2012', 'DT423.E26 9th.ed. 2012', 'compound spec'),
-    ('E--0505.50000000 102nd.F57 1999', 'E505.5 102nd.F57 1999', 'ordinal in classif.'),
-    ('HB-3717.00000000 1929.E37 2015', 'HB3717 1929.E37 2015 ', 'date in classif.'),
-    ('KBD0000.00000000.G189s', 'KBD.G189s ', 'no caption number, no specification'),
-    ('N--8354.00000000.B67 2000x', 'N8354.B67 2000x', 'date with suffix '),
-    ('PS-0634.00000000.B4 1958-63', 'PS634.B4 1958-63', 'hyphenated range of dates'),
-    ('PS-3557.00000000.A28R4 1955', 'PS3557.A28R4 1955', '"double Cutter"'),
-    ('PZ-0008.30000000.G276Lo 1971', 'PZ8.3.G276Lo 1971 ', 'Cutter with "work mark"'),
-    ('PZ-0073.00000000.S758345255 2011', 'PZ73.S758345255 2011', 'long Cutter decimal'),
+    ("B--1190.00000000 1951", "B1190 1951", "no Cutter string"),
+    ("DT-0423.00000000.E26 9th.ed. 2012", "DT423.E26 9th.ed. 2012", "compound spec"),
+    ("E--0505.50000000 102nd.F57 1999", "E505.5 102nd.F57 1999", "ordinal in classif."),
+    ("HB-3717.00000000 1929.E37 2015", "HB3717 1929.E37 2015 ", "date in classif."),
+    ("KBD0000.00000000.G189s", "KBD.G189s ", "no caption number, no specification"),
+    ("N--8354.00000000.B67 2000x", "N8354.B67 2000x", "date with suffix "),
+    ("PS-0634.00000000.B4 1958-63", "PS634.B4 1958-63", "hyphenated range of dates"),
+    ("PS-3557.00000000.A28R4 1955", "PS3557.A28R4 1955", '"double Cutter"'),
+    ("PZ-0008.30000000.G276Lo 1971", "PZ8.3.G276Lo 1971 ", 'Cutter with "work mark"'),
+    ("PZ-0073.00000000.S758345255 2011", "PZ73.S758345255 2011", "long Cutter decimal"),
 ]
 
 
 @pytest.mark.parametrize(
-    ('sortable_lcc', 'short_lcc', 'name'),
+    ("sortable_lcc", "short_lcc", "name"),
     WAGNER_2019_EXAMPLES,
     ids=[t[-1] for t in WAGNER_2019_EXAMPLES],
 )
@@ -93,7 +89,7 @@ def test_wagner_2019_to_sortable(sortable_lcc, short_lcc, name):
 
 
 @pytest.mark.parametrize(
-    ('sortable_lcc', 'short_lcc', 'name'),
+    ("sortable_lcc", "short_lcc", "name"),
     WAGNER_2019_EXAMPLES,
     ids=[t[-1] for t in WAGNER_2019_EXAMPLES],
 )
@@ -102,52 +98,46 @@ def test_wagner_2019_to_short_lcc(sortable_lcc, short_lcc, name):
 
 
 PREFIX_TESTS = [
-    ('A', 'A', 'Single letter'),
-    ('ADC', 'ADC', 'multi letter'),
-    ('A5', 'A--0005', 'Alphanum'),
-    ('A5.00', 'A--0005.00', 'Alphanum 2'),
-    ('A10', 'A--0010', 'Alphanum trailing 0'),
-    ('A10.5', 'A--0010.5', 'Alphanum with decimal'),
-    ('A10.', 'A--0010', 'Alphanum with trailing decimal'),
-    ('A10.C', 'A--0010.00000000.C', 'Alphanum with partial cutter'),
-    ('F349.N2 A77', 'F--0349.00000000.N2 A77', '2 cutters'),
-    ('123', None, 'Invalid returns None'),
-    ('*B55', None, 'Invalid also returns None'),
+    ("A", "A", "Single letter"),
+    ("ADC", "ADC", "multi letter"),
+    ("A5", "A--0005", "Alphanum"),
+    ("A5.00", "A--0005.00", "Alphanum 2"),
+    ("A10", "A--0010", "Alphanum trailing 0"),
+    ("A10.5", "A--0010.5", "Alphanum with decimal"),
+    ("A10.", "A--0010", "Alphanum with trailing decimal"),
+    ("A10.C", "A--0010.00000000.C", "Alphanum with partial cutter"),
+    ("F349.N2 A77", "F--0349.00000000.N2 A77", "2 cutters"),
+    ("123", None, "Invalid returns None"),
+    ("*B55", None, "Invalid also returns None"),
 ]
 
 
-@pytest.mark.parametrize(
-    ('prefix', 'normed', 'name'), PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS]
-)
+@pytest.mark.parametrize(("prefix", "normed", "name"), PREFIX_TESTS, ids=[t[-1] for t in PREFIX_TESTS])
 def test_normalize_lcc_prefix(prefix, normed, name):
     assert normalize_lcc_prefix(prefix) == normed
 
 
 RANGE_TESTS = [
-    (['A', 'B'], ['A--0000.00000000', 'B--0000.00000000'], 'Single letters'),
-    (['A1', 'A100'], ['A--0001.00000000', 'A--0100.00000000'], 'Letter nums'),
-    (['A1', 'B1.13.C89'], ['A--0001.00000000', 'B--0001.13000000.C89'], 'Cutter num'),
-    (['A1', 'noise'], ['A--0001.00000000', None], 'One Invalid'),
-    (['blah', 'blah'], [None, None], 'Both invalid'),
-    (['A1', '*'], ['A--0001.00000000', '*'], 'Star'),
+    (["A", "B"], ["A--0000.00000000", "B--0000.00000000"], "Single letters"),
+    (["A1", "A100"], ["A--0001.00000000", "A--0100.00000000"], "Letter nums"),
+    (["A1", "B1.13.C89"], ["A--0001.00000000", "B--0001.13000000.C89"], "Cutter num"),
+    (["A1", "noise"], ["A--0001.00000000", None], "One Invalid"),
+    (["blah", "blah"], [None, None], "Both invalid"),
+    (["A1", "*"], ["A--0001.00000000", "*"], "Star"),
 ]
 
 
-@pytest.mark.parametrize(
-    ('raw', 'normed', 'name'), RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS]
-)
+@pytest.mark.parametrize(("raw", "normed", "name"), RANGE_TESTS, ids=[t[-1] for t in RANGE_TESTS])
 def test_normalize_lcc_range(raw, normed, name):
     assert normalize_lcc_range(*raw) == normed
 
 
 SORTING_TESTS = [
-    (['A--0001.00000000', 'B--0001.13000000.C89'], 1, 'Chooses longest'),
-    (['A--0001.00000000', 'A--0001.13000000'], 1, 'Chooses most precise'),
+    (["A--0001.00000000", "B--0001.13000000.C89"], 1, "Chooses longest"),
+    (["A--0001.00000000", "A--0001.13000000"], 1, "Chooses most precise"),
 ]
 
 
-@pytest.mark.parametrize(
-    ('lccs', 'result', 'name'), SORTING_TESTS, ids=[t[-1] for t in SORTING_TESTS]
-)
+@pytest.mark.parametrize(("lccs", "result", "name"), SORTING_TESTS, ids=[t[-1] for t in SORTING_TESTS])
 def test_choose_sorting_lcc(lccs, result, name):
     assert choose_sorting_lcc(lccs) == lccs[result]

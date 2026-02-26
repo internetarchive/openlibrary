@@ -894,6 +894,10 @@ msgstr ""
 msgid "Have read"
 msgstr ""
 
+#: SubjectTags.html
+msgid "Manage Subjects"
+msgstr ""
+
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
@@ -7842,10 +7846,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Edit Subjects"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

@@ -453,21 +453,30 @@ class Seed:
             if 'thing' in seed_json:
                 annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
 
+                # Validate that the key is not empty
+                key = annotated_seed['thing']['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(
-                            list._site, annotated_seed['thing']['key'], None
-                        ),
+                        'thing': Thing(list._site, key, None),
                         'notes': annotated_seed['notes'],
                     },
                 )
             elif 'key' in seed_json:
                 thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
+
+                # Validate that the key is not empty
+                key = thing_ref['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(list._site, thing_ref['key'], None),
+                        'thing': Thing(list._site, key, None),
                         'notes': '',
                     },
                 )

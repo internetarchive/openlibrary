@@ -213,120 +213,120 @@ msgstr "ডিফ"
 
 #: history.html:42 history.html:73
 msgid "Compare"
-msgstr "तुलना"
+msgstr "তুলনা"
 
 #: history.html:42 history.html:73
 msgid "See Diff"
-msgstr "डिफ़ देखें"
+msgstr "ডিফ দেখুন"
 
 #: history.html:48 lib/history.html:76
 #, python-format
 msgid "View revision %s"
-msgstr "संशोधन %s देखें"
+msgstr "সংশোধন %s দেখুন"
 
 #: history.html:85
 msgid "Back"
-msgstr "पीछे"
+msgstr "পিছনে"
 
 #: Pager.html:34 history.html:87 lib/pagination.html:37 showmarc.html:54
 msgid "Next"
-msgstr "अगला"
+msgstr "পরবর্তী"
 
 #: internalerror.html:14
 msgid "Sorry. There seems to be a problem with what you were just looking at."
-msgstr "माफ़ करें। लगता है कि आप जो देख रहे थे उसमें कोई समस्या है।"
+msgstr "ক্ষমা করবেন. মনে হচ্ছে আপনি এখন যা দেখতে চান তাতে কোনো সমস্যা আছে|"
 
 #: internalerror.html:15
 #, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head for <a href=\"/\">home</a>?"
-msgstr "हमने %s की गड़बड़ी नोट कर ली है और हम जल्द - से - जल्द इसकी जाँच करेंगे। <a href=\"/\">home</a>?"
+msgstr "আমরা %s এর ত্রূটি নোট করেছি ও দ্রুত এব্যাপারে কাজ করা শুরু করবো। <a href=\"/\">home</a>?"
 
 #: lib/nav_head.html:30 library_explorer.html:6
 msgid "Library Explorer"
-msgstr "लाइब्रेरी एक्सप्लोरर"
+msgstr "লাইব্রেরি এক্সপ্লোরার"
 
 #: lib/header_dropdown.html:59 lib/nav_head.html:118 login.html:10 login.html:75
 msgid "Log In"
-msgstr "लॉग इन करें"
+msgstr "লগ ইন করুন"
 
 #: account/create.html:19 login.html:16
 msgid "OR"
-msgstr "या"
+msgstr "বা"
 
 #: login.html:18
 msgid ""
 "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access "
 "your Open Library account."
 msgstr ""
-"कृपया अपना <a href=\"https://archive.org\">इंटरनेट आर्काइव</a> ईमेल और पासवर्ड दर्ज करें "
-"ओपन लाइब्रेरी एक्सेस करने के लिए।"
+"দয়া করে আপনার <a href=\"https://archive.org\">इंইন্টারনেট আর্কাইভের</a> ইমেইল ও পাসওয়ার্ড দিন "
+"নিজের লাইব্রেরি ব্যবহার করতে।"
 
 #: account/create.html:50 login.html:21
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "आप पहले से ही %(user)s के रूप में ओपन लाइब्रेरी में लॉग इन हैं।"
+msgstr "আপনি আগে থেকেই %(user)s রূপে ওপেন লাইব্রেরিতে লগড ইন আছেন।"
 
 #: account/create.html:51 login.html:22
 msgid ""
 "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" "
 "onclick=\"document.forms['logout'].submit()\">log out</a> and start the signup process afresh."
 msgstr ""
-"यदि आप एक नया, अलग ओपन लाइब्रेरी खाता बनाना चाहते हैं, तो आपको <a href=\"javascript:;\" onclick=\"document."
-"forms['logout'].submit()\">लॉग आउट</a> करना होगा और साइन अप प्रक्रिया को नए सिरे से शुरू करना होगा।"
+"আপনি যদি আলাদা করে নতুন একটি ওপেন লাইব্রেরির একাউন্ট খুলতে চান তবে আপনাকে <a href=\"javascript:;\" onclick=\"document."
+"forms['logout'].submit()\">লগ আউট</a> করে আবার নতুন করে সাইন আপ এর প্রক্রিয়া শুরু করতে হবে।"
 
 #: login.html:42
 msgid "Email"
-msgstr "ईमेल"
+msgstr "ইমেইল"
 
 #: login.html:44
 msgid "Forgot your Internet Archive email?"
-msgstr "अपना इंटरनेट आर्काइव ईमेल भूल गए?"
+msgstr "নিজের ইন্টারনেট আর্কাইভের ইমেইল ভুলে গেছেন?"
 
 #: account/email/forgot-ia.html:33 forms.py:31 login.html:54
 msgid "Password"
-msgstr "पासवर्ड"
+msgstr "পাসওয়ার্ড"
 
 #: login.html:64
 msgid "Remember me"
-msgstr "मुझे याद रखें"
+msgstr "আমাকে মনে রাখুন"
 
 #: account/email/forgot.html:48 login.html:79
 msgid "Forgot your Password?"
-msgstr "अपना पासवर्ड भूल गए?"
+msgstr "পাসওয়ার্ড ভুলে গেছেন?"
 
 #: login.html:81
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
-msgstr "ओपन लाइब्रेरी का सदस्य नहीं है? <a href=\"/account/create\">अभी साइन अप करें</a>।"
+msgstr "ওপেন লাইব্রেরির সদস্য নন? <a href=\"/account/create\">এখনই সাইন আপ করুন</a>।"
 
 #: messages.html:11
 msgid "Created new author record."
-msgstr "नया लेखक रिकॉर्ड बनाया गया।"
+msgstr "নতুন লেখক কর্ম রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:12
 msgid "Created new edition record."
-msgstr "नया संस्करण रिकॉर्ड बनाया गया।"
+msgstr "নতুন সংস্করণ রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:13
 msgid "Created new work record."
-msgstr "नया कार्य रिकॉर्ड बनाया गया।"
+msgstr "নতুন কর্ম রেকর্ড বানানো হয়েছে।"
 
 #: messages.html:14
 msgid "Added new book."
-msgstr "नई किताब जोड़ी गई।"
+msgstr "নতুন বই যোগ করা হয়েছে।"
 
 #: messages.html:16
 msgid "Thank you very much for adding that new book!"
-msgstr "नई किताब को जोड़ने के लिए बहुत - बहुत धन्यवाद!"
+msgstr "নতুন এই বইটি যোগ করার জন্য অনেক ধন্যবাদ!"
 
 #: messages.html:17 messages.html:18
 msgid "Thank you very much for improving that record!"
-msgstr "रिकॉर्ड को बेहतर बनाने के लिए बहुत - बहुत धन्यवाद!"
+msgstr "এই সংস্করণকে উন্নততর করার জন্য অনেক ধন্যবাদ!"
 
 #: notfound.html:7
 #, python-format
 msgid "%(path)s is not found"
-msgstr "%(path)s नहीं मिला"
+msgstr "%(path)s পাওয়া যায়নি"
 
 #: languages/notfound.html:10 notfound.html:14
 msgid "404 - Page Not Found"
@@ -335,23 +335,23 @@ msgstr "404 - Page Not Found"
 #: notfound.html:18
 #, python-format
 msgid "%(path)s does not exist."
-msgstr "%(path)s मौजूद नहीं है."
+msgstr "%(path)s এর অস্তিত্ব নেই."
 
 #: notfound.html:22
 msgid "Create it?"
-msgstr "इसे बनाएं?"
+msgstr "এটি বানান?"
 
 #: notfound.html:26
 msgid "Looking for a template/macro?"
-msgstr "टेम्पलेट/मैक्रो की तलाश है?"
+msgstr "টেম্পলেট/ম্যাক্রো খুঁজছেন?"
 
 #: permission.html:10
 msgid "Permission of"
-msgstr "की अनुमति"
+msgstr "এর অনুমতি"
 
 #: permission.html:18
 msgid "Permission"
-msgstr "अनुमति"
+msgstr "অনুমতি"
 
 #: permission.html:28
 msgid "Child Permission"
@@ -359,47 +359,47 @@ msgstr "Child Permission"
 
 #: permission_denied.html:10
 msgid "Permission denied."
-msgstr "अनुमति अस्वीकृत।"
+msgstr "অনুমতি নিষিদ্ধ।"
 
 #: permission_denied.html:30
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr "अगर आपके पास ज़रूरी अनुमतियाँ हैं, तो आप <a href=\"%s\">लॉग इन</a> कर सकते हैं।"
+msgstr "প্রয়োজনীয় অনুমতি থাকলে, <a href=\"%s\">লগ ইন</a> করুন।"
 
 #: showamazon.html:8 showamazon.html:11 showbwb.html:8 showbwb.html:11
 msgid "Record details of"
-msgstr "का विवरण रिकॉर्ड करें"
+msgstr "এর বিবরণ রেকর্ড করুন"
 
 #: showamazon.html:15 showbwb.html:15
 msgid "This record came from"
-msgstr "यह रिकॉर्ड यहाँ से आया है"
+msgstr "এই রেকর্ড এখন থেকে এসেছে"
 
 #: showia.html:42 showmarc.html:48
 msgid "Invalid MARC record."
-msgstr "अमान्य MARC रिकॉर्ड।"
+msgstr "অমান্য MARC রেকর্ড।"
 
 #: status.html:17
 msgid "Server status"
-msgstr "सर्वर की स्थिति"
+msgstr "সার্ভারের অবস্থা"
 
 #: SearchNavigation.html:24 SubjectTags.html:23 lib/nav_foot.html:28 lib/nav_head.html:28 subjects.html:9
 #: subjects/notfound.html:11 type/author/view.html:176 type/list/view_body.html:280 work_search.html:75
 msgid "Subjects"
-msgstr "विषय"
+msgstr "বিষয়"
 
 #: SubjectTags.html:27 subjects.html:9 type/author/view.html:177 type/list/view_body.html:282
 #: work_search.html:79
 msgid "Places"
-msgstr "जगहें"
+msgstr "স্থান"
 
 #: SubjectTags.html:25 admin/menu.html:20 subjects.html:9 type/author/view.html:178
 #: type/list/view_body.html:281 work_search.html:78
 msgid "People"
-msgstr "लोग"
+msgstr "ব্যক্তিসকল"
 
 #: SubjectTags.html:29 subjects.html:9 type/list/view_body.html:283 work_search.html:80
 msgid "Times"
-msgstr "टाइम्स (बार)"
+msgstr "সময়"
 
 #: subjects.html:19
 msgid "See all works"

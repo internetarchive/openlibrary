@@ -7,7 +7,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, Query
 from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals
@@ -32,9 +32,7 @@ class ReadingGoalsResponse(BaseModel):
     """Response model for reading goals GET endpoint."""
 
     status: str = Field(default="ok", description="Response status")
-    goal: list[ReadingGoalItem] = Field(
-        default_factory=list, description="List of reading goals"
-    )
+    goal: list[ReadingGoalItem] = Field(default_factory=list, description="List of reading goals")
 
 
 class ReadingGoalUpdateResponse(BaseModel):
@@ -65,7 +63,7 @@ class ReadingGoalForm(BaseModel):
         description="Set to any value to indicate this is an update operation (not create).",
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_goal_logic(self) -> ReadingGoalForm:
         """Validate goal based on whether this is an update or create operation.
 
@@ -76,9 +74,9 @@ class ReadingGoalForm(BaseModel):
 
         if is_update:
             if not self.year:
-                raise ValueError('Year required to update reading goals')
+                raise ValueError("Year required to update reading goals")
         elif not self.goal:
-            raise ValueError('Reading goal must be a positive integer')
+            raise ValueError("Reading goal must be a positive integer")
 
         return self
 
@@ -86,7 +84,7 @@ class ReadingGoalForm(BaseModel):
 @router.get("/reading-goal.json", response_model=ReadingGoalsResponse)
 async def get_reading_goals_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    year: int | None = None,
+    year: Annotated[int | None, Query(description="The year to filter goals by")] = None,
 ) -> ReadingGoalsResponse:
     """Get reading goals for the authenticated user."""
     if year:
@@ -95,8 +93,8 @@ async def get_reading_goals_endpoint(
         records = YearlyReadingGoals.select_by_username(user.username)
     goals = [
         ReadingGoalItem(
-            year=getattr(record, 'year', 0),
-            goal=getattr(record, 'target', 0),
+            year=getattr(record, "year", 0),
+            goal=getattr(record, "target", 0),
         )
         for record in records
     ]

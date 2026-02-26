@@ -413,9 +413,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import (
-            BadRequest,  # noqa: F401 side effects may be needed
-        )
 
         d = json.loads(web.data())
         access = d.get('access', None)

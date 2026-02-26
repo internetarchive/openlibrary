@@ -20,7 +20,7 @@ from openlibrary.mocks.mock_memcache import (
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     def mock_request(*args, **kwargs):
-        raise Warning('Network requests are blocked in the testing environment')
+        raise Warning("Network requests are blocked in the testing environment")
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
@@ -28,7 +28,7 @@ def no_requests(monkeypatch):
 @pytest.fixture(autouse=True)
 def no_sleep(monkeypatch):
     def mock_sleep(*args, **kwargs):
-        raise Warning('''
+        raise Warning("""
             Sleeping is blocked in the testing environment.
             Use monkeytime instead; it stubs time.time() and time.sleep().
 
@@ -39,7 +39,7 @@ def no_sleep(monkeypatch):
                     assert time.time() == 2
 
             If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
-            ''')
+            """)
 
     monkeypatch.setattr("time.sleep", mock_sleep)
 
@@ -63,7 +63,7 @@ def setup_db_config():
 
     # Set infobase_parameters to use local connection instead of OLConnection
     # This prevents the database configuration error when tests run
-    config.infobase_parameters = {'type': 'local'}
+    config.infobase_parameters = {"type": "local"}
 
 
 @pytest.fixture

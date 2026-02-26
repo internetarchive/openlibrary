@@ -323,17 +323,18 @@ jQuery(function () {
             .then((module) => module.init())
             .then(() => {
                 // book page subject editing
-                const editSubjectButton = document.querySelector('.edit-subject .edit-subject-btn')
-                if (editSubjectButton) {
-                    editSubjectButton.addEventListener('click', () => {
-                        const workOlid = editSubjectButton.dataset.workOlid
+                // Handle pencil clicks
+                document.querySelectorAll('.edit-subject-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault()
+                        const workOlid = btn.dataset.workOlid
                         if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
                             window.ILE.selectionManager.addSelectedItem(workOlid)
                             window.ILE.selectionManager.updateToolbar()
                         }
                         window.ILE.updateAndShowBulkTagger([workOlid], true)
                     })
-                }
+                })
             })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {

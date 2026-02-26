@@ -21,3 +21,9 @@
 .link-box.link-box--with-header h3 {
   display: block;
 }
+
+.link-box button.edit-subject-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+}

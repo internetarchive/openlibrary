@@ -82,35 +82,30 @@ def setup_i18n(app: FastAPI):
 
     def parse_lang_header(request: Request) -> str | None:
         """Parses HTTP Accept-Language header."""
-        accept_language = request.headers.get('accept-language', '')
+        accept_language = request.headers.get("accept-language", "")
         if not accept_language:
             return None
 
         # Split by comma and optional whitespace
-        re_accept_language = re.compile(r',\s*')
+        re_accept_language = re.compile(r",\s*")
         tokens = re_accept_language.split(accept_language)
 
         # Take just the language part (e.g., 'en' from 'en-gb;q=0.8')
-        langs = [t[:2] for t in tokens if t and not t.startswith('*')]
+        langs = [t[:2] for t in tokens if t and not t.startswith("*")]
         return langs[0] if langs else None
 
     def parse_lang_cookie(request: Request) -> str | None:
         """Parses HTTP_LANG cookie."""
-        return request.cookies.get('HTTP_LANG')
+        return request.cookies.get("HTTP_LANG")
 
     def parse_query_string(request: Request) -> str | None:
         """Parses lang query parameter."""
-        return request.query_params.get('lang')
+        return request.query_params.get("lang")
 
     @app.middleware("http")
     async def i18n_middleware(request: Request, call_next):
         """Middleware to set request.state.lang based on language preferences."""
-        lang = (
-            parse_query_string(request)
-            or parse_lang_cookie(request)
-            or parse_lang_header(request)
-            or None
-        )
+        lang = parse_query_string(request) or parse_lang_cookie(request) or parse_lang_header(request) or None
         request.state.lang = lang
 
         response = await call_next(request)
@@ -121,10 +116,8 @@ def setup_debugpy():
     import debugpy  # noqa: T100
 
     # Start listening for debugger connections
-    debugpy.listen(('0.0.0.0', 3000))  # noqa: T100
-    logger.info(
-        "🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'."
-    )
+    debugpy.listen(("0.0.0.0", 3000))  # noqa: T100
+    logger.info("🐛 Debugger ready to attach from VS Code! Select 'OL: Attach to FastAPI Container'.")
 
 
 sentry: Sentry | None = None
@@ -156,7 +149,7 @@ def create_app() -> FastAPI | None:
             global sentry
             if sentry is not None:
                 return None
-            sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+            sentry = init_sentry(getattr(infogami.config, "sentry", {}))
             set_tag("fastapi", True)
 
         except Exception:
@@ -214,6 +207,7 @@ def create_app() -> FastAPI | None:
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.partials import router as partials_router
+    from openlibrary.fastapi.public_my_books import router as public_my_books_router
     from openlibrary.fastapi.publishers import router as publishers_router
     from openlibrary.fastapi.search import router as search_router
     from openlibrary.fastapi.subjects import router as subjects_router
@@ -222,6 +216,7 @@ def create_app() -> FastAPI | None:
     )
 
     # Include routers
+    app.include_router(public_my_books_router)
     app.include_router(languages_router)
     app.include_router(partials_router)
     app.include_router(publishers_router)

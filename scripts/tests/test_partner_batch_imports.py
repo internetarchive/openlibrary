@@ -23,52 +23,52 @@ non_books = [
 
 class TestBiblio:
     def test_sample_csv_row(self):
-        b = Biblio(csv_row.strip().split('|'))
+        b = Biblio(csv_row.strip().split("|"))
         data = {
-            'title': 'Sutra on Upasaka Precepts',
-            'isbn_13': ['9780962561856'],
-            'publish_date': '2006',
-            'publishers': ['BDK America'],
-            'weight': '0.545',
-            'authors': [{'name': 'Heng-ching, Shih'}],
-            'number_of_pages': 226,
-            'languages': ['eng'],
-            'subjects': ['Sutras', 'Buddhism, sacred books'],
-            'source_records': ['bwb:9780962561856'],
-            'identifiers': {
-                'doi': ['10.1604/9780962561856'],
+            "title": "Sutra on Upasaka Precepts",
+            "isbn_13": ["9780962561856"],
+            "publish_date": "2006",
+            "publishers": ["BDK America"],
+            "weight": "0.545",
+            "authors": [{"name": "Heng-ching, Shih"}],
+            "number_of_pages": 226,
+            "languages": ["eng"],
+            "subjects": ["Sutras", "Buddhism, sacred books"],
+            "source_records": ["bwb:9780962561856"],
+            "identifiers": {
+                "doi": ["10.1604/9780962561856"],
             },
-            'lccn': ['91-060120'],
+            "lccn": ["91-060120"],
         }
         assert b.json() == data
 
     def test_sample_csv_row_with_full_date(self):
         """Only import the year. The date in the input here is in YYYYMMDD format, but should come out YYYY."""
-        b = Biblio(csv_row.strip().split('|'))
+        b = Biblio(csv_row.strip().split("|"))
         data = {
-            'title': 'Sutra on Upasaka Precepts',
-            'isbn_13': ['9780962561856'],
-            'publish_date': '2006',
-            'publishers': ['BDK America'],
-            'weight': '0.545',
-            'authors': [{'name': 'Heng-ching, Shih'}],
-            'number_of_pages': 226,
-            'languages': ['eng'],
-            'subjects': ['Sutras', 'Buddhism, sacred books'],
-            'source_records': ['bwb:9780962561856'],
-            'identifiers': {
-                'doi': ['10.1604/9780962561856'],
+            "title": "Sutra on Upasaka Precepts",
+            "isbn_13": ["9780962561856"],
+            "publish_date": "2006",
+            "publishers": ["BDK America"],
+            "weight": "0.545",
+            "authors": [{"name": "Heng-ching, Shih"}],
+            "number_of_pages": 226,
+            "languages": ["eng"],
+            "subjects": ["Sutras", "Buddhism, sacred books"],
+            "source_records": ["bwb:9780962561856"],
+            "identifiers": {
+                "doi": ["10.1604/9780962561856"],
             },
-            'lccn': ['91-060120'],
+            "lccn": ["91-060120"],
         }
         assert b.json() == data
 
-    @pytest.mark.parametrize('input_', non_books)
+    @pytest.mark.parametrize("input_", non_books)
     def test_non_books_rejected(self, input_):
-        data = input_.strip().split('|')
+        data = input_.strip().split("|")
         code = data[6]
         pclass = data[121]
-        with pytest.raises(AssertionError, match=f'{code}/{pclass} is NONBOOK'):
+        with pytest.raises(AssertionError, match=f"{code}/{pclass} is NONBOOK"):
             _ = Biblio(data)
 
 
@@ -116,26 +116,26 @@ def test_is_low_quality_book():
 
     assert is_low_quality_book(
         {
-            'title': 'A tale of two cities (annotated)',
-            'publish_date': '2020',
-            'publishers': ['Independently Published'],
+            "title": "A tale of two cities (annotated)",
+            "publish_date": "2020",
+            "publishers": ["Independently Published"],
         }
     )
 
 
 def test_is_published_in_future_year() -> None:
     last_year = str(datetime.now().year - 1)
-    last_year_book = {'publish_date': last_year}
+    last_year_book = {"publish_date": last_year}
     assert is_published_in_future_year(last_year_book) is False
 
     this_year = str(datetime.now().year)
-    this_year_book = {'publish_date': this_year}
+    this_year_book = {"publish_date": this_year}
     assert is_published_in_future_year(this_year_book) is False
 
     next_year = str(datetime.now().year + 1)
-    next_year_book = {'publish_date': next_year}
+    next_year_book = {"publish_date": next_year}
     assert is_published_in_future_year(next_year_book) is True
 
     # No publication year
-    no_year_book = {'publish_date': '0'}
+    no_year_book = {"publish_date": "0"}
     assert is_published_in_future_year(no_year_book) is False
