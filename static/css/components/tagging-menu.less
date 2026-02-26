@@ -207,3 +207,42 @@
   height: 266px;
   background: @white url(/static/images/ajax-loader.gif) center center no-repeat;
 }
+
+.section.link-box .subject-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0;
+}
+
+.section.link-box .subject-tag {
+  background-color: rgba(238, 238, 238);
+  border-radius: @border-radius-lg;
+  text-decoration: none;
+  font-size: @font-size-label-medium;
+  line-height: @line-height-body;
+  padding: 2px 8px;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+  margin-bottom: 7px;
+}
+
+.section.link-box .subject-tag__link{
+  color: @link-blue;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.section.link-box .subject-tag__link:hover {
+  text-decoration: underline;
+}
+
+.section.link-box .clamp h3 {
+  display: inline;
+  margin: 0 8px 0 0;
+  vertical-align: baseline;
+}
