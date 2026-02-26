@@ -2321,10 +2321,6 @@ msgid "System information"
 msgstr ""
 
 #: status.html
-msgid "Features enabled"
-msgstr ""
-
-#: status.html
 msgid "Staged"
 msgstr ""
 
@@ -2339,6 +2335,10 @@ msgstr ""
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
+msgstr ""
+
+#: status.html
+msgid "Features enabled"
 msgstr ""
 
 #: subjects.html
