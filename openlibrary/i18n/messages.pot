@@ -894,6 +894,10 @@ msgstr ""
 msgid "Have read"
 msgstr ""
 
+#: SubjectTags.html
+msgid "Manage Subjects"
+msgstr ""
+
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
