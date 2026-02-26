@@ -39,8 +39,7 @@ def compare_responses(legacy_data, fastapi_data, test_name):
 
     # Compare structure
     assert type(normalized_legacy) is type(normalized_fastapi), (
-        f"{test_name}: Response types differ - "
-        f"legacy={type(normalized_legacy)}, fastapi={type(normalized_fastapi)}"
+        f"{test_name}: Response types differ - legacy={type(normalized_legacy)}, fastapi={type(normalized_fastapi)}"
     )
 
     # Compare content
@@ -131,12 +130,8 @@ class TestVolumeAPI:
     )
     def test_volume_single_lookup(self, format_type, idtype, idval):
         """Test single volume lookup."""
-        legacy_url = (
-            f"{LEGACY_BASE_URL}/api/volumes/{format_type}/{idtype}/{idval}.json"
-        )
-        fastapi_url = (
-            f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/{idtype}/{idval}.json"
-        )
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/{format_type}/{idtype}/{idval}.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/{idtype}/{idval}.json"
 
         legacy_resp = requests.get(legacy_url)
         fastapi_resp = requests.get(fastapi_url)
@@ -216,12 +211,8 @@ class TestVolumeMultigetAPI:
         """Test multiget with single identifier (no pipe separator)."""
         req = "isbn:0452010586"
         encoded_req = quote_plus(req, safe="/|:")
-        legacy_url = (
-            f"{LEGACY_BASE_URL}/api/volumes/{format_type}/json/{encoded_req}.json"
-        )
-        fastapi_url = (
-            f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/json/{encoded_req}.json"
-        )
+        legacy_url = f"{LEGACY_BASE_URL}/api/volumes/{format_type}/json/{encoded_req}.json"
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/json/{encoded_req}.json"
 
         legacy_resp = requests.get(legacy_url)
         fastapi_resp = requests.get(fastapi_url)
@@ -453,9 +444,7 @@ class TestGetVolumeAPI:
     def test_brief_vs_full_format(self, format_type):
         """Test that brief and full formats return different/expected structures."""
         legacy_url = f"{LEGACY_BASE_URL}/api/volumes/{format_type}/isbn/0452010586.json"
-        fastapi_url = (
-            f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/isbn/0452010586.json"
-        )
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/volumes/{format_type}/isbn/0452010586.json"
 
         legacy_resp = requests.get(legacy_url)
         fastapi_resp = requests.get(fastapi_url)
@@ -624,9 +613,7 @@ class TestGetVolumeAPI:
                 assert "details" in record
                 assert isinstance(record["details"], dict)
 
-        compare_responses(
-            legacy_data, fastapi_data, f"get_volume.full_details.{idtype}"
-        )
+        compare_responses(legacy_data, fastapi_data, f"get_volume.full_details.{idtype}")
 
     def test_brief_format_has_less_data(self):
         """Test that brief format has less data than full format."""
@@ -746,9 +733,7 @@ class TestEdgeCases:
 class TestJSONPCallbackSupport:
     """Tests for JSONP callback parameter support."""
 
-    @pytest.mark.parametrize(
-        "endpoint", ["/api/books.json", "/api/volumes/brief/isbn/0452010586.json"]
-    )
+    @pytest.mark.parametrize("endpoint", ["/api/books.json", "/api/volumes/brief/isbn/0452010586.json"])
     def test_jsonp_callback_basic(self, endpoint):
         """Test that callback parameter wraps response in JSONP."""
         callback_name = "myCallback123"
@@ -811,9 +796,7 @@ class TestBooksAPIEdgeCases:
         """Test books API with URL-encoded bibliography keys."""
         bibkeys = "isbn%3A9784827200225"
         legacy_url = f"{LEGACY_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
-        fastapi_url = (
-            f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
-        )
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
 
         legacy_resp = requests.get(legacy_url)
         fastapi_resp = requests.get(fastapi_url)
@@ -831,9 +814,7 @@ class TestBooksAPIEdgeCases:
         # This tests that the bibkey parser handles nested colons correctly
         bibkeys = "local_id:urn:bwbsku:Y0-DLA-903"
         legacy_url = f"{LEGACY_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
-        fastapi_url = (
-            f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
-        )
+        fastapi_url = f"{FASTAPI_BASE_URL}/api/books.json?bibkeys={bibkeys}&details=true"
 
         legacy_resp = requests.get(legacy_url)
         fastapi_resp = requests.get(fastapi_url)
@@ -957,6 +938,4 @@ class TestVolumeAPIEdgeCases:
             legacy_json = json.loads(legacy_text[len(callback) + 1 : -2])
             fastapi_json = json.loads(fastapi_text[len(callback) + 1 : -2])
 
-            compare_responses(
-                legacy_json, fastapi_json, "volume.many_identifiers_callback"
-            )
+            compare_responses(legacy_json, fastapi_json, "volume.many_identifiers_callback")
