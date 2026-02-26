@@ -247,23 +247,17 @@ class LocalPostgresDataProvider(DataProvider):
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
         logger.debug("find_redirects %s", key)
-        q = (
-            """
+        q = """
         SELECT "Key" FROM test
         WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
-        """
-            % key
-        )
+        """ % key
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work_direct(self, work):
-        q = (
-            """
+        q = """
         SELECT "JSON" FROM test
         WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' = '%s'
-        """
-            % work['key']
-        )
+        """ % work['key']
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work(self, work):
@@ -296,13 +290,10 @@ class LocalPostgresDataProvider(DataProvider):
 
         logger.debug("get_document cache miss %s", key)
 
-        q = (
-            """
+        q = """
         SELECT "JSON" FROM test
         WHERE "Key" = '%s'
-        """
-            % key
-        )
+        """ % key
         row = next(self.query_iter(q))
         if row:
             return row[0]

@@ -7,6 +7,7 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/font-families.less";
+@import (less) "less/border-radius.less";
 
 body {
   line-height: normal;
@@ -25,7 +26,7 @@ body {
 .cta {
   font-family: @body-family;
   background: @primary-blue;
-  border-radius: 3px;
+  border-radius: @border-radius-button;
   width: 130px;
   margin: 0 auto;
   margin-top: 5px;
@@ -59,13 +60,13 @@ img.bookcover {
   width: 130px;
   height: 200px;
   box-shadow: 1px 2px 5px 0 @grey-555;
-  border-radius: 3px;
+  border-radius: @border-radius-thumbnail;
   text-align: center;
   display: block;
 }
 
 .title {
-  font-family: @georgia_serif-1;
+  font-family: @font-family-title;
   margin: 7px auto 0;
   color: @grey-555;
   font-size: 0.8em;

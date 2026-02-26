@@ -17,6 +17,7 @@ from openlibrary.core.models import Image, Subject, Thing, ThingKey, ThingRefere
 from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.utils.solr import Solr
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -250,7 +251,6 @@ class List(Thing):
         return " OR ".join(t for t in terms if t)
 
     def _get_all_subjects(self):
-        solr = get_solr()
         q = self._get_solr_query_for_subjects()
 
         # Solr has a maxBooleanClauses constraint there too many seeds, the
@@ -262,7 +262,7 @@ class List(Thing):
 
         facet_names = ['subject_facet', 'place_facet', 'person_facet', 'time_facet']
         try:
-            result = solr.select(
+            result = get_solr().select(
                 q, fields=[], facets=facet_names, facet_limit=20, facet_mincount=1
             )
         except OSError:
@@ -453,21 +453,30 @@ class Seed:
             if 'thing' in seed_json:
                 annotated_seed = cast(AnnotatedSeedDict, seed_json)  # Appease mypy
 
+                # Validate that the key is not empty
+                key = annotated_seed['thing']['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(
-                            list._site, annotated_seed['thing']['key'], None
-                        ),
+                        'thing': Thing(list._site, key, None),
                         'notes': annotated_seed['notes'],
                     },
                 )
             elif 'key' in seed_json:
                 thing_ref = cast(ThingReferenceDict, seed_json)  # Appease mypy
+
+                # Validate that the key is not empty
+                key = thing_ref['key']
+                if not key or not key.strip():
+                    raise ValueError("Seed key cannot be empty")
+
                 return Seed(
                     list,
                     {
-                        'thing': Thing(list._site, thing_ref['key'], None),
+                        'thing': Thing(list._site, key, None),
                         'notes': '',
                     },
                 )
@@ -513,7 +522,7 @@ class Seed:
         if self.type == 'subject':
             typ, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
-            value = get_solr().escape(value)
+            value = Solr.escape(value)
             return f"{typ}_key:{value}"
         else:
             doc_basekey = self.document.key.split("/")[-1]

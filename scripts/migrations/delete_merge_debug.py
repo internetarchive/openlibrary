@@ -4,6 +4,7 @@ Deletes store entries that have the type `merge-authors-debug`.
 
 WARNING: This will delete all of the records if the `--batches` argument is excluded.
 """
+
 import argparse
 from pathlib import Path
 

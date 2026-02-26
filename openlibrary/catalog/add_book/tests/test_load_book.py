@@ -13,72 +13,72 @@ from openlibrary.core.models import Author, AuthorRemoteIdConflictError
 
 @pytest.fixture
 def new_import(monkeypatch):
-    monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
+    monkeypatch.setattr(load_book, "find_entity", lambda a: None)
 
 
 # These authors will be imported with natural name order
 # i.e. => Forename Surname
 natural_names = [
-    {'name': 'Forename Surname'},
-    {'name': 'Surname, Forename', 'personal_name': 'Surname, Forename'},
-    {'name': 'Surname, Forename'},
-    {'name': 'Surname, Forename', 'entity_type': 'person'},
+    {"name": "Forename Surname"},
+    {"name": "Surname, Forename", "personal_name": "Surname, Forename"},
+    {"name": "Surname, Forename"},
+    {"name": "Surname, Forename", "entity_type": "person"},
 ]
 
 
 # These authors will be imported with 'name' unchanged
 unchanged_names = [
-    {'name': 'Forename Surname'},
+    {"name": "Forename Surname"},
     {
-        'name': 'Smith, John III, King of Coats, and Bottles',
-        'personal_name': 'Smith, John',
+        "name": "Smith, John III, King of Coats, and Bottles",
+        "personal_name": "Smith, John",
     },
-    {'name': 'Smith, John III, King of Coats, and Bottles'},
-    {'name': 'Harper, John Murdoch, 1845-'},
-    {'entity_type': 'org', 'name': 'Organisation, Place'},
+    {"name": "Smith, John III, King of Coats, and Bottles"},
+    {"name": "Harper, John Murdoch, 1845-"},
+    {"entity_type": "org", "name": "Organisation, Place"},
     {
-        'entity_type': 'org',
-        'name': '首都师范大学 (Beijing, China). 中国诗歌硏究中心',
+        "entity_type": "org",
+        "name": "首都师范大学 (Beijing, China). 中国诗歌硏究中心",
     },
 ]
 
 
-@pytest.mark.parametrize('author', natural_names)
+@pytest.mark.parametrize("author", natural_names)
 def test_import_author_name_natural_order(author, new_import):
     result = author_import_record_to_author(author)
     assert isinstance(result, dict)
-    assert result['name'] == 'Forename Surname'
+    assert result["name"] == "Forename Surname"
 
 
-@pytest.mark.parametrize('author', unchanged_names)
+@pytest.mark.parametrize("author", unchanged_names)
 def test_import_author_name_unchanged(author, new_import):
-    expect = author['name']
+    expect = author["name"]
     result = author_import_record_to_author(author)
     assert isinstance(result, dict)
-    assert result['name'] == expect
+    assert result["name"] == expect
 
 
 def test_build_query(add_languages):
     rec = {
-        'title': 'magic',
-        'languages': ['ENG', 'fre'],
-        'translated_from': ['yid'],
-        'authors': [{'name': 'Surname, Forename'}],
-        'description': 'test',
+        "title": "magic",
+        "languages": ["ENG", "fre"],
+        "translated_from": ["yid"],
+        "authors": [{"name": "Surname, Forename"}],
+        "description": "test",
     }
     q = import_record_to_edition(rec)
-    assert q['title'] == 'magic'
-    assert q['authors'][0]['name'] == 'Forename Surname'
-    assert q['description'] == {'type': '/type/text', 'value': 'test'}
-    assert q['type'] == {'key': '/type/edition'}
-    assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
-    assert q['translated_from'] == [{'key': '/languages/yid'}]
+    assert q["title"] == "magic"
+    assert q["authors"][0]["name"] == "Forename Surname"
+    assert q["description"] == {"type": "/type/text", "value": "test"}
+    assert q["type"] == {"key": "/type/edition"}
+    assert q["languages"] == [{"key": "/languages/eng"}, {"key": "/languages/fre"}]
+    assert q["translated_from"] == [{"key": "/languages/yid"}]
 
-    pytest.raises(InvalidLanguage, import_record_to_edition, {'languages': ['wtf']})
+    with pytest.raises(InvalidLanguage):
+        import_record_to_edition({"languages": ["wtf"]})
 
 
 class TestImportAuthor:
-
     def add_three_existing_authors(self, mock_site):
         for num in range(3):
             existing_author = {
@@ -89,7 +89,7 @@ class TestImportAuthor:
             mock_site.save(existing_author)
 
     @pytest.mark.parametrize(
-        ('name', 'expected'),
+        ("name", "expected"),
         [
             ("Drake von Drake", "Drake von Drake"),
             ("Dr. Seuss", "Dr. Seuss"),
@@ -103,7 +103,7 @@ class TestImportAuthor:
             ("Anicet-Bourgeois M.", "Anicet-Bourgeois M."),
             ('Doctor Ivo "Eggman" Robotnik', 'Ivo "Eggman" Robotnik'),
             ("John M. Keynes", "John M. Keynes"),
-            ("Mr.", 'Mr.'),
+            ("Mr.", "Mr."),
         ],
     )
     def test_author_importer_drops_honorifics(self, name, expected):
@@ -114,7 +114,7 @@ class TestImportAuthor:
         """Ensure name searches for John Smith and JOHN SMITH return the same record."""
         self.add_three_existing_authors(mock_site)
         existing_author = {
-            'name': "John Smith",
+            "name": "John Smith",
             "key": "/authors/OL3A",
             "type": {"key": "/type/author"},
         }
@@ -128,9 +128,7 @@ class TestImportAuthor:
         assert case_insensitive_author is not None
         assert case_sensitive_author == case_insensitive_author
 
-    def test_author_wildcard_match_with_no_matches_creates_author_with_wildcard(
-        self, mock_site
-    ):
+    def test_author_wildcard_match_with_no_matches_creates_author_with_wildcard(self, mock_site):
         """This test helps ensure compatibility with production; we should not use this."""
         self.add_three_existing_authors(mock_site)
         author = {"name": "Mr. Blobby*"}
@@ -367,10 +365,10 @@ class TestImportAuthor:
         found = author_import_record_to_author(searched_author)
         # No match, so create a new author.
         assert found == {
-            'type': {'key': '/type/author'},
-            'name': 'Mr. William H. brewer',
-            'birth_date': '1829',
-            'death_date': '1911',
+            "type": {"key": "/type/author"},
+            "name": "Mr. William H. brewer",
+            "birth_date": "1829",
+            "death_date": "1911",
         }
 
     def test_last_match_on_surname_and_dates_and_dates_are_required(self, mock_site):
@@ -391,8 +389,8 @@ class TestImportAuthor:
         found = author_import_record_to_author(searched_author)
         # No match, so a new author is created.
         assert found == {
-            'name': 'Mr. William J. Brewer',
-            'type': {'key': '/type/author'},
+            "name": "Mr. William J. Brewer",
+            "type": {"key": "/type/author"},
         }
 
     def test_birth_and_death_date_match_is_on_year_strings(self, mock_site):

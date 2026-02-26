@@ -10,7 +10,7 @@ def pytest_funcarg__config(request):
 
 class ListAPI:
     def __init__(self, config):
-        self.server = config.getvalue('server')
+        self.server = config.getvalue("server")
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
         self.session = requests.Session()
@@ -28,16 +28,14 @@ class ListAPI:
         return self.session.send(req)
 
     def login(self):
-        data = {'username': self.username, 'password': self.password}
+        data = {"username": self.username, "password": self.password}
         self.urlopen("/account/login", data=data, method="POST")
         print(self.cookiejar)
 
     def create_list(self, data):
         json_data = json.dumps(data)
         headers = {"content-type": "application/json"}
-        response = self.urlopen(
-            "/people/" + self.username + "/lists", data=json_data, headers=headers
-        )
+        response = self.urlopen("/people/" + self.username + "/lists", data=json_data, headers=headers)
         return json.loads(response.read())
 
     def get_lists(self):
@@ -74,8 +72,8 @@ def test_create(config):
     }
     result = api.create_list(data)
     assert "key" in result
-    assert result['revision'] == 1
-    list_key = result['key']
+    assert result["revision"] == 1
+    list_key = result["key"]
 
     # test get
     list = api.get_list(list_key)
@@ -83,7 +81,7 @@ def test_create(config):
         list.pop(k)
 
     assert list == {
-        "key": result['key'],
+        "key": result["key"],
         "type": {"key": "/type/list"},
         "revision": 1,
         "latest_revision": 1,
@@ -108,7 +106,7 @@ def test_add_seeds(config):
         "seeds": ["subject:cheese"],
     }
     result = api.create_list(data)
-    key = result['key']
+    key = result["key"]
 
     # remove cheese and add apple
     api.update_seeds(key, ["subject:apple"], ["subject:cheese"])
@@ -118,10 +116,10 @@ def test_add_seeds(config):
 def test_lists(config):
     api = ListAPI(config)
     api.login()
-    count = api.get_lists()['list_count']  # noqa: F841
+    count = api.get_lists()["list_count"]  # noqa: F841
 
     api.create_list({"name": "foo"})
 
-    new_count = api.get_lists()['list_count']  # noqa: F841
+    new_count = api.get_lists()["list_count"]  # noqa: F841
     # counts are not accurate yet.
     # assert new_count == count + 1

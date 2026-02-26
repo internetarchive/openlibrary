@@ -43,22 +43,17 @@ Ejecuta `docker compose up` y visita http://localhost:8080
 ¿Necesitas más detalles? Checa las [Instrucciones de Docker](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md)
 o el [video tutorial](https://archive.org/embed/openlibrary-developer-docs/openlibrary-docker-set-up.mp4).
 
-***Alternativamente***, Si no quieres montar Open Library en tu computadora local, prueba Gitpod!
-Esto te deja trabajar en Open Library enteramente desde tu navegador sin tener que instalar nada en tu computadora personal.
-Advertencia: Esta integración sigue siendo experimental.
-[![Ábrelo en Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)
-
 ### Guía de Desarrollador
 
 También puedes encontrar más información sobre la Documentación para Desarrolladores de Open Library en la [Wiki](https://github.com/internetarchive/openlibrary/wiki/) de Open Library.
 
 ## Organización del Código
 
-* openlibrary/core - funcionalidad central de Open Library, importada y utilizada por www
-* openlibrary/plugins - otros modelos, controladores y ayudantes de vista (view helpers)
-* openlibrary/views - vistas para renderizar páginas web
-* openlibrary/templates - todas las plantillas utilizadas en el sitio web
-* openlibrary/macros - los macros son similares a las plantillas, pero pueden ser llamados desde wikitext
+* [*openlibrary/core*](/openlibrary/core) - funcionalidad central de Open Library, importada y utilizada por www
+* [*openlibrary/plugins*](/openlibrary/plugins) - otros modelos, controladores y ayudantes de vista (view helpers)
+* [*openlibrary/views*](/openlibrary/views) - vistas para renderizar páginas web
+* [*openlibrary/templates*](/openlibrary/templates) - todas las plantillas utilizadas en el sitio web
+* [*openlibrary/macros*](/openlibrary/macros) - los macros son similares a las plantillas, pero pueden ser llamados desde wikitext
 
 ## Arquitectura
 

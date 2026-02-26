@@ -1,8 +1,5 @@
 # Welcome to the Installation Guide for Open Library Developers
 
-> [!TIP]
-> Want to try Open Library in your browser without having to install anything on your personal computer? Try (experimental) Gitpod integration! [![Open In Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/internetarchive/openlibrary/)  
-
 1. [Pull code locally](#pull-code-locally)
 2. [Install Docker](#install-docker) and [Test Docker](#test-docker)
 3. [Prepare your system](#prepare-your-system)

@@ -20,7 +20,7 @@ services:
     image: "${OLIMAGE:-oldev:latest}"
     environment:
       - OL_CONFIG=${OL_CONFIG:-/openlibrary/conf/openlibrary.yml}
-      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 2 --timeout 180 --max-requests 500}
+      - GUNICORN_OPTS=${GUNICORN_OPTS:- --reload --workers 1 --timeout 180 --max-requests 500}
     command: docker/ol-web-fastapi-start.sh
     ports:
       - ${FAST_WEB_PORT:-18080}:8080
@@ -64,7 +64,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    # Create (or use if already existing) a core called "openlibrary" with our config & schema
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:

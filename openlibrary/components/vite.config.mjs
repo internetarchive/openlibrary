@@ -1,4 +1,7 @@
 /* eslint-env node, es6 */
+/**
+ * Vite config for Vue components. (for Lit components see vite-lit.config.mjs)
+ */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import legacy from '@vitejs/plugin-legacy';

@@ -9,12 +9,13 @@
  */
 
 @import (less) "less/z-index.less";
+@import (reference) "less/border-radius.less";
 
 .header-bar {
   max-width: 1060px;
   min-width: 300px;
   margin: 0 auto;
-  .display-flex();
+  display: flex;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -ms-flex-flow: row wrap;
@@ -57,7 +58,7 @@
     text-align: left;
     background-color: @light-beige;
     border: 1px solid @dark-beige;
-    border-radius: 3px;
+    border-radius: @border-radius-button;
 
     li {
       border-bottom: 1px solid @beige-two;
@@ -100,7 +101,6 @@
     z-index: @z-index-level-2;
     overflow-y: auto;
     overscroll-behavior: contain;
-    font-family: @bahnschrift;
     background-color: @light-beige;
     box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
 
@@ -144,7 +144,7 @@
 
     li button {
       width: 100%;
-      font-family: @bahnschrift;
+      font-family: @font-family-button;
       text-align: left;
       cursor: pointer;
     }
@@ -168,7 +168,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      border-radius: 6px;
+      border-radius: @border-radius-button;
       padding: 6px;
       transition: 0.3s;
     }
@@ -215,7 +215,7 @@
     .hamburger__icon {
       width: 22px;
       padding: 0 10px;
-      border-radius: 3px;
+      border-radius: @border-radius-button;
       box-sizing: content-box;
     }
 
@@ -305,7 +305,7 @@
       position: absolute;
       background: @primary-blue;
       color: @white;
-      border-radius: 8px;
+      border-radius: @border-radius-notification;
       padding: 3px 7px;
       font-size: @font-size-label-medium;
       margin-top: 25px;
@@ -343,7 +343,7 @@
   }
 
   .navigation-component.mobile {
-    .display-flex();
+    display: flex;
   }
 
   .navigation-component {
@@ -425,7 +425,7 @@
         width: auto;
 
         .search-bar-input {
-          .display-flex();
+          display: flex;
         }
       }
 
@@ -482,7 +482,7 @@
 
     .search-bar-component {
       display: inline-block;
-      border-radius: 6px;
+      border-radius: @border-radius-button;
       position: relative;
     }
 
@@ -509,7 +509,7 @@
         transition: background-color 0.2s;
 
         &:last-child {
-          border-radius: 0 0 6px 6px;
+          border-radius: 0 0 @border-radius-button @border-radius-button;
         }
 
         &:hover {
@@ -517,7 +517,7 @@
         }
 
         a {
-          .display-flex();
+          display: flex;
           text-decoration: none;
           color: @dark-grey;
 
@@ -529,7 +529,7 @@
             background-color: @lightest-grey;
             margin-right: 10px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: @border-radius-thumbnail;
           }
 
           .book-desc {
@@ -609,7 +609,7 @@ div.search-facet:focus-within {
 
 .hamburger-component {
   summary {
-    .display-flex();
+    display: flex;
     -webkit-box-align: center;
     -ms-flex-align: center;
     align-items: center;
@@ -679,16 +679,16 @@ div.search-facet:focus-within {
     -webkit-transition: all 0.2s;
     -o-transition: all 0.2s;
     transition: all 0.2s;
-    border-radius: 0.3em;
+    border-radius: @border-radius-input;
     -webkit-box-flex: 1;
     -ms-flex: 1 0 0%;
     flex: 1;
-    .display-flex();
+    display: flex;
   }
   .search-bar-input {
     min-width: 50px;
     width: 100%;
-    .display-flex();
+    display: flex;
 
     /* stylelint-disable selector-max-specificity */
     input[type="text"] {
@@ -839,7 +839,7 @@ div.search-facet:focus-within {
         width: 207px;
       }
       .search-bar-input {
-        .display-flex();
+        display: flex;
 
         /* stylelint-disable selector-max-specificity */
         input[type="text"] {

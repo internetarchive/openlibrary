@@ -61,7 +61,7 @@ def parse(root):
     for e in root:
         if isinstance(e.tag, str) and e.tag in parser_map:
             key = parser_map[e.tag][0]
-            (new_key, val) = parser_map[e.tag][1](e, key)
+            new_key, val = parser_map[e.tag][1](e, key)
             if new_key:
                 edition_builder.add(new_key, val)
 

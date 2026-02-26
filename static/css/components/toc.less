@@ -1,11 +1,12 @@
 @import (reference) "../less/breakpoints.less";
 @import (reference) "../less/colors.less";
+@import (reference) "../less/border-radius.less";
 
 .toc__entry {
   line-height: 1.2em;
-
-  border-radius: 4px;
-  padding: 3px 8px;
+  border-radius: @border-radius-button;
+  font-size: 14px;
+  padding: 3px 0;
   @media only screen and (hover: none) {
     padding: 8px; /* Increase padding for touch-only devices */
   }
@@ -18,7 +19,7 @@
 
   .toc__dots {
     flex: 1;
-    border-bottom: 1px dotted;
+    border-bottom: 1px dotted @lighter-grey;
     height: 1.2em;
   }
 
@@ -41,7 +42,7 @@
 
 a.toc__main {
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: @border-radius-button;
 
   .toc__title {
     text-decoration: underline;
@@ -52,7 +53,7 @@ a.toc__main {
     content: "";
     inset: -2px;
     position: absolute;
-    border-radius: 4px;
+    border-radius: @border-radius-button;
     pointer-events: none;
     animation: fade-in 0.2s;
     background-color: rgba(0, 124, 255, 0.15);

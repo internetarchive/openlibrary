@@ -387,6 +387,9 @@ deploy_openlibrary() {
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
+    # Don't copy over compose.override.yaml ; local dev only. If that file is accidentally
+    # used on our prod servers, it could result in data loss.
+    rm -f openlibrary_new/compose.override.yaml
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
@@ -603,7 +606,7 @@ deploy_wizard() {
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
-    echo "@here, Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+    echo "Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
     read -p "Once announced, press Enter to continue..."
     echo ""
 
@@ -662,7 +665,7 @@ deploy_wizard() {
         LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
         echo ""
-        echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please let us know @here if anything seems broken or delightful!"
+        echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
     fi
 }
 

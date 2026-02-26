@@ -12,13 +12,21 @@
 @import (less) "components/searchResultItemCta.less";
 @import (less) "components/search-result-item.less";
 .mybooks-list {
+  .chip-group + & {
+    margin-top: 20px;
+  }
+
+  .search-results-stats {
+    margin-top: 8px;
+  }
+
   ul {
     margin: 0 !important;
   }
   h2 {
     padding: 5px 0;
     margin: 0;
-    line-height: 1.5em;
+    line-height: @line-height-heading;
     margin-bottom: 5px;
 
     &.subtitle {
@@ -27,7 +35,7 @@
   }
 
   h4.work-subtitle {
-    font-family: @georgia_serif-1;
+    font-family: @font-family-subtitle;
     color: @grey;
     font-size: 1em;
     font-weight: normal;

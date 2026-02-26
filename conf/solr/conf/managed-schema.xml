@@ -139,9 +139,11 @@
     <field name="subtitle" type="text_en_splitting"/>
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="chapter" type="text_en_splitting" multiValued="true"/>
 
     <field name="edition_count" type="pint"/>
     <field name="edition_key" type="string" multiValued="true"/>
+    <field name="work_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
     <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
@@ -154,8 +156,6 @@
     <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
     <field name="ia_box_id" type="string" multiValued="true"/>
-    <field name="ia_loaded_id" type="string" multiValued="true"/>
-    <field name="ia_count" type="pint"/>
     <field name="ia_collection" type="string" multiValued="true" />
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
@@ -175,6 +175,7 @@
     <field name="publish_place" type="text_en_splitting" multiValued="true"/>
     <field name="publisher" type="text_en_splitting" multiValued="true"/>
     <field name="format" type="text_en_splitting" multiValued="true"/>
+    <field name="edition_name" type="text_en_splitting" multiValued="true"/>
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
     <field name="first_sentence" type="text_en_splitting" multiValued="true"/>
     <field name="author_key" type="string" multiValued="true"/>

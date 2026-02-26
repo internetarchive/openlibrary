@@ -3,7 +3,7 @@ import { debounce } from './nonjquery_utils.js';
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const submitBtn = document.querySelector('button[name=signup]');
-    const rpdCheckbox = document.querySelector('#pd_request')
+    const rpdCheckbox = document.querySelector('#pd-request')
     const pdaSelectorContainer = document.querySelector('#pda-selector')
     const pdaSelector = document.querySelector('#pd_program')
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
@@ -161,14 +161,17 @@ export function initSignupForm() {
     function validatePDSelection() {
         if (!rpdCheckbox.checked) {
             clearError('#pd_program', '#pd_programMessage')
+            pdaSelector.setAttribute('aria-invalid', 'false');
             return
         }
         if (pdaSelector.value === '') {
             renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err'])
+            pdaSelector.setAttribute('aria-invalid', 'true');
             return
         }
 
         clearError('#pd_program', '#pd_programMessage')
+        pdaSelector.setAttribute('aria-invalid', 'false');
     }
 
     // Maps input ID attribute to corresponding validation function
@@ -209,8 +212,14 @@ export function initSignupForm() {
     function updateSelectorVisibility() {
         if (rpdCheckbox.checked) {
             pdaSelectorContainer.classList.remove('hidden')
+            rpdCheckbox.setAttribute('aria-expanded','true')
+            pdaSelectorContainer.setAttribute('aria-hidden','false')
+            pdaSelector.setAttribute('aria-required', 'true')
         } else {
             pdaSelectorContainer.classList.add('hidden')
+            rpdCheckbox.setAttribute('aria-expanded','false')
+            pdaSelectorContainer.setAttribute('aria-hidden','true')
+            pdaSelector.setAttribute('aria-required', 'false')
         }
     }
 

@@ -12,7 +12,7 @@
   & h1 {
     line-height: normal;
     &.work-title {
-      font-family: @georgia_serif-1;
+      font-family: @font-family-title;
       margin: 10px 0 0;
       color: @dark-grey;
       font-size: @font-size-headline-large;
@@ -21,7 +21,7 @@
   }
   & h2 {
     &.work-subtitle {
-      font-family: @georgia_serif-1;
+      font-family: @font-family-subtitle;
       margin: 0;
       color: @grey;
       font-size: 1.3em;
@@ -33,6 +33,7 @@
       font-weight: normal;
       color: @dark-grey;
       margin: 10px 0 20px;
+      line-height: @line-height-meta;
     }
   }
 
@@ -73,7 +74,8 @@
     justify-content: space-between;
 
     .work-line {
-      display: none;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     h1.work-title {
@@ -87,6 +89,7 @@
     h2.edition-byline {
       font-size: 0.875em;
       margin-bottom: 10px;
+      line-height: @line-height-meta;
 
       & > a {
         text-decoration: none;

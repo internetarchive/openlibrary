@@ -57,6 +57,7 @@ $ sort = query_param('sort', None)
         <ul class="authorList list-books">
         $for doc in results.docs:
             $ n = doc['name']
+            $ url = doc['key'] + '/' + urlsafe(n)
             $ num = doc['work_count']
             $ wc = ungettext("%(count)d book", "%(count)d books", num, count=num)
             $ date = ''
@@ -65,14 +66,14 @@ $ sort = query_param('sort', None)
             $elif 'date' in doc:
                 $ date = doc['date']
             <li class="searchResultItem">
-	      <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(author)s', author=n)">
-	      <div class="details">
-		<a href="$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
-		<span class="small grey"><b>$wc</b>
+              <img src="$get_coverstore_public_url()/a/olid/$(doc['key'].split('/')[-1])-M.jpg" itemprop="image" class="cover author" alt="$_('Photo of %(author)s', author=n)">
+              <div class="details">
+                <a href="$url" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
+                <span class="small grey"><b>$wc</b>
                 $if 'top_subjects' in doc:
                   $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
                 $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))</span>
-	      </div>
+              </div>
             </li>
         </ul>
 

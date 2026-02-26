@@ -1,57 +1,34 @@
 #!/usr/bin/env python3
 """
-Executes the given script with the given arguments, adding profiling and error reporting.
+Adds Sentry cron monitoring to the given script, then executes the script with the given arguments.
 """
 
 import argparse
 import subprocess
 import sys
-from configparser import ConfigParser
 from pathlib import Path
 
 import sentry_sdk
-from statsd import StatsClient
+import yaml
 
-DEFAULT_CONFIG_PATH = "/olsystem/etc/cron-wrapper.ini"
+DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 class MonitoredJob:
-    def __init__(self, command, sentry_cfg, statsd_cfg):
+    def __init__(self, command, sentry_cfg, monitor_slug):
         self.command = command
-        self.statsd_client = (
-            self._setup_statsd(statsd_cfg.get("host", ""), statsd_cfg.get("port", ""))
-            if statsd_cfg
-            else None
-        )
         self._setup_sentry(sentry_cfg.get("dsn", ""))
-        self.job_name = self._get_job_name()
-        self.job_failed = False
+        self.monitor_slug = monitor_slug
 
     def run(self):
-        self._before_run()
         try:
-            self._run_script()
+            with sentry_sdk.monitor(self.monitor_slug):
+                self._run_script()
         except subprocess.CalledProcessError as e:
-            se = RuntimeError(f"Subprocess failed: {e}\n{e.stderr}")
-            sentry_sdk.capture_exception(se)
-            self.job_failed = True
             sys.stderr.write(e.stderr)
             sys.stderr.flush()
         finally:
-            self._after_run()
             sentry_sdk.flush()
-
-    def _before_run(self):
-        if self.statsd_client:
-            self.statsd_client.incr(f'cron.{self.job_name}.start')
-            self.job_timer = self.statsd_client.timer(f'cron.{self.job_name}.duration')
-            self.job_timer.start()
-
-    def _after_run(self):
-        if self.statsd_client:
-            self.job_timer.stop()
-            status = "failure" if self.job_failed else "stop"
-            self.statsd_client.incr(f'cron.{self.job_name}.{status}')
 
     def _run_script(self):
         return subprocess.run(
@@ -65,35 +42,24 @@ class MonitoredJob:
     def _setup_sentry(self, dsn):
         sentry_sdk.init(dsn=dsn, traces_sample_rate=1.0)  # Configure?
 
-    def _setup_statsd(self, host, port):
-        return StatsClient(host, port)
-
-    def _get_job_name(self):
-        # TODO: Change to specify a --script as argparse arg (instead of scripts path)
-        script_path = next(
-            s for s in self.command if s.startswith("/openlibrary/scripts/")
-        )
-        script_name = script_path.split('/')[-1]
-        job_name = script_name.split('.')[0]
-        return job_name
-
 
 def main(args):
     config = _read_config(args.config)
-    sentry_cfg = dict(config["sentry"]) if config.has_section("sentry") else None
-    statsd_cfg = dict(config["statsd"]) if config.has_section("statsd") else None
+    sentry_cfg = config.get("sentry_cron_jobs", {})
+    config = None
     command = [args.script] + args.script_args
+    monitor_slug = args.monitor_slug
 
-    job = MonitoredJob(command, sentry_cfg, statsd_cfg)
+    job = MonitoredJob(command, sentry_cfg, monitor_slug)
     job.run()
 
 
 def _read_config(config_path):
     if not Path(config_path).exists():
         raise FileNotFoundError("Missing cron-wrapper configuration file")
-    config_parser = ConfigParser()
-    config_parser.read(config_path)
-    return config_parser
+    with open(config_path) as in_file:
+        config = yaml.safe_load(in_file)
+        return config
 
 
 def _parse_args():
@@ -104,6 +70,7 @@ def _parse_args():
         default=DEFAULT_CONFIG_PATH,
         help=f"Path to cron-wrapper configuration file. Defaults to \"{DEFAULT_CONFIG_PATH}\"",
     )
+    _parser.add_argument("monitor_slug", help="Monitor slug of the Sentry cron monitor")
     _parser.add_argument(
         "script", help="Path to script that will be wrapped and monitored"
     )

@@ -5,10 +5,6 @@
 @import "buttonBtn.less";
 @import "buttonCta.less";
 
-.bookauthor {
-  font-family: @body-family;
-}
-
 // Some preview rules are too specific and need to be rewritten
 // Preview button appears styled as a text link with a book icon
 .bookcover .cta-btn.cta-btn--preview {
@@ -50,16 +46,15 @@
 }
 .searchResultItem {
   list-style-type: none;
-  line-height: 1.5em;
   background-color: @grey-fafafa;
-  border-radius: 5px;
+  border-radius: @border-radius-card;
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
 
   &,
   .sri__main {
-    .display-flex();
+    display: flex;
     align-items: center;
     flex-direction: column;
 
@@ -82,8 +77,9 @@
     color: @dark-grey;
     font-size: 1.1em;
     font-weight: 700;
-    font-family: @georgia_serif-1;
+    font-family: @font-family-title;
     overflow: auto;
+    line-height: @line-height-heading;
   }
   .details {
     overflow: auto;
@@ -91,6 +87,7 @@
     width: 100%;
     padding: 5px;
     margin: 0;
+    line-height: @line-height-meta;
   }
 
   .resultStats {
@@ -117,7 +114,7 @@
     margin-bottom: 5px;
   }
   .preview-covers img {
-    border-radius: 4px;
+    border-radius: @border-radius-thumbnail;
     opacity: 0.7;
   }
   .preview-covers--blur {
@@ -131,7 +128,7 @@
     text-align: center;
 
     img {
-      border-radius: 4px;
+      border-radius: @border-radius-thumbnail;
       max-width: 100%;
       max-height: 300px;
       width: 175px;
@@ -163,7 +160,7 @@
     font-size: @font-size-label-medium;
     line-height: @font-size-label-medium;
     padding: 4px;
-    border-radius: 4px;
+    border-radius: @border-radius-badge;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -176,6 +173,32 @@
   }
 }
 
+.srw__chapters {
+  background: rgba(0, 124, 255, 0.2);
+  border-radius: 4px;
+  color: @black;
+  margin-bottom: 5px;
+  font-size: @font-size-label-medium;
+
+  .srw__chapter {
+    border-radius: inherit;
+    padding: 6px 8px;
+    display: flex;
+    gap: 4px;
+    line-height: 1.2em;
+    transition: background-color 0.2s;
+
+    em {
+      font-weight: bold;
+    }
+
+    // stylelint-disable-next-line selector-max-specificity
+    a&:hover {
+      background: rgba(0, 124, 255, 0.2);
+    }
+  }
+}
+
 .searchResultItem__librarian-extras {
   font-size: 0.7em;
   border-top: 1px dashed currentColor;
@@ -183,7 +206,7 @@
   margin-bottom: -5px;
   color: @grey;
   padding: 7px 0;
-  line-height: 1em;
+  line-height: @line-height-meta;
   transition: color 0.2s;
   text-decoration: dotted underline;
 
@@ -201,7 +224,7 @@
   white-space: nowrap;
   max-width: 150px;
   line-height: 28px;
-  .display-flex();
+  display: flex;
   margin-bottom: 5px;
   a {
     span {
@@ -224,7 +247,7 @@
 .trending-badge {
   display: inline-block;
   background-color: fade(@olive, 12%);
-  border-radius: 50px;
+  border-radius: @border-radius-pill;
   padding: 0 13px;
 
   .trending-badge__chart {

@@ -8,9 +8,9 @@ div#footer-content {
 }
 
 div#footer-links {
-  .display-flex();
+  display: flex;
   margin-left: 10px;
-  line-height: 1.5em;
+  line-height: @line-height-list;
 }
 
 #footer-content {
@@ -23,13 +23,13 @@ div#footer-links {
 }
 
 footer {
-  .display-flex();
+  display: flex;
   width: 100%;
   bottom: 0;
   font-size: 0.8em;
   #footer-details {
     color: @dark-grey;
-    .display-flex();
+    display: flex;
     width: 100%;
   }
   h2 {
@@ -60,7 +60,7 @@ footer {
   height: 35px;
   cursor: pointer;
   background-color: @dark-grey;
-  border-radius: 3px;
+  border-radius: @border-radius-button;
 
   img {
     padding: 8px;

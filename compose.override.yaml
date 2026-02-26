@@ -9,7 +9,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     ports:
       # Debugger
-      - 3000:3000
+      - 127.0.0.1:3000:3000
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -19,7 +19,7 @@ services:
       - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
       - LOCAL_DEV=true
     depends_on:
@@ -30,8 +30,13 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    ports:
+      # Debugger
+      - 127.0.0.1:3001:3000
     volumes:
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    environment:
+      - LOCAL_DEV=true
 
   solr:
     environment:
@@ -43,8 +48,13 @@ services:
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=dev
+      - LOCAL_DEV=true
+    volumes:
+      - ./docker/ol-local-solr-start.sh:/docker/ol-solr-start.sh:ro
     ports:
       - 8983:8983
+    # Run the wrapper script which handles schema migrations in dev mode
+    command: /docker/ol-solr-start.sh
 
   solr-updater:
     build:
@@ -55,7 +65,7 @@ services:
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
     image: postgres:${POSTGRES_VERSION:-9.3}
@@ -66,7 +76,7 @@ services:
       # This allows postgres access for psql user w/o password required
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
       # if the db is empty (which as of now is always, since we don't store the
       # postgres data anywhere).
@@ -81,7 +91,7 @@ services:
       - 7075:7075
     volumes:
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   infobase:
     build:
@@ -96,7 +106,7 @@ services:
     #  - 7000:7000
     volumes:
       - ol-vendor:/openlibrary/vendor
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
     depends_on:
       - db
 
@@ -107,6 +117,8 @@ services:
       dockerfile: docker/Dockerfile.oldev
     init: true # this is needed for docker sigints to work without modifying the many scripts within
     command: docker/ol-home-start.sh
+    environment:
+      - LOCAL_DEV=true
     networks:
       - webnet
       - dbnet
@@ -118,7 +130,9 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ol-build:/openlibrary/static/build
       - ol-nodemodules:/openlibrary/node_modules
-      - .:/openlibrary
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+      # For OSP download persistence across restarts
+      - solr-updater-data:/solr-updater-data
 
 volumes:
   ol-vendor:

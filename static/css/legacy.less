@@ -21,8 +21,8 @@
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
+@import (less) "less/border-radius.less";
 
 @import (less) "legacy-header.less";
 @import (less) "legacy-tools.less";
@@ -45,26 +45,6 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 
-  // openlibrary/templates/type/edition/view.html
-  &#toc-table {
-    width: 100%;
-    font-size: 0.8125em;
-    td {
-      padding: 5px 15px 5px 0;
-    }
-  }
-  // openlibrary/templates/type/edition/view.html
-  &.navEdition {
-    margin-bottom: 5px;
-    td.nowrap {
-      white-space: nowrap;
-    }
-    td {
-      padding: 0;
-      margin: 0;
-      vertical-align: middle;
-    }
-  }
   &.meta {
     margin-top: 10px;
     td {
@@ -237,12 +217,12 @@ em {
   ol li {
     list-style: decimal;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
   ul li {
     list-style: disc;
     color: @dark-grey;
-    line-height: 1.5em;
+    line-height: @line-height-list;
   }
 }
 
@@ -271,47 +251,6 @@ q {
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
 
-// openlibrary/templates/lib/pagination.html
-// openlibrary/templates/type/author/view.html
-.pagination {
-  font-size: 0.75em;
-  margin: 0 15px;
-  .display-flex();
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  a {
-    display: block;
-    text-decoration: none;
-    padding: 7px;
-    margin-right: 10px;
-    &:hover {
-      background: @link-blue;
-      color: @white;
-      display: block;
-      float: left;
-      text-decoration: none;
-      padding: 7px;
-      margin-right: 10px;
-    }
-  }
-  span.ellipsis {
-    display: block;
-    float: left;
-    color: @black;
-    padding: 8px;
-    margin-right: 10px;
-  }
-  span.this {
-    display: block;
-    float: left;
-    color: @black;
-    padding: 7px;
-    border: 1px solid @lighter-grey;
-    margin-right: 10px;
-    background-color: @lightest-grey;
-  }
-}
-
 // openlibrary/templates/recentchanges/header.html
 // openlibrary/templates/showia.html
 // openlibrary/templates/showmarc.html
@@ -332,7 +271,7 @@ q {
 
 div.unordered {
   margin-top: 10px;
-  line-height: 150%;
+  line-height: @line-height-list;
 }
 
 div.superNav {
@@ -611,7 +550,7 @@ div.formElement {
     padding: 5px;
   }
   blockquote {
-    font-family: @georgia_serif-1;
+    font-family: @font-family-quote;
     font-size: 0.875em;
     margin: 1em 40px;
   }
@@ -702,7 +641,7 @@ div.siteSearch {
     margin: 0;
     width: 215px;
     padding: 12px;
-    border-radius: 5px;
+    border-radius: @border-radius-input;
     border: 1px solid @mid-grey;
   }
 }
@@ -988,6 +927,7 @@ div.facet {
     margin-bottom: 5px;
     a {
       text-decoration: none !important;
+      line-height: @line-height-list;
     }
   }
   &MoreLess {
@@ -1020,7 +960,7 @@ div.list {
     width: 155px;
   }
   h5 {
-    font-family: @georgia_serif-1;
+    font-family: @font-family-serif;
     font-weight: normal;
     color: @dark-grey;
     margin-bottom: 5px;
@@ -1250,7 +1190,6 @@ ul {
 
 // openlibrary/macros/CoverImage.html
 // openlibrary/templates/covers/book_cover.html
-// openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
   position: absolute;
   top: 50%;
@@ -1266,7 +1205,6 @@ ul {
 }
 
 // openlibrary/templates/covers/book_cover.html
-// openlibrary/templates/covers/book_cover_single_edition.html
 .Author {
   color: @grey;
   font-style: italic;
@@ -1275,8 +1213,6 @@ ul {
 }
 
 // openlibrary/macros/SearchResultsWork.html
-// openlibrary/templates/books/show.html
-// openlibrary/templates/books/works-show.html
 // openlibrary/templates/type/list/embed.html
 span.actions {
   display: block;
@@ -1360,12 +1296,10 @@ span.actions {
 // openlibrary/macros/FulltextResults.html
 ul.list-books {
   > li {
-    .display-flex();
+    display: flex;
   }
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/templates/books/check.html
-  // openlibrary/templates/books/show.html
-  // openlibrary/templates/books/works-show.html
   // openlibrary/templates/lists/preview.html
   // openlibrary/templates/lists/snippet.html
   // openlibrary/templates/type/list/embed.html
@@ -1382,16 +1316,12 @@ ul.list-books {
   // `span.resultPublisher` is used in
   // * openlibrary/macros/SearchResultsWork.htm
   // * openlibrary/templates/books/check.html
-  // * openlibrary/templates/books/show.html
-  // * openlibrary/templates/books/works-show.html
   .resultTitle .bookauthor,
   span.resultPublisher {
     font-size: 0.75em;
     color: @grey;
     font-family: @body-family;
   }
-  // openlibrary/templates/books/works-show.html
-  // openlibrary/templates/books/show.html
   // openlibrary/templates/books/check.html
   // openlibrary/macros/SearchResultsWork.html
   span.resultPublisher {
@@ -1419,7 +1349,6 @@ ul.list-books {
     .sri__main {
       display: flex;
       flex-direction: column;
-      height: 100%;
     }
 
     .bookcover {
@@ -1448,6 +1377,22 @@ ul.list-books {
     .star-rating-form {
       display: none;
     }
+  }
+
+  .list-books__note {
+    overflow: hidden;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: @border-divider;
+    line-height: @line-height-blurb;
+    display: -webkit-box;
+    -webkit-line-clamp: 6;
+    line-clamp: 6;
+    -webkit-box-orient: vertical;
+  }
+
+  .list-books__note p {
+    margin-top: 0;
   }
 }
 
@@ -1603,13 +1548,12 @@ div#subjectLists {
     padding: 0;
     li {
       list-style-type: none;
-      display: block;
       float: left;
       width: 282px;
       font-family: @body-family;
       padding-bottom: 10px;
       padding-top: 0;
-      .display-flex();
+      display: flex;
       .image {
         display: block;
         float: left;
@@ -1680,7 +1624,7 @@ div#subjectLists {
 // openlibrary/templates/account/books.html
 .list-books {
   .book {
-    .display-flex();
+    display: flex;
   }
 }
 

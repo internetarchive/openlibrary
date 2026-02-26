@@ -172,19 +172,16 @@ jQuery(function () {
     }
 
     // conditionally load clamping components
-    const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
-    if (readMoreComponents.length || clampers.length) {
-        import(/* webpackChunkName: "readmore" */ './readmore.js')
+    if (clampers.length) {
+        import(/* webpackChunkName: "clampers" */ './clampers.js')
             .then(module => {
-                if (readMoreComponents.length) {
-                    module.ReadMoreComponent.init();
-                }
                 if (clampers.length) {
                     module.initClampers(clampers);
                 }
             });
     }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
@@ -226,6 +223,13 @@ jQuery(function () {
     if ($('.lazy-thing-preview').length) {
         import(/* webpackChunkName: "lazy-thing-preview" */ './lazy-thing-preview')
             .then((module) => new module.LazyThingPreview().init());
+    }
+
+    // Disable data export buttons on form submit
+    const patronImportForms = document.querySelectorAll('.patron-export-form')
+    if (patronImportForms.length) {
+        import(/* webpackChunkName: "patron-exports" */ './patron_exports')
+            .then(module => module.initPatronExportForms(patronImportForms));
     }
 
     const $observationModalLinks = $('.observations-modal-link');
@@ -316,7 +320,22 @@ jQuery(function () {
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
-            .then((module) => module.init());
+            .then((module) => module.init())
+            .then(() => {
+                // book page subject editing
+                // Handle pencil clicks
+                document.querySelectorAll('.edit-subject-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault()
+                        const workOlid = btn.dataset.workOlid
+                        if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
+                            window.ILE.selectionManager.addSelectedItem(workOlid)
+                            window.ILE.selectionManager.updateToolbar()
+                        }
+                        window.ILE.updateAndShowBulkTagger([workOlid], true)
+                    })
+                })
+            })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')
@@ -574,5 +593,12 @@ jQuery(function () {
     if (document.querySelector('.list-books')) {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
+    }
+
+    // Stats page login counts
+    const monthlyLoginStats = document.querySelector('.monthly-login-counts')
+    if (monthlyLoginStats) {
+        import(/* webpackChunkName: "stats" */ './stats')
+            .then(module => module.initUniqueLoginCounts(monthlyLoginStats))
     }
 });

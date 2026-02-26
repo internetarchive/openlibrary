@@ -220,7 +220,8 @@ fi
 # =================
 # Generate Sitemaps
 # =================
-if [[ ! -d $TMPDIR/sitemaps ]]
+# So long as a sitemaps.log doesn't exist, run sitemaps
+if [[ ! -f $TMPDIR/sitemaps/sitemaps.log ]]
 then
     log "generating sitemaps"
     mkdir -p $TMPDIR/sitemaps

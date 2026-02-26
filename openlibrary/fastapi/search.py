@@ -1,45 +1,46 @@
 from __future__ import annotations
 
 import json
-from typing import Annotated, Any
+from collections.abc import Mapping
+from typing import Annotated, Any, Literal, Self
 
+import web
 from fastapi import APIRouter, Depends, Query, Request
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    WithJsonSchema,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
+from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.fastapi.models import Pagination, PaginationLimit20
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
+    run_solr_query_async,
     validate_search_json_query,
     work_search_async,
 )
+from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
 
 
-# Ideally this will go in a models files, we'll move it for the 2nd endpoint
-class Pagination(BaseModel):
-    limit: Annotated[int, Query(ge=0)] = 100
-    offset: Annotated[int | None, Query(ge=0)] = None
-    page: Annotated[int | None, Query(ge=1)] = None
-
-    @model_validator(mode='after')
-    def normalize_pagination(self) -> Pagination:
-        if self.offset is not None:
-            self.page = None
-        elif self.page is None:
-            self.page = 1
-        return self
-
-
 class PublicQueryOptions(BaseModel):
     """
-    This class has all the parameters that are passed as "query"
+    All parameters (and Pagination) that will be passed to the query.
     """
 
-    q: str = Query("", description="The search query, like keyword.")
+    q: str = Field("", description="The search query string.")
 
-    # from check_params in works.py
+    # from public_api_params in works.py
     title: str | None = None
     publisher: str | None = None
     oclc: str | None = None
@@ -50,83 +51,290 @@ class PublicQueryOptions(BaseModel):
     person: str | None = None
     time: str | None = None
     # from workscheme facet_fields
-    has_fulltext: bool | None = None
-    public_scan_b: bool | None = None
+    has_fulltext: Literal["true", "false"] | None = None
+    public_scan_b: list[Literal["true", "false"]] = []
 
-    """
-    The day will come when someone asks, why do we have Field wrapping Query
-    The answer seems to be:
-    1. Depends(): Tells FastAPI to explode the Pydantic model into individual arguments (dependency injection).
-    2. Field(Query([])): Overrides the default behavior for lists. It forces FastAPI to look for ?author_key=...
-       in the URL query string instead of expecting a JSON array in the request body.
-    The Field part is needed because FastAPI's default guess for lists inside Pydantic models is wrong for this use case.
-       It guesses "JSON Body," and you have to manually correct it to "Query String."
-    See: https://github.com/internetarchive/openlibrary/pull/11517#issuecomment-3584196385
-    """
-    author_key: list[str] = Field(Query([]))
-    subject_facet: list[str] = Field(Query([]))
-    person_facet: list[str] = Field(Query([]))
-    place_facet: list[str] = Field(Query([]))
-    time_facet: list[str] = Field(Query([]))
-    first_publish_year: list[str] = Field(Query([]))
-    publisher_facet: list[str] = Field(Query([]))
-    language: list[str] = Field(Query([]))
-    author_facet: list[str] = Field(Query([]))
+    # List fields (facets)
+    author_key: list[str] = Field([], description="Filter by author key.", examples=["OL1394244A"])
+    subject_facet: list[str] = Field([], description="Filter by subject.", examples=["Fiction", "City planning"])
+    person_facet: list[str] = Field(
+        [],
+        description="Filter by person. Not the author but the person who is the subject of the work.",
+        examples=["Jane Jacobs (1916-2006)", "Cory Doctorow"],
+    )
+    place_facet: list[str] = Field([], description="Filter by place.", examples=["New York", "Xiamen Shi"])
+    time_facet: list[str] = Field(
+        [],
+        description="Filter by time. It can be formatted many ways.",
+        examples=["20th century", "To 70 A.D."],
+    )
+    first_publish_year: list[str] = Field([], description="Filter by first publish year.", examples=["2020"])
+    publisher_facet: list[str] = Field([], description="Filter by publisher.", examples=["Urban Land Institute"])
+    language: list[str] = Field(
+        [],
+        description="Filter by language using three-letter language codes.",
+        examples=[["eng"], ["spa"], ["eng", "spa"]],
+    )
+    author_facet: list[str] = Field(
+        [],
+        description="(alias for author_key) Filter by author key.",
+        examples=["OL1394244A"],
+    )
+
+    isbn: str | None = None
+    author: str | None = None
+
+    @field_validator("q")
+    @classmethod
+    def parse_q_string(cls, v: str) -> str:
+        if q_error := validate_search_json_query(v):
+            raise ValueError(q_error)
+        return v
 
 
-@router.get("/search.json")
+class SearchRequestParams(PublicQueryOptions, Pagination):
+    fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
+        sorted(WorkSearchScheme.default_fetched_fields),
+        description="The fields to return.",
+    )
+    query: Annotated[dict[str, Any] | None, BeforeValidator(parse_query_json)] = Field(
+        None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
+    )
+    sort: str | None = Field(None, description="The sort order of results.")
+    spellcheck_count: int | None = Field(
+        default_spellcheck_count,
+        description="The number of spellcheck suggestions.",
+    )
+
+    @staticmethod
+    def parse_fields_string(v: str | list[str]) -> list[str]:
+        if isinstance(v, str):
+            v = [v]
+        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
+
+    @staticmethod
+    def parse_query_json(v: str) -> dict[str, Any]:
+        try:
+            return json.loads(v)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in 'query' parameter: {e}")
+
+    @computed_field
+    def selected_query(self) -> dict[str, Any]:
+        if isinstance(self.query, dict):
+            return self.query
+        else:
+            # Include all fields that belong to PublicQueryOptions (the search query part)
+            # This automatically excludes SearchRequestParams-specific fields like fields, sort, etc.
+            query_fields = set(PublicQueryOptions.model_fields.keys())
+            # Add dynamically handled fields from WorkSearchScheme
+            query_fields |= WorkSearchScheme.all_fields
+            query_fields |= set(WorkSearchScheme.field_name_map.keys())
+            q = self.model_dump(include=query_fields, exclude_none=True)
+            return q
+
+
+class SearchResponse(BaseModel):
+    """The response from a (books) search query."""
+
+    model_config = ConfigDict(extra="allow")
+
+    numFound: int
+    start: int
+    numFoundExact: bool
+    num_found: int
+
+    documentation_url: str = "https://openlibrary.org/dev/docs/api/search"
+    q: str
+    offset: int | None
+
+    # Defined last so it renders at the bottom.
+    # We use dict[str, Any] to avoid documenting the internal book fields.
+    docs: list[dict[str, Any]] = []
+
+
+@router.get("/search.json", tags=["search"], response_model=SearchResponse)
 async def search_json(
     request: Request,
-    pagination: Annotated[Pagination, Depends()],
-    public_query_options: Annotated[PublicQueryOptions, Depends()],
-    sort: str | None = Query(None, description="The sort order of results."),
-    fields: str | None = Query(None, description="The fields to return."),
-    spellcheck_count: int | None = Query(
-        default_spellcheck_count, description="The number of spellcheck suggestions."
-    ),
-    query_str: str | None = Query(
-        None, alias="query", description="A full JSON encoded solr query."
-    ),
-):
+    params: Annotated[SearchRequestParams, Query()],
+) -> Any:
     """
     Performs a search for documents based on the provided query.
     """
-    query: dict[str, Any] = {}
-    if query_str:
-        query = json.loads(query_str)
-    else:
-        # In an ideal world, we would pass the model unstead of the dict but that's a big refactoring down the line
-        query = public_query_options.model_dump(exclude_none=True)
-        query.update({"page": pagination.page, "limit": pagination.limit})
-
-    _fields: list[str] = list(WorkSearchScheme.default_fetched_fields)
-    if fields:
-        _fields = fields.split(',')
-
-    if q_error := validate_search_json_query(public_query_options.q):
-        return JSONResponse(status_code=422, content={"error": q_error})
-
-    response = await work_search_async(
-        query,
-        sort=sort,
-        page=pagination.page,
-        offset=pagination.offset,
-        limit=pagination.limit,
-        fields=_fields,
+    raw_response = await work_search_async(
+        params.selected_query,
+        sort=params.sort,
+        page=params.page,
+        offset=params.offset,
+        limit=params.limit,
+        fields=params.fields,
         # We do not support returning facets from /search.json,
         # so disable it. This makes it much faster.
         facet=False,
-        spellcheck_count=spellcheck_count,
-        request_label='BOOK_SEARCH_API',
+        spellcheck_count=params.spellcheck_count,
+        request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
     )
 
-    response['documentation_url'] = "https://openlibrary.org/dev/docs/api/search"
-    response['q'] = public_query_options.q
-    response['offset'] = pagination.offset
+    raw_response["q"] = params.q
+    raw_response["offset"] = params.offset
 
-    # Put docs at the end of the response
-    docs = response.pop('docs', [])
-    response['docs'] = docs
+    return raw_response
 
-    return response
+
+@router.get("/search/inside.json")
+async def search_inside_json(
+    pagination: Annotated[PaginationLimit20, Depends()],
+    q: Annotated[str, Query(title="Search query")],
+):
+    return await fulltext_search_async(
+        q,
+        page=pagination.page,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        js=True,
+        facets=True,
+    )
+
+
+@router.get("/search/subjects.json")
+async def search_subjects_json(
+    pagination: Annotated[Pagination, Depends()],
+    q: Annotated[str, Query(description="The search query")] = "",
+):
+    response = await run_solr_query_async(
+        SubjectSearchScheme(),
+        {"q": q},
+        offset=pagination.offset,
+        page=pagination.page,
+        rows=pagination.limit,
+        sort="work_count desc",
+        request_label="SUBJECT_SEARCH_API",
+    )
+
+    # Backward compatibility
+    raw_resp = response.raw_resp["response"]
+    for doc in raw_resp["docs"]:
+        doc["type"] = doc.get("subject_type", "subject")
+        doc["count"] = doc.get("work_count", 0)
+
+    return raw_resp
+
+
+def create_sort_option_type(sorts_map: Mapping):
+    """
+    Generates a Pydantic type alias that validates against the provided
+    sorts_map and dynamically generates the OpenAPI Enum documentation.
+    """
+    # TODO: Use this for Work/Edition search above?
+    # I'm just not sure if it's a good idea to have the same sort options for Works and Editions
+
+    # The prefixes allowed dynamically
+    RANDOM_PREFIXES = ("random_", "random.hourly_", "random.daily_")
+
+    # The Validator
+    def validate_sort(v: str) -> str:
+        if not v or v in sorts_map or v.startswith(RANDOM_PREFIXES):
+            return v
+
+        valid_keys = ", ".join((*sorts_map.keys(), *RANDOM_PREFIXES))
+        raise ValueError(f"Invalid sort option: '{v}'. Valid options are: {valid_keys}")
+
+    # The Type Alias
+    return Annotated[
+        str,
+        BeforeValidator(validate_sort),
+        WithJsonSchema(
+            {
+                "type": "string",
+                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
+            }
+        ),
+    ]
+
+
+ListSortOption = create_sort_option_type(ListSearchScheme.sorts)
+
+
+class ListSearchRequestParams(PaginationLimit20):
+    q: str = Field("", description="The search query")
+    fields: str = Field("", description="Fields to return")
+    sort: ListSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+    api: Literal["next", ""] = Field("", description="API version: 'next' for new format, empty for old format")
+
+    @model_validator(mode="after")
+    def handle_legacy_logic(self) -> Self:
+        if self.api != "next":
+            if self.sort:
+                raise ValueError("sort not supported in the old API")
+
+            # 2. Modification Logic (Sanitization/Defaults for old API)
+            self.limit = min(1000, self.limit or 20)
+            self.fields = "key"
+
+        return self
+
+
+@router.get("/search/lists.json")
+async def search_lists_json(
+    params: Annotated[ListSearchRequestParams, Depends()],
+):
+    response = await run_solr_query_async(
+        ListSearchScheme(),
+        {"q": params.q},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
+        request_label="LIST_SEARCH_API",
+    )
+
+    if params.api == "next":
+        # Match search.json
+        return {
+            "numFound": response.num_found,
+            "num_found": response.num_found,
+            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "q": params.q,
+            "docs": response.docs,
+        }
+    else:
+        # Default to the old API shape for a while, then we'll flip
+        lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
+        return {
+            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "docs": [lst.preview() for lst in lists],
+        }
+
+
+AuthorSortOption = create_sort_option_type(AuthorSearchScheme.sorts)
+
+
+class AuthorSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+    fields: str = Field("*", description="Fields to return")
+    sort: AuthorSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+
+@router.get("/search/authors.json")
+async def search_authors_json(
+    params: Annotated[AuthorSearchRequestParams, Depends()],
+):
+    response = await run_solr_query_async(
+        AuthorSearchScheme(),
+        {"q": params.q},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
+        request_label="AUTHOR_SEARCH_API",
+    )
+
+    # SIGH the public API exposes the key like this :(
+    raw_resp = response.raw_resp["response"]
+    for doc in raw_resp["docs"]:
+        doc["key"] = doc["key"].split("/")[-1]
+
+    return raw_resp

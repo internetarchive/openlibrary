@@ -89,8 +89,17 @@ class read_multiget(delegate.page):
             m = self.path_re.match(decoded_path)
             if len(m.groups()) != 2:
                 return json.dumps({})
-            (brief_or_full, req) = m.groups()
+            _brief_or_full, req = m.groups()
 
         web.ctx.headers = []
         result = readlinks.readlinks(req, i)
         return json.dumps(result)
+
+
+def setup():
+    """
+    This is just here to make sure this file is imported.
+    Simply defining the class above as a subclass of delegate.page is enough
+    for it to be in effect.
+    """
+    pass

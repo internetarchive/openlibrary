@@ -24,9 +24,10 @@
   width: 400px;
   border: 10px solid @brown;
   background-color: @white;
-  -webkit-border-radius: 12px;
-  -moz-border-radius: 12px;
-  border-radius: 12px;
+  // was 12px, now 16px (+4px)
+  -webkit-border-radius: @border-radius-overlay;
+  -moz-border-radius: @border-radius-overlay;
+  border-radius: @border-radius-overlay;
   -moz-box-shadow: 1px 3px 10px @black;
   -webkit-box-shadow: 1px 3px 10px @black;
   box-shadow: 1px 3px 10px @black;
