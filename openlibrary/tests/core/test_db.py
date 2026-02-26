@@ -137,6 +137,35 @@ class TestUpdateWorkID:
         assert len(list(self.db.select("bookshelves_books"))) == 1
         Bookshelves.update_work_id(self.source_book["work_id"], "2")
 
+    def test_edition_preserved_when_moving_between_shelves(self):
+        """Test that edition_id is preserved when moving a book between reading shelves."""
+        # Add a book to "Currently Reading" (shelf 2) with a specific edition
+        username = "@test_user"
+        work_id = "100"
+        edition_id = "42"
+        
+        # Add to "Currently Reading" shelf
+        Bookshelves.add(username, bookshelf_id="2", work_id=work_id, edition_id=edition_id)
+        
+        # Verify it was added with the correct edition
+        books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id)}))
+        assert len(books) == 1
+        assert books[0]['edition_id'] == int(edition_id)
+        assert books[0]['bookshelf_id'] == 2
+        
+        # Move to "Already Read" shelf (shelf 3)
+        Bookshelves.add(username, bookshelf_id="3", work_id=work_id, edition_id=edition_id)
+        
+        # Verify edition_id is preserved after moving
+        books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id)}))
+        assert len(books) == 1, "Should only have one entry after moving"
+        assert books[0]['edition_id'] == int(edition_id), "Edition ID should be preserved"
+        assert books[0]['bookshelf_id'] == 3, "Should now be on Already Read shelf"
+        
+        # Verify no entry remains on the old shelf
+        old_shelf_books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id), "bookshelf_id": 2}))
+        assert len(old_shelf_books) == 0, "Should not have any entry on the old shelf"
+
     def test_no_allow_delete_on_conflict(self):
         rows = [
             {"username": "@mek", "work_id": 1, "edition_id": 1, "notes": "Jimmeny"},

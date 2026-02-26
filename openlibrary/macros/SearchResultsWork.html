@@ -216,8 +216,12 @@ $code:
           $elif doc_type == 'infogami_edition':
             $ edition_key = doc.key
           $elif doc_type == 'solr_work':
-            $ edition_key = doc.get('edition_key') and doc.get("edition_key")[0]
-            $ edition_key = '/books/%s' % edition_key
+            $# Prefer logged_edition (set when user added book) over default edition_key
+            $ edition_keys = doc.get('edition_key')
+            $ edition_key = doc.get('logged_edition') or (edition_keys and edition_keys[0])
+            $# logged_edition already has /books/ prefix, but edition_key needs it added
+            $if edition_key and not str(edition_key).startswith('/books/'):
+              $ edition_key = '/books/%s' % edition_key
           $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:
