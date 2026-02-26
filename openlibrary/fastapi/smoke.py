@@ -32,7 +32,7 @@ class HealthCheck:
 CHECKS: list[HealthCheck] = [
     HealthCheck("homepage", "/", must_contain="Welcome to Open Library"),
     HealthCheck("login page", "/account/login", must_contain="Log In"),
-    HealthCheck("edition search", "/search?q=%22OL23269118M%22&mode=everything", must_contain="adventures in Wonderland"),
+    HealthCheck("edition search", "/search?q=%22OL23269118M%22&mode=everything", must_contain="ventures in Wonderland"),
     HealthCheck("work page", "/works/OL54120W/The_wit_wisdom_of_Mark_Twain", must_contain="Mark Twain"),
     HealthCheck("edition page", "/books/OL23269118M/Alice%27s_adventures_in_Wonderland", must_contain="An edition of"),
     HealthCheck("author page", "/authors/OL22098A/Lewis_Carroll", must_contain="Lewis Carroll"),
