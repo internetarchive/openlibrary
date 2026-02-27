@@ -1,0 +1,6 @@
+# Cron files apparently don't get the normal PATH the rest
+# of the OS gets, so force set it here otherwise python
+# won't be findable.
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+* * * * * su openlibrary -c "echo hello" > /proc/1/fd/1 2>/proc/1/fd/2
