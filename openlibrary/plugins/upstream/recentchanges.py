@@ -23,7 +23,7 @@ from openlibrary.utils import dateutil
 
 @public
 def recentchanges(query):
-    return [c for c in web.ctx.site.recentchanges(query) if c.kind != 'new-account']
+    return web.ctx.site.recentchanges(query)
 
 
 class index2(delegate.page):
@@ -94,7 +94,7 @@ class index(delegate.page):
         query['limit'] = limit
         query['offset'] = offset
 
-        result = [c.dict() for c in web.ctx.site.recentchanges(query) if c.kind != 'new-account']
+        result = [c.dict() for c in web.ctx.site.recentchanges(query)]
 
         if encoding == "json":
             response = json.dumps(result)
