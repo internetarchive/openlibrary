@@ -62,16 +62,16 @@ $if can_merge:
         $for k in keys:
             $ a = get_document('/authors/' + k)
             $ top = top_books_from_author(k)
-            <div class="entry author">
+            <div class="entry author mergeSelection">
                 <div class="data input radio">
                     $:radio_input(checked=(k==master), name='master', value=k)
                 </div>
+                <label for="$k">
                 <div class="data input checkbox">
-                    <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
+                    <input type="checkbox" value="$k" name="merge_key" id="$k" checked="checked" />
                 </div>
                 <div class="data record">
                     <span class="ol-num"> ${k} </span>
-                    <label for="$k">
                         <span class="name">$a.name</span>
                         $if a.birth_date or a.death_date:
                             <span class="metaDate" title="$_('birth/death date')">$a.get('birth_date', '') - $a.get('death_date', '')</span>
@@ -85,7 +85,6 @@ $if can_merge:
                                     $ href = id.url.replace('@@@', a.remote_ids[id.name])
                                     <small>$id.label:<a href="$href">$a.remote_ids[id.name]</a></small>
                             </div>
-                    </label>
                     $if a.bio:
                         <p>${ macros.TruncateString(a.bio, 250) }</p>
                     $else:
@@ -101,6 +100,7 @@ $if can_merge:
                 <div class="data count">
                     <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("%(count)d work", "%(count)d works", top.num_found, count=top.num_found)</a>
                 </div>
+                </label>
             </div>
     </div>
 
