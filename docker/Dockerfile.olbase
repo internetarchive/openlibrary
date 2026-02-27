@@ -14,7 +14,7 @@ RUN groupadd --system --gid 999 openlibrary \
   && useradd --no-log-init --system -u 999 --gid openlibrary --create-home openlibrary
 
 # Misc OL dependencies
-RUN apt-get -qq update && apt-get install -y \
+RUN apt-get -qq update && apt-get install --no-install-recommends -y \
     postgresql-client \
     build-essential \
     git \
