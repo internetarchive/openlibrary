@@ -19,6 +19,7 @@ from openlibrary.core.lists.model import (
     AnnotatedSeedDict,
     List,
     SeedSubjectString,
+    Series,
     ThingReferenceDict,
 )
 from openlibrary.core.models import (
@@ -373,32 +374,52 @@ class lists_edit(delegate.page):
         if list_type_plural == 'series':
             # Don't save seeds on this record
             thing_json['seeds'] = []
+
             # Edit the works to add series edges
             work_key_to_list_seed = {
                 seed['thing']['key']: seed for seed in list_record.get_annotated_seeds()
             }
-            works = cast(list[Work], web.ctx.site.get_many(list(work_key_to_list_seed)))
+
+            works_to_remove: set[str] = set()
+            if list_id:
+                old_series = cast(Series, web.ctx.site.get(list_key))
+                works_to_remove = {
+                    seed.key
+                    for seed in old_series.get_seeds()
+                    if seed.key not in work_key_to_list_seed
+                }
+
+            works = cast(
+                list[Work],
+                web.ctx.site.get_many(
+                    list(work_key_to_list_seed) + list(works_to_remove)
+                ),
+            )
             for work in works:
-                list_seed = work_key_to_list_seed[work.key]
-                work_series_edge = work.find_series_edge(list_key)
-                already_has_series = bool(work_series_edge)
+                if work.key in works_to_remove:
+                    # Remove the series edge from the work
+                    work.remove_series_edge(list_key)
+                else:
+                    list_seed = work_key_to_list_seed[work.key]
+                    work_series_edge = work.find_series_edge(list_key)
+                    already_has_series = bool(work_series_edge)
 
-                if not work_series_edge:
-                    # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
-                    # these behave sort of the same, since a full `Thing` object is replaced with
-                    # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
-                    work_series_edge = cast(
-                        WorkSeriesEdgeDB, {'series': {'key': list_key}}
-                    )
+                    if not work_series_edge:
+                        # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
+                        # these behave sort of the same, since a full `Thing` object is replaced with
+                        # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
+                        work_series_edge = cast(
+                            WorkSeriesEdgeDB, {'series': {'key': list_key}}
+                        )
 
-                # Update the edge with any metadata from the list seed
-                update_list_seed_metadata(work_series_edge, list_seed)
+                    # Update the edge with any metadata from the list seed
+                    update_list_seed_metadata(work_series_edge, list_seed)
 
-                if not already_has_series:
-                    if not work.series:
-                        work.series = []
+                    if not already_has_series:
+                        if not work.series:
+                            work.series = []
 
-                    work.series.append(work_series_edge)
+                        work.series.append(work_series_edge)
 
                 # Cast is needed since the infogami code isn't typed yet
                 records_to_save.append(cast(dict, work.dict()))

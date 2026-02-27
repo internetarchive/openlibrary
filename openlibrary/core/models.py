@@ -691,6 +691,10 @@ class Work(Thing):
                 return s
         return None
 
+    def remove_series_edge(self, series_key: str) -> None:
+        series = self.series or []
+        self.series = [s for s in series if s['series']['key'] != series_key]
+
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.
 
