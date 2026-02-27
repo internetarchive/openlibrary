@@ -71,8 +71,13 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Submitting Issues
 
-[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki#using-github) and
+HEAD
+[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) and
 [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki#managed-labels-by-group)
+
+[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) and 
+[Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki#managed-labels-by-group) 
+
 explain how GitHub issues are triaged, labeled, and prioritized.
 
 ### Tagging
