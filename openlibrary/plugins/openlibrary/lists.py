@@ -64,6 +64,32 @@ class ListRecord:
     name: str = ''
     description: str = ''
     seeds: list[Seed] = field(default_factory=list)
+    comment_: str = ''
+
+    @staticmethod
+    def _flatten_seeds(
+        seeds: (
+            ThingReferenceDict
+            | AnnotatedSeedDict
+            | str
+            | list[Seed]
+            | tuple[Seed, ...]
+            | None
+        ),
+    ):
+        if seeds is None:
+            return
+        if isinstance(seeds, (list, tuple)):
+            for seed in seeds:
+                yield from ListRecord._flatten_seeds(seed)
+            return
+        if isinstance(seeds, str):
+            for seed in seeds.split(','):
+                stripped = seed.strip()
+                if stripped:
+                    yield stripped
+            return
+        yield seeds
 
     @staticmethod
     def normalize_input_seed(
@@ -131,14 +157,7 @@ class ListRecord:
 
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
-            # Seeds can be a list of seeds or a CSV string of seeds.
-            for seed_list in (
-                i['seeds'] if isinstance(i['seeds'], list) else [i['seeds']]
-            )
-            # Each element of seeds can be a CSV string of seeds
-            for seed in (
-                seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
-            )
+            for seed in ListRecord._flatten_seeds(i['seeds'])
         ]
         normalized_seeds = [
             seed
@@ -224,6 +243,8 @@ def get_list_data(list, seed, include_cover_url=True):
         {
             "name": list.name or "",
             "key": list.key,
+            "url": list.url(),
+            "add_url": list.url("/edit"),
             "active": list.has_seed(seed) if seed else False,
             "list_items": list_items,
         }
@@ -250,6 +271,37 @@ def get_user_lists(seed_info):
     user_lists = user.get_lists(sort=True)
     seed = seed_info['seed'] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
+
+
+def _seed_identifier(seed: Seed) -> str | None:
+    if isinstance(seed, str):
+        return seed
+    if isinstance(seed, dict):
+        if 'thing' in seed:
+            annotated_seed = cast(AnnotatedSeedDict, seed)
+            return annotated_seed['thing']['key']
+        thing_ref = cast(ThingReferenceDict, seed)
+        return thing_ref['key']
+    return None
+
+
+class account_user_lists(delegate.page):
+    path = r"/account/lists/user_lists"
+    encoding = "json"
+    content_type = "application/json"
+
+    @require_login
+    def GET(self):
+        user_lists = get_user_lists(None)
+        serializable_lists = []
+        for user_list in user_lists:
+            entry = dict(user_list)
+            if owner := entry.get("owner"):
+                entry["owner"] = dict(owner)
+            serializable_lists.append(entry)
+
+        web.header("Content-Type", self.content_type)
+        return delegate.RawText(json.dumps({"lists": serializable_lists}))
 
 
 @public
@@ -304,7 +356,7 @@ class lists(delegate.page):
 
 
 class lists_edit(delegate.page):
-    path = r"(/people/[^/]+)?(/lists/OL\d+L)/edit"
+    path = r"(/people/[^/]+)?(/lists/OL\d+L)(?:/[^/]+)?/edit"
 
     def GET(self, user_key: str | None, list_key: str):  # type: ignore[override]
         key = (user_key or '') + list_key
@@ -318,6 +370,39 @@ class lists_edit(delegate.page):
         lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
+
+        i = web.input(seeds=None)
+
+        if seeds_param := i.get('seeds'):
+            incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
+
+            existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
+            existing_identifiers = {
+                ident
+                for seed in existing_seed_json
+                if (ident := _seed_identifier(seed))
+            }
+
+            normalized_new_seeds = [
+                ListRecord.normalize_input_seed(seed) for seed in incoming_seeds
+            ]
+
+            combined_seeds: list[Seed] = list(existing_seed_json)
+            for seed in normalized_new_seeds:
+                identifier = _seed_identifier(seed)
+                if identifier and identifier not in existing_identifiers:
+                    combined_seeds.append(seed)
+                    existing_identifiers.add(identifier)
+
+            list_record = ListRecord(
+                key=lst.key,
+                name=lst.name or "",
+                description=lst.description or "",
+                seeds=combined_seeds,
+                comment_=getattr(lst, "comment_", ""),
+            )
+            return render_template("type/list/edit", list_record, new=False)
+
         return render_template("type/list/edit", lst, new=False)
 
     def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
@@ -372,20 +457,82 @@ class lists_add_account(delegate.page):
 
 
 class lists_add(delegate.page):
-    path = r"(/people/[^/]+)?/lists/add"
+    path = r"(/people/[^/]+)?/lists(?:/(OL\d+L)(?:/[^/]+)?)?/add"
 
-    def GET(self, user_key: str | None):  # type: ignore[override]
+    def GET(self, user_key: str | None, list_id: str | None):  # type: ignore[override]
+        i = web.input(seeds=None)
+
+        if list_id:
+            list_key = f"/lists/{list_id}"
+            if user_key:
+                list_key = f"{user_key}{list_key}"
+
+            lst = cast(List | None, web.ctx.site.get(list_key))
+            if lst is None or lst.type.key != "/type/list":
+                raise web.notfound()
+
+            if not web.ctx.site.can_write(list_key):
+                return render_template(
+                    "permission_denied",
+                    web.ctx.fullpath,
+                    f"Permission denied to edit {list_key}.",
+                )
+
+            seeds_param = i.get('seeds')
+            incoming_seeds = list(ListRecord._flatten_seeds(seeds_param))
+
+            existing_seed_json = [seed.to_json() for seed in lst.get_seeds()]
+            existing_identifiers = {
+                ident
+                for seed in existing_seed_json
+                if (ident := _seed_identifier(seed))
+            }
+
+            normalized_new_seeds = [
+                ListRecord.normalize_input_seed(seed) for seed in incoming_seeds
+            ]
+
+            combined_seeds: list[Seed] = list(existing_seed_json)
+            for seed in normalized_new_seeds:
+                identifier = _seed_identifier(seed)
+                if identifier and identifier not in existing_identifiers:
+                    combined_seeds.append(seed)
+                    existing_identifiers.add(identifier)
+
+            list_record = ListRecord(
+                key=lst.key,
+                name=lst.name or "",
+                description="",
+                seeds=combined_seeds,
+                comment_=getattr(lst, "comment_", ""),
+            )
+
+            current_path = web.ctx.path
+            if current_path.endswith("/add"):
+                action_path = lst.url("/edit")
+            else:
+                action_path = f"{lst.key}/edit"
+
+            return render_template(
+                "type/list/edit",
+                list_record,
+                new=False,
+                action=action_path,
+            )
+
         if user_key and not web.ctx.site.can_write(user_key):
             return render_template(
                 "permission_denied",
                 web.ctx.fullpath,
                 f"Permission denied to edit {user_key}.",
             )
+
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, new=True)
 
-    def POST(self, user_key: str | None):  # type: ignore[override]
-        return lists_edit().POST(user_key, None)
+    def POST(self, user_key: str | None, list_id: str | None):  # type: ignore[override]
+        list_key = f"/lists/{list_id}" if list_id else None
+        return lists_edit().POST(user_key, list_key)
 
 
 class lists_delete(delegate.page):
