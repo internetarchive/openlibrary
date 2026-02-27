@@ -230,8 +230,8 @@ async def update_keys(keys):
         count += len(chunk)
         await update.do_updates(chunk)
 
-        # Caches should not persist between different calls to update_keys!
-        update.data_provider.clear_cache()
+        # Cache is now cleared after each iteration in main(), not after each batch
+        # This allows cache reuse within a single call to update_keys()
 
     if count:
         logger.info("updated %d documents", count)
@@ -299,6 +299,10 @@ async def main(
         records = logfile.read_records()
         keys = parse_log(records, load_ia_scans)
         count = await update_keys(keys)
+
+        # Clear cache after processing all keys from this iteration
+        # This prevents unbounded cache growth while allowing cache reuse within update_keys()
+        update.data_provider.clear_cache()
 
         if logfile.tell() != offset:
             offset = logfile.tell()
