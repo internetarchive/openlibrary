@@ -254,3 +254,35 @@
   }
   /* stylelint-enable selector-max-specificity */
 }
+
+
+.floating-label {
+  position: relative;
+}
+
+.floating-label__text {
+  position: absolute;
+  border-radius: 4px;
+  transition: all 0.2s ease-out;
+  top: -8px;
+  left: 3px;
+  font-size: 11px;
+  background: var(--white);
+  padding: 0 4px;
+  white-space: nowrap;
+}
+
+/*
+  These use the new css :has selector for progressive enhancement of the
+  floating label. It hides the label when the placeholder is shown.
+*/
+/* stylelint-disable-next-line selector-max-specificity */
+.floating-label:has(:placeholder-shown):not(:focus-within) .floating-label__text {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.floating-label:focus-within:has(:placeholder-shown) input::placeholder {
+  opacity: 0;
+}

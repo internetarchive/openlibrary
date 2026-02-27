@@ -10,15 +10,37 @@ $jsdef render_series_autocomplete_item(item):
             <span class="name">$item.name</span>
         </div>
     $else:
-        $item.name
+        <div class="ac_work">
+            <div class="olid">$item.key</div>
+            <div>$item.name</div>
+        </div>
 
 $jsdef render_series(name_path, dict_path, readonly, i, series):
     <div class="input ac-input mia__input">
         $# detect-missing-i18n-skip-line
         <div class="mia__reorder">≡</div>
-        <input class="ac-input__visible" name="$name_path--$i" type="text" value="$series.name" $cond(readonly, 'readonly', '')>
+        <label class="floating-label mias__name">
+            <span class="floating-label__text">$_('Series name')</span>
+            <input
+                class="ac-input__visible floating-label__input"
+                name="$name_path--$i"
+                type="text"
+                value="$series.name"
+                $cond(readonly, 'readonly', '')
+                placeholder="$_('Series name')"
+            >
+        </label>
         <input class="ac-input__value" name="$dict_path--$i--series--key" type="hidden" value="$series.key" />
-        <input name="$dict_path--$i--position" value="$series.position" />
+        <label class="floating-label mias__position">
+            <span class="floating-label__text">$_('Series position')</span>
+            <input
+                class="floating-label__input"
+                name="$dict_path--$i--position"
+                type="text"
+                value="$series.position"
+                placeholder="$_('Series position')"
+            >
+        </label>
         <a class="mia__remove" href="javascript:;" title="$_('Remove this series')">[&times;]</a>&nbsp;
     </div>
 

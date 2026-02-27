@@ -5026,6 +5026,14 @@ msgid "Add a new series"
 msgstr ""
 
 #: books/series-autocomplete.html
+msgid "Series name"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Series position"
+msgstr ""
+
+#: books/series-autocomplete.html
 msgid "Remove this series"
 msgstr ""
 
