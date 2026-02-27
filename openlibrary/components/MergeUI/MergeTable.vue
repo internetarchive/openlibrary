@@ -328,7 +328,7 @@ export default {
 </script>
 
 <style>
-:root {
+:host {
   --row-height: 105px;
   --row-padding: 8px;
   --table-background: rgb(248, 248, 248);
