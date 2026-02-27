@@ -125,20 +125,27 @@ export class Carousel {
                 }
             });
 
-            document.addEventListener('filter', (ev) => {
-                loadMore.extraParams = {published_in: `${ev.detail.yearFrom}-${ev.detail.yearTo}`};
-
-                // Reset the page count - the result set is now 'new'
+            const handleGlobalFilterChange = (backendParams) => {
+                loadMore.extraParams = backendParams;
                 if (loadMore.pageMode === 'page') {
                     loadMore.page = 1;
                 } else {
                     loadMore.page = 0;
                 }
                 loadMore.allDone = false;
-
                 this.clearCarousel();
                 this.fetchPartials();
+            };
+
+            document.addEventListener('global-preferences-changed', (ev) => {
+                const backendParams = mapPreferencesToBackend(ev.detail);
+                handleGlobalFilterChange(backendParams);
             });
+
+            // On initial load, fetch with global preferences
+            const initialPrefs = getGlobalPreferences();
+            const initialBackendParams = mapPreferencesToBackend(initialPrefs);
+            handleGlobalFilterChange(initialBackendParams);
         }
     }
 

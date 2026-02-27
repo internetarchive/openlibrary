@@ -6248,7 +6248,7 @@ msgstr ""
 msgid "GitHub"
 msgstr ""
 
-#: lib/nav_foot.html site/alert.html
+#: lib/nav_foot.html
 msgid "Change Website Language"
 msgstr ""
 

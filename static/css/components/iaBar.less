@@ -1,15 +1,11 @@
 /* GLOBAL TOP NOTICE */
-// (Internet Archive Bar)
-@import "components/buttonGhost.less";
+@import "buttonGhost.less";
 
 .iaBar {
   display: flex;
   max-width: 1060px;
   margin: 0 auto;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
-  // This is to right align the donate button and language dropdown
   .iaLogo {
     flex: 1;
     img {
@@ -18,14 +14,230 @@
       width: 100%;
     }
   }
-  .ghost-btn {
-    margin-right: 20px;
+}
+
+/* Normalize and style both <a> and <button> for Donate and Filter buttons */
+.iaBar .ghost-btn {
+  width: 75.56px;
+  height: 26.4px;
+  background-color: transparent !important; /* Ensure transparent in dark banner */
+  color: @white !important; /* Override browser or inherited styles */
+  font-size: 14.4px !important; /* Override #topNotice 0.9em */
+  font-family:
+    "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif !important;
+  font-weight: 500 !important; /* Override #topNotice font-weight: 100 */
+  margin: 0 20px 0 0 !important;
+  padding: 0.2rem 0.4rem !important; /* 3.2px 6.4px */
+  border: 1px solid @mid-grey !important;
+  border-radius: 5px !important;
+  cursor: pointer;
+  text-align: center;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1; /* Normalize text alignment */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  &:hover {
+    background-color: rgba(
+      255,
+      255,
+      255,
+      0.2
+    ) !important; /* Stronger hover effect */
+  }
+
+  &:focus {
+    outline: 1px solid @white !important;
+    outline-offset: 1px;
+  }
+
+  &.active {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: @white !important;
+    color: @white !important;
+  }
+
+  img,
+  .heart {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    object-fit: contain;
+    margin-right: 4px;
   }
 }
-// Changes color of heart unicode character
+
 .heart {
   color: @heart-color;
   font-size: 1em;
+}
+
+/* Filter panel styling */
+#filter-panel {
+  position: fixed;
+  top: 45px; /* Position below the IA bar */
+  right: 0;
+  width: 320px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-top: none;
+  box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  max-height: calc(100vh - 45px);
+  overflow-y: auto;
+}
+
+#filter-panel.show {
+  transform: translateX(0);
+}
+
+#filter-panel.hidden {
+  transform: translateX(100%);
+}
+
+.filter-header {
+  background: #f8f9fa;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-header h2 {
+  font-size: 18px;
+  color: #333;
+  margin: 0;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #e9ecef;
+  color: #000;
+}
+
+.preference-panel {
+  padding: 20px;
+}
+
+.preference-panel label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+
+.preference-panel label:first-child {
+  margin-top: 0;
+}
+
+.dropdown-menu {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+.dropdown-menu:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.language-field {
+  margin-top: 20px;
+}
+
+.language-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.time-range-inputs {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.time-range-inputs input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.time-range-inputs input:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.time-range-inputs input::placeholder {
+  color: #999;
+}
+
+.save-btn {
+  width: 100%;
+  background: #4a90e2;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 25px;
+  transition: background-color 0.2s ease;
+}
+
+.save-btn:hover {
+  background: #357abd;
+}
+
+.save-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+}
+
+/* Override inherited styles from #topNotice */
+#topNotice .ghost-btn {
+  font-size: 14.4px !important;
+  font-weight: 500 !important;
 }
 
 /* stylelint-disable selector-max-specificity */
@@ -45,7 +257,6 @@
       padding-right: 8px;
       text-decoration: none;
       color: @white;
-      // stylelint-disable-next-line max-nesting-depth
       &:hover {
         color: @white;
       }
@@ -57,12 +268,13 @@
 
   @media only screen and (max-width: @width-breakpoint-mobile) {
     .iabar-mobile {
-      font-size: 0.9em;
+      font-size: 0.9em !important;
+      padding: 5px 7px !important;
+      margin: 0 10px !important;
     }
-    .ghost-btn.iabar-mobile {
-      padding: 5px 7px;
-      margin-right: 10px;
-      margin-left: 10px;
+    .filter-panel {
+      width: 100%;
+      right: 0;
     }
   }
 }
