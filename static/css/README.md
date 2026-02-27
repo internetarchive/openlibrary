@@ -1,23 +1,31 @@
-ATTENTION: This folder is currently being re-organised. Apologies
-in advance for any confusion!
+# CSS Architecture
 
-All files in this folder with the '.less' extension specify entry points for CSS files.
+All files in this folder with the `page-` prefix are **entry points** — each one corresponds to a page type and is compiled by webpack into a standalone CSS bundle.
 
-There are 2 exceptions:
-* legacy.less (kept for legacy reasons - soon to be removed)
-* common.less (a common set of styles that should apply to all pages)
+## Entry points
 
-## Render blocking CSS
-LESS files that begin with the 'page-' prefix specify CSS files which will be loaded in the head of a document as render blocking CSS. Be careful when adding CSS to these files.
+Entry point files (e.g., `page-home.css`, `page-book.css`) use `@import` to pull in component styles from the `components/`, `base/`, and `layout/` subdirectories.
 
-## CSS loaded via JavaScript
-LESS files that begin with the 'js-' prefix specify CSS files which will be loaded in the document via JavaScript. By design they will not block a page from rendering.
+## Render-blocking CSS
 
-# Components
+Entry points prefixed with `page-` are loaded in the `<head>` of the document and are render-blocking. Be mindful of file size when adding imports to these files.
 
-Groups of styles make up a "component". A "component" is a feature of a page.
+## Components
 
-If you are designing a component, please place the CSS for that component inside the components folder and reference it from one or more of the entry points.
+Groups of styles make up a "component" — a self-contained feature of a page.
 
-Note that all.less is an entry point for styles that load on all pages.
-If a component is referenced in 'all.less' it should not be referenced in any of the other LESS files.
+If you are building a new component, create a CSS file inside the `components/` folder and reference it via `@import` from the appropriate `page-*.css` entry point(s).
+
+## Design tokens
+
+Shared values (colors, spacing, font sizes, breakpoints) are defined as CSS custom properties in `tokens.css`, which is loaded globally in the `<head>`.
+
+## Build
+
+CSS is compiled via webpack (`webpack.config.css.js`). Run:
+
+    make css
+
+To watch for changes during development:
+
+    npm run watch:css

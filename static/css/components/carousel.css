@@ -1,0 +1,215 @@
+:root {
+  --height-blank-cover: 200px;
+  --height-cover-compact: 125px;
+}
+
+/**
+ * Carousel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
+ */
+
+/* Badly named. Should be renamed "carousel-heading" or similar. */
+.home-h2 {
+  font-size: var(--font-size-title-medium);
+  font-weight: normal;
+  color: var(--link-blue);
+  margin-bottom: 0.5em;
+  margin-top: 1.75em;
+}
+
+.carousel-container,
+.lazy-carousel {
+  margin: 0 -20px;
+  padding: 3px 15px;
+}
+
+.carousel {
+  display: flex;
+  margin-bottom: 15px;
+  overflow-x: scroll;
+  padding: 10px 20px;
+}
+
+.carousel.carousel--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-gap: 30px 20px;
+  padding: 10px;
+
+  /* Fallback for non-grid browsers */
+  flex-wrap: wrap;
+}
+
+.carousel a,
+.carousel a:link {
+  text-decoration: none;
+}
+
+.carousel__item {
+  padding: 2px;
+  float: left;
+  height: 100%;
+  margin: 0 10px;
+  min-height: 1px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* :focus state for when selected */
+/* e.g. "pick one of existing covers" on change cover. */
+/* Is .selected redundant? */
+.carousel__item:focus,
+.carousel__item.selected {
+  border: 5px solid var(--orange);
+  outline: 0;
+}
+
+.carousel.carousel--grid .carousel__item {
+  margin: 0; /* Handled by grid gap */
+}
+
+/* Modifiers */
+/* A smaller carousel. */
+.carousel--minimal img {
+  max-height: 100px;
+  width: auto;
+}
+
+.carousel > div {
+  min-width: 130px;
+}
+
+/* JavaScript only block, but needed to avoid reflows */
+/* Without, on slower connections, there will be a flash when buttons */
+/* are added. */
+.carousel button {
+  border: 0;
+  position: absolute;
+  color: transparent;
+}
+
+.carousel .book:last-child {
+  margin-right: 0;
+}
+
+.carousel .book .book-metadata {
+  width: 130px;
+  margin: 0 auto;
+}
+
+/*h2*/
+.carousel .book .book-title {
+  font-size: 0.8em;
+  margin: 5px 0;
+  color: var(--dark-grey);
+  font-weight: normal;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.carousel .book .book-title a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+.carousel__item .slick-loading {
+  opacity: 0;
+}
+
+/**
+ * Carousel (decorated)
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#decorated-carousel
+ */
+
+.carousel-container-decorated {
+  background: var(--book-cover-carousel-background);
+  border-bottom: 1px solid var(--book-cover-carousel-border-bottom);
+  border-top: 1px solid var(--book-cover-carousel-border-top);
+}
+
+/* TODO: Document where this is used. This is unlikely to need to be so specific. */
+.carousel-section .SRPCover img {
+  box-shadow: 1px 2px 5px 0 var(--book-cover-shadow-color);
+}
+
+/* Hide horizontal scroll bar if JS is going to be loaded */
+.client-js .carousel {
+  margin-bottom: 0;
+  /* hide the overlay until carousel--js has loaded */
+  overflow: hidden;
+}
+
+.carousel__item__blankcover {
+  position: relative;
+  padding: 33% 10px 10px;
+  text-align: center;
+  background: var(--lighter-grey);
+  font-size: 1em;
+  color: var(--black);
+  height: var(--height-blank-cover);
+}
+
+/* White border */
+.carousel__item__blankcover::before {
+  content: "";
+  display: block;
+  position: absolute;
+  border: 2px solid hsla(0, 0%, 100%, 0.5);
+  /* stylelint-disable declaration-block-no-redundant-longhand-properties */
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  /* stylelint-enable declaration-block-no-redundant-longhand-properties */
+  margin: 10px;
+}
+
+.carousel__item__blankcover--title {
+  position: relative;
+  font-size: 0.9em;
+}
+
+.carousel__item__blankcover--authors {
+  position: relative;
+  color: var(--dark-grey-two);
+  padding: 4px 4px 0;
+  font-size: 0.6875em;
+  font-style: oblique;
+}
+
+.carousel--compact .book .book-cover {
+  height: var(--height-cover-compact);
+}
+
+.carousel--compact .book .bookcover {
+  height: var(--height-cover-compact);
+}
+
+.carousel--compact .carousel__item__blankcover {
+  height: var(--height-cover-compact);
+  padding: 20% 10px 10px;
+  margin: 0 auto;
+}
+
+/* Styles for lazy-loading carousel placeholder element */
+.lazy-carousel {
+  /* Same height as the loaded carousel to avoid layout shift */
+  height: 278.6px;
+  background: var(--book-cover-carousel-background);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.lazy-carousel .loadingIndicator {
+  border: 1px var(--grey) solid;
+  width: 80%;
+  margin: 0 auto;
+}
+
+.lazy-carousel-retry,
+.lazy-carousel-fallback {
+  border: 1px var(--grey) solid;
+  background: var(--lightest-grey);
+  margin: 0 auto;
+  padding: 20px;
+}

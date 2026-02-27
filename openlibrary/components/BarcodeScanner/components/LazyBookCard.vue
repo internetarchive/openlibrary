@@ -76,7 +76,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style>
   @keyframes pulse {
     0% { opacity: 0; }
     100% { opacity: .95; }
@@ -98,54 +98,52 @@ export default {
     position: relative;
     transition-property: background-color border-color;
     transition-duration: .2s;
-
-    &:first-child { animation: slideUp .8s; }
-    &:nth-child(2) { animation: shiftRight .8s; }
-    &:hover {
-      background: lighten(hsl(240, 100%, 50%), 45%);
-      border-color: lighten(hsl(240, 100%, 50%), 15%);
-      color: lighten(hsl(240, 100%, 50%), 10%);
-    }
-    &::before {
-      display: none;
-      content: "";
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border-radius: 100px;
-      margin: 10px;
-      right: 0;
-    }
-    &.loading::before {
-      display: block;
-      background: hsl(240, 100%, 50%);
-      opacity: 0;
-      animation: pulse .5s infinite alternate;
-      // Only show loading animation if it takes
-      // longer than this
-      animation-delay: .5s;
-    }
-    &.errored::before {
-      display: block;
-      background: hsl(8, 78%, 49%);
-    }
-    .title { font-weight: bold; line-height: 1.1em; }
-    .byline { font-size: .9em; margin-top: .1em; }
-    .cover {
-      width: 25%;
-      img { width: 100%; height: 100%; object-fit: cover; }
-    }
-    .identifier {
-      margin-top: 4px;
-      padding-top: 4px;
-      color: hsl(0, 0%, 33%);
-      border-top: 1px dotted;
-      font-family: monospace;
-      font-size: 1.2em;
-    }
-    .info {
-      flex: 1;
-      padding: 8px;
-    }
+  }
+  a.lazy-book-card:first-child { animation: slideUp .8s; }
+  a.lazy-book-card:nth-child(2) { animation: shiftRight .8s; }
+  a.lazy-book-card:hover {
+    background: hsl(240, 100%, 95%);
+    border-color: hsl(240, 100%, 65%);
+    color: hsl(240, 100%, 60%);
+  }
+  a.lazy-book-card::before {
+    display: none;
+    content: "";
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 100px;
+    margin: 10px;
+    right: 0;
+  }
+  a.lazy-book-card.loading::before {
+    display: block;
+    background: hsl(240, 100%, 50%);
+    opacity: 0;
+    animation: pulse .5s infinite alternate;
+    /* Only show loading animation if it takes longer than this */
+    animation-delay: .5s;
+  }
+  a.lazy-book-card.errored::before {
+    display: block;
+    background: hsl(8, 78%, 49%);
+  }
+  a.lazy-book-card .title { font-weight: bold; line-height: 1.1em; }
+  a.lazy-book-card .byline { font-size: .9em; margin-top: .1em; }
+  a.lazy-book-card .cover {
+    width: 25%;
+  }
+  a.lazy-book-card .cover img { width: 100%; height: 100%; object-fit: cover; }
+  a.lazy-book-card .identifier {
+    margin-top: 4px;
+    padding-top: 4px;
+    color: hsl(0, 0%, 33%);
+    border-top: 1px dotted;
+    font-family: monospace;
+    font-size: 1.2em;
+  }
+  a.lazy-book-card .info {
+    flex: 1;
+    padding: 8px;
   }
 </style>

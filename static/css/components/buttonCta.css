@@ -1,0 +1,283 @@
+/**
+ * CtaBtn
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
+ */
+
+/* `a` specificity is needed to override default anchor styles */
+.cta-btn,
+a.cta-btn {
+  font-size: var(--font-size-label-large);
+  color: var(--white);
+  width: 100%;
+  display: block;
+  border: 0;
+  border-radius: 5px;
+  margin-top: 5px;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: var(--body-family);
+  text-align: center;
+  padding: 7px;
+  white-space: nowrap;
+  background-color: var(--grey);
+  line-height: 1.5em;
+  text-decoration: none;
+
+  transition: background-color 0.2s;
+}
+
+.cta-btn .btn-icon,
+a.cta-btn .btn-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* stylelint-disable selector-max-specificity */
+.cta-btn .btn-icon.read-aloud,
+a.cta-btn .btn-icon.read-aloud {
+  background-image: url(/static/images/icons/read%20aloud.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+/* stylelint-enable selector-max-specificity */
+
+.cta-btn .btn-label,
+a.cta-btn .btn-label {
+  padding: 8px;
+  padding-right: 0;
+}
+
+.cta-btn:link,
+.cta-btn:visited,
+a.cta-btn:link,
+a.cta-btn:visited {
+  color: var(--white);
+  text-decoration: none;
+}
+
+.cta-btn--no-pointer,
+a.cta-btn--no-pointer {
+  cursor: default;
+}
+
+.cta-btn--available,
+.cta-btn--preview,
+.cta-btn--primary,
+a.cta-btn--available,
+a.cta-btn--preview,
+a.cta-btn--primary {
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.cta-btn--available:hover,
+.cta-btn--preview:hover,
+.cta-btn--primary:hover,
+a.cta-btn--available:hover,
+a.cta-btn--preview:hover,
+a.cta-btn--primary:hover {
+  background-color: hsl(202, 96%, 17%);
+}
+
+.cta-btn--available:disabled,
+.cta-btn--preview:disabled,
+.cta-btn--primary:disabled,
+a.cta-btn--available:disabled,
+a.cta-btn--preview:disabled,
+a.cta-btn--primary:disabled {
+  background-color: var(--grey);
+  cursor: default;
+}
+
+.cta-btn--external,
+a.cta-btn--external {
+  background-image: url(/static/images/icons/octicon-link-external-24.svg);
+  background-repeat: no-repeat;
+  background-size: 20px;
+  background-position: center right 8px;
+  justify-content: center;
+}
+
+.cta-btn--unavailable,
+a.cta-btn--unavailable {
+  background-color: var(--primary-blue);
+  color: var(--white);
+}
+
+.cta-btn--unavailable:hover,
+a.cta-btn--unavailable:hover {
+  background-color: hsl(202, 96%, 17%);
+}
+
+.cta-btn--shell.cta-btn--external,
+a.cta-btn--shell.cta-btn--external {
+  background-blend-mode: difference;
+}
+
+.cta-btn--shell,
+.cta-btn--shell:link,
+.cta-btn--shell:visited,
+a.cta-btn--shell,
+a.cta-btn--shell:link,
+a.cta-btn--shell:visited {
+  background-color: var(--white);
+  border: 2px solid var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.cta-btn--shell:disabled,
+a.cta-btn--shell:disabled {
+  border: 2px solid var(--light-grey);
+  color: var(--light-grey);
+  cursor: default;
+}
+
+.cta-btn--sponsor,
+a.cta-btn--sponsor {
+  border: 2px solid var(--link-blue);
+  background: hsl(202, 40%, 95%);
+}
+
+.cta-btn--vanilla,
+.cta-btn--vanilla:visited,
+.cta-btn--vanilla:link,
+a.cta-btn--vanilla,
+a.cta-btn--vanilla:visited,
+a.cta-btn--vanilla:link {
+  padding: 5px;
+  border: 2px solid var(--light-grey);
+  background: var(--white);
+  color: var(--grey);
+  border-radius: 6px;
+}
+
+.cta-btn--unstyled,
+.cta-btn--unstyled:visited,
+.cta-btn--unstyled:link,
+a.cta-btn--unstyled,
+a.cta-btn--unstyled:visited,
+a.cta-btn--unstyled:link {
+  padding: 7px;
+  background: var(--white);
+  color: var(--grey);
+  border-radius: 6px;
+}
+
+.cta-btn--delete,
+.cta-btn--cancel,
+a.cta-btn--delete,
+a.cta-btn--cancel {
+  background-color: var(--red);
+}
+
+.cta-btn--delete:visited,
+.cta-btn--cancel:visited,
+a.cta-btn--delete:visited,
+a.cta-btn--cancel:visited {
+  color: var(--grey);
+}
+
+.cta-btn--delete:hover,
+.cta-btn--cancel:hover,
+a.cta-btn--delete:hover,
+a.cta-btn--cancel:hover {
+  background-color: hsl(8, 78%, 29%);
+}
+
+.cta-btn.cta-btn--w-icon,
+a.cta-btn.cta-btn--w-icon {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+.cta-btn--sponsor:link,
+.cta-btn--sponsor:visited,
+a.cta-btn--sponsor:link,
+a.cta-btn--sponsor:visited {
+  color: var(--link-blue);
+}
+
+.cta-btn--sponsor:hover,
+a.cta-btn--sponsor:hover {
+  border: 2px solid var(--link-blue);
+  background-color: var(--link-blue);
+  color: var(--white);
+}
+
+.cta-btn__badge,
+a.cta-btn__badge {
+  background-color: hsl(19, 95%, 20%);
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 0.7em;
+}
+
+/* Button inside carousel */
+.carousel-section .cta-btn {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-label-large);
+  text-align: center;
+}
+
+.carousel-section .cta-btn.cta-btn--external {
+  padding-right: 25px;
+}
+
+/* Top margin to button coming after another button */
+.cta-btn + form input.cta-btn,
+.cta-btn + .cta-btn {
+  margin-top: 5px;
+}
+
+.cta-btn--small {
+  font-size: var(--font-size-label-medium);
+  padding: 5px 10px;
+}
+
+.cta-btn--search {
+  width: auto;
+  display: inline-block;
+  margin: 0;
+  border: 1px solid var(--dark-beige);
+  background-color: var(--light-beige);
+  color: var(--grey);
+}
+
+.waitinglist-message {
+  text-align: center;
+}
+
+.cta-button-group {
+  display: flex;
+  position: relative;
+}
+
+.cta-button-group .cta-btn {
+  padding: 8px;
+  margin: 0;
+
+  /* Avoid text wrapping */
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-button-group > .cta-btn:first-child:not(:last-child) {
+  border-radius: 6px 2px 2px 6px;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-button-group > .cta-btn:not(:first-child):not(:last-child) {
+  margin-left: 1px;
+  border-radius: 2px;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.cta-button-group > .cta-btn:last-child:not(:first-child) {
+  margin-left: 1px;
+  border-radius: 2px 6px 6px 2px;
+}

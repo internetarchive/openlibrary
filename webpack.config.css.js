@@ -1,20 +1,28 @@
 /* eslint-env node, es6 */
 /*
- * Webpack config for compiling Less files to independent CSS files in static/build/
+ * Webpack config for compiling CSS entry points to independent CSS files in static/build/
+ *
+ * All page-*.css entry points use native CSS with custom properties (var(--token)).
+ * css-loader resolves @import statements, and css-minimizer-webpack-plugin handles
+ * minification.
+ *
+ * Design tokens are defined in static/css/tokens.css and loaded separately in <head>.
  */
 const path = require('path');
 const glob = require('glob');
-const { execSync } = require('child_process');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const LessPluginCleanCss = require('less-plugin-clean-css');
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const distDir = path.resolve(__dirname, process.env.BUILD_DIR || 'static/build/css');
 
-// Find all Less files matching static/css/page-*.less
-const lessFiles = glob.sync('./static/css/page-*.less');
-const entries = {};
-lessFiles.forEach(file => {
-    // e.g. page-home.less -> page-home
-    const name = path.basename(file, '.less');
+// Find all CSS entry files matching static/css/page-*.css
+const cssFiles = glob.sync('./static/css/page-*.css');
+const entries = {
+    // Design tokens — compiled from static/css/tokens/ into a single file
+    tokens: './static/css/tokens.css',
+};
+
+cssFiles.forEach(file => {
+    const name = path.basename(file, '.css');
     entries[name] = file;
 });
 
@@ -30,29 +38,14 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.less$/,
+                test: /\.css$/,
                 use: [
                     MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
-                        options: { url: false }
-                    },
-                    {
-                        loader: 'less-loader',
                         options: {
-                            lessOptions: {
-                                paths: [
-                                    path.resolve(__dirname, 'static/css'),
-                                    path.resolve(__dirname, 'static/css/components'),
-                                ],
-                                plugins: [
-                                    new LessPluginCleanCss({
-                                        advanced: true,
-                                        compatibility: '*',
-                                        keepSpecialComments: 0
-                                    })
-                                ]
-                            }
+                            url: false,
+                            import: true // Enable @import resolution
                         }
                     }
                 ]
@@ -60,23 +53,6 @@ module.exports = {
         ]
     },
     plugins: [
-        // Re-generate CSS custom properties from LESS variables before each build.
-        // Ensures generated-custom-properties.css stays in sync during watch mode.
-        {
-            apply: (compiler) => {
-                compiler.hooks.beforeCompile.tap('GenerateCSSVarsPlugin', () => {
-                    try {
-                        execSync('node scripts/generate-css-custom-properties.js', {
-                            stdio: 'inherit',
-                            cwd: __dirname,
-                        });
-                    } catch (e) {
-                        // eslint-disable-next-line no-console
-                        console.error('Failed to generate CSS custom properties:', e.message);
-                    }
-                });
-            }
-        },
         new MiniCssExtractPlugin({
             filename: '[name].css',
         }),
@@ -102,6 +78,9 @@ module.exports = {
         }
     ],
     optimization: {
+        minimizer: [
+            new CssMinimizerPlugin(),
+        ],
         runtimeChunk: false,
         splitChunks: false,
     },

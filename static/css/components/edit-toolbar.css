@@ -1,0 +1,38 @@
+/**
+ * EditToolbar component
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#edit-toolbar
+ */
+
+/* stylelint-disable selector-max-specificity */
+div#editTools,
+div#editHistory {
+  width: auto;
+}
+
+div.editButton {
+  width: auto;
+  display: inline-block;
+}
+
+div#editInfo {
+  float: right;
+  white-space: normal;
+  text-align: right;
+}
+
+div#editInfo > div {
+  font-size: var(--font-size-label-small);
+  font-weight: normal;
+  color: var(--brown) !important;
+  font-family: var(--body-family);
+}
+
+div#editInfo .smallest {
+  padding-top: 0.3rem;
+}
+
+div#editTools {
+  white-space: nowrap;
+  padding: 0 0 1rem;
+}
+/* stylelint-enable selector-max-specificity */

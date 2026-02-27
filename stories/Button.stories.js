@@ -1,5 +1,5 @@
-import '../static/css/components/buttonCta.less';
-import '../static/css/components/buttonCta--js.less';
+import '../static/css/components/buttonCta.css';
+import '../static/css/components/buttonCta--js.css';
 
 export default {
     title: 'Legacy/Button'

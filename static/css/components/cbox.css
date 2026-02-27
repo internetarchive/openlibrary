@@ -1,0 +1,416 @@
+/* For changes in this file to take effect you must run make js instead of the usual make css because this is imported by the index.js */
+/* stylelint-disable selector-max-specificity */
+
+/* COLORBOX POP-UP */
+#colorbox,
+#cboxOverlay,
+#cboxWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--z-index-level-17);
+}
+
+#colorbox {
+  outline: none;
+  box-sizing: content-box;
+}
+
+#colorbox > * {
+  box-sizing: content-box;
+}
+
+/* In lightboxes for displaying current cover, important the image */
+/* is not larger than available space. */
+#colorbox img {
+  height: auto;
+}
+
+#colorbox img,
+#colorbox iframe {
+  width: 100%;
+}
+
+#colorbox img.cover {
+  border-radius: 5px;
+  box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
+}
+
+#cboxOverlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+  filter: alpha(opacity=50);
+  background-color: var(--black);
+}
+
+#cboxMiddleLeft,
+#cboxBottomLeft {
+  clear: left;
+}
+
+#cboxTitle {
+  margin: 0;
+  display: none !important;
+}
+
+#cboxLoadingOverlay,
+#cboxLoadingGraphic {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  width: 100%;
+}
+
+#cboxPrevious,
+#cboxNext,
+#cboxClose,
+#cboxSlideshow {
+  cursor: pointer;
+}
+
+#cboxContent {
+  box-sizing: content-box;
+  position: relative;
+  background: var(--white);
+  padding: 10px;
+  border: 1px solid var(--dark-beige);
+  border-radius: var(--border-radius-overlay);
+  -webkit-box-shadow: 1px 3px 5px var(--darker-grey);
+  box-shadow: 1px 3px 5px var(--darker-grey);
+}
+
+#cboxLoadedContent {
+  background: var(--white);
+  margin: 0;
+  overflow: visible !important;
+}
+
+#cboxLoadedContent iframe {
+  display: block;
+  border: 0;
+}
+
+#cboxLoadingOverlay {
+  background: transparent;
+}
+
+#cboxClose {
+  display: none !important;
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  background-image: url(/images/icons/icon_close-pop.png);
+  background-position: 0 0;
+  background-repeat: no-repeat;
+}
+
+#cboxClose:hover {
+  background-position: 0 -32px;
+}
+
+.dialog--close {
+  color: var(--dark-grey);
+  font-size: 1.2em;
+  /* Increase clickable area to the recommended size (44x44px) according to */
+  /* https://www.w3.org/WAI/WCAG21/Understanding/target-size.html */
+  /* but avoid modifying the UI */
+  display: inline-block;
+  position: relative;
+  z-index: var(--z-index-level-1);
+  padding: 11px 17px;
+  margin: -11px -17px;
+}
+
+.dialog--close:visited,
+.dialog--close:link,
+.dialog--close:hover {
+  text-decoration: none;
+}
+
+/* VIEW LARGER COVER POP-UP */
+div.coverFloat {
+  font-family: var(--body-family);
+  background: var(--white);
+  text-align: left;
+}
+
+div.coverFloat a.dialog--close:hover {
+  background-position: 0 -16px;
+}
+
+div.coverFloatHead {
+  display: flex;
+}
+
+div.coverFloatHead h2 {
+  font-weight: normal;
+  color: var(--dark-grey);
+  font-size: 1em;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+/* ADD IMAGE/COVER POP-UP */
+div.floater {
+  position: relative;
+  font-family: var(--body-family);
+  min-height: 675px;
+  background: var(--white);
+  text-align: left;
+}
+
+div.floaterHead {
+  display: flex;
+  padding: 10px 5px;
+}
+
+div.floaterHead h2 {
+  font-weight: normal;
+  text-align: center;
+  color: var(--dark-grey);
+  font-size: 1.25em;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+
+div.floaterHead.right-justify {
+  justify-content: right;
+}
+
+div.floaterBody {
+  padding: 20px;
+  font-size: var(--font-size-label-large);
+}
+
+div.floaterBody p {
+  margin-bottom: 14px;
+}
+
+.floatform,
+.ol-cover-form {
+  font-family: var(--body-family);
+}
+
+.floatform button[type="submit"],
+.ol-cover-form button[type="submit"] {
+  font-size: 1em;
+  width: auto;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.floatform .label,
+.ol-cover-form .label {
+  padding-bottom: 5px;
+}
+
+.floatform .label label,
+.ol-cover-form .label label {
+  font-size: 1em;
+  font-family: var(--body-family);
+  font-weight: 700;
+}
+
+.floatform .label span,
+.ol-cover-form .label span {
+  font-weight: normal;
+}
+
+.floatform input[type="text"],
+.floatform input[type="url"],
+.floatform input[type="file"],
+.ol-cover-form input[type="text"],
+.ol-cover-form input[type="url"],
+.ol-cover-form input[type="file"] {
+  font-size: 1.125em;
+  font-family: var(--body-family);
+  padding: 3px;
+}
+
+.floatform input::file-selector-button,
+.ol-cover-form input::file-selector-button {
+  cursor: pointer;
+}
+
+.floatform a,
+.ol-cover-form a {
+  cursor: pointer;
+}
+
+.ol-cover-form {
+  background-color: var(--lightest-grey);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.ol-cover-form .input {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.ol-cover-form .input > :first-child {
+  flex: 1;
+}
+
+.ol-cover-form button[type="submit"] {
+  margin-top: 0;
+}
+
+.ol-cover-form .carousel-container {
+  padding: 10px 0;
+  margin: 0;
+  border-radius: 10px;
+}
+
+.ol-cover-form .carousel {
+  padding: 0;
+}
+
+.ol-cover-form .carousel__item {
+  margin: 0;
+}
+
+.ol-cover-form .book-cover {
+  height: auto;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ol-cover-form .carousel .cta-btn {
+  color: var(--grey);
+  border: 2px solid var(--light-grey);
+  border-radius: 6px;
+  position: relative;
+}
+
+.ol-cover-form--external a {
+  text-decoration: none;
+}
+
+.ol-cover-form--external .ol-cover-form--external_image {
+  display: block;
+}
+
+.ol-cover-form--external .input {
+  flex-direction: column;
+}
+
+.ol-cover-form--external .input-container {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+}
+
+.ol-cover-form--external button[type="submit"] {
+  width: 135px;
+}
+
+#coverFile {
+  min-width: 1px;
+}
+
+.dialog--close-parent {
+  cursor: pointer;
+}
+
+div#covers.input {
+  max-height: 132px;
+  overflow: hidden;
+  margin-left: -80px;
+  text-align: center;
+}
+
+.floatform__body {
+  width: 100%;
+  position: relative;
+}
+
+.floatform__body .carousel-section {
+  padding: 0 20px;
+}
+
+div.imageIntro {
+  margin: 0 0 10px;
+}
+
+/* ADD ROLES, ETC. */
+div.floaterAdd {
+  position: relative;
+  font-family: var(--body-family);
+  background: var(--white);
+  text-align: left;
+}
+
+div.floaterAdd .formElement {
+  margin: 0 20px;
+}
+
+div.floaterAdd form.floatform .input {
+  padding-top: 5px;
+}
+
+div.floaterAdd form.floatform .label {
+  padding-top: 20px;
+}
+
+/* stylelint-disable-next-line max-nesting-depth */
+div.floaterAdd form.floatform .label label {
+  font-size: 1em;
+  font-family: var(--body-family);
+  font-weight: 700;
+}
+
+div.floaterAdd form.floatform input[type="text"],
+div.floaterAdd form.floatform textarea {
+  margin-left: 0;
+}
+
+div.floaterAdd form.floatform textarea {
+  padding: 3px;
+  resize: none;
+}
+
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+  .floatform div#covers.input,
+  .floatform .label,
+  .floatform .input {
+    width: 560px;
+    padding-top: 20px;
+  }
+
+  .floatform > div {
+    margin: 0 80px;
+    text-align: left;
+  }
+
+  .floatform input[type="text"],
+  .floatform input[type="url"],
+  .floatform input[type="file"] {
+    width: 350px;
+  }
+
+  div.imageIntro {
+    margin: 10px;
+  }
+
+  .floatform__body > div {
+    margin: 0 80px;
+  }
+
+  div.floaterAdd .input,
+  div.floaterAdd .label,
+  div.floaterAdd input[type="text"],
+  div.floaterAdd input[type="url"],
+  div.floaterAdd textarea {
+    width: 560px;
+    resize: none;
+  }
+}

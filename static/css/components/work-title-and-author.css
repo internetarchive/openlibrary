@@ -1,0 +1,149 @@
+/* mobile first */
+.work-title-and-author.desktop {
+  display: none;
+}
+
+.work-title-and-author > span {
+  min-width: 1%;
+}
+
+.work-title-and-author h1 {
+  line-height: normal;
+}
+
+.work-title-and-author h1.work-title {
+  font-family: var(--font-family-title);
+  margin: 10px 0 0;
+  color: var(--dark-grey);
+  font-size: var(--font-size-headline-large);
+  overflow-wrap: break-word;
+}
+
+.work-title-and-author h2.work-subtitle {
+  font-family: var(--font-family-subtitle);
+  margin: 0;
+  color: var(--grey);
+  font-size: 1.3em;
+  font-weight: normal;
+  font-style: italic;
+}
+
+.work-title-and-author h2.edition-byline {
+  font-size: var(--font-size-title-medium);
+  font-weight: normal;
+  color: var(--dark-grey);
+  margin: 10px 0 20px;
+  line-height: var(--line-height-meta);
+}
+
+.work-title-and-author .work-line {
+  font-style: oblique;
+  color: var(--grey);
+}
+
+.work-title-and-author .work-line a {
+  color: var(--grey);
+}
+
+.work-title-and-author .first-published-date {
+  color: var(--grey);
+  font-size: var(--font-size-label-medium);
+}
+
+/* desktop */
+@media only screen and (min-width: 960px) {
+  .work-title-and-author.mobile {
+    display: none;
+  }
+
+  .work-title-and-author.desktop {
+    display: inline;
+  }
+
+  .work-title-and-author .share-modal-link {
+    display: none;
+  }
+}
+
+/* mobile */
+@media only screen and (max-width: 960px) {
+  .work-title-and-author {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .work-title-and-author .work-line {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .work-title-and-author h1.work-title {
+    font-size: 1.375em;
+  }
+
+  .work-title-and-author h2.work-subtitle {
+    font-size: 1em;
+  }
+
+  .work-title-and-author h2.edition-byline {
+    font-size: 0.875em;
+    margin-bottom: 10px;
+    line-height: var(--line-height-meta);
+  }
+
+  .work-title-and-author h2.edition-byline > a {
+    text-decoration: none;
+  }
+
+  .work-title-and-author .share-modal-link {
+    display: block;
+    margin: 8px 0 0 16px;
+    text-align: center;
+    text-decoration: none;
+    width: 40px;
+  }
+
+  .work-title-and-author .share-modal-link .icon-link__text {
+    color: var(--dark-grey);
+    font-size: 0.675em;
+  }
+
+  /* When there are no reviews, hide the review count text */
+  .work-title-and-author .readers-stats__review-count--none {
+    height: 0;
+    margin: 0;
+  }
+
+  /* stylelint-disable selector-max-specificity */
+  /* stylelint-disable max-nesting-depth */
+  .work-title-and-author
+    .readers-stats__review-count--none
+    li.readers-stats__review-count {
+    display: none;
+  }
+  /* stylelint-enable max-nesting-depth */
+
+  .work-title-and-author .readers-stats li.avg-ratings .dot,
+  .work-title-and-author
+    .readers-stats
+    li:not(.avg-ratings):not(.readers-stats__review-count) {
+    display: none;
+  }
+
+  .work-title-and-author .readers-stats li.avg-ratings,
+  .work-title-and-author .readers-stats li.readers-stats__review-count {
+    font-size: 0.85em;
+  }
+
+  /* On mobile only, the rating count text has parentheses around it */
+  .work-title-and-author .readers-stats li.readers-stats__review-count::before {
+    content: "(";
+    margin-right: -2px;
+  }
+
+  .work-title-and-author .readers-stats li.readers-stats__review-count::after {
+    content: ")";
+    margin: 0 0 0 -1px;
+  }
+  /* stylelint-enable selector-max-specificity */
+}

@@ -1,6 +1,6 @@
 // @ts-check
 import $ from 'jquery';
-import '../../../../static/css/components/toast.less';
+import '../../../../static/css/components/toast.css';
 
 /**
  * @constant {number} Default amount of time to display a toast component, in milliseconds.

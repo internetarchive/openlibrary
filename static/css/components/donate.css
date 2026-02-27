@@ -1,0 +1,57 @@
+.donation__info {
+  display: flex;
+}
+
+.donation__info img {
+  width: 75px !important;
+  margin-left: 20px;
+}
+
+.donation__instructions li {
+  list-style: initial;
+  margin: 10px 30px;
+}
+
+.donation__options {
+  display: flex;
+  padding: 0 60px;
+}
+
+.donation__address {
+  flex: 1;
+}
+
+.donation__benefits li {
+  margin: 15px 35px;
+}
+
+.donation__benefits li::before {
+  margin-top: 8px;
+  content: "";
+  width: 20px;
+  height: 20px;
+  position: absolute;
+  background-image: url(/static/images/check.png);
+  background-size: cover;
+  background-position: 50%;
+  margin-left: -25px;
+  transform: translateY(-50%);
+}
+
+.donation__note {
+  color: var(--light-grey);
+}
+
+.donate__modal {
+  padding: 0 10px;
+}
+
+.donate__modal ul li,
+.donate__modal ol li {
+  font-size: 0.875em;
+}
+
+h2.donation__override {
+  font-size: 1.2em !important;
+  font-weight: bold !important;
+}

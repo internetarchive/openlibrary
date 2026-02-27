@@ -1,0 +1,16 @@
+/**
+ * Breakpoints
+ * ===========
+ * For reference only — CSS custom properties cannot be used in @media queries.
+ * When using in @media, hardcode the px value and add a comment.
+ *
+ * Example:
+ *   @media (min-width: 768px) { ... }  (--width-breakpoint-tablet)
+ */
+:root {
+  --width-breakpoint-mobile-s: 375px;
+  --width-breakpoint-mobile-m: 425px;
+  --width-breakpoint-mobile: 450px;
+  --width-breakpoint-tablet: 768px; /* 48em */
+  --width-breakpoint-desktop: 960px; /* 60em */
+}

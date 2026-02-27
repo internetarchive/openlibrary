@@ -99,13 +99,13 @@ These instructions are intended for contributors who have **already** `built` Op
 
 Building the Open Library project can take a while and most of its images don't change often, so we only want to rebuild them when necessary. When a docker image is created, its dependencies (`pip`, `npm`, `apt-get`) are frozen in time and will be inherited by any container based from it.
 
-Occasionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/less that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
+Occasionally, there will be cases when changes we pull or make to our codebase will require changes to our docker environment -- for instance, the addition of a python dependency, npm package, or changes to our js/vue/css that require assets to be rebuilt. In most of these cases, because the `openlibrary` repo is volume mounted, we can use the pattern `docker compose run --rm home <command>` to spin up a temporary container with instructions that run build commands to ensure our environment has all the necessary dependencies. For instance, if changes have been made to:
 
 | Change | Fix  |
 |------|-----------|
 | **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: ```docker compose build home``` |
 | **`npm` packages** | run ```docker compose run --rm home npm install --no-audit``` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why) |
-| **`js`, `vue`, `css`/`less`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
+| **`js`, `vue`, `css`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
 
 > [!WARNING]
 > In the off-chance you find yourself needing to edit core dependencies like `apt-get` or networking, you will most likely need to do a [full rebuild](#fully-resetting-your-environment). If you are making this sort of change, you will know exactly what you are doing. See [Developing the Dockerfile](#developing-the-dockerfile).

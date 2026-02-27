@@ -135,7 +135,7 @@ export default {
 };
 </script>
 
-<style lang="less">
+<style>
 .edition-snippet {
   border-radius: 4px;
   height: 64px;
@@ -143,48 +143,48 @@ export default {
   background: #fff;
   margin-bottom: 4px;
   font-size: 0.95em;
+}
 
-  img {
-    height: 100%;
-    width: 60px;
-    background: #eee;
-    object-fit: cover;
-    object-position: top center;
-    float: left;
-    margin-right: 7px;
-    // Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading
-    min-height: 80px;
-    &:not([src=""]) {
-      cursor: zoom-in;
-    }
-    &:hover {
-      object-fit: contain;
-    }
-  }
+.edition-snippet img {
+  height: 100%;
+  width: 60px;
+  background: #eee;
+  object-fit: cover;
+  object-position: top center;
+  float: left;
+  margin-right: 7px;
+  /* Min Height added for lazy loading so that the lazy loaded images are not 1 pixel and start having many books start loading */
+  min-height: 80px;
+}
+.edition-snippet img:not([src=""]) {
+  cursor: zoom-in;
+}
+.edition-snippet img:hover {
+  object-fit: contain;
+}
 
-  .links {
-    float: right;
-    padding-right: 2px;
-    padding-top: 4px;
-    a {
-      padding: 2px;
-    }
-  }
+.edition-snippet .links {
+  float: right;
+  padding-right: 2px;
+  padding-top: 4px;
+}
+.edition-snippet .links a {
+  padding: 2px;
+}
 
-  .info {
-    padding-top: 4px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.edition-snippet .info {
+  padding-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .publishers {
-    opacity: 0.8;
-  }
+.edition-snippet .publishers {
+  opacity: 0.8;
+}
 
-  hr {
-    margin: 4px 0;
-    color: white;
-  }
+.edition-snippet hr {
+  margin: 4px 0;
+  color: white;
 }
 </style>

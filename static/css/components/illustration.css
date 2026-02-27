@@ -1,0 +1,86 @@
+.right.illustration {
+  margin: 0 0 30px 30px;
+}
+.left.illustration {
+  margin: 0 30px 30px 0;
+}
+.illustration {
+  text-align: center;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: var(--z-index-level-1);
+}
+.illustration img {
+  width: 180px;
+  border-radius: var(--border-radius-thumbnail);
+  box-shadow: 1px 1px 2px 0 var(--book-cover-shadow-color);
+}
+.illustration .SRPCoverBlank {
+  position: relative;
+  width: 148px;
+  height: 225px;
+  min-width: 175px;
+  min-height: 250px;
+  padding: 15px;
+  text-align: center;
+  background: var(--lighter-grey);
+  font-size: 1em;
+  display: none;
+}
+.illustration .SRPCoverBlank .innerBorder {
+  border: 2px solid var(--white);
+  width: 144px;
+  height: 221px;
+  margin: 0 auto;
+}
+.illustration .SRPCoverBlank.author {
+  position: relative;
+  width: 131px;
+  height: 180px;
+  text-align: center;
+  background: transparent url(/images/icons/avatar_author-lg.png) 15px 15px
+    no-repeat;
+  font-size: 1em;
+  margin: 0 auto;
+  display: none;
+}
+.illustration .BookTitle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 108px;
+  margin-left: -54px;
+  height: 100px;
+  margin-top: -50px;
+  color: var(--dark-grey);
+  overflow-wrap: break-word;
+}
+.illustration .author .BookTitle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 108px;
+  margin-left: -54px;
+  height: 80px;
+  margin-top: -40px;
+  color: var(--black);
+  display: none;
+}
+.illustration .Author {
+  color: var(--grey);
+  font-style: italic;
+  padding: 4px 4px 0;
+  font-size: var(--font-size-label-small);
+}
+.illustration .edition {
+  font-size: 0.6875em;
+  font-family: var(--body-family);
+  margin: 10px auto;
+}
+.editionCover .SRPCoverBlank {
+  width: auto;
+  height: auto;
+}
+.editEditionCover .SRPCoverBlank {
+  left: 22px;
+}

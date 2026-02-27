@@ -182,14 +182,14 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style>
 #app {
     font-family: monospace;
+}
 
-    div#diffs-toggle {
-        float: right;
-        padding: 4px 8px 0 0;
-    }
+#app div#diffs-toggle {
+    float: right;
+    padding: 4px 8px 0 0;
 }
 
 .btn-group {
@@ -197,45 +197,45 @@ export default {
     justify-content: space-between;
     margin-bottom: 5px;
     padding: 5px;
+}
 
-    & > button {
-        font-size: 1.3em;
-        padding: 10px;
-        margin: 5px;
-        border: none;
-        border-radius: 5px;
-        color: white;
-    }
+.btn-group > button {
+    font-size: 1.3em;
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
 
-    .merge-btn {
-        background-color: rgb(76, 118, 76);
-    }
-    .merge-btn:hover {
-        background-color: rgb(100, 156, 100);
-    }
+.btn-group .merge-btn {
+    background-color: rgb(76, 118, 76);
+}
+.btn-group .merge-btn:hover {
+    background-color: rgb(100, 156, 100);
+}
 
-    .merge-btn[disabled] {
-        background-color: rgb(117, 117, 117);
-    }
-    .merge-btn[disabled]:hover {
-        background-color: rgb(117, 117, 117);
-    }
-    .reject-btn {
-        background-color: rgb(125, 43, 43);
-    }
-    .reject-btn:hover {
-        background-color: rgb(161, 56, 56);
-    }
+.btn-group .merge-btn[disabled] {
+    background-color: rgb(117, 117, 117);
+}
+.btn-group .merge-btn[disabled]:hover {
+    background-color: rgb(117, 117, 117);
+}
+.btn-group .reject-btn {
+    background-color: rgb(125, 43, 43);
+}
+.btn-group .reject-btn:hover {
+    background-color: rgb(161, 56, 56);
 }
 
 .comment-input {
     display: flex;
     flex-direction: column;
     padding: 0 5px 5px 10px;
+}
 
-    input {
-        width: 90%;
-    }
+.comment-input input {
+    width: 90%;
 }
 
 .action-bar {

@@ -102,7 +102,7 @@ export default {
 };
 </script>
 
-<style scoped lang="less">
+<style scoped>
 .arrow-icon {
   margin-bottom: -2px;
 }

@@ -1,0 +1,38 @@
+.pagination {
+  font-size: 0.75em;
+  margin: 0 15px;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.pagination a {
+  display: block;
+  text-decoration: none;
+  padding: 7px;
+  margin-right: 10px;
+}
+.pagination a:hover {
+  background: var(--link-blue);
+  color: var(--white);
+  display: block;
+  float: left;
+  text-decoration: none;
+  padding: 7px;
+  margin-right: 10px;
+}
+.pagination span.ellipsis {
+  display: block;
+  float: left;
+  color: var(--black);
+  padding: 8px;
+  margin-right: 10px;
+}
+.pagination span.this {
+  display: block;
+  float: left;
+  color: var(--black);
+  padding: 7px;
+  border: 1px solid var(--lighter-grey);
+  margin-right: 10px;
+  background-color: var(--lightest-grey);
+}

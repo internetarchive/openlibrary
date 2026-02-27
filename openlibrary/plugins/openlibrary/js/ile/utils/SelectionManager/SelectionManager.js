@@ -1,7 +1,7 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import './SelectionManager.less';
+import './SelectionManager.css';
 
 /**
  * The SelectionManager is responsible for making things (e.g. books in search results,

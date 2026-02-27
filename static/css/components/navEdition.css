@@ -1,0 +1,15 @@
+/**
+ * NavEdition
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#navedition
+ */
+div.navEdition {
+  font-size: 0.9em;
+  margin-top: 5px;
+  color: var(--grey-555);
+}
+
+span.booktitle {
+  color: var(--dark-grey);
+  font-family: var(--font-family-title);
+  font-weight: bold;
+}

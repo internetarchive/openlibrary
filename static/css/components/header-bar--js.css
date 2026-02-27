@@ -1,0 +1,12 @@
+/**
+ * HeaderBar (JS)
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#headerbar
+ * This stylesheet will only apply if JS is present on the page.
+ */
+
+/* Expand select to be clickable */
+.search-facet select {
+  padding: 10px;
+  top: 2px;
+  left: 2px;
+}
