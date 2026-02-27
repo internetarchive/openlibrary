@@ -94,7 +94,7 @@ class index(delegate.page):
         query['limit'] = limit
         query['offset'] = offset
 
-        result = [c.dict() for c in web.ctx.site.recentchanges(query)]
+        result = [c.dict() for c in web.ctx.site.recentchanges(query) if c.kind != 'new-account']
 
         if encoding == "json":
             response = json.dumps(result)

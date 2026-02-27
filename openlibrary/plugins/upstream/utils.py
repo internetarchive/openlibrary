@@ -1397,6 +1397,9 @@ def _get_recent_changes2():
             # c.kind=='update' allow us to ignore update recent changes on people
             c.kind == 'update'
             or
+            # ignore account registration events to protect patron privacy
+            c.kind == 'new-account'
+            or
             # ignore change if author has been deleted (e.g. spammer)
             (c.author and c.author.type.key == '/type/delete')
         )
