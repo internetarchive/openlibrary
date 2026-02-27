@@ -22,10 +22,11 @@ $code:
           { 'sort': 'work_count desc', 'name': _("Work Count"), 'ga_key': 'WorkCountDesc' },
           { 'sort': 'random', 'name': _("Random"), 'ga_key': 'Random', 'selected': selected_sort and selected_sort.startswith('random') },
         ]
-        if selected_sort in ('name', 'birth_date asc', 'birth_date desc') or (ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())):
+        if selected_sort in ('name', 'birth_timestamp asc', 'birth_timestamp desc') or (ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())):
           sort_options.append({ 'sort': 'name', 'name': _("Name (beta: Librarian only)"), 'ga_key': 'Name' })
-          sort_options.append({ 'sort': 'birth_date asc', 'name': _("Birth Date (oldest) (beta: Librarian only)"), 'ga_key': 'BirthDateOldest' })
-          sort_options.append({ 'sort': 'birth_date desc', 'name': _("Birth Date (youngest) (beta: Librarian only)"), 'ga_key': 'BirthDateYoungest' })
+          sort_options.append({ 'sort': 'birth_timestamp asc', 'name': _("Birth Date (oldest) (beta: Librarian only)"), 'ga_key': 'BirthDateOldest' })
+          sort_options.append({ 'sort': 'birth_timestamp desc', 'name': _("Birth Date (youngest) (beta: Librarian only)"), 'ga_key': 'BirthDateYoungest' })
+
      elif search_scheme == 'lists_seeds':
        sort_options = [
          { 'sort': 'index', 'name': _("List Order"), 'ga_key': 'ListOrder' },

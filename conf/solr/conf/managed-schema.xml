@@ -260,7 +260,11 @@
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
+   <!-- Normalized timestamp fields for proper chronological sorting -->
+   <field name="birth_timestamp" type="pdate" indexed="true" stored="true"/>
+   <field name="death_timestamp" type="pdate" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
+
    <field name="work_count" type="pint" indexed="true" stored="true"/>
    <field name="top_work" type="string" indexed="false" stored="true"/>
    <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
