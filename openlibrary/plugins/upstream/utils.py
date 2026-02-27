@@ -726,7 +726,7 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    site = request_context.site.get()
+    site = request_context.site_ctx
     keys = site.things({"type": "/type/language", "limit": limit})
     return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 

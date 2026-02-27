@@ -36,7 +36,33 @@ class RequestContextVars:
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
-site: ContextVar[Site] = ContextVar("site")
+# Internal ContextVar for the site
+_site_contextvar: ContextVar[Site] = ContextVar("site")
+
+
+class SiteProxy:
+    """
+    Proxy to the site ContextVar.
+
+    This allows code to use `site.get(key)` instead of having to
+    call `site.get().get(key)` or a helper function.
+    """
+
+    def __getattr__(self, name: str):
+        try:
+            return getattr(_site_contextvar.get(), name)
+        except LookupError:
+            raise AttributeError(name)
+
+    def _set_site(self, value: Site):
+        """Set the site in the ContextVar (for internal/middleware use)."""
+        _site_contextvar.set(value)
+
+
+# Public export
+# temporary name to make it easy to replace site without search challenges
+# should eventually just be named site
+site_ctx = SiteProxy()
 
 
 def setup_site(request: Request | None = None):
@@ -51,7 +77,7 @@ def setup_site(request: Request | None = None):
         cookie_value = unquote(cookie_value) if cookie_value else ""
         web.ctx._parsed_cookies = {cookie_name: cookie_value}
 
-    site.set(create_site())
+    site_ctx._set_site(create_site())
 
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
@@ -65,58 +91,58 @@ def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:
         True if the request appears to be from a bot, False otherwise
     """
     user_agent_bots = [
-        'sputnikbot',
-        'dotbot',
-        'semrushbot',
-        'googlebot',
-        'yandexbot',
-        'monsidobot',
-        'kazbtbot',
-        'seznambot',
-        'dubbotbot',
-        '360spider',
-        'redditbot',
-        'yandexmobilebot',
-        'linkdexbot',
-        'musobot',
-        'mojeekbot',
-        'focuseekbot',
-        'behloolbot',
-        'startmebot',
-        'yandexaccessibilitybot',
-        'uptimerobot',
-        'femtosearchbot',
-        'pinterestbot',
-        'toutiaospider',
-        'yoozbot',
-        'parsijoobot',
-        'equellaurlbot',
-        'donkeybot',
-        'paperlibot',
-        'nsrbot',
-        'discordbot',
-        'ahrefsbot',
-        'coccocbot',
-        'buzzbot',
-        'laserlikebot',
-        'baiduspider',
-        'bingbot',
-        'mj12bot',
-        'yoozbotadsbot',
-        'ahrefsbot',
-        'amazonbot',
-        'applebot',
-        'bingbot',
-        'brightbot',
-        'gptbot',
-        'petalbot',
-        'semanticscholarbot',
-        'yandex.com/bots',
-        'icc-crawler',
+        "sputnikbot",
+        "dotbot",
+        "semrushbot",
+        "googlebot",
+        "yandexbot",
+        "monsidobot",
+        "kazbtbot",
+        "seznambot",
+        "dubbotbot",
+        "360spider",
+        "redditbot",
+        "yandexmobilebot",
+        "linkdexbot",
+        "musobot",
+        "mojeekbot",
+        "focuseekbot",
+        "behloolbot",
+        "startmebot",
+        "yandexaccessibilitybot",
+        "uptimerobot",
+        "femtosearchbot",
+        "pinterestbot",
+        "toutiaospider",
+        "yoozbot",
+        "parsijoobot",
+        "equellaurlbot",
+        "donkeybot",
+        "paperlibot",
+        "nsrbot",
+        "discordbot",
+        "ahrefsbot",
+        "coccocbot",
+        "buzzbot",
+        "laserlikebot",
+        "baiduspider",
+        "bingbot",
+        "mj12bot",
+        "yoozbotadsbot",
+        "ahrefsbot",
+        "amazonbot",
+        "applebot",
+        "bingbot",
+        "brightbot",
+        "gptbot",
+        "petalbot",
+        "semanticscholarbot",
+        "yandex.com/bots",
+        "icc-crawler",
     ]
 
     # Check hhcl header first (set by nginx)
-    if hhcl == '1':
+    if hhcl == "1":
         return True
 
     # Check user agent
@@ -131,28 +157,28 @@ def _parse_solr_editions_from_web() -> bool:
     """Parse solr_editions from web.py context."""
 
     def read_query_string():
-        return web.input(editions=None).get('editions')
+        return web.input(editions=None).get("editions")
 
     def read_cookie():
         if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
-            return web.cookies().get('SOLR_EDITIONS')
+            return web.cookies().get("SOLR_EDITIONS")
 
     if (qs_value := read_query_string()) is not None:
-        return qs_value == 'true'
+        return qs_value == "true"
 
     if (cookie_value := read_cookie()) is not None:
-        return cookie_value == 'true'
+        return cookie_value == "true"
 
     return True
 
 
 def _parse_solr_editions_from_fastapi(request) -> bool:
     """Parse solr_editions preference from query string or cookie."""
-    if editions_param := request.query_params.get('editions'):
-        return editions_param.lower() == 'true'
+    if editions_param := request.query_params.get("editions"):
+        return editions_param.lower() == "true"
 
-    if cookie_value := request.cookies.get('SOLR_EDITIONS'):
-        return cookie_value.lower() == 'true'
+    if cookie_value := request.cookies.get("SOLR_EDITIONS"):
+        return cookie_value.lower() == "true"
 
     return True
 
@@ -162,8 +188,8 @@ def set_context_from_legacy_web_py() -> None:
     Extracts context from the global web.ctx and populates ContextVars.
     """
     solr_editions = _parse_solr_editions_from_web()
-    print_disabled = bool(web.cookies().get('pd', False))
-    sfw = bool(web.cookies().get('sfw', ''))
+    print_disabled = bool(web.cookies().get("pd", False))
+    sfw = bool(web.cookies().get("sfw", ""))
 
     # Compute is_bot once during request setup
     is_bot = _compute_is_bot(
@@ -207,8 +233,8 @@ def set_context_from_fastapi(request: Request) -> None:
             user_agent=request.headers.get("User-Agent"),
             lang=request.state.lang,
             solr_editions=solr_editions,
-            print_disabled=bool(request.cookies.get('pd', False)),
-            sfw=bool(request.cookies.get('sfw', '')),
+            print_disabled=bool(request.cookies.get("pd", False)),
+            sfw=bool(request.cookies.get("sfw", "")),
             is_bot=is_bot,
         )
     )
