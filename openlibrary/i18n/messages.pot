@@ -242,7 +242,7 @@ msgid ""
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html admin/spamwords.html covers/manage.html
+#: admin/block.html admin/spamwords.html covers/manage.html site/alert.html
 msgid "Save"
 msgstr ""
 
@@ -5960,6 +5960,10 @@ msgid_plural "%s ebook editions"
 msgstr[0] ""
 msgstr[1] ""
 
+#: languages/language_select_options.html
+msgid "All Languages"
+msgstr ""
+
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
@@ -7480,6 +7484,58 @@ msgstr ""
 
 #: site/alert.html
 msgid "Internet Archive logo"
+msgstr ""
+
+#: site/alert.html
+msgid "Global filter"
+msgstr ""
+
+#: site/alert.html
+msgid "Filter"
+msgstr ""
+
+#: site/alert.html
+msgid "filter icon"
+msgstr ""
+
+#: site/alert.html
+msgid "Search Filters"
+msgstr ""
+
+#: site/alert.html
+msgid "Close filter panel"
+msgstr ""
+
+#: site/alert.html
+msgid "Book Type:"
+msgstr ""
+
+#: site/alert.html
+msgid "Readable only"
+msgstr ""
+
+#: site/alert.html
+msgid "Readable + Previewable"
+msgstr ""
+
+#: site/alert.html
+msgid "Entire Catalog"
+msgstr ""
+
+#: site/alert.html
+msgid "Language:"
+msgstr ""
+
+#: site/alert.html
+msgid "Time Period:"
+msgstr ""
+
+#: site/alert.html
+msgid "From Year"
+msgstr ""
+
+#: site/alert.html
+msgid "To Year"
 msgstr ""
 
 #: site/body.html

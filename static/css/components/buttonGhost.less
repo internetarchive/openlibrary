@@ -1,4 +1,5 @@
-a {
+a,
+button {
   &.ghost-btn {
     padding: 0.2rem 0.4rem;
     border-radius: @border-radius-button;
@@ -7,5 +8,11 @@ a {
     text-align: center;
     // Important is necessary to override default link color
     color: @white !important;
+    border: 1px solid @white;
+    background: transparent;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
   }
 }

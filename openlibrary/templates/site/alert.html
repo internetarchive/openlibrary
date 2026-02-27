@@ -8,10 +8,10 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
 <div id="topNotice">
   <div class="page-banner page-banner-black page-banner-center">
     <div class="iaBar">
-        <a class="iaLogo" href="https://archive.org"><img alt="$_('Internet Archive logo')" src="/static/images/ia-logo.svg" width="160"></a>
-        $# detect-missing-i18n-skip-line
-        <a class="ghost-btn iabar-mobile" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
-        <div class="language-component header-dropdown iabar-mobile">
+      <a class="iaLogo" href="https://archive.org"><img alt="$_('Internet Archive logo')" src="/static/images/ia-logo.svg" width="160"></a>
+      $# detect-missing-i18n-skip-line
+      <a class="ghost-btn iabar-mobile" href="https://archive.org/donate/?platform=ol&origin=olwww-TopNavDonateButton" data-ol-link-track="IABar|DonateButton">$_('Donate') <span class="heart" aria-hidden="true">♥</span></a>
+      <div class="language-component header-dropdown iabar-mobile">
         <details>
           <summary>
             <span>$active_ui_lang['localized'] ($active_ui_lang['code'])</span>
@@ -22,6 +22,74 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
           </div>
         </details>
       </div>
+      <button id="filter-panel-trigger" class="filter-panel-trigger ghost-btn iabar-mobile" aria-label="$_('Global filter')" aria-expanded="false" aria-controls="filter-panel">
+        $_('Filter')
+        <img src="/static/images/filter-icon.svg" alt="$_('filter icon')" style="width:14px;height:14px;filter:invert(1);" />
+      </button>
     </div>
   </div>
 </div>
+
+<div id="filter-panel" class="filter-panel hidden" role="region" aria-label="$_('Search Filters')">
+  <div class="filter-header">
+    <h2>$_('Filter')</h2>
+    <button id="close-filter-panel" class="close-btn" aria-label="$_('Close filter panel')">×</button>
+  </div>
+
+  <div class="preference-panel">
+    <label for="global-mode-select">$_('Book Type:')</label>
+    <select id="global-mode-select" class="dropdown-menu">
+      <option value="fulltext">$_('Readable only')</option>
+      <option value="preview">$_('Readable + Previewable')</option>
+      <option value="all">$_('Entire Catalog')</option>
+    </select>
+
+    <label for="language-select">$_('Language:')</label>
+    <select id="language-select" class="dropdown-menu">
+      $:render_template('languages/language_select_options', include_all=True, selected='all')
+    </select>
+
+    <label for="global-date-start">$_('Time Period:')</label>
+    <div class="time-range-inputs">
+      <input type="number" id="global-date-start" placeholder="$_('From Year')" min="1800" max="2025" />
+      <input type="number" id="global-date-end" placeholder="$_('To Year')" min="1800" max="2025" />
+    </div>
+
+    <button id="save-preferences-btn" class="save-btn">$_('Save')</button>
+  </div>
+</div>
+
+<script type="module">
+  import '/static/js/preferences-handler.js';
+
+  const filterTrigger = document.getElementById('filter-panel-trigger');
+  const filterPanel = document.getElementById('filter-panel');
+  const closeButton = document.getElementById('close-filter-panel');
+
+  // Open/close filter panel
+  filterTrigger.addEventListener('click', () => {
+    const isHidden = filterPanel.classList.contains('hidden');
+    filterPanel.classList.toggle('hidden');
+    filterPanel.classList.toggle('show');
+    filterTrigger.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    if (isHidden) {
+      document.getElementById('global-mode-select').focus();
+    }
+  });
+
+  closeButton.addEventListener('click', () => {
+    filterPanel.classList.remove('show');
+    filterPanel.classList.add('hidden');
+    filterTrigger.setAttribute('aria-expanded', 'false');
+    filterTrigger.focus();
+  });
+
+  // Close panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!filterPanel.contains(e.target) && !filterTrigger.contains(e.target)) {
+      filterPanel.classList.remove('show');
+      filterPanel.classList.add('hidden');
+      filterTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+</script>
