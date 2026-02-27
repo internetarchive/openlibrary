@@ -3976,6 +3976,30 @@ msgid "Inspect Memcache"
 msgstr ""
 
 #: admin/inspect/memcache.html
+msgid "Common Cache Fixes"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Click these links to clear the cache for common, frequently-updated pages."
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Clear Homepage Cache"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "for regular users"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "Clear Homepage Cache (Print Disabled)"
+msgstr ""
+
+#: admin/inspect/memcache.html
+msgid "for print-disabled users"
+msgstr ""
+
+#: admin/inspect/memcache.html
 msgid ""
 "Add one memcache key per line in the text area. Each key must include a "
 "'-' as the last character."
