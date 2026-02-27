@@ -92,10 +92,16 @@ $if can_merge:
                         <p>No description.</p>
                     <ul>
                     $for doc in top.docs:
-                        <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
-                        $if doc.get('first_publish_year'):
-                            <span title="$_('First published in')">$doc['first_publish_year']</span>
-                        </span></li>
+                        <li>
+                            <a href="$doc['key']"
+                               target="new"
+                               title="$_('Open in a new window')"
+                               dir="$:cond(is_rtl(doc['title']), 'rtl', 'ltr')"
+                            >$doc['title']</a>
+                            <span class="smaller">
+                                $ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count'])$if doc.get('first_publish_year'):, <span title="$_('First published in')">$doc['first_publish_year']</span>
+                            </span>
+                        </li>
                     </ul>
                 </div>
                 <div class="data count">
