@@ -1,6 +1,6 @@
-# This file is meant to be applied as overrides when running podman/docker 
-# with SELinux enabled. It adds docker file label overrides to volumes. 
-# It should be applied last with -f parameter. 
+# This file is meant to be applied as overrides when running podman/docker
+# with SELinux enabled. It adds docker file label overrides to volumes.
+# It should be applied last with -f parameter.
 # podman-compose -f compose.yaml -f compose.override.yaml -f compose.selinux.yaml up -d
 
 services:
@@ -19,7 +19,7 @@ services:
   db:
     volumes:
       - .:/openlibrary:z
-      - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh:z 
+      - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh:z
   covers:
     volumes:
       - .:/openlibrary:z
