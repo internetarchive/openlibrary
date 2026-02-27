@@ -8355,3 +8355,7 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
+#: type/work/editions_datatable.html
+msgid "Duplicate this edition"
+msgstr ""
+
