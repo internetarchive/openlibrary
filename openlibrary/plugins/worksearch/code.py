@@ -20,8 +20,10 @@ from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.upstream.utils import (
@@ -218,6 +220,7 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    solr_internals_params: SolrInternalsParams | None = None,
 ) -> tuple[list[tuple[str, Any]], list[str]]:
     """
     :param param: dict of query parameters
@@ -307,7 +310,13 @@ def _prepare_solr_query_params(  # noqa: PLR0912
                 ('editions.sort', EditionSearchScheme().process_user_sort(ed_sort))
             )
         params.append(('fl', ','.join(solr_fields)))
-        params += scheme.q_to_solr_params(q, solr_fields, params, highlight=highlight)
+        params += scheme.q_to_solr_params(
+            q,
+            solr_fields,
+            params,
+            highlight=highlight,
+            solr_internals_params=solr_internals_params,
+        )
 
     if sort:
         params.append(('sort', scheme.process_user_sort(sort)))
@@ -350,6 +359,7 @@ def run_solr_query(
     allowed_filter_params: set[str] | None = None,
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    solr_internals_params: SolrInternalsParams | None = None,
 ) -> 'SearchResponse':
     """
     Builds and executes a synchronous Solr query.
@@ -368,6 +378,7 @@ def run_solr_query(
         allowed_filter_params=allowed_filter_params,
         extra_params=extra_params,
         request_label=request_label,
+        solr_internals_params=solr_internals_params,
     )
 
     url = f'{solr_select_url}?{urlencode(params)}'
@@ -538,6 +549,7 @@ def do_search(
     highlight=False,
     spellcheck_count=None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    solr_internals_params: 'SolrInternalsParams | None' = None,
     sfw: bool = False,
 ):
     """
@@ -571,6 +583,7 @@ def do_search(
         facet=facet,
         highlight=highlight,
         request_label=request_label,
+        solr_internals_params=solr_internals_params,
     )
 
 
@@ -761,6 +774,12 @@ class search(delegate.page):
         page = int(param.get('page', 1))
         sort = param.get('sort')
         rows = 20
+
+        if get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+            solr_internals_params = SolrInternalsParams.model_validate(dict(web_input))
+        else:
+            solr_internals_params = None
+
         if param:
             search_response = do_search(
                 param,
@@ -770,6 +789,7 @@ class search(delegate.page):
                 highlight=True,
                 spellcheck_count=3,
                 request_label='BOOK_SEARCH',
+                solr_internals_params=solr_internals_params,
                 sfw=web.cookies(sfw="").sfw == 'yes',
             )
         else:
@@ -1135,6 +1155,7 @@ async def work_search_async(
     spellcheck_count: int | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
     lang: str | None = None,
+    solr_internals_params: 'SolrInternalsParams | None' = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
     scheme = WorkSearchScheme(lang=lang)
@@ -1149,6 +1170,7 @@ async def work_search_async(
         facet=facet,
         spellcheck_count=spellcheck_count,
         request_label=request_label,
+        solr_internals_params=solr_internals_params,
     )
 
     return _process_solr_search_response(resp, fields)

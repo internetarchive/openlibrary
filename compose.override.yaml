@@ -22,6 +22,7 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
       - LOCAL_DEV=true
+      - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
     depends_on:
       - db
       - infobase
@@ -37,6 +38,7 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
       - LOCAL_DEV=true
+      - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
 
   solr:
     environment:

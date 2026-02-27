@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -17,8 +17,13 @@ from pydantic import (
     model_validator,
 )
 
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.fastapi.models import Pagination, PaginationLimit20
+from openlibrary.fastapi.models import (
+    Pagination,
+    PaginationLimit20,
+    SolrInternalsParams,
+)
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -161,6 +166,14 @@ async def search_json(
     """
     Performs a search for documents based on the provided query.
     """
+    solr_internals_params = SolrInternalsParams.model_validate(request.query_params)
+    solr_internals_specified = bool(solr_internals_params.model_dump(exclude_none=True))
+    if solr_internals_specified and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+        raise HTTPException(
+            status_code=403,
+            detail="Solr internals parameters are not allowed in this environment.",
+        )
+
     raw_response = await work_search_async(
         params.selected_query,
         sort=params.sort,
@@ -174,6 +187,7 @@ async def search_json(
         spellcheck_count=params.spellcheck_count,
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
+        solr_internals_params=solr_internals_params,
     )
 
     raw_response["q"] = params.q
