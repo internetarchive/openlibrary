@@ -39,6 +39,8 @@ npm run test:js
 # i18n validation
 make test-i18n
 
+See [Internationalization Guide](https://docs.openlibrary.org/1_Everyone/Internationalization.html) for translation workflows.
+
 # All tests
 make test
 ```
@@ -93,6 +95,8 @@ Pre-commit hooks are configured. Install with `pre-commit install`.
 
 ### Backend: Infogami + web.py (legacy) → FastAPI (new)
 
+See [Backend General](https://docs.openlibrary.org/2_Developers/3_Backend/General.html) for Infogami data model, caching, and database patterns.
+
 The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the main entry point, which loads plugins from `openlibrary/plugins/`. Each plugin's `code.py` registers routes, templates, and macros.
 
 **Routes (web.py/Infogami):** Defined as classes extending `delegate.page` in plugin `code.py` files. The class attribute `path` is a regex pattern, and `GET`/`POST` methods handle requests.
@@ -100,6 +104,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 **Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
 
 **Key plugins:**
+
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
 - `plugins/upstream/` — Core features: book editing, accounts, borrowing, models
 - `plugins/worksearch/` — Solr search integration
@@ -110,6 +115,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 ### Templates (Templetor)
 
 Templates live in `openlibrary/templates/` and use web.py's Templetor syntax (not Jinja2):
+
 - `$def with (arg1, arg2)` — template arguments
 - `$variable` or `$:variable` (unescaped) — variable interpolation
 - `$if`, `$for`, `$while` — control flow
@@ -120,7 +126,10 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Core Business Logic
 
+> **Important:** Read [Lifecycle of a Network Request](https://docs.openlibrary.org/2_Developers/misc/The-Lifecycle-of-a-Network-Request.html) to understand how requests flow through the application — from URL → Controller → Model → Template. This is essential for understanding the Infogami implicit controller pattern.
+
 `openlibrary/core/` contains the data layer:
+
 - `models.py` — Data models (Work, Edition, Author, etc.)
 - `db.py` — Database access
 - `lending.py` — Book lending/availability
@@ -134,6 +143,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
+- **Partials:** Lazy-loaded HTML components. See [Lazy Loading Partials](https://docs.openlibrary.org/Partials.html) for implementation.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
 ### Search
@@ -142,7 +152,10 @@ Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openli
 
 ### Data Model
 
+See [Understanding the Data Model](https://docs.openlibrary.org/2_Developers/3_Backend/Understanding-The-Data-Model.html) for detailed information.
+
 Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/infogami/` git submodule. The core entities are:
+
 - **Works** (`/works/OL123W`) — Abstract representation of a book (title, author associations)
 - **Editions** (`/books/OL456M`) — A specific publication of a Work (ISBN, publisher, format)
 - **Authors** (`/authors/OL789A`) — Author records linked from Works
@@ -161,33 +174,35 @@ A Work has many Editions. This is the central relationship in the data model.
 These companion docs cover specific areas in depth:
 
 - [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
+- [Features Overview](features_overview.md) — Inventory of main features (Books, Authors, Lists, Borrowing, etc.)
 
 ## Key File Locations
 
-| What | Where |
-|---|---|
-| Python app entry | `openlibrary/code.py` |
-| FastAPI app | `openlibrary/asgi_app.py` |
-| Plugin route handlers | `openlibrary/plugins/*/code.py` |
-| HTML templates | `openlibrary/templates/` |
-| Template macros | `openlibrary/macros/` |
-| Core models & logic | `openlibrary/core/` |
-| JS source | `openlibrary/plugins/openlibrary/js/` |
-| CSS/LESS source | `static/css/` |
-| Vue components | `openlibrary/components/*.vue` |
-| Lit components | `openlibrary/components/lit/` |
-| Python tests | `tests/`, `openlibrary/**/tests/` |
-| JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
-| Docker config | `docker/`, `compose.yaml` |
-| Solr config | `conf/solr/` |
-| i18n translations | `openlibrary/i18n/` |
-| Infogami submodule | `vendor/infogami/` |
+| What                  | Where                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| Python app entry      | `openlibrary/code.py`                                               |
+| FastAPI app           | `openlibrary/asgi_app.py`                                           |
+| Plugin route handlers | `openlibrary/plugins/*/code.py`                                     |
+| HTML templates        | `openlibrary/templates/`                                            |
+| Template macros       | `openlibrary/macros/`                                               |
+| Core models & logic   | `openlibrary/core/`                                                 |
+| JS source             | `openlibrary/plugins/openlibrary/js/`                               |
+| CSS/LESS source       | `static/css/`                                                       |
+| Vue components        | `openlibrary/components/*.vue`                                      |
+| Lit components        | `openlibrary/components/lit/`                                       |
+| Python tests          | `tests/`, `openlibrary/**/tests/`                                   |
+| JS tests              | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Docker config         | `docker/`, `compose.yaml`                                           |
+| Solr config           | `conf/solr/`                                                        |
+| i18n translations     | `openlibrary/i18n/`                                                 |
+| Infogami submodule    | `vendor/infogami/`                                                  |
 
 ## Contributing to These Docs
 
 This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
 
 **To add a new topic:**
+
 1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
 2. Add a link to it in the **Topic Guides** section above.
 3. No changes to the bridge files are needed — agents follow links from this README.
