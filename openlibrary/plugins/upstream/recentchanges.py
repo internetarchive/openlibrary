@@ -23,7 +23,7 @@ from openlibrary.utils import dateutil
 
 @public
 def recentchanges(query):
-    return web.ctx.site.recentchanges(query)
+    return [c for c in web.ctx.site.recentchanges(query) if c.kind != 'new-account']
 
 
 class index2(delegate.page):
