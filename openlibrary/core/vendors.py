@@ -424,16 +424,27 @@ def _get_amazon_metadata(
     :return: A single book item's metadata, or None.
     """
     if not affiliate_server_url:
+        logger.warning(
+            "Amazon metadata fetch failed for %s: affiliate_server_url not configured",
+            id_,
+        )
         return None
 
     if id_type == 'isbn':
         isbn = normalize_isbn(id_)
         if isbn is None:
+            logger.warning(
+                "Amazon metadata fetch failed: could not normalize ISBN '%s'", id_
+            )
             return None
         id_ = isbn
         if len(id_) == 13 and id_.startswith('978'):
             isbn = isbn_13_to_isbn_10(id_)
             if isbn is None:
+                logger.warning(
+                    "Amazon metadata fetch failed: could not convert ISBN-13 '%s' to ISBN-10",
+                    id_,
+                )
                 return None
             id_ = isbn
 
@@ -448,11 +459,27 @@ def _get_amazon_metadata(
         if data := r.json().get('hit'):
             return data
         else:
+            logger.warning(
+                "Amazon metadata fetch for %s returned empty response (no 'hit' in response)",
+                id_,
+            )
             return None
+    except requests.exceptions.Timeout:
+        logger.warning(
+            "Amazon metadata fetch for %s timed out after %s seconds", id_, timeout
+        )
     except requests.exceptions.ConnectionError:
-        logger.exception("Affiliate Server unreachable")
-    except requests.exceptions.HTTPError:
-        logger.exception(f"Affiliate Server: id {id_} not found")
+        logger.exception("Affiliate Server unreachable for %s", id_)
+    except requests.exceptions.HTTPError as e:
+        logger.warning(
+            "Affiliate Server returned HTTP error for %s: %s",
+            id_,
+            e.response.status_code if e.response else "unknown",
+        )
+    except requests.exceptions.RequestException:
+        logger.exception(
+            "Unexpected request error fetching Amazon metadata for %s", id_
+        )
     return None
 
 
