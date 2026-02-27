@@ -321,14 +321,21 @@ class lists_edit(delegate.page):
         return render_template("type/list/edit", lst, new=False)
 
     def POST(self, user_key: str | None, list_key: str | None = None):  # type: ignore[override]
-        key = (user_key or '') + (list_key or '')
-
-        if not web.ctx.site.can_write(key):
-            return render_template(
-                "permission_denied",
-                web.ctx.fullpath,
-                f"Permission denied to edit {key}.",
-            )
+        if list_key is None:
+            if not get_current_user():
+                return render_template(
+                    "permission_denied",
+                    web.ctx.fullpath,
+                    "You must be logged in to create a list.",
+                )
+        else:
+            key = (user_key or '') + list_key
+            if not web.ctx.site.can_write(key):
+                return render_template(
+                    "permission_denied",
+                    web.ctx.fullpath,
+                    f"Permission denied to edit {key}.",
+                )
 
         list_record = ListRecord.from_input()
         if not list_record.name:
@@ -374,6 +381,7 @@ class lists_add_account(delegate.page):
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/lists/add"
 
+    @require_login
     def GET(self, user_key: str | None):  # type: ignore[override]
         if user_key and not web.ctx.site.can_write(user_key):
             return render_template(
@@ -384,6 +392,7 @@ class lists_add(delegate.page):
         list_record = ListRecord.from_input()
         return render_template("type/list/edit", list_record, new=True)
 
+    @require_login
     def POST(self, user_key: str | None):  # type: ignore[override]
         return lists_edit().POST(user_key, None)
 
