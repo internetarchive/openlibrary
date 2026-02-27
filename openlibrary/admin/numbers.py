@@ -143,7 +143,7 @@ def admin_range__loans(**kargs):
         start = kargs['start']
         end = kargs['end']
     except KeyError as k:
-        raise TypeError(f"{k} is a required argument for admin_total__ebooks")
+        raise TypeError(f"{k} is a required argument for admin_range__loans")
     result = db.query(
         "SELECT count(*) as count FROM stats"
         " WHERE type='loan'"
@@ -152,6 +152,96 @@ def admin_range__loans(**kargs):
         vars=locals(),
     )
     return result[0].count
+
+
+def admin_range__active_logins(**kargs):
+    """Calculates number of unique accounts that logged in during the range."""
+    try:
+        start = kargs['start'].strftime("%Y-%m-%d")
+        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs['thingdb']
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for admin_range__active_logins")
+
+    # Assuming 'last_login' is indexed in store_index
+    q = (
+        "SELECT count(distinct store_id) as count FROM store_index "
+        "WHERE name='last_login' AND value >= $start AND value < $end"
+    )
+    result = db.query(q, vars=locals())
+    return result[0].count
+
+
+def admin_range__returning_logins(**kargs):
+    """Calculates number of active logins from users registered BEFORE the current month."""
+    try:
+        start_date = kargs['start']
+        start = start_date.strftime("%Y-%m-%d")
+        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs['thingdb']
+        # Start of the current month
+        month_start = start_date.replace(day=1).strftime("%Y-%m-%d")
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for admin_range__returning_logins")
+
+    # Join store_index for last_login AND created_on (or similar)
+    # We need users who logged in IN range, but were created BEFORE month_start
+    q = """
+    SELECT count(distinct s_login.store_id) as count
+    FROM store_index s_login
+    JOIN store_index s_created ON s_login.store_id = s_created.store_id
+    WHERE s_login.name = 'last_login'
+      AND s_login.value >= $start AND s_login.value < $end
+      AND s_created.name = 'created_on'
+      AND s_created.value < $month_start
+    """
+    result = db.query(q, vars=locals())
+    return result[0].count
+
+
+def admin_range__unique_editors(**kargs):
+    """Calculates number of unique identifiers (authors) making edits (excluding bots)."""
+    try:
+        start = kargs['start'].strftime("%Y-%m-%d")
+        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs['thingdb']
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for admin_range__unique_editors")
+
+    # Similar to admin_range__human_edits but counting DISTINCT author_id
+    q = (
+        "SELECT count(DISTINCT t.author_id) AS count FROM transaction t "
+        "WHERE t.created >= $start AND t.created < $end "
+        "AND t.author_id NOT IN (SELECT thing_id FROM account WHERE bot = 't')"
+    )
+    result = db.query(q, vars=locals())
+    return result[0].count
+
+
+def admin_range__edits_by_type(**kargs):
+    """Calculates breakdown of edits by thing type."""
+    try:
+        start = kargs['start'].strftime("%Y-%m-%d")
+        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs['thingdb']
+    except KeyError as k:
+        raise TypeError(f"{k} is a required argument for admin_range__edits_by_type")
+
+    # Join transaction -> version -> thing -> (lookup type key)
+    # Group by type key
+    q = """
+    SELECT type_thing.key as type_key, count(*) as count
+    FROM transaction t
+    JOIN version v ON v.transaction_id = t.id
+    JOIN thing th ON th.id = v.thing_id
+    JOIN thing type_thing ON type_thing.id = th.type
+    WHERE t.created >= $start AND t.created < $end
+      AND t.author_id NOT IN (SELECT thing_id FROM account WHERE bot = 't')
+    GROUP BY type_thing.key
+    """
+    results = db.query(q, vars=locals())
+    # results is a list of Storage objects
+    return {r.type_key.split('/')[-1]: r.count for r in results}
 
 
 def admin_total__authors(**kargs):
