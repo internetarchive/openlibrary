@@ -80,6 +80,14 @@ $if editions and not edition:
 $# Just in case edition is not set, treat as work
 $ edition = edition or page
 
+$# Add trending data from work to edition for trending badge
+$# Safely handle trending data - graceful fallback if not available
+$if work and hasattr(work, '_solr_data') and work._solr_data:
+    $ trending_score = work._solr_data.get('trending_z_score')
+    $ edition['trending_z_score'] = trending_score if trending_score is not None else 0
+$else:
+    $ edition['trending_z_score'] = 0
+
 $if not edition.get('availability'):
   $ edition['availability'] = edition.get('ocaid') and availabilities.get(edition['ocaid']) or {}
 $ ocaid = edition.get('ocaid')
@@ -220,6 +228,12 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <a id="overview" name="overview" class="section-anchor section-anchor--no-height"></a>
       <!-- (desktop only) -->
       $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats, for_desktop=True)
+
+      $# Show trending badge when trending score > 5
+      $if edition and edition.get('trending_z_score', 0) > 5:
+          <div class="trending-badge-container">
+              $:macros.TrendingBadge(edition)
+          </div>
 
       $if page.type.key in ["/type/work", "/type/edition", "/type/author"]:
         $if edition and page.type.key in ["/type/work"]:
