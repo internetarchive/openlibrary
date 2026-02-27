@@ -273,13 +273,11 @@ class cover:
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 return web.notmodified()
 
-            web.header('Cache-Control', 'public')
-            # this image is not going to expire in next 100 years.
-            web.expires(100 * 365 * 24 * 3600)
+            web.header('Cache-Control', 'public, max-age=31536000, immutable')
+            web.expires(365 * 24 * 3600)
         else:
-            web.header('Cache-Control', 'public')
-            # Allow the client to cache the image for 10 mins to avoid further requests
-            web.expires(10 * 60)
+            web.header('Cache-Control', 'public, max-age=2592000')
+            web.expires(30 * 24 * 3600)
 
         web.header('Content-Type', 'image/jpeg')
         try:
