@@ -1,7 +1,7 @@
 $def with (series, name_path, dict_path, readonly=False)
 $# :param list[dict] series: e.g. {name: str, key: str}
-$# :param str name_path: form path for the user-visible author name
-$# :param str dict_path: form path for the author dict
+$# :param str name_path: form path for the user-visible series name
+$# :param str dict_path: form path for the series dict
 
 $jsdef render_series_autocomplete_item(item):
     $if item.key == "__new__":

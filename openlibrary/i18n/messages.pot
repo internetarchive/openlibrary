@@ -4984,6 +4984,13 @@ msgid "Work Series"
 msgstr ""
 
 #: books/edit.html
+msgid ""
+"Series are currently in beta, and this section is only visible to super "
+"librarians and admins, like you! Any series you set will be visible by "
+"everyone, however. Please report any issues you have on Slack or GitHub."
+msgstr ""
+
+#: books/edit.html
 msgid "Is this work part of a larger series?"
 msgstr ""
 

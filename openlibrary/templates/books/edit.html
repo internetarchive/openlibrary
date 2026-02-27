@@ -30,11 +30,11 @@ $:macros.HiddenSaveButton("addWork")
         elif mode == "new_edition":
             title = _("Add a little more?")
             alert_class = 'thanks'
-            alert_message = _("We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?", work_title=work.title, year=edition.publish_date, publisher="; ".join(edition.publishers))
+            alert_message = _("We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?", work_title=websafe(work.title), year=websafe(edition.publish_date), publisher=websafe("; ".join(edition.publishers)))
         elif mode == "existing_record":
             title = _("Add a little more?")
             alert_class = 'info'
-            alert_message = _("We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!", year=edition.publish_date, publisher="; ".join(edition.publishers), work_title=work.title)
+            alert_message = _("We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!", year=websafe(edition.publish_date), publisher=websafe("; ".join(edition.publishers)), work_title=websafe(work.title))
         else:
             title = _("Editing...")
             alert_class = ''
@@ -51,7 +51,7 @@ $:macros.HiddenSaveButton("addWork")
     $if not ctx.user:
         $:render_template("lib/not_logged")
     $if alert_message:
-        <p class="alert $alert_class">$alert_message</p>
+        <p class="alert $alert_class">$:alert_message</p>
 </div>
 
 <div id="contentBody">
@@ -126,19 +126,25 @@ $:macros.HiddenSaveButton("addWork")
                         $:render_template("books/edit/web", work, prefix="work--")
                     </div>
                 </fieldset>
-                <fieldset class="major" id="identifiers">
-                    <legend>$_("Work Series")</legend>
-                    <div class="formBack">
-                        <div class="formElement">
-                            <div class="label">
-                                <label for="select-id">$_("Is this work part of a larger series?")</label>
-                                <span class="tip">$_("E.g. Harry Potter, The Sword of Truth")</span>
+
+                $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+                    <fieldset class="major" id="identifiers">
+                        <legend>$_("Work Series")</legend>
+                        <div class="ol-message ol-message--warning">
+                            $_("Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub.")
+                        </div>
+                        <div class="formBack">
+                            <div class="formElement">
+                                <div class="label">
+                                    <label for="select-id">$_("Is this work part of a larger series?")</label>
+                                    <span class="tip">$_("E.g. Harry Potter, The Sword of Truth")</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    $ series = [storage(name=s.series.name, key=s.series.key, position=s.position) for s in work.get('series', [])]
-                    $:render_template("books/series-autocomplete", series, "series", "work--series")
-                </fieldset>
+
+                        $ series = [storage(name=s.series.name, key=s.series.key, position=s.position) for s in work.get('series', [])]
+                        $:render_template("books/series-autocomplete", series, "series", "work--series")
+                    </fieldset>
                 <fieldset class="major" id="identifiers">
                     <legend>$_("Work Identifiers")</legend>
                     <div class="formBack">
