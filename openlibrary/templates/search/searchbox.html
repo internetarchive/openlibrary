@@ -1,10 +1,36 @@
-$def with (q, placeholder="")
+$def with (q, placeholder="", category=None)
 
 $ placeholder = placeholder or _('Search')
 
-<div class="searchbox">
-    <input type="text" class="searchbox__input" name="q" size="100" placeholder="$placeholder" aria-label="$_('Search')" value="$q">
+<div class="searchbox" data-category-json="$json_encode(category if category is not None else '')">
+    <input
+        type="text"
+        class="searchbox__input"
+        name="q"
+        size="100"
+        placeholder="$placeholder"
+        aria-label="$_('Search')"
+        value="$q"
+    >
     <div>
         <input type="submit" value="" class="searchbox__btn-icon" aria-label="$_('Search')">
     </div>
 </div>
+
+<script>
+(function(){
+    var searchbox = document.querySelector('.searchbox');
+    var input = document.querySelector('.searchbox__input');
+    var form = searchbox && (searchbox.closest('form') || (input && input.form));
+    if (!searchbox || !input || typeof window.setupSearchValidation !== 'function') return;
+
+    var category = '';
+    try {
+        category = JSON.parse(searchbox.getAttribute('data-category-json') || '""');
+    } catch (e) {
+        category = '';
+    }
+
+  window.setupSearchValidation(category, input, form);
+})();
+</script>

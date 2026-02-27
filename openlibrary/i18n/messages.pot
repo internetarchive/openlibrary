@@ -6350,6 +6350,10 @@ msgstr ""
 msgid "Search by barcode"
 msgstr ""
 
+#: lib/nav_head.html
+msgid "Please enter at least 2 characters"
+msgstr ""
+
 #: lib/not_logged.html
 msgid ""
 "<strong>You are not <a href=\"/account/login\" title=\"Log in "
