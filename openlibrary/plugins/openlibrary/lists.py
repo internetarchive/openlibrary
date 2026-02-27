@@ -329,12 +329,13 @@ class lists(delegate.page):
 class lists_edit(delegate.page):
     path = r"(/people/[^/]+)?/(lists|series)/(OL\d+L)/edit"
 
-    def GET(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str):  # type: ignore[override]
+    def GET(self, user_key: str | None, list_type_plural: Literal['lists', 'series'], list_id: str):  # type: ignore[override]
+        list_type = 'list' if list_type_plural == 'lists' else 'series'
         if user_key and list_type == 'series':
             # Not allowed to have user-specific series
             return web.badrequest("Invalid URL.")
 
-        key = (user_key or '') + f'/{list_type}/{list_id}'
+        key = (user_key or '') + f'/{list_type_plural}/{list_id}'
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -345,10 +346,10 @@ class lists_edit(delegate.page):
         lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
-        return render_template("type/list/edit", lst, new=False)
+        return render_template("type/list/edit", lst, list_type=list_type, new=False)
 
-    def POST(self, user_key: str | None, list_type: Literal['lists', 'series'], list_id: str | None):  # type: ignore[override]
-        list_key = (user_key or '') + f'/{list_type}/{list_id or ''}'
+    def POST(self, user_key: str | None, list_type_plural: Literal['lists', 'series'], list_id: str | None):  # type: ignore[override]
+        list_key = (user_key or '') + f'/{list_type_plural}/{list_id or ''}'
 
         if not web.ctx.site.can_write(list_key):
             return render_template(
@@ -369,7 +370,7 @@ class lists_edit(delegate.page):
 
         thing_json = list_record.to_thing_json()
         records_to_save = [thing_json]
-        if list_type == 'series':
+        if list_type_plural == 'series':
             # Don't save seeds on this record
             thing_json['seeds'] = []
             # Edit the works to add series edges
@@ -436,7 +437,9 @@ class lists_add_account(delegate.page):
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/(lists|series)/add"
 
-    def GET(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
+    def GET(self, user_key: str | None, list_type_plural: Literal['lists', 'series']):  # type: ignore[override]
+        list_type = 'list' if list_type_plural == 'lists' else 'series'
+
         if list_type == 'series' and user_key:
             # Not allowed to have user-specific series
             return web.badrequest("Invalid URL.")
@@ -448,10 +451,12 @@ class lists_add(delegate.page):
                 f"Permission denied to edit {user_key}.",
             )
         list_record = ListRecord.from_input()
-        return render_template("type/list/edit", list_record, new=True)
+        return render_template(
+            "type/list/edit", list_record, list_type=list_type, new=True
+        )
 
-    def POST(self, user_key: str | None, list_type: Literal['lists', 'series']):  # type: ignore[override]
-        return lists_edit().POST(user_key, list_type, None)
+    def POST(self, user_key: str | None, list_type_plural: Literal['lists', 'series']):  # type: ignore[override]
+        return lists_edit().POST(user_key, list_type_plural, None)
 
 
 class lists_delete(delegate.page):

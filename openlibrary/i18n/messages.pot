@@ -8014,8 +8014,21 @@ msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?
 msgstr ""
 
 #: type/list/edit.html type/series/edit.html
+msgid "Create a series"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
+#, python-format
+msgid "Editing series: %(list_name)s"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
+msgid "Edit Series"
 msgstr ""
 
 #: type/list/edit.html type/series/edit.html
@@ -8040,6 +8053,10 @@ msgstr ""
 
 #: type/list/edit.html type/series/edit.html
 msgid "List Name"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
+msgid "Series Name"
 msgstr ""
 
 #: type/list/edit.html type/series/edit.html

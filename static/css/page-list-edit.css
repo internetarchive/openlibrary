@@ -16,6 +16,33 @@
   font-size: 1.5em;
 }
 
+#list-edit .floating-label:has([name="name"]) {
+  width: 100%;
+}
+
+#list-edit .floating-label__input {
+  width: 100%;
+}
+
+#list-edit .ac-input .floating-label {
+  margin-top: 10px;
+}
+
+#list-edit.list-edit--series .seed--controls {
+  justify-content: center;
+}
+
+/*
+  These should ideally be unrendered at the template level, but the .multi-input-autocomplete
+  with jsdef makes it tricky, so easier to hide here for now.
+*/
+#list-edit.list-edit--list .le__position,
+#list-edit.list-edit--series .le__notes,
+#list-edit.list-edit--series .mia__reorder,
+#list-edit.list-edit--series .mia__move {
+  display: none;
+}
+
 #list-edit > *:not(div),
 #list-edit textarea {
   display: block;

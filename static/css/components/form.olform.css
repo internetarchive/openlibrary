@@ -272,6 +272,10 @@
   white-space: nowrap;
 }
 
+.floating-label__input {
+  width: 100%;
+}
+
 /*
   These use the new css :has selector for progressive enhancement of the
   floating label. It hides the label when the placeholder is shown.
@@ -283,6 +287,6 @@
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
-.floating-label:focus-within:has(:placeholder-shown) input::placeholder {
+.floating-label:focus-within:has(:placeholder-shown) .floating-label__input::placeholder {
   opacity: 0;
 }
