@@ -64,6 +64,7 @@ from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     normalize_identifier,
 )
+from openlibrary.utils.sentry import init_sentry
 
 logger = logging.getLogger("affiliate-server")
 
@@ -690,6 +691,10 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
+    sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+    if sentry.enabled:
+        sentry.bind_to_webpy_app(app)
+
     http_proxy_url = config.get('http_proxy')
 
     stats.client = stats.create_stats_client(cfg=config)
@@ -720,12 +725,9 @@ def start_server():
     configfile, args = sysargs[0], sysargs[1:]
     web.ol_configfile = configfile
 
-    # # type: (str) -> None
-
     load_config(web.ol_configfile)
     setup_requests()
 
-    # sentry loaded by infogami
     infogami._setup()
 
     if "pytest" not in sys.modules:
