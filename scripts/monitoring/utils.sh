@@ -111,7 +111,7 @@ log_recent_bot_traffic() {
     # Also log other bots as a single metric
     OTHER_BOTS_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
-        grep -iE '\b[a-z_-]+(bot|spider|crawler)' | \
+        grep -iE '"[^"]*?\b[a-z_-]+(bot|spider|crawler)[^"]*" [0-9]+\.[0-9]+$' | \
         obfi_grep_bots -v | \
         wc -l
     )
@@ -123,7 +123,7 @@ log_recent_bot_traffic() {
     # And finally, also log non bot traffic
     NON_BOT_TRAFFIC_COUNT=$(
         obfi_in_docker obfi_previous_minute | \
-        grep -viE '\b[a-z_-]+(bot|spider|crawler)' | \
+        grep -viE '"[^"]*?\b[a-z_-]+(bot|spider|crawler)[^"]*" [0-9]+\.[0-9]+$' | \
         obfi_grep_bots -v | \
         wc -l
     )

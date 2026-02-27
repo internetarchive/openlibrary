@@ -7,6 +7,7 @@ import asyncio
 import os
 import re
 import time
+from typing import Any
 
 import httpx
 
@@ -113,11 +114,13 @@ async def monitor_partner_useragents():
         # Strip leading/trailing underscores or dots
         return s.strip('._')
 
-    def extract_agent_counts(ua_counts, allowed_names=None):
-        agent_counts = {}
+    def extract_agent_counts(
+        ua_counts: str, allowed_names: set[str] | dict[str, Any] | None = None
+    ) -> dict[str, int]:
+        agent_counts: dict[str, int] = {}
         for ua in ua_counts.strip().split("\n"):
-            count, agent, *_ = ua.strip().split(" ")
-            count = int(count)
+            count_str, agent, *_ = ua.strip().split(" ")
+            count = int(count_str)
             agent_name = graphite_safe(agent.split('/')[0])
             if not allowed_names or agent_name in allowed_names:
                 agent_counts[agent_name] = count
@@ -127,6 +130,7 @@ async def monitor_partner_useragents():
         return agent_counts
 
     known_names = extract_agent_counts("""
+   1621 RaftulDeCarti/1.0 (contact@raftuldecarti.ro)
     177 Whefi/1.0 (contact@whefi.com)
      85 Bookhives/1.0 (paulpleela@gmail.com)
      85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
