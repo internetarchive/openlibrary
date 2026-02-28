@@ -1,6 +1,7 @@
 """Language pages"""
 
 import logging
+import unicodedata
 from dataclasses import dataclass
 from typing import Literal, override
 
@@ -15,6 +16,11 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
+
+def normalize_sort(text: str) -> str:
+    if not text:
+        return ""
+    return unicodedata.normalize("NFKD", text).casefold()
 
 
 async def get_top_languages(
@@ -35,9 +41,13 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts('work')
     ]
-    results.sort(
-        key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count")
-    )
+    if sort == "name":
+        results.sort(key=lambda x: normalize_sort(x.name))
+    else:
+        results.sort(
+            key=lambda x: x[sort],
+            reverse=sort in ("count", "ebook_edition_count")
+        )
     return results[:limit]
 
 
