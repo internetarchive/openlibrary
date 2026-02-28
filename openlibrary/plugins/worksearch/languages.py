@@ -17,6 +17,7 @@ from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+
 def normalize_sort(text: str) -> str:
     if not text:
         return ""
@@ -45,8 +46,7 @@ async def get_top_languages(
         results.sort(key=lambda x: normalize_sort(x.name))
     else:
         results.sort(
-            key=lambda x: x[sort],
-            reverse=sort in ("count", "ebook_edition_count")
+            key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count")
         )
     return results[:limit]
 
