@@ -109,7 +109,8 @@ $def seed_attrs(seed):
             </p>
 
         $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
-        $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
+        $ work_key_to_solr_edition = {key: work_doc['editions']['docs'][0] for key, work_doc in solr_works.items() if work_doc and work_doc.get('editions', {}).get('docs', [])}
+        $ availabilities = get_availabilities([work_key_to_solr_edition.get(seed.key) or solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
         $for seed in seeds:
             $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
             $ cover = seed.get_cover()
@@ -120,7 +121,8 @@ $def seed_attrs(seed):
 
             $if seed.type in ['edition', 'work']:
                 $ doc = solr_works.get(seed.key) or seed.document
-                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=availabilities.get(seed.key), decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
+                $ av = availabilities.get(work_key_to_solr_edition[seed.key]['key']) if seed.key in work_key_to_solr_edition else availabilities.get(seed.key)
+                $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=av, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
                 <li class="searchResultItem sri--w-main" $:seed_attrs(seed)>
                     <div class="sri__main">
