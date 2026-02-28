@@ -1417,6 +1417,10 @@ msgstr ""
 msgid "Imports and Exports"
 msgstr ""
 
+#: openlibrary/plugins/upstream/account.py
+msgid "Bulk Import"
+msgstr ""
+
 #: admin/people/view.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
@@ -2758,6 +2762,16 @@ msgstr ""
 
 #: account/import.html
 msgid "No ISBN"
+msgstr ""
+
+#: account/import_bulk.html
+msgid "Import from URL or ISBNs"
+msgstr ""
+
+#: account/import_bulk.html
+msgid ""
+"Enter a URL containing book ISBNs, a list of ISBNs, or Open Library "
+"Edition IDs to add books to a list."
 msgstr ""
 
 #: account/loan_history.html

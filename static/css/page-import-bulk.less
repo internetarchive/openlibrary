@@ -1,0 +1,68 @@
+@import (reference) "less/colors.less";
+@import (reference) "less/font-families.less";
+
+/* Bulk Import Page Styles */
+
+.bulk-import-container {
+  max-width: 900px;
+}
+
+.bulk-import-preview-wrapper {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid @lighter-grey;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.bulk-import-preview {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bulk-import-preview th,
+.bulk-import-preview td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid @lighter-grey;
+}
+
+.bulk-import-preview th {
+  background: @lightest-grey;
+}
+
+.list-selector {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: @grey-fafafa;
+  border-radius: 8px;
+}
+
+#bulkInput {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  font-family: @font-family-mono;
+  border: 1px solid @light-grey;
+  border-radius: 4px;
+}
+
+#processBtn {
+  margin-top: 1rem;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  background: @primary-blue;
+  color: @white;
+  border: none;
+  border-radius: 4px;
+}
+
+#processBtn:hover {
+  background: @link-blue;
+}
+
+#processBtn:disabled {
+  background: @light-grey;
+  cursor: not-allowed;
+}

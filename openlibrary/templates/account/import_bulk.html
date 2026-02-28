@@ -1,0 +1,23 @@
+$def with ()
+
+<link rel="stylesheet" href="/static/css/page-import-bulk.less" type="text/css">
+
+<div class="bulk-import-container">
+  <div class="import-export__section">
+    <h3>$_("Import from URL or ISBNs")</h3>
+    <p>$_("Enter a URL containing book ISBNs, a list of ISBNs, or Open Library Edition IDs to add books to a list.")</p>
+
+    <div id="bulk-import-ui"></div>
+  </div>
+</div>
+
+<script src="/static/bookmarklets/isbn-utils.js"></script>
+<script src="/static/bookmarklets/list-api.js"></script>
+<script src="/static/bookmarklets/bulk-import-ui.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initBulkImportUI === 'function') {
+      initBulkImportUI('#bulk-import-ui');
+    }
+  });
+</script>
