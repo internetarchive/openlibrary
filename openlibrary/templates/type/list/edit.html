@@ -176,7 +176,9 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 
         <div class="formElement bottom">
             $if new:
-                <button type="submit" class="larger" $cond(not can_save, 'disabled')>$_('Create new list')</button>
+                <button type="submit" class="larger" $cond(not can_save, 'disabled')>
+                    $(_('Create new series') if list_type == 'series' else _('Create new list'))
+                </button>
                 <a href="javascript:;" class="cancel go-back-link">$_("Cancel")</a>
             $else:
                 $:macros.EditButtons(comment=lst.comment_)

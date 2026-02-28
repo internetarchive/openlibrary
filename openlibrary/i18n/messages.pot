@@ -8067,6 +8067,10 @@ msgstr ""
 msgid "Add another book"
 msgstr ""
 
+#: type/list/edit.html type/series/edit.html
+msgid "Create new series"
+msgstr ""
+
 #: type/list/embed.html
 msgid "Visit Open Library"
 msgstr ""

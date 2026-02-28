@@ -849,7 +849,7 @@ class list_subjects_yaml(list_subjects_json):
 
 
 class lists_embed(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/embed"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/embed"
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
@@ -859,7 +859,7 @@ class lists_embed(delegate.page):
 
 
 class export(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/export"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/export"
 
     def GET(self, key):
         lst = cast(List | None, web.ctx.site.get(key))
@@ -1081,7 +1081,7 @@ def get_lists(keys: list[str]):
 
 
 class lists_preview(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/preview.png"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/preview.png"
 
     def GET(self, lst_key):
         image_bytes = render_list_preview_image(lst_key)
