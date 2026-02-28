@@ -108,7 +108,7 @@ $def seed_attrs(seed):
                 <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
             </p>
 
-        $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'})
+        $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
         $ availabilities = get_availabilities([solr_works.get(seed.key) or seed.document for seed in seeds if seed.type in ['edition', 'work']])
         $for seed in seeds:
             $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
