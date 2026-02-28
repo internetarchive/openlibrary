@@ -117,7 +117,7 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
         # When lists were created they didn't have their sequence registered correctly,
         # so we need to do this a bit differently
         next_value = web.ctx.site.seq.next_value("list")
-        key = f"/{type_.split('/')[-1]}/OL{next_value}L"
+        key = f"/{type_.rsplit('/', maxsplit=1)[-1]}/OL{next_value}L"
     else:
         key = web.ctx.site.new_key(type_)
     data['key'] = key
