@@ -20,6 +20,14 @@ $var title: $_("Open Library server status")
   #show_changed:checked ~ table tr.tr-body {
     display: table-row;
   }
+
+  /* Prevent layout shift for Lit component before JS loads */
+  ol-smoke-status:not(:defined) {
+    display: inline-block;
+    min-width: 280px;
+    min-height: 50px;
+    visibility: hidden;
+  }
 </style>
 
 <div id="contentHead">
@@ -27,6 +35,8 @@ $var title: $_("Open Library server status")
 </div>
 
 <div id="contentBody">
+  <h2>$_("Smoke tests status")</h2>
+  <ol-smoke-status></ol-smoke-status>
   $if dev_merged_status:
       <h2> $_("Staged") </h2>
       <pre>$dev_merged_status.git_status</pre>
