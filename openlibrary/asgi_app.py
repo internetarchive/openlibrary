@@ -211,8 +211,8 @@ def create_app() -> FastAPI | None:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router
-    from openlibrary.fastapi.checkins import router as checkins_router
     from openlibrary.fastapi.cdn import router as cdn_router
+    from openlibrary.fastapi.checkins import router as checkins_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.partials import router as partials_router
