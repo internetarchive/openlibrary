@@ -1428,6 +1428,15 @@ msgid "Loan History"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
+msgid "this book"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "You have successfully returned %s."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
 msgid ""
 "Your account has hit a lending limit. Please try again later or contact "
 "info@archive.org."
