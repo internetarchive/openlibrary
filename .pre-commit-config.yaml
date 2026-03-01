@@ -47,7 +47,7 @@ repos:
         exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/(import-partial|prod-partial-dump)\.sql)$
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.0
+    rev: v0.15.2
     hooks:
       - id: ruff-check
         args: [ --fix ]
@@ -91,7 +91,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.0.0
+    rev: v10.0.1
     hooks:
       - id: eslint
         types: [file]
