@@ -6,7 +6,7 @@ import json
 import logging
 import os
 import textwrap
-from typing import cast
+from typing import Literal, cast
 
 import requests
 import web
@@ -55,7 +55,17 @@ app = web.application(urls, locals())
 app.add_processor(CORSProcessor(cors_everything=True))
 
 
-def get_cover_id(olkeys):
+class PartialCoverDetails(web.storage):
+    id: int
+    # One of these 4
+    filename: str
+    filename_s: str
+    filename_m: str
+    filename_l: str
+    created: datetime.datetime
+
+
+def get_cover_id(olkeys: list[str]) -> int | None:
     """Return the first cover from the list of ol keys."""
     for olkey in olkeys:
         doc = ol_get(olkey)
@@ -67,9 +77,10 @@ def get_cover_id(olkeys):
         # If so, consider there are no covers.
         if covers and (covers[0] or -1) >= 0:
             return covers[0]
+    return None
 
 
-def _query(category, key, value):
+def _query(category: str, key: str, value: str) -> int | None:
     if key == 'olid':
         prefixes = {"a": "/authors/", "b": "/books/", "w": "/works/"}
         if category in prefixes:
@@ -223,11 +234,17 @@ def zipview_url_from_id(coverid, size):
 
 
 class cover:
-    def GET(self, category, key, value, size):
+    def GET(
+        self,
+        category: str,
+        key: str,
+        value: str,
+        size: Literal["S", "M", "L", ""],
+    ):
         i = web.input(default="true")
         key = key.lower()
 
-        def is_valid_url(url):
+        def is_valid_url(url: str):
             return url.startswith(("http://", "https://"))
 
         def notfound():
@@ -242,28 +259,29 @@ class cover:
             else:
                 return web.notfound("")
 
+        cover_id: int | None = None
         if key == 'isbn':
-            value = value.replace("-", "").strip()  # strip hyphens from ISBN
-            value = self.query(category, key, value)
+            normalized_isbn = value.replace("-", "").strip()  # strip hyphens from ISBN
+            cover_id = self.query(category, key, normalized_isbn)
         elif key == 'ia':
-            url = self.get_ia_cover_url(value, size)
-            if url:
+            if url := self.get_ia_cover_url(value, size):
                 return web.found(url)
             else:
-                value = None  # notfound or redirect to default. handled later.
+                cover_id = None  # notfound or redirect to default. handled later.
         elif key != 'id':
-            value = self.query(category, key, value)
+            cover_id = self.query(category, key, value)
+        else:
+            cover_id = safeint(value)
 
-        value = safeint(value)
-        if value is None or value in config.blocked_covers:
+        if cover_id is None or cover_id in config.blocked_covers:
             return notfound()
 
         # redirect to archive.org cluster for large size and original images whenever possible
-        if size in ("L", "") and self.is_cover_in_cluster(value):
-            url = zipview_url_from_id(value, size)
+        if size in ("L", "") and self.is_cover_in_cluster(cover_id):
+            url = zipview_url_from_id(cover_id, size)
             return web.found(url)
 
-        d = self.get_details(value, size.lower())
+        d = self.get_details(cover_id, size.lower())
         if not d:
             return notfound()
 
@@ -295,7 +313,7 @@ class cover:
         except OSError:
             return web.notfound()
 
-    def get_ia_cover_url(self, identifier, size="M"):
+    def get_ia_cover_url(self, identifier: str, size: Literal["S", "M", "L", ""] = "M"):
         url = f"https://archive.org/metadata/{identifier}/metadata"
         try:
             d = requests.get(url).json().get("result", {})
@@ -317,9 +335,11 @@ class cover:
             h,
         )
 
-    def get_details(self, coverid: int, size=""):
+    def get_details(
+        self, coverid: int, size=""
+    ) -> PartialCoverDetails | db.CoverDbDetails | None:
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
-        if coverid < 6000000 and size in "sml":
+        if coverid < 6_000_000 and size in "sml":
             path = self.get_tar_filename(coverid, size)
 
             if path:
@@ -327,8 +347,15 @@ class cover:
                     key = f"filename_{size}"
                 else:
                     key = "filename"
-                return web.storage(
-                    {"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)}
+                return cast(
+                    PartialCoverDetails,
+                    web.storage(
+                        {
+                            "id": coverid,
+                            key: path,
+                            "created": datetime.datetime(2010, 1, 1),
+                        }
+                    ),
                 )
 
         return db.details(coverid)
@@ -360,7 +387,7 @@ class cover:
             name = "%010d" % coverid
             return f"{prefix}_{name[:4]}_{name[4:6]}.tar:{offset}:{imgsize}"
 
-    def query(self, category, key, value):
+    def query(self, category: str, key: str, value: str) -> int | None:
         return _query(category, key, value)
 
 
@@ -385,7 +412,7 @@ def get_tarindex_path(index, size):
     return os.path.join('items', itemname, filename)
 
 
-def parse_tarindex(file):
+def parse_tarindex(file: io.TextIOBase):
     """Takes tarindex file as file objects and returns array of offsets and array of sizes. The size of the returned arrays will be 10000."""
     array_offset = array.array('L', [0 for i in range(10000)])
     array_size = array.array('L', [0 for i in range(10000)])
