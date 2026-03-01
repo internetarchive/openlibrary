@@ -57,7 +57,7 @@ h2 a:hover {
 h1.edition,
 h2.edition {
   color: var(--black);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1.125em;
   margin: 0;
   padding: 0;
@@ -83,11 +83,11 @@ h4 {
 }
 h4.publisher,
 h4.observer-count {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: normal;
 }
 h4.facetHead {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   font-weight: 700;
   color: var(--black);
@@ -96,7 +96,7 @@ h4.facetHead {
   padding: 0;
 }
 h4.facetHead span.merge {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: normal !important;
   text-transform: none !important;
@@ -141,14 +141,14 @@ span.title,
 h6.title {
   font-size: var(--font-size-label-medium);
   font-weight: normal !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   margin: 0;
   padding: 0;
 }
 
 .titleSmall {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: 600;
 }

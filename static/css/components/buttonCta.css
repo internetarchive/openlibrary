@@ -15,7 +15,7 @@ a.cta-btn {
   margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   text-align: center;
   padding: 7px;
   white-space: nowrap;

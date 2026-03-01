@@ -32,7 +32,7 @@ div#headerLogo p.tagline {
   top: 118px;
   width: 220px;
   text-align: center;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   color: var(--dark-grey);
   margin: 0;
@@ -82,7 +82,7 @@ div#headerNav ul.links li span {
   width: 80px;
   height: 22px;
   padding: 10px 0 0 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   font-weight: 700;
   text-transform: uppercase;

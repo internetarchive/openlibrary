@@ -71,7 +71,7 @@ div.message {
   background: var(--light-yellow);
 }
 div.message p {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 div.siteSearch {
   -webkit-box-ordinal-group: 4;

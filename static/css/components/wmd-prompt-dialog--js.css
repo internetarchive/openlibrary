@@ -35,7 +35,7 @@
 }
 .wmd-prompt-dialog > div {
   font-size: var(--font-size-label-large);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--darker-grey);
   padding: 20px !important;
 }
@@ -54,7 +54,7 @@
   clear: both;
   width: 350px;
   font-size: 1.125em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding: 3px;
 }
 .wmd-prompt-dialog > form > input[type="button"] {
@@ -67,7 +67,7 @@
   background-color: var(--brown);
   padding: 0 10px 10px;
   color: var(--white);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1.75em;
   top: -20px;
   left: -21px;

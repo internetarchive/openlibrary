@@ -46,7 +46,7 @@ img {
 
 /* openlibrary/templates/admin/services.html */
 table.services th {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: bold;
   text-transform: uppercase;
@@ -65,7 +65,7 @@ table.services td.node {
 /* openlibrary/templates/admin/people/view.html */
 #adminHistory {
   border-top: 1px solid var(--admin-table-border);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   margin: 0 0 20px;
 }
 #adminHistory th {
@@ -94,7 +94,7 @@ table.services td.node {
 
 /* openlibrary/admin/templates/admin/index.html */
 div#prolific span {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
 }
 
@@ -105,7 +105,7 @@ div#prolific span {
   right: 0;
   bottom: 2px;
   font-size: 0.5625em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: normal;
   color: var(--grey);
   text-transform: uppercase;
@@ -136,7 +136,7 @@ div#background {
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 div#content {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
