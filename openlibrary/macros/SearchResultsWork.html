@@ -129,7 +129,7 @@ $code:
             <br />
             $ matching_chapters = highlighting.get('chapter', [])
 
-            <ol-read-more class="srw__chapters" more-text="$_('Show more')" less-text="$_('Show less')" background-color="#E2ECF8" label-size="small" padding-left="8">
+            <ol-read-more class="srw__chapters" more-text="$_('Show more')" less-text="$_('Show less')" background-color="#E2ECF8" label-size="small">
               $for chapter in matching_chapters:
                 $if not chapter.strip():
                   $continue
