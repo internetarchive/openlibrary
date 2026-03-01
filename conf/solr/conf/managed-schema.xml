@@ -271,6 +271,9 @@
    <!-- fields used by documents of type list -->
    <field name="last_modified" type="pdate" indexed="true" stored="true"/>
    <field name="seed_count" type="pint" indexed="true" stored="true"/>
+   <field name="cover_i" type="pint" indexed="true" stored="true"/>
+   <field name="ebook_count_i" type="pint" indexed="true" stored="true"/>
+   <field name="last_modified_i" type="pint" indexed="true" stored="true"/>
 
     <!-- dynamic fields -->
     <dynamicField name="id_*"  type="string"  indexed="true"  stored="true" multiValued="true"/>
