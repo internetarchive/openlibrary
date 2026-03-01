@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -19,6 +20,7 @@ from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
+STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
 
 
 # ---- Legacy loader (mirrors scripts/openlibrary-server) --------------------
@@ -198,6 +200,10 @@ def create_app() -> FastAPI | None:
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
     # because the handlers are called in reverse order
     setup_i18n(app)
+
+    # Serve static assets directly from the project static directory.
+    # This mirrors legacy /static/* behavior while we migrate endpoints to FastAPI.
+    app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
 
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
