@@ -34,7 +34,7 @@ services:
       # Debugger
       - 127.0.0.1:3001:3000
     volumes:
-      # Keep static build artifacts in sync with `web` for identical /static/build behavior
+      # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     environment:
