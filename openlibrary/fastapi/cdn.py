@@ -17,12 +17,8 @@ CACHE_MAX_AGE = 86400  # 24 hours, mirrors legacy Cache-Control header
 async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
     """Proxy Internet Archive JS files.
 
-    Mirrors the legacy web.py ``ia_js_cdn`` handler in
-    ``openlibrary/plugins/openlibrary/code.py``.
-
-    Only ``donate.js`` and ``athena.js`` are permitted; any other filename
-    returns 404.  If the upstream request fails a 502 is returned so callers
-    can distinguish a bad path (404) from a transient upstream error (502).
+    Only `donate.js` and `athena.js` are permitted; any other filename
+    returns 404.
 
     .. note:: Intentional improvement over legacy behavior
 
