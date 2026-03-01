@@ -1,5 +1,6 @@
 import {initialzeCarousels} from './carousel';
 import { buildPartialsUrl } from './utils';
+import { initPreviewDialogs } from './dialog';
 
 /**
  * Adds functionality that allows carousels to lazy-load when a patron
@@ -80,6 +81,7 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target)
                 target.remove()
                 initialzeCarousels(carouselElements)
+                initPreviewDialogs(newElem)
             }
         })
         .catch(() => {
