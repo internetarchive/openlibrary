@@ -102,6 +102,4 @@ class TestIaJsCdn:
         mock_client, _ = mock_upstream
         fastapi_client.get("/cdn/archive.org/donate.js")
 
-        mock_client.get.assert_called_once_with(
-            "https://archive.org/includes/donate.js"
-        )
+        mock_client.get.assert_called_once_with("https://archive.org/includes/donate.js")
