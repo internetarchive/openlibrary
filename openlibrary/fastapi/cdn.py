@@ -10,7 +10,7 @@ router = APIRouter()
 
 ALLOWED_FILES = frozenset({"donate.js", "athena.js"})
 UPSTREAM_BASE = "https://archive.org/includes/"
-CACHE_MAX_AGE = 86400  # 24 hours, mirrors legacy Cache-Control header
+CACHE_MAX_AGE = 86400
 
 
 @router.get("/cdn/archive.org/{filename}")
