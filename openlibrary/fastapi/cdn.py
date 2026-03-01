@@ -15,12 +15,7 @@ CACHE_MAX_AGE = 86400
 
 @router.get("/cdn/archive.org/{filename}")
 async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
-    """Proxy Internet Archive JS files.
-
-    Only `donate.js` and `athena.js` are permitted; any other filename
-    returns 404.
-
-    """
+    """Proxy Internet Archive JS files."""
     if filename not in ALLOWED_FILES:
         raise HTTPException(status_code=404)
 
