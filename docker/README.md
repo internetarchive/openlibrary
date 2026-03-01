@@ -296,11 +296,12 @@ docker build -t openlibrary/olbase:latest -f docker/Dockerfile.olbase . # 30+ mi
 
 This image is automatically rebuilt on deploy by ol-home0 and is pushed to at https://hub.docker.com/r/openlibrary/olbase.
 
+`openlibrary/olbase` intentionally includes a valid git repository at `/openlibrary` so operational git commands (e.g. `git status`) work in containers without host volume mounts, such as production-style runs.
+
 If you're making changes you think might affect Docker Hub, you can create a branch starting with `docker-test`, e.g. `docker-test-py2py3` (no weird chars), to trigger a build in docker hub at e.g. `openlibrary/olbase:docker-test-py2py3`.
 
 
 ## Debugging and Profiling the Docker Image
 
 See [Debugging and Performance Profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling) for more information on how to attach a debugger when running in the Docker Container.
-
 

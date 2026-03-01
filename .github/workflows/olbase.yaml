@@ -42,6 +42,16 @@ jobs:
           tags: openlibrary/olbase:${{ env.TAG_NAME }}
           push: true
 
+      - name: Verify git status works in amd64 olbase image
+        run: |
+          docker pull openlibrary/olbase:${{ env.TAG_NAME }}
+          STATUS_OUTPUT=$(docker run --rm openlibrary/olbase:${{ env.TAG_NAME }} git status 2>&1)
+          echo "$STATUS_OUTPUT"
+          if echo "$STATUS_OUTPUT" | grep -qi "fatal:"; then
+            echo "git status output contains fatal error"
+            exit 1
+          fi
+
   docker-arm64:
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-24.04-arm
@@ -71,6 +81,16 @@ jobs:
           platforms: linux/arm64
           tags: openlibrary/olbase:${{ env.TAG_NAME }}-arm64
           push: true
+
+      - name: Verify git status works in arm64 olbase image
+        run: |
+          docker pull openlibrary/olbase:${{ env.TAG_NAME }}-arm64
+          STATUS_OUTPUT=$(docker run --rm openlibrary/olbase:${{ env.TAG_NAME }}-arm64 git status 2>&1)
+          echo "$STATUS_OUTPUT"
+          if echo "$STATUS_OUTPUT" | grep -qi "fatal:"; then
+            echo "git status output contains fatal error"
+            exit 1
+          fi
 
   combine-manifests:
     needs: [docker, docker-arm64]
