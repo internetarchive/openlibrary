@@ -1228,6 +1228,7 @@ msgid "Has work (orphaned)"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
+#: openlibrary/scorecards.py
 msgid "Has publication year"
 msgstr ""
 
@@ -1551,6 +1552,160 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has title field"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"A title is essential for discovery and helps patrons identify the book in"
+" search results and catalogs."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has language information"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Language information helps patrons filter and find books in their "
+"preferred language."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has identifiers (ISBN, LCCN, IA, or other)"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Identifiers help with cataloging, deduplication, and linking to external "
+"resources."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has Lexile measure"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Lexile measures help educators and parents find books at the appropriate "
+"reading level."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has Dewey Decimal Classification (DDC)"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Dewey Decimal Classification helps with organization, discovery, and "
+"recommendations in library catalogs."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has Library of Congress Classification (LCC)"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Library of Congress Classification helps with organization, discovery, "
+"and recommendations in library catalogs."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has cover image"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"A cover image helps patrons visually identify the book and makes it more "
+"appealing in search results."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has a description (50+ characters)"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "A brief description helps patrons understand what the book is about."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Has a detailed description (100+ characters)"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "A longer description provides more context about the book content."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Publication year helps patrons understand the context and currency of the"
+" content."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Edition Access"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Readable online or via download"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Borrowable and readable books can be accessed by readers, researchers, "
+"and all patrons alike."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Fully open access"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Fully public books can be read online or downloaded without any "
+"restrictions, providing excellent access for patrons."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Allows search inside"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"Books that allow search inside enable patrons to quickly find relevant "
+"content within the book, improving discoverability and usability."
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Edition Scorecard"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Access"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Discovery"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"How well can this edition be accurately surfaced in searches and "
+"recommendations?"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid "Evaluation"
+msgstr ""
+
+#: openlibrary/scorecards.py
+msgid ""
+"How well can a patron determine if this edition is relevant to their "
+"needs before accessing it?"
 msgstr ""
 
 #: account.html account/notifications.html account/privacy.html
@@ -2265,6 +2420,25 @@ msgstr ""
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
+msgstr ""
+
+#: scorecard.html
+#, python-format
+msgid "%d points"
+msgstr ""
+
+#: scorecard.html
+msgid "Score"
+msgstr ""
+
+#: scorecard.html
+#, python-format
+msgid "Failing Checks (%d)"
+msgstr ""
+
+#: scorecard.html
+#, python-format
+msgid "Passing Checks (%d)"
 msgstr ""
 
 #: showamazon.html showbwb.html showgoogle_books.html

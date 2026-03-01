@@ -38,6 +38,8 @@ class SolrDocument(TypedDict):
     isbn: Optional[list[str]]
     ebook_access: Optional[Literal['no_ebook', 'unclassified', 'printdisabled', 'borrowable', 'public']]
     ebook_provider: Optional[list[str]]
+    metadata_score: Optional[int]
+    usefulness_score: Optional[int]
     lexile: Optional[list[int]]
     lcc: Optional[list[str]]
     lcc_sort: Optional[str]
