@@ -1,0 +1,23 @@
+.native-dialog {
+  padding: 10px;
+  border: 1px solid var(--dark-beige);
+  border-radius: var(--border-radius-overlay);
+  -webkit-box-shadow: 1px 3px 5px var(--darker-grey);
+  box-shadow: 1px 3px 5px var(--darker-grey);
+}
+
+.native-dialog--close {
+  color: var(--dark-grey);
+  font-size: 1.2em;
+}
+
+.native-dialog--close:visited,
+.native-dialog--close:link,
+.native-dialog--close:hover {
+  text-decoration: none;
+}
+
+.native-dialog::backdrop {
+  opacity: 0.5;
+  background-color: var(--black);
+}

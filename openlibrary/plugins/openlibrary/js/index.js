@@ -3,7 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
-import '../../../../static/css/js-all.less';
+import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 

@@ -52,7 +52,7 @@ export default {
 }</script>
 
 
-<style lang="less">
+<style>
 @keyframes pulse {
   0% {
     opacity: 0;
@@ -101,84 +101,83 @@ export default {
   position: relative;
   transition-property: background-color border-color opacity;
   transition-duration: 0.2s;
+}
 
-  &:first-child {
-    animation: slideUp .8s;
-  }
+.book-card:first-child {
+  animation: slideUp .8s;
+}
 
-  &:nth-child(2) {
-    animation: shiftRight .8s;
-  }
+.book-card:nth-child(2) {
+  animation: shiftRight .8s;
+}
 
-  &:hover {
-    background: rgba(0, 0, 255, 0.05);
-    border-color: rgba(0, 0, 255, 0.5);
-  }
+.book-card:hover {
+  background: rgba(0, 0, 255, 0.05);
+  border-color: rgba(0, 0, 255, 0.5);
+}
 
-  &.book-card--primary {
-      border: 1px solid rgba(0, 0, 255, 0.5);
-  }
+.book-card.book-card--primary {
+  border: 1px solid rgba(0, 0, 255, 0.5);
+}
 
-  &.loading::before {
-    content: "";
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 100px;
-    margin: 10px;
-    right: 0;
-    background: blue;
-    opacity: 0;
-    animation: pulse 0.5s infinite alternate;
-    animation-delay: .5s;
-  }
+.book-card.loading::before {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 100px;
+  margin: 10px;
+  right: 0;
+  background: blue;
+  opacity: 0;
+  animation: pulse 0.5s infinite alternate;
+  animation-delay: .5s;
+}
 
-  .action {
-    padding: 4px;
-    background: rgba(0, 0, 255, 0.6);
-    border-radius: 4px;
-    color: white;
-    text-decoration: none;
-    margin-top: 4px;
-    display: inline-block;
-  }
+.book-card .action {
+  padding: 4px;
+  background: rgba(0, 0, 255, 0.6);
+  border-radius: 4px;
+  color: white;
+  text-decoration: none;
+  margin-top: 4px;
+  display: inline-block;
+}
 
-  .action:empty {
-    display: none;
-  }
+.book-card .action:empty {
+  display: none;
+}
 
-  .title {
-    font-weight: bold;
-    font-size: 1.1em;
-    line-height: 1;
+.book-card .title {
+  font-weight: bold;
+  font-size: 1.1em;
+  line-height: 1;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
 
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    overflow: hidden;
-  }
+.book-card .cover {
+  width: 25%;
+}
 
-  .cover {
-    width: 25%;
+.book-card .cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-  }
+.book-card .identifier {
+  margin-top: 4px;
+  padding-top: 4px;
+  color: #555;
+  border-top: 1px solid #D8D8D8;
+  flex: 1;
+}
 
-  .identifier {
-    margin-top: 4px;
-    padding-top: 4px;
-    color: #555;
-    border-top: 1px solid #D8D8D8;
-    flex: 1;
-  }
-
-  .info {
-    flex: 1;
-    padding: 8px;
-  }
+.book-card .info {
+  flex: 1;
+  padding: 8px;
 }
 </style>

@@ -14,7 +14,6 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 all: git css js components lit-components i18n
 
 css:
-	node scripts/generate-css-custom-properties.js
 	mkdir -p $(BUILD)/css_new
 	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
 	mkdir -p $(BUILD)/css

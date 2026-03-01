@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from prometheus_fastapi_instrumentator import Instrumentator
 from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -19,6 +20,7 @@ from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
 logger = logging.getLogger("openlibrary.asgi_app")
+STATIC_ROOT = Path(__file__).resolve().parent.parent / "static"
 
 
 # ---- Legacy loader (mirrors scripts/openlibrary-server) --------------------
@@ -199,6 +201,10 @@ def create_app() -> FastAPI | None:
     # because the handlers are called in reverse order
     setup_i18n(app)
 
+    # Serve static assets directly from the project static directory.
+    # This mirrors legacy /static/* behavior while we migrate endpoints to FastAPI.
+    app.mount("/static", StaticFiles(directory=STATIC_ROOT), name="static")
+
     # --- Fast routes (mounted within this app) ---
     @app.get("/health")
     def health() -> dict[str, str]:
@@ -206,6 +212,8 @@ def create_app() -> FastAPI | None:
 
     from openlibrary.fastapi.account import router as account_router
     from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.cdn import router as cdn_router
+    from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.partials import router as partials_router
     from openlibrary.fastapi.public_my_books import router as public_my_books_router
@@ -217,6 +225,7 @@ def create_app() -> FastAPI | None:
     )
 
     # Include routers
+    app.include_router(cdn_router)
     app.include_router(public_my_books_router)
     app.include_router(languages_router)
     app.include_router(partials_router)
@@ -226,6 +235,7 @@ def create_app() -> FastAPI | None:
     app.include_router(subjects_router)
     app.include_router(account_router)
     app.include_router(yearly_reading_goals_router)
+    app.include_router(internal_router)
 
     return app
 

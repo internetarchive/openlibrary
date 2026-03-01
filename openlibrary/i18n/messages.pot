@@ -5742,18 +5742,6 @@ msgstr ""
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
-#: history/comment.html
-msgid "Imported from"
-msgstr ""
-
-#: history/comment.html
-msgid "Found a matching"
-msgstr ""
-
-#: history/comment.html
-msgid "Edited without comment."
-msgstr ""
-
 #: history/sources.html
 msgid "record"
 msgstr ""

@@ -1,0 +1,25 @@
+.searchResultItemCTA {
+  width: 100%;
+  line-height: 1em;
+}
+.searchResultItemCTA-lending {
+  width: 100%;
+  color: var(--white);
+  cursor: pointer;
+  text-align: center;
+  font-family: var(--body-family);
+}
+.searchResultItem > .searchResultItemCTA {
+  padding: 0;
+}
+.searchResultItemCTA .generic-dropper-wrapper {
+  margin-top: 5px;
+}
+/* @width-breakpoint-tablet */
+@media only screen and (min-width: 768px) {
+  .searchResultItem .searchResultItemCTA {
+    width: 200px;
+    min-width: 200px;
+    padding: 0 5px;
+  }
+}

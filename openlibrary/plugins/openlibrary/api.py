@@ -55,17 +55,17 @@ class book_availability(delegate.page):
     path = "/availability/v2"
 
     def GET(self):
-        i = web.input(type='', ids='')
+        i = web.input(type="", ids="")
         id_type = i.type
-        ids = i.ids.split(',')
+        ids = i.ids.split(",")
         result = self.get_book_availability(id_type, ids)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
     def POST(self):
-        i = web.input(type='')
+        i = web.input(type="")
         j = json.loads(web.data())
         id_type = i.type
-        ids = j.get('ids', [])
+        ids = j.get("ids", [])
         result = self.get_book_availability(id_type, ids)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
@@ -92,9 +92,9 @@ class trending_books_api(delegate.page):
             hours=0,
             sort_by_count=False,
             minimum=0,
-            fields='',
+            fields="",
         )
-        fields = i.fields.split(',') if i.fields else None
+        fields = i.fields.split(",") if i.fields else None
         days = SINCE_DAYS.get(period, int(i.days))
         works = get_trending_books(
             since_days=days,
@@ -106,10 +106,10 @@ class trending_books_api(delegate.page):
             fields=fields,
         )
         result = {
-            'query': f"/trending/{period}",
-            'works': [dict(work) for work in works],
-            'days': days,
-            'hours': i.hours,
+            "query": f"/trending/{period}",
+            "works": [dict(work) for work in works],
+            "days": days,
+            "hours": i.hours,
         }
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
@@ -119,8 +119,8 @@ class browse(delegate.page):
     encoding = "json"
 
     def GET(self):
-        i = web.input(q='', page=1, limit=100, subject='', sorts='')
-        sorts = i.sorts.split(',')
+        i = web.input(q="", page=1, limit=100, subject="", sorts="")
+        sorts = i.sorts.split(",")
         page = int(i.page)
         limit = int(i.limit)
         url = lending.compose_ia_url(
@@ -132,8 +132,8 @@ class browse(delegate.page):
         )
         works = lending.get_available(url=url) if url else []
         result = {
-            'query': url,
-            'works': [work.dict() for work in works],
+            "query": url,
+            "works": [work.dict() for work in works],
         }
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
@@ -149,33 +149,33 @@ class ratings(delegate.page):
         if stats := Ratings.get_work_ratings_summary(work_id):
             return json.dumps(
                 {
-                    'summary': {
-                        'average': stats['ratings_average'],
-                        'count': stats['ratings_count'],
-                        'sortable': stats['ratings_sortable'],
+                    "summary": {
+                        "average": stats["ratings_average"],
+                        "count": stats["ratings_count"],
+                        "sortable": stats["ratings_sortable"],
                     },
-                    'counts': {
-                        '1': stats['ratings_count_1'],
-                        '2': stats['ratings_count_2'],
-                        '3': stats['ratings_count_3'],
-                        '4': stats['ratings_count_4'],
-                        '5': stats['ratings_count_5'],
+                    "counts": {
+                        "1": stats["ratings_count_1"],
+                        "2": stats["ratings_count_2"],
+                        "3": stats["ratings_count_3"],
+                        "4": stats["ratings_count_4"],
+                        "5": stats["ratings_count_5"],
                     },
                 }
             )
         else:
             return json.dumps(
                 {
-                    'summary': {
-                        'average': None,
-                        'count': 0,
+                    "summary": {
+                        "average": None,
+                        "count": 0,
                     },
-                    'counts': {
-                        '1': 0,
-                        '2': 0,
-                        '3': 0,
-                        '4': 0,
-                        '5': 0,
+                    "counts": {
+                        "1": 0,
+                        "2": 0,
+                        "3": 0,
+                        "4": 0,
+                        "5": 0,
                     },
                 }
             )
@@ -191,24 +191,20 @@ class ratings(delegate.page):
             page=None,
             ajax=False,
         )
-        key = i.redir_url or (i.edition_id or ('/works/OL%sW' % work_id))
-        edition_id = (
-            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
-        )
+        key = i.redir_url or (i.edition_id or ("/works/OL%sW" % work_id))
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
 
         if not user:
-            raise web.seeother('/account/login?redirect=%s' % key)
+            raise web.seeother("/account/login?redirect=%s" % key)
 
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
+            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
         if i.rating is None:
             models.Ratings.remove(username, work_id)
-            r = response('removed rating')
+            r = response("removed rating")
 
         else:
             try:
@@ -216,18 +212,16 @@ class ratings(delegate.page):
                 if rating not in models.Ratings.VALID_STAR_RATINGS:
                     raise ValueError
             except ValueError:
-                return response('invalid rating', status="error")
+                return response("invalid rating", status="error")
 
-            models.Ratings.add(
-                username=username, work_id=work_id, rating=rating, edition_id=edition_id
-            )
-            r = response('rating added')
+            models.Ratings.add(username=username, work_id=work_id, rating=rating, edition_id=edition_id)
+            r = response("rating added")
 
         if i.redir and not i.ajax:
             p = h.safeint(i.page, 1)
-            query_params = f'?page={p}' if p > 1 else ''
+            query_params = f"?page={p}" if p > 1 else ""
             if i.page:
-                raise web.seeother(f'{key}{query_params}')
+                raise web.seeother(f"{key}{query_params}")
 
             raise web.seeother(key)
         return r
@@ -250,32 +244,26 @@ class booknotes(delegate.page):
         """
         user = accounts.get_current_user()
         if not user:
-            raise web.seeother('/account/login?redirect=/works/%s' % work_id)
+            raise web.seeother("/account/login?redirect=/works/%s" % work_id)
 
         i = web.input(notes=None, edition_id=None, redir=None)
-        edition_id = (
-            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
-        )
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
 
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
+            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
         if i.notes is None:
             Booknotes.remove(username, work_id, edition_id=edition_id)
-            return response('removed note')
+            return response("removed note")
 
-        Booknotes.add(
-            username=username, work_id=work_id, notes=i.notes, edition_id=edition_id
-        )
+        Booknotes.add(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
 
         if i.redir:
             raise web.seeother("/works/%s" % work_id)
 
-        return response('note added')
+        return response("note added")
 
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
@@ -290,7 +278,7 @@ class work_bookshelves(delegate.page):
     def GET(self, work_id):
         from openlibrary.core.models import Bookshelves
 
-        return json.dumps({'counts': Bookshelves.get_work_summary(work_id)})
+        return json.dumps({"counts": Bookshelves.get_work_summary(work_id)})
 
     def POST(self, work_id):
         """
@@ -317,12 +305,12 @@ class work_bookshelves(delegate.page):
             bookshelf_id=None,
             dont_remove=False,
         )
-        key = i.edition_id or ('/works/OL%sW' % work_id)
+        key = i.edition_id or ("/works/OL%sW" % work_id)
 
         if not user:
-            raise web.seeother('/account/login?redirect=%s' % key)
+            raise web.seeother("/account/login?redirect=%s" % key)
 
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
         current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
 
         try:
@@ -332,20 +320,16 @@ class work_bookshelves(delegate.page):
                 raise ValueError
         except (TypeError, ValueError):
             return delegate.RawText(
-                json.dumps({'error': 'Invalid bookshelf'}),
+                json.dumps({"error": "Invalid bookshelf"}),
                 content_type="application/json",
             )
 
-        if (
-            (not i.dont_remove) and bookshelf_id == current_status
-        ) or bookshelf_id == -1:
-            work_bookshelf = Bookshelves.remove(
-                username=username, work_id=work_id, bookshelf_id=current_status
-            )
+        if ((not i.dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
+            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
             BookshelvesEvents.delete_by_username_and_work(username, work_id)
 
         else:
-            edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+            edition_id = int(i.edition_id.split("/")[2][2:-1]) if i.edition_id else None
             work_bookshelf = Bookshelves.add(
                 username=username,
                 bookshelf_id=bookshelf_id,
@@ -356,7 +340,7 @@ class work_bookshelves(delegate.page):
         if i.redir:
             raise web.seeother(key)
         return delegate.RawText(
-            json.dumps({'bookshelves_affected': work_bookshelf}),
+            json.dumps({"bookshelves_affected": work_bookshelf}),
             content_type="application/json",
         )
 
@@ -368,9 +352,7 @@ class work_editions(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/work":
-            raise web.HTTPError(
-                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
-            )
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit) or 50
@@ -399,10 +381,10 @@ class work_editions(delegate.page):
         }
 
         if offset > 0:
-            links['prev'] = web.changequery(offset=min(0, offset - limit))
+            links["prev"] = web.changequery(offset=min(0, offset - limit))
 
         if offset + len(editions) < size:
-            links['next'] = web.changequery(offset=offset + limit)
+            links["next"] = web.changequery(offset=offset + limit)
 
         return {"links": links, "size": size, "entries": editions}
 
@@ -414,9 +396,7 @@ class author_works(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/author":
-            raise web.HTTPError(
-                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
-            )
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit, 50)
@@ -445,47 +425,41 @@ class author_works(delegate.page):
         }
 
         if offset > 0:
-            links['prev'] = web.changequery(offset=min(0, offset - limit))
+            links["prev"] = web.changequery(offset=min(0, offset - limit))
 
         if offset + len(works) < size:
-            links['next'] = web.changequery(offset=offset + limit)
+            links["next"] = web.changequery(offset=offset + limit)
 
         return {"links": links, "size": size, "entries": works}
 
 
 class price_api(delegate.page):
-    path = r'/prices'
+    path = r"/prices"
 
     @jsonapi
     def GET(self):
-        i = web.input(isbn='', asin='')
+        i = web.input(isbn="", asin="")
         if not (i.isbn or i.asin):
-            return json.dumps({'error': 'isbn or asin required'})
+            return json.dumps({"error": "isbn or asin required"})
         id_ = i.asin or normalize_isbn(i.isbn)
-        id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
+        id_type = "asin" if i.asin else "isbn_" + ("13" if len(id_) == 13 else "10")
 
         metadata = {
-            'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            'betterworldbooks': (
-                get_betterworldbooks_metadata(id_)
-                if id_type.startswith('isbn_')
-                else {}
-            ),
+            "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
+            "betterworldbooks": (get_betterworldbooks_metadata(id_) if id_type.startswith("isbn_") else {}),
         }
         # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
 
         # if bwb fails and isbn10, try again with isbn13
-        if id_type == 'isbn_10' and metadata['betterworldbooks'].get('price') is None:
+        if id_type == "isbn_10" and metadata["betterworldbooks"].get("price") is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
-            metadata['betterworldbooks'] = (
-                isbn_13 and get_betterworldbooks_metadata(isbn_13)
-            ) or {}
+            metadata["betterworldbooks"] = (isbn_13 and get_betterworldbooks_metadata(isbn_13)) or {}
 
         # fetch book by isbn if it exists
         # TODO: perform existing OL lookup by ASIN if supplied, if possible
         matches = web.ctx.site.things(
             {
-                'type': '/type/edition',
+                "type": "/type/edition",
                 id_type: id_,
             }
         )
@@ -493,16 +467,16 @@ class price_api(delegate.page):
         book_key = matches[0] if matches else None
 
         # if no OL edition for isbn, attempt to create
-        if (not book_key) and metadata.get('amazon'):
+        if (not book_key) and metadata.get("amazon"):
             book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
 
         # include ol edition metadata in response, if available
         if book_key:
             ed = web.ctx.site.get(book_key)
             if ed:
-                metadata['key'] = ed.key
-                if getattr(ed, 'ocaid'):  # noqa: B009
-                    metadata['ocaid'] = ed.ocaid
+                metadata["key"] = ed.key
+                if getattr(ed, "ocaid"):  # noqa: B009
+                    metadata["ocaid"] = ed.ocaid
 
         return json.dumps(metadata)
 
@@ -512,25 +486,25 @@ class patrons_follows_json(delegate.page):
     encoding = "json"
 
     def GET(self, key):
-        i = web.input(publisher='', redir_url='', state='')
+        i = web.input(publisher="", redir_url="", state="")
         user = accounts.get_current_user()
         if not user or user.key != key:
-            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+            raise web.seeother(f"/account/login?redir_url={i.redir_url}")
 
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
         return delegate.RawText(
             json.dumps(PubSub.get_following(username), cls=NothingEncoder),
             content_type="application/json",
         )
 
     def POST(self, key):
-        i = web.input(publisher='', redir_url='', state='')
+        i = web.input(publisher="", redir_url="", state="")
         user = accounts.get_current_user()
         if not user or user.key != key:
-            raise web.seeother(f'/account/login?redir_url={i.redir_url}')
+            raise web.seeother(f"/account/login?redir_url={i.redir_url}")
 
-        username = user.key.split('/')[2]
-        action = PubSub.subscribe if i.state == '0' else PubSub.unsubscribe
+        username = user.key.split("/")[2]
+        action = PubSub.subscribe if i.state == "0" else PubSub.unsubscribe
         action(username, i.publisher)
         raise web.seeother(i.redir_url)
 
@@ -548,55 +522,47 @@ class patrons_observations(delegate.page):
         user = accounts.get_current_user()
 
         if not user:
-            raise web.seeother('/account/login')
+            raise web.seeother("/account/login")
 
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
         existing_records = Observations.get_patron_observations(username, work_id)
 
         patron_observations = defaultdict(list)
 
         for r in existing_records:
-            kv_pair = Observations.get_key_value_pair(r['type'], r['value'])
+            kv_pair = Observations.get_key_value_pair(r["type"], r["value"])
             patron_observations[kv_pair.key].append(kv_pair.value)
 
-        return delegate.RawText(
-            json.dumps(patron_observations), content_type="application/json"
-        )
+        return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
 
     def POST(self, work_id):
         user = accounts.get_current_user()
 
         if not user:
-            raise web.seeother('/account/login')
+            raise web.seeother("/account/login")
 
         data = json.loads(web.data())
 
-        Observations.persist_observation(
-            data['username'], work_id, data['observation'], data['action']
-        )
+        Observations.persist_observation(data["username"], work_id, data["observation"], data["action"])
 
         def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
+            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
-        return response('Observations added')
+        return response("Observations added")
 
     def DELETE(self, work_id):
         user = accounts.get_current_user()
-        username = user.key.split('/')[2]
+        username = user.key.split("/")[2]
 
         if not user:
-            raise web.seeother('/account/login')
+            raise web.seeother("/account/login")
 
         Observations.remove_observations(username, work_id)
 
         def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
+            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
 
-        return response('Observations removed')
+        return response("Observations removed")
 
 
 class public_observations(delegate.page):
@@ -605,17 +571,15 @@ class public_observations(delegate.page):
     for a list of works. Useful for decorating search results.
     """
 
-    path = '/observations'
-    encoding = 'json'
+    path = "/observations"
+    encoding = "json"
 
     def GET(self):
         i = web.input(olid=[])
         works = i.olid
         metrics = {w: get_observation_metrics(w) for w in works}
 
-        return delegate.RawText(
-            json.dumps({'observations': metrics}), content_type='application/json'
-        )
+        return delegate.RawText(json.dumps({"observations": metrics}), content_type="application/json")
 
 
 class work_delete(delegate.page):
@@ -640,10 +604,10 @@ class work_delete(delegate.page):
             if len(keys) == limit:
                 if not i.bulk:
                     raise web.HTTPError(
-                        '400 Bad Request',
+                        "400 Bad Request",
                         data=json.dumps(
                             {
-                                'error': f'API can only delete {limit} editions per work.',
+                                "error": f"API can only delete {limit} editions per work.",
                             }
                         ),
                         headers={"Content-Type": "application/json"},
@@ -657,27 +621,25 @@ class work_delete(delegate.page):
 
     def POST(self, work_id: str):
         if not can_write():
-            return web.HTTPError('403 Forbidden')
+            return web.HTTPError("403 Forbidden")
 
         web_input = web.input(comment=None)
 
-        comment = web_input.get('comment')
+        comment = web_input.get("comment")
 
-        work: Work = web.ctx.site.get(f'/works/{work_id}')
+        work: Work = web.ctx.site.get(f"/works/{work_id}")
         if work is None:
-            return web.HTTPError(status='404 Not Found')
+            return web.HTTPError(status="404 Not Found")
 
         editions: list[dict] = self.get_editions_of_work(work)
-        keys_to_delete: list = [el.get('key') for el in [*editions, work.dict()]]
-        delete_payload: list[dict] = [
-            {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
-        ]
+        keys_to_delete: list = [el.get("key") for el in [*editions, work.dict()]]
+        delete_payload: list[dict] = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
 
         web.ctx.site.save_many(delete_payload, comment)
         return delegate.RawText(
             json.dumps(
                 {
-                    'status': 'ok',
+                    "status": "ok",
                 }
             ),
             content_type="application/json",
@@ -685,7 +647,7 @@ class work_delete(delegate.page):
 
 
 class hide_banner(delegate.page):
-    path = '/hide_banner'
+    path = "/hide_banner"
 
     def POST(self):
         user = accounts.get_current_user()
@@ -693,30 +655,26 @@ class hide_banner(delegate.page):
 
         # Set truthy cookie that expires in 30 days:
         DAY_SECONDS = 60 * 60 * 24
-        cookie_duration_days = int(data.get('cookie-duration-days', 30))
+        cookie_duration_days = int(data.get("cookie-duration-days", 30))
 
-        if user and data['cookie-name'].startswith('yrg'):
-            user.save_preferences({'yrg_banner_pref': data['cookie-name']})
+        if user and data["cookie-name"].startswith("yrg"):
+            user.save_preferences({"yrg_banner_pref": data["cookie-name"]})
 
-        web.setcookie(
-            data['cookie-name'], '1', expires=(cookie_duration_days * DAY_SECONDS)
-        )
+        web.setcookie(data["cookie-name"], "1", expires=(cookie_duration_days * DAY_SECONDS))
 
-        return delegate.RawText(
-            json.dumps({'success': 'Preference saved'}), content_type="application/json"
-        )
+        return delegate.RawText(json.dumps({"success": "Preference saved"}), content_type="application/json")
 
 
 class create_qrcode(delegate.page):
-    path = '/qrcode'
+    path = "/qrcode"
 
     def GET(self):
-        i = web.input(path='/')
+        i = web.input(path="/")
         page_path = i.path
-        qr_url = f'{web.ctx.home}{page_path}'
+        qr_url = f"{web.ctx.home}{page_path}"
         img = qrcode.make(qr_url)
         with io.BytesIO() as buf:
-            img.save(buf, format='PNG')
+            img.save(buf, format="PNG")
             web.header("Content-Type", "image/png")
             return delegate.RawText(buf.getvalue())
 
@@ -740,7 +698,7 @@ class bestbook_award(delegate.page):
 
         if user := accounts.get_current_user():
             try:
-                username = user.key.split('/')[2]
+                username = user.key.split("/")[2]
                 if i.op in ["add", "update"]:
                     # Make sure the topic is free
                     if i.op == "update":
@@ -772,7 +730,7 @@ class bestbook_award(delegate.page):
                 errors.append(str(e))
         else:
             errors.append("Authentication failed")
-        return json.dumps({"errors": ', '.join(errors)})
+        return json.dumps({"errors": ", ".join(errors)})
 
 
 class bestbook_count(delegate.page):
@@ -784,19 +742,17 @@ class bestbook_count(delegate.page):
     @jsonapi
     def GET(self):
         filt = web.input(work_id=None, username=None, topic=None)
-        result = Bestbook.get_count(
-            work_id=filt.work_id, username=filt.username, topic=filt.topic
-        )
-        return json.dumps({'count': result})
+        result = Bestbook.get_count(work_id=filt.work_id, username=filt.username, topic=filt.topic)
+        return json.dumps({"count": result})
 
 
 def get_opds_data_provider():
     from pyopds2_openlibrary import OpenLibraryDataProvider
 
     provider = OpenLibraryDataProvider()
-    protocol = 'https' if 'localhost' not in web.ctx.host else 'http'
-    OpenLibraryDataProvider.BASE_URL = f'{protocol}://{web.ctx.host}'
-    OpenLibraryDataProvider.SEARCH_URL = '/opds/search'
+    protocol = "https" if "localhost" not in web.ctx.host else "http"
+    OpenLibraryDataProvider.BASE_URL = f"{protocol}://{web.ctx.host}"
+    OpenLibraryDataProvider.SEARCH_URL = "/opds/search"
     return provider
 
 
@@ -822,7 +778,7 @@ class opds_search(delegate.page):
                 limit=int(i.limit),
                 offset=(int(i.page) - 1) * int(i.limit),
                 sort=i.sort,
-                facets={'mode': i.mode},
+                facets={"mode": i.mode},
             ),
             links=[
                 Link(
@@ -848,7 +804,7 @@ class opds_search(delegate.page):
                 ),
             ],
         )
-        web.header('Content-Type', 'application/opds+json')
+        web.header("Content-Type", "application/opds+json")
         return delegate.RawText(json.dumps(catalog.model_dump()))
 
 
@@ -858,12 +814,12 @@ class opds_books(delegate.page):
     def GET(self, edition_olid: str):
 
         provider = get_opds_data_provider()
-        resp = provider.search(query=f'edition_key:{edition_olid}')
-        web.header('Content-Type', 'application/opds-publication+json')
+        resp = provider.search(query=f"edition_key:{edition_olid}")
+        web.header("Content-Type", "application/opds-publication+json")
         if not resp.records:
             raise web.HTTPError(
-                '404 Not Found',
-                data=json.dumps({'error': 'Edition not found'}),
+                "404 Not Found",
+                data=json.dumps({"error": "Edition not found"}),
             )
 
         pub = resp.records[0].to_publication()
@@ -884,8 +840,8 @@ class opds_home(delegate.page):
                 navigation=[
                     Navigation(
                         type="application/opds+json",
-                        title=subject['presentable_name'],
-                        href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject['key'].split('/')[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
+                        title=subject["presentable_name"],
+                        href=f'{provider.BASE_URL}{provider.SEARCH_URL}?sort=trending&query=subject_key:{subject["key"].split("/")[-1]} -subject:"content_warning:cover" ebook_access:[borrowable TO *]',  # noqa: E501
                     )
                     for subject in get_cached_featured_subjects()
                 ],
@@ -894,7 +850,7 @@ class opds_home(delegate.page):
                         metadata=Metadata(title=_("Trending Books")),
                         response=provider.search(
                             query='trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover" ebook_access:[borrowable TO *] readinglog_count:[4 TO *]',
-                            sort='trending',
+                            sort="trending",
                             limit=25,
                         ),
                     ),
@@ -902,7 +858,7 @@ class opds_home(delegate.page):
                         metadata=Metadata(title=_("Classic Books")),
                         response=provider.search(
                             query='ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false -subject:"content_warning:cover"',
-                            sort='trending',
+                            sort="trending",
                             limit=25,
                         ),
                     ),
@@ -910,7 +866,7 @@ class opds_home(delegate.page):
                         metadata=Metadata(title=_("Romance")),
                         response=provider.search(
                             query='subject:romance ebook_access:[borrowable TO *] first_publish_year:[1930 TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',  # noqa: E501
-                            sort='trending,trending_score_hourly_sum',
+                            sort="trending,trending_score_hourly_sum",
                             limit=25,
                         ),
                     ),
@@ -918,7 +874,7 @@ class opds_home(delegate.page):
                         metadata=Metadata(title=_("Kids")),
                         response=provider.search(
                             query='ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] (subject_key:(juvenile_audience OR children\'s_fiction OR juvenile_nonfiction OR juvenile_encyclopedias OR juvenile_riddles OR juvenile_poetry OR juvenile_wit_and_humor OR juvenile_limericks OR juvenile_dictionaries OR juvenile_non-fiction) OR subject:("Juvenile literature" OR "Juvenile fiction" OR "pour la jeunesse" OR "pour enfants"))',  # noqa: E501
-                            sort='random.hourly',
+                            sort="random.hourly",
                             limit=25,
                         ),
                     ),
@@ -926,15 +882,15 @@ class opds_home(delegate.page):
                         metadata=Metadata(title=_("Thrillers")),
                         response=provider.search(
                             query='subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *] -subject:"content_warning:cover"',
-                            sort='trending,trending_score_hourly_sum',
+                            sort="trending,trending_score_hourly_sum",
                             limit=25,
                         ),
                     ),
                     Catalog.create(
                         metadata=Metadata(title=_("Textbooks")),
                         response=provider.search(
-                            query='subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]',
-                            sort='trending',
+                            query="subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]",
+                            sort="trending",
                             limit=25,
                         ),
                     ),
@@ -978,18 +934,16 @@ class opds_home(delegate.page):
 
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang
-            key = f'home.homepage-opds.{lang}'
+            key = f"home.homepage-opds.{lang}"
             cookies = web.cookies()
-            if cookies.get('pd', False):
-                key += '.pd'
-            if cookies.get('sfw', ''):
-                key += '.sfw'
+            if cookies.get("pd", False):
+                key += ".pd"
+            if cookies.get("sfw", ""):
+                key += ".sfw"
             if is_bot():
-                key += '.bot'
+                key += ".bot"
 
-            mc = cache.memcache_memoize(
-                build_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-            )
+            mc = cache.memcache_memoize(build_homepage, key, timeout=five_minutes, prethread=caching_prethread())
             page = mc()
 
             if not page:
@@ -998,7 +952,7 @@ class opds_home(delegate.page):
 
             return page
 
-        web.header('Content-Type', 'application/opds+json')
+        web.header("Content-Type", "application/opds+json")
         return delegate.RawText(json.dumps(get_cached_homepage()))
 
 
@@ -1020,25 +974,17 @@ class unlink_ia_ol(delegate.page):
         ocaid, ts = msg.split("|")
 
         if not ts or not ocaid:
-            raise web.HTTPError(
-                "400 Bad Request", data=json.dumps({"error": "Invalid inputs"})
-            )
+            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
 
         # Fetch affected editions
-        if not (
-            edition_keys := web.ctx.site.things(
-                {"type": '/type/edition', "ocaid": ocaid}
-            )
-        ):
+        if not (edition_keys := web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})):
             raise web.HTTPError("404 Not Found")
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
         if len(editions) > 1:
             raise web.HTTPError(
                 "409 Conflict",
-                data=json.dumps(
-                    {"error": "Multiple editions associated with given ocaid"}
-                ),
+                data=json.dumps({"error": "Multiple editions associated with given ocaid"}),
             )
 
         edition = editions[0]
@@ -1047,12 +993,8 @@ class unlink_ia_ol(delegate.page):
         try:
             self.make_dark(edition)
         except ClientException as e:
-            logger.error(
-                f'Failed to disassociate record with key {edition.key}', exc_info=True
-            )
-            raise web.HTTPError(
-                "500 Internal Server Error", data=json.dumps({"error": str(e)})
-            )
+            logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
+            raise web.HTTPError("500 Internal Server Error", data=json.dumps({"error": str(e)}))
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
@@ -1060,12 +1002,10 @@ class unlink_ia_ol(delegate.page):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])
-        data['source_records'] = [
-            rec for rec in source_records if not rec.startswith("ia:")
-        ]
-        if not data['source_records']:
-            del data['source_records']
-        web.ctx.site.save(data, 'Remove OCAID: Item no longer available to borrow.')
+        data["source_records"] = [rec for rec in source_records if not rec.startswith("ia:")]
+        if not data["source_records"]:
+            del data["source_records"]
+        web.ctx.site.save(data, "Remove OCAID: Item no longer available to borrow.")
 
 
 class monthly_logins(delegate.page):

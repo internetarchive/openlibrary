@@ -1,0 +1,43 @@
+/*
+ * Design approach to Line Heights:
+ * - Smaller line height for impact (big headings) and scanning (dense UI text).
+ * - Larger line height for reading (longer text).
+ */
+
+/**
+ * Line Height Primitives
+ * ======================
+ * Rarely used directly in components - use semantic tokens instead.
+ *
+ * Unitless values so line-height scales with font-size.
+ */
+:root {
+  --line-height-single: 1; /* single-line UI (only when you clamp/won't wrap) */
+  --line-height-tight: 1.2; /* big headings, compact UI */
+  --line-height-snug: 1.35; /* headings, metadata, dense UI text */
+  --line-height-normal: 1.5; /* body default (accessibility-friendly baseline) */
+  --line-height-relaxed: 1.65; /* long descriptions / reading */
+  --line-height-loose: 1.8; /* very long-form reading / large line lengths */
+}
+
+/**
+ * Line Height Semantic Tokens
+ * ====================
+ * Reference these throughout the app for consistent line height styling.
+ */
+:root {
+  --line-height-display: 1.2; /* hero sections, very large titles */
+  --line-height-heading: 1.35; /* section headings (h2-h6) */
+  --line-height-title: 1.35; /* result titles / work titles (often wrap) */
+
+  --line-height-body: 1.5; /* paragraphs, default text */
+  --line-height-meta: 1.35; /* bylines, counts, timestamps, secondary text (search cards) */
+  --line-height-blurb: 1.35; /* short snippet, often in narrow containers (list item notes in grid) */
+
+  --line-height-list: 1.35; /* multi-line lists of links/subjects (subject pages) */
+  --line-height-table: 1.35; /* edition detail grids / data tables */
+  --line-height-code: 1.5; /* code, pre */
+
+  --line-height-control: 1.2; /* buttons, form labels, nav items (wrapping allowed) */
+  --line-height-chip: 1; /* badges/tags/pills (only when single-line) */
+}

@@ -1,0 +1,150 @@
+/* Styling overrides for author and orphaned edition pages */
+.old-style-lists h3 {
+  font-size: 0.75em;
+  text-align: left;
+  padding: 10px;
+  min-width: 150px;
+  font-weight: bold;
+}
+
+.old-style-lists h3:hover {
+  text-decoration: underline;
+}
+
+/* Hide "My Reading Lists" heading */
+.old-style-lists .reading-list-title {
+  display: none;
+}
+
+.old-style-lists .generic-dropper__dropclick {
+  padding: 5px;
+  text-decoration: none;
+}
+
+.old-style-lists .list {
+  padding-left: 0;
+}
+
+/* Styling for My Books droppers */
+/* Styling for the My Books dropper's primary action: */
+.generic-dropper__actions {
+  align-items: center;
+  height: 37px;
+}
+
+.generic-dropper__primary .reading-log {
+  height: 100%;
+}
+
+.generic-dropper__primary .reading-log .activated-check {
+  color: var(--green);
+  margin-right: 2px;
+}
+
+/* Styling for the My Books dropper's dropdown content: */
+.generic-dropper__dropdown {
+  min-width: 200px;
+  max-width: 100vw;
+  border: 1px solid var(--mid-grey);
+  background-color: var(--lightest-grey);
+}
+
+.generic-dropper__dropdown p {
+  margin-bottom: 5px;
+  margin-top: 0;
+  color: var(--grey);
+}
+
+.generic-dropper__dropdown p a {
+  display: block;
+}
+
+/* stylelint-disable selector-max-specificity */
+.generic-dropper__dropdown form:last-child button.nostyle-btn {
+  border: none;
+}
+/* stylelint-enable selector-max-specificity */
+
+.generic-dropper__dropdown .create {
+  border-top: 1px solid var(--lightest-grey);
+  padding: 5px 10px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-bottom: 0;
+  display: block; /* For <a> links */
+  color: inherit;
+}
+
+.generic-dropper__dropdown .reading-lists .reading-list-title {
+  background: var(--white);
+  padding: 5px 0 0 10px;
+  margin: 0;
+  font-size: var(--font-size-label-medium);
+}
+
+.generic-dropper__dropdown .reading-lists .my-lists {
+  background: var(--white);
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px 15px;
+}
+
+/* stylelint-disable selector-max-specificity */
+/* stylelint-disable max-nesting-depth */
+.generic-dropper__dropdown .reading-lists .my-lists .list {
+  display: flex;
+  margin-top: 0;
+}
+
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list
+  .list__status-indicator {
+  margin-right: 8px;
+  min-width: 13px;
+}
+
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--active
+  .list__status-indicator::after {
+  content: "\2714\FE0F";
+}
+
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--pending
+  .list__status-indicator {
+  display: inline-block;
+}
+
+.generic-dropper__dropdown
+  .reading-lists
+  .my-lists
+  .list--pending
+  .list__status-indicator::after {
+  content: "";
+  display: block;
+  margin-top: 4px;
+  width: 1em;
+  height: 1em;
+  border-radius: var(--border-radius-circle);
+  border: 1px solid var(--black);
+  border-color: var(--black) transparent;
+  animation: spin 1.2s linear infinite;
+}
+/* stylelint-enable max-nesting-depth */
+/* stylelint-enable selector-max-specificity */
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
