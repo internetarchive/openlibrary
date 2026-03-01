@@ -601,6 +601,20 @@ def get_doc(doc: SolrDocument):
             )
             for key, name in zip(doc.get('author_key', []), doc.get('author_name', []))
         ],
+        series=[
+            web.storage(
+                series=web.storage(
+                    key=key,
+                    name=name,
+                ),
+                position=position,
+            )
+            for key, name, position in zip(
+                doc.get('series_key', []),
+                doc.get('series_name', []),
+                doc.get('series_position', []),
+            )
+        ],
         first_publish_year=doc.get('first_publish_year', None),
         first_edition=doc.get('first_edition', None),
         subtitle=doc.get('subtitle', None),

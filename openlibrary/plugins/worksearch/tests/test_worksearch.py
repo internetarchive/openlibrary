@@ -74,6 +74,7 @@ def test_get_doc():
             "ratings_average": None,
             "ratings_count": None,
             "want_to_read_count": None,
+            "series": [],
         }
     )
 

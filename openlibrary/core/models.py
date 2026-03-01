@@ -5,7 +5,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
 import requests
@@ -41,6 +41,9 @@ from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_u
 from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
+
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import Series, SeriesDict
 
 SubjectType = Literal["subject", "place", "person", "time"]
 
@@ -482,8 +485,51 @@ class Edition(Thing):
         )
 
 
+class ListSeedMetadata(TypedDict):
+    position: NotRequired[str]
+    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
+
+    notes: NotRequired[str]
+    """Notes about the seed."""
+
+
+def does_seed_have_metadata(seed: ListSeedMetadata) -> bool:
+    """Returns True if the seed has any metadata."""
+    return bool(seed.get('position') or seed.get('notes'))
+
+
+def update_list_seed_metadata(a: ListSeedMetadata, b: ListSeedMetadata) -> None:
+    """Modifies the original ListSeedMetadata inplace."""
+
+    if p := b.get('position'):
+        a['position'] = p
+    else:
+        a.pop('position', None)
+
+    if n := b.get('notes'):
+        a['notes'] = n
+    else:
+        a.pop('notes', None)
+
+
+TSeries = TypeVar('TSeries', 'Series', ThingReferenceDict, 'SeriesDict')
+
+
+class WorkSeriesEdge[TSeries](ListSeedMetadata):
+    series: TSeries
+
+
+WorkSeriesEdgeDB = WorkSeriesEdge['Series']
+"""
+Note: In reality, since the DB always wraps dicts in a `Thing` object,
+this will be a `Thing` not a raw dict.
+"""
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
+
+    series: list[WorkSeriesEdgeDB] | None
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -633,6 +679,21 @@ class Work(Thing):
             return [self._make_subject_link(s, "time:") for s in self.subject_times]
         else:
             return []
+
+    def get_primary_series(self) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        return series[0] if series else None
+
+    def find_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        for s in series:
+            if s['series']['key'] == series_key:
+                return s
+        return None
+
+    def remove_series_edge(self, series_key: str) -> None:
+        series = self.series or []
+        self.series = [s for s in series if s['series']['key'] != series_key]
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.

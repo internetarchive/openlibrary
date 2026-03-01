@@ -1193,6 +1193,21 @@ div.excerpt .attribution {
   background-color: var(--white);
 }
 
+/* openlibrary/templates/books/edit/edition.html */
+.multi-input-autocomplete--series {
+  max-width: 600px;
+  margin-top: 5px;
+}
+.multi-input-autocomplete--series .mia__input + .mia__input {
+  margin-top: 5px;
+}
+.multi-input-autocomplete--series .mias__name {
+  flex: 1;
+}
+.multi-input-autocomplete--series .mias__position {
+  width: 10ch;
+}
+
 /* openlibrary/templates/type/type/view.html */
 ul.booklinks li {
   font-size: var(--font-size-label-medium);

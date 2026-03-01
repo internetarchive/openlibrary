@@ -182,6 +182,9 @@
     <field name="author_name" type="text_international" multiValued="true"/>
     <field name="author_alternative_name" type="text_international" multiValued="true"/>
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
+    <field name="series_key" type="string" multiValued="true"/>
+    <field name="series_name" type="text_en_splitting" multiValued="true"/>
+    <field name="series_position" type="string" multiValued="true"/>
     <field name="subject" type="text_en_splitting" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
@@ -271,6 +274,7 @@
    <!-- fields used by documents of type list -->
    <field name="last_modified" type="pdate" indexed="true" stored="true"/>
    <field name="seed_count" type="pint" indexed="true" stored="true"/>
+   <field name="list_type" type="string" indexed="true" stored="true"/>
 
     <!-- dynamic fields -->
     <dynamicField name="id_*"  type="string"  indexed="true"  stored="true" multiValued="true"/>
@@ -357,6 +361,9 @@
     <copyField source="author_key" dest="text"/>
     <copyField source="author_name" dest="text"/>
     <copyField source="author_alternative_name" dest="text"/>
+    <copyField source="series_key" dest="text"/>
+    <copyField source="series_name" dest="text"/>
+    <copyField source="series_position" dest="text"/>
     <copyField source="subject" dest="text"/>
     <copyField source="place" dest="text"/>
     <copyField source="person" dest="text"/>

@@ -80,7 +80,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:
