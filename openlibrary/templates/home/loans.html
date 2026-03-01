@@ -8,7 +8,7 @@ $if carousel:
           &nbsp;
           $if len(loans):
               $ loans_remaining = 5 - len(loans)
-              $:ungettext('You can still <a href="/borrow">borrow</a> one more book until you\'ve hit the limit!', 'You can still <a href="/borrow">borrow</a> %(count)d more books until you\'ve hit the limit!', loans_remaining, count=loans_remaining)
+              $:ungettext('You can still <a href="/subjects/in_library#ebooks=true">borrow</a> one more book until you\'ve hit the limit!', 'You can still <a href="/subjects/in_library#ebooks=true">borrow</a> %(count)d more books until you\'ve hit the limit!', loans_remaining, count=loans_remaining)
           $else:
               $_("You have reached the borrowing limit. Please return a book to checkout something new.")
         </p>
