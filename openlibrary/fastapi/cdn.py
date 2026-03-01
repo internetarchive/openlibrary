@@ -20,14 +20,6 @@ async def ia_js_cdn(filename: Annotated[str, Path()]) -> Response:
     Only `donate.js` and `athena.js` are permitted; any other filename
     returns 404.
 
-    .. note:: Intentional improvement over legacy behavior
-
-        The legacy ``fetch_ia_js`` function (``code.py``) does not call
-        ``raise_for_status()``, so it silently returns HTTP 200 with an HTML
-        error page body — even when archive.org responds 4xx/5xx — served as
-        ``text/javascript``.  That is a bug, not intentional behavior.  This
-        implementation returns 502 Bad Gateway on any upstream failure, which
-        is semantically correct.  Happy to revert to exact parity if preferred.
     """
     if filename not in ALLOWED_FILES:
         raise HTTPException(status_code=404)
