@@ -1337,11 +1337,6 @@ def setup():
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
-    if infogami.config.get('dev_instance') is True:
-        from openlibrary.plugins.openlibrary import dev_instance
-
-        dev_instance.setup()
-
     setup_context_defaults()
     setup_template_globals()
     setup_requests()
