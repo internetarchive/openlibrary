@@ -391,6 +391,7 @@ def setup():
     data.setup()
 
     # setup template globals
+    from openlibrary.core import fast_ctx
     from openlibrary.i18n import gettext_territory, ugettext, ungettext
 
     web.template.Template.globals.update(
@@ -407,6 +408,7 @@ def setup():
             "all": all,
             "any": any,
             "locals": locals,
+            "fast_ctx": fast_ctx,
         }
     )
 

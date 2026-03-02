@@ -58,6 +58,6 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
   $if not for_desktop:
     $# On mobile, the 'Share' button appears next to the title and author
     $ share_content = icon_link("share-modal-link", "/static/images/icons/share.svg", _("Share"), login_redirect=False, ga_data="ModalLinkClick|ShareIcon")
-    $ share_links = ctx.get('share_links')
+    $ share_links = fast_ctx.get('share_links')
     $:macros.ShareModal(share_links, page_url, share_content)
 </div>

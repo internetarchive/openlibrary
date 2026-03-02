@@ -40,7 +40,7 @@ from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
 from infogami.infobase.common import parse_query
 from infogami.utils import delegate, features, stats, view
-from infogami.utils.context import InfogamiContext, context
+from infogami.utils.context import context
 from infogami.utils.macro import macro
 from infogami.utils.view import (
     get_template,
@@ -665,16 +665,21 @@ def entity_decode(text: str) -> str:
 
 @public
 def set_share_links(
-    url: str = '#', title: str = '', view_context: InfogamiContext | None = None
+    url: str = '#', title: str = '', view_context: Any | None = None
 ) -> None:
     """
     Constructs list share links for social platforms and assigns to view context attribute
 
-    Args (all required):
-        url (str or unicode) - complete canonical url to page being shared
-        title (str or unicode) - title of page being shared
+    Args:
+        url (str) - complete canonical url to page being shared
+        title (str) - title of page being shared
         view_context (object that has/can-have share_links attribute)
     """
+    if view_context is None:
+        from openlibrary.core import fast_ctx
+
+        view_context = fast_ctx
+
     encoded_url = url_quote(url)
     text = url_quote("Check this out: " + entity_decode(title))
     links = [
@@ -691,8 +696,7 @@ def set_share_links(
             'url': f'https://pinterest.com/pin/create/link/?url={encoded_url}&description={text}',
         },
     ]
-    if view_context is not None:
-        view_context.share_links = links
+    view_context.share_links = links
 
 
 def safeget[T](func: Callable[[], T], default=None) -> T:
