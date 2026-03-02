@@ -55,7 +55,7 @@ def is_empty_annotated_seed(seed: AnnotatedSeedDict) -> bool:
     """
     An empty seed can be represented as a simple SeedDict
     """
-    return not seed.get('notes') and not seed.get('position')
+    return not seed.get("notes") and not seed.get("position")
 
 
 Seed = ThingReferenceDict | SeedSubjectString | AnnotatedSeedDict
@@ -68,8 +68,8 @@ Can either a thing reference, a subject key, or an annotated seed.
 @dataclass
 class ListRecord:
     key: str | None = None
-    name: str = ''
-    description: str = ''
+    name: str = ""
+    description: str = ""
     seeds: list[Seed] = field(default_factory=list)
 
     @staticmethod
@@ -79,35 +79,35 @@ class ListRecord:
         if isinstance(seed, str):
             if not seed.strip():
                 raise ValueError("Seed key cannot be empty")
-            if seed.startswith('/subjects/'):
+            if seed.startswith("/subjects/"):
                 return subject_key_to_seed(seed)
-            elif seed.startswith('/'):
-                return {'key': seed}
+            elif seed.startswith("/"):
+                return {"key": seed}
             elif is_seed_subject_string(seed):
                 return seed
             else:
-                return {'key': olid_to_key(seed)}
-        elif 'thing' in seed:
+                return {"key": olid_to_key(seed)}
+        elif "thing" in seed:
             annotated_seed = cast(AnnotatedSeedDict, seed)  # Appease mypy
 
             # Validate that the key is not empty
-            if not annotated_seed['thing']['key'].strip():
+            if not annotated_seed["thing"]["key"].strip():
                 raise ValueError("Seed key cannot be empty")
 
             if is_empty_annotated_seed(annotated_seed):
-                return ListRecord.normalize_input_seed(annotated_seed['thing'])
-            elif annotated_seed['thing']['key'].startswith('/subjects/'):
-                return subject_key_to_seed(annotated_seed['thing']['key'])
+                return ListRecord.normalize_input_seed(annotated_seed["thing"])
+            elif annotated_seed["thing"]["key"].startswith("/subjects/"):
+                return subject_key_to_seed(annotated_seed["thing"]["key"])
             else:
                 return annotated_seed
-        elif 'key' in seed:
+        elif "key" in seed:
             # Validate that the key is not empty
-            if not seed['key'].strip():
+            if not seed["key"].strip():
                 raise ValueError("Seed key cannot be empty")
 
-            if seed['key'].startswith('/subjects/'):
+            if seed["key"].startswith("/subjects/"):
                 thing_ref = cast(ThingReferenceDict, seed)  # Appease mypy
-                return subject_key_to_seed(thing_ref['key'])
+                return subject_key_to_seed(thing_ref["key"])
             else:
                 return seed
         else:
@@ -116,25 +116,25 @@ class ListRecord:
     def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
         for seed in self.seeds:
             if isinstance(seed, dict):
-                if 'thing' in seed:
+                if "thing" in seed:
                     annotated_seed_dict = cast(AnnotatedSeedDict, seed)  # Appease mypy
                     yield annotated_seed_dict
                 else:
-                    yield {'thing': seed}
+                    yield {"thing": seed}
             else:
-                yield {'thing': {'key': seed}}
+                yield {"thing": {"key": seed}}
 
     @staticmethod
     def from_input():
         DEFAULTS = {
-            'key': None,
-            'name': '',
-            'description': '',
-            'seeds': [],
+            "key": None,
+            "name": "",
+            "description": "",
+            "seeds": [],
         }
         if data := web.data():
             # If the requests has data, parse it and use it to populate the list
-            if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
+            if web.ctx.env.get("CONTENT_TYPE") == "application/json":
                 i = {} | DEFAULTS | json.loads(data)
             else:
                 form_data = {
@@ -150,36 +150,22 @@ class ListRecord:
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
             # Seeds can be a list of seeds or a CSV string of seeds.
-            for seed_list in (
-                i['seeds'] if isinstance(i['seeds'], list) else [i['seeds']]
-            )
+            for seed_list in (i["seeds"] if isinstance(i["seeds"], list) else [i["seeds"]])
             # Each element of seeds can be a CSV string of seeds
-            for seed in (
-                seed_list.split(',') if isinstance(seed_list, str) else [seed_list]
-            )
+            for seed in (seed_list.split(",") if isinstance(seed_list, str) else [seed_list])
         ]
-        normalized_seeds = [
-            seed
-            for seed in normalized_seeds
-            if seed and (isinstance(seed, str) or seed.get('key') or seed.get('thing'))
-        ]
+        normalized_seeds = [seed for seed in normalized_seeds if seed and (isinstance(seed, str) or seed.get("key") or seed.get("thing"))]
         return ListRecord(
-            key=i['key'],
-            name=i['name'],
-            description=i['description'],
+            key=i["key"],
+            name=i["name"],
+            description=i["description"],
             seeds=normalized_seeds,
         )
 
     def to_thing_json(self):
         return {
             "key": self.key,
-            "type": {
-                "key": (
-                    "/type/series"
-                    if (self.key and "/series/" in self.key)
-                    else "/type/list"
-                )
-            },
+            "type": {"key": ("/type/series" if (self.key and "/series/" in self.key) else "/type/list")},
             "name": self.name,
             "description": self.description,
             "seeds": self.seeds,
@@ -190,25 +176,25 @@ class lists_home(delegate.page):
     path = "/lists"
 
     def GET(self):
-        delegate.context.setdefault('cssfile', 'lists')
+        delegate.context.setdefault("cssfile", "lists")
         return render_template("lists/home")
 
 
-SeedType = Literal['subject', 'author', 'work', 'edition']
+SeedType = Literal["subject", "author", "work", "edition"]
 
 
 def seed_key_to_seed_type(key: str) -> SeedType:
-    match key.split('/')[1]:
-        case 'subjects':
-            return 'subject'
-        case 'authors':
-            return 'author'
-        case 'works':
-            return 'work'
-        case 'books':
-            return 'edition'
+    match key.split("/")[1]:
+        case "subjects":
+            return "subject"
+        case "authors":
+            return "author"
+        case "works":
+            return "work"
+        case "books":
+            return "edition"
         case _:
-            raise ValueError(f'Invalid seed key: {key}')
+            raise ValueError(f"Invalid seed key: {key}")
 
 
 @public
@@ -216,23 +202,23 @@ def get_seed_info(doc):
     """Takes a thing, determines what type it is, and returns a seed summary"""
     seed_type = seed_key_to_seed_type(doc.key)
     match seed_type:
-        case 'subject':
+        case "subject":
             seed = subject_key_to_seed(doc.key)
             title = doc.name
-        case 'work' | 'edition':
+        case "work" | "edition":
             seed = {"key": doc.key}
             title = doc.get("title", "untitled")
-        case 'author':
+        case "author":
             seed = {"key": doc.key}
-            title = doc.get('name', 'name missing')
+            title = doc.get("name", "name missing")
         case _:
-            raise ValueError(f'Invalid seed type: {seed_type}')
+            raise ValueError(f"Invalid seed type: {seed_type}")
     return {
         "seed": seed,
         "type": seed_type,
         "title": web.websafe(title),
         "remove_dialog_html": _(
-            'Are you sure you want to remove <strong>%(title)s</strong> from your list?',
+            "Are you sure you want to remove <strong>%(title)s</strong> from your list?",
             title=web.websafe(title),
         ),
     }
@@ -254,15 +240,13 @@ def get_list_data(list, seed, include_cover_url=True):
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
-        d['cover_url'] = (
-            cover and cover.url("S")
-        ) or "/images/icons/avatar_book-sm.png"
-        if 'None' in d['cover_url']:
-            d['cover_url'] = "/images/icons/avatar_book-sm.png"
+        d["cover_url"] = (cover and cover.url("S")) or "/images/icons/avatar_book-sm.png"
+        if "None" in d["cover_url"]:
+            d["cover_url"] = "/images/icons/avatar_book-sm.png"
 
-    d['owner'] = None
+    d["owner"] = None
     if owner := list.get_owner():
-        d['owner'] = web.storage(displayname=owner.displayname or "", key=owner.key)
+        d["owner"] = web.storage(displayname=owner.displayname or "", key=owner.key)
     return d
 
 
@@ -272,7 +256,7 @@ def get_user_lists(seed_info):
     if not user:
         return []
     user_lists = user.get_lists(sort=True)
-    seed = seed_info['seed'] if seed_info else None
+    seed = seed_info["seed"] if seed_info else None
     return [get_list_data(user_list, seed) for user_list in user_lists]
 
 
@@ -295,15 +279,13 @@ class lists(delegate.page):
     def GET(self, path):
         # If logged in patron is viewing their lists page, use MyBooksTemplate
         if path.startswith("/people/"):
-            username = path.split('/')[-1]
+            username = path.split("/")[-1]
 
-            mb = MyBooksTemplate(username, 'lists')
+            mb = MyBooksTemplate(username, "lists")
             if not mb.user:
                 raise web.notfound()
 
-            template = render_template(
-                "lists/lists.html", mb.user, mb.user.get_lists(), show_header=False
-            )
+            template = render_template("lists/lists.html", mb.user, mb.user.get_lists(), show_header=False)
             return mb.render(
                 template=template,
                 header_title=_("Lists (%(count)d)", count=len(mb.lists)),
@@ -330,13 +312,13 @@ class lists(delegate.page):
 class lists_edit(delegate.page):
     path = r"(/people/[^/]+)?/(lists|series)/(OL\d+L)/edit"
 
-    def GET(self, user_key: str | None, list_type_plural: Literal['lists', 'series'], list_id: str):  # type: ignore[override]
-        list_type = 'list' if list_type_plural == 'lists' else 'series'
-        if user_key and list_type == 'series':
+    def GET(self, user_key: str | None, list_type_plural: Literal["lists", "series"], list_id: str):  # type: ignore[override]
+        list_type = "list" if list_type_plural == "lists" else "series"
+        if user_key and list_type == "series":
             # Not allowed to have user-specific series
             return web.badrequest("Invalid URL.")
 
-        key = (user_key or '') + f'/{list_type_plural}/{list_id}'
+        key = (user_key or "") + f"/{list_type_plural}/{list_id}"
         if not web.ctx.site.can_write(key):
             return render_template(
                 "permission_denied",
@@ -349,8 +331,8 @@ class lists_edit(delegate.page):
             raise web.notfound()
         return render_template("type/list/edit", lst, list_type=list_type, new=False)
 
-    def POST(self, user_key: str | None, list_type_plural: Literal['lists', 'series'], list_id: str | None):  # type: ignore[override]
-        list_key = (user_key or '') + f'/{list_type_plural}/{list_id or ''}'
+    def POST(self, user_key: str | None, list_type_plural: Literal["lists", "series"], list_id: str | None):  # type: ignore[override]
+        list_key = (user_key or "") + f"/{list_type_plural}/{list_id or ''}"
 
         if not web.ctx.site.can_write(list_key):
             return render_template(
@@ -361,7 +343,7 @@ class lists_edit(delegate.page):
 
         list_record = ListRecord.from_input()
         if not list_record.name:
-            raise web.badrequest('A list name is required.')
+            raise web.badrequest("A list name is required.")
 
         # Creating a new list
         if not list_id:
@@ -371,29 +353,21 @@ class lists_edit(delegate.page):
 
         thing_json = list_record.to_thing_json()
         records_to_save = [thing_json]
-        if list_type_plural == 'series':
+        if list_type_plural == "series":
             # Don't save seeds on this record
-            thing_json['seeds'] = []
+            thing_json["seeds"] = []
 
             # Edit the works to add series edges
-            work_key_to_list_seed = {
-                seed['thing']['key']: seed for seed in list_record.get_annotated_seeds()
-            }
+            work_key_to_list_seed = {seed["thing"]["key"]: seed for seed in list_record.get_annotated_seeds()}
 
             works_to_remove: set[str] = set()
             if list_id:
                 old_series = cast(Series, web.ctx.site.get(list_key))
-                works_to_remove = {
-                    seed.key
-                    for seed in old_series.get_seeds()
-                    if seed.key not in work_key_to_list_seed
-                }
+                works_to_remove = {seed.key for seed in old_series.get_seeds() if seed.key not in work_key_to_list_seed}
 
             works = cast(
                 list[Work],
-                web.ctx.site.get_many(
-                    list(work_key_to_list_seed) + list(works_to_remove)
-                ),
+                web.ctx.site.get_many(list(work_key_to_list_seed) + list(works_to_remove)),
             )
             for work in works:
                 if work.key in works_to_remove:
@@ -408,9 +382,7 @@ class lists_edit(delegate.page):
                         # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
                         # these behave sort of the same, since a full `Thing` object is replaced with
                         # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
-                        work_series_edge = cast(
-                            WorkSeriesEdgeDB, {'series': {'key': list_key}}
-                        )
+                        work_series_edge = cast(WorkSeriesEdgeDB, {"series": {"key": list_key}})
 
                     # Update the edge with any metadata from the list seed
                     update_list_seed_metadata(work_series_edge, list_seed)
@@ -431,8 +403,8 @@ class lists_edit(delegate.page):
         )
 
         # If content type json, return json response
-        if web.ctx.env.get('CONTENT_TYPE') == 'application/json':
-            return delegate.RawText(json.dumps({'key': list_key}))
+        if web.ctx.env.get("CONTENT_TYPE") == "application/json":
+            return delegate.RawText(json.dumps({"key": list_key}))
         else:
             return safe_seeother(list_key)
 
@@ -442,7 +414,7 @@ class lists_add_account(delegate.page):
 
     @require_login
     def GET(self):
-        return web.seeother(f'{get_current_user().key}/lists/add{web.ctx.query}')
+        return web.seeother(f"{get_current_user().key}/lists/add{web.ctx.query}")
 
     @require_login
     def POST(self):
@@ -451,17 +423,17 @@ class lists_add_account(delegate.page):
             "type/list/edit",
             list_record,
             new=True,
-            action=f'{get_current_user().key}/lists/add',
+            action=f"{get_current_user().key}/lists/add",
         )
 
 
 class lists_add(delegate.page):
     path = r"(/people/[^/]+)?/(lists|series)/add"
 
-    def GET(self, user_key: str | None, list_type_plural: Literal['lists', 'series']):  # type: ignore[override]
-        list_type = 'list' if list_type_plural == 'lists' else 'series'
+    def GET(self, user_key: str | None, list_type_plural: Literal["lists", "series"]):  # type: ignore[override]
+        list_type = "list" if list_type_plural == "lists" else "series"
 
-        if list_type == 'series' and user_key:
+        if list_type == "series" and user_key:
             # Not allowed to have user-specific series
             return web.badrequest("Invalid URL.")
 
@@ -472,11 +444,9 @@ class lists_add(delegate.page):
                 f"Permission denied to edit {user_key}.",
             )
         list_record = ListRecord.from_input()
-        return render_template(
-            "type/list/edit", list_record, list_type=list_type, new=True
-        )
+        return render_template("type/list/edit", list_record, list_type=list_type, new=True)
 
-    def POST(self, user_key: str | None, list_type_plural: Literal['lists', 'series']):  # type: ignore[override]
+    def POST(self, user_key: str | None, list_type_plural: Literal["lists", "series"]):  # type: ignore[override]
         return lists_edit().POST(user_key, list_type_plural, None)
 
 
@@ -491,7 +461,7 @@ class lists_delete(delegate.page):
         if not user.is_admin() and (user.key and not key.startswith(user.key)):
             raise web.unauthorized()
         doc = web.ctx.site.get(key)
-        if doc is None or doc.type.key != '/type/list':
+        if doc is None or doc.type.key != "/type/list":
             raise web.notfound()
 
         # Deletes list preview from memcache, if it exists
@@ -547,11 +517,11 @@ class lists_json(delegate.page):
             "entries": [lst.preview() for lst in lists],
         }
         if offset + len(lists) < size:
-            d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
+            d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
 
         if offset:
             offset = max(0, offset - limit)
-            d['links']['prev'] = web.changequery(limit=limit, offset=offset)
+            d["links"]["prev"] = web.changequery(limit=limit, offset=offset)
 
         return d
 
@@ -577,12 +547,12 @@ class lists_json(delegate.page):
         data = self.loads(web.data())
         # TODO: validate data
 
-        seeds = self.process_seeds(data.get('seeds', []))
+        seeds = self.process_seeds(data.get("seeds", []))
 
         lst = user.new_list(
-            name=data.get('name', ''),
-            description=data.get('description', ''),
-            tags=data.get('tags', []),
+            name=data.get("name", ""),
+            description=data.get("description", ""),
+            tags=data.get("tags", []),
             seeds=seeds,
         )
 
@@ -666,7 +636,7 @@ class list_view_json(delegate.page):
         i = web.input()
         raw = i.get("_raw") == "true"
         lst = get_list(key, raw=raw)
-        if not lst or lst['type']['key'] == '/type/delete':
+        if not lst or lst["type"]["key"] == "/type/delete":
             raise web.notfound()
         web.header("Content-Type", self.content_type)
         return delegate.RawText(formats.dump(lst, self.encoding))
@@ -699,9 +669,7 @@ class list_seeds(delegate.page):
         if not lst:
             raise web.notfound()
 
-        return delegate.RawText(
-            formats.dump(lst, self.encoding), content_type=self.content_type
-        )
+        return delegate.RawText(formats.dump(lst, self.encoding), content_type=self.content_type)
 
     def POST(self, key):
         site = web.ctx.site
@@ -735,7 +703,7 @@ class list_seeds(delegate.page):
         seeds = []
         for seed in data["add"] + data["remove"]:
             if isinstance(seed, dict):
-                seeds.append(seed['key'])
+                seeds.append(seed["key"])
             else:
                 seeds.append(seed)
 
@@ -785,9 +753,7 @@ class list_editions_json(delegate.page):
         editions = get_list_editions(key, offset=offset, limit=limit, api=True)
         if not editions:
             raise web.notfound()
-        return delegate.RawText(
-            formats.dump(editions, self.encoding), content_type=self.content_type
-        )
+        return delegate.RawText(formats.dump(editions, self.encoding), content_type=self.content_type)
 
 
 class list_editions_yaml(list_editions_json):
@@ -807,13 +773,13 @@ def make_collection(size, entries, limit, offset, key=None):
     }
 
     if offset + len(entries) < size:
-        d['links']['next'] = web.changequery(limit=limit, offset=offset + limit)
+        d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
 
     if offset:
-        d['links']['prev'] = web.changequery(limit=limit, offset=max(0, offset - limit))
+        d["links"]["prev"] = web.changequery(limit=limit, offset=max(0, offset - limit))
 
     if key:
-        d['links']['list'] = key
+        d["links"]["list"] = key
 
     return d
 
@@ -832,7 +798,7 @@ class list_subjects_json(delegate.page):
         limit = h.safeint(i.limit, 20)
 
         data = self.get_subjects(lst, limit=limit)
-        data['links'] = {"self": key + "/subjects", "list": key}
+        data["links"] = {"self": key + "/subjects", "list": key}
 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
@@ -844,12 +810,12 @@ class list_subjects_json(delegate.page):
         return dict(data)
 
     def _process_subject(self, s):
-        key = s['key']
+        key = s["key"]
         if key.startswith("subject:"):
             key = "/subjects/" + web.lstrips(key, "subject:")
         else:
             key = "/subjects/" + key
-        return {"name": s['name'], "count": s['count'], "url": key}
+        return {"name": s["name"], "count": s["count"], "url": key}
 
 
 class list_subjects_yaml(list_subjects_json):
@@ -862,7 +828,7 @@ class lists_embed(delegate.page):
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
-        if doc is None or doc.type.key != '/type/list':
+        if doc is None or doc.type.key != "/type/list":
             raise web.notfound()
         return render_template("type/list/embed", doc)
 
@@ -913,27 +879,25 @@ class export(delegate.page):
         if "editions" in export_data:
             export_data["editions"] = sorted(
                 export_data["editions"],
-                key=lambda doc: doc['last_modified']['value'],
+                key=lambda doc: doc["last_modified"]["value"],
                 reverse=True,
             )
         if "works" in export_data:
             export_data["works"] = sorted(
                 export_data["works"],
-                key=lambda doc: doc['last_modified']['value'],
+                key=lambda doc: doc["last_modified"]["value"],
                 reverse=True,
             )
         if "authors" in export_data:
             export_data["authors"] = sorted(
                 export_data["authors"],
-                key=lambda doc: doc['last_modified']['value'],
+                key=lambda doc: doc["last_modified"]["value"],
                 reverse=True,
             )
 
         if not raw:
             if "editions" in export_data:
-                export_data["editions"] = [
-                    self.make_doc(e) for e in export_data["editions"]
-                ]
+                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
                 lst.preload_authors(export_data["editions"])
             else:
                 export_data["editions"] = []
@@ -943,9 +907,7 @@ class export(delegate.page):
             else:
                 export_data["works"] = []
             if "authors" in export_data:
-                export_data["authors"] = [
-                    self.make_doc(e) for e in export_data["authors"]
-                ]
+                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
                 lst.preload_authors(export_data["authors"])
             else:
                 export_data["authors"] = []
@@ -953,7 +915,7 @@ class export(delegate.page):
 
     def make_doc(self, rawdata):
         data = web.ctx.site._process_dict(common.parse_query(rawdata))
-        doc = client.create_thing(web.ctx.site, data['key'], data)
+        doc = client.create_thing(web.ctx.site, data["key"], data)
         return doc
 
 
@@ -964,7 +926,7 @@ class feeds(delegate.page):
         lst = cast(List | None, web.ctx.site.get(key))
         if lst is None:
             raise web.notfound()
-        text = getattr(self, 'GET_' + name + '_' + fmt)(lst)
+        text = getattr(self, "GET_" + name + "_" + fmt)(lst)
         return delegate.RawText(text)
 
     def GET_updates_atom(self, lst):
@@ -983,7 +945,7 @@ def _get_recently_modified_lists(limit, offset=0):
     """
     # this function is memozied with background=True option.
     # web.ctx must be initialized as it won't be available to the background thread.
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     keys = web.ctx.site.things(
@@ -1018,19 +980,19 @@ def _preload_lists(lists):
         if not isinstance(xlist, dict):
             xlist = xlist.dict()
 
-        owner = xlist['key'].rsplit("/lists/", 1)[0]
+        owner = xlist["key"].rsplit("/lists/", 1)[0]
         if owner:
             keys.add(owner)
 
         for seed in xlist.get("seeds", []):
             if isinstance(seed, dict) and "key" in seed:
-                keys.add(seed['key'])
+                keys.add(seed["key"])
 
     web.ctx.site.get_many(list(keys))
 
 
 def _get_active_lists_in_random(limit=20, preload=True):
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     lists = []
@@ -1063,7 +1025,7 @@ def get_active_lists_in_random(limit=20, preload=True):
     )
     lists = f(limit=limit, preload=preload)
     # convert rawdata into models.
-    return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
+    return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
 
 
 @public
@@ -1073,15 +1035,15 @@ def get_lists(keys: list[str]):
     from openlibrary.plugins.worksearch.code import run_solr_query
     from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 
-    or_query = ' OR '.join(f'"{k}"' for k in keys)
+    or_query = " OR ".join(f'"{k}"' for k in keys)
     response = run_solr_query(
-        param={"q": f'seed:({or_query})'},
+        param={"q": f"seed:({or_query})"},
         scheme=ListSearchScheme(),
         fields=["key"],
         offset=0,
         rows=20,
-        extra_params=[('fq', "seed_count:[2 TO *]")],
-        sort='last_modified desc',
+        extra_params=[("fq", "seed_count:[2 TO *]")],
+        sort="last_modified desc",
         request_label="LIST_CAROUSEL",
     )
     lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
