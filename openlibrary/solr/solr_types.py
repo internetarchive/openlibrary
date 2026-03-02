@@ -126,9 +126,11 @@ class SolrDocument(TypedDict):
     subject_type: Optional[str]
     last_modified: Optional[str]
     seed_count: Optional[int]
+    cover_i: Optional[int]
+    ebook_count_i: Optional[int]
+    last_modified_i: Optional[int]
     public_scan_b: Optional[bool]
     printdisabled_s: Optional[str]
     lending_edition_s: Optional[str]
-    ebook_count_i: Optional[int]
 
 # fmt: on
