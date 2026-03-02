@@ -10,6 +10,7 @@ import {
     isValidOclc
 } from './idValidation.js'
 import { trimInputValues } from './utils.js';
+import { initSearchableDatePickers } from './date-picker.js';
 
 let invalidChecksum;
 let invalidIsbn10;
@@ -48,6 +49,21 @@ export function initAddBookImport () {
 
     trimInputValues('input')
 
+    // This converts date inputs (publish_date, birth_date, etc.) into edtf format
+    initSearchableDatePickers();
+    const publishDateInput = document.getElementById('publish_date');
+    if (publishDateInput) {
+        publishDateInput.removeAttribute('required'); // safe, JS will validate
+        // Watch for changes on the year/month/day dropdowns
+        const container = publishDateInput.previousElementSibling;
+        if (container && container.classList.contains('date-picker-dropdowns')) {
+            container.querySelectorAll('select').forEach(select => {
+                select.addEventListener('change', function() {
+                    validatePublishDate.call(publishDateInput);
+                });
+            });
+        }
+    }
     // Prevents submission if the publish date is > 1 year in the future
     addBookForm.on('submit', function() {
         if ($('#publish-date-errors').hasClass('hidden')) {

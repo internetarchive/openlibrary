@@ -12,6 +12,7 @@ import {
 import { init as initAutocomplete } from './autocomplete';
 import { init as initJqueryRepeat } from './jquery.repeat';
 import { trimInputValues } from './utils.js';
+import { initSearchableDatePickers } from './date-picker.js';
 
 /* global render_seed_field, render_language_field, render_lazy_work_preview, render_language_autocomplete_item, render_work_field, render_work_autocomplete_item */
 /* Globals are provided by the edit edition template */
@@ -526,6 +527,9 @@ export function initEdit() {
     var fieldname = `:input${hash.replace('/', '-')}`;
 
     trimInputValues('.olform input');
+
+    // This converts date inputs (publish_date, birth_date, etc.) into edtf format
+    initSearchableDatePickers();
 
     $(link).trigger('click');
 

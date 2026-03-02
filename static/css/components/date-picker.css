@@ -1,0 +1,16 @@
+/* Styles for the date picker field */
+.date-picker-dropdowns {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.date-picker-dropdowns select {
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid var(--lightgrey, rgb(204, 204, 204));
+}
+
+.date-picker-hidden-input {
+  display: none !important;
+}
