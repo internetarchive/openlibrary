@@ -106,6 +106,14 @@
   font-size: 0.6875em;
 }
 
+.searchResultItem .bookseries {
+  font-size: var(--font-size-body-medium);
+}
+
+.searchResultItem .bookseries [itemprop~="name"] {
+  font-weight: bold;
+}
+
 .searchResultItem .resultDetails {
   display: block;
   font-size: var(--font-size-body-medium);
