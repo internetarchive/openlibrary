@@ -91,6 +91,10 @@ def get_solr_works(
 ) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
+    # Avoid making query if no work keys provided
+    if not work_keys:
+        return cast(dict[str, web.storage], {})
+
     if not fields:
         fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
 
