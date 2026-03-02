@@ -148,8 +148,7 @@ msgstr ""
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/tag/form.html
+#: my_books/dropdown_content.html type/list/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -761,7 +760,7 @@ msgid "Books"
 msgstr ""
 
 #: SearchNavigation.html authors/index.html lib/nav_foot.html
-#: merge/authors.html publishers/view.html
+#: publishers/view.html
 msgid "Authors"
 msgstr ""
 
@@ -792,8 +791,7 @@ msgstr ""
 msgid "First published in %(year)s"
 msgstr ""
 
-#: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html
+#: SearchResultsWork.html books/check.html publishers/view.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -2353,7 +2351,7 @@ msgstr ""
 msgid "See all works"
 msgstr ""
 
-#: merge/authors.html publishers/view.html subjects.html type/author/view.html
+#: publishers/view.html subjects.html type/author/view.html
 #, python-format
 msgid "%(count)d work"
 msgid_plural "%(count)d works"
@@ -6612,90 +6610,6 @@ msgstr ""
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
 msgstr ""
 
-#: merge/authors.html
-msgid "Merge Authors"
-msgstr ""
-
-#: merge/authors.html
-msgid "No authors selected."
-msgstr ""
-
-#: merge/authors.html
-msgid "Please select a primary author record."
-msgstr ""
-
-#: merge/authors.html
-msgid "Please select some authors to merge."
-msgstr ""
-
-#: merge/authors.html
-msgid "Select the oldest profile as primary -"
-msgstr ""
-
-#: merge/authors.html
-msgid "Select author records which should be merged with the primary"
-msgstr ""
-
-#: merge/authors.html
-msgid "Press MERGE AUTHORS."
-msgstr ""
-
-#: merge/authors.html
-msgid "No primary record"
-msgstr ""
-
-#: merge/authors.html
-msgid "You must select a primary record to point the duplicates toward."
-msgstr ""
-
-#: merge/authors.html
-msgid "Please Be Careful..."
-msgstr ""
-
-#: merge/authors.html
-msgid "<b>Are you sure</b> you want to merge these records?"
-msgstr ""
-
-#: merge/authors.html recentchanges/merge/view.html
-msgid "Primary"
-msgstr ""
-
-#: merge/authors.html
-msgid "Merge"
-msgstr ""
-
-#: merge/authors.html
-msgid "birth/death date"
-msgstr ""
-
-#: merge/authors.html
-msgid "Open in a new window"
-msgstr ""
-
-#: merge/authors.html search/work_search_selected_facets.html
-msgid "First published in"
-msgstr ""
-
-#: merge/authors.html
-msgid "Visit this author's page in a new window"
-msgstr ""
-
-#: merge/authors.html
-msgid "Comment:"
-msgstr ""
-
-#: merge/authors.html
-msgid "Comment..."
-msgstr ""
-
-#: merge/authors.html
-msgid "Request Merge"
-msgstr ""
-
-#: merge/authors.html
-msgid "Reject Merge"
-msgstr ""
-
 #: merge/works.html
 msgid "Merge Works"
 msgstr ""
@@ -7165,6 +7079,10 @@ msgstr ""
 msgid "Details here"
 msgstr ""
 
+#: recentchanges/merge/view.html
+msgid "Primary"
+msgstr ""
+
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
 msgstr ""
@@ -7459,6 +7377,10 @@ msgstr ""
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "Explore books about %(subject)s"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "First published in"
 msgstr ""
 
 #: search/work_search_selected_facets.html
