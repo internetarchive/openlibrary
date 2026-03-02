@@ -625,27 +625,36 @@ class lists_yaml(lists_json):
     content_type = "text/yaml"
 
 
-def get_list(key, raw=False):
-    if lst := web.ctx.site.get(key):
-        if raw:
-            return lst.dict()
-        return {
-            "links": {
-                "self": lst.key,
-                "seeds": lst.key + "/seeds",
-                "subjects": lst.key + "/subjects",
-                "editions": lst.key + "/editions",
-            },
-            "name": lst.name or None,
-            "type": {"key": lst.key},
-            "description": ((lst.description and str(lst.description)) or None),
-            "seed_count": lst.seed_count,
-            "meta": {
-                "revision": lst.revision,
-                "created": lst.created.isoformat(),
-                "last_modified": lst.last_modified.isoformat(),
-            },
-        }
+def get_list(key: str, raw: bool = False) -> dict | None:
+    lst = web.ctx.site.get(key)
+    if not lst:
+        return None
+
+    if raw:
+        return lst.dict()
+    return {
+        "links": {
+            "self": lst.key,
+            "seeds": lst.key + "/seeds",
+            **(
+                {
+                    "subjects": lst.key + "/subjects",
+                    "editions": lst.key + "/editions",
+                }
+                if not lst.key.startswith("/series/")
+                else {}
+            ),
+        },
+        "name": lst.name or None,
+        "type": {"key": lst.key},
+        "description": ((lst.description and str(lst.description)) or None),
+        "seed_count": lst.seed_count,
+        "meta": {
+            "revision": lst.revision,
+            "created": lst.created.isoformat(),
+            "last_modified": lst.last_modified.isoformat(),
+        },
+    }
 
 
 class list_view_json(delegate.page):
@@ -680,7 +689,7 @@ def get_list_seeds(key):
 
 
 class list_seeds(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/seeds"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/seeds"
     encoding = "json"
 
     content_type = "application/json"
@@ -764,7 +773,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
 
 
 class list_editions_json(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/editions"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/editions"
     encoding = "json"
 
     content_type = "application/json"
@@ -810,7 +819,7 @@ def make_collection(size, entries, limit, offset, key=None):
 
 
 class list_subjects_json(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/subjects"
+    path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/subjects"
     encoding = "json"
     content_type = "application/json"
 
