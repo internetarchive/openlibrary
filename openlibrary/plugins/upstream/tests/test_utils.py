@@ -1,3 +1,4 @@
+import re
 from collections.abc import Sequence
 
 import pytest
@@ -334,3 +335,36 @@ def test_commify_list(name: str, seq: Sequence[str], locale: str, expected: str,
     request_context_fixture(lang=locale)
     got = utils.commify_list(seq)
     assert got == expected
+
+
+def test_set_share_links_fast_ctx(monkeypatch):
+    from openlibrary.core import fast_ctx
+
+    fast_ctx.clear()
+    monkeypatch.setattr(web, "ctx", web.storage())
+    web.ctx.share_links = "something in web.ctx"
+
+    # Before calling set_share_links, fast_ctx.get should raise error because it's in web.ctx
+    with pytest.raises(AttributeError, match=re.escape("found in web.ctx with value 'something in web.ctx'")):
+        fast_ctx.get("share_links")
+
+    utils.set_share_links(url="https://foo.com", title="bar")
+
+    # Now it should be in fast_ctx independently
+    assert fast_ctx.share_links == [
+        {
+            "text": "Facebook",
+            "url": "https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com",
+        },
+        {
+            "text": "Twitter",
+            "url": "https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar",
+        },
+        {
+            "text": "Pinterest",
+            "url": "https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar",
+        },
+    ]
+
+    # web.ctx should still have its old value (proving independence)
+    assert web.ctx.share_links == "something in web.ctx"

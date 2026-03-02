@@ -29,7 +29,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=meta_description)
 $add_metatag(property="og:image", content=request.canonical_url + "/preview.png")
 
-$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$set_share_links(url=request.canonical_url, title=title)
 $ sort = query_param('sort', None)
 
 $jsdef render_seed_count(seed_count):
