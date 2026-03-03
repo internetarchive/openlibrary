@@ -464,13 +464,8 @@ class lists_delete(delegate.page):
         if doc is None or doc.type.key != "/type/list":
             raise web.notfound()
 
-        # Deletes list preview from memcache, if it exists
-        cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
-        cache.memcache_cache.delete(cache_key)
-
-        doc = {"key": key, "type": {"key": "/type/delete"}}
         try:
-            web.ctx.site.save(doc, action="lists", comment="Deleted list.")
+            self.process_delete(doc, key)
         except client.ClientException as e:
             web.ctx.status = e.status
             web.header("Content-Type", "application/json")
@@ -478,6 +473,15 @@ class lists_delete(delegate.page):
 
         web.header("Content-Type", "application/json")
         return delegate.RawText('{"status": "ok"}')
+
+    @staticmethod
+    def process_delete(doc, key):
+        # Deletes list preview from memcache, if it exists
+        cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
+        cache.memcache_cache.delete(cache_key)
+
+        delete_doc = {"key": key, "type": {"key": "/type/delete"}}
+        web.ctx.site.save(delete_doc, action="lists", comment="Deleted list.")
 
 
 class lists_json(delegate.page):
