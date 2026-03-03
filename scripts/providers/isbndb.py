@@ -58,7 +58,19 @@ class ISBNdb:
         'pagination',
         'weight',
     )
-    REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
+    _REQUIRED_FIELDS: list[str] | None = None
+
+    @classmethod
+    def _get_required_fields(cls) -> list[str]:
+        """Get required fields lazily to avoid network request at import time."""
+        if cls._REQUIRED_FIELDS is None:
+            cls._REQUIRED_FIELDS = requests.get(SCHEMA_URL).json()['required']
+        return cls._REQUIRED_FIELDS
+
+    @property
+    def REQUIRED_FIELDS(self) -> list[str]:
+        """Get required fields lazily to avoid network request at import time."""
+        return self._get_required_fields()
 
     def __init__(self, data: dict[str, Any]):
         self.isbn_13 = [data.get('isbn13')]
