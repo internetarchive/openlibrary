@@ -1260,12 +1260,18 @@ class account_anonymization_json(delegate.page):
         msg = i.msg
 
         try:
-            if not HMACToken.verify(digest, msg, "ia_sync_secret", delimiter=":", unix_time=True):
-                raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+            if not HMACToken.verify(
+                digest, msg, "ia_sync_secret", delimiter=":", unix_time=True
+            ):
+                raise web.HTTPError(
+                    "401 Unauthorized", {"Content-Type": "application/json"}
+                )
         except ValueError:
             raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"})
         except ExpiredTokenError:
-            raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+            raise web.HTTPError(
+                "401 Unauthorized", {"Content-Type": "application/json"}
+            )
         except MissingKeyError:
             raise web.HTTPError(
                 "503 Service Unavailable", {"Content-Type": "application/json"}

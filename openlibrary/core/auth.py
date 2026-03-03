@@ -16,7 +16,13 @@ class MissingKeyError(Exception):
 
 class HMACToken:
     @staticmethod
-    def verify(digest: str, msg: str, secret_key_name: str, delimiter: str = "|", unix_time=False) -> bool:
+    def verify(
+        digest: str,
+        msg: str,
+        secret_key_name: str,
+        delimiter: str = "|",
+        unix_time=False,
+    ) -> bool:
         """
         Verify an HMAC digest against a message with timestamp validation.
 
@@ -54,10 +60,16 @@ class HMACToken:
 
         err: Exception | None = None
 
-        current_time: float | datetime.datetime = time.time() if unix_time else datetime.datetime.now(datetime.UTC)
+        current_time: float | datetime.datetime = (
+            time.time() if unix_time else datetime.datetime.now(datetime.UTC)
+        )
         expiry_str = msg.rsplit(delimiter, maxsplit=1)[-1]
         try:
-            expiry: float | datetime.datetime = float(expiry_str) if unix_time else datetime.datetime.fromisoformat(expiry_str)
+            expiry: float | datetime.datetime = (
+                float(expiry_str)
+                if unix_time
+                else datetime.datetime.fromisoformat(expiry_str)
+            )
         except ValueError:
             err = ValueError("Invalid timestamp format")
             expiry = 0
