@@ -40,6 +40,10 @@ jobs:
         run: |
           uv run make i18n
           uv run make test-i18n
+      - name: Clean compiled files
+        run: |
+          # Remove Cython-compiled .so files that cause pytest import mismatches
+          find openlibrary/solr -name "*.so" -delete 2>/dev/null || true
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
