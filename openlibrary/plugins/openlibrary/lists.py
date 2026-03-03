@@ -694,12 +694,19 @@ class list_seeds(delegate.page):
         data.setdefault("add", [])
         data.setdefault("remove", [])
 
-        # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
         try:
-            for seed in lists_json.process_seeds(data["add"]):
-                lst.add_seed(seed)
+            d = self.process_seeds_update(lst, data, key)
         except ValueError as e:
             raise web.badrequest(json.dumps({"message": str(e)}))
+
+        web.header("Content-Type", self.content_type)
+        return delegate.RawText(formats.dump(d, self.encoding))
+
+    @staticmethod
+    def process_seeds_update(lst, data, key):
+        # support /subjects/foo and /books/OL1M along with subject:foo and {"key": "/books/OL1M"}.
+        for seed in lists_json.process_seeds(data["add"]):
+            lst.add_seed(seed)
 
         for seed in lists_json.process_seeds(data["remove"]):
             lst.remove_seed(seed)
@@ -718,9 +725,7 @@ class list_seeds(delegate.page):
             "remove": data["remove"],
         }
 
-        d = lst._save(comment="Updated list.", action="lists", data=changeset_data)
-        web.header("Content-Type", self.content_type)
-        return delegate.RawText(formats.dump(d, self.encoding))
+        return lst._save(comment="Updated list.", action="lists", data=changeset_data)
 
 
 class list_seed_yaml(list_seeds):
