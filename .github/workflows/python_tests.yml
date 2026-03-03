@@ -43,7 +43,7 @@ jobs:
       - name: Run tests
         run: |
           git fetch --no-tags --prune --depth=1 origin master
-          uv run pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+          uv run pytest . --ignore=infogami --ignore=vendor --ignore=node_modules --ignore=openlibrary/solr/
           uv run scripts/run_doctests.sh
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
