@@ -116,11 +116,7 @@ async def post_rating(
     If rating is None, the existing rating is removed.
     If rating is provided, it must be in the valid range (0-5).
     """
-    edition_id_int = (
-        int(extract_numeric_id_from_olid(data.edition_id))
-        if data.edition_id
-        else None
-    )
+    edition_id_int = int(extract_numeric_id_from_olid(data.edition_id)) if data.edition_id else None
 
     if data.rating is None:
         models.Ratings.remove(user.username, work_id)

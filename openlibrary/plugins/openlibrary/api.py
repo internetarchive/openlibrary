@@ -9,10 +9,9 @@ import json
 import logging
 from collections import defaultdict
 
-from typing_extensions import deprecated
-
 import qrcode
 import web
+from typing_extensions import deprecated
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
