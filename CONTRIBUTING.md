@@ -70,10 +70,10 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 - If you are looking to add data using MARC and ONIX records, visit [Open Library Bots](https://github.com/internetarchive/openlibrary-bots).
 
 ## Submitting Issues
-[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) and
-[Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki#managed-labels-by-group)
 
-These resources explain how GitHub issues are triaged, labeled, and prioritized.
+[Interacting with GitHub Issues](https://docs.openlibrary.org/developers/contributing/interacting-with-github-issues) and
+[Using Managed Labels to Track Issues](https://docs.openlibrary.org/developers/contributing/issue-labels)
+explain how GitHub issues are triaged, labeled, and prioritized.
 
 
 ### Tagging
