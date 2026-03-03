@@ -51,7 +51,10 @@ class HMACToken:
         if current_time > expiry:
             err = ExpiredTokenError()
 
+        # `key` must be set to some non-empty value when the config cannot be accessed.
+        # Otherwise, the `mac` will not be generated.
         if not (key := config.get(secret_key_name, '')):
+            key = 'default_value'
             err = ValueError("No key found")
 
         mac = ''
