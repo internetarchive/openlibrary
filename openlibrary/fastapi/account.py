@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Annotated
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Form, Request, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -181,8 +181,6 @@ async def login(
 
     # Check for authentication errors
     if error := audit.get("error"):
-        from fastapi import HTTPException
-
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=get_login_error(error),
