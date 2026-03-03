@@ -71,8 +71,8 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Submitting Issues
 
-[Interacting with GitHub Issues](https://docs.openlibrary.org/1_Everyone/GitHub-Issues.html) and
-[Using Managed Labels to Track Issues](https://docs.openlibrary.org/1_Everyone/Using-Managed-Labels-to-Track-Issues.html)
+[Interacting with GitHub Issues](https://docs.openlibrary.org/1_Everyone/GitHub/Issues.html) and
+[Using Managed Labels to Track Issues](https://docs.openlibrary.org/1_Everyone/GitHub/Managed-Labels.html)
 explain how GitHub issues are triaged, labeled, and prioritized.
 
 
