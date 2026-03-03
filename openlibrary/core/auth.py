@@ -54,15 +54,15 @@ class HMACToken:
 
         err: Exception | None = None
 
-        current_time = time.time() if unix_time else datetime.datetime.now(datetime.UTC)
+        current_time: float | datetime.datetime = time.time() if unix_time else datetime.datetime.now(datetime.UTC)
         expiry_str = msg.rsplit(delimiter, maxsplit=1)[-1]
         try:
-            expiry = float(expiry_str) if unix_time else datetime.datetime.fromisoformat(expiry_str)
+            expiry: float | datetime.datetime = float(expiry_str) if unix_time else datetime.datetime.fromisoformat(expiry_str)
         except ValueError:
             err = ValueError("Invalid timestamp format")
             expiry = 0
 
-        if not err and (current_time > expiry):
+        if not err and (current_time > expiry):  # type: ignore[operator]
             err = ExpiredTokenError()
 
         # `key` must be set to some non-empty value when the config cannot be accessed.
