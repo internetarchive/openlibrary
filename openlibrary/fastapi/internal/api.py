@@ -59,7 +59,6 @@ class RatingRequest(BaseModel):
         return v
 
 
-
 def _get_ratings_summary(work_id: int) -> dict:
     """Build ratings summary dict for a work, matching legacy response shape exactly."""
     if stats := Ratings.get_work_ratings_summary(work_id):
