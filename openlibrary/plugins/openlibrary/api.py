@@ -699,47 +699,56 @@ class bestbook_award(delegate.page):
         Args:
             work_id (int): unique id for each book
         """
-        OPS = ["add", "remove", "update"]
         i = web.input(op="add", edition_key=None, topic=None, comment="")
+        user = accounts.get_current_user()
+        username = user.key.split("/")[2] if user else None
 
-        edition_id = i.edition_key and int(extract_numeric_id_from_olid(i.edition_key))
+        result = self.process_bestbook_award(
+            work_id=work_id,
+            op=i.op,
+            edition_key=i.edition_key,
+            topic=i.topic,
+            comment=i.comment,
+            username=username,
+        )
+        return json.dumps(result)
+
+    @staticmethod
+    def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
+        OPS = ["add", "remove", "update"]
+        edition_id = edition_key and int(extract_numeric_id_from_olid(edition_key))
         errors = []
 
-        if user := accounts.get_current_user():
+        if username:
             try:
-                username = user.key.split("/")[2]
-                if i.op in ["add", "update"]:
+                if op in ["add", "update"]:
                     # Make sure the topic is free
-                    if i.op == "update":
-                        Bestbook.remove(username, topic=i.topic)
+                    if op == "update":
+                        Bestbook.remove(username, topic=topic)
                         Bestbook.remove(username, work_id=work_id)
-                    return json.dumps(
-                        {
-                            "success": True,
-                            "award": Bestbook.add(
-                                username=username,
-                                work_id=work_id,
-                                edition_id=edition_id or None,
-                                comment=i.comment,
-                                topic=i.topic,
-                            ),
-                        }
-                    )
-                elif i.op == "remove":
+                    return {
+                        "success": True,
+                        "award": Bestbook.add(
+                            username=username,
+                            work_id=work_id,
+                            edition_id=edition_id or None,
+                            comment=comment,
+                            topic=topic,
+                        ),
+                    }
+                elif op == "remove":
                     # Remove any award this patron has given this work_id
-                    return json.dumps(
-                        {
-                            "success": True,
-                            "rows": Bestbook.remove(username, work_id=work_id),
-                        }
-                    )
+                    return {
+                        "success": True,
+                        "rows": Bestbook.remove(username, work_id=work_id),
+                    }
                 else:
-                    errors.append(f"Invalid op {i.op}: valid ops are {OPS}")
+                    errors.append(f"Invalid op {op}: valid ops are {OPS}")
             except Bestbook.AwardConditionsError as e:
                 errors.append(str(e))
         else:
             errors.append("Authentication failed")
-        return json.dumps({"errors": ", ".join(errors)})
+        return {"errors": ", ".join(errors)}
 
 
 class bestbook_count(delegate.page):
