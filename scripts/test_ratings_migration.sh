@@ -120,8 +120,11 @@ FASTAPI_BODY=$(echo "$FASTAPI_RESP" | grep -v Status)
 echo "Code: $FASTAPI_CODE"
 echo "Body: $FASTAPI_BODY"
 
-if [ "$WEB_CODE" = "$FASTAPI_CODE" ]; then
-    echo "PASS (response shapes differ: legacy={success}, fastapi={status,message})"
+WEB_NORM=$(echo "$WEB_BODY" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin),sort_keys=True))")
+FASTAPI_NORM=$(echo "$FASTAPI_BODY" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin),sort_keys=True))")
+
+if [ "$WEB_CODE" = "$FASTAPI_CODE" ] && [ "$WEB_NORM" = "$FASTAPI_NORM" ]; then
+    echo "PASS"
     ((PASSED++))
 else
     echo "FAIL"
@@ -237,7 +240,6 @@ echo "Failed: $FAILED"
 
 echo ""
 echo "Known acceptable differences:"
-echo "  - POST response shape: legacy {success/error} vs fastapi {status, message}"
 echo "  - Auth: legacy redirects to /account/login vs fastapi returns 401"
 echo "  - Invalid rating: legacy 200 + {error: invalid rating} vs fastapi 422"
 

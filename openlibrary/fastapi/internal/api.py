@@ -59,12 +59,6 @@ class RatingRequest(BaseModel):
         return v
 
 
-class RatingPostResponse(BaseModel):
-    """Response model for POST /works/OL{id}W/ratings."""
-
-    status: str
-    message: str
-
 
 def _get_ratings_summary(work_id: int) -> dict:
     """Build ratings summary dict for a work, matching legacy response shape exactly."""
@@ -110,7 +104,7 @@ async def post_rating(
     work_id: int,
     data: RatingRequest,
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-) -> RatingPostResponse:
+) -> JSONResponse:
     """Register or remove a rating for a work.
 
     If rating is None, the existing rating is removed.
@@ -120,7 +114,7 @@ async def post_rating(
 
     if data.rating is None:
         models.Ratings.remove(user.username, work_id)
-        return RatingPostResponse(status="ok", message="removed rating")
+        return JSONResponse(content={"success": "removed rating"})
 
     models.Ratings.add(
         username=user.username,
@@ -128,7 +122,7 @@ async def post_rating(
         rating=data.rating,
         edition_id=edition_id_int,
     )
-    return RatingPostResponse(status="ok", message="rating added")
+    return JSONResponse(content={"success": "rating added"})
 
 
 async def booknotes():
