@@ -444,8 +444,14 @@ class price_api(delegate.page):
         i = web.input(isbn="", asin="")
         if not (i.isbn or i.asin):
             return json.dumps({"error": "isbn or asin required"})
-        id_ = i.asin or normalize_isbn(i.isbn)
-        id_type = "asin" if i.asin else "isbn_" + ("13" if len(id_) == 13 else "10")
+
+        metadata = self.get_price_data(i.isbn, i.asin)
+        return json.dumps(metadata)
+
+    @staticmethod
+    def get_price_data(isbn, asin):
+        id_ = asin or normalize_isbn(isbn)
+        id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
 
         metadata = {
             "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
@@ -481,7 +487,7 @@ class price_api(delegate.page):
                 if getattr(ed, "ocaid"):  # noqa: B009
                     metadata["ocaid"] = ed.ocaid
 
-        return json.dumps(metadata)
+        return metadata
 
 
 class patrons_follows_json(delegate.page):
