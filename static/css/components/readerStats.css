@@ -1,0 +1,44 @@
+/**
+ * ReaderStats
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readerstats
+ */
+
+.star {
+  color: var(--gold);
+  font-size: 1.5em;
+}
+
+.star__small {
+  font-size: 1em;
+}
+
+.star--half {
+  color: var(--gold);
+  margin: 0 0 0 -5px;
+  background: linear-gradient(90deg, var(--gold) 50%, var(--light-grey) 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.readers-stats {
+  color: var(--grey);
+  font-size: var(--font-size-label-large);
+  margin-bottom: 20px;
+}
+
+.readers-stats li {
+  list-style-type: none;
+  display: inline-block;
+  padding-bottom: 10px;
+}
+
+.readers-stats li:not(:first-child, :last-child):after {
+  content: "\00B7";
+  margin: 0 4px;
+}
+
+.readers-stats .dot {
+  list-style-type: none;
+  display: inline-block;
+  margin: 0 4px;
+}

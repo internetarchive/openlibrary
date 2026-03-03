@@ -47,3 +47,4 @@ android.keystore
 
 # Ignore checksum file if it’s generated during build
 manifest-checksum.txt
+.beads

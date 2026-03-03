@@ -1,0 +1,80 @@
+/**
+ * This is the entry for CSS for the style guide
+ * that lives @ /developers/design
+ * Any CSS loaded here will be render blocking.
+ */
+
+.design-pattern-library {
+  padding: 0 24px;
+}
+
+.design-pattern {
+  display: flex;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: var(--border-divider);
+  margin-bottom: 24px;
+}
+
+.design-pattern__title {
+  margin-top: 0;
+}
+
+.design-pattern__header {
+  flex: 0 0 300px;
+}
+
+.example {
+  margin-bottom: 24px;
+}
+
+.example__title {
+  font-size: var(--font-size-title-medium);
+  margin-top: 0;
+  margin-bottom: 6px;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.example__code {
+  display: block;
+  background-color: var(--lightest-grey);
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: var(--border-radius-card);
+  font-size: var(--font-size-body-medium);
+  font-family: var(--font-family-code);
+}
+
+.example__output {
+  margin-bottom: 24px;
+}
+
+.color-swatch {
+  display: flex;
+  gap: 4px;
+}
+
+.color-swatch .color-block {
+  width: 1em;
+  height: 1em;
+  display: block;
+  margin: 3px;
+}
+
+.color-block-primary-cta {
+  background-color: var(--primary-blue);
+}
+.color-block-background {
+  background-color: var(--beige);
+}
+.color-block-link-clicked {
+  background-color: var(--dark-blue);
+}
+.color-block-link-unclicked {
+  background-color: var(--link-blue);
+}
+@import "legacy.css";

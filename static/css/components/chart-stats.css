@@ -1,0 +1,17 @@
+/* @width-breakpoint-desktop */
+@media all and (min-width: 960px) {
+  div.chartHolder {
+    position: relative;
+    width: 439px;
+    height: 61px;
+    overflow: hidden;
+    background-color: var(--lightest-grey);
+  }
+  div.chartDisplay {
+    width: 430px;
+    height: 50px;
+    padding: 10px 3px 0;
+    border-bottom: 1px solid var(--black);
+    background-color: var(--lightest-grey);
+  }
+}
