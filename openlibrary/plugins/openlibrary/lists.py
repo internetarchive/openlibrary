@@ -498,16 +498,17 @@ class lists_json(delegate.page):
             raise web.notfound()
 
         i = web.input(offset=0, limit=50)
-        i.offset = h.safeint(i.offset, 0)
-        i.limit = h.safeint(i.limit, 50)
+        offset = h.safeint(i.offset, 0)
+        limit = h.safeint(i.limit, 50)
 
-        i.limit = min(i.limit, 100)
-        i.offset = max(i.offset, 0)
+        limit = min(limit, 100)
+        offset = max(offset, 0)
 
-        lists = self.get_lists(doc, limit=i.limit, offset=i.offset)
+        lists = self.get_lists_data(doc, path, limit=limit, offset=offset)
         return delegate.RawText(self.dumps(lists))
 
-    def get_lists(self, doc, limit=50, offset=0):
+    @staticmethod
+    def get_lists_data(doc, path, limit=50, offset=0):
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 
@@ -516,7 +517,7 @@ class lists_json(delegate.page):
             size = len(doc.get_lists(limit=1000))
 
         d = {
-            "links": {"self": web.ctx.path},
+            "links": {"self": path},
             "size": size,
             "entries": [lst.preview() for lst in lists],
         }
