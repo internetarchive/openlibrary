@@ -9,6 +9,8 @@ import json
 import logging
 from collections import defaultdict
 
+from typing_extensions import deprecated
+
 import qrcode
 import web
 
@@ -139,6 +141,7 @@ class browse(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
