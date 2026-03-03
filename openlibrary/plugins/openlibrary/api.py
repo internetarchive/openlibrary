@@ -69,7 +69,8 @@ class book_availability(delegate.page):
         result = self.get_book_availability(id_type, ids)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
-    def get_book_availability(self, id_type, ids):
+    @staticmethod
+    def get_book_availability(id_type, ids):
         if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
             return lending.get_availability(id_type, ids)
         else:
@@ -144,41 +145,42 @@ class ratings(delegate.page):
 
     @jsonapi
     def GET(self, work_id):
+        stats = self.get_ratings_summary(work_id)
+        return json.dumps(stats)
+
+    @staticmethod
+    def get_ratings_summary(work_id):
         from openlibrary.core.ratings import Ratings
 
         if stats := Ratings.get_work_ratings_summary(work_id):
-            return json.dumps(
-                {
-                    "summary": {
-                        "average": stats["ratings_average"],
-                        "count": stats["ratings_count"],
-                        "sortable": stats["ratings_sortable"],
-                    },
-                    "counts": {
-                        "1": stats["ratings_count_1"],
-                        "2": stats["ratings_count_2"],
-                        "3": stats["ratings_count_3"],
-                        "4": stats["ratings_count_4"],
-                        "5": stats["ratings_count_5"],
-                    },
-                }
-            )
+            return {
+                "summary": {
+                    "average": stats["ratings_average"],
+                    "count": stats["ratings_count"],
+                    "sortable": stats["ratings_sortable"],
+                },
+                "counts": {
+                    "1": stats["ratings_count_1"],
+                    "2": stats["ratings_count_2"],
+                    "3": stats["ratings_count_3"],
+                    "4": stats["ratings_count_4"],
+                    "5": stats["ratings_count_5"],
+                },
+            }
         else:
-            return json.dumps(
-                {
-                    "summary": {
-                        "average": None,
-                        "count": 0,
-                    },
-                    "counts": {
-                        "1": 0,
-                        "2": 0,
-                        "3": 0,
-                        "4": 0,
-                        "5": 0,
-                    },
-                }
-            )
+            return {
+                "summary": {
+                    "average": None,
+                    "count": 0,
+                },
+                "counts": {
+                    "1": 0,
+                    "2": 0,
+                    "3": 0,
+                    "4": 0,
+                    "5": 0,
+                },
+            }
 
     def POST(self, work_id):
         """Registers new ratings for this work"""
@@ -361,7 +363,8 @@ class work_editions(delegate.page):
             data = self.get_editions_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
-    def get_editions_data(self, work, limit, offset):
+    @staticmethod
+    def get_editions_data(work, limit, offset):
         limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
@@ -405,7 +408,8 @@ class author_works(delegate.page):
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
-    def get_works_data(self, author, limit, offset):
+    @staticmethod
+    def get_works_data(author, limit, offset):
         limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
@@ -441,8 +445,14 @@ class price_api(delegate.page):
         i = web.input(isbn="", asin="")
         if not (i.isbn or i.asin):
             return json.dumps({"error": "isbn or asin required"})
-        id_ = i.asin or normalize_isbn(i.isbn)
-        id_type = "asin" if i.asin else "isbn_" + ("13" if len(id_) == 13 else "10")
+
+        metadata = self.get_price_data(i.isbn, i.asin)
+        return json.dumps(metadata)
+
+    @staticmethod
+    def get_price_data(isbn, asin):
+        id_ = asin or normalize_isbn(isbn)
+        id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
 
         metadata = {
             "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
@@ -478,7 +488,7 @@ class price_api(delegate.page):
                 if getattr(ed, "ocaid"):  # noqa: B009
                     metadata["ocaid"] = ed.ocaid
 
-        return json.dumps(metadata)
+        return metadata
 
 
 class patrons_follows_json(delegate.page):
@@ -690,47 +700,56 @@ class bestbook_award(delegate.page):
         Args:
             work_id (int): unique id for each book
         """
-        OPS = ["add", "remove", "update"]
         i = web.input(op="add", edition_key=None, topic=None, comment="")
+        user = accounts.get_current_user()
+        username = user.key.split("/")[2] if user else None
 
-        edition_id = i.edition_key and int(extract_numeric_id_from_olid(i.edition_key))
+        result = self.process_bestbook_award(
+            work_id=work_id,
+            op=i.op,
+            edition_key=i.edition_key,
+            topic=i.topic,
+            comment=i.comment,
+            username=username,
+        )
+        return json.dumps(result)
+
+    @staticmethod
+    def process_bestbook_award(work_id, op, edition_key, topic, comment, username):
+        OPS = ["add", "remove", "update"]
+        edition_id = edition_key and int(extract_numeric_id_from_olid(edition_key))
         errors = []
 
-        if user := accounts.get_current_user():
+        if username:
             try:
-                username = user.key.split("/")[2]
-                if i.op in ["add", "update"]:
+                if op in ["add", "update"]:
                     # Make sure the topic is free
-                    if i.op == "update":
-                        Bestbook.remove(username, topic=i.topic)
+                    if op == "update":
+                        Bestbook.remove(username, topic=topic)
                         Bestbook.remove(username, work_id=work_id)
-                    return json.dumps(
-                        {
-                            "success": True,
-                            "award": Bestbook.add(
-                                username=username,
-                                work_id=work_id,
-                                edition_id=edition_id or None,
-                                comment=i.comment,
-                                topic=i.topic,
-                            ),
-                        }
-                    )
-                elif i.op == "remove":
+                    return {
+                        "success": True,
+                        "award": Bestbook.add(
+                            username=username,
+                            work_id=work_id,
+                            edition_id=edition_id or None,
+                            comment=comment,
+                            topic=topic,
+                        ),
+                    }
+                elif op == "remove":
                     # Remove any award this patron has given this work_id
-                    return json.dumps(
-                        {
-                            "success": True,
-                            "rows": Bestbook.remove(username, work_id=work_id),
-                        }
-                    )
+                    return {
+                        "success": True,
+                        "rows": Bestbook.remove(username, work_id=work_id),
+                    }
                 else:
-                    errors.append(f"Invalid op {i.op}: valid ops are {OPS}")
+                    errors.append(f"Invalid op {op}: valid ops are {OPS}")
             except Bestbook.AwardConditionsError as e:
                 errors.append(str(e))
         else:
             errors.append("Authentication failed")
-        return json.dumps({"errors": ", ".join(errors)})
+        return {"errors": ", ".join(errors)}
 
 
 class bestbook_count(delegate.page):
@@ -998,7 +1017,8 @@ class unlink_ia_ol(delegate.page):
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
-    def make_dark(self, edition):
+    @staticmethod
+    def make_dark(edition):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])

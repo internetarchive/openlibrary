@@ -116,6 +116,7 @@ models.register_types()
 import openlibrary.core.lists.model as list_models
 
 list_models.register_models()
+list_models.register_types()
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
@@ -1336,11 +1337,6 @@ def setup():
     )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
-
-    if infogami.config.get('dev_instance') is True:
-        from openlibrary.plugins.openlibrary import dev_instance
-
-        dev_instance.setup()
 
     setup_context_defaults()
     setup_template_globals()
