@@ -16,9 +16,9 @@ def runfcgi(func, addr=('localhost', 8000)):
 
     mode = config.pop("mode", None)
     if mode == "prefork":
-        import flup.server.fcgi_fork as flups
+        import flup.server.fcgi_fork as flups  # noqa: PLC0415
     else:
-        import flup.server.fcgi as flups
+        import flup.server.fcgi as flups  # noqa: PLC0415
 
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 

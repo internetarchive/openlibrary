@@ -83,7 +83,7 @@ class trending_books_api(delegate.page):
     encoding = "json"
 
     def GET(self, period="/daily"):
-        from openlibrary.views.loanstats import SINCE_DAYS
+        from openlibrary.views.loanstats import SINCE_DAYS  # noqa: PLC0415
 
         period = period[1:]  # remove slash
         i = web.input(
@@ -150,7 +150,7 @@ class ratings(delegate.page):
 
     @staticmethod
     def get_ratings_summary(work_id):
-        from openlibrary.core.ratings import Ratings
+        from openlibrary.core.ratings import Ratings  # noqa: PLC0415
 
         if stats := Ratings.get_work_ratings_summary(work_id):
             return {
@@ -278,7 +278,7 @@ class work_bookshelves(delegate.page):
 
     @jsonapi
     def GET(self, work_id):
-        from openlibrary.core.models import Bookshelves
+        from openlibrary.core.models import Bookshelves  # noqa: PLC0415
 
         return json.dumps({"counts": Bookshelves.get_work_summary(work_id)})
 
@@ -297,7 +297,7 @@ class work_bookshelves(delegate.page):
         :rtype: json
         :return: a list of bookshelves_affected
         """
-        from openlibrary.core.models import Bookshelves
+        from openlibrary.core.models import Bookshelves  # noqa: PLC0415
 
         user = accounts.get_current_user()
         i = web.input(
@@ -766,7 +766,7 @@ class bestbook_count(delegate.page):
 
 
 def get_opds_data_provider():
-    from pyopds2_openlibrary import OpenLibraryDataProvider
+    from pyopds2_openlibrary import OpenLibraryDataProvider  # noqa: PLC0415
 
     provider = OpenLibraryDataProvider()
     protocol = "https" if "localhost" not in web.ctx.host else "http"
@@ -779,7 +779,7 @@ class opds_search(delegate.page):
     path = r"/opds/search"
 
     def GET(self):
-        from pyopds2 import Catalog, Link, Metadata
+        from pyopds2 import Catalog, Link, Metadata  # noqa: PLC0415
 
         i = web.input(
             query="trending_score_hourly_sum:[1 TO *]",
@@ -850,7 +850,7 @@ class opds_home(delegate.page):
 
     def GET(self):
         def build_homepage():
-            from pyopds2 import Catalog, Link, Metadata, Navigation
+            from pyopds2 import Catalog, Link, Metadata, Navigation  # noqa: PLC0415
 
             provider = get_opds_data_provider()
             catalog = Catalog(
@@ -947,9 +947,9 @@ class opds_home(delegate.page):
             return catalog.model_dump()
 
         def get_cached_homepage():
-            from openlibrary.plugins.openlibrary.code import is_bot
-            from openlibrary.plugins.openlibrary.home import caching_prethread
-            from openlibrary.utils import dateutil
+            from openlibrary.plugins.openlibrary.code import is_bot  # noqa: PLC0415
+            from openlibrary.plugins.openlibrary.home import caching_prethread  # noqa: PLC0415
+            from openlibrary.utils import dateutil  # noqa: PLC0415
 
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang

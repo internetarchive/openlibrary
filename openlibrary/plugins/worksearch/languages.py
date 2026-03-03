@@ -46,7 +46,7 @@ async def get_all_language_counts(
     solr_type: Literal['work', 'edition'],
     ebook_access: str | None = None,
 ) -> list[tuple[str, int]]:
-    from . import search
+    from . import search  # noqa: PLC0415
 
     ebook_access_query = ''
     if ebook_access:

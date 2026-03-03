@@ -43,14 +43,14 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
         **trigger_args,
     ):
         if TYPE_CHECKING:
-            from sentry_sdk._types import MonitorConfig
+            from sentry_sdk._types import MonitorConfig  # noqa: PLC0415
 
         monitor_config: MonitorConfig = {
             'checkin_margin': 60,
         }
 
         if self.sentry:
-            from sentry_sdk.crons import monitor
+            from sentry_sdk.crons import monitor  # noqa: PLC0415
 
             monitored_func = monitor(id or func.__name__, monitor_config)(func)
             # Preserve the original function name

@@ -614,7 +614,7 @@ class WorkSearchScheme(SearchScheme):
         non_solr_fields: set[str],
         solr_result: dict,
     ) -> None:
-        from openlibrary.plugins.upstream.models import Edition, Work
+        from openlibrary.plugins.upstream.models import Edition, Work  # noqa: PLC0415
 
         prefixed_fields = {
             prefixed_field
@@ -641,7 +641,7 @@ class WorkSearchScheme(SearchScheme):
         things = cast(list[Work | Edition], web.ctx.site.get_many(keys))
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
-        from openlibrary.book_providers import get_acquisitions
+        from openlibrary.book_providers import get_acquisitions  # noqa: PLC0415
 
         for doc in solr_result['response']['docs']:
             for field in prefixed_fields:

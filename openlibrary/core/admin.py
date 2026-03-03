@@ -197,7 +197,7 @@ def get_unique_logins_since(since_days=30):
 
 
 def get_cached_unique_logins_since(since_days=30):
-    from openlibrary.plugins.openlibrary.home import caching_prethread
+    from openlibrary.plugins.openlibrary.home import caching_prethread  # noqa: PLC0415
 
     twelve_hours = 60 * 60 * 12
     key_prefix = 'logins_since'

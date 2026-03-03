@@ -44,6 +44,6 @@ class TestDockerCompose:
         solr_opts_max_boolean_clauses = next(int(opt.split("=", 1)[1]) for opt in solr_opts.split() if opt.startswith("-Dsolr.max.booleanClauses"))
 
         # read the value in openlibrary/core/bookshelves.py
-        from openlibrary.core.bookshelves import FILTER_BOOK_LIMIT
+        from openlibrary.core.bookshelves import FILTER_BOOK_LIMIT  # noqa: PLC0415
 
         assert solr_opts_max_boolean_clauses >= FILTER_BOOK_LIMIT

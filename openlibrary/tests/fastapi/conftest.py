@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 @pytest.fixture
 def fastapi_client():
     """Create a test client for the FastAPI app."""
-    from openlibrary.asgi_app import create_app
+    from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
     app = create_app()
     return TestClient(app)
@@ -99,7 +99,7 @@ def _default_search_response():
 
 def _default_subjects_response():
     """Default mock response for subjects search."""
-    from openlibrary.plugins.worksearch.code import SearchResponse
+    from openlibrary.plugins.worksearch.code import SearchResponse  # noqa: PLC0415
 
     return SearchResponse(
         facet_counts=None,

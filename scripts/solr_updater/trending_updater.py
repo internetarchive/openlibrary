@@ -61,8 +61,8 @@ async def main(
         # NOTE: Synchronous pathlib operations are acceptable here since this is CLI-only code
         # that runs once at startup. Use asyncio.to_thread() if this becomes a hot path.
         offset = None
-        if trending_offset_file.exists() and (  # noqa: ASYNC240
-            contents := trending_offset_file.read_text().strip()  # noqa: ASYNC240
+        if trending_offset_file.exists() and (  # noqa: ASYNC240, RUF100
+            contents := trending_offset_file.read_text().strip()  # noqa: ASYNC240, RUF100
         ):
             offset = datetime.datetime.fromisoformat(contents)
 

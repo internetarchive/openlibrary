@@ -673,7 +673,7 @@ class BetterWorldBooksProvider(AbstractBookProvider):
 
     @functools.cached_property
     def bwb_acquisitions(self) -> dict[str, Acquisition]:
-        from infogami import config
+        from infogami import config  # noqa: PLC0415
 
         results = {
             key: Acquisition.from_json(acq)
