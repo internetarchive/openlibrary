@@ -1007,7 +1007,8 @@ class unlink_ia_ol(delegate.page):
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
-    def make_dark(self, edition):
+    @staticmethod
+    def make_dark(edition):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])
