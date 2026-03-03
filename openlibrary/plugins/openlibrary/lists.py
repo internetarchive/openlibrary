@@ -801,19 +801,23 @@ class list_subjects_json(delegate.page):
         i = web.input(limit=20)
         limit = h.safeint(i.limit, 20)
 
-        data = self.get_subjects(lst, limit=limit)
-        data["links"] = {"self": key + "/subjects", "list": key}
+        data = self.get_subjects_data(lst, key, limit=limit)
 
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
 
-    def get_subjects(self, lst, limit):
+    @staticmethod
+    def get_subjects_data(lst, key, limit):
         data = lst.get_subjects(limit=limit)
-        for key, subjects_ in data.items():
-            data[key] = [self._process_subject(s) for s in subjects_]
-        return dict(data)
+        for sub_key, subjects_ in data.items():
+            data[sub_key] = [list_subjects_json._process_subject(s) for s in subjects_]
 
-    def _process_subject(self, s):
+        data = dict(data)
+        data["links"] = {"self": key + "/subjects", "list": key}
+        return data
+
+    @staticmethod
+    def _process_subject(s):
         key = s["key"]
         if key.startswith("subject:"):
             key = "/subjects/" + web.lstrips(key, "subject:")
