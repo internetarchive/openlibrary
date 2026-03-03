@@ -69,7 +69,8 @@ class book_availability(delegate.page):
         result = self.get_book_availability(id_type, ids)
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
-    def get_book_availability(self, id_type, ids):
+    @staticmethod
+    def get_book_availability(id_type, ids):
         if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
             return lending.get_availability(id_type, ids)
         else:
@@ -361,7 +362,8 @@ class work_editions(delegate.page):
             data = self.get_editions_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
-    def get_editions_data(self, work, limit, offset):
+    @staticmethod
+    def get_editions_data(work, limit, offset):
         limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
@@ -405,7 +407,8 @@ class author_works(delegate.page):
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
-    def get_works_data(self, author, limit, offset):
+    @staticmethod
+    def get_works_data(author, limit, offset):
         limit = min(limit, 1000)
 
         keys = web.ctx.site.things(
