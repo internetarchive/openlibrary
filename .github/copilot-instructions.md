@@ -8,6 +8,8 @@
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
+**Note:** When updating a dependency, ensure it's updated across all dependency locations: requirements*.txt files, package.json files, and .pre-commit-config.yaml.
+
 ### Key Commands
 
 ```bash
