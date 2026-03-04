@@ -16,11 +16,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from openlibrary.core import models
-from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
 )
+from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 
 router = APIRouter()
@@ -43,7 +43,6 @@ async def browse():
 
 
 class RatingRequest(BaseModel):
-
     rating: int | None = Field(default=None, ge=1, le=5)
     edition_id: str | None = None
 
