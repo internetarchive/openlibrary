@@ -11,6 +11,9 @@ from __future__ import annotations
 import os
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+
+from openlibrary.core import lending
 
 router = APIRouter()
 
@@ -27,8 +30,27 @@ async def trending_books_api(period: str):
     pass
 
 
-async def browse():
-    pass
+@router.get("/browse", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+async def browse(q: str = "", page: int = 1, limit: int = 100, subject: str = "", sorts: str = "") -> JSONResponse:
+    """Browse endpoint (migrated from openlibrary.plugins.openlibrary.api)."""
+    sorts_list = sorts.split(",")
+
+    url = lending.compose_ia_url(
+        query=q,
+        limit=limit,
+        page=page,
+        subject=subject,
+        sorts=sorts_list,
+    )
+
+    works = lending.get_available(url=url) if url else []
+
+    result = {
+        "query": url,
+        "works": [work.dict() for work in works],
+    }
+
+    return JSONResponse(content=result)
 
 
 async def ratings():
