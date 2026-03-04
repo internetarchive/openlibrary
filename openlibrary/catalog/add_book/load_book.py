@@ -115,9 +115,13 @@ class AuthorImportDict(TypedDict):
 
 def do_flip(author: AuthorImportDict) -> None:
     """
-    Given an author import dict, flip its name in place
+    Given an author import dict, flip its name
+    and any alternate_names in place
     i.e. Smith, John => John Smith
     """
+    alternate_names = [flip_name(name) for name in author.get('alternate_names', [])]
+    if alternate_names:
+        author['alternate_names'] = alternate_names
     if 'personal_name' in author and author['personal_name'] != author['name']:
         # Don't flip names if name is more complex than personal_name (legacy behaviour)
         return

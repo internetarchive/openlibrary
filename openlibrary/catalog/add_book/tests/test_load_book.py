@@ -335,11 +335,10 @@ class TestImportAuthor:
         assert isinstance(found, Author)
         assert found.key == author_alternate_name_with_dates["key"]
 
-        # Also search for author match on incoming alternate name:
+        # Expect author match on incoming alternate name (comma flipped also):
         searched_author = {
             "name": "Фёдор Д.",
-            "alternate_names": ["Fyodor Dostoevsky"],
-            # "alternate_names": ["Dostoevsky, Fyodor"],  # for testing comma flipped name
+            "alternate_names": ["Dostoevsky, Fyodor"],
             "birth_date": "1821",
             "death_date": "1881",
         }
