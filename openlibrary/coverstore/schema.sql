@@ -1,11 +1,11 @@
 create table category (
-    id serial primary key,
+    id bigserial primary key,
     name text
 );
 
 create table cover (
-    id serial primary key,
-    category_id int references category,
+    id bigserial primary key,
+    category_id bigint references category,
     olid text,
     filename text,
     filename_s text,
@@ -35,8 +35,8 @@ create index cover_failed_idx ON cover(failed);
 create index cover_archived_idx ON cover(archived);
 
 create table log (
-    id serial primary key,
-    cover_id int references cover(id),
+    id bigserial primary key,
+    cover_id bigint references cover(id),
     action text,
     timestamp timestamp
 );
