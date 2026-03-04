@@ -6,17 +6,17 @@ the best practices like Response Models because JSONP makes it quite complicated
 
 from __future__ import annotations
 
-import json
 import re
 import urllib.parse
 from typing import Annotated, Any, Literal
 
 import web
-from fastapi import APIRouter, Query, Request
-from pydantic import BaseModel, BeforeValidator, Field
+from fastapi import APIRouter, Query, Request, Response
+from pydantic import BaseModel, BeforeValidator, Field, TypeAdapter
 
 from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
 from openlibrary.plugins.books import dynlinks, readlinks
+from openlibrary.plugins.books.dynlinks import DynlinksOptions
 
 router = APIRouter()
 
@@ -30,7 +30,10 @@ class BooksAPIQueryParams(BaseModel):
     )
     details: Literal["true", "false"] = Field("false", description="Include detailed book information")
     jscmd: Literal["details", "data", "viewapi"] | None = Field(None, description="Format of returned data")
+    callback: str | None = Field(None, description="JSONP callback function name")
     high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
+    format: Literal["json", "js"] | None = Field(None, description="Explicitly set response format (overrides path-based detection)")
+    text: bool = Field(False, description="Return Content-Type: text/plain instead of application/json")
 
 
 # Note: We don't set response_model on these endpoints because they support JSONP callback.
@@ -59,22 +62,32 @@ async def get_books(
     # This ensures web.ctx.get("home") returns correct base URL
     web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
 
-    # Build options dict compatible with existing dynlinks function
-    options: dynlinks.DynlinksOptions = {
-        "format": "json",
-    }
+    # Build options dict from params (excluding bibkeys which goes to dynlinks separately)
+    options: DynlinksOptions = TypeAdapter(DynlinksOptions).validate_python(params.model_dump(exclude_unset=True))
 
-    # TODO: we should be passing down BooksAPIQueryParams not creating options
-    if params.details:
-        options["details"] = params.details
-    if params.jscmd:
-        options["jscmd"] = params.jscmd
-    if params.high_priority:
-        options["high_priority"] = params.high_priority
+    # Format determination priority:
+    # 1. format parameter (highest)
+    # 2. callback parameter (medium) - when present, overrides path-based format
+    # 3. path-based detection (lowest)
+    if not params.format:
+        if params.callback:
+            options["format"] = "js"
+        elif request.url.path.endswith(".json"):
+            options["format"] = "json"
 
-    # Call existing business logic (bibkeys already parsed by validator)
+    # Call existing business logic
     result_str = dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
-    return wrap_jsonp(request, json.loads(result_str))
+
+    # If callback is present, wrap the JSON result with the callback
+    # (dynlinks returns plain JSON when callback is in options, we need to wrap it)
+    if params.callback is not None:
+        result_str = f"{params.callback}({result_str});"
+
+    # Content-Type is almost always application/json (matching production behavior)
+    # Only changes to text/plain when text=true parameter is present
+    media_type = "text/plain" if params.text else "application/json"
+
+    return Response(content=result_str, media_type=media_type)
 
 
 MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")
