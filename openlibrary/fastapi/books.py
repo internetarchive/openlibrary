@@ -11,7 +11,7 @@ import urllib.parse
 from typing import Annotated, Any, Literal
 
 import web
-from fastapi import APIRouter, Query, Request, Response
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field, TypeAdapter
 
 from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
@@ -33,7 +33,6 @@ class BooksAPIQueryParams(BaseModel):
     callback: str | None = Field(None, description="JSONP callback function name")
     high_priority: bool = Field(False, description="Attempt import immediately for missing ISBNs")
     format: Literal["json", "js"] | None = Field(None, description="Explicitly set response format (overrides path-based detection)")
-    text: bool = Field(False, description="Return Content-Type: text/plain instead of application/json")
 
 
 # Note: We don't set response_model on these endpoints because they support JSONP callback.
@@ -78,16 +77,7 @@ async def get_books(
     # Call existing business logic
     result_str = dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
 
-    # If callback is present, wrap the JSON result with the callback
-    # (dynlinks returns plain JSON when callback is in options, we need to wrap it)
-    if params.callback is not None:
-        result_str = f"{params.callback}({result_str});"
-
-    # Content-Type is almost always application/json (matching production behavior)
-    # Only changes to text/plain when text=true parameter is present
-    media_type = "text/plain" if params.text else "application/json"
-
-    return Response(content=result_str, media_type=media_type)
+    return wrap_jsonp(request, result_str)
 
 
 MULTIGET_PATH_RE = re.compile(r"/api/volumes/(brief|full)/json/(.+)")

@@ -1,9 +1,11 @@
 import json
+import re
 from typing import Self
 
 from fastapi import Request, Response
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, model_validator
+
+JS_CALLBACK_RE = re.compile(r"^[A-Za-z0-9_$.]+$")
 
 
 def parse_comma_separated_list(v: str | list[str]) -> list[str]:
@@ -50,9 +52,15 @@ class PaginationLimit20(Pagination):
     limit: int = Field(20, ge=0, description="Maximum number of results to return.")
 
 
-def wrap_jsonp(request: Request, data: dict) -> dict | Response:
-    """Wrap data in JSONP callback if callback param is present."""
+def wrap_jsonp(request: Request, data: dict | str) -> Response:
+    """Wrap data in JSONP callback if callback param is present.
+
+    Always returns a Response object.
+    Accepts either a dict (which will be JSON-serialized) or a pre-serialized JSON string.
+    """
+    json_string = json.dumps(data) if isinstance(data, dict) else data
     if callback := request.query_params.get("callback"):
-        json_string = json.dumps(jsonable_encoder(data))
+        if not JS_CALLBACK_RE.match(callback):
+            raise ValueError("Invalid callback parameter: must be a valid JavaScript identifier (only letters, numbers, underscore, $, and . allowed)")
         return Response(content=f"{callback}({json_string});", media_type="application/javascript")
-    return data
+    return Response(content=json_string, media_type="application/json")

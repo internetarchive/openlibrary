@@ -289,31 +289,6 @@ class TestBooksAPIHighPriority:
         assert options["high_priority"] is True
 
 
-class TestBooksAPIText:
-    """Test text parameter for Content-Type override."""
-
-    def test_text_true_returns_text_plain(self, client, mock_dynlinks):
-        """text=true sets Content-Type to text/plain."""
-        response = client.get("/api/books.json?bibkeys=059035342X&text=true")
-
-        assert response.status_code == 200
-        assert response.headers["content-type"].startswith("text/plain")
-
-    def test_text_false_returns_application_json(self, client, mock_dynlinks):
-        """text=false keeps Content-Type as application/json."""
-        response = client.get("/api/books.json?bibkeys=059035342X&text=false")
-
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/json"
-
-    def test_text_default_returns_application_json(self, client, mock_dynlinks):
-        """text defaults to application/json."""
-        response = client.get("/api/books.json?bibkeys=059035342X")
-
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "application/json"
-
-
 class TestBooksAPIAllParameters:
     """Test all parameters combined."""
 
@@ -328,7 +303,6 @@ class TestBooksAPIAllParameters:
         assert options["jscmd"] == "data"
         assert options["high_priority"] is True
         assert options["format"] == "json"
-        assert response.headers["content-type"].startswith("text/plain")
 
 
 # -- /api/volumes/brief/json/{req}.json  (multiget) --
