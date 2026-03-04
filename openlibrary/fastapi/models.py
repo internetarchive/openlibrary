@@ -5,7 +5,7 @@ from typing import Self
 from fastapi import Request, Response
 from pydantic import BaseModel, Field, model_validator
 
-JS_CALLBACK_RE = re.compile(r"^[A-Za-z0-9_$.]+$")
+JS_CALLBACK_RE = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$.]*$")
 
 
 def parse_comma_separated_list(v: str | list[str]) -> list[str]:
