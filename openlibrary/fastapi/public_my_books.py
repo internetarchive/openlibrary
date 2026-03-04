@@ -16,7 +16,7 @@ from openlibrary.fastapi.auth import (
 from openlibrary.fastapi.models import Pagination  # noqa: TC001
 from openlibrary.plugins.upstream.mybooks import ReadingLog
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site_ctx
 
 router = APIRouter()
 
@@ -76,8 +76,7 @@ async def get_public_my_books_json(
     if len(q) < 3:
         q = ""
 
-    current_site = site.get()
-    user_obj = current_site.get("/people/%s" % username)
+    user_obj = site_ctx.get("/people/%s" % username)
 
     if not user_obj:
         raise HTTPException(
