@@ -16,9 +16,9 @@ create table meta (
 insert into meta (version) values (10);
 
 create table thing (
-    id serial primary key,
+    id bigserial primary key,
     key text,
-    type int references thing,
+    type bigint references thing,
     latest_revision int default 1,
     created timestamp default(current_timestamp at time zone 'utc'),
     last_modified timestamp default(current_timestamp at time zone 'utc')
@@ -34,9 +34,9 @@ create index thing_created_idx ON thing(created);
 create unique index thing_key_idx ON thing(key);
 
 create table transaction (
-    id serial primary key,
+    id bigserial primary key,
     action varchar(256),
-    author_id int references thing,
+    author_id bigint references thing,
     ip inet,
     comment text,
     bot boolean default 'f', -- true if the change is made by a bot
@@ -52,7 +52,7 @@ create index transaction_ip_idx ON transaction(ip);
 create index transaction_created_idx ON transaction(created);
 
 create table transaction_index (
-    tx_id int references transaction,
+    tx_id bigint references transaction,
     key text,
     value text
 );
@@ -61,27 +61,27 @@ create index transaction_index_key_value_idx ON transaction_index(key, value);
 create index transaction_index_tx_id_idx ON transaction_index(tx_id);
 
 create table version (
-    id serial primary key,
-    thing_id int references thing,
+    id bigserial primary key,
+    thing_id bigint references thing,
     revision int,
-    transaction_id int references transaction,
+    transaction_id bigint references transaction,
     UNIQUE (thing_id, revision)
 );
 
 create table property (
-    id serial primary key,
-    type int references thing,
+    id bigserial primary key,
+    type bigint references thing,
     name text,
     UNIQUE (type, name)
 );
 
-CREATE FUNCTION get_property_name(integer, integer)
+CREATE FUNCTION get_property_name(bigint, bigint)
 RETURNS text AS
 'select property.name FROM property, thing WHERE thing.type = property.type AND thing.id=$1 AND property.id=$2;'
 LANGUAGE SQL;
 
 create table account (
-    thing_id int references thing,
+    thing_id bigint references thing,
     email text,
     password text,
     active boolean default 't',
@@ -97,7 +97,7 @@ create index account_thing_active_idx ON account(active);
 create index account_thing_bot_idx ON account(bot);
 
 create table data (
-    thing_id int references thing,
+    thing_id bigint references thing,
     revision int,
     data text
 );
@@ -105,8 +105,8 @@ create unique index data_thing_id_revision_idx ON data(thing_id, revision);
 
 
 create table author_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -114,8 +114,8 @@ create index author_boolean_idx ON author_boolean(key_id, value);
 create index author_boolean_thing_id_idx ON author_boolean(thing_id);
 
 create table author_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -123,17 +123,17 @@ create index author_int_idx ON author_int(key_id, value);
 create index author_int_thing_id_idx ON author_int(thing_id);
 
 create table author_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index author_ref_idx ON author_ref(key_id, value);
 create index author_ref_thing_id_idx ON author_ref(thing_id);
 
 create table author_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -141,8 +141,8 @@ create index author_str_idx ON author_str(key_id, value);
 create index author_str_thing_id_idx ON author_str(thing_id);
 
 create table datum_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -150,17 +150,17 @@ create index datum_int_idx ON datum_int(key_id, value);
 create index datum_int_thing_id_idx ON datum_int(thing_id);
 
 create table datum_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index datum_ref_idx ON datum_ref(key_id, value);
 create index datum_ref_thing_id_idx ON datum_ref(thing_id);
 
 create table datum_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -168,8 +168,8 @@ create index datum_str_idx ON datum_str(key_id, value);
 create index datum_str_thing_id_idx ON datum_str(thing_id);
 
 create table edition_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -177,8 +177,8 @@ create index edition_boolean_idx ON edition_boolean(key_id, value);
 create index edition_boolean_thing_id_idx ON edition_boolean(thing_id);
 
 create table edition_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -186,17 +186,17 @@ create index edition_int_idx ON edition_int(key_id, value);
 create index edition_int_thing_id_idx ON edition_int(thing_id);
 
 create table edition_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index edition_ref_idx ON edition_ref(key_id, value);
 create index edition_ref_thing_id_idx ON edition_ref(thing_id);
 
 create table edition_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -204,8 +204,8 @@ create index edition_str_idx ON edition_str(key_id, value);
 create index edition_str_thing_id_idx ON edition_str(thing_id);
 
 create table publisher_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -213,8 +213,8 @@ create index publisher_boolean_idx ON publisher_boolean(key_id, value);
 create index publisher_boolean_thing_id_idx ON publisher_boolean(thing_id);
 
 create table publisher_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -222,17 +222,17 @@ create index publisher_int_idx ON publisher_int(key_id, value);
 create index publisher_int_thing_id_idx ON publisher_int(thing_id);
 
 create table publisher_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index publisher_ref_idx ON publisher_ref(key_id, value);
 create index publisher_ref_thing_id_idx ON publisher_ref(thing_id);
 
 create table publisher_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -240,8 +240,8 @@ create index publisher_str_idx ON publisher_str(key_id, value);
 create index publisher_str_thing_id_idx ON publisher_str(thing_id);
 
 create table scan_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -249,8 +249,8 @@ create index scan_boolean_idx ON scan_boolean(key_id, value);
 create index scan_boolean_thing_id_idx ON scan_boolean(thing_id);
 
 create table scan_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -258,17 +258,17 @@ create index scan_int_idx ON scan_int(key_id, value);
 create index scan_int_thing_id_idx ON scan_int(thing_id);
 
 create table scan_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index scan_ref_idx ON scan_ref(key_id, value);
 create index scan_ref_thing_id_idx ON scan_ref(thing_id);
 
 create table scan_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -276,8 +276,8 @@ create index scan_str_idx ON scan_str(key_id, value);
 create index scan_str_thing_id_idx ON scan_str(thing_id);
 
 create table subject_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -285,8 +285,8 @@ create index subject_boolean_idx ON subject_boolean(key_id, value);
 create index subject_boolean_thing_id_idx ON subject_boolean(thing_id);
 
 create table subject_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -294,17 +294,17 @@ create index subject_int_idx ON subject_int(key_id, value);
 create index subject_int_thing_id_idx ON subject_int(thing_id);
 
 create table subject_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index subject_ref_idx ON subject_ref(key_id, value);
 create index subject_ref_thing_id_idx ON subject_ref(thing_id);
 
 create table subject_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -321,17 +321,17 @@ create index type_int_idx ON type_int(key_id, value);
 create index type_int_thing_id_idx ON type_int(thing_id);
 
 create table type_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index type_ref_idx ON type_ref(key_id, value);
 create index type_ref_thing_id_idx ON type_ref(thing_id);
 
 create table type_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -339,8 +339,8 @@ create index type_str_idx ON type_str(key_id, value);
 create index type_str_thing_id_idx ON type_str(thing_id);
 
 create table user_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -348,17 +348,17 @@ create index user_int_idx ON user_int(key_id, value);
 create index user_int_thing_id_idx ON user_int(thing_id);
 
 create table user_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index user_ref_idx ON user_ref(key_id, value);
 create index user_ref_thing_id_idx ON user_ref(thing_id);
 
 create table user_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -366,8 +366,8 @@ create index user_str_idx ON user_str(key_id, value);
 create index user_str_thing_id_idx ON user_str(thing_id);
 
 create table work_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -375,8 +375,8 @@ create index work_boolean_idx ON work_boolean(key_id, value);
 create index work_boolean_thing_id_idx ON work_boolean(thing_id);
 
 create table work_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -384,17 +384,17 @@ create index work_int_idx ON work_int(key_id, value);
 create index work_int_thing_id_idx ON work_int(thing_id);
 
 create table work_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index work_ref_idx ON work_ref(key_id, value);
 create index work_ref_thing_id_idx ON work_ref(thing_id);
 
 create table work_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -402,8 +402,8 @@ create index work_str_idx ON work_str(key_id, value);
 create index work_str_thing_id_idx ON work_str(thing_id);
 
 create table tag_boolean (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value boolean,
     ordering int default NULL
 );
@@ -411,8 +411,8 @@ create index tag_boolean_idx ON tag_boolean(key_id, value);
 create index tag_boolean_thing_id_idx ON tag_boolean(thing_id);
 
 create table tag_int (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value int,
     ordering int default NULL
 );
@@ -420,17 +420,17 @@ create index tag_int_idx ON tag_int(key_id, value);
 create index tag_int_thing_id_idx ON tag_int(thing_id);
 
 create table tag_ref (
-    thing_id int references thing,
-    key_id int references property,
-    value int references thing,
+    thing_id bigint references thing,
+    key_id bigint references property,
+    value bigint references thing,
     ordering int default NULL
 );
 create index tag_ref_idx ON tag_ref(key_id, value);
 create index tag_ref_thing_id_idx ON tag_ref(thing_id);
 
 create table tag_str (
-    thing_id int references thing,
-    key_id int references property,
+    thing_id bigint references thing,
+    key_id bigint references property,
     value varchar(2048),
     ordering int default NULL
 );
@@ -449,14 +449,14 @@ CREATE SEQUENCE type_publisher_seq;
 CREATE SEQUENCE type_tag_seq;
 
 create table store (
-    id serial primary key,
+    id bigserial primary key,
     key text unique,
     json text
 );
 
 create table store_index (
-    id serial primary key,
-    store_id int references store,
+    id bigserial primary key,
+    store_id bigint references store,
     type text,
     name text,
     value text
@@ -466,7 +466,7 @@ create index store_index_store_id_idx ON store_index (store_id);
 create index store_idx ON store_index(type, name, value);
 
 create table seq (
-    id serial primary key,
+    id bigserial primary key,
     name text unique,
     value int default 0
 );
@@ -482,7 +482,7 @@ $$ LANGUAGE SQL IMMUTABLE;
 CREATE INDEX thing_olid_idx ON thing(get_olid(key));
 
 CREATE TABLE stats (
-    id serial primary key,
+    id bigserial primary key,
     key text unique,
     type text,
     created timestamp without time zone,
@@ -494,7 +494,7 @@ CREATE INDEX stats_created_idx ON stats(created);
 CREATE INDEX stats_updated_idx ON stats(updated);
 
 CREATE TABLE waitingloan (
-    id serial primary key,
+    id bigserial primary key,
     book_key text,
     user_key text,
     status text default 'waiting',
@@ -512,7 +512,7 @@ CREATE INDEX waitingloan_status_idx ON waitingloan(status);
 
 
 CREATE TABLE import_batch (
-    id serial primary key,
+    id bigserial primary key,
     name text,
     submitter text,
     submit_time timestamp without time zone default (current_timestamp at time zone 'utc')
@@ -523,8 +523,8 @@ CREATE INDEX import_batch_submitter_idx ON import_batch(submitter);
 CREATE INDEX import_batch_submit_time_idx ON import_batch(submit_time);
 
 CREATE TABLE import_item (
-    id serial primary key,
-    batch_id integer references import_batch,
+    id bigserial primary key,
+    batch_id bigint references import_batch,
     added_time timestamp without time zone default (current_timestamp at time zone 'utc'),
     import_time timestamp without time zone,
     status text default 'pending',

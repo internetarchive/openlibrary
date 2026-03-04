@@ -46,7 +46,7 @@ def get_schema():
     CREATE INDEX thing_olid_idx ON thing(get_olid(key));
 
     CREATE TABLE stats (
-        id serial primary key,
+        id bigserial primary key,
         key text unique,
         type text,
         created timestamp without time zone,
@@ -58,7 +58,7 @@ def get_schema():
     CREATE INDEX stats_updated_idx ON stats(updated);
 
     CREATE TABLE waitingloan (
-        id serial primary key,
+        id bigserial primary key,
         book_key text,
         user_key text,
         status text default 'waiting',
@@ -76,7 +76,7 @@ def get_schema():
 
 
     CREATE TABLE import_batch (
-        id serial primary key,
+        id bigserial primary key,
         name text,
         submitter text,
         submit_time timestamp without time zone default (current_timestamp at time zone 'utc')
@@ -87,8 +87,8 @@ def get_schema():
     CREATE INDEX import_batch_submit_time_idx ON import_batch(submit_time);
 
     CREATE TABLE import_item (
-        id serial primary key,
-        batch_id integer references import_batch,
+        id bigserial primary key,
+        batch_id bigint references import_batch,
         added_time timestamp without time zone default (current_timestamp at time zone 'utc'),
         import_time timestamp without time zone,
         status text default 'pending',
