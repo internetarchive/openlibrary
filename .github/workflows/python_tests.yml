@@ -10,7 +10,6 @@ on:
       - 'package*.json'
       - '**.js'
       - '**.vue'
-      - '**.less'
       - '**.css'
       - '**.md'
 permissions:

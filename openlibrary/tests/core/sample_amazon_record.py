@@ -12,7 +12,7 @@ from openlibrary.core.vendors import AmazonAPI
 #
 # web.amazon_api.get_products(["2380821313"], serialize=True)
 # web.amazon_api.api.api_client.last_response.data
-SAMPLE_AMAZON_RESPONSE_JSON = '''{
+SAMPLE_AMAZON_RESPONSE_JSON = """{
     "ItemsResult": {
         "Items": [
             {
@@ -146,12 +146,12 @@ SAMPLE_AMAZON_RESPONSE_JSON = '''{
             }
         ]
     }
-}'''
+}"""
 
 
 def get_sample_amazon_item():
     parsed = json.loads(SAMPLE_AMAZON_RESPONSE_JSON)
-    item_json = parsed['ItemsResult']['Items'][0]
+    item_json = parsed["ItemsResult"]["Items"][0]
     dummy_response = web.storage(data=json.dumps(item_json))
-    amazon_api = AmazonAPI('DUMMY_KEY', 'DUMMY_SECRET', 'DUMMY_TAG')
-    return amazon_api.api.api_client.deserialize(dummy_response, 'Item')
+    amazon_api = AmazonAPI("DUMMY_KEY", "DUMMY_SECRET", "DUMMY_TAG")
+    return amazon_api.api.api_client.deserialize(dummy_response, "Item")

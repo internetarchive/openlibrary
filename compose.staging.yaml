@@ -42,6 +42,8 @@ services:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../olsystem:/olsystem
+      # Persistent volume mount for generated css and js
+      - ol-build:/openlibrary/static/build
       - .:/openlibrary
 
 

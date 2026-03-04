@@ -298,17 +298,10 @@ class account_create(delegate.page):
         return f
 
     def get_recap(self):
-        if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_invisible_recaptcha.public_key
-            private_key = config.plugin_invisible_recaptcha.private_key
-            if public_key and private_key:
-                return recaptcha.Recaptcha(public_key, private_key)
-
-    def is_plugin_enabled(self, name):
-        return (
-            name in delegate.get_plugins()
-            or "openlibrary.plugins." + name in delegate.get_plugins()
-        )
+        public_key = config.plugin_invisible_recaptcha.public_key
+        private_key = config.plugin_invisible_recaptcha.private_key
+        if public_key and private_key:
+            return recaptcha.Recaptcha(public_key, private_key)
 
     def POST(self):
         f: forms.RegisterForm = self.get_form()
@@ -420,9 +413,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import (
-            BadRequest,  # noqa: F401 side effects may be needed
-        )
 
         d = json.loads(web.data())
         access = d.get('access', None)

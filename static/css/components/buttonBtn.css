@@ -1,0 +1,69 @@
+/* https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#buttonbtn */
+
+/* FIXME: Not clear how recent this comment is. When is "now on?" */
+/* This button should be used for now on */
+.btn {
+  text-align: center;
+  padding: 5px 10px;
+}
+
+.btn.primary {
+  /* For input[type=submit] */
+  border: none;
+  background-color: var(--primary-blue);
+  /* Important is necessary to override default link color */
+  color: var(--white) !important;
+  border-radius: 5px;
+}
+
+a.btn {
+  text-decoration: none;
+}
+
+/* These should be in their own chip.css file */
+.chip {
+  padding: 4px 12px;
+  border: 1px solid var(--mid-grey);
+  border-radius: 16px;
+  user-select: none;
+  width: fit-content;
+}
+
+.chip a {
+  text-decoration: none;
+}
+
+.chip--selectable {
+  cursor: pointer;
+}
+
+.chip--selectable:hover {
+  background-color: var(--grey-e7e7e7);
+}
+
+.chip--selected {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+  background-color: var(--grey-e7e7e7);
+}
+
+.chip--selected:hover {
+  background-color: var(--white);
+}
+
+.chip-group {
+  display: flex;
+  flex-flow: wrap;
+}
+
+.category-chip {
+  margin-right: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* @width-breakpoint-tablet */
+@media only screen and (min-width: 768px) {
+  .chip-group {
+    flex-direction: row;
+  }
+}

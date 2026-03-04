@@ -1,0 +1,133 @@
+/**
+ * This is the entry for CSS for the style guide
+ * that lives @ /developers/design
+ * Any CSS loaded here will be render blocking.
+ */
+
+.design-pattern-library {
+  padding: 0 24px;
+}
+
+.design-pattern-library__layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* Sidebar nav */
+.design-pattern-nav {
+  position: sticky;
+  top: 24px;
+  flex: 0 0 200px;
+  padding: 16px 0;
+}
+
+.design-pattern-nav__title {
+  font-size: var(--font-size-body-large);
+  margin: 0 0 12px 0;
+  color: var(--dark-grey);
+}
+
+.design-pattern-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.design-pattern-nav__list li {
+  margin-bottom: 4px;
+}
+
+.design-pattern-nav__list a {
+  display: block;
+  padding: 6px 12px;
+  border-radius: var(--border-radius-card);
+  text-decoration: none;
+  color: var(--dark-grey);
+  font-size: var(--font-size-body-medium);
+  transition: background-color 0.15s;
+}
+
+.design-pattern-nav__list a:hover {
+  background-color: var(--lightest-grey);
+  color: var(--link-blue);
+}
+
+/* Main content area */
+.design-pattern-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.design-pattern {
+  padding-bottom: 24px;
+  border-bottom: var(--border-divider);
+  margin-bottom: 24px;
+}
+
+.design-pattern__title {
+  color: var(--dark-grey);
+  margin: 0 0 8px 0;
+}
+
+.design-pattern__description {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: var(--mid-grey);
+}
+
+.example {
+  margin-bottom: 48px;
+}
+
+.example__title {
+  font-size: var(--font-size-title-medium);
+  margin-top: 0;
+  margin-bottom: 6px;
+  color: var(--dark-grey);
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.example__code {
+  display: block;
+  background-color: var(--lightest-grey);
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: var(--border-radius-card);
+  font-size: var(--font-size-body-medium);
+  font-family: var(--font-family-code);
+}
+
+.example__output {
+  margin-bottom: 24px;
+}
+
+.color-swatch {
+  display: flex;
+  gap: 4px;
+}
+
+.color-swatch .color-block {
+  width: 1em;
+  height: 1em;
+  display: block;
+  margin: 3px;
+}
+
+.color-block-primary-cta {
+  background-color: var(--primary-blue);
+}
+.color-block-background {
+  background-color: var(--beige);
+}
+.color-block-link-clicked {
+  background-color: var(--dark-blue);
+}
+.color-block-link-unclicked {
+  background-color: var(--link-blue);
+}
+@import "legacy.css";

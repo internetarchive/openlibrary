@@ -4,12 +4,16 @@ import datetime
 import os
 from io import BytesIO
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 import web
 from PIL import Image, ImageOps
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
+
+if TYPE_CHECKING:
+    from openlibrary.coverstore.code import PartialCoverDetails
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
@@ -131,7 +135,7 @@ def read_file(path):
         return f.read()
 
 
-def read_image(d, size):
+def read_image(d: 'PartialCoverDetails | db.CoverDbDetails', size):
     if size:
         filename = d['filename_' + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:

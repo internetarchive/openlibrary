@@ -1,0 +1,28 @@
+.measurements {
+  width: 100%;
+  margin: 10px 0 30px;
+  color: var(--dark-grey);
+}
+.measurements th {
+  font-family: var(--body-family);
+  font-size: 0.6875em;
+  text-align: right;
+  vertical-align: bottom;
+  padding: 0 8px;
+}
+.measurements td {
+  padding: 8px;
+  text-align: right;
+  vertical-align: bottom;
+  font-size: 0.75em;
+}
+.measurements td.type {
+  font-family: var(--body-family);
+  font-size: 0.6875em;
+}
+.measurements .major .amount {
+  font-size: 1.5em;
+}
+.measurements .shift {
+  text-align: left !important;
+}

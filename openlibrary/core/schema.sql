@@ -1,4 +1,3 @@
-
 CREATE TABLE ratings (
     username text NOT NULL,
     work_id integer NOT NULL,

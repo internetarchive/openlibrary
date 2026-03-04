@@ -1,0 +1,38 @@
+.ol-message {
+  font-size: var(--font-size-body-medium);
+  border-radius: 8px;
+  padding: 8px;
+}
+.ol-message,
+.ol-message--info {
+  /* hue/saturation from --primary-blue: hsl(202, 96%, 37%) */
+  background-color: hsl(202, 96%, 90%);
+  color: hsl(202, 96%, 35%);
+  border: 1px solid currentColor;
+}
+.ol-message--warning {
+  /* hue/saturation from --orange: hsl(32, 100%, 61%) */
+  background-color: hsl(32, 100%, 90%);
+  color: hsl(32, 100%, 35%);
+  border: 1px solid currentColor;
+}
+.ol-message--success {
+  /* hue/saturation from --olive: hsl(81, 39%, 35%) */
+  background-color: hsl(81, 39%, 90%);
+  color: hsl(81, 39%, 35%);
+  border: 1px solid currentColor;
+}
+.ol-message--error {
+  /* hue/saturation from --red: hsl(8, 78%, 49%) */
+  background-color: hsl(8, 78%, 90%);
+  color: hsl(8, 78%, 35%);
+  border: 1px solid currentColor;
+}
+.ol-message h1,
+.ol-message h2,
+.ol-message h3,
+.ol-message h4,
+.ol-message h5,
+.ol-message h6 {
+  color: inherit;
+}

@@ -4,6 +4,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
+from typing_extensions import deprecated
 from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
@@ -26,6 +27,7 @@ from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
@@ -262,14 +264,32 @@ class mybooks_readinglog(delegate.page):
             return mb.render(header_title=KEYS_TITLES[key], template=template)
         raise web.seeother(mb.user.key)
 
-    def render_template(self, mb, year=None):
-        i = web.input(page=1, sort='desc', q="", results_per_page=RESULTS_PER_PAGE)
+    def render_template(self, mb: 'MyBooksTemplate', year: int | None = None):
+        i = web.input(
+            page=1,
+            sort='desc',
+            q="",
+            results_per_page=RESULTS_PER_PAGE,
+            mode='everything',
+        )
         # Limit reading log filtering to queries of 3+ characters
         # because filtering the reading log can be computationally expensive.
         if len(i.q) < 3:
             i.q = ""
+
+        # Construct fq parameter for ebooks filtering
+        fq = None
+        if i.mode == 'ebooks':
+            fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
+
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
-            key=mb.key, page=i.page, sort='created', sort_order=i.sort, q=i.q, year=year
+            key=mb.key,  # type: ignore
+            page=i.page,
+            sort='created',
+            sort_order=i.sort,
+            q=i.q,
+            year=year,
+            fq=fq,
         )
         docs = add_availability(logged_book_data.docs, mode="openlibrary_work")
         doc_count = logged_book_data.total_results
@@ -294,18 +314,20 @@ class mybooks_readinglog(delegate.page):
             user=mb.user,
             include_ratings=include_ratings,
             q=i.q,
+            mode=i.mode,
             results_per_page=i.results_per_page,
             ratings=ratings,
             checkin_year=year,
         )
 
 
+@deprecated("migrated to fastapi")
 class public_my_books_json(delegate.page):
     path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
     encoding = "json"
 
     def GET(self, username, key='want-to-read'):
-        i = web.input(page=1, limit=100, q="")
+        i = web.input(page=1, limit=100, q="", mode='everything')
         key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
         if len(i.q) < 3:
             i.q = ""
@@ -323,8 +345,13 @@ class public_my_books_json(delegate.page):
         if is_public or (
             logged_in_user and logged_in_user.key.split('/')[-1] == username
         ):
+            # Construct fq parameter for ebooks filtering
+            fq = None
+            if i.mode == 'ebooks':
+                fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
+
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page, limit, q=i.q).docs
+            books = readlog.get_works(key, page, limit, q=i.q, fq=fq).docs
             records_json = [
                 {
                     'work': {
@@ -538,6 +565,7 @@ class ReadingLog:
         sort_order: str = 'desc',
         q: str = "",
         year: int | None = None,
+        fq: list[str] | None = None,
     ) -> 'LoggedBooksData':
         """
         Get works for want-to-read, currently-reading, and already-read as
@@ -563,6 +591,7 @@ class ReadingLog:
             sort=sort_literal,  # type: ignore[arg-type]
             checkin_year=year,
             q=q,
+            fq=fq,
         )
 
         return logged_books

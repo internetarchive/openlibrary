@@ -1,0 +1,191 @@
+.nav-bar {
+  margin-bottom: 20px;
+  font-weight: bold;
+
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+}
+
+.nav-bar li {
+  display: inline;
+  font-size: var(--font-size-label-medium);
+}
+
+.nav-bar li a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  text-decoration: none;
+  color: var(--grey);
+  padding: 0 12px;
+  line-height: var(--line-height-control);
+  border-bottom: 2px solid transparent;
+}
+
+/* stylelint-disable selector-max-specificity */
+.nav-bar:not(.work-menu) li.selected a {
+  color: var(--link-blue);
+  border-bottom: 2px solid var(--link-blue);
+}
+
+.nav-bar:not(.work-menu) li:hover a {
+  border-bottom: 2px solid var(--link-blue);
+}
+/* stylelint-enable selector-max-specificity */
+
+.nav-bar-wrapper {
+  display: flex;
+  align-items: stretch;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  clip-path: inset(0 0 -15px 0);
+  margin-bottom: 20px;
+  background: var(--white);
+  z-index: var(--z-index-level-5);
+}
+
+.nav-bar-wrapper .nav-bar {
+  margin-bottom: 0;
+}
+
+.nav-bar-wrapper.sticky {
+  position: sticky;
+  top: 50px;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+
+.nav-bar-wrapper .nav-arrow-right {
+  border: none;
+  position: absolute;
+  padding: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: var(--z-index-level-14);
+  width: 44px;
+  background: linear-gradient(to right, transparent, var(--white) 10px);
+}
+
+.nav-bar-wrapper .nav-arrow-right img {
+  max-width: unset !important;
+}
+
+.nav-bar-wrapper .nav-arrow-right--left img {
+  transform: rotate(180deg);
+}
+
+.nav-bar-wrapper .nav-arrow-left {
+  border: none;
+  position: absolute;
+  padding: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: var(--z-index-level-14);
+  width: 44px;
+  background: linear-gradient(to left, transparent, var(--white) 10px);
+}
+
+.nav-bar-wrapper .nav-arrow-left img {
+  transform: rotate(180deg);
+}
+
+.nav-bar-wrapper .nav-bar.work-menu {
+  padding: 8px 20px 0;
+  background: var(--white);
+  z-index: var(--z-index-level-5);
+  gap: 4px;
+  scrollbar-width: thin;
+}
+
+/* stylelint-disable selector-max-specificity */
+.nav-bar-wrapper .nav-bar.work-menu li {
+  display: inline-block;
+  border-radius: 11px;
+  margin-bottom: 6px;
+}
+
+.nav-bar-wrapper .nav-bar.work-menu li a {
+  padding: 0 12px;
+  vertical-align: text-top;
+}
+
+.nav-bar-wrapper .nav-bar.work-menu li:first-child {
+  margin-left: 22px;
+}
+
+.nav-bar-wrapper .nav-bar.work-menu li:last-child {
+  margin-right: 44px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* stylelint-disable max-nesting-depth */
+  .nav-bar-wrapper .nav-bar.work-menu li:hover {
+    background-color: hsl(212, 39%, 45%); /* darken(@blue-5e88B9, 10%) */
+  }
+
+  .nav-bar-wrapper .nav-bar.work-menu li:hover a {
+    color: var(--white);
+  }
+}
+
+.nav-bar-wrapper .nav-bar.work-menu li.selected {
+  background-color: var(--blue-5e88B9);
+}
+
+.nav-bar-wrapper .nav-bar.work-menu li.selected a {
+  color: var(--white);
+}
+/* stylelint-enable max-nesting-depth */
+/* stylelint-enable selector-max-specificity */
+
+@media only screen and (min-width: 768px) /* @width-breakpoint-tablet */ {
+  .nav-bar-wrapper.sticky {
+    position: sticky;
+    top: 62px; /* The header has a 62px height in tablet views */
+  }
+}
+
+@media only screen and (min-width: 960px) /* @width-breakpoint-desktop */ {
+  .nav-bar-wrapper.sticky {
+    top: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    width: 100%;
+  }
+
+  .nav-bar-wrapper.sticky > .nav-bar {
+    padding: 0;
+    padding-top: 8px;
+  }
+
+  .nav-bar-wrapper.sticky.nav-bar-wrapper--slidedown {
+    animation-duration: 0.15s;
+    animation-name: slidedown;
+  }
+
+  @keyframes slidedown {
+    to {
+      top: 35px; /* @compact-title-height */
+    }
+  }
+
+  .nav-bar-wrapper.sticky.nav-bar-wrapper--slideup {
+    animation-duration: 0.5s;
+    animation-name: slideup;
+  }
+
+  @keyframes slideup {
+    to {
+      top: 0;
+    }
+  }
+
+  .nav-bar-wrapper.sticky.sticky--lowest {
+    top: 35px; /* @compact-title-height */
+  }
+}

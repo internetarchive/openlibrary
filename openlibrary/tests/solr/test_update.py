@@ -88,9 +88,7 @@ class FakeDataProvider(DataProvider):
         return self.docs_by_key.get(key)
 
     def get_editions_of_work(self, work):
-        return [
-            doc for doc in self.docs if {"key": work["key"]} in doc.get("works", [])
-        ]
+        return [doc for doc in self.docs if {"key": work["key"]} in doc.get("works", [])]
 
     def get_metadata(self, id):
         return {}
@@ -114,23 +112,23 @@ class Test_update_keys:
     async def test_delete(self):
         update.data_provider.add_docs(
             [
-                {'key': '/works/OL23W', 'type': {'key': '/type/delete'}},
-                make_author(key='/authors/OL23A', type={'key': '/type/delete'}),
-                {'key': '/books/OL23M', 'type': {'key': '/type/delete'}},
+                {"key": "/works/OL23W", "type": {"key": "/type/delete"}},
+                make_author(key="/authors/OL23A", type={"key": "/type/delete"}),
+                {"key": "/books/OL23M", "type": {"key": "/type/delete"}},
             ]
         )
         update_state = await update.update_keys(
             [
-                '/works/OL23W',
-                '/authors/OL23A',
-                '/books/OL23M',
+                "/works/OL23W",
+                "/authors/OL23A",
+                "/books/OL23M",
             ],
-            update='quiet',
+            update="quiet",
         )
         assert set(update_state.deletes) == {
-            '/works/OL23W',
-            '/authors/OL23A',
-            '/books/OL23M',
+            "/works/OL23W",
+            "/authors/OL23A",
+            "/books/OL23M",
         }
         assert update_state.adds == []
 
@@ -139,13 +137,13 @@ class Test_update_keys:
         update.data_provider.add_docs(
             [
                 {
-                    'key': '/books/OL23M',
-                    'type': {'key': '/type/redirect'},
-                    'location': '/books/OL24M',
+                    "key": "/books/OL23M",
+                    "type": {"key": "/type/redirect"},
+                    "location": "/books/OL24M",
                 },
-                {'key': '/books/OL24M', 'type': {'key': '/type/delete'}},
+                {"key": "/books/OL24M", "type": {"key": "/type/delete"}},
             ]
         )
-        update_state = await update.update_keys(['/books/OL23M'], update='quiet')
-        assert update_state.deletes == ['/books/OL23M', '/books/OL24M']
+        update_state = await update.update_keys(["/books/OL23M"], update="quiet")
+        assert update_state.deletes == ["/books/OL23M", "/books/OL24M"]
         assert update_state.adds == []

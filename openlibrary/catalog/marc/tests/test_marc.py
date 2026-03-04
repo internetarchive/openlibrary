@@ -52,111 +52,111 @@ class MockRecord(MarcBase):
 
 def test_read_isbn():
     data = [
-        ('0300067003 (cloth : alk. paper)', '0300067003'),
-        ('0197263771 (cased)', '0197263771'),
-        ('8831789589 (pbk.)', '8831789589'),
-        ('9788831789585 (pbk.)', '9788831789585'),
-        ('1402051891 (hd.bd.)', '1402051891'),
-        ('9061791308', '9061791308'),
-        ('9788831789530', '9788831789530'),
-        ('8831789538', '8831789538'),
-        ('0-14-118250-4', '0141182504'),
-        ('0321434250 (textbook)', '0321434250'),
+        ("0300067003 (cloth : alk. paper)", "0300067003"),
+        ("0197263771 (cased)", "0197263771"),
+        ("8831789589 (pbk.)", "8831789589"),
+        ("9788831789585 (pbk.)", "9788831789585"),
+        ("1402051891 (hd.bd.)", "1402051891"),
+        ("9061791308", "9061791308"),
+        ("9788831789530", "9788831789530"),
+        ("8831789538", "8831789538"),
+        ("0-14-118250-4", "0141182504"),
+        ("0321434250 (textbook)", "0321434250"),
         # 12 character ISBNs currently get assigned to isbn_10
         # unsure whether this is a common / valid usecase:
-        ('97883178953X ', '97883178953X'),
+        ("97883178953X ", "97883178953X"),
     ]
     for value, expect in data:
-        rec = MockRecord('020', [('a', value)])
+        rec = MockRecord("020", [("a", value)])
         output = read_isbn(rec)
-        isbn_type = 'isbn_13' if len(expect) == 13 else 'isbn_10'
+        isbn_type = "isbn_13" if len(expect) == 13 else "isbn_10"
         assert output[isbn_type][0] == expect
 
 
 def test_read_pagination():
     data = [
-        ('xx, 1065 , [57] p.', 1065),
-        ('193 p., 31 p. of plates', 193),
+        ("xx, 1065 , [57] p.", 1065),
+        ("193 p., 31 p. of plates", 193),
     ]
     for value, expect in data:
-        rec = MockRecord('300', [('a', value)])
+        rec = MockRecord("300", [("a", value)])
         output = read_pagination(rec)
-        assert output['number_of_pages'] == expect
-        assert output['pagination'] == value
+        assert output["number_of_pages"] == expect
+        assert output["pagination"] == value
 
 
 def test_subjects_for_work():
     data = [
         (
             [
-                ('a', 'Authors, American'),
-                ('y', '19th century'),
-                ('x', 'Biography.'),
+                ("a", "Authors, American"),
+                ("y", "19th century"),
+                ("x", "Biography."),
             ],
             {
-                'subject_times': ['19th century'],
-                'subjects': ['American Authors', 'Biography'],
+                "subject_times": ["19th century"],
+                "subjects": ["American Authors", "Biography"],
             },
         ),
         (
-            [('a', 'Western stories'), ('x', 'History and criticism.')],
-            {'subjects': ['Western stories', 'History and criticism']},
+            [("a", "Western stories"), ("x", "History and criticism.")],
+            {"subjects": ["Western stories", "History and criticism"]},
         ),
         (
             [
-                ('a', 'United States'),
-                ('x', 'History'),
-                ('y', 'Revolution, 1775-1783'),
-                ('x', 'Influence.'),
+                ("a", "United States"),
+                ("x", "History"),
+                ("y", "Revolution, 1775-1783"),
+                ("x", "Influence."),
             ],
             # TODO: this expectation does not capture the intent or ordering of the original MARC, investigate x subfield!
             {
-                'subject_times': ['Revolution, 1775-1783'],
-                'subjects': ['United States', 'Influence', 'History'],
+                "subject_times": ["Revolution, 1775-1783"],
+                "subjects": ["United States", "Influence", "History"],
             },
         ),
         # 'United States -- History -- Revolution, 1775-1783 -- Influence.'
         (
             [
-                ('a', 'West Indies, British'),
-                ('x', 'History'),
-                ('y', '18th century.'),
+                ("a", "West Indies, British"),
+                ("x", "History"),
+                ("y", "18th century."),
             ],
             {
-                'subject_times': ['18th century'],
-                'subjects': ['British West Indies', 'History'],
+                "subject_times": ["18th century"],
+                "subjects": ["British West Indies", "History"],
             },
         ),
         # 'West Indies, British -- History -- 18th century.'),
         (
             [
-                ('a', 'Great Britain'),
-                ('x', 'Relations'),
-                ('z', 'West Indies, British.'),
+                ("a", "Great Britain"),
+                ("x", "Relations"),
+                ("z", "West Indies, British."),
             ],
             {
-                'subject_places': ['British West Indies'],
-                'subjects': ['Great Britain', 'Relations'],
+                "subject_places": ["British West Indies"],
+                "subjects": ["Great Britain", "Relations"],
             },
         ),
         # 'Great Britain -- Relations -- West Indies, British.'),
         (
             [
-                ('a', 'West Indies, British'),
-                ('x', 'Relations'),
-                ('z', 'Great Britain.'),
+                ("a", "West Indies, British"),
+                ("x", "Relations"),
+                ("z", "Great Britain."),
             ],
             {
-                'subject_places': ['Great Britain'],
-                'subjects': ['British West Indies', 'Relations'],
+                "subject_places": ["Great Britain"],
+                "subjects": ["British West Indies", "Relations"],
             },
         ),
         # 'West Indies, British -- Relations -- Great Britain.')
     ]
     for value, expect in data:
-        output = subjects_for_work(MockRecord('650', value))
+        output = subjects_for_work(MockRecord("650", value))
         assert sorted(output) == sorted(expect)
-        for key in ('subjects', 'subject_places', 'subject_times'):
+        for key in ("subjects", "subject_places", "subject_times"):
             assert sorted(output.get(key, [])) == sorted(expect.get(key, []))
 
 
@@ -164,22 +164,22 @@ def test_read_title():
     data = [
         (
             [
-                ('a', 'Railroad construction.'),
-                ('b', 'Theory and practice.'),
+                ("a", "Railroad construction."),
+                ("b", "Theory and practice."),
                 (
-                    'b',
-                    'A textbook for the use of students in colleges and technical schools.',
+                    "b",
+                    "A textbook for the use of students in colleges and technical schools.",
                 ),
             ],
             {
-                'title': 'Railroad construction',
+                "title": "Railroad construction",
                 # TODO: Investigate whether this colon between subtitles is spaced correctly
-                'subtitle': 'Theory and practice : A textbook for the use of students in colleges and technical schools',
+                "subtitle": "Theory and practice : A textbook for the use of students in colleges and technical schools",
             },
         )
     ]
     for value, expect in data:
-        output = read_title(MockRecord('245', value))
+        output = read_title(MockRecord("245", value))
         assert output == expect
 
 
@@ -187,16 +187,16 @@ def test_by_statement():
     data = [
         (
             [
-                ('a', 'Trois contes de No\u0308el'),
-                ('c', '[par] Madame Georges Renard,'),
-                ('c', 'edited by F. Th. Meylan ...'),
+                ("a", "Trois contes de No\u0308el"),
+                ("c", "[par] Madame Georges Renard,"),
+                ("c", "edited by F. Th. Meylan ..."),
             ],
             {
-                'title': 'Trois contes de No\u0308el',
-                'by_statement': '[par] Madame Georges Renard, edited by F. Th. Meylan ...',
+                "title": "Trois contes de No\u0308el",
+                "by_statement": "[par] Madame Georges Renard, edited by F. Th. Meylan ...",
             },
         )
     ]
     for value, expect in data:
-        output = read_title(MockRecord('245', value))
+        output = read_title(MockRecord("245", value))
         assert output == expect

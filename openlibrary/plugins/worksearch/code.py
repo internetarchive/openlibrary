@@ -91,6 +91,10 @@ def get_solr_works(
 ) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
+    # Avoid making query if no work keys provided
+    if not work_keys:
+        return cast(dict[str, web.storage], {})
+
     if not fields:
         fields = WorkSearchScheme.default_fetched_fields | {'editions', 'providers'}
 
@@ -538,6 +542,7 @@ def do_search(
     highlight=False,
     spellcheck_count=None,
     request_label: SolrRequestLabel = 'UNLABELLED',
+    sfw: bool = False,
 ):
     """
     :param param: dict of search url parameters
@@ -556,7 +561,7 @@ def do_search(
         extra_fields.add('trending_*')
     fields = WorkSearchScheme.default_fetched_fields | extra_fields
 
-    if web.cookies(sfw="").sfw == 'yes':
+    if sfw:
         fields |= {'subject'}
 
     return run_solr_query(
@@ -599,6 +604,20 @@ def get_doc(doc: SolrDocument):
                 death_date=doc.get('death_date', None),
             )
             for key, name in zip(doc.get('author_key', []), doc.get('author_name', []))
+        ],
+        series=[
+            web.storage(
+                series=web.storage(
+                    key=key,
+                    name=name,
+                ),
+                position=position,
+            )
+            for key, name, position in zip(
+                doc.get('series_key', []),
+                doc.get('series_name', []),
+                doc.get('series_position', []),
+            )
         ],
         first_publish_year=doc.get('first_publish_year', None),
         first_edition=doc.get('first_edition', None),
@@ -769,6 +788,7 @@ class search(delegate.page):
                 highlight=True,
                 spellcheck_count=3,
                 request_label='BOOK_SEARCH',
+                sfw=web.cookies(sfw="").sfw == 'yes',
             )
         else:
             search_response = SearchResponse(
