@@ -1,6 +1,6 @@
 $def with (page)
 
-$ name = page.name
+$ name = get_language_name(page, get_lang() or 'en')
 $if page.deprecated:
     $ name += f' [{_("deprecated")}]'
 
