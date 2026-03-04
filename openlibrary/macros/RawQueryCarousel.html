@@ -61,6 +61,11 @@ $else:
         params['has_fulltext'] = 'true'
 
       results = work_search(params, fields = ",".join(fields), sort=sort, limit=limit, facet=False, request_label='BOOK_CAROUSEL')
+
+    $if 'error' in results:
+        $var do_not_cache: True
+
+    $code:
       books = [storage(b) for b in (results.get('docs', []))]
       load_more = {
         "queryType": "SEARCH",
