@@ -30,7 +30,7 @@ run_test() {
     echo "Code: $WEB_CODE"
 
     echo "FastAPI:"
-    FASTAPI_RESP=$(curl -s "$BASE_FASTAPI/browse$query_string" -w "\nStatus:%{http_code}")
+    FASTAPI_RESP=$(curl -s "$BASE_FASTAPI/browse.json$query_string" -w "\nStatus:%{http_code}")
     FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
     FASTAPI_BODY=$(echo "$FASTAPI_RESP" | grep -v Status)
     echo "Code: $FASTAPI_CODE"
@@ -73,7 +73,7 @@ WEB_CODE=$(echo "$WEB_RESP" | grep Status | cut -d: -f2)
 echo "Code: $WEB_CODE"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s "$BASE_FASTAPI/browse?limit=abc" -w "\nStatus:%{http_code}")
+FASTAPI_RESP=$(curl -s "$BASE_FASTAPI/browse.json?limit=abc" -w "\nStatus:%{http_code}")
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
 echo "Code: $FASTAPI_CODE"
 
@@ -94,7 +94,7 @@ echo ""
 
 echo "Test URLs used:"
 echo "  GET  $BASE_WEB/browse.json"
-echo "  GET  $BASE_FASTAPI/browse"
+echo "  GET  $BASE_FASTAPI/browse.json"
 
 if [ $FAILED -gt 0 ]; then
     exit 1
