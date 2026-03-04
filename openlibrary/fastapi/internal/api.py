@@ -12,7 +12,6 @@ import os
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from openlibrary.core import models
@@ -48,9 +47,9 @@ class RatingRequest(BaseModel):
 
 
 @router.get("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
-async def get_ratings(work_id: int) -> JSONResponse:
+async def get_ratings(work_id: int) -> dict:
     """Get ratings summary for a work."""
-    return JSONResponse(content=legacy_ratings.get_ratings_summary(work_id))
+    return legacy_ratings.get_ratings_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
