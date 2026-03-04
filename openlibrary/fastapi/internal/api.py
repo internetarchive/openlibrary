@@ -30,7 +30,7 @@ async def trending_books_api(period: str):
     pass
 
 
-@router.get("/browse", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
+@router.get("/browse.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def browse(q: str = "", page: int = 1, limit: int = 100, subject: str = "", sorts: str = "") -> JSONResponse:
     """Browse endpoint (migrated from openlibrary.plugins.openlibrary.api)."""
     sorts_list = sorts.split(",")
