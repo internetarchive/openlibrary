@@ -9,16 +9,15 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import asyncio
-import logging
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from openlibrary.core import lending
+from openlibrary.fastapi.models import Pagination  # noqa: TC001
 
-logger = logging.getLogger(__name__)
 router = APIRouter()
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -35,16 +34,18 @@ async def trending_books_api(period: str):
 
 
 class WorkModel(BaseModel):
-    """Matches the shape of a work returned by lending.get_available"""
-
     model_config = {"extra": "allow"}
     key: str
     title: str | None = None
 
 
-class BrowseResponse(BaseModel):
-    """The final response shape for the browse endpoint"""
+class BrowseRequest(BaseModel):
+    q: str = ""
+    subject: str = ""
+    sorts: str = ""
 
+
+class BrowseResponse(BaseModel):
     query: str = Field(..., description="The IA search URL generated")
     works: list[WorkModel] = []
 
@@ -55,50 +56,40 @@ class BrowseResponse(BaseModel):
     include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
     response_model=BrowseResponse,
     response_model_exclude_none=False,
-    summary="Browse available works",
-    description="Returns a list of available works based on search criteria. Migrated from web.py.",
-    responses={
-        200: {"model": BrowseResponse},
-        422: {"description": "Invalid query parameters"},
-    },
 )
-async def browse(
-    q: str = "", page: Annotated[int, Query(ge=1)] = 1, limit: Annotated[int, Query(ge=1, le=1000)] = 100, subject: str = "", sorts: str = ""
-) -> BrowseResponse:
+async def browse(request: Annotated[BrowseRequest, Depends()], pagination: Annotated[Pagination, Depends()]) -> BrowseResponse:
     """Browse endpoint (migrated from openlibrary.plugins.openlibrary.api)."""
-    sorts_list = [s.strip() for s in sorts.split(",") if s.strip()]
+    sorts_list = [s.strip() for s in request.sorts.split(",") if s.strip()]
 
     url = lending.compose_ia_url(
-        query=q,
-        limit=limit,
-        page=page,
-        subject=subject,
+        query=request.q,
+        limit=pagination.limit,
+        page=pagination.page,
+        subject=request.subject,
         sorts=sorts_list,
     )
 
-    try:
-        works = await asyncio.to_thread(lending.get_available, url=url) if url else []
-    except Exception:
-        logger.exception(f"Error fetching browse results for URL: {url}")
+    if not url:
         works = []
+    else:
+        works = await asyncio.to_thread(lending.get_available, url=url)
 
     processed_works = []
-    for work in works:
-        if isinstance(work, str) and (work.lower() == "error" or not work):
-            continue
-
-        if isinstance(work, str):
-            processed_works.append(WorkModel(key=work))
-        elif hasattr(work, "dict"):
-            processed_works.append(WorkModel(**work.dict()))
-        elif isinstance(work, dict):
-            if work.get("key") == "error":
+    if isinstance(works, list):
+        for work in works:
+            if isinstance(work, str) and (work.lower() == "error" or not work):
                 continue
-            processed_works.append(WorkModel(**work))
-        elif hasattr(work, "key"):
-            processed_works.append(WorkModel(key=work.key))
-        else:
-            logger.warning(f"Unexpected work type in browse endpoint: {type(work)}")
+
+            if isinstance(work, str):
+                processed_works.append(WorkModel(key=work))
+            elif hasattr(work, "dict"):
+                processed_works.append(WorkModel(**work.dict()))
+            elif isinstance(work, dict):
+                if work.get("key") == "error":
+                    continue
+                processed_works.append(WorkModel(**work))
+            elif hasattr(work, "key"):
+                processed_works.append(WorkModel(key=work.key))
 
     return BrowseResponse(query=url or "", works=processed_works)
 
