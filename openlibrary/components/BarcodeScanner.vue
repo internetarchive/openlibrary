@@ -236,7 +236,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style>
   @keyframes camera-flash {
   0% { filter: brightness(1.3); }
   100% { filter: brightness(1.2); }
@@ -255,31 +255,31 @@ export default {
   #page-barcodescanner {
     display: flex;
     flex-direction: column;
-    // stylelint-disable declaration-block-no-duplicate-properties
-    // Fallback browsers that don't support dvh
+    /* stylelint-disable declaration-block-no-duplicate-properties */
+    /* Fallback browsers that don't support dvh */
     height: calc(100vh - 60px);
-    height: 100dvh; // stylelint-disable-line unit-no-unknown
-    // stylelint-enable declaration-block-no-duplicate-properties
+    height: 100dvh; /* stylelint-disable-line unit-no-unknown */
+    /* stylelint-enable declaration-block-no-duplicate-properties */
   }
 
   .viewport {
     position: relative;
     flex: 1;
     min-height: 0;
-    video, canvas {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    video[controls] + canvas {
-      pointer-events: none;
-    }
+  }
+  .viewport video,
+  .viewport canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .viewport canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .viewport video[controls] + canvas {
+    pointer-events: none;
   }
 
   .barcodescanner__toolbar {
@@ -290,19 +290,17 @@ export default {
 
   .glass-button {
     cursor: pointer;
-
     border-radius: 10px;
-    // stylelint-disable-next-line sh-waqar/declaration-use-variable
+    /* stylelint-disable-next-line sh-waqar/declaration-use-variable */
     color: rgba(255,255,255, .8);
     background: rgba(0,0,0,.5);
     border: 1px solid rgba(255,255,255, .45);
     font-size: .8em;
     backdrop-filter: blur(8px);
-
     box-shadow: 0 0 3px 0 rgba(0,0,0,.4);
-    &:disabled {
-      opacity: .5;
-    }
+  }
+  .glass-button:disabled {
+    opacity: .5;
   }
 
   .icon-button {
@@ -315,55 +313,47 @@ export default {
     position: absolute;
     bottom: 100%;
     right: 0;
-
-    // For slide up effect
+    /* For slide up effect */
     transform: translateY(100%);
     transition: transform .2s;
-    > :not(summary) {
-      transition: opacity .2s;
-      opacity: 0;
-    }
-    &[open] {
-      transform: translateY(0);
-    }
-    &[open] > :not(summary) {
-      opacity: 1;
-    }
-
-    & > summary {
-      position: absolute;
-      bottom: 100%;
-      right: 0;
-      margin: 5px;
-
-      &::marker {
-        content: none;
-        font-size: 0;
-      }
-
-      &::-webkit-details-marker {
-        display: none;
-      }
-
-      svg {
-        width: 32px;
-        height: 32px;
-        padding: 6px;
-        box-sizing: border-box;
-
-        transition: transform .2s;
-      }
-    }
-
-    &[open] > summary svg,
-    &:not([open]) > summary:hover svg {
-      transform: rotate(20deg);
-    }
-
-    // stylelint-disable-next-line no-descending-specificity
-    &[open] > summary:hover svg {
-      transform: rotate(-20deg);
-    }
+  }
+  details.barcodescanner__advanced > :not(summary) {
+    transition: opacity .2s;
+    opacity: 0;
+  }
+  details.barcodescanner__advanced[open] {
+    transform: translateY(0);
+  }
+  details.barcodescanner__advanced[open] > :not(summary) {
+    opacity: 1;
+  }
+  details.barcodescanner__advanced > summary {
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    margin: 5px;
+  }
+  details.barcodescanner__advanced > summary::marker {
+    content: none;
+    font-size: 0;
+  }
+  details.barcodescanner__advanced > summary::-webkit-details-marker {
+    display: none;
+  }
+  details.barcodescanner__advanced > summary svg {
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+    box-sizing: border-box;
+    transition: transform .2s;
+  }
+  details.barcodescanner__advanced[open] > summary svg,
+  details.barcodescanner__advanced:not([open]) > summary:hover svg {
+    transform: rotate(20deg);
+  }
+  /* stylelint-disable-next-line no-descending-specificity */
+  details.barcodescanner__advanced[open] > summary:hover svg {
+    transform: rotate(-20deg);
   }
 
   .barcodescanner__controls {
@@ -371,11 +361,10 @@ export default {
     padding: 4px;
     padding-top: 0;
     overflow-x: auto;
-
-    & > button {
-      padding: 8px;
-      text-align: left;
-    }
+  }
+  .barcodescanner__controls > button {
+    padding: 8px;
+    text-align: left;
   }
 
   .barcodescanner__result-strip {
@@ -383,17 +372,19 @@ export default {
     overflow-x: auto;
     overflow-y: hidden;
     padding: 10px;
-    .empty {
-      display: none;
-      &:first-child:last-child { display: flex; }
-      width: 80vw;
-      max-width: 300px;
-      height: 80px;
-      border: 1px dashed;
-      justify-content: center;
-      align-items: center;
-      flex-shrink: 0;
-      border-radius: 4px;
-    }
+  }
+  .barcodescanner__result-strip .empty {
+    display: none;
+    width: 80vw;
+    max-width: 300px;
+    height: 80px;
+    border: 1px dashed;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+  }
+  .barcodescanner__result-strip .empty:first-child:last-child {
+    display: flex;
   }
 </style>

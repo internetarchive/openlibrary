@@ -387,6 +387,9 @@ deploy_openlibrary() {
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
+    # Don't copy over compose.override.yaml ; local dev only. If that file is accidentally
+    # used on our prod servers, it could result in data loss.
+    rm -f openlibrary_new/compose.override.yaml
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new

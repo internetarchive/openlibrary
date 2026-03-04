@@ -30,21 +30,21 @@ class TestSolrUpdate:
             request=MagicMock(),
             content=json.dumps(
                 {
-                    'responseHeader': {
-                        'errors': [],
-                        'maxErrors': -1,
-                        'status': 400,
-                        'QTime': 76,
+                    "responseHeader": {
+                        "errors": [],
+                        "maxErrors": -1,
+                        "status": 400,
+                        "QTime": 76,
                     },
-                    'error': {
-                        'metadata': [
-                            'error-class',
-                            'org.apache.solr.common.SolrException',
-                            'root-error-class',
-                            'org.apache.solr.common.SolrException',
+                    "error": {
+                        "metadata": [
+                            "error-class",
+                            "org.apache.solr.common.SolrException",
+                            "root-error-class",
+                            "org.apache.solr.common.SolrException",
                         ],
-                        'msg': "Unknown key 'key' at [14]",
-                        'code': 400,
+                        "msg": "Unknown key 'key' at [14]",
+                        "code": 400,
                     },
                 }
             ),
@@ -56,17 +56,17 @@ class TestSolrUpdate:
             request=MagicMock(),
             content=json.dumps(
                 {
-                    'responseHeader': {
-                        'errors': [
+                    "responseHeader": {
+                        "errors": [
                             {
-                                'type': 'ADD',
-                                'id': '/books/OL1M',
-                                'message': '[doc=/books/OL1M] missing required field: type',
+                                "type": "ADD",
+                                "id": "/books/OL1M",
+                                "message": "[doc=/books/OL1M] missing required field: type",
                             }
                         ],
-                        'maxErrors': -1,
-                        'status': 0,
-                        'QTime': 10,
+                        "maxErrors": -1,
+                        "status": 0,
+                        "QTime": 10,
                     }
                 }
             ),
@@ -102,7 +102,7 @@ class TestSolrUpdate:
         assert mock_post.call_count > 1
 
     def test_solr_offline(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(side_effect=ConnectError('', request=None))
+        mock_post = MagicMock(side_effect=ConnectError("", request=None))
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(
@@ -135,9 +135,7 @@ class TestSolrUpdate:
         assert mock_post.call_count == 1
 
     def test_other_non_ok_status(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(
-            return_value=Response(500, request=MagicMock(), content="{}")
-        )
+        mock_post = MagicMock(return_value=Response(500, request=MagicMock(), content="{}"))
         monkeypatch.setattr(httpx, "post", mock_post)
 
         solr_update(

@@ -1,5 +1,5 @@
 # Croatian translation for Open Library. Hrvatski prijevod za Open Library.
-# Copyright (C) 2020 Internet Archive
+# Copyright (C) 2026 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
 # Translators:
@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-05-01 18:58-0400\n"
-"PO-Revision-Date: 2026-02-11 16:32+0100\n"
+"PO-Revision-Date: 2026-02-13 13:01+0100\n"
 "Last-Translator: Milo Ivir <mail@mivirtype.de>\n"
 "Language-Team: \n"
 "Language: hr\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.12.1\n"
 "X-Generator: Poedit 3.8\n"
 
 #: openlibrary/core/bookshelves.py
@@ -572,7 +572,7 @@ msgstr[2] "%(count)d knjiga"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Publishing History"
-msgstr "Kronologija izdanja"
+msgstr "Povijest izdanja"
 
 #: PublishingHistory.html
 msgid ""
@@ -581,7 +581,7 @@ msgid ""
 "editions published. <a href=\"#subjectRelated\">Click here to skip the "
 "chart</a>."
 msgstr ""
-"Vremenski dijagram za prikaz kronologije objavljivanja izdanja djela u ovom "
+"Vremenski dijagram za prikaz povijesti objavljivanja izdanja djela u ovom "
 "području. Os x označava vrijeme, os y broj izdanih izdanja. <a "
 "href=\"#subjectRelated\">Za preskakanje prikaza dijagrama pritisni ovdje</a>."
 
@@ -750,7 +750,7 @@ msgstr "promjena"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr "Nema kronologije uređivanja."
+msgstr "Nema povijesti uređivanja."
 
 #: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
 msgid "Recent Activity"
@@ -1062,7 +1062,7 @@ msgstr "Pogledaj povijest uređivanja ove stranice"
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
 #: lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
-msgstr "Kronologija"
+msgstr "Povijest"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
@@ -1098,7 +1098,7 @@ msgstr "Uredi"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr "Pogledaj kronologiju uređivanja ovog predloška"
+msgstr "Pogledaj povijest uređivanja ovog predloška"
 
 #: databarTemplate.html
 msgid "Edit this template"
@@ -1909,7 +1909,7 @@ msgstr "od anonimnog autora"
 
 #: diff.html
 msgid "history"
-msgstr "kronologija"
+msgstr "povijest"
 
 #: diff.html
 msgid "Added"
@@ -1949,7 +1949,7 @@ msgstr "YAML prikaz:"
 
 #: history.html
 msgid "History of edits to"
-msgstr "Kronologija promjena u"
+msgstr "Povijest promjena u"
 
 #: history.html
 msgid "Revision"
@@ -2514,7 +2514,7 @@ msgid ""
 "Open Library is made possible because of a dedicated team of staff and over "
 "100 volunteers from around the globe."
 msgstr ""
-"Open Library postoji zahvaljujući posvećenom timu suranika i više od 100 "
+"Open Library postoji zahvaljujući posvećenom timu zaposlenika i više od 100 "
 "volontera iz cijelog svijeta."
 
 #: about/index.html
@@ -2531,7 +2531,7 @@ msgstr "Sve"
 
 #: about/index.html
 msgid "Staff"
-msgstr "Suradnici"
+msgstr "Zaposlenici"
 
 #: about/index.html
 msgid "Fellows"
@@ -2848,8 +2848,8 @@ msgid ""
 "Looking for a book to borrow?  Check out our staff picks, or search for a "
 "book on a specific subject:"
 msgstr ""
-"Tražiš knjigu za posudbu? Pogledaj izbor knjiga naših suradnika ili potraži "
-"knjigu određenog područja:"
+"Tražiš knjigu za posudbu? Pogledaj izbor knjiga naših zaposlenika ili "
+"potraži knjigu određenog područja:"
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
@@ -3621,7 +3621,7 @@ msgstr "Identifikator"
 msgid "Imported Time"
 msgstr "Vrijeme uvoza"
 
-#: admin/imports_by_date.html admin/index.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
 msgstr "Ukupno"
 
@@ -3869,6 +3869,26 @@ msgstr "Pregledaj memcache"
 msgid "Print Disability Access Requests"
 msgstr "Zahtjevi za pristup tiskanim materijalima za slijepe osobe"
 
+#: admin/pd_dashboard.html
+msgid "Breakdown by Qualifying Authority"
+msgstr "Raspodjela po certificirajućim organizacijama"
+
+#: admin/pd_dashboard.html
+msgid "PDA"
+msgstr "Pristup materijalima za slijepe osobe"
+
+#: admin/pd_dashboard.html
+msgid "Emailed"
+msgstr "Poslano e-mailom"
+
+#: admin/pd_dashboard.html
+msgid "Fulfilled"
+msgstr "Ispunjeno"
+
+#: admin/pd_dashboard.html
+msgid "Totals"
+msgstr "Ukupno"
+
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
 msgstr "[Centar za administratore] Dozvole za web-stranicu"
@@ -3978,6 +3998,56 @@ msgstr "Spam domene"
 msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
 "Upiši domene u popis blokiranih u donje područje teksta, jednu po retku."
+
+#: admin/sync.html
+msgid "Sync"
+msgstr "Sinkronizraj"
+
+#: admin/sync.html
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+"Sinkroniziraj metapodatke različitih vrsta Open Library predmeta (npr. "
+"popisa, tema, djela) s Archive.org."
+
+#: admin/sync.html
+msgid "Add Works to Staff Picks"
+msgstr "Dodaj djela u izbor zaposlenika"
+
+#: admin/sync.html
+msgid ""
+"This utility will add your work to an Open Library list called `Staff Picks` "
+"under the `openlibrary` user. It will then take the added work and explode "
+"it into a list of all its readable editions. For each Open Library edition, "
+"a metadata field called `openlibrary_subject` will be injected into the "
+"archive.org metadata of the edition's corresponding archive.org item."
+msgstr ""
+"Ovaj alat dodaje tvoj rad na Open Library popis pod nazivom `Izbor "
+"zaposlenika` pod korisnikom `openlibrary`. Zatim će uzeti dodatni rad i "
+"pretvoriti ga u popis svih njegovih čitljivih izdanja. Za svako Open Library "
+"izdanje, polje metapodataka nazvano `openlibrary_subject` će se umetnuti u "
+"archive.org metapodatke odgovarajućeg predmeta izdanja na archive.org."
+
+#: admin/sync.html
+msgid "add"
+msgstr "dodaj"
+
+#: admin/sync.html
+msgid "remove"
+msgstr "ukloni"
+
+#: admin/sync.html
+msgid "Update edition"
+msgstr "Aktualiziraj izdanje"
+
+#: admin/sync.html
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
+msgstr ""
+"Aktualizira izdanje na archive.org unosom najnovijih vrijednosti "
+"identifikatora „openlibrary_edition“ i „openlibrary_work“"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
@@ -4213,7 +4283,7 @@ msgstr "profil"
 
 #: admin/people/index.html admin/people/view.html
 msgid "Edit History"
-msgstr "Uredi kronologiju"
+msgstr "Uredi povijest"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
@@ -4736,7 +4806,6 @@ msgid "LibriVox"
 msgstr "LibriVox"
 
 #: books/add.html
-#| msgid "WorldCat"
 msgid "OCLC/WorldCat"
 msgstr "OCLC/WorldCat"
 
@@ -5185,7 +5254,7 @@ msgstr "Obično se razlikuje na osnovi druge vrste ili manje veličine fonta."
 
 #: books/edit/edition.html
 msgid "Publishing Info"
-msgstr "Podaci izdavanja"
+msgstr "Podaci o objavljivanju"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
@@ -5432,7 +5501,7 @@ msgstr "Poznaš li bilo koju klasifikaciju za ovo izdanje?"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
-msgstr "Na primjer Deweyeva decimalna klasifikacija?"
+msgstr "Na primjer Deweyevu decimalnu klasifikaciju?"
 
 #: books/edit/edition.html
 msgid "Select one of many..."
@@ -5734,7 +5803,6 @@ msgid "Uploading..."
 msgstr "Prijenos …"
 
 #: covers/add.html
-#| msgid "Wikipedia"
 msgid "Wikidata"
 msgstr "Wikidata"
 
@@ -6092,7 +6160,6 @@ msgstr "izdanja"
 
 #: languages/index.html
 #, python-format
-#| msgid "work"
 msgid "%s work"
 msgid_plural "%s works"
 msgstr[0] "%s djelo"
@@ -6104,8 +6171,8 @@ msgstr[2] "%s djela"
 msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
 msgstr[0] "%s izdanje e-knjige"
-msgstr[1] "%s izdanja e-knjige"
-msgstr[2] "%s izdanja e-knjige"
+msgstr[1] "%s izdanja e-knjiga"
+msgstr[2] "%s izdanja e-knjiga"
 
 #: languages/notfound.html
 #, python-format
@@ -6518,7 +6585,7 @@ msgid ""
 msgstr ""
 "<strong>Nisi<a href=\"/account/login\" title=\"Prijavi se sada\">prijavljen/"
 "a</a>.</strong>Open Library će zabilježiti tvoju IP adresu i uključiti je u "
-"ovu javno dostupnu kronologiju promjena. Ako <a href=\"/account/create\" "
+"ovu javno dostupnu povijest promjena. Ako <a href=\"/account/create\" "
 "title=\"Stvori Open Library račun\">otvoriš račun</a>, tvoja se IP adresa "
 "skriva i možeš lakše pratiti sve tvoje promjene i dodavanja."
 
@@ -6689,7 +6756,6 @@ msgid "🔒︎"
 msgstr "🔒︎"
 
 #: lists/list_follow.html
-#| msgid "Open Library logo"
 msgid "OpenLibrary Logo"
 msgstr "OpenLibrary logotip"
 
@@ -6760,7 +6826,7 @@ msgstr "Ovaj čitatelj još nije izradio nijedan popis."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr "Još nisi stvori/la nijedan popis."
+msgstr "Još nisi stvorio/la nijedan popis."
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
@@ -7975,7 +8041,7 @@ msgstr "Pogledaj prethodnu verziju"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr "Pogledaj kronologiju stranice"
+msgstr "Pogledaj povijest stranice"
 
 #: type/delete/view.html
 msgid "Recreate it"
@@ -7983,7 +8049,7 @@ msgstr "Stvori je ponovo"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr "Dodaj UI-knjigu u odabire osoblja"
+msgstr "Dodaj UI-knjigu u izbor zaposlenika"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"

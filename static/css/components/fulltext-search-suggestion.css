@@ -1,0 +1,91 @@
+/**
+ * Search Result Item
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ */
+.fulltext-suggestions {
+  list-style-type: none;
+  line-height: 1.5em;
+  background-color: var(--grey-fafafa);
+  border-radius: 5px;
+  padding: 5px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid var(--light-beige);
+  display: flex;
+  flex-direction: column;
+}
+.fulltext-suggestions__header {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  padding: 5px;
+  margin-bottom: 3px;
+}
+.fulltext-suggestions__icon {
+  margin-top: 5px;
+  min-height: 30px;
+  min-width: 30px;
+}
+/* --width-breakpoint-tablet: 768px */
+@media (min-width: 768px) {
+  .fulltext-suggestions__icon {
+    align-items: center;
+  }
+}
+.fulltext-suggestions__title {
+  display: block;
+  margin: 0;
+  padding: 5px;
+  font-size: medium;
+  font-weight: 700;
+  font-family: var(--body-family);
+}
+/* --width-breakpoint-tablet: 768px */
+@media (min-width: 768px) {
+  .fulltext-suggestions__title {
+    font-size: large;
+  }
+}
+.fulltext-suggestions__title a:link,
+.fulltext-suggestions__title a:visited {
+  color: var(--black);
+  text-decoration: none;
+}
+.fulltext-suggestions__title a:hover {
+  color: var(--link-blue);
+}
+.fulltext-suggestions__footer {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 5px;
+  font-size: small;
+  font-weight: 700;
+  font-family: var(--body-family);
+}
+/* --width-breakpoint-mobile-m: 425px */
+@media (min-width: 425px) {
+  .fulltext-suggestions__footer {
+    font-size: medium;
+  }
+}
+/* --width-breakpoint-tablet: 768px */
+@media (min-width: 768px) {
+  .fulltext-suggestions__footer {
+    font-size: large;
+    justify-content: end;
+  }
+}
+.fulltext-suggestions__right-chevron {
+  max-height: 20px;
+  max-width: 20px;
+  display: none;
+}
+/* --width-breakpoint-mobile-m: 425px */
+@media (min-width: 425px) {
+  .fulltext-suggestions__right-chevron {
+    display: inline;
+  }
+}
+.fulltext-suggestions__retry {
+  text-align: center;
+}

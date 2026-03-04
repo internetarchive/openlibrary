@@ -71,7 +71,7 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Submitting Issues
 
-[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Interacting-with-GitHub-Issues) and [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues) explain how GitHub issues are triaged, labeled, and prioritized.
+[Project Management](https://docs.openlibrary.org/developers/misc/project-management.html) and [Using Managed Labels to Track Issues](https://docs.openlibrary.org/developers/misc/project-management.html#labeling-issues) explain how GitHub issues are triaged, labeled, and prioritized.
 
 ### Tagging
 - If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).

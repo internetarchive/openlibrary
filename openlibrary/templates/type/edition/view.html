@@ -236,7 +236,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <ol-read-more max-lines="4" class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+        <ol-read-more class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
           $:sanitize(format(overview_desc))
         </ol-read-more>
       $elif edition:
@@ -333,7 +333,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <div class="subjects">
       <div class="subjects-content">
         $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"], edit_mode=is_librarian or is_privileged_user)
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
       </div>
     </div>
@@ -361,7 +361,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             <div class="section">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              <ol-read-more max-height="200px" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
                 $:macros.TableOfContents(table_of_contents, ocaid)
               </ol-read-more>
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
@@ -449,7 +449,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
-                    $if identifier_label != "Internet Archive" or is_viewable_book:
+                    $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or is_privileged_user:
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
@@ -480,7 +480,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <ol-read-more max-lines="4" more-text="$_('Read More')" less-text="$_('Read Less')">
+              <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
                 $:sanitize(format(work.description))
               </ol-read-more>
 

@@ -535,8 +535,7 @@ export default {
 
 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
-<style lang="less">
-
+<style>
 
 .floating-controls-wrapper {
   position: -webkit-sticky;
@@ -547,189 +546,169 @@ export default {
   justify-content: center;
   pointer-events: none;
   z-index: 20;
+}
 
-  .multiselect {
-    width: auto;
+.floating-controls-wrapper .multiselect {
+  width: auto;
+  min-height: 0;
+  display: inline-block;
+  color: currentColor;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+}
+.floating-controls-wrapper .multiselect:hover,
+.floating-controls-wrapper .multiselect:focus,
+.floating-controls-wrapper .multiselect:focus-within {
+  background: white;
+}
+.floating-controls-wrapper .multiselect .multiselect__tags {
+  background: transparent;
+  padding-top: 0;
+  min-height: 0;
+  padding-bottom: 0;
+  font-family: inherit;
+  font-size: inherit;
+  padding-left: 0;
+}
+.floating-controls-wrapper .multiselect .multiselect__select {
+  padding: 0;
+  height: 100%;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag {
+  margin-bottom: -5px;
+  margin-top: 0;
+  display: inline-flex;
+  padding: 0;
+  align-items: center;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag > span {
+  padding-left: 6px;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag-icon {
+  position: static;
+  margin-left: 0;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag-icon:after {
+  font-size: 24px;
+  font-weight: 100;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag {
+  margin-right: 0;
+  margin-left: 10px;
+}
+.floating-controls-wrapper .multiselect .multiselect__tags-wrap:first-child .multiselect__tag {
+  margin-left: 0;
+}
+/* Jumbo up for touch devices... */
+.floating-controls-wrapper .multiselect .multiselect__tag {
+  min-height: 34px;
+}
+.floating-controls-wrapper .multiselect .multiselect__tag-icon {
+  width: 34px;
+  height: 34px;
+  line-height: 34px;
+}
+@media (pointer: fine) {
+  /* Make drop down arrow smaller on non-touch devices */
+  .floating-controls-wrapper .multiselect .multiselect__tags {
+    padding-right: 22px;
+  }
+  .floating-controls-wrapper .multiselect .multiselect__select {
+    width: 22px;
+  }
+  /* Make the "X" button smaller for non-touch devices */
+  .floating-controls-wrapper .multiselect .multiselect__tag {
     min-height: 0;
-    display: inline-block;
-    color: currentColor;
-    transition: background-color 0.2s;
-    border-radius: 4px;
-    &:hover, &:focus, &:focus-within { background: white; }
-
-    .multiselect__tags {
-      background: transparent;
-      padding-top: 0;
-      min-height: 0;
-      padding-bottom: 0;
-      font-family: inherit;
-      font-size: inherit;
-      padding-left: 0;
-    }
-
-    .multiselect__select {
-      padding: 0;
-      height: 100%;
-    }
-
-    .multiselect__tag {
-      margin-bottom: -5px;
-      margin-top: 0;
-      display: inline-flex;
-      padding: 0;
-      align-items: center;
-
-      & > span {
-        padding-left: 6px;
-      }
-    }
-
-    .multiselect__tag-icon {
-      position: static;
-      margin-left: 0;
-      &:after {
-        font-size: 24px;
-        font-weight: 100;
-      }
-    }
-
-    .multiselect__tag {
-      margin-right: 0;
-      margin-left: 10px;
-    }
-
-    .multiselect__tags-wrap:first-child .multiselect__tag {
-      margin-left: 0;
-    }
-
-    // Jumbo up for touch devices...
-    .multiselect__tag {
-      min-height: 34px;
-    }
-    .multiselect__tag-icon {
-      width: 34px;
-      height: 34px;
-      line-height: 34px;
-    }
-
-    @media (pointer: fine) {
-      // Make drop down arrow smaller on non-touch devices
-      .multiselect__tags {
-        padding-right: 22px;
-      }
-      .multiselect__select {
-        width: 22px;
-      }
-
-      // Make the "X" button smaller for non-touch devices
-      .multiselect__tag {
-        min-height: 0;
-      }
-      .multiselect__tag-icon {
-        width: 22px;
-        height: 22px;
-        line-height: 22px;
-      }
-
-      // Make the dropdown options less spaced out for non-touch devices
-      .multiselect__option {
-        min-height: 0;
-        padding: 6px;
-      }
-    }
-
-    .multiselect__placeholder {
-      margin: 0;
-      color: currentColor;
-    }
-
-    .multiselect__input:focus {
-      width: 100% !important;
-      height: 100%;
-      margin: 0;
-      padding: 2px !important;
-    }
-
-    .multiselect__content {
-      display: flex !important;
-      flex-direction: column;
-    }
   }
-
-  .chunky-icon {
-    padding: 4px;
-    margin: 4px;
-    width: 52px;
-    transition: background-color .2s;
-    text-align: center;
-
-    &--icon svg {
-      width: 48px;
-      height: 24px;
-    }
-
-    &--label {
-      font-size: .8em;
-      text-align: center;
-    }
+  .floating-controls-wrapper .multiselect .multiselect__tag-icon {
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
   }
-
-  .floating-controls {
-    pointer-events: all;
-    display: flex;
-    flex-direction: column-reverse;
-    border-radius: 4px 4px 0 0;
-    box-shadow: 0 0 5px rgba(0, 0, 0, .2);
-    background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
-    max-width: 100%;
-    max-height: 80vh;
-
-    &.open .tab-bar {
-      border-top: 1px solid rgba(0, 0, 0, .2);
-    }
-    .tab-bar {
-      display: flex;
-      justify-content: center;
-
-      background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
-    }
-    .tab-bar--tab {
-      box-sizing: content-box;
-      border: none;
-      font-size: 100%;
-      color: inherit;
-      background-color: inherit;
-      border-right: 1px solid rgba(0, 0, 0, .2);
-      margin: 0;
-      padding: 8px;
-      &:last-child {
-        border: 0;
-      }
-
-      cursor: pointer;
-      transition: background-color .2s;
-      &:hover {
-        background-color: rgba(0, 0, 0, .1);
-      }
-      &.active {
-        background-color: rgba(0, 0, 0, .1);
-      }
-    }
-    .tabs-contents main {
-      padding: 8px;
-    }
-
-    &.open {
-      .tab-bar--tab {
-        &:first-child {
-          border-left: 1px solid rgba(0, 0, 0, .2);
-        }
-        &:last-child {
-          border-right: 1px solid rgba(0, 0, 0, .2);
-        }
-      }
-    }
+  /* Make the dropdown options less spaced out for non-touch devices */
+  .floating-controls-wrapper .multiselect .multiselect__option {
+    min-height: 0;
+    padding: 6px;
   }
+}
+.floating-controls-wrapper .multiselect .multiselect__placeholder {
+  margin: 0;
+  color: currentColor;
+}
+.floating-controls-wrapper .multiselect .multiselect__input:focus {
+  width: 100% !important;
+  height: 100%;
+  margin: 0;
+  padding: 2px !important;
+}
+.floating-controls-wrapper .multiselect .multiselect__content {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.floating-controls-wrapper .chunky-icon {
+  padding: 4px;
+  margin: 4px;
+  width: 52px;
+  transition: background-color .2s;
+  text-align: center;
+}
+.floating-controls-wrapper .chunky-icon--icon svg {
+  width: 48px;
+  height: 24px;
+}
+.floating-controls-wrapper .chunky-icon--label {
+  font-size: .8em;
+  text-align: center;
+}
+
+.floating-controls-wrapper .floating-controls {
+  pointer-events: all;
+  display: flex;
+  flex-direction: column-reverse;
+  border-radius: 4px 4px 0 0;
+  box-shadow: 0 0 5px rgba(0, 0, 0, .2);
+  background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
+  max-width: 100%;
+  max-height: 80vh;
+}
+.floating-controls-wrapper .floating-controls.open .tab-bar {
+  border-top: 1px solid rgba(0, 0, 0, .2);
+}
+.floating-controls-wrapper .floating-controls .tab-bar {
+  display: flex;
+  justify-content: center;
+  background: linear-gradient(to bottom, #fff, #ebdfc5 150%);
+}
+.floating-controls-wrapper .floating-controls .tab-bar--tab {
+  box-sizing: content-box;
+  border: none;
+  font-size: 100%;
+  color: inherit;
+  background-color: inherit;
+  border-right: 1px solid rgba(0, 0, 0, .2);
+  margin: 0;
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color .2s;
+}
+.floating-controls-wrapper .floating-controls .tab-bar--tab:last-child {
+  border: 0;
+}
+.floating-controls-wrapper .floating-controls .tab-bar--tab:hover {
+  background-color: rgba(0, 0, 0, .1);
+}
+.floating-controls-wrapper .floating-controls .tab-bar--tab.active {
+  background-color: rgba(0, 0, 0, .1);
+}
+.floating-controls-wrapper .floating-controls .tabs-contents main {
+  padding: 8px;
+}
+.floating-controls-wrapper .floating-controls.open .tab-bar--tab:first-child {
+  border-left: 1px solid rgba(0, 0, 0, .2);
+}
+.floating-controls-wrapper .floating-controls.open .tab-bar--tab:last-child {
+  border-right: 1px solid rgba(0, 0, 0, .2);
 }
 
 .click-controls {
@@ -740,81 +719,78 @@ export default {
 .horizontal-selector {
   margin-right: 10px;
   margin-top: 5px;
-
-  .label {
-    font-size: 0.9em;
-    margin-left: 5px;
-    margin-bottom: -2px;
-  }
-
-  .options {
-    border: 1px solid currentColor;
-    border-radius: 4px;
-  }
-
-  .options label {
-    display: inline-block;
-    padding: 2px 4px;
-    padding-top: 3px;
-
-    &[title] {
-      text-decoration: underline;
-      text-decoration-style: dotted;
-    }
-  }
+}
+.horizontal-selector .label {
+  font-size: 0.9em;
+  margin-left: 5px;
+  margin-bottom: -2px;
+}
+.horizontal-selector .options {
+  border: 1px solid currentColor;
+  border-radius: 4px;
+}
+.horizontal-selector .options label {
+  display: inline-block;
+  padding: 2px 4px;
+  padding-top: 3px;
+}
+.horizontal-selector .options label[title] {
+  text-decoration: underline;
+  text-decoration-style: dotted;
 }
 
 .filter-wrapper {
   border: 1px solid currentColor;
   background: white;
-
   border-radius: 4px;
   max-width: 100%;
   box-sizing: border-box;
   display: inline-block;
-
-  input.filter {
-    max-width: 100%;
-    margin: 1px;
-    padding: 5px;
-    width: 150px;
-    font-family: inherit;
-    font-size: inherit;
-    border: 0;
-    border-radius: inherit;
-    transition: width 0.2s;
-    &:not(:placeholder-shown), &:focus {
-      width: 300px;
-    }
-  }
-
-  small.computed-filter {
-    background: rgba(125,125,125,0.2);
-    font-size: inherit;
-    display: inline-block;
-    opacity: 0.8;
-    font-style: oblique;
-    padding: 6px;
-    padding-right: 8px;
-    border-left: 1px dotted grey;
-    text-decoration: underline;
-    text-decoration-style: dotted;
-  }
+}
+.filter-wrapper input.filter {
+  max-width: 100%;
+  margin: 1px;
+  padding: 5px;
+  width: 150px;
+  font-family: inherit;
+  font-size: inherit;
+  border: 0;
+  border-radius: inherit;
+  transition: width 0.2s;
+}
+.filter-wrapper input.filter:not(:placeholder-shown),
+.filter-wrapper input.filter:focus {
+  width: 300px;
+}
+.filter-wrapper small.computed-filter {
+  background: rgba(125,125,125,0.2);
+  font-size: inherit;
+  display: inline-block;
+  opacity: 0.8;
+  font-style: oblique;
+  padding: 6px;
+  padding-right: 8px;
+  border-left: 1px dotted grey;
+  text-decoration: underline;
+  text-decoration-style: dotted;
 }
 
 .feedback-panel {
   max-width: 300px;
-  p { line-height: 1.1em; }
-  a {
-    color: inherit;
-    padding: 4px 6px;
-    margin-left: -6px;
-    margin-right: -6px;
-    transition: background-color 0.2s;
-    border-radius: 4px;
-    display: inline-block;
-
-    &:hover { background-color: rgba(0, 0, 0, .1); }
-  }
+}
+.feedback-panel p {
+  line-height: 1.1em;
+}
+.feedback-panel a {
+  color: inherit;
+  padding: 4px 6px;
+  margin-left: -6px;
+  margin-right: -6px;
+  transition: background-color 0.2s;
+  border-radius: 4px;
+  display: inline-block;
+}
+.feedback-panel a:hover {
+  background-color: rgba(0, 0, 0, .1);
 }
 </style>

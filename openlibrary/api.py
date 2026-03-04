@@ -39,13 +39,13 @@ class OLError(Exception):
 
 class OpenLibrary:
     def __init__(self, base_url="https://openlibrary.org"):
-        self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
+        self.base_url = base_url.rstrip("/") if base_url else "https://openlibrary.org"
         self.cookie = None
 
     def _request(
         self,
         path,
-        method='GET',
+        method="GET",
         data=None,
         headers=None,
         params=None,
@@ -56,7 +56,7 @@ class OpenLibrary:
         headers = headers or {}
         params = params or {}
         if self.cookie:
-            headers['Cookie'] = self.cookie
+            headers["Cookie"] = self.cookie
 
         try:
             response = requests.request(
@@ -93,35 +93,33 @@ class OpenLibrary:
         """
         config = ConfigParser()
 
-        configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
+        configfile = os.getenv("OPENLIBRARY_RCFILE", os.path.expanduser("~/.olrc"))
         logger.info("reading %s", configfile)
         config.read(configfile)
 
-        section = section or self.base_url.split('://')[-1]
+        section = section or self.base_url.split("://")[-1]
 
         if not config.has_section(section):
             raise Exception("No section found with name %s in ~/.olrc" % repr(section))
 
-        username = config.get(section, 'username')
-        password = config.get(section, 'password')
+        username = config.get(section, "username")
+        password = config.get(section, "password")
         return self.login(username, password)
 
     def login(self, username, password):
         """Login to Open Library with given credentials."""
         try:
             params = {"username": username, "password": password}
-            response = self._request(
-                '/account/login', method='POST', params=params, allow_redirects=False
-            )
+            response = self._request("/account/login", method="POST", params=params, allow_redirects=False)
         except OLError as e:
             response = e
 
-        if 'Set-Cookie' in response.headers:
-            cookies = response.headers['Set-Cookie'].split(',')
-            self.cookie = ';'.join([c.split(';')[0] for c in cookies])
+        if "Set-Cookie" in response.headers:
+            cookies = response.headers["Set-Cookie"].split(",")
+            self.cookie = ";".join([c.split(";")[0] for c in cookies])
 
     def get(self, key, v=None):
-        response = self._request(key + '.json', params={'v': v} if v else {})
+        response = self._request(key + ".json", params={"v": v} if v else {})
         return unmarshal(response.json())
 
     def get_many(self, keys):
@@ -137,43 +135,41 @@ class OpenLibrary:
 
     def _get_many(self, keys):
         response = self._request("/api/get_many", params={"keys": json.dumps(keys)})
-        return response.json()['result']
+        return response.json()["result"]
 
     def save(self, key, data, comment=None):
-        headers = {'Content-Type': 'application/json'}
+        headers = {"Content-Type": "application/json"}
         data = marshal(data)
         if comment:
-            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
-            headers['42-comment'] = comment
+            headers["Opt"] = '"%s/dev/docs/api"; ns=42' % self.base_url
+            headers["42-comment"] = comment
         data = json.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).content
 
     def _call_write(self, name, query, comment, action):
-        headers = {'Content-Type': 'application/json'}
+        headers = {"Content-Type": "application/json"}
         query = marshal(query)
 
         # use HTTP Extension Framework to add custom headers. see RFC 2774 for more details.
         if comment or action:
-            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
+            headers["Opt"] = '"%s/dev/docs/api"; ns=42' % self.base_url
         if comment:
-            headers['42-comment'] = comment
+            headers["42-comment"] = comment
         if action:
-            headers['42-action'] = action
+            headers["42-action"] = action
 
-        response = self._request(
-            '/api/' + name, method="POST", data=json.dumps(query), headers=headers
-        )
+        response = self._request("/api/" + name, method="POST", data=json.dumps(query), headers=headers)
         return response.json()
 
     def save_many(self, query, comment=None, action=None):
-        return self._call_write('save_many', query, comment, action)
+        return self._call_write("save_many", query, comment, action)
 
     def write(self, query, comment="", action=""):
         """Internal write API."""
-        return self._call_write('write', query, comment, action)
+        return self._call_write("write", query, comment, action)
 
     def new(self, query, comment=None, action=None):
-        return self._call_write('new', query, comment, action)
+        return self._call_write("new", query, comment, action)
 
     def query(self, q=None, **kw):
         """Query Open Library.
@@ -195,18 +191,18 @@ class OpenLibrary:
         q = marshal(q)
 
         def unlimited_query(q):
-            q['limit'] = 1000
-            q.setdefault('offset', 0)
-            q.setdefault('sort', 'key')
+            q["limit"] = 1000
+            q.setdefault("offset", 0)
+            q.setdefault("sort", "key")
 
             while True:
                 result = self.query(q)
                 yield from result
                 if len(result) < 1000:
                     break
-                q['offset'] += len(result)
+                q["offset"] += len(result)
 
-        if 'limit' in q and q['limit'] is False:
+        if "limit" in q and q["limit"] is False:
             return unlimited_query(q)
         else:
             response = self._request("/query.json", params={"query": json.dumps(q)})
@@ -214,24 +210,24 @@ class OpenLibrary:
 
     def search(self, query, limit=10, offset=0, fields: list[str] | None = None):
         return self._request(
-            '/search.json',
+            "/search.json",
             params={
-                'q': query,
-                'limit': limit,
-                'offset': offset,
-                **({'fields': ','.join(fields)} if fields else {}),
+                "q": query,
+                "limit": limit,
+                "offset": offset,
+                **({"fields": ",".join(fields)} if fields else {}),
             },
         ).json()
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {
-            'identifier': ocaid,
-            'require_marc': 'true' if require_marc else 'false',
+            "identifier": ocaid,
+            "require_marc": "true" if require_marc else "false",
         }
-        return self._request('/api/import/ia', method='POST', data=data).text
+        return self._request("/api/import/ia", method="POST", data=data).text
 
     def import_data(self, data):
-        return self._request('/api/import', method='POST', data=data).text
+        return self._request("/api/import", method="POST", data=data).text
 
 
 def marshal(data):
@@ -266,15 +262,15 @@ def unmarshal(d):
     if isinstance(d, list):
         return [unmarshal(v) for v in d]
     elif isinstance(d, dict):
-        if 'key' in d and len(d) == 1:
-            return Reference(d['key'])
-        elif 'value' in d and 'type' in d:
-            if d['type'] == '/type/text':
-                return Text(d['value'])
-            elif d['type'] == '/type/datetime':
-                return parse_datetime(d['value'])
+        if "key" in d and len(d) == 1:
+            return Reference(d["key"])
+        elif "value" in d and "type" in d:
+            if d["type"] == "/type/text":
+                return Text(d["value"])
+            elif d["type"] == "/type/datetime":
+                return parse_datetime(d["value"])
             else:
-                return d['value']
+                return d["value"]
         else:
             return {k: unmarshal(v) for k, v in d.items()}
     else:
@@ -290,7 +286,7 @@ def parse_datetime(value):
     if isinstance(value, datetime.datetime):
         return value
     else:
-        tokens = re.split(r'-|T|:|\.| ', value)
+        tokens = re.split(r"-|T|:|\.| ", value)
         return datetime.datetime(*map(int, tokens))
 
 

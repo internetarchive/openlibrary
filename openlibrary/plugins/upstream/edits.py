@@ -9,6 +9,13 @@ from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
 
+# Usergroups that may use create or update merge requests
+ALLOWED_USERGROUPS: list[str] = [
+    "/usergroup/librarians",
+    "/usergroup/super-librarians",
+    "/usergroup/admin",
+]
+
 
 def response(status='ok', **kwargs):
     return {'status': status, **kwargs}
@@ -74,6 +81,11 @@ class community_edits_queue(delegate.page):
         )
 
     def POST(self):
+        if not (user := accounts.get_current_user()) or not user.is_member_of_any(
+            ALLOWED_USERGROUPS
+        ):
+            raise web.unauthorized()
+
         data = json.loads(web.data())
         resp = process_merge_request(data.pop('rtype', ''), data)
 
