@@ -2,12 +2,13 @@
 going through infobase API.
 """
 
-import datetime
 import json
 import os
 from collections import defaultdict
 
 import web
+
+from openlibrary.utils.dateutil import utcnow
 
 
 class DocumentLoader:
@@ -77,7 +78,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_new(self, documents, author, comment):
-        timestamp = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        timestamp = utcnow()
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
 
         # insert things
@@ -188,7 +189,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_update(self, documents, author, comment):
-        timestamp = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        timestamp = utcnow()
 
         keys = [doc['key'] for doc in documents]
 

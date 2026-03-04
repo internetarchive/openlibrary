@@ -8,6 +8,7 @@ import web
 
 from infogami import config
 from openlibrary.core import cache
+from openlibrary.utils.dateutil import utcnow
 
 from . import db
 
@@ -146,7 +147,7 @@ def _get_count_docs(ndays):
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = datetime.datetime.now(datetime.UTC).date()
+    today = utcnow().date()
     dates = [today - datetime.timedelta(days=i) for i in range(ndays)]
 
     # we want the dates in reverse order

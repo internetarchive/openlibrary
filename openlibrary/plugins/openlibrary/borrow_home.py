@@ -5,7 +5,6 @@ These endpoints are largely deprecated, and only maintained for
 backwards compatibility.
 """
 
-import datetime
 import json
 
 import eventer
@@ -14,6 +13,7 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from openlibrary.core import statsdb
+from openlibrary.utils.dateutil import utcfromtimestamp
 
 
 class borrow(delegate.page):
@@ -49,7 +49,7 @@ class read_json(delegate.page):
 def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.fromtimestamp(loan['loaned_at'], datetime.UTC)
+    t_start = utcfromtimestamp(loan['loaned_at'])
     d = {
         "book": loan['book'],
         "identifier": loan['ocaid'],
@@ -65,8 +65,8 @@ def on_loan_created_statsdb(loan):
 def on_loan_completed_statsdb(loan):
     """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.fromtimestamp(loan['loaned_at'], datetime.UTC)
-    t_end = datetime.datetime.fromtimestamp(loan['returned_at'], datetime.UTC)
+    t_start = utcfromtimestamp(loan['loaned_at'])
+    t_end = utcfromtimestamp(loan['returned_at'])
     d = {
         "book": loan['book'],
         "identifier": loan['ocaid'],

@@ -1,6 +1,5 @@
 """Subject pages."""
 
-import datetime
 from dataclasses import dataclass
 from typing import cast
 
@@ -13,6 +12,7 @@ from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils import str_to_key
 from openlibrary.utils.async_utils import async_bridge
+from openlibrary.utils.dateutil import utcnow
 from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
@@ -313,7 +313,7 @@ class SubjectEngine:
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
-            current_year = datetime.datetime.now(datetime.UTC).year
+            current_year = utcnow().year
             subject.publishing_history = [
                 [year, count]
                 for year, count in cast(  # These are fetched in a different format, we need to fix the types

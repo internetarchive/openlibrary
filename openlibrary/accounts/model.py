@@ -25,6 +25,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
+from openlibrary.utils.dateutil import utcnow
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -253,9 +254,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self['last_login'] = (
-                datetime.datetime.now(datetime.UTC).replace(tzinfo=None).isoformat()
-            )
+            self['last_login'] = utcnow().isoformat()
             self._save()
             return "ok"
 
@@ -611,9 +610,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = web.ctx.site.store.get(self._key)
-        last_login = (
-            datetime.datetime.now(datetime.UTC).replace(tzinfo=None).isoformat()
-        )
+        last_login = utcnow().isoformat()
         _ol_account['last_login'] = last_login
         web.ctx.site.store[self._key] = _ol_account
         self.last_login = last_login

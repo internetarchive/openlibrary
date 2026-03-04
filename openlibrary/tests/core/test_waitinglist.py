@@ -11,6 +11,7 @@ import pytest
 
 from openlibrary.core import lending
 from openlibrary.core.waitinglist import WaitingLoan
+from openlibrary.utils.dateutil import utcnow
 
 
 class TestWaitingLoanNew:
@@ -96,7 +97,7 @@ class TestWaitingLoanIsExpired:
     def test_is_expired_when_status_available_and_expiry_past(self):
         """Test that a loan is expired when status is available and expiry has passed."""
         # Use a past expiry date
-        past_expiry = (datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(hours=1)).isoformat()
+        past_expiry = (utcnow() - datetime.timedelta(hours=1)).isoformat()
 
         w = WaitingLoan(
             {
@@ -143,7 +144,7 @@ class TestWaitingLoanGetWaitingInDays:
 
     def test_waiting_in_days_for_new_loan(self):
         """Test that a new loan has waited 1 day (includes current day)."""
-        today = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        today = utcnow()
         w = WaitingLoan({"since": today.isoformat()})
         # Should be 1 day because it adds 1 to round off
         assert w.get_waiting_in_days() == 1
@@ -202,7 +203,7 @@ class TestWaitingLoanDict:
 
     def test_dict_is_json_serializable(self):
         """Test that the dict output can be serialized to JSON."""
-        dt = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
+        dt = utcnow()
         w = WaitingLoan(
             {
                 "status": "waiting",
