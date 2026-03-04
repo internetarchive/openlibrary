@@ -237,7 +237,6 @@ def create_app() -> FastAPI | None:
     app.include_router(publishers_router)
     app.include_router(search_router)
     app.include_router(subjects_router)
-    app.include_router(account_router)
     app.include_router(yearly_reading_goals_router)
 
     return app
