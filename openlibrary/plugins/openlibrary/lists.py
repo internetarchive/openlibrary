@@ -553,7 +553,23 @@ class lists_json(delegate.page):
         data = self.loads(web.data())
         # TODO: validate data
 
-        seeds = self.process_seeds(data.get("seeds", []))
+        try:
+            result = self.process_new_list(user, data, site)
+        except ValueError as e:
+            if str(e) == "Spam list":
+                raise self.forbidden()
+            raise
+        except client.ClientException as e:
+            headers = {"Content-Type": self.get_content_type()}
+            err_data = {"message": str(e)}
+            raise web.HTTPError(e.status, data=self.dumps(err_data), headers=headers)
+
+        web.header("Content-Type", self.get_content_type())
+        return delegate.RawText(self.dumps(result))
+
+    @staticmethod
+    def process_new_list(user, data, site):
+        seeds = lists_json.process_seeds(data.get("seeds", []))
 
         lst = user.new_list(
             name=data.get("name", ""),
@@ -563,22 +579,14 @@ class lists_json(delegate.page):
         )
 
         if spamcheck.is_spam(lst):
-            raise self.forbidden()
+            raise ValueError("Spam list")
 
-        try:
-            result = site.save(
-                lst.dict(),
-                comment="Created new list.",
-                action="add-list",
-                data={"list": {"key": lst.key}, "seeds": seeds},
-            )
-        except client.ClientException as e:
-            headers = {"Content-Type": self.get_content_type()}
-            data = {"message": str(e)}
-            raise web.HTTPError(e.status, data=self.dumps(data), headers=headers)
-
-        web.header("Content-Type", self.get_content_type())
-        return delegate.RawText(self.dumps(result))
+        return site.save(
+            lst.dict(),
+            comment="Created new list.",
+            action="add-list",
+            data={"list": {"key": lst.key}, "seeds": seeds},
+        )
 
     @staticmethod
     def process_seeds(
