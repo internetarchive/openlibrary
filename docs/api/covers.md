@@ -125,6 +125,86 @@ https://covers.openlibrary.org/b/olid/OL27448W-M.jpg
 https://covers.openlibrary.org/a/olid/OL23919A-M.jpg
 ```
 
+## Code Examples
+
+### JavaScript (fetch & img)
+
+```javascript
+/**
+ * Construct cover URL from cover ID and size
+ * @param {number|string} id - Cover ID (from search) or ISBN/OLID
+ * @param {string} size - S, M, or L
+ * @param {string} type - id, isbn, or olid
+ */
+function getCoverUrl(id, size = "M", type = "id") {
+  return `https://covers.openlibrary.org/b/${type}/${id}-${size}.jpg`;
+}
+
+// Example: Get cover ID from Search result
+async function displayFirstResultCover(query) {
+  const searchUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=1&fields=cover_i,title`;
+  const response = await fetch(searchUrl, {
+    headers: { "User-Agent": "MyApp/1.0" },
+  });
+  const data = await response.json();
+  const book = data.docs[0];
+
+  if (book && book.cover_i) {
+    const imageUrl = getCoverUrl(book.cover_i, "L", "id");
+    console.log(`Large cover for "${book.title}": ${imageUrl}`);
+
+    // In a browser:
+    // const img = document.createElement('img');
+    // img.src = imageUrl;
+    // document.body.appendChild(img);
+  }
+}
+
+displayFirstResultCover("lord of the rings");
+```
+
+### Python (requests & PIL)
+
+```python
+import requests
+from PIL import Image
+from io import BytesIO
+
+def download_and_show_cover(cover_id, size='M'):
+    """
+    Download cover image and show it using PIL.
+    """
+    url = f'https://covers.openlibrary.org/b/id/{cover_id}-{size}.jpg'
+    headers = {
+        'User-Agent': 'MyApp/1.0 (https://myapp.com; contact@myapp.com)'
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        # Open image from bytes
+        img = Image.open(BytesIO(response.content))
+        print(f"Image format: {img.format}, Size: {img.size}")
+
+        # Show image (opens in default viewer)
+        img.show()
+
+        # Or save to file
+        img.save(f'cover_{cover_id}.jpg')
+        print(f"Saved cover to cover_{cover_id}.jpg")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Download failed: {e}")
+    except Exception as e:
+        print(f"Error processing image: {e}")
+
+# Example usage:
+if __name__ == "__main__":
+    # Cover ID for Lord of the Rings
+    download_and_show_cover(14625765, 'M')
+```
+
 ## HTTP Response Codes
 
 | Code | Description                                              |
