@@ -160,6 +160,89 @@ curl -H "User-Agent: MyApp/1.0 (https://myapp.com; contact@myapp.com)" \
 }
 ```
 
+## Code Examples
+
+### JavaScript (fetch)
+
+```javascript
+/**
+ * Fetch work details by Open Library ID (OLID)
+ * @param {string} olid - Work identifier (e.g., OL27448W)
+ */
+async function fetchWork(olid) {
+  const url = `https://openlibrary.org/works/${olid}.json`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        // Required: Identify your application
+        "User-Agent": "MyApp/1.0 (https://myapp.com; contact@myapp.com)",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`Title: ${data.title}`);
+
+    // Handle description object or string
+    const description =
+      typeof data.description === "object"
+        ? data.description.value
+        : data.description;
+
+    console.log(`Description: ${description?.substring(0, 100)}...`);
+
+    return data;
+  } catch (error) {
+    console.error("Fetch failed:", error);
+  }
+}
+
+// Example usage:
+fetchWork("OL27448W");
+```
+
+### Python (requests)
+
+```python
+import requests
+
+def fetch_work(olid):
+    """
+    Fetch work details by Open Library ID (OLID) using the requests library.
+    """
+    url = f'https://openlibrary.org/works/{olid}.json'
+    headers = {
+        # Required: Identify your application
+        'User-Agent': 'MyApp/1.0 (https://myapp.com; contact@myapp.com)'
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+        print(f"Title: {data.get('title')}")
+
+        # Handle description object or string
+        description = data.get('description', '')
+        if isinstance(description, dict):
+            description = description.get('value', '')
+
+        print(f"Description: {description[:100]}...")
+
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Fetch failed: {e}")
+
+# Example usage:
+if __name__ == "__main__":
+    fetch_work('OL27448W')
+```
+
 ## Using Different ID Types
 
 ### By OLID (Work)
