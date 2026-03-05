@@ -57,7 +57,7 @@
     "jquery-ui": "1.13.2",
     "jquery-ui-touch-punch": "0.2.3",
     "lit": "^3.2.1",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "lucene-query-parser": "1.2.0",
     "mini-css-extract-plugin": "^2.9.2",
     "prettier": "^3.5.3",
