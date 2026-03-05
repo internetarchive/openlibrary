@@ -116,6 +116,92 @@ curl -H "User-Agent: MyApp/1.0 (https://myapp.com; contact@myapp.com)" \
 }
 ```
 
+## Code Examples
+
+### JavaScript (fetch)
+
+```javascript
+/**
+ * Search Open Library for books
+ * @param {string} query - General search query
+ * @param {number} limit - Number of results to return
+ */
+async function searchOpenLibrary(query, limit = 2) {
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=${limit}&fields=key,title,author_name,first_publish_year,cover_i`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        // Required: Identify your application
+        "User-Agent": "MyApp/1.0 (https://myapp.com; contact@myapp.com)",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`Found ${data.numFound} results:`);
+
+    data.docs.forEach((book) => {
+      console.log(
+        `- ${book.title} (${book.first_publish_year}) by ${book.author_name?.join(", ") || "Unknown"}`,
+      );
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Search failed:", error);
+  }
+}
+
+// Example usage:
+searchOpenLibrary("lord of the rings");
+```
+
+### Python (requests)
+
+```python
+import requests
+
+def search_open_library(query, limit=2):
+    """
+    Search Open Library for books using the requests library.
+    """
+    url = 'https://openlibrary.org/search.json'
+    params = {
+        'q': query,
+        'limit': limit,
+        'fields': 'key,title,author_name,first_publish_year,cover_i'
+    }
+    headers = {
+        # Required: Identify your application
+        'User-Agent': 'MyApp/1.0 (https://myapp.com; contact@myapp.com)'
+    }
+
+    try:
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+        print(f"Found {data.get('numFound')} results:")
+
+        for book in data.get('docs', []):
+            title = book.get('title')
+            year = book.get('first_publish_year')
+            authors = ", ".join(book.get('author_name', ['Unknown']))
+            print(f"- {title} ({year}) by {authors}")
+
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Search failed: {e}")
+
+# Example usage:
+if __name__ == "__main__":
+    search_open_library('lord of the rings')
+```
+
 ## Usage Notes
 
 - Use the `fields` parameter to reduce response size and improve performance
