@@ -130,9 +130,10 @@ This helps Open Library:
 Now that you've made your first call:
 
 1. **Read the [Authentication Guide](./authentication.md)** — Learn why User-Agent is required and best practices
-2. **Explore the Search API** — Try different query parameters like `author`, `subject`, `isbn`, or `title`
-3. **Get Book Details** — Use the `key` from search results to fetch full book information
-4. **Browse Authors** — Use author keys to get author biographies and their works
+2. **Handle Errors & Rate Limits** — Review the [Error Handling Guide](./errors.md) to build robust applications
+3. **Explore the Search API** — Try different query parameters like `author`, `subject`, `isbn`, or `title`
+4. **Get Book Details** — Use the `key` from search results to fetch full book information
+5. **Browse Authors** — Use author keys to get author biographies and their works
 
 ## Quick Reference
 

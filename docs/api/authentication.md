@@ -201,7 +201,7 @@ Open Library uses the User-Agent to track request rates. To be a good API citize
 3. **Cache results** — Store data you reuse instead of re-fetching
 4. **Handle 429 errors** — If you get rate limited, wait and retry with backoff
 
-See the [Error Handling Guide](./error-handling.md) for handling rate limits.
+See the [Error Handling Guide](./errors.md) for detailed instructions on handling rate limits and HTTP errors.
 
 ## Summary
 
