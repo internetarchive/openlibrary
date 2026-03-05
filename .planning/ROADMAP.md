@@ -73,7 +73,11 @@ Plans:
 2. Developer knows best practices to avoid hitting rate limits
 3. Developer can implement retry logic for 429 errors with exponential backoff
 4. Developer has troubleshooting guidance for common issues
-   **Plans**: TBD
+   **Plans**: 1 plan
+
+Plans:
+
+- [ ] 04-error-handling-01-PLAN.md — Error Handling & Troubleshooting Guide
 
 ## Progress
 
