@@ -1563,16 +1563,20 @@ def to_datetime(time: str):
     return datetime.datetime.fromisoformat(time)
 
 
+_BLOCK_SEP = object()
+
+
 class HTMLTagRemover(HTMLParser):
     def __init__(self):
         super().__init__()
         self.data = []
 
     def handle_data(self, data):
-        self.data.append(data.strip())
+        self.data.append(re.sub(r'\s+', ' ', data))
 
     def handle_endtag(self, tag):
-        self.data.append('\n' if tag in ('p', 'li') else ' ')
+        if tag in ('p', 'li'):
+            self.data.append(_BLOCK_SEP)
 
 
 @public
@@ -1593,12 +1597,20 @@ def reformat_html(html_str: str, max_length: int | None = None) -> str:
     parser = HTMLTagRemover()
     # Must have a root node, otherwise the parser will fail
     parser.feed(f'<div>{html_str}</div>')
-    content = [web.websafe(s) for s in parser.data if s]
+    parts = []
+    for s in parser.data:
+        if s is _BLOCK_SEP:
+            parts.append('\n')
+        else:
+            parts.append(web.websafe(s))
+
+    lines = [re.sub(r' {2,}', ' ', line.strip()) for line in ''.join(parts).split('\n')]
+    result = re.sub(r'\n{2,}', '\n', '\n'.join(lines)).strip()
 
     if max_length:
-        return truncate(''.join(content), max_length).strip().replace('\n', '<br>')
+        return truncate(result, max_length).strip().replace('\n', '<br>')
     else:
-        return ''.join(content).strip().replace('\n', '<br>')
+        return result.replace('\n', '<br>')
 
 
 def get_colon_only_loc_pub(pair: str) -> tuple[str, str]:
