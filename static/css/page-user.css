@@ -252,5 +252,3 @@ textarea.toc-editor {
 /* Import styles for sort options */
 @import "components/sort-dropper.css";
 @import "components/pagination.css";
-/* Pre-render styles for <ol-chip> web component (CLS prevention) */
-@import "components/ol-chip.css";

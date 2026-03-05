@@ -100,7 +100,7 @@ h4.facetHead {
 }
 h4.facetHead .facet-icon {
   flex-shrink: 0;
-  color: #999;
+  color: var(--mid-grey);
 }
 h4.facetHead span.merge {
   font-family: var(--body-family);
