@@ -101,7 +101,7 @@ done
 log "======  4 - Recreate get_property_name function ======"
 
 pg "DROP FUNCTION IF EXISTS get_property_name(integer, integer);"
-pg "CREATE FUNCTION get_property_name(bigint, integer)
+pg "CREATE OR REPLACE FUNCTION get_property_name(bigint, integer)
     RETURNS text AS
     'select property.name FROM property JOIN thing ON thing.type = property.type WHERE thing.id=\$1 AND property.id=\$2;'
     LANGUAGE SQL;"
