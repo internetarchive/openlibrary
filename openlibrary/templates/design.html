@@ -156,9 +156,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$_("Basic chips at the default medium size.")</p>
           <code class="example__code">&lt;ol-chip&gt;Fiction&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip>Fiction</ol-chip>
-            <ol-chip>Science</ol-chip>
-            <ol-chip>History</ol-chip>
+            <ol-chip>$_("Fiction")</ol-chip>
+            <ol-chip>$_("Science")</ol-chip>
+            <ol-chip>$_("History")</ol-chip>
           </div>
         </section>
 
@@ -167,9 +167,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$_("A selected chip displays a checkmark icon and uses an active color scheme.")</p>
           <code class="example__code">&lt;ol-chip selected&gt;History&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip>Fiction</ol-chip>
-            <ol-chip selected>History</ol-chip>
-            <ol-chip>Science</ol-chip>
+            <ol-chip>$_("Fiction")</ol-chip>
+            <ol-chip selected>$_("History")</ol-chip>
+            <ol-chip>$_("Science")</ol-chip>
           </div>
         </section>
 
@@ -178,9 +178,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$:_("Use %(size)s for a compact chip.", size='<code>size="small"</code>')</p>
           <code class="example__code">&lt;ol-chip size="small"&gt;Poetry&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip size="small">Poetry</ol-chip>
-            <ol-chip size="small" selected>Drama</ol-chip>
-            <ol-chip size="small">Essays</ol-chip>
+            <ol-chip size="small">$_("Poetry")</ol-chip>
+            <ol-chip size="small" selected>$_("Drama")</ol-chip>
+            <ol-chip size="small">$_("Essays")</ol-chip>
           </div>
         </section>
 
@@ -189,8 +189,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$:_("Use %(count)s to display a number alongside the label.", count="<code>count</code>")</p>
           <code class="example__code">&lt;ol-chip count="42"&gt;Fiction&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip count="1,024">Fiction</ol-chip>
-            <ol-chip count="76" selected>History</ol-chip>
+            <ol-chip count="1,024">$_("Fiction")</ol-chip>
+            <ol-chip count="76" selected>$_("History")</ol-chip>
           </div>
         </section>
 
@@ -199,8 +199,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$:_("When %(href)s is provided, the chip renders as an anchor tag instead of a button.", href="<code>href</code>")</p>
           <code class="example__code">&lt;ol-chip href="/subjects/fiction" count="76"&gt;Fiction&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip href="/subjects/fiction" count="1,024">Fiction</ol-chip>
-            <ol-chip href="/subjects/history" count="76" selected>History</ol-chip>
+            <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
+            <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
           </div>
         </section>
 
@@ -209,8 +209,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
           <p>$:_("Clicking a chip fires an %(event)s event. Toggle the selected state by listening to the event.", event="<code>ol-chip-select</code>")</p>
           <code class="example__code">&lt;ol-chip id="demo-chip"&gt;Toggle me&lt;/ol-chip&gt;</code>
           <div class="example__output">
-            <ol-chip id="demo-chip-1">Toggle me</ol-chip>
-            <ol-chip id="demo-chip-2" selected>Toggle me too</ol-chip>
+            <ol-chip id="demo-chip-1">$_("Toggle me")</ol-chip>
+            <ol-chip id="demo-chip-2" selected>$_("Toggle me too")</ol-chip>
           </div>
           <script>
             document.querySelectorAll('#demo-chip-1, #demo-chip-2').forEach(chip => {
