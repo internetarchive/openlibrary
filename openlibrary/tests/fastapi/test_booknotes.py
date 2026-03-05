@@ -132,15 +132,3 @@ class TestBooknotesPost:
         )
         assert response.status_code == 200
         assert response.json() == {"success": "note added"}
-
-    def test_db_error_returns_502(self, fastapi_client, mock_auth_user):
-        """Database failures return 502 Bad Gateway instead of a raw crash."""
-        with patch(
-            "openlibrary.core.models.Booknotes.add",
-            side_effect=Exception("DB is down"),
-        ):
-            response = fastapi_client.post(
-                "/works/OL123W/notes",
-                data={"notes": "This will fail"},
-            )
-        assert response.status_code == 502
