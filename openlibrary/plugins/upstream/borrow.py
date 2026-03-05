@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import contextlib
 import copy
 import hashlib
 import hmac
@@ -161,7 +162,20 @@ class borrow(delegate.page):
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
-        edition_redirect = urllib.parse.quote(i.redirect or edition.url())
+
+        # Sanitize i.redirect to prevent open redirect attacks by stripping
+        # any host/scheme from the URL, preserving only the path and query string.
+        parsed_redirect = urllib.parse.urlsplit(i.redirect) if i.redirect else None
+        redirect_path = (
+            (
+                parsed_redirect.path
+                + ('?' + parsed_redirect.query if parsed_redirect.query else '')
+            )
+            if parsed_redirect
+            else ''
+        )
+        edition_redirect = redirect_path or edition.url()
+
         user = accounts.get_current_user()
 
         if user:
@@ -173,18 +187,24 @@ class borrow(delegate.page):
             )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = (
-                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
-            )
+            redirect_url = f"/account/login?redirect={urllib.parse.quote(edition_redirect, safe='')}%2Fborrow%3Faction%3D{action}"
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
+            # Suppress PatronAccessException: the loan may have already expired
+            # on the IA side. Either way, proceed with redirect and confirmation.
+            with contextlib.suppress(lending.PatronAccessException):
+                lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
+            title = edition.title or _('this book')
+            add_flash_message(
+                'success',
+                _('You have successfully returned %s.') % title,
+            )
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(
