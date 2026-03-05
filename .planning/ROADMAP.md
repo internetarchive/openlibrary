@@ -47,7 +47,7 @@ Plans:
 
 ### Phase 3: Code Examples
 
-**Goal**: Provide working code examples in multiple programming languages
+**Goal**: Provide working examples in JavaScript, Python, curl for each endpoint documented in Phase 2
 **Depends on**: Phase 2
 **Requirements**: CODE-01, CODE-02, CODE-03, CODE-04
 **Success Criteria** (what must be TRUE):
@@ -56,7 +56,11 @@ Plans:
 2. Developer can copy Python example for any endpoint and run it successfully
 3. Developer can use curl command-line examples to test any endpoint
 4. All code examples are tested and verified to work with live API
-   **Plans**: TBD
+   **Plans**: 1 plan
+
+Plans:
+
+- [ ] 03-code-examples-01-PLAN.md — Add working JS/Python examples to all API docs
 
 ### Phase 4: Error Handling & Guides
 
