@@ -24,7 +24,7 @@
 
 .design-pattern-nav__title {
   font-size: var(--font-size-body-large);
-  margin: 0 0 12px 0;
+  margin: 0 0 12px;
   color: var(--dark-grey);
 }
 
@@ -67,11 +67,11 @@
 
 .design-pattern__title {
   color: var(--dark-grey);
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
 }
 
 .design-pattern__description {
-  margin: 0 0 16px 0;
+  margin: 0 0 16px;
   font-size: 18px;
   color: var(--mid-grey);
 }
