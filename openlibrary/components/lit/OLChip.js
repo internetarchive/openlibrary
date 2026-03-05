@@ -28,6 +28,7 @@ export class OLChip extends LitElement {
         size: { type: String, reflect: true },
         href: { type: String },
         count: { type: String },
+        chipLabel: { type: String, attribute: 'chip-label' },
     };
 
     static styles = css`
@@ -117,6 +118,7 @@ export class OLChip extends LitElement {
         this.size = 'medium';
         this.href = null;
         this.count = null;
+        this.chipLabel = null;
     }
 
     _handleClick() {
@@ -162,6 +164,7 @@ export class OLChip extends LitElement {
         if (this.href) {
             return html`
                 <a class="chip" href=${this.href}
+                    aria-label=${this.chipLabel || nothing}
                     aria-current=${this.selected || nothing}
                     @click=${this._handleClick}>
                     ${content}
@@ -171,6 +174,7 @@ export class OLChip extends LitElement {
 
         return html`
             <button class="chip" type="button"
+                aria-label=${this.chipLabel || nothing}
                 aria-pressed=${this.selected}
                 @click=${this._handleClick}>
                 ${content}
