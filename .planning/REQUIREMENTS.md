@@ -27,10 +27,10 @@
 
 ### Code Examples
 
-- [ ] **CODE-01**: Provide JavaScript/fetch examples for each endpoint
-- [ ] **CODE-02**: Provide Python examples for each endpoint
-- [ ] **CODE-03**: Include curl examples for command-line testing
-- [ ] **CODE-04**: All code examples must be tested and working
+- [x] **CODE-01**: Provide JavaScript/fetch examples for each endpoint
+- [x] **CODE-02**: Provide Python examples for each endpoint
+- [x] **CODE-03**: Include curl examples for command-line testing
+- [x] **CODE-04**: All code examples must be tested and working
 
 ### Error Handling
 
@@ -78,10 +78,10 @@
 | REF-03      | Phase 2 | ✓ Complete |
 | REF-04      | Phase 2 | ✓ Complete |
 | REF-05      | Phase 2 | ✓ Complete |
-| CODE-01     | Phase 3 | Pending    |
-| CODE-02     | Phase 3 | Pending    |
-| CODE-03     | Phase 3 | Pending    |
-| CODE-04     | Phase 3 | Pending    |
+| CODE-01     | Phase 3 | Complete |
+| CODE-02     | Phase 3 | Complete |
+| CODE-03     | Phase 3 | Complete |
+| CODE-04     | Phase 3 | Complete |
 | ERR-01      | Phase 4 | Pending    |
 | ERR-02      | Phase 4 | Pending    |
 | ERR-03      | Phase 4 | Pending    |
