@@ -73,11 +73,11 @@
 | AUTH-01     | Phase 1 | ✓ Complete |
 | AUTH-02     | Phase 1 | ✓ Complete |
 | AUTH-03     | Phase 1 | ✓ Complete |
-| REF-01      | Phase 2 | Pending    |
-| REF-02      | Phase 2 | Pending    |
-| REF-03      | Phase 2 | Pending    |
-| REF-04      | Phase 2 | Pending    |
-| REF-05      | Phase 2 | Pending    |
+| REF-01      | Phase 2 | ✓ Complete |
+| REF-02      | Phase 2 | ✓ Complete |
+| REF-03      | Phase 2 | ✓ Complete |
+| REF-04      | Phase 2 | ✓ Complete |
+| REF-05      | Phase 2 | ✓ Complete |
 | CODE-01     | Phase 3 | Pending    |
 | CODE-02     | Phase 3 | Pending    |
 | CODE-03     | Phase 3 | Pending    |
@@ -88,9 +88,9 @@
 | RATE-01     | Phase 4 | Pending    |
 | RATE-02     | Phase 4 | Pending    |
 | RATE-03     | Phase 4 | Pending    |
-| SCH-01      | Phase 2 | Pending    |
-| SCH-02      | Phase 2 | Pending    |
-| SCH-03      | Phase 2 | Pending    |
+| SCH-01      | Phase 2 | ✓ Complete |
+| SCH-02      | Phase 2 | ✓ Complete |
+| SCH-03      | Phase 2 | ✓ Complete |
 
 **Coverage:**
 
@@ -101,4 +101,4 @@
 ---
 
 _Requirements defined: 2026-03-04_
-_Last updated: 2026-03-04 after initial definition_
+_Last updated: 2026-03-04 after Phase 2 (Core API Reference) completion_

@@ -39,7 +39,11 @@ Plans:
 1. Developer can find documentation for every major endpoint (search, books, authors, subjects, covers)
 2. Developer can understand response structure for each endpoint (field types, nullability)
 3. Developer has example responses for every endpoint
-   **Plans**: TBD
+   **Plans**: 1 plan
+
+Plans:
+
+- [x] 02-api-reference-01-PLAN.md — Document all 5 major endpoints with response schemas
 
 ### Phase 3: Code Examples
 
@@ -72,7 +76,7 @@ Plans:
 | Phase                          | Plans Complete | Status      | Completed  |
 | ------------------------------ | -------------- | ----------- | ---------- |
 | 1. Quickstart & Authentication | 1/1            | Complete    | 2026-03-04 |
-| 2. Core API Reference          | 0/TBD          | Not started | -          |
+| 2. Core API Reference          | 1/1            | Complete    | 2026-03-04 |
 | 3. Code Examples               | 0/TBD          | Not started | -          |
 | 4. Error Handling & Guides     | 0/TBD          | Not started | -          |
 
