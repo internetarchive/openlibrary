@@ -52,9 +52,9 @@ export class OLChip extends LitElement {
             padding: var(--chip-padding-block) var(--chip-padding-inline);
             border: var(--border-width) solid var(--color-border-subtle);
             border-radius: var(--border-radius-pill);
-            font-family: var(--font-family-sans);
+            font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
-            line-height: 1.1;
+            line-height: var(--line-height-chip);
             background: var(--white);
             color: var(--dark-grey);
             cursor: pointer;
