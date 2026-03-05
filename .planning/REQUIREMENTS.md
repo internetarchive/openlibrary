@@ -34,15 +34,15 @@
 
 ### Error Handling
 
-- [ ] **ERR-01**: Document common HTTP error codes (400, 404, 429, 500)
-- [ ] **ERR-02**: Explain what each error code means for Open Library API
-- [ ] **ERR-03**: Provide guidance on handling errors in code
+- [x] **ERR-01**: Document common HTTP error codes (400, 404, 429, 500)
+- [x] **ERR-02**: Explain what each error code means for Open Library API
+- [x] **ERR-03**: Provide guidance on handling errors in code
 
 ### Rate Limits
 
-- [ ] **RATE-01**: Document rate limiting behavior
-- [ ] **RATE-02**: Explain best practices to avoid rate limiting
-- [ ] **RATE-03**: Document retry logic for 429 errors
+- [x] **RATE-01**: Document rate limiting behavior
+- [x] **RATE-02**: Explain best practices to avoid rate limiting
+- [x] **RATE-03**: Document retry logic for 429 errors
 
 ### Schema Documentation
 
@@ -82,12 +82,12 @@
 | CODE-02     | Phase 3 | Complete |
 | CODE-03     | Phase 3 | Complete |
 | CODE-04     | Phase 3 | Complete |
-| ERR-01      | Phase 4 | Pending    |
-| ERR-02      | Phase 4 | Pending    |
-| ERR-03      | Phase 4 | Pending    |
-| RATE-01     | Phase 4 | Pending    |
-| RATE-02     | Phase 4 | Pending    |
-| RATE-03     | Phase 4 | Pending    |
+| ERR-01      | Phase 4 | Complete |
+| ERR-02      | Phase 4 | Complete |
+| ERR-03      | Phase 4 | Complete |
+| RATE-01     | Phase 4 | Complete |
+| RATE-02     | Phase 4 | Complete |
+| RATE-03     | Phase 4 | Complete |
 | SCH-01      | Phase 2 | ✓ Complete |
 | SCH-02      | Phase 2 | ✓ Complete |
 | SCH-03      | Phase 2 | ✓ Complete |
