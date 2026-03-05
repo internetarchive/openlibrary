@@ -163,6 +163,88 @@ curl -H "User-Agent: MyApp/1.0 (https://myapp.com; contact@myapp.com)" \
 }
 ```
 
+## Code Examples
+
+### JavaScript (fetch)
+
+```javascript
+/**
+ * Fetch works by subject
+ * @param {string} subject - Subject name (e.g., love, science_fiction)
+ * @param {number} limit - Number of works to return
+ */
+async function fetchSubject(subject, limit = 2) {
+  const url = `https://openlibrary.org/subjects/${encodeURIComponent(subject)}.json?limit=${limit}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        // Required: Identify your application
+        "User-Agent": "MyApp/1.0 (https://myapp.com; contact@myapp.com)",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`Found ${data.work_count} works for subject "${data.name}":`);
+
+    data.works.forEach((work) => {
+      const authors = work.authors?.map((a) => a.name).join(", ") || "Unknown";
+      console.log(`- ${work.title} by ${authors}`);
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Fetch failed:", error);
+  }
+}
+
+// Example usage:
+fetchSubject("love");
+```
+
+### Python (requests)
+
+```python
+import requests
+
+def fetch_subject(subject, limit=2):
+    """
+    Fetch works by subject using the requests library.
+    """
+    # Replace spaces with underscores
+    formatted_subject = subject.replace(' ', '_')
+    url = f'https://openlibrary.org/subjects/{formatted_subject}.json'
+    params = {'limit': limit}
+    headers = {
+        # Required: Identify your application
+        'User-Agent': 'MyApp/1.0 (https://myapp.com; contact@myapp.com)'
+    }
+
+    try:
+        response = requests.get(url, params=params, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+        print(f"Found {data.get('work_count')} works for subject \"{data.get('name')}\":")
+
+        for work in data.get('works', []):
+            title = work.get('title')
+            authors = ", ".join([a.get('name') for a in work.get('authors', []) if a.get('name')])
+            print(f"- {title} by {authors or 'Unknown'}")
+
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Fetch failed: {e}")
+
+# Example usage:
+if __name__ == "__main__":
+    fetch_subject('love')
+```
+
 ## Subject Types
 
 The API supports different subject types:
