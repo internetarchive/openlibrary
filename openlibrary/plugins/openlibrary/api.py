@@ -645,7 +645,8 @@ class work_delete(delegate.page):
         keys_to_delete: list = [el.get("key") for el in [*editions, work.dict()]]
         delete_payload: list[dict] = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
 
-        web.ctx.site.save_many(delete_payload, comment)
+        # this deletes editions and works
+        web.ctx.site.save_many(delete_payload, comment, action="bulk-delete-book-records")
         return delegate.RawText(
             json.dumps(
                 {
@@ -1025,7 +1026,11 @@ class unlink_ia_ol(delegate.page):
         data["source_records"] = [rec for rec in source_records if not rec.startswith("ia:")]
         if not data["source_records"]:
             del data["source_records"]
-        web.ctx.site.save(data, "Remove OCAID: Item no longer available to borrow.")
+        web.ctx.site.save(
+            data,
+            "Remove OCAID: Item no longer available to borrow.",
+            action="update-edition"
+        )
 
 
 class monthly_logins(delegate.page):

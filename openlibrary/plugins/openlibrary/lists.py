@@ -396,9 +396,10 @@ class lists_edit(delegate.page):
                 # Cast is needed since the infogami code isn't typed yet
                 records_to_save.append(cast(dict, work.dict()))
 
+        action = "add-series" if list_type_plural == "series" else "add-list"
         web.ctx.site.save_many(
             records_to_save,
-            action="lists",
+            action=action,
             comment=web.input(_comment="")._comment or None,
         )
 
@@ -481,7 +482,7 @@ class lists_delete(delegate.page):
         cache.memcache_cache.delete(cache_key)
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
-        web.ctx.site.save(delete_doc, action="lists", comment="Deleted list.")
+        web.ctx.site.save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
 class lists_json(delegate.page):
@@ -568,7 +569,7 @@ class lists_json(delegate.page):
             result = site.save(
                 lst.dict(),
                 comment="Created new list.",
-                action="lists",
+                action="add-list",
                 data={"list": {"key": lst.key}, "seeds": seeds},
             )
         except client.ClientException as e:
@@ -726,7 +727,11 @@ class list_seeds(delegate.page):
             "remove": data["remove"],
         }
 
-        return lst._save(comment="Updated list.", action="lists", data=changeset_data)
+        return lst._save(
+            comment="Updated list.",
+            action="update-list-items",
+            data=changeset_data
+        )
 
 
 class list_seed_yaml(list_seeds):

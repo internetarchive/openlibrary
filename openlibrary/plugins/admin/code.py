@@ -103,7 +103,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     delete_payload = [
         {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
     ]
-    web.ctx.site.save_many(delete_payload, 'Delete spam')
+    web.ctx.site.save_many(delete_payload, 'Delete spam', action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -515,6 +515,9 @@ class stats:
     def POST(self, today):
         """Update stats for today."""
         doc = self.get_stats(today)
+        # This seems like it would save a Thing
+        # ...but, I don't know if this endpoint is in use today.
+        # I suspect not....
         doc._save()
         raise web.seeother(web.ctx.path)
 
@@ -551,7 +554,12 @@ class block:
             "/admin/block", {"key": "/admin/block", "type": "/type/object"}
         )
         page.ips = [{'ip': ip} for ip in ips]
-        page._save("updated blocked IPs")
+        # I suspect that this doesn't get called much, but it's
+        # important to set an action on these types of transactions.
+        #
+        # I suspect that we'd want to filter these out from the
+        # `/recentchanges` page.
+        page._save("updated blocked IPs", action="block-ips")
 
 
 def get_blocked_ips():
@@ -745,7 +753,9 @@ class permissions:
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
         web.ctx.site.save_many(
-            [root, works, books, authors], comment="Updated edit policy."
+            [root, works, books, authors],
+            comment="Updated edit policy.",
+            action="bulk-update-permissions"
         )
 
         add_flash_message("info", "Edit policy has been updated!")

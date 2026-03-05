@@ -131,12 +131,14 @@ class DocSaveHelper:
     def __init__(self):
         self.docs = []
 
-    def save(self, doc) -> None:
+    def save(self, doc) -> None:  # total misnomer -- nothing is saved in the method
         """Adds the doc to the list of docs to be saved."""
         if not isinstance(doc, dict):  # thing
             doc = doc.dict()
         self.docs.append(doc)
 
+    # `action` is always being passed to `commit` today, but maybe not tomorrow?
+    # Should `action` be a positional argument for this method?
     def commit(self, **kw) -> None:
         """Saves all the collected docs."""
         if self.docs:
@@ -488,6 +490,7 @@ class addbook(delegate.page):
         saveutil.save(edition)
 
         comment = utils.get_message("comment_add_book")
+        # XXX : creates both work and edition
         saveutil.commit(action="add-book", comment=comment)
 
         raise safe_seeother(edition.url("/edit?mode=add-work"))
@@ -691,6 +694,8 @@ class SaveBookHelper:
             self.edition.update(edition_data)
             saveutil.save(self.edition)
 
+        # XXX : `edit-book` may be misleading
+        # This method sometimes creates new Work and Author objects
         saveutil.commit(comment=comment, action="edit-book")
 
     @staticmethod
@@ -705,7 +710,8 @@ class SaveBookHelper:
     @staticmethod
     def delete(key, comment=""):
         doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
-        doc._save(comment=comment)
+        # TODO : pull type from key, then compose `delete-{type}` action string
+        doc._save(comment=comment, action="delete-?")
 
     def process_input(self, i):
         if 'edition' in i:
@@ -993,13 +999,13 @@ class author_edit(delegate.page):
                 raise web.badrequest()
             elif "_save" in i:
                 author.update(formdata)
-                author._save(comment=i._comment)
+                author._save(comment=i._comment, action="update-author")
                 raise safe_seeother(key)
             elif "_delete" in i:
                 author = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
-                author._save(comment=i._comment)
+                author._save(comment=i._comment, action="delete-author")
                 raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
@@ -1057,6 +1063,7 @@ class work_identifiers(delegate.view):
             raise web.redirect(web.ctx.path)
         edition.set_identifiers(data)
         saveutil.save(edition)
+        # `action` : edit-book-isbn?
         saveutil.commit(comment="Added an %s identifier." % typ, action="edit-book")
         add_flash_message("info", "Thank you very much for improving that record!")
         raise web.redirect(web.ctx.path)

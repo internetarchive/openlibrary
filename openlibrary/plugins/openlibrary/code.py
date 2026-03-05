@@ -238,7 +238,7 @@ def sampleload(filename='sampledump.txt.gz'):
     with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries))
+    print(web.ctx.site.save_many(queries, action="infogami-action-sampleload"))
 
 
 class routes(delegate.page):
@@ -350,6 +350,7 @@ class addauthor(delegate.page):
         web.ctx.site.save(
             {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
+            action= "add-author"
         )
         raise web.HTTPError('200 OK', {}, key)
 
@@ -942,7 +943,7 @@ class _yaml_edit(_yaml):
             d = self.load(i.body)
             p = web.ctx.site.new(key, d)
             try:
-                p._save(i._comment)
+                p._save(i._comment, action="update-yaml")
             except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
