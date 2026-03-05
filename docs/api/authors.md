@@ -151,6 +151,86 @@ curl -H "User-Agent: MyApp/1.0 (https://myapp.com; contact@myapp.com)" \
 }
 ```
 
+## Code Examples
+
+### JavaScript (fetch)
+
+```javascript
+/**
+ * Fetch author details by Open Library ID (OLID)
+ * @param {string} olid - Author identifier (e.g., OL23919A)
+ */
+async function fetchAuthor(olid) {
+  const url = `https://openlibrary.org/authors/${olid}.json`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        // Required: Identify your application
+        "User-Agent": "MyApp/1.0 (https://myapp.com; contact@myapp.com)",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(`Author: ${data.name}`);
+
+    // Handle bio object or string
+    const bio = typeof data.bio === "object" ? data.bio.value : data.bio;
+
+    console.log(`Bio: ${bio?.substring(0, 100)}...`);
+
+    return data;
+  } catch (error) {
+    console.error("Fetch failed:", error);
+  }
+}
+
+// Example usage:
+fetchAuthor("OL23919A");
+```
+
+### Python (requests)
+
+```python
+import requests
+
+def fetch_author(olid):
+    """
+    Fetch author details by Open Library ID (OLID) using the requests library.
+    """
+    url = f'https://openlibrary.org/authors/{olid}.json'
+    headers = {
+        # Required: Identify your application
+        'User-Agent': 'MyApp/1.0 (https://myapp.com; contact@myapp.com)'
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        data = response.json()
+        print(f"Author: {data.get('name')}")
+
+        # Handle bio object or string
+        bio = data.get('bio', '')
+        if isinstance(bio, dict):
+            bio = bio.get('value', '')
+
+        print(f"Bio: {bio[:100]}...")
+
+        return data
+    except requests.exceptions.RequestException as e:
+        print(f"Fetch failed: {e}")
+
+# Example usage:
+if __name__ == "__main__":
+    fetch_author('OL23919A')
+```
+
 ## Author Works Endpoint
 
 To get a list of works by an author, use the works endpoint:
