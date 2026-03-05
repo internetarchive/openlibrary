@@ -1018,7 +1018,7 @@ msgid "View the editing history of this page"
 msgstr ""
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
+#: design.html lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
 
@@ -1213,7 +1213,7 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: design.html openlibrary/plugins/openlibrary/home.py
 msgid "Science"
 msgstr ""
 
@@ -1935,6 +1935,10 @@ msgid "Basic chips at the default medium size."
 msgstr ""
 
 #: design.html
+msgid "Fiction"
+msgstr ""
+
+#: design.html
 msgid "Selected state"
 msgstr ""
 
@@ -1949,6 +1953,18 @@ msgstr ""
 #: design.html
 #, python-format
 msgid "Use %(size)s for a compact chip."
+msgstr ""
+
+#: design.html
+msgid "Poetry"
+msgstr ""
+
+#: design.html
+msgid "Drama"
+msgstr ""
+
+#: design.html
+msgid "Essays"
 msgstr ""
 
 #: design.html
@@ -1980,6 +1996,14 @@ msgstr ""
 msgid ""
 "Clicking a chip fires an %(event)s event. Toggle the selected state by "
 "listening to the event."
+msgstr ""
+
+#: design.html
+msgid "Toggle me"
+msgstr ""
+
+#: design.html
+msgid "Toggle me too"
 msgstr ""
 
 #: diff.html
