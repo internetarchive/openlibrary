@@ -37,7 +37,7 @@ The Open Library API follows REST conventions. Here are the main endpoints:
 
 Let's make your first search for books!
 
-API call to### Step 1: Choose Your Tool
+### Step 1: Choose Your Tool
 
 You can use any HTTP client. Here are examples:
 
