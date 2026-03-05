@@ -10,9 +10,7 @@ $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
                   data-work-olid="$work.key.split('/')[-1]"
                   title="$_('Manage Subjects')">✏️</button>
         $for subject in subjects:
-          <span class="subject-tag">
-            <a class="subject-tag__link" href="$subject_name_to_key(subject, prefix=prefix)" data-ol-link-track="$track_value">$subject</a>
-          </span>$cond(not loop.last, ",", "")
+          <a class="ol-tag ol-tag--subject ol-tag__link" href="$subject_name_to_key(subject, prefix=prefix)" data-ol-link-track="$track_value">$subject</a>$cond(not loop.last, ",", "")
       </span>
     </div>
 
