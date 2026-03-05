@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from pydantic import BaseModel, Field
 
 from openlibrary.core import models
@@ -46,15 +46,30 @@ class RatingRequest(BaseModel):
     edition_id: str | None = None
 
 
-@router.get("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
-async def get_ratings(work_id: int) -> dict:
+class RatingsSummary(BaseModel):
+    """Summary statistics for a work's ratings."""
+
+    average: float | None = Field(default=None, description="Average star rating")
+    count: int = Field(default=0, description="Total number of ratings")
+    sortable: float | None = Field(default=None, exclude=True, description="Bayesian sortable score (internal only)")
+
+
+class RatingsResponse(BaseModel):
+    """Response model for the GET ratings endpoint."""
+
+    summary: RatingsSummary = Field(default_factory=RatingsSummary)
+    counts: dict[str, int] = Field(default_factory=dict, description="Per-star rating counts keyed by star number")
+
+
+@router.get("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA, response_model=RatingsResponse)
+async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
-    return legacy_ratings.get_ratings_summary(work_id)
+    return RatingsResponse(**legacy_ratings.get_ratings_summary(work_id))
 
 
 @router.post("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def post_rating(
-    work_id: int,
+    work_id: Annotated[int, Path()],
     data: RatingRequest,
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
