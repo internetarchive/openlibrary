@@ -1,6 +1,6 @@
 a.cancel {
   color: var(--red);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1em;
 }
 a.borrowResults:link {
@@ -64,7 +64,7 @@ a.toggle:hover {
 
 button.plainText {
   border: none;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
   color: var(--red);
   background-color: var(--white);
@@ -75,7 +75,7 @@ button.plainText:hover {
 }
 button.plain {
   border: none;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
   color: var(--black);
   background-color: transparent !important;

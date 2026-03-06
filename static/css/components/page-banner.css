@@ -5,7 +5,7 @@
 .page-banner {
   display: block;
   color: var(--white);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
   border-bottom: 1px solid var(--beige);
@@ -67,7 +67,7 @@
   justify-content: space-between;
   align-items: center;
   color: var(--white);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background: var(--dark-grey);
   padding: 15px;
   border-bottom: 1px solid var(--beige);

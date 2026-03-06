@@ -19,7 +19,7 @@
  */
 
 .dataTables_wrapper {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   position: relative;
   z-index: var(--z-index-level-1);
   clear: both;
@@ -256,7 +256,7 @@ div.dataTables_filter {
 
 .paging_full_numbers .paginate_button,
 .paging_full_numbers .paginate_active {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   padding: 7px;
   margin: 0 5px;

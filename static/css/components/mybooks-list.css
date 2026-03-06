@@ -61,7 +61,7 @@
 .mybooks-list--clean h3 {
   display: inline;
   padding-right: 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1em;
   font-weight: normal;
   margin-bottom: 0;

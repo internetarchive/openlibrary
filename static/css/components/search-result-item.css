@@ -98,7 +98,7 @@
 .searchResultItem .resultStats {
   font-size: 0.75em;
   color: var(--grey);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   display: block;
 }
 
