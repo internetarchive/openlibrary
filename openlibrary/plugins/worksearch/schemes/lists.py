@@ -70,8 +70,7 @@ class ListSearchScheme(SearchScheme):
             ('q.op', 'AND'),  # use 'AND" for matching multiple words in search queries
             ('defType', 'edismax'),  # use edismax parser for better full-text search
             # qf specifies which fields to search and their boost weights.
-            # Without this, edismax has no fields to score against and
-            # returns effectively random results. name is the only free-text
-            # field guaranteed to be populated on all lists.
-            ('qf', 'name')
+            # Searching 'text' allows matching on subjects aggregated from the list's
+            # books, while boosting 'name' ensures title matches rank highest.
+            ('qf', 'text name^10')
         ]
