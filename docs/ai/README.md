@@ -130,7 +130,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Frontend
 
-- **CSS:** LESS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/` and `static/css/less/`.
+- **CSS:** CSS files in `static/css/`, compiled via webpack. Files prefixed `page-` are page-specific. Shared styles in `static/css/base/`.
 - **JavaScript:** Source in `openlibrary/plugins/openlibrary/js/`, bundled via webpack to `static/build/js/`.
 - **Vue components:** `openlibrary/components/*.vue`, built with Vite to `static/build/components/`.
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
@@ -153,7 +153,7 @@ A Work has many Editions. This is the central relationship in the data model.
 
 - **Python:** Ruff linter, Black formatter. Line length 162. Target Python 3.12.
 - **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
-- **CSS/LESS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
+- **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
 
 ## Topic Guides
@@ -173,7 +173,7 @@ These companion docs cover specific areas in depth:
 | Template macros | `openlibrary/macros/` |
 | Core models & logic | `openlibrary/core/` |
 | JS source | `openlibrary/plugins/openlibrary/js/` |
-| CSS/LESS source | `static/css/` |
+| CSS source | `static/css/` |
 | Vue components | `openlibrary/components/*.vue` |
 | Lit components | `openlibrary/components/lit/` |
 | Python tests | `tests/`, `openlibrary/**/tests/` |

@@ -4,7 +4,7 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.12 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · LESS/webpack · Solr 9.9
+**Stack:** Python 3.12 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 9.9
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
@@ -25,7 +25,7 @@ npm run watch               # Dev mode with hot reload
 
 - **Python:** Ruff + Black, line length 162
 - **JS:** ESLint, single quotes, no jQuery in new code
-- **CSS/LESS:** Stylelint — no hex/named colors, use variables
+- **CSS:** Stylelint — no hex/named colors, use variables
 - **Branches:** `{issue-number}/{type}/{slug}`
 
 ### Entry Points
