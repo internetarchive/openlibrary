@@ -26,16 +26,15 @@ $ _x = ctx.setdefault('cssfile', 'design')
     <div class="design-pattern__content">
       <section class="example">
         <h3 class="example__title">$_("Event-based")</h3>
-        <p>$:_("When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s.", update_page="<code>update:page</code>", event_detail="<code>event.detail</code>")</p>
+        <p>$:_("When a page is clicked, the component fires an %(event_name)s event with the page number in %(event_detail)s.", event_name="<code>ol-pagination-change</code>", event_detail="<code>event.detail.page</code>")</p>
         <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
         <div class="example__output">
           <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
         </div>
         <p>$_("Selected page:"): <strong id="demo-selected-page">1</strong></p>
         <script>
-          document.getElementById('demo-pagination').addEventListener('update:page', (e) => {
-            document.getElementById('demo-selected-page').textContent = e.detail;
-            e.target.setAttribute('current-page', e.detail);
+          document.getElementById('demo-pagination').addEventListener('ol-pagination-change', (e) => {
+            document.getElementById('demo-selected-page').textContent = e.detail.page;
           });
         </script>
       </section>
