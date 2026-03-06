@@ -3,6 +3,7 @@ $# :param str ocaid:
 
 $ analytics = analytics_attr('Preview') if analytics_attr else 'data-ol-link-track="CTAClick|Preview"'
 
+$if ocaid:
   <div class="cta-button-group">
     <a class="cta-btn cta-btn--preview"
       data-iframe-src="https://archive.org/details/$ocaid?view=theater&wrapper=false"
