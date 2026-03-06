@@ -99,8 +99,15 @@ export class SearchBar {
         // Stop renderAutoCompletionResults from firing when ESC is pressed in results list
         this.escapeInput = false;
 
+        // URL mode is authoritative on page load; fall back to localStorage (homepage case)
+        this._activeMode = (urlParams && urlParams.mode) || SearchUtils.mode.read() || 'everything';
+
         // Bind to changes in the search state
-        SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
+        this.handleSearchModeChange(this._activeMode);
+        SearchUtils.mode.sync(newMode => {
+            this._activeMode = newMode;           // user explicitly changed via radio button
+            this.handleSearchModeChange(newMode);
+        }, false);  // false = don't fire on init (we already did above)
         this.facet.sync(this.handleFacetValueChange.bind(this));
         this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
@@ -200,8 +207,8 @@ export class SearchBar {
             const q = this.$input.val();
             this.$input.val(SearchBar.marshalBookSearchQuery(q));
         }
-        this.$form.attr('action', SearchBar.composeSearchUrl(this.facetEndpoint, this.$input.val()));
-        SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
+        this.$form.attr('action', SearchBar.composeSearchUrl(this.facetEndpoint, this.$input.val(), false, null, null, this._activeMode));
+        SearchUtils.addModeInputsToForm(this.$form, this._activeMode);
     }
 
     /** Initialize event handlers that allow the form to collapse for small screens */
@@ -291,7 +298,7 @@ export class SearchBar {
      * @param {Number} [limit] how many items to get
      * @param {String[]} [fields] the Solr fields to fetch (if using JSON)
      */
-    static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null) {
+    static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null, mode=null) {
         let url = facetEndpoint;
         if (json) {
             url += `.json?q=${q}&_spellcheck_count=0`;
@@ -301,7 +308,7 @@ export class SearchBar {
 
         if (limit) url += `&limit=${limit}`;
         if (fields) url += `&fields=${fields.map(encodeURIComponent).join(',')}`;
-        url += `&mode=${SearchUtils.mode.read()}`;
+        url += `&mode=${mode !== null ? mode : SearchUtils.mode.read()}`;
         return url;
     }
 
@@ -358,7 +365,7 @@ export class SearchBar {
         }
 
         this.$results.css('opacity', 0.5);
-        return $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10, DEFAULT_JSON_FIELDS), data => {
+        return $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10, DEFAULT_JSON_FIELDS, this._activeMode), data => {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
