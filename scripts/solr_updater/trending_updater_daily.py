@@ -1,19 +1,56 @@
 import datetime
+import logging
+import time
+
+import httpx
 
 from openlibrary.plugins.worksearch.code import execute_solr_query
 from openlibrary.plugins.worksearch.search import get_solr
 
+logger = logging.getLogger("openlibrary.trending-updater-daily")
+
+MAX_RETRIES = 12  # 2 minutes with exponential backoff starting at 5s
+INITIAL_WAIT_SECONDS = 5
+
+
+def wait_for_solr():
+    """Wait for Solr to become available with exponential backoff."""
+    solr = get_solr()
+    wait_time = INITIAL_WAIT_SECONDS
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            resp = solr.session.get(
+                f"{solr.base_url}/admin/ping",
+                timeout=5,
+            )
+            if resp.status_code == 200:
+                logger.info("Solr is available")
+                return True
+        except (httpx.HTTPError, httpx.ConnectError) as e:
+            logger.warning(
+                "Solr not ready (attempt %d/%d): %s", attempt + 1, MAX_RETRIES, e
+            )
+
+        if attempt < MAX_RETRIES - 1:
+            logger.info("Waiting %ds before retrying...", wait_time)
+            time.sleep(wait_time)
+            wait_time = min(wait_time * 1.5, 30)  # Cap at 30 seconds
+
+    raise RuntimeError("Solr is not available after maximum retries")
+
 
 def fetch_works_trending_scores(current_day: int):
+    wait_for_solr()
+
     resp = execute_solr_query(
         '/export',
         {
             "q": f'trending_score_hourly_sum:[1 TO *] OR trending_score_daily_{current_day}:[1 TO *]',
             "fl": "key,trending_score_hourly_sum",
-            # /export needs a sort to work
             "sort": "key asc",
         },
-        _timeout=None,  # No timeout for large datasets
+        _timeout=None,
     )
     assert resp
     data = resp.json()
