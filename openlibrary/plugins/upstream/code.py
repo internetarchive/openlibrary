@@ -411,6 +411,3 @@ def setup():
     )
 
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
-
-
-setup()
