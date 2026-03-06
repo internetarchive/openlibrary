@@ -1,0 +1,32 @@
+/**
+ * Border-Radius Primitives
+ * ======================
+ * Rarely used directly in components - use semantic tokens instead
+ */
+:root {
+  --border-radius-sm: 2px;
+  --border-radius-md: 4px;
+  --border-radius-lg: 8px;
+  --border-radius-xl: 12px;
+  --border-radius-xxl: 24px;
+  --border-radius-pill: 9999px;
+  --border-radius-circle: 50%;
+  --border-radius-square: 0;
+}
+
+/**
+ * Border-Radius Semantic Tokens
+ * ====================
+ * Reference these throughout the app for consistent border-radius styling
+ */
+:root {
+  --border-radius-button: 4px; /* buttons, tabs */
+  --border-radius-input: 4px; /* inputs, textareas */
+  --border-radius-thumbnail: 2px; /* small images */
+  --border-radius-media: 8px; /* large images, videos */
+  --border-radius-card: 8px; /* cards */
+  --border-radius-overlay: 12px; /* dialogs, modals */
+  --border-radius-badge: 2px; /* badges, tags */
+  --border-radius-notification: 8px; /* notifications, alerts */
+  --border-radius-avatar: 50%; /* avatars, profile pictures */
+}

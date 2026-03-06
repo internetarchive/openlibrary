@@ -12,11 +12,12 @@ logger = logging.getLogger("openlibrary.worksearch")
 # define a search scheme for lists, similar to SubjectSearchScheme
 class ListSearchScheme(SearchScheme):
     # this search only applies to list type documents
-    universe = frozenset(['type:list'])
+    universe = frozenset(['type:list OR list_type:*'])
     all_fields = frozenset(
         {
             'key',  # unique identifier for the list
             'name',  # name/title of the list
+            'list_type',  # list type: "series", "user_list", or "community_list"
             'seed',
             'subject',
             'subject_key',

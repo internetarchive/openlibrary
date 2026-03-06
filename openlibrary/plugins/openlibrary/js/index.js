@@ -3,7 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
-import '../../../../static/css/js-all.less';
+import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 
@@ -81,6 +81,7 @@ jQuery(function () {
 
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const autocompleteSeries = document.querySelector('.multi-input-autocomplete--series');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
@@ -94,7 +95,7 @@ jQuery(function () {
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
+        autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
         excerpts || links
@@ -115,6 +116,9 @@ jQuery(function () {
                 }
                 if (autocompleteAuthor) {
                     module.initAuthorMultiInputAutocomplete();
+                }
+                if (autocompleteSeries) {
+                    module.initSeriesMultiInputAutocomplete();
                 }
                 if (roles) {
                     module.initRoleValidation();
@@ -320,7 +324,22 @@ jQuery(function () {
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
-            .then((module) => module.init());
+            .then((module) => module.init())
+            .then(() => {
+                // book page subject editing
+                // Handle pencil clicks
+                document.querySelectorAll('.edit-subject-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault()
+                        const workOlid = btn.dataset.workOlid
+                        if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
+                            window.ILE.selectionManager.addSelectedItem(workOlid)
+                            window.ILE.selectionManager.updateToolbar()
+                        }
+                        window.ILE.updateAndShowBulkTagger([workOlid], true)
+                    })
+                })
+            })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')

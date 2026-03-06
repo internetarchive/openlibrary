@@ -1,0 +1,5 @@
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  background: var(--lightest-grey);
+}

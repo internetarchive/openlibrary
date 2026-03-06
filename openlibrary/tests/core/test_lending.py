@@ -10,23 +10,15 @@ from openlibrary.utils.request_context import RequestContextVars, req_context
 class TestAddAvailability:
     def test_reads_ocaids(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
-            return {'foo': {'status': 'available'}}
+            return {"foo": {"status": "available"}}
 
         monkeypatch.setattr(lending, "get_availability", mock_get_availability)
 
         f = lending.add_availability
-        assert f([{'ocaid': 'foo'}]) == [
-            {'ocaid': 'foo', 'availability': {'status': 'available'}}
-        ]
-        assert f([{'identifier': 'foo'}]) == [
-            {'identifier': 'foo', 'availability': {'status': 'available'}}
-        ]
-        assert f([{'ia': 'foo'}]) == [
-            {'ia': 'foo', 'availability': {'status': 'available'}}
-        ]
-        assert f([{'ia': ['foo']}]) == [
-            {'ia': ['foo'], 'availability': {'status': 'available'}}
-        ]
+        assert f([{"ocaid": "foo"}]) == [{"ocaid": "foo", "availability": {"status": "available"}}]
+        assert f([{"identifier": "foo"}]) == [{"identifier": "foo", "availability": {"status": "available"}}]
+        assert f([{"ia": "foo"}]) == [{"ia": "foo", "availability": {"status": "available"}}]
+        assert f([{"ia": ["foo"]}]) == [{"ia": ["foo"], "availability": {"status": "available"}}]
 
     def test_handles_ocaid_none(self):
         f = lending.add_availability
@@ -34,14 +26,14 @@ class TestAddAvailability:
 
     def test_handles_availability_none(self, monkeypatch):
         def mock_get_availability(id_type, ocaids):
-            return {'foo': {'status': 'error'}}
+            return {"foo": {"status": "error"}}
 
         monkeypatch.setattr(lending, "get_availability", mock_get_availability)
 
         f = lending.add_availability
-        r = f([{'ocaid': 'foo'}])
+        r = f([{"ocaid": "foo"}])
         print(r)
-        assert r[0]['availability']['status'] == 'error'
+        assert r[0]["availability"]["status"] == "error"
 
 
 class TestGetAvailability:
@@ -75,14 +67,14 @@ class TestGetAvailability:
                 "identifier": "foo",
                 "is_restricted": False,
                 "is_browseable": False,
-                "__src__": 'core.models.lending.get_availability',
+                "__src__": "core.models.lending.get_availability",
             }
             bar_expected = {
                 "status": "error",
                 "identifier": "bar",
                 "is_restricted": True,
                 "is_browseable": False,
-                "__src__": 'core.models.lending.get_availability',
+                "__src__": "core.models.lending.get_availability",
             }
 
             r = lending.get_availability("identifier", ["foo"])
@@ -101,5 +93,5 @@ class TestGetAvailability:
             }
             r3 = lending.get_availability("identifier", ["foo", "bar"])
             assert mock_get.call_count == 2
-            assert mock_get.call_args[1]['params']['identifier'] == "bar"
+            assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}

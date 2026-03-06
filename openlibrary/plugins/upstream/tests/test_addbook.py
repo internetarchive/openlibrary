@@ -14,13 +14,13 @@ def strip_nones(d):
 
 def mock_user():
     return type(
-        'MockUser',
+        "MockUser",
         (object,),
         {
-            'is_admin': lambda slf: False,
-            'is_super_librarian': lambda slf: False,
-            'is_librarian': lambda slf: False,
-            'is_usergroup_member': lambda slf, grp: False,
+            "is_admin": lambda slf: False,
+            "is_super_librarian": lambda slf: False,
+            "is_librarian": lambda slf: False,
+            "is_usergroup_member": lambda slf, grp: False,
         },
     )()
 

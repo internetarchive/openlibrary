@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Path, Request
 from fastapi.responses import RedirectResponse
 
 from openlibrary.fastapi.services.subject_service import (
@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get("/subjects/{key:path}.json", response_model=None)
 async def subject_json(
     request: Request,
-    key: str,
+    key: Annotated[str, Path()],
     params: Annotated[BaseSubjectRequestParams, Depends()],
 ) -> RedirectResponse | dict[str, Any]:
     if (normalized_key := key.lower()) != key:

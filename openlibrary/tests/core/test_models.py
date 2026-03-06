@@ -13,12 +13,12 @@ class MockSite:
 
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
-        return ['inlibrary']
+        return ["inlibrary"]
 
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
-        return ['inlibrary', 'georgetown-university-law-library-rr']
+        return ["inlibrary", "georgetown-university-law-library-rr"]
 
 
 class TestEdition:
@@ -60,7 +60,7 @@ class TestEdition:
         assert not e.in_borrowable_collection()
 
     @pytest.mark.parametrize(
-        ('isbn_or_asin', 'expected'),
+        ("isbn_or_asin", "expected"),
         [
             ("1111111111", ("1111111111", "")),  # ISBN 10
             ("9780747532699", ("9780747532699", "")),  # ISBN 13
@@ -75,7 +75,7 @@ class TestEdition:
         assert got == expected
 
     @pytest.mark.parametrize(
-        ('isbn', 'asin', 'expected'),
+        ("isbn", "asin", "expected"),
         [
             ("1111111111", "", True),  # ISBN 10
             ("", "B06XYHVXVJ", True),  # ASIN
@@ -91,7 +91,7 @@ class TestEdition:
         assert got == expected
 
     @pytest.mark.parametrize(
-        ('isbn', 'asin', 'expected'),
+        ("isbn", "asin", "expected"),
         [
             ("1111111111", "", ["1111111111", "9781111111113"]),
             ("9780747532699", "", ["0747532699", "9780747532699"]),
@@ -104,9 +104,7 @@ class TestEdition:
             ("", "", []),
         ],
     )
-    def test_get_identifier_forms(
-        self, isbn: str, asin: str, expected: list[str]
-    ) -> None:
+    def test_get_identifier_forms(self, isbn: str, asin: str, expected: list[str]) -> None:
         e: models.Edition = self.mock_edition(MockPrivateEdition)
         got = e.get_identifier_forms(isbn=isbn, asin=asin)
         assert got == expected
@@ -168,7 +166,5 @@ class TestWork:
         redirect_chain = models.Work.get_redirect_chain(work_key)
         assert redirect_chain
         resolved_work = redirect_chain[-1]
-        assert (
-            str(resolved_work.type) == type_work['key']
-        ), f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+        assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
         assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"

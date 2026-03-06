@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel
@@ -22,10 +22,8 @@ router = APIRouter()
 @router.get("/languages.json", response_model=list[Language])
 async def list_languages(
     request: Request,
-    sort: Literal["count", "name", "ebook_edition_count"] = Query(
-        "count", description="The field to sort by."
-    ),
-    limit: int = Query(15, gt=0, description="The max number of results to return."),
+    sort: Annotated[Literal["count", "name", "ebook_edition_count"], Query(description="The field to sort by.")] = "count",
+    limit: Annotated[int, Query(gt=0, description="The max number of results to return.")] = 15,
 ):
     """
     Get a list of the top languages, sorted by the specified criteria.

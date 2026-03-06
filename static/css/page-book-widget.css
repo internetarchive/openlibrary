@@ -1,0 +1,97 @@
+/**
+ * This CSS applies to the book widget
+ * e.g. https://openlibrary.org/books/OL7885696M/Charlotte's_Web/widget
+ * It should not load on any other page.
+ * The stylesheet is loaded via style tag inside
+ * openlibrary/templates/widget.html
+ */
+
+body {
+  line-height: normal;
+}
+
+.widget {
+  padding: 10px 0;
+}
+
+.open a {
+  display: block;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.cta {
+  font-family: var(--body-family);
+  background: var(--primary-blue);
+  border-radius: 3px;
+  width: 130px;
+  margin: 0 auto;
+  margin-top: 5px;
+  text-align: center;
+  font-size: 0.9em;
+  padding: 5px 0;
+  cursor: pointer;
+}
+
+.available a {
+  display: block;
+  color: var(--white);
+  text-decoration: none;
+}
+
+.waitlist {
+  background: var(--orange);
+}
+
+.waitlist button {
+  border: none;
+  color: var(--white);
+  background: none;
+  font-size: 1em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+img.bookcover {
+  margin: 0 auto;
+  width: 130px;
+  height: 200px;
+  box-shadow: 1px 2px 5px 0 var(--grey-555);
+  border-radius: var(--border-radius-thumbnail);
+  text-align: center;
+  display: block;
+}
+
+.title {
+  font-family: var(--font-family-title);
+  margin: 7px auto 0;
+  color: var(--grey-555);
+  font-size: 0.8em;
+  width: 130px;
+}
+
+a.noshow {
+  text-decoration: none;
+}
+
+.author {
+  font-family: var(--body-family);
+  font-size: 0.7em;
+  font-weight: normal;
+  color: var(--grey);
+  margin: 5px auto 7px;
+  width: 130px;
+}
+
+.service {
+  font-family: var(--body-family);
+  color: var(--light-grey);
+  width: 130px;
+  margin: 7px auto;
+  text-align: right;
+  font-size: 0.6em;
+}
+
+.service a {
+  color: var(--light-grey);
+}

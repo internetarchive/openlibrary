@@ -1,0 +1,170 @@
+/**
+ * Stylesheet entry point for pages with body-edit
+
+ * Used in templates:
+ * - openlibrary/templates/type/about/edit.html
+ * - openlibrary/templates/type/i18n/edit.html
+ * - openlibrary/templates/type/macro/view.html
+ * - openlibrary/templates/type/macro/edit.html
+ * - openlibrary/templates/type/page/edit.html
+ * - openlibrary/templates/type/permission/edit.html
+ * - openlibrary/templates/type/rawtext/edit.html
+ * - openlibrary/templates/type/rawtext/view.html
+ * - openlibrary/templates/type/template/view.html
+ * - openlibrary/templates/type/template/edit.html
+ * - openlibrary/templates/type/user/edit.html
+ * - openlibrary/templates/type/usergroup/edit.html
+ * Used on pages:
+ * - /people/openlibrary9157?m=edit
+ */
+@import "legacy.css";
+
+/* stylelint-disable selector-max-specificity */
+body,
+div#content {
+  background-color: var(--beige);
+}
+/* stylelint-enable selector-max-specificity */
+
+/* stylelint-disable selector-max-specificity */
+div#content {
+  font-family: var(--body-family);
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#editTools {
+  padding: 20px;
+  max-width: 300px;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+div#revertLink {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  font-size: 0.75em;
+  font-family: var(--body-family);
+}
+/* stylelint-enable selector-max-specificity */
+.formElement {
+  font-family: var(--body-family);
+  color: var(--darker-grey);
+}
+.label {
+  padding: 10px 0 5px;
+}
+.label label {
+  font-size: 1em;
+  font-family: var(--body-family);
+  font-weight: 700;
+}
+.label span {
+  font-size: 0.75em;
+  font-family: var(--body-family);
+}
+textarea {
+  font-family: var(--code-family);
+  font-size: 0.875em;
+  padding: 5px;
+  resize: vertical;
+}
+.formElement input[type="text"],
+.formElement select {
+  font-size: 1em;
+  font-family: var(--body-family);
+  color: var(--dark-grey);
+  padding: 5px;
+}
+table.code {
+  border: 1px solid var(--grey-e7e7e7);
+  width: 100%;
+  margin-right: 10px;
+  margin-bottom: 40px;
+}
+table.code td {
+  background-color: var(--white);
+  vertical-align: top;
+  font-family: var(--code-family);
+  font-size: 0.875em;
+  padding: 5px;
+}
+/* stylelint-disable selector-max-specificity */
+div#databar {
+  padding: 10px;
+  margin: 20px 20px 0;
+  background-color: var(--light-yellow);
+}
+div#databar a {
+  font-size: 0.75em;
+}
+/* stylelint-enable selector-max-specificity */
+/* stylelint-disable selector-max-specificity */
+#editHead {
+  background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
+  padding: 25px 0 45px 140px;
+  white-space: nowrap;
+  clear: left;
+}
+#editHead h2 {
+  margin: 0 0 5px;
+}
+#editHead h2 a {
+  font-family: var(--body-family);
+  color: var(--red);
+  font-size: var(--font-size-label-large);
+  font-weight: normal;
+  text-decoration: underline;
+}
+#editHead p {
+  color: var(--brown);
+  font-size: var(--font-size-label-large);
+  margin: 0;
+}
+/* stylelint-enable selector-max-specificity */
+
+.formElement.pagetype {
+  width: 300px;
+}
+.formElement.pagetype #type\.key {
+  width: 100%;
+}
+/* stylelint-disable selector-max-specificity */
+div#revertNotice,
+div#header,
+footer,
+div#bottom,
+.siteSearch {
+  display: none;
+}
+/* stylelint-enable selector-max-specificity */
+
+/* Defined in openlibrary/macros/EditButtons.html */
+div.adminDelete {
+  margin-top: 8px;
+  font-size: var(--font-size-label-medium);
+  color: var(--grey);
+}
+
+/* @width-breakpoint-desktop = 960px */
+@media all and (min-width: 960px) {
+  .formElement.title {
+    width: 618px;
+    float: left;
+  }
+  .formElement.title input {
+    width: 580px;
+  }
+
+  textarea {
+    min-width: 280px;
+  }
+  .olform textarea {
+    width: 100%;
+    height: 500px;
+    resize: vertical;
+  }
+  .formElement.pagetype,
+  .formElement.pagetype select {
+    float: left;
+  }
+}

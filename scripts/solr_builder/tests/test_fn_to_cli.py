@@ -15,8 +15,8 @@ class TestFnToCLI:
             """
 
         cli = FnToCLI(fn)
-        assert cli.parser.description.strip() == 'Do some magic!'
-        assert '--solr-url' in cli.parser.format_usage()
+        assert cli.parser.description.strip() == "Do some magic!"
+        assert "--solr-url" in cli.parser.format_usage()
 
     def test_parse_docs(self):
         docs = """
@@ -24,26 +24,26 @@ class TestFnToCLI:
         :param b: B
         :param c: C
         """
-        assert FnToCLI.parse_docs(docs) == {'a': 'A', 'b': 'B', 'c': 'C'}
+        assert FnToCLI.parse_docs(docs) == {"a": "A", "b": "B", "c": "C"}
 
         docs = """
         Some function description
 
         :param a: A asdfas
         """
-        assert FnToCLI.parse_docs(docs) == {'a': 'A asdfas'}
+        assert FnToCLI.parse_docs(docs) == {"a": "A asdfas"}
 
     def test_type_to_argparse(self):
-        assert FnToCLI.type_to_argparse(int) == {'type': int}
+        assert FnToCLI.type_to_argparse(int) == {"type": int}
         assert FnToCLI.type_to_argparse(typing.Optional[int]) == {  # noqa: UP045
-            'type': int
+            "type": int
         }
         assert FnToCLI.type_to_argparse(bool) == {
-            'type': bool,
-            'action': BooleanOptionalAction,
+            "type": bool,
+            "action": BooleanOptionalAction,
         }
-        assert FnToCLI.type_to_argparse(typing.Literal['a', 'b']) == {
-            'choices': ('a', 'b'),
+        assert FnToCLI.type_to_argparse(typing.Literal["a", "b"]) == {
+            "choices": ("a", "b"),
         }
 
     def test_is_optional(self):
@@ -55,7 +55,7 @@ class TestFnToCLI:
             return sum(nums)
 
         cli = FnToCLI(fn)
-        cli.parse_args(['1', '2', '3'])
+        cli.parse_args(["1", "2", "3"])
         assert cli.run() == 6
 
     def test_paths(self):
@@ -65,7 +65,7 @@ class TestFnToCLI:
             return [isinstance(f, Path) for f in files]
 
         cli = FnToCLI(fn)
-        cli.parse_args(['--files', 'path1', 'path2'])
+        cli.parse_args(["--files", "path1", "path2"])
         assert cli.run() == [True, True]
 
         cli.parse_args([])

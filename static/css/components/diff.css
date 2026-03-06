@@ -1,0 +1,97 @@
+/**
+ * Diff
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#diff
+ */
+
+/* stylelint-disable selector-max-specificity */
+#legend {
+  font-size: var(--font-size-label-small);
+  margin-bottom: 20px;
+}
+#legend dl,
+dd {
+  margin: 0;
+}
+#legend dd {
+  padding: 5px;
+  border: 1px solid var(--lightest-grey);
+  margin-right: 5px;
+}
+#legend .mod {
+  background-color: var(--orange-three);
+}
+#legend .rem {
+  color: var(--red);
+  text-decoration: line-through;
+}
+#legend .add {
+  background-color: var(--light-olive-2);
+}
+#legend .unmod {
+  background-color: var(--lightest-grey);
+}
+
+/* Diff comparison table */
+#contentBody.diff {
+  overflow: auto;
+}
+.diff .revisions {
+  width: 100%;
+  min-width: 400px;
+}
+.diff .revisions th {
+  padding: 10px;
+  font-family: var(--body-family);
+  font-size: var(--font-size-label-small);
+  font-weight: 700;
+  color: var(--black);
+}
+.diff .revisions .heading {
+  text-transform: uppercase;
+}
+.diff .revisions td {
+  padding: 10px;
+  font-family: var(--code-family);
+  background: var(--lightest-grey);
+  vertical-align: top;
+  font-size: 0.875em;
+  border-right: 1px solid var(--white);
+  border-bottom: 1px solid var(--white);
+}
+.revisions table {
+  margin-top: 0;
+}
+td.r {
+  padding-left: 12px;
+  width: 50%;
+}
+.diff table tbody.mod td.r {
+  background: var(--orange-three);
+}
+.diff table tbody.add td.r {
+  background: var(--light-olive-2);
+}
+.diff table tbody.rem td.r {
+  color: var(--red);
+  text-decoration: line-through;
+}
+td.l {
+  padding-left: 12px;
+  width: 50%;
+}
+.diff table tbody.rem td.l {
+  color: var(--red);
+  text-decoration: line-through;
+}
+ins {
+  background: var(--light-olive-2);
+  text-decoration: none;
+}
+del {
+  color: var(--red);
+  text-decoration: line-through;
+}
+.diff table tbody.mod del,
+.diff table tbody.mod ins {
+  background: var(--magenta);
+}

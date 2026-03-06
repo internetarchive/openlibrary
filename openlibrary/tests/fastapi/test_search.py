@@ -31,7 +31,7 @@ def search(client, **params):
     from urllib.parse import urlencode
 
     query_string = urlencode(params, doseq=True)
-    return client.get(f'/search.json?{query_string}')
+    return client.get(f"/search.json?{query_string}")
 
 
 class TestSearchEndpoint:
@@ -39,25 +39,23 @@ class TestSearchEndpoint:
 
     def test_search_uses_query_param(self, client, mock_work_search):
         """Test that the search endpoint uses the 'q' query parameter."""
-        response = search(client, q='lord of the rings')
+        response = search(client, q="lord of the rings")
 
         assert response.status_code == 200
         data = response.json()
 
         # Verify the response contains the query
-        assert data['q'] == 'lord of the rings'
-        assert 'docs' in data
-        assert 'numFound' in data
+        assert data["q"] == "lord of the rings"
+        assert "docs" in data
+        assert "numFound" in data
 
         # Verify work_search_async was called with the query
         mock_work_search.assert_called_once()
         call_args = mock_work_search.call_args
         query_arg = call_args[0][0]  # First positional argument
-        assert query_arg['q'] == 'lord of the rings'
+        assert query_arg["q"] == "lord of the rings"
 
-    def test_query_param_takes_precedence_over_individual_params(
-        self, client, mock_work_search
-    ):
+    def test_query_param_takes_precedence_over_individual_params(self, client, mock_work_search):
         """If both 'query=' and individual params are sent, 'query=' wins completely."""
         response = search(
             client,
@@ -70,29 +68,27 @@ class TestSearchEndpoint:
         assert query_dict == {"title": "Override"}
 
     @pytest.mark.parametrize(
-        ('query_dict', 'description'),
+        ("query_dict", "description"),
         [
             # Simple query with just 'q'
-            ({'q': 'python programming'}, 'simple q param'),
+            ({"q": "python programming"}, "simple q param"),
             # Query with multiple fields
             (
-                {'q': 'fantasy', 'author': 'Tolkien', 'title': 'Ring'},
-                'multiple fields',
+                {"q": "fantasy", "author": "Tolkien", "title": "Ring"},
+                "multiple fields",
             ),
             # Query with list values
             (
-                {'author_key': ['OL1A', 'OL2A'], 'subject': 'fiction'},
-                'list values',
+                {"author_key": ["OL1A", "OL2A"], "subject": "fiction"},
+                "list values",
             ),
             # Query with boolean fields
-            ({'q': 'open access', 'has_fulltext': True}, 'boolean fields'),
+            ({"q": "open access", "has_fulltext": True}, "boolean fields"),
             # Query with numeric fields
-            ({'q': 'history', 'first_publish_year': 1990}, 'numeric fields'),
+            ({"q": "history", "first_publish_year": 1990}, "numeric fields"),
         ],
     )
-    def test_query_param_parsing(
-        self, client, mock_work_search, query_dict, description
-    ):
+    def test_query_param_parsing(self, client, mock_work_search, query_dict, description):
         """Test that the 'query' JSON parameter is correctly parsed and passed to work_search_async.
 
         When the 'query' parameter is specified, it should be JSON-decoded and passed
@@ -111,13 +107,13 @@ class TestSearchEndpoint:
         assert actual_query == query_dict, f"Query mismatch for case: {description}"
 
     @pytest.mark.parametrize(
-        'invalid_json',
+        "invalid_json",
         [
-            '{not valid json}',
+            "{not valid json}",
             '{"unclosed": "brace"',
             "{'single': 'quotes'}",  # JSON requires double quotes
-            'just a string',
-            '[1, 2, 3',  # unclosed array
+            "just a string",
+            "[1, 2, 3",  # unclosed array
         ],
     )
     def test_query_param_invalid_json(self, client, mock_work_search, invalid_json):
@@ -133,34 +129,32 @@ class TestSearchEndpoint:
         mock_work_search.assert_not_called()
 
     @pytest.mark.parametrize(
-        ('params', 'expected_kwargs'),
+        ("params", "expected_kwargs"),
         [
             (
                 # It's useful to have limit zero so we can get the total number of results without getting results
-                {'q': 'test', 'limit': 0},
-                {'page': 1, 'limit': 0, 'offset': None},
+                {"q": "test", "limit": 0},
+                {"page": 1, "limit": 0, "offset": None},
             ),
             (
-                {'q': 'test', 'page': 3, 'limit': 10},
-                {'page': 3, 'limit': 10, 'offset': None},
+                {"q": "test", "page": 3, "limit": 10},
+                {"page": 3, "limit": 10, "offset": None},
             ),
             (
-                {'q': 'test', 'offset': 50, 'limit': 25},
-                {'offset': 50, 'limit': 25, 'page': None},
+                {"q": "test", "offset": 50, "limit": 25},
+                {"offset": 50, "limit": 25, "page": None},
             ),
             (
-                {'q': 'test', 'page': 5, 'offset': 30, 'limit': 10},
-                {'offset': 30, 'limit': 10, 'page': None},
+                {"q": "test", "page": 5, "offset": 30, "limit": 10},
+                {"offset": 30, "limit": 10, "page": None},
             ),
             (
-                {'q': 'test'},
-                {'limit': 100, 'page': 1, 'offset': None},
+                {"q": "test"},
+                {"limit": 100, "page": 1, "offset": None},
             ),
         ],
     )
-    def test_pagination_variants(
-        self, client, mock_work_search, params, expected_kwargs
-    ):
+    def test_pagination_variants(self, client, mock_work_search, params, expected_kwargs):
         """Test pagination behavior for various query parameter combinations.
 
         The mock is configured to return a generic successful response; the focus is on
@@ -177,56 +171,52 @@ class TestSearchEndpoint:
     def test_response_includes_metadata(self, client, mock_work_search):
         """Test that the response includes expected metadata fields."""
 
-        response = search(client, q='test', offset=10)
+        response = search(client, q="test", offset=10)
 
         assert response.status_code == 200
         data = response.json()
 
         # Verify metadata fields are present
-        assert 'documentation_url' in data
-        assert (
-            data['documentation_url'] == 'https://openlibrary.org/dev/docs/api/search'
-        )
-        assert 'q' in data
-        assert data['q'] == 'test'
-        assert 'offset' in data
-        assert data['offset'] == 10
-        assert 'docs' in data
+        assert "documentation_url" in data
+        assert data["documentation_url"] == "https://openlibrary.org/dev/docs/api/search"
+        assert "q" in data
+        assert data["q"] == "test"
+        assert "offset" in data
+        assert data["offset"] == 10
+        assert "docs" in data
         # Verify docs is at the end (last key)
-        assert list(data.keys())[-1] == 'docs'
+        assert list(data.keys())[-1] == "docs"
 
     @pytest.mark.parametrize(
-        'params',
+        "params",
         [
-            {'limit': -1},
-            {'offset': -1},
-            {'page': 0},
+            {"limit": -1},
+            {"offset": -1},
+            {"page": 0},
         ],
     )
     def test_pagination_validation_errors(self, client, mock_work_search, params):
         """Test validation errors for invalid pagination parameters."""
-        response = search(client, q='test', **params)
+        response = search(client, q="test", **params)
 
         # Should return a validation error
         assert response.status_code == 422
 
     @pytest.mark.parametrize(
-        ('params', 'key_to_check', 'expected_value'),
+        ("params", "key_to_check", "expected_value"),
         [
             # Case 1: publisher should pass as a string
-            ({'publisher': 'Lab of Thought'}, 'publisher', 'Lab of Thought'),
+            ({"publisher": "Lab of Thought"}, "publisher", "Lab of Thought"),
             # Case 2: has_fulltext should pass as a boolean
-            ({'has_fulltext': 'true'}, 'has_fulltext', 'true'),
-            ({'has_fulltext': 'false'}, 'has_fulltext', 'false'),
+            ({"has_fulltext": "true"}, "has_fulltext", "true"),
+            ({"has_fulltext": "false"}, "has_fulltext", "false"),
         ],
     )
-    def test_search_parameter_types(
-        self, client, mock_work_search, params, key_to_check, expected_value
-    ):
+    def test_search_parameter_types(self, client, mock_work_search, params, key_to_check, expected_value):
         """Test that specific parameters are passed down with the correct types."""
 
         # Add a required 'q' param to satisfy potential validation, then merge with params
-        response = search(client, q='test', **params)
+        response = search(client, q="test", **params)
 
         assert response.status_code == 200
         mock_work_search.assert_called_once()
@@ -241,7 +231,7 @@ class TestSearchEndpoint:
         """Test that arbitrary query parameters like osp_count_fake are NOT passed down."""
 
         # Make a request with osp_count_fake parameter
-        response = search(client, q='test', osp_count_fake='5')
+        response = search(client, q="test", osp_count_fake="5")
 
         assert response.status_code == 200
 
@@ -251,39 +241,37 @@ class TestSearchEndpoint:
 
         # The query dict should NOT contain the osp_count_fake parameter
         query_arg = call_args[0][0]  # First positional argument
-        assert 'osp_count_fake' not in query_arg
-        assert query_arg['q'] == 'test'
+        assert "osp_count_fake" not in query_arg
+        assert query_arg["q"] == "test"
 
     def test_multiple_author_keys(self, client, mock_work_search):
         """Test that multiple author_key parameters are parsed correctly.
         Supporting multiple keys from query params isn't the default so this is important to check.
         """
 
-        response = search(client, author_key=['OL1A', 'OL2A'])
+        response = search(client, author_key=["OL1A", "OL2A"])
 
         assert response.status_code == 200
         mock_work_search.assert_called_once()
         call_args = mock_work_search.call_args
         query_arg = call_args[0][0]
-        assert 'author_key' in query_arg
-        assert query_arg['author_key'] == ['OL1A', 'OL2A']
+        assert "author_key" in query_arg
+        assert query_arg["author_key"] == ["OL1A", "OL2A"]
 
     @pytest.mark.parametrize(
-        ('q_value', 'expected_status'),
+        ("q_value", "expected_status"),
         [
             (None, 200),  # q is optional
-            ('python', 200),  # valid
-            ('lord', 200),  # valid
-            ('ab', 422),  # too short
-            ('a', 422),  # too short
-            ('the', 422),  # blocked word
-            ('THE', 422),  # blocked word (case-insensitive)
-            ('the hobbit', 200),  # "the" allowed when not alone
+            ("python", 200),  # valid
+            ("lord", 200),  # valid
+            ("ab", 422),  # too short
+            ("a", 422),  # too short
+            ("the", 422),  # blocked word
+            ("THE", 422),  # blocked word (case-insensitive)
+            ("the hobbit", 200),  # "the" allowed when not alone
         ],
     )
-    def test_q_param_validation(
-        self, client, mock_work_search, q_value, expected_status
-    ):
+    def test_q_param_validation(self, client, mock_work_search, q_value, expected_status):
         """Test that the 'q' parameter is optional, ≥3 chars when present, and not exactly 'the'."""
         params = {} if q_value is None else {"q": q_value}
         response = search(client, **params)
@@ -296,24 +284,22 @@ class TestSearchEndpoint:
             mock_work_search.assert_not_called()
 
     @pytest.mark.parametrize(
-        ('params', 'expected_fields'),
+        ("params", "expected_fields"),
         [
             # No fields param: should use default fields
-            ({'q': 'test'}, sorted(WorkSearchScheme.default_fetched_fields)),
+            ({"q": "test"}, sorted(WorkSearchScheme.default_fetched_fields)),
             # Single field as comma-separated string
-            ({'q': 'test', 'fields': 'title'}, ['title']),
+            ({"q": "test", "fields": "title"}, ["title"]),
             # Multiple fields as comma-separated string
             (
-                {'q': 'test', 'fields': 'title,author_name,key'},
-                ['title', 'author_name', 'key'],
+                {"q": "test", "fields": "title,author_name,key"},
+                ["title", "author_name", "key"],
             ),
             # Fields with spaces (edge case)
-            ({'q': 'test', 'fields': 'title, author_name'}, ['title', 'author_name']),
+            ({"q": "test", "fields": "title, author_name"}, ["title", "author_name"]),
         ],
     )
-    def test_fields_passed_as_list(
-        self, client, mock_work_search, params, expected_fields
-    ):
+    def test_fields_passed_as_list(self, client, mock_work_search, params, expected_fields):
         """Test that the 'fields' parameter is always passed as a list to work_search_async.
 
         This ensures that comma-separated field strings are properly split into lists,
@@ -325,9 +311,9 @@ class TestSearchEndpoint:
         mock_work_search.assert_called_once()
         call_kwargs = mock_work_search.call_args[1]
 
-        assert 'fields' in call_kwargs
-        assert isinstance(call_kwargs['fields'], list)
-        assert call_kwargs['fields'] == expected_fields
+        assert "fields" in call_kwargs
+        assert isinstance(call_kwargs["fields"], list)
+        assert call_kwargs["fields"] == expected_fields
 
 
 def test_public_api_params():
@@ -348,8 +334,8 @@ class TestOpenAPIDocumentation:
         assert response.status_code == 200
         openapi = response.json()
 
-        assert 'paths' in openapi
-        assert '/search.json' in openapi['paths']
+        assert "paths" in openapi
+        assert "/search.json" in openapi["paths"]
 
     def test_openapi_parameters_have_descriptions(self, client):
         """Test that query parameters in the OpenAPI spec have descriptions.
@@ -360,57 +346,48 @@ class TestOpenAPIDocumentation:
         response = client.get("/openapi.json")
         openapi = response.json()
 
-        search_endpoint = openapi['paths']['/search.json']['get']
-        parameters = search_endpoint.get('parameters', [])
+        search_endpoint = openapi["paths"]["/search.json"]["get"]
+        parameters = search_endpoint.get("parameters", [])
 
         # Build a dict of parameter name -> parameter info for easier testing
-        params_by_name = {p['name']: p for p in parameters}
+        params_by_name = {p["name"]: p for p in parameters}
 
         # Check that specific parameters have descriptions
         expected_descriptions = {
-            'fields': 'The fields to return.',
-            'query': 'A full JSON encoded solr query.',
-            'sort': 'The sort order of results.',
-            'spellcheck_count': 'The number of spellcheck suggestions.',
+            "fields": "The fields to return.",
+            "query": "A full JSON encoded solr query.",
+            "sort": "The sort order of results.",
+            "spellcheck_count": "The number of spellcheck suggestions.",
         }
 
         for param_name, expected_desc in expected_descriptions.items():
-            assert (
-                param_name in params_by_name
-            ), f"Parameter '{param_name}' not found in OpenAPI spec"
+            assert param_name in params_by_name, f"Parameter '{param_name}' not found in OpenAPI spec"
             param = params_by_name[param_name]
             # Check both top-level description and schema description
-            actual_desc = param.get('description') or param.get('schema', {}).get(
-                'description'
-            )
-            assert actual_desc == expected_desc, (
-                f"Parameter '{param_name}' has description '{actual_desc}', "
-                f"expected '{expected_desc}'"
-            )
+            actual_desc = param.get("description") or param.get("schema", {}).get("description")
+            assert actual_desc == expected_desc, f"Parameter '{param_name}' has description '{actual_desc}', expected '{expected_desc}'"
 
     def test_debug_openapi_structure(self, client):
         """Debug test to see the actual OpenAPI structure for search endpoint parameters."""
         response = client.get("/openapi.json")
         openapi = response.json()
 
-        search_endpoint = openapi['paths']['/search.json']['get']
-        parameters = search_endpoint.get('parameters', [])
+        search_endpoint = openapi["paths"]["/search.json"]["get"]
+        parameters = search_endpoint.get("parameters", [])
 
         print("\n\n=== OpenAPI Parameters for /search.json ===")
         # Only print the parameters we care about for descriptions
         for param in parameters:
-            if param['name'] in [
-                'fields',
-                'query',
-                'sort',
-                'spellcheck_count',
-                'limit',
+            if param["name"] in [
+                "fields",
+                "query",
+                "sort",
+                "spellcheck_count",
+                "limit",
             ]:
                 print(f"\n{param['name']}:")
                 print(f"  top-level description: {param.get('description')}")
-                print(
-                    f"  schema description: {param.get('schema', {}).get('description')}"
-                )
+                print(f"  schema description: {param.get('schema', {}).get('description')}")
                 print(f"  schema default: {param.get('schema', {}).get('default')}")
 
         # This test always passes - it's just for debug output
