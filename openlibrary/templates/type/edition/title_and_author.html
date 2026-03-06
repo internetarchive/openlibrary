@@ -47,6 +47,11 @@ $ view_type = 'desktop' if for_desktop else 'mobile'
       <h2 class="edition-byline">
         $ is_librarian = ctx.user and ctx.user.is_librarian()
         $:macros.BookByline([{'name': author.name, 'url': author.url(), 'birth_date': author.birth_date, 'death_date': author.death_date} for author in authors], attrs='itemprop="author"', show_years=is_librarian)
+    $# Display trending badge if trending score is above threshold
+    $if work and work.get('trending_z_score') and work.get('trending_z_score', 0) > 5:
+      <div class="trending-badge-container" style="margin-top: 10px;">
+        $:macros.TrendingBadge(work)
+      </div>
       </h2>
     $elif author_names:
       <h2 class="edition-byline">
