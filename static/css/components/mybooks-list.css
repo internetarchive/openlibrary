@@ -42,6 +42,7 @@
 
 .mybooks-list {
   overflow-wrap: anywhere;
+  margin-bottom: 12px;
 }
 
 .chip-group + .mybooks-list {

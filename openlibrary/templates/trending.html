@@ -31,7 +31,7 @@ $ page = int(input(page=1).page)
           $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0)
     </ul>
   </div>
-  <div class="pager">
-    $:macros.Pager(page, 200, results_per_page=20)
+  <div class="ol-pagination-wrapper">
+    $:macros.OlPagination(page, 200 // 20)
   </div>
 </div>
