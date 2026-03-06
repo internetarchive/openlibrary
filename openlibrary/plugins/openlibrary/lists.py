@@ -1053,9 +1053,9 @@ def get_active_lists_in_random(limit=20, preload=True):
 @public
 def get_lists(keys: list[str]):
     # Fetches and caches the lists through Solr, rather than through the DB.
-    from openlibrary.core.lists.model import List
-    from openlibrary.plugins.worksearch.code import run_solr_query
-    from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+    from openlibrary.core.lists.model import List  # noqa: PLC0415
+    from openlibrary.plugins.worksearch.code import run_solr_query  # noqa: PLC0415
+    from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme  # noqa: PLC0415
 
     or_query = " OR ".join(f'"{k}"' for k in keys)
     response = run_solr_query(

@@ -45,11 +45,11 @@ def _load_legacy_wsgi():
 
     This function does not return a WSGI callable; it is called for its side effects only.
     """
-    import infogami  # type: ignore
-    from infogami import config  # type: ignore
+    import infogami  # type: ignore  # noqa: PLC0415
+    from infogami import config  # type: ignore  # noqa: PLC0415
 
     # match scripts/openlibrary-server behavior
-    from infogami.utils import delegate as _delegate  # noqa: F401 - side-effects
+    from infogami.utils import delegate as _delegate  # noqa: F401, PLC0415
 
     ol_config_path = Path(__file__).parent / "conf" / "openlibrary.yml"
     ol_config_file = os.environ.get("OL_CONFIG", str(ol_config_path))
@@ -115,7 +115,7 @@ def setup_i18n(app: FastAPI):
 
 
 def setup_debugpy():
-    import debugpy  # noqa: T100
+    import debugpy  # noqa: PLC0415, T100
 
     # Start listening for debugger connections
     debugpy.listen(("0.0.0.0", 3000))  # noqa: T100
@@ -140,7 +140,7 @@ def create_app() -> FastAPI | None:
         _setup_env()
 
         if os.environ.get("CI"):
-            import pytest
+            import pytest  # noqa: PLC0415
 
             pytest.skip("Skipping in CI", allow_module_level=True)
 
@@ -210,17 +210,17 @@ def create_app() -> FastAPI | None:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    from openlibrary.fastapi.account import router as account_router
-    from openlibrary.fastapi.cdn import router as cdn_router
-    from openlibrary.fastapi.internal.api import router as internal_router
-    from openlibrary.fastapi.languages import router as languages_router
-    from openlibrary.fastapi.lists import router as lists_router
-    from openlibrary.fastapi.partials import router as partials_router
-    from openlibrary.fastapi.public_my_books import router as public_my_books_router
-    from openlibrary.fastapi.publishers import router as publishers_router
-    from openlibrary.fastapi.search import router as search_router
-    from openlibrary.fastapi.subjects import router as subjects_router
-    from openlibrary.fastapi.yearly_reading_goals import (
+    from openlibrary.fastapi.account import router as account_router  # noqa: PLC0415
+    from openlibrary.fastapi.cdn import router as cdn_router  # noqa: PLC0415
+    from openlibrary.fastapi.internal.api import router as internal_router  # noqa: PLC0415
+    from openlibrary.fastapi.languages import router as languages_router  # noqa: PLC0415
+    from openlibrary.fastapi.lists import router as lists_router  # noqa: PLC0415
+    from openlibrary.fastapi.partials import router as partials_router  # noqa: PLC0415
+    from openlibrary.fastapi.public_my_books import router as public_my_books_router  # noqa: PLC0415
+    from openlibrary.fastapi.publishers import router as publishers_router  # noqa: PLC0415
+    from openlibrary.fastapi.search import router as search_router  # noqa: PLC0415
+    from openlibrary.fastapi.subjects import router as subjects_router  # noqa: PLC0415
+    from openlibrary.fastapi.yearly_reading_goals import (  # noqa: PLC0415
         router as yearly_reading_goals_router,
     )
 

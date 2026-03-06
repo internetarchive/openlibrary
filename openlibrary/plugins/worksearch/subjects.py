@@ -202,7 +202,7 @@ class SubjectEngine:
         **filters,
     ):
         # Circular imports are everywhere -_-
-        from openlibrary.plugins.worksearch.code import (
+        from openlibrary.plugins.worksearch.code import (  # noqa: PLC0415
             WorkSearchScheme,
             run_solr_query_async,
         )

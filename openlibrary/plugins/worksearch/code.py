@@ -89,7 +89,7 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 def get_solr_works(
     work_keys: set[str], fields: Iterable[str] | None = None, editions=False
 ) -> dict[str, web.storage]:
-    from openlibrary.plugins.worksearch.search import get_solr
+    from openlibrary.plugins.worksearch.search import get_solr  # noqa: PLC0415
 
     # Avoid making query if no work keys provided
     if not work_keys:
@@ -1011,7 +1011,7 @@ def rewrite_list_query(q, page, offset, limit):
     can use the solr API to fetch list works and render them in
     carousels in the right format.
     """
-    from openlibrary.core.lists.model import List
+    from openlibrary.core.lists.model import List  # noqa: PLC0415
 
     def cached_get_list_book_keys(key: str, offset: int | None, limit: int | None):
         offset = offset or 0
@@ -1186,7 +1186,7 @@ def validate_search_json_query(q: str | None) -> str | None:
 
 
 def setup():
-    from openlibrary.plugins.worksearch import (
+    from openlibrary.plugins.worksearch import (  # noqa: PLC0415
         autocomplete,
         bulk_search,
         languages,

@@ -84,7 +84,7 @@ def test_parse_solr_editions_from_fastapi(query_param, cookie_value, expected, d
 )
 def test_parse_solr_editions_from_web(query_param, cookie_value, http_cookie, expected, description):
     """Test _parse_solr_editions_from_web with various inputs."""
-    import web
+    import web  # noqa: PLC0415
 
     web.ctx.env = {"HTTP_COOKIE": http_cookie}
     with (
@@ -114,7 +114,7 @@ def test_parse_solr_editions_parity(query_param, cookie_value, expected, descrip
     Test that both implementations handle common cases the same way.
     Documents any behavioral differences between the two versions.
     """
-    import web
+    import web  # noqa: PLC0415
 
     # Test FastAPI version
     query_params = {"editions": query_param} if query_param is not None else {}

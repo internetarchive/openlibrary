@@ -14,7 +14,7 @@ logger = logging.getLogger("openlibrary.inside")
 
 
 async def fulltext_search_api(params):
-    from openlibrary.core.lending import (
+    from openlibrary.core.lending import (  # noqa: PLC0415
         config_fts_context,
         config_ia_ol_metadata_write_s3,
     )

@@ -199,7 +199,7 @@ def render_component(
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
     """
-    from openlibrary.plugins.upstream.code import static_url
+    from openlibrary.plugins.upstream.code import static_url  # noqa: PLC0415
 
     attrs = attrs or {}
     attrs_str = ''
@@ -237,7 +237,7 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.home import caching_prethread
+    from openlibrary.plugins.openlibrary.home import caching_prethread  # noqa: PLC0415
 
     def get_key_prefix():
         req_context = request_context.req_context.get()
@@ -1738,7 +1738,7 @@ def setup() -> None:
         }
     )
 
-    from openlibrary.core import helpers as h
+    from openlibrary.core import helpers as h  # noqa: PLC0415
 
     web.template.Template.globals.update(h.helpers)
 

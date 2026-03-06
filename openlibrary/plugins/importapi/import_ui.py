@@ -188,7 +188,7 @@ class IaMetadataProvider(AbstractMetadataProvider):
     @override
     def do_import(self, identifier: str, save: bool):
         # This appears to be causing a circular dependency... only in tests?
-        from openlibrary.plugins.importapi.code import ia_importapi
+        from openlibrary.plugins.importapi.code import ia_importapi  # noqa: PLC0415
 
         import_record, from_marc_record = ia_importapi.get_ia_import_record(
             identifier,
