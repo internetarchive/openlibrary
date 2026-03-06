@@ -17,7 +17,7 @@ class ListSearchScheme(SearchScheme):
         {
             'key',  # unique identifier for the list
             'name',  # name/title of the list
-            'list_type',  # "list" or "series"
+            'list_type',  # list type: "series", "user_list", or "community_list"
             'seed',
             'subject',
             'subject_key',
