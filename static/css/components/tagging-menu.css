@@ -215,3 +215,49 @@
   background: var(--white) url(/static/images/ajax-loader.gif) center center
     no-repeat;
 }
+
+.ol-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0;
+}
+
+.ol-tag {
+  background-color: var(--white);
+  border-radius: var(--border-radius-pill);
+  border: var(--border-width) solid var(--color-border-subtle);
+  font-size: var(--font-size-label-medium);
+  line-height: var(--line-height-body);
+  font-family: var(--font-family-sans);
+  text-decoration: none !important;
+  padding: 2px 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-flex;
+  align-items: baseline;
+  vertical-align: baseline;
+}
+
+.ol-tag--subject {
+  margin-bottom: 7px;
+}
+
+.ol-tag__link {
+  color: var(--link-blue);
+}
+
+.ol-tag:hover {
+  background: var(--lightest-grey);
+}
+
+.ol-tag:focus-visible {
+  outline: none;
+  box-shadow: var(--box-shadow-focus);
+}
+
+.section.link-box .clamp h3 {
+  display: inline;
+  margin: 0 8px 0 0;
+  vertical-align: baseline;
+}
