@@ -1,6 +1,5 @@
 """Plugin to provide admin interface."""
 
-import datetime
 import json
 import logging
 import os
@@ -9,6 +8,7 @@ import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
+from datetime import date, timedelta
 
 import requests
 import web
@@ -575,7 +575,7 @@ def block_ip_processor(handler):
 
 
 def daterange(date, *slice):
-    return [date + datetime.timedelta(i) for i in range(*slice)]
+    return [date + timedelta(i) for i in range(*slice)]
 
 
 def storify(d):
@@ -613,7 +613,7 @@ def get_admin_stats():
             'members': sum(doc['members'] for doc in docs),
         }
 
-    date = datetime.datetime.utcnow().date()
+    date = date.today()
 
     if has_doc(date):
         today = f([date])
