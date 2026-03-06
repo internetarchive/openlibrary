@@ -36,6 +36,7 @@ from openlibrary.core import (
 from openlibrary.core.models import Work
 from openlibrary.plugins.openlibrary.pd import get_pd_dashboard_data
 from openlibrary.plugins.upstream import forms, spamcheck
+from openlibrary.utils.dateutil import utcnow
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -613,7 +614,7 @@ def get_admin_stats():
             'members': sum(doc['members'] for doc in docs),
         }
 
-    date = datetime.datetime.utcnow().date()
+    date = utcnow().date()
 
     if has_doc(date):
         today = f([date])

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase."""
 
-import datetime
 import json
 import logging
 import logging.config
@@ -15,6 +14,7 @@ import web
 
 from infogami.infobase import cache, common, config, dbstore, server
 from openlibrary.plugins.upstream.utils import strip_accents
+from openlibrary.utils.dateutil import utcnow
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
@@ -298,7 +298,7 @@ def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
-        now = datetime.datetime.utcnow()
+        now = utcnow()
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (
             dir,
             now.year,

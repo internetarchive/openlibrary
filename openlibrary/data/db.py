@@ -20,7 +20,6 @@ How to use:
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
 
-import datetime
 import json
 import sys
 import time
@@ -28,6 +27,7 @@ import time
 import web
 
 from openlibrary.utils import olmemcache
+from openlibrary.utils.dateutil import utcnow
 
 __all__ = [
     "iterdocs",
@@ -154,7 +154,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
 
     This doesn't update the index tables. Avoid this function if you have any change that requires updating the index tables.
     """
-    now = datetime.datetime.utcnow()
+    now = utcnow()
     author_id = get_thing_id(author)
     t = db.transaction()
     try:

@@ -1,4 +1,3 @@
-import datetime
 import json
 from sqlite3 import IntegrityError
 from types import MappingProxyType
@@ -9,6 +8,7 @@ from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.dateutil import utcnow
 
 from . import db
 
@@ -226,7 +226,7 @@ class CommunityEditsQueue:
                 where="id=$rid",
                 reviewer=reviewer,
                 status=cls.STATUS['PENDING'],
-                updated=datetime.datetime.utcnow(),
+                updated=utcnow(),
                 vars={"rid": rid},
             )
             return {
@@ -246,7 +246,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=cls.STATUS['PENDING'],
             reviewer=None,
-            updated=datetime.datetime.utcnow(),
+            updated=utcnow(),
             vars={"rid": rid},
         )
 
@@ -275,7 +275,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=status,
             reviewer=reviewer,
-            updated=datetime.datetime.utcnow(),
+            updated=utcnow(),
             vars={"rid": rid},
             **update_kwargs,
         )
@@ -291,7 +291,7 @@ class CommunityEditsQueue:
             cls.TABLENAME,
             where="id=$rid",
             comments=json.dumps(comments),
-            updated=datetime.datetime.utcnow(),
+            updated=utcnow(),
             vars={"rid": rid},
         )
 
@@ -317,7 +317,7 @@ class CommunityEditsQueue:
         """
         return {
             # isoformat to avoid to-json issues
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": utcnow().isoformat(),
             "username": username,
             "message": message,
             # XXX It may be easier to update these comments if they had IDs

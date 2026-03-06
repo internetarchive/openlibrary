@@ -1,7 +1,6 @@
 """Handlers for adding and editing books."""
 
 import csv
-import datetime
 import io
 import logging
 import urllib
@@ -25,6 +24,7 @@ from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.dateutil import utcnow
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -42,7 +42,7 @@ def get_recaptcha():
             return True
 
         create_dt = account.creation_time()
-        now_dt = datetime.datetime.utcnow()
+        now_dt = utcnow()
         delta = now_dt - create_dt
         return delta.days > 30
 

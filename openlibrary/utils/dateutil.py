@@ -3,6 +3,7 @@
 import calendar
 import datetime
 from contextlib import contextmanager
+from datetime import UTC
 from sys import stderr
 from time import perf_counter
 
@@ -14,6 +15,28 @@ HOUR_SECS = MINUTE_SECS * 60
 HALF_DAY_SECS = HOUR_SECS * 12
 DAY_SECS = HOUR_SECS * 24
 WEEK_SECS = DAY_SECS * 7
+
+
+def utcnow() -> datetime.datetime:
+    """
+    Returns a naive datetime object representing the current UTC time.
+
+    This is a replacement for datetime.datetime.utcnow(), which is deprecated.
+    It returns a naive datetime (no timezone info) to maintain compatibility
+    with existing code that expects naive datetimes.
+    """
+    return datetime.datetime.now(UTC).replace(tzinfo=None)
+
+
+def utcfromtimestamp(timestamp: float) -> datetime.datetime:
+    """
+    Returns a naive datetime object representing the UTC time from a timestamp.
+
+    This is a replacement for datetime.datetime.utcfromtimestamp(), which is deprecated.
+    It returns a naive datetime (no timezone info) to maintain compatibility
+    with existing code that expects naive datetimes.
+    """
+    return datetime.datetime.fromtimestamp(timestamp, UTC).replace(tzinfo=None)
 
 
 def days_in_current_month() -> int:
