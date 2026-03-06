@@ -1,11 +1,11 @@
 """Admin functionality."""
 
 import calendar
+from datetime import date, datetime, timedelta
 
 import requests
 import web
 
-from datetime import date, datetime, timedelta
 from infogami import config
 from openlibrary.core import cache
 
@@ -232,9 +232,7 @@ def mock_get_stats():
     docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
     today = date.today()
     for x in range(28):
-        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime(
-            'counts-%Y-%m-%d'
-        )
+        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime('counts-%Y-%m-%d')
     return {
         'human_edits': Stats(docs, "human_edits", "human_edits"),
         'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
