@@ -44,11 +44,11 @@ $def facet(header, label, counts):
         $if len(counts) > start_facet_count:
             <div class="facetMoreLess">
                 <span class="header_more small" data-header="$header">
-                    <a href="javascript:;" id="${header}_more" class="red">$_("more")</a>
+                    <a href="javascript:;" id="${header}_more">$_("More")</a>
                 </span>
                 <span id="${header}_bull" class="header_bull small gray">&bull;</span>
                 <span class="header_less small" data-header="$header">
-                    <a href="javascript:;" id="${header}_less" class="red ui-helper-hidden">$_("less")</a>
+                    <a href="javascript:;" id="${header}_less" class="ui-helper-hidden">$_("Less")</a>
                 </span>
             </div>
     </div>
@@ -68,7 +68,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
                     $ display = _('yes')
                 $else:
                     $ display = _('no')
-            <span class="small"><a href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
+            <ol-chip size="small" href="$facet_url" title="$link_title" data-ol-link-track="$add_track(header)" count="$commify(count)">$display</ol-chip>
     </div>
 
 <div id="searchFacets" data-config="$dumps({'start_facet_count': start_facet_count, 'facet_inc': facet_inc})" data-param="$dumps(param)" data-async-load="$dumps(async_load)">
@@ -82,7 +82,7 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
         $if header=='public_scan_b':
             $continue
         $ counts = [i for i in facet_counts[header] if i[0] not in param.get(header, [])] if not async_load else [(None, None, None)]
-        $if not counts and not async_load:
+        $if len(counts) <= 1 and not async_load:
             $continue
         $:facet(header, label, counts)
 </div>
