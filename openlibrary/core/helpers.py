@@ -3,7 +3,7 @@
 import json
 import re
 from collections.abc import Callable, Iterable
-from datetime import date, datetime
+from datetime import date, datetime, UTC
 from typing import Any, cast
 from urllib.parse import urlsplit
 
@@ -165,7 +165,8 @@ def format_date(date: datetime | None, lang: str | None = None) -> str:
 
 
 def parse_datetime(s: str) -> datetime:
-    return datetime.fromisoformat(s)
+    """Replacement for Infogami parse_datetime(). Explictly set tz to UTC."""
+    return datetime.fromisoformat(s).replace(tzinfo=UTC)
 
 
 def _get_babel_locale(lang: str) -> Locale:

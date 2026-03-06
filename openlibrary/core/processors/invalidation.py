@@ -4,7 +4,6 @@ import datetime
 import web
 
 from infogami.infobase import client
-from openlibrary.core import helpers as h
 
 __all__ = ["InvalidationProcessor"]
 
@@ -119,7 +118,7 @@ class InvalidationProcessor:
 
     def parse_datetime(self, datestr):
         try:
-            return h.parse_datetime(datestr)
+            return datetime.datetime.fromisoformat(datestr)
         except ValueError:
             return None
 
