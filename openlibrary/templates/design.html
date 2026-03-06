@@ -25,24 +25,29 @@ $ _x = ctx.setdefault('cssfile', 'design')
     </div>
     <div class="design-pattern__content">
       <section class="example">
-        <h3 class="example__title">$_("Event-based")</h3>
-        <p>$:_("When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s.", update_page="<code>update:page</code>", event_detail="<code>event.detail</code>")</p>
-        <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
+        <h3 class="example__title">$_("Analytics tracking")</h3>
+        <p>$:_("When a page is clicked, the component fires an %(event_name)s event with the page number in %(event_detail)s. Use this to send analytics before the browser navigates.", event_name="<code>ol-pagination-change</code>", event_detail="<code>event.detail.page</code>")</p>
+        <code class="example__code">document.addEventListener('ol-pagination-change', (e) => {
+  navigator.sendBeacon('/analytics', JSON.stringify({
+    category: 'Pager',
+    action: 'Page ' + e.detail.page,
+  }));
+});</code>
         <div class="example__output">
           <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
         </div>
-        <p>$_("Selected page:"): <strong id="demo-selected-page">1</strong></p>
+        <p>$_("Last tracked page:"): <strong id="demo-selected-page">-</strong></p>
         <script>
-          document.getElementById('demo-pagination').addEventListener('update:page', (e) => {
-            document.getElementById('demo-selected-page').textContent = e.detail;
-            e.target.setAttribute('current-page', e.detail);
+          document.getElementById('demo-pagination').addEventListener('ol-pagination-change', (e) => {
+            e.preventDefault();
+            document.getElementById('demo-selected-page').textContent = e.detail.page;
           });
         </script>
       </section>
 
       <section class="example">
         <h3 class="example__title">$_("URL-based Navigation")</h3>
-        <p>$_("When base-url is provided, pagination renders anchor tags for SEO-friendly links.")</p>
+        <p>$_("By default, pagination renders anchor tags using the current page URL, preserving all query parameters. Use base-url to override the URL.")</p>
         <code class="example__code">&lt;ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"&gt;&lt;/ol-pagination&gt;</code>
         <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"></ol-pagination>
       </section>
