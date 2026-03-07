@@ -22,7 +22,7 @@ Are you looking to get started? [This is the guide](https://github.com/interneta
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
    - [Contributing](#contributing)
-   - [Public APIs](https://openlibrary.org/developers/api)
+   - [Public APIs](https://openlibrary.org/developers/api) (See also [Comprehensive API Documentation with Usage Examples](docs/api.md))
    - [FAQs](https://openlibrary.org/help/faq)
 
 ## Overview
