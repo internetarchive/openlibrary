@@ -343,8 +343,8 @@ def test_commify_list(
 
 def test_get_language_name(add_languages):
     # Falls back to name when no name_translated field exists
-    assert utils.get_language_name('/languages/fre', 'fr') == 'French'
+    assert utils.get_language_name("/languages/fre", "fr") == "French"
     # Returns translated name when available
-    assert utils.get_language_name('/languages/ger', 'en') == 'German'
+    assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
-    assert utils.get_language_name('/languages/ger', 'fr') == 'Deutsch'
+    assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
