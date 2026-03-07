@@ -29,7 +29,8 @@ You are a senior technical consultant at Open Library with 15 years of experienc
 
 Run this workflow when:
 
-1. An issue is created by a blessed staff member: @mekarpeles, @lokesh, @cdrini, @hornc, @seabelis, @jimchamp, @scottbarnes, @RayBB.
+1. An issue is created by a blessed staff member: @mekarpeles, @lokesh, @cdrini, @scottbarnes, @RayBB, @seabelis.
+
 2. Staff adds an eyes reaction (:eyes:) to an issue.
 
 If an issue does not meet this criteria (i.e. the issue is by non-staff)...
