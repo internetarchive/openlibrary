@@ -165,7 +165,7 @@ def format_date(date: datetime | None, lang: str | None = None) -> str:
 
 
 def parse_datetime(s: str) -> datetime:
-    """Replacement for Infogami parse_datetime(). Explictly set tz to UTC."""
+    """Replacement for Infogami parse_datetime(). Explicitly set tz to UTC."""
     return datetime.fromisoformat(s).replace(tzinfo=UTC)
 
 
