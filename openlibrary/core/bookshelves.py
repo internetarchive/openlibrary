@@ -14,6 +14,7 @@ from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
+from .bookshelves_events import BookshelfEvent
 
 logger = logging.getLogger(__name__)
 
@@ -386,7 +387,9 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
-        sort: Literal['created asc', 'created desc'] = 'created desc',
+        sort: Literal[
+            'created asc', 'created desc', 'finished asc', 'finished desc'
+        ] = 'created desc',
         checkin_year: int | None = None,
         q: str = "",
         fq: list[str] | None = None,
@@ -536,7 +539,9 @@ class Bookshelves(db.CommonExtras):
 
         def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
-            sort: Literal['created asc', 'created desc'],
+            sort: Literal[
+                'created asc', 'created desc', 'finished asc', 'finished desc'
+            ],
             checkin_year: int | None,
         ):
             """
@@ -548,6 +553,8 @@ class Bookshelves(db.CommonExtras):
             Solr for more complete book information, and then put the logged info into
             the Solr response.
             """
+            query_params['event_type'] = BookshelfEvent.FINISH
+
             if checkin_year:
                 query = """
                 SELECT b.work_id, b.created, b.edition_id
@@ -558,6 +565,31 @@ class Bookshelves(db.CommonExtras):
                 AND e.event_date LIKE $checkin_year || '%'
                 ORDER BY b.created DESC
                 """
+            elif sort.startswith('finished'):
+                desc = sort == 'finished desc'
+                order_dir = 'DESC' if desc else 'ASC'
+                nulls = 'NULLS LAST' if desc else 'NULLS FIRST'
+                query = f"""
+                    WITH latest_finish AS (
+                        SELECT DISTINCT ON (work_id) work_id, event_date
+                        FROM bookshelves_events
+                        WHERE username=$username AND event_type=$event_type
+                        ORDER BY work_id, event_date DESC
+                    )
+                    SELECT b.work_id, b.created, b.edition_id
+                    FROM bookshelves_books b
+                    LEFT JOIN latest_finish lf ON b.work_id = lf.work_id
+                    WHERE b.bookshelf_id=$bookshelf_id AND b.username=$username
+                    ORDER BY
+                        (CASE
+                            WHEN lf.event_date ~ '^\\\\d{{4}}$' THEN lf.event_date || '-99-99'
+                            WHEN lf.event_date ~ '^\\\\d{{4}}-\\\\d{{2}}$' THEN lf.event_date || '-99'
+                            ELSE lf.event_date
+                        END) {order_dir} {nulls},
+                        (CASE WHEN lf.event_date IS NULL THEN 0 ELSE length(lf.event_date) END) DESC,
+                        b.created DESC
+                    LIMIT $limit OFFSET $offset
+                    """
             else:
                 query = (
                     "SELECT work_id, created, edition_id from bookshelves_books WHERE "

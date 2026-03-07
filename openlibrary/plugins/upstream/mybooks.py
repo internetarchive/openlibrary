@@ -270,6 +270,7 @@ class mybooks_readinglog(delegate.page):
             sort='desc',
             q="",
             results_per_page=RESULTS_PER_PAGE,
+            order_by='created',
             mode='everything',
         )
         # Limit reading log filtering to queries of 3+ characters
@@ -283,9 +284,9 @@ class mybooks_readinglog(delegate.page):
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
-            key=mb.key,  # type: ignore
+            key=mb.key,
             page=i.page,
-            sort='created',
+            sort=i.order_by,
             sort_order=i.sort,
             q=i.q,
             year=year,
@@ -576,12 +577,18 @@ class ReadingLog:
         shelf = self.READING_LOG_KEY_TO_SHELF[key]
 
         # Mypy is unhappy about the sort argument not being a literal string.
-        # Although this doesn't satisfy Mypy, at least make sure sort is either
-        # "created asc" or "created desc"
-        if sort + " " + sort_order == "created asc":
-            sort_literal = "created_asc"
+        if sort == 'finished':
+            sort_literal = (
+                "finished asc"
+                if sort + " " + sort_order == "finished asc"
+                else "finished desc"
+            )
         else:
-            sort_literal = "created desc"
+            sort_literal = (
+                "created asc"
+                if sort + " " + sort_order == "created asc"
+                else "created desc"
+            )
 
         logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
             self.user.get_username(),
