@@ -17,3 +17,6 @@ Created as a follow-up to [issue #10920](https://github.com/internetarchive/open
 ## `update_legacy_preferences.py`
 
 Created in support of [issue #11009](https://github.com/internetarchive/openlibrary/issues/11009).  When executed, this will update all legacy preference objects, removing `pda` and `rpd` key-value pairs.
+
+## `int_to_bigint.sh`
+This script was created in support of [issue #10921](https://github.com/internetarchive/openlibrary/issues/10921).  When executed, it will replace the `int` with `bigint` in many columns like `store`, `data`, `id`, `thing`.

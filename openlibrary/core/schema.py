@@ -88,7 +88,7 @@ def get_schema():
 
     CREATE TABLE import_item (
         id serial primary key,
-        batch_id integer references import_batch,
+        batch_id int references import_batch,
         added_time timestamp without time zone default (current_timestamp at time zone 'utc'),
         import_time timestamp without time zone,
         status text default 'pending',

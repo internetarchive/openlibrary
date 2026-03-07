@@ -15,7 +15,7 @@ def get_schema(engine='postgres'):
     s.add_table(
         'cover',
         s.column('id', 'serial', primary_key=True),
-        s.column('category_id', 'integer', references='category'),
+        s.column('category_id', 'int', references='category'),
         s.column('olid', 'string'),
         s.column('filename', 'string'),
         s.column('filename_s', 'string'),
@@ -42,7 +42,7 @@ def get_schema(engine='postgres'):
     s.add_table(
         "log",
         s.column("id", "serial", primary_key=True),
-        s.column("cover_id", "integer", references="cover"),
+        s.column("cover_id", "int", references="cover"),
         s.column("action", "text"),
         s.column("timestamp", "timestamp"),
     )

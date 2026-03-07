@@ -106,7 +106,9 @@ class MySQLAdapter(AbstractAdapter):
     native_types = MappingProxyType(
         {
             'serial': 'int auto_increment not null',
+            'bigserial': 'bigint auto_increment not null',
             'integer': 'int',
+            'bigint': 'bigint',
             'float': 'float',
             'string': 'varchar',
             'text': 'text',
@@ -137,7 +139,9 @@ class PostgresAdapter(AbstractAdapter):
     native_types = MappingProxyType(
         {
             'serial': 'serial',
+            'bigserial': 'bigserial',
             'integer': 'int',
+            'bigint': 'bigint',
             'float': 'float',
             'string': 'character varying',
             'text': 'text',
@@ -171,7 +175,9 @@ class SQLiteAdapter(AbstractAdapter):
             'integer': 'integer',
             'float': 'float',
             'string': 'varchar',
+            'bigserial': 'integer autoincrement',
             'text': 'text',
+            'bigint': 'integer',
             'datetime': 'datetime',
             'timestamp': 'datetime',
             'time': 'datetime',
