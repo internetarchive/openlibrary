@@ -13,7 +13,6 @@ import yaml
 from openlibrary.admin import numbers
 from openlibrary.core import stats
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,7 +77,6 @@ def store_data(data, date):
                 stats.gauge(f"ol.stats.daily.{key}.{subkey}", subvalue)
         elif isinstance(value, (int, float)):
             stats.gauge(f"ol.stats.daily.{key}", value)
-
 
 
 def run_gathering_functions(
