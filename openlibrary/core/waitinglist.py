@@ -14,7 +14,7 @@ Each waiting instance is represented as a document in the store as follows:
 """
 
 import logging
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import web

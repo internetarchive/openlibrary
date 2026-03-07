@@ -5,10 +5,9 @@ going through infobase API.
 import json
 import os
 from collections import defaultdict
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 import web
-
 
 FMT_TIMESTAMP = "%Y-%m-%dT%H:%M:%S.%f"  # Format used by OL 'things'
 
@@ -212,7 +211,10 @@ class DocumentLoader:
         )
 
         rows = {r.key: r for r in rows}
-        last_modified = {'type': '/type/datetime', 'value': timestamp.strftime(FMT_TIMESTAMP)}
+        last_modified = {
+            'type': '/type/datetime',
+            'value': timestamp.strftime(FMT_TIMESTAMP),
+        }
 
         def prepare(doc):
             """Takes the existing document from db, update it with doc

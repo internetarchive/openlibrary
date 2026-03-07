@@ -4,9 +4,10 @@ Waiting loans track users waiting for books that are currently checked out.
 """
 
 import json
-import pytest
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from unittest.mock import Mock
+
+import pytest
 
 from openlibrary.core import lending
 from openlibrary.core.waitinglist import WaitingLoan

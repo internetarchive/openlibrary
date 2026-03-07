@@ -3,7 +3,7 @@
 import json
 import re
 from collections.abc import Callable, Iterable
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 from typing import Any, cast
 from urllib.parse import urlsplit
 
@@ -19,7 +19,6 @@ from bs4 import BeautifulSoup
 
 from infogami import config
 from infogami.infobase.client import Nothing
-
 from infogami.utils.view import safeint
 
 # Helper functions that are added to `__all__` are exposed for use in templates
