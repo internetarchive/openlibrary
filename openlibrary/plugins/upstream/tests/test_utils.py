@@ -162,6 +162,13 @@ def test_reformat_html():
     assert f("<script>alert('hello')</script>", 34) == "alert(&#39;hello&#39;)"
     assert f("&lt;script&gt;") == "&lt;script&gt;"
 
+    assert f("<p>Hello <strong>world</strong> foo</p>") == "Hello world foo"
+    assert f("<p>This <em>is</em> a test</p>") == "This is a test"
+    assert f("<p>a <b>b</b> <i>c</i> d</p>") == "a b c d"
+    assert f("<p>end<strong>word</strong></p>") == "endword"
+    assert f("<p>Hello <strong> world </strong> foo</p>") == "Hello world foo"
+    assert f("<p>Hello <strong>world\nstill strong</strong> foo</p>") == "Hello world still strong foo"
+
 
 def test_strip_accents():
     f = utils.strip_accents
