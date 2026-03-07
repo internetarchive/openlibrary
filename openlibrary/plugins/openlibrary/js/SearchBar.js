@@ -99,8 +99,9 @@ export class SearchBar {
         // Stop renderAutoCompletionResults from firing when ESC is pressed in results list
         this.escapeInput = false;
 
-        // URL mode is authoritative on page load; fall back to localStorage (homepage case)
-        this._activeMode = (urlParams && urlParams.mode) || SearchUtils.mode.read() || 'everything';
+        // URL mode is authoritative on page load; fall back to localStorage (homepage case).
+        // normalizeMode validates + lowercases against the allowlist, returning null if invalid.
+        this._activeMode = SearchUtils.normalizeMode(urlParams && urlParams.mode) || SearchUtils.mode.read() || 'everything';
 
         // Bind to changes in the search state
         this.handleSearchModeChange(this._activeMode);
@@ -297,6 +298,7 @@ export class SearchBar {
      * @param {Boolean} [json] whether to hit the JSON endpoint
      * @param {Number} [limit] how many items to get
      * @param {String[]} [fields] the Solr fields to fetch (if using JSON)
+     * @param {String|null} [mode] search mode override; falls back to stored mode when null
      */
     static composeSearchUrl(facetEndpoint, q, json=false, limit=null, fields=null, mode=null) {
         let url = facetEndpoint;
