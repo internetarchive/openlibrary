@@ -1,7 +1,7 @@
 import { getJsonFromUrl } from './Browser';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
-import { SearchModeSelector, mode as searchMode } from './SearchUtils';
+import { SearchModeSelector } from './SearchUtils';
 
 /*
 Sets the key in the website cookie to the specified value
@@ -12,14 +12,11 @@ function setValueInCookie(key, value) {
 
 export default function init() {
     const urlParams = getJsonFromUrl(location.search);
-    if (urlParams.mode) {
-        searchMode.write(urlParams.mode);
-    }
     new SearchBar($('header#header-bar .search-component'), urlParams);
 
     if ($('.siteSearch.olform').length) {
         // Only applies to search results page (as of writing)
-        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
+        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')), urlParams);
     }
 
     initBorrowAndReadLinks();
