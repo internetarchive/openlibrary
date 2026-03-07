@@ -13,8 +13,8 @@ Each waiting instance is represented as a document in the store as follows:
     }
 """
 
-import datetime
 import logging
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import web
@@ -70,13 +70,13 @@ class WaitingLoan(dict):
 
     def get_waiting_in_days(self) -> int:
         since = h.parse_datetime(self['since'])
-        delta = datetime.datetime.utcnow() - since
+        delta = datetime.now(UTC) - since
         # Adding 1 to round off the the extra seconds in the delta
         return delta.days + 1
 
     def get_expiry_in_hours(self) -> float:
         if "expiry" in self:
-            delta = h.parse_datetime(self['expiry']) - datetime.datetime.utcnow()
+            delta = h.parse_datetime(self['expiry']) - datetime.now(UTC)
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
             return max(0.0, delta_hours)
@@ -85,7 +85,7 @@ class WaitingLoan(dict):
     def is_expired(self) -> bool:
         return (
             self['status'] == 'available'
-            and self['expiry'] < datetime.datetime.utcnow().isoformat()
+            and self['expiry'] < datetime.now(UTC).isoformat()
         )
 
     def dict(self) -> dict:
@@ -95,7 +95,7 @@ class WaitingLoan(dict):
         """
 
         def process_value(v):
-            if isinstance(v, datetime.datetime):
+            if isinstance(v, datetime):
                 v = v.isoformat()
             return v
 

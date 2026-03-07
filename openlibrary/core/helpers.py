@@ -3,7 +3,7 @@
 import json
 import re
 from collections.abc import Callable, Iterable
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any, cast
 from urllib.parse import urlsplit
 
@@ -19,9 +19,6 @@ from bs4 import BeautifulSoup
 
 from infogami import config
 from infogami.infobase.client import Nothing
-
-# handy utility to parse ISO date strings
-from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
 
 # Helper functions that are added to `__all__` are exposed for use in templates
@@ -37,7 +34,7 @@ __all__ = [
     "extract_year",
     "format_date",
     "json_encode",
-    "parse_datetime",  # function imported from elsewhere
+    "parse_datetime",
     "percentage",
     "private_collection_in",
     "private_collections",
@@ -164,6 +161,11 @@ def format_date(date: datetime | None, lang: str | None = None) -> str:
     lang = lang or web.ctx.lang
     locale = _get_babel_locale(lang)
     return babel.dates.format_date(date, format="long", locale=locale)
+
+
+def parse_datetime(s: str) -> datetime:
+    """Replacement for Infogami parse_datetime(). Explicitly set tz to UTC."""
+    return datetime.fromisoformat(s).replace(tzinfo=UTC)
 
 
 def _get_babel_locale(lang: str) -> Locale:

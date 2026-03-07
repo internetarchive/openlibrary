@@ -2,12 +2,14 @@
 going through infobase API.
 """
 
-import datetime
 import json
 import os
 from collections import defaultdict
+from datetime import UTC, datetime
 
 import web
+
+FMT_TIMESTAMP = "%Y-%m-%dT%H:%M:%S.%f"  # Format used by OL 'things'
 
 
 class DocumentLoader:
@@ -77,7 +79,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_new(self, documents, author, comment):
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.now(UTC)
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
 
         # insert things
@@ -93,7 +95,7 @@ class DocumentLoader:
         thing_ids = self.db.multiple_insert('thing', things)
 
         # prepare documents
-        created = {'type': '/type/datetime', "value": timestamp.isoformat()}
+        created = {'type': '/type/datetime', "value": timestamp.strftime(FMT_TIMESTAMP)}
         for doc, thing_id in zip(documents, thing_ids):
             doc['id'] = thing_id
             doc['revision'] = 1
@@ -188,7 +190,7 @@ class DocumentLoader:
 
     @_with_transaction  # type: ignore[arg-type]
     def _bulk_update(self, documents, author, comment):
-        timestamp = datetime.datetime.utcnow()
+        timestamp = datetime.now(UTC)
 
         keys = [doc['key'] for doc in documents]
 
@@ -209,7 +211,10 @@ class DocumentLoader:
         )
 
         rows = {r.key: r for r in rows}
-        last_modified = {'type': '/type/datetime', 'value': timestamp.isoformat()}
+        last_modified = {
+            'type': '/type/datetime',
+            'value': timestamp.strftime(FMT_TIMESTAMP),
+        }
 
         def prepare(doc):
             """Takes the existing document from db, update it with doc
