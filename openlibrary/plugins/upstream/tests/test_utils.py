@@ -341,7 +341,7 @@ def test_commify_list(
     assert got == expected
 
 
-def test_get_language_name(add_languages): # noqa: F811
+def test_get_language_name(add_languages):  # noqa: F811
     # Falls back to name when no name_translated field exists
     assert utils.get_language_name("/languages/fre", "fr") == "French"
     # Returns translated name when available
