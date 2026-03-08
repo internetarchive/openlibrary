@@ -23,7 +23,7 @@ sudo apt-get update
 # See https://docs.docker.com/engine/install/ubuntu/ for any possible changes.
 sudo apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
 
-sudo apt-get install \
+sudo apt-get install --no-install-recommends \
     ca-certificates \
     curl \
     gnupg \
@@ -31,7 +31,7 @@ sudo apt-get install \
 
 # Add Docker's official GPG key:
 sudo apt-get update
-sudo apt-get install ca-certificates curl
+sudo apt-get install --no-install-rcommends ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -44,7 +44,7 @@ echo \
 sudo apt-get update
 
 # apparmor is REQUIRED on Internet Archive servers
-sudo apt-get install -y \
+sudo apt-get install -y --no-install-recommends \
     apparmor \
     containerd.io \
     docker-ce \
