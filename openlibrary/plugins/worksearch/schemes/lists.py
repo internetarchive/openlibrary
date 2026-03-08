@@ -66,8 +66,15 @@ class ListSearchScheme(SearchScheme):
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
     ) -> list[tuple[str, str]]:
-        return [
+        params = [
             ('q', q),  # actual query string
-            ('q.op', 'AND'),  # use 'AND" for matching multiple words in search queries
+            ('q.op', 'AND'),  # use 'AND' for matching multiple words in search queries
             ('defType', 'edismax'),  # use edismax parser for better full-text search
         ]
+        # Default: exclude low-seed lists (issue #11905).
+        # Lists with fewer than 2 seeds are likely spam. Series are exempt
+        # since new series may legitimately have only one book.
+        # This filter is skipped if the user explicitly queries by seed_count.
+        if 'seed_count' not in q:
+            params.append(('fq', 'seed_count:[2 TO *] OR list_type:series'))
+        return params

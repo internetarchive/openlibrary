@@ -352,6 +352,14 @@ class lists_edit(delegate.page):
             list_record.key = list_key
 
         thing_json = list_record.to_thing_json()
+
+        # Block spam lists at creation time (issue #11905)
+        if spamcheck.is_spam(thing_json):
+            raise web.HTTPError(
+                "403 Forbidden",
+                {"Content-Type": "text/plain"},
+                "Permission denied: list content appears to be spam.",
+            )
         records_to_save = [thing_json]
         if list_type_plural == "series":
             # Don't save seeds on this record
