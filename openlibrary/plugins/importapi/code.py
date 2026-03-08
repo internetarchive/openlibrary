@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 import lxml.etree
+import requests
 import web
 from lxml import etree
 from pydantic import ValidationError
@@ -337,6 +338,7 @@ class ia_importapi(importapi):
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
             re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
+            next_data: dict = {}
             try:
                 ocaid, filename, offset, _length = re_bulk_identifier.match(
                     identifier
@@ -348,6 +350,10 @@ class ia_importapi(importapi):
                 }
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
+            except requests.HTTPError as e:
+                details = f'{identifier}: {e}'
+                logger.error(f'failed to fetch bulk MARC record {details}')
+                return self.error('invalid-offset', details, **next_data)
             except MarcException as e:
                 details = f'{identifier}: {e}'
                 logger.error(f'failed to read from bulk MARC record {details}')

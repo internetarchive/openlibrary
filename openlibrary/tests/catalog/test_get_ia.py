@@ -1,6 +1,8 @@
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
+import requests
 
 from openlibrary.catalog import get_ia
 from openlibrary.catalog.marc.marc_binary import BadLength, BadMARC, MarcBinary
@@ -116,3 +118,19 @@ class TestGetIA:
     def test_bad_binary_data(self):
         with pytest.raises(BadMARC):
             MarcBinary("nonMARCdata")
+
+
+class TestGetFromArchiveBulk:
+    def test_invalid_offset_raises_http_error(self, monkeypatch):
+        """When an invalid (out-of-range) offset is provided, urlopen_keep_trying raises
+        requests.HTTPError (HTTP 416). get_from_archive_bulk should propagate this."""
+        mock_response = MagicMock()
+        mock_response.status_code = 416
+        http_error = requests.HTTPError(response=mock_response)
+
+        def raise_416(url, headers=None, **kwargs):
+            raise http_error
+
+        monkeypatch.setattr(get_ia, "urlopen_keep_trying", raise_416)
+        with pytest.raises(requests.HTTPError):
+            get_ia.get_from_archive_bulk("marc_loc_updates/v35.i03.records:733:5")
