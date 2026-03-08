@@ -2,7 +2,7 @@ $def with (page)
 
 $ name = get_language_name(page, get_lang() or 'en')
 $if page.deprecated:
-    $ name += f' [{_("deprecated")}]'
+    $ name += f' [{_("%(language)s deprecated", language=name)}]'
 
 $var title: $name
 
@@ -25,7 +25,7 @@ $var title: $name
 
     <div>
        <span class="title">$_("Name")</span>
-       <span class="tag">$page.name</span>
+       <span class="tag">$name</span>
     </div>
     $if page.current:
        <div>
@@ -33,7 +33,7 @@ $var title: $name
 	   <span class="tag"><a href="$page.current">$page.current</a></span>
        </div>
 
-    <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(page.name))</p>
+    <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(name))</p>
 
     $:render_template("lib/history", page)
 

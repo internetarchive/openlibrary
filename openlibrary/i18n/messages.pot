@@ -7955,7 +7955,8 @@ msgid "Loading Lists"
 msgstr ""
 
 #: type/language/view.html
-msgid "deprecated"
+#, python-format
+msgid "%(language)s deprecated"
 msgstr ""
 
 #: type/language/view.html
