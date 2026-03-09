@@ -2527,6 +2527,42 @@
     "key": "/languages/syc"
   },
   {
+    "code": "sga",
+    "type": "/type/language",
+    "name": "Irish, Old (to 1100)",
+    "key": "/languages/sga"
+  },
+  {
+    "code": "sgn",
+    "type": "/type/language",
+    "name": "Sign languages",
+    "key": "/languages/sgn"
+  },
+  {
+    "code": "sma",
+    "type": "/type/language",
+    "name": "Southern Sami",
+    "key": "/languages/sma"
+  },
+  {
+    "code": "smj",
+    "type": "/type/language",
+    "name": "Lule Sami",
+    "key": "/languages/smj"
+  },
+  {
+    "code": "smn",
+    "type": "/type/language",
+    "name": "Inari Sami",
+    "key": "/languages/smn"
+  },
+  {
+    "code": "sms",
+    "type": "/type/language",
+    "name": "Skolt Sami",
+    "key": "/languages/sms"
+  },
+  {
     "code": "syr",
     "type": "/type/language",
     "name": "Syriac, Modern",
@@ -2728,6 +2764,12 @@
     "key": "/languages/tum"
   },
   {
+    "code": "tup",
+    "type": "/type/language",
+    "name": "Tupi languages",
+    "key": "/languages/tup"
+  },
+  {
     "code": "tur",
     "type": "/type/language",
     "name": "Turkish",
@@ -2824,6 +2866,18 @@
     "key": "/languages/vie"
   },
   {
+    "code": "vol",
+    "type": "/type/language",
+    "name": "Volapük",
+    "key": "/languages/vol"
+  },
+  {
+    "code": "vot",
+    "type": "/type/language",
+    "name": "Votic",
+    "key": "/languages/vot"
+  },
+  {
     "code": "vls",
     "type": "/type/language",
     "name": "Flemish",
@@ -2848,6 +2902,12 @@
     "key": "/languages/war"
   },
   {
+    "code": "was",
+    "type": "/type/language",
+    "name": "Washoe",
+    "key": "/languages/was"
+  },
+  {
     "code": "wel",
     "type": "/type/language",
     "name": "Welsh",
@@ -2858,6 +2918,12 @@
     "type": "/type/language",
     "name": "Sorbian (Other)",
     "key": "/languages/wen"
+  },
+  {
+    "code": "wln",
+    "type": "/type/language",
+    "name": "Walloon",
+    "key": "/languages/wln"
   },
   {
     "code": "wol",
@@ -2930,6 +2996,24 @@
     "type": "/type/language",
     "name": "Zande languages",
     "key": "/languages/znd"
+  },
+  {
+    "code": "zen",
+    "type": "/type/language",
+    "name": "Zenaga",
+    "key": "/languages/zen"
+  },
+  {
+    "code": "zha",
+    "type": "/type/language",
+    "name": "Zhuang",
+    "key": "/languages/zha"
+  },
+  {
+    "code": "zxx",
+    "type": "/type/language",
+    "name": "No linguistic content",
+    "key": "/languages/zxx"
   },
   {
     "code": "zul",
