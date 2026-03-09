@@ -2,6 +2,7 @@
 """Open Library plugin for infobase."""
 
 import datetime
+import functools
 import json
 import logging
 import logging.config
@@ -13,7 +14,8 @@ import traceback
 import requests
 import web
 
-from infogami.infobase import cache, common, config, dbstore, server
+from infogami.infobase import cache as _ib_cache
+from infogami.infobase import common, config, dbstore, server
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -121,7 +123,7 @@ def get_db():
     return site.store.db
 
 
-@web.memoize
+@functools.cache
 def get_property_id(type, name):
     db = get_db()
     type_id = get_thing_id(type)
@@ -451,10 +453,10 @@ def MemcachedDict(servers=None):
     servers = servers or []
     """Cache implementation with OL customized memcache client."""
     client = olmemcache.Client(servers)
-    return cache.MemcachedDict(memcache_client=client)
+    return _ib_cache.MemcachedDict(memcache_client=client)
 
 
-cache.register_cache('memcache', MemcachedDict)
+_ib_cache.register_cache('memcache', MemcachedDict)
 
 
 def _process_key(key):

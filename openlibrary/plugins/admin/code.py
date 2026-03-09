@@ -1,5 +1,6 @@
 """Plugin to provide admin interface."""
 
+import functools
 import json
 import logging
 import os
@@ -217,7 +218,7 @@ class reload:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
 
 
-@web.memoize
+@functools.cache
 def local_ip():
 
     return socket.gethostbyname(socket.gethostname())

@@ -1,5 +1,6 @@
 """Generic helper functions to use in the templates and the webapp."""
 
+import functools
 import json
 import re
 from collections.abc import Callable, Iterable
@@ -218,7 +219,7 @@ def urlsafe(path: str) -> str:
     return _get_safepath_re().sub('_', path).strip('_')[:100]
 
 
-@web.memoize
+@functools.cache
 def _get_safepath_re():
     """Make regular expression that matches all unsafe chars."""
     # unsafe chars according to RFC 2396

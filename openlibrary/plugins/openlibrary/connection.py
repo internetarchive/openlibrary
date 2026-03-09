@@ -1,6 +1,7 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
 import datetime
+import functools
 import json
 import logging
 
@@ -564,7 +565,7 @@ class HybridConnection(client.Connection):
             return self.writer.request(sitename, path, method, data=data)
 
 
-@web.memoize
+@functools.cache
 def _update_infobase_config():
     """Updates infobase config when this function is called for the first time.
 
