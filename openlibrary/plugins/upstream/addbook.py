@@ -32,7 +32,7 @@ logger = logging.getLogger("openlibrary.book")
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         account = user and user.get_account()
 
         if not (user and account):
@@ -255,7 +255,7 @@ class addbook(delegate.page):
                 "message.html", "Oops", 'Something went wrong. Please try again later.'
             )
 
-        if not web.ctx.site.get_user():
+        if not accounts.get_current_user():
             recap = get_recaptcha()
             if recap and not recap.validate():
                 return render_template(
