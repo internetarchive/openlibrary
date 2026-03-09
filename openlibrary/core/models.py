@@ -1209,7 +1209,11 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}", action="add-usergroup-member")
+            web.ctx.site.save(
+                self.dict(),
+                f"Adding {userkey} to {self.key}",
+                action="add-usergroup-member",
+            )
 
     def remove_user(self, userkey):
         if not web.ctx.site.get(userkey):
@@ -1224,7 +1228,11 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}", action="remove-usergroup-member")
+        web.ctx.site.save(
+            self.dict(),
+            f"Removing {userkey} from {self.key}",
+            action="remove-usergroup-member",
+        )
 
 
 class Subject(web.storage):
@@ -1308,11 +1316,7 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(
-                tag,
-                comment=comment,
-                action="add-tag"
-            )
+            t = web.ctx.site.save(tag, comment=comment, action="add-tag")
             return t
 
 

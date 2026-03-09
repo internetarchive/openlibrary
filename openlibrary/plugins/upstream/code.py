@@ -333,7 +333,9 @@ class revert(delegate.mode):
                 if prev.type.key in ["/type/delete", "/type/redirect"]:
                     return revert(prev)
                 else:
-                    prev._save("revert to revision %d" % prev.revision, action="revert-version")
+                    prev._save(
+                        "revert to revision %d" % prev.revision, action="revert-version"
+                    )
                     return prev
             elif thing.type.key == "/type/redirect":
                 redirect = web.ctx.site.get(thing.location)

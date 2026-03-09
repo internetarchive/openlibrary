@@ -755,7 +755,7 @@ class permissions:
         web.ctx.site.save_many(
             [root, works, books, authors],
             comment="Updated edit policy.",
-            action="bulk-update-permissions"
+            action="bulk-update-permissions",
         )
 
         add_flash_message("info", "Edit policy has been updated!")

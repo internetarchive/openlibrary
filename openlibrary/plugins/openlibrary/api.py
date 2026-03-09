@@ -1026,11 +1026,7 @@ class unlink_ia_ol(delegate.page):
         data["source_records"] = [rec for rec in source_records if not rec.startswith("ia:")]
         if not data["source_records"]:
             del data["source_records"]
-        web.ctx.site.save(
-            data,
-            "Remove OCAID: Item no longer available to borrow.",
-            action="update-edition"
-        )
+        web.ctx.site.save(data, "Remove OCAID: Item no longer available to borrow.", action="update-edition")
 
 
 class monthly_logins(delegate.page):

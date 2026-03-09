@@ -735,11 +735,7 @@ class list_seeds(delegate.page):
             "remove": data["remove"],
         }
 
-        return lst._save(
-            comment="Updated list.",
-            action="update-list-items",
-            data=changeset_data
-        )
+        return lst._save(comment="Updated list.", action="update-list-items", data=changeset_data)
 
 
 class list_seed_yaml(list_seeds):
