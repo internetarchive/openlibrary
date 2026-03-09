@@ -91,10 +91,12 @@ export class IntegratedLibrarianEnvironment {
      *
      * @param {Array<String>} workIds
      * @param {boolean} isBookPageEdit `true` if the bulk tagger is opened on a /books or /works page
+     * @param {string} tagType The type of tags to edit (e.g., 'genre')
      */
-    updateAndShowBulkTagger(workIds, isBookPageEdit = false) {
+    updateAndShowBulkTagger(workIds, isBookPageEdit = false, tagType = null) {
         if (this.bulkTagger) {
             this.bulkTagger.isBookPageEdit = isBookPageEdit
+            this.bulkTagger.tagType = tagType
             this.bulkTagger.updateWorks(workIds)
             this.bulkTagger.showTaggingMenu()
         }

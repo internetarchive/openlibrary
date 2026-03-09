@@ -14,6 +14,20 @@ $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
       </span>
     </div>
 
+$def render_genres(label, genres, edit_mode=False):
+  $if genres:
+    <div class="section link-box">
+      <span class="clamp" data-before="&#9656; ">
+      <h3>$label</h3>
+        $if edit_mode:
+          <button class="edit-genre-btn"
+                  data-work-olid="$work.key.split('/')[-1]"
+                  title="$_('Manage Genres')">✏️</button>
+        $for genre in genres:
+          <a href="$genre.key" data-ol-link-track="BookOverview|GenreClick">$genre.name</a>$cond(not loop.last, ",", "")
+      </span>
+    </div>
+
 $if work:
   $for tag in tags:
     $if tag=="Subjects":
@@ -24,3 +38,5 @@ $if work:
       $:render_subjects(_("Places"), work.subject_places,"BookOverview|SubjectPlacesClick", prefix="place:")
     $if tag=="Times":
       $:render_subjects(_("Times"), work.subject_times,"BookOverview|SubjectTimesClick", prefix="time:")
+    $if tag=="Genres":
+      $:render_genres(_("Genres"), work.get_genres(), edit_mode=edit_mode)

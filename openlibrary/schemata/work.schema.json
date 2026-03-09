@@ -42,6 +42,7 @@
      },
     "lc_classifications":  { "$ref": "shared_definitions.json#/string_array" },
     "subjects":            { "$ref": "shared_definitions.json#/string_array" },
+    "genres":              { "$ref": "shared_definitions.json#/tag_array" },
 
     "first_publish_date": { "type": "string" },
 

@@ -644,6 +644,15 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
+    def get_genres(self):
+        """Return genre tag objects."""
+        genres = self.genres or []
+        if genres and isinstance(genres[0], str):
+            # If stored as strings, convert to tag objects
+            # This handles migration from string to tag format
+            return [web.ctx.site.get(g) for g in genres if g]
+        return genres
+
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
         def is_ascii(s):

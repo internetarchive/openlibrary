@@ -339,6 +339,18 @@ jQuery(function () {
                         window.ILE.updateAndShowBulkTagger([workOlid], true)
                     })
                 })
+                // book page genre editing
+                document.querySelectorAll('.edit-genre-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault()
+                        const workOlid = btn.dataset.workOlid
+                        if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
+                            window.ILE.selectionManager.addSelectedItem(workOlid)
+                            window.ILE.selectionManager.updateToolbar()
+                        }
+                        window.ILE.updateAndShowBulkTagger([workOlid], true, 'genre')
+                    })
+                })
             })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {

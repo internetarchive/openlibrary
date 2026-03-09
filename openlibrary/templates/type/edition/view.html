@@ -333,7 +333,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <div class="subjects">
       <div class="subjects-content">
         $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"], edit_mode=is_librarian or is_privileged_user)
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times", "Genres"], edit_mode=is_librarian or is_privileged_user)
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
       </div>
     </div>

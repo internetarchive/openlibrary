@@ -44,6 +44,7 @@ class bulk_tag_works(delegate.page):
                 'subject_people': uniq(w.get('subject_people', '')),
                 'subject_places': uniq(w.get('subject_places', '')),
                 'subject_times': uniq(w.get('subject_times', '')),
+                'genres': uniq(w.get('genres', '')),
             }
             for subject_type, add_list in tags_to_add.items():
                 if add_list:

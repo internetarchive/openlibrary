@@ -8,6 +8,7 @@ const displayTypeMapping = {
     subject_places: 'place',
     subject_times: 'time',
     collections: 'collection',
+    genres: 'genre',
 }
 
 /**
@@ -19,7 +20,8 @@ export const subjectTypeMapping = {
     person: 'subject_people',
     place: 'subject_places',
     time: 'subject_times',
-    collection: 'collections'
+    collection: 'collections',
+    genre: 'genres',
 }
 
 /**

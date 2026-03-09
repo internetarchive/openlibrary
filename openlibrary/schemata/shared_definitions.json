@@ -70,6 +70,10 @@
     "type": "array",
     "items": { "type": "string" }
   },
+  "tag_array": {
+    "type": "array",
+    "items": { "$ref": "#tag" }
+  },
   "text_block": {
     "type": "object",
     "required": [ "type", "value" ],
@@ -82,8 +86,16 @@
       "value": { "type": "string" }
     }
   },
-  "work_key": {
+  "tag": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [ "key" ],
+    "properties": {
+      "key": { "$ref": "#tag_key" }
+    }
+  },
+  "tag_key": {
     "type": "string",
-    "pattern": "^/works/OL[0-9]+W$"
+    "pattern": "^/tags/OL[0-9]+T$"
   }
 }

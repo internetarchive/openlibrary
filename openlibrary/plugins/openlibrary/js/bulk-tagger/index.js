@@ -3,10 +3,11 @@
  *
  * @returns HTML for the bulk tagging form
  */
-export function renderBulkTagger() {
+export function renderBulkTagger(tagType = null) {
+    const title = tagType === 'genre' ? 'Manage Genres' : 'Manage Subjects';
     return `<form action="/tags/bulk_tag_works" method="post" class="bulk-tagging-form hidden">
         <div class="form-header">
-            <p>Manage Subjects</p>
+            <p>${title}</p>
             <div class="close-bulk-tagging-form">x</div>
         </div>
         <div class="search-subject-container">
@@ -29,6 +30,7 @@ export function renderBulkTagger() {
                     <div class="subject-type-option subject-type-option--place" data-tag-type="subject_places">place</div>
                     <div class="subject-type-option subject-type-option--time" data-tag-type="subject_times">time</div>
                     <div class="subject-type-option subject-type-option--collection" data-tag-type="collections">collection</div>
+                    <div class="subject-type-option subject-type-option--genre" data-tag-type="genres">genre</div>
                 </div>
             </div>
         </div>

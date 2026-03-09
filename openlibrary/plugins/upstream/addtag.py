@@ -24,7 +24,7 @@ def get_subject_tag_types():
 
 
 SUBJECT_SUB_TYPES = ["subject", "person", "place", "time"]
-TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
+TAG_TYPES = SUBJECT_SUB_TYPES + ["collection", "genre"]
 
 
 def validate_tag(tag):

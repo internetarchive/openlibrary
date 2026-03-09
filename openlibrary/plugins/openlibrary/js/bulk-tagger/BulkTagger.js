@@ -135,6 +135,13 @@ export class BulkTagger {
          * @type {boolean}
          */
         this.isBookPageEdit = false
+
+        /**
+         * The type of tags being edited (e.g., 'genre').
+         *
+         * @type {string|null}
+         */
+        this.tagType = null
     }
 
     /**
@@ -183,6 +190,13 @@ export class BulkTagger {
      * Displays the Bulk Tagger.
      */
     showTaggingMenu() {
+        // Update title based on tagType
+        const titleElem = this.rootElement.querySelector('.form-header p');
+        if (this.tagType === 'genre') {
+            titleElem.textContent = 'Manage Genres';
+        } else {
+            titleElem.textContent = 'Manage Subjects';
+        }
         this.rootElement.classList.remove('hidden')
     }
 
@@ -410,12 +424,29 @@ export class BulkTagger {
         })
 
         if (trimmedSearchTerm !== '') {  // Perform search:
-            fetch(`/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`)
+            let searchUrl;
+            if (this.tagType === 'genre') {
+                searchUrl = `/tags.json?q=${searchTerm}&tag_type=genre&limit=${maxDisplayResults}`;
+            } else {
+                searchUrl = `/search/subjects.json?q=${searchTerm}&limit=${maxDisplayResults}`;
+            }
+            fetch(searchUrl)
                 .then((response) => response.json())
                 .then((data) => {
-                    if (data['docs'].length !== 0) {
-                        for (const obj of data['docs']) {
-                            const tag = new Tag(obj.name, null, obj['subject_type'])
+                    let docs;
+                    if (this.tagType === 'genre') {
+                        docs = data;  // tags.json returns array directly
+                    } else {
+                        docs = data['docs'];  // subjects.json returns {docs: [...]}
+                    }
+                    if (docs.length !== 0) {
+                        for (const obj of docs) {
+                            let tag;
+                            if (this.tagType === 'genre') {
+                                tag = new Tag(obj.name, null, 'genre');
+                            } else {
+                                tag = new Tag(obj.name, null, obj['subject_type'] || obj['type']);
+                            }
 
                             if (!this.selectedOptionsContainer.containsOptionWithTag(tag) && !this.searchResultsOptionsContainer.containsOptionWithTag(tag)) {
                                 const menuOption = this.createSearchMenuOption(tag)
