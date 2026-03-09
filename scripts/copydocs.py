@@ -273,7 +273,7 @@ def copy(
     # group things up to avoid a bad apple failing the batch
     for group in web.group(docs, 50):
         try:
-            print(dest.save_many(group, comment=comment, action="copydocs-transfer"))
+            print(dest.save_many(group, comment=comment))
         except BaseException as e:
             print(f"Something went wrong saving this batch! {e}")
     saved.update(keys)
