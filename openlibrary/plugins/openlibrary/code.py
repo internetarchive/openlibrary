@@ -10,6 +10,7 @@ import os
 import random
 import socket
 import sys
+from datetime import UTC, datetime
 from time import time
 from urllib.parse import parse_qs, urlencode
 
@@ -25,7 +26,6 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
-from openlibrary.utils.dateutil import utcnow
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -1160,7 +1160,8 @@ class invalidate(delegate.page):
 
 
 def save_error():
-    t = utcnow()
+
+    t = datetime.datetime.now(UTC)
     name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (
         t.year,
         t.month,

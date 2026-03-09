@@ -6,6 +6,7 @@ import logging
 import time
 from collections import defaultdict
 from collections.abc import Iterable
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, Final
 
 import web
@@ -15,7 +16,6 @@ from web.db import ResultSet
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
-from openlibrary.utils.dateutil import utcnow
 
 from . import db
 
@@ -279,7 +279,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": utcnow(),
+            "import_time": datetime.datetime.now(UTC),
         }
         if status != 'failed':
             d = dict(**d, data=None)

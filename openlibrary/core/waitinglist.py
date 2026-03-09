@@ -15,12 +15,13 @@ Each waiting instance is represented as a document in the store as follows:
 
 import datetime
 import logging
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 import web
 
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.utils.dateutil import utcnow
+from openlibrary.utils.dateutil import utcisoformat
 
 from . import helpers as h
 from . import lending
@@ -71,20 +72,24 @@ class WaitingLoan(dict):
 
     def get_waiting_in_days(self) -> int:
         since = h.parse_datetime(self['since'])
-        delta = utcnow() - since
+        delta = datetime.datetime.now(UTC).replace(tzinfo=None) - since
         # Adding 1 to round off the the extra seconds in the delta
         return delta.days + 1
 
     def get_expiry_in_hours(self) -> float:
         if "expiry" in self:
-            delta = h.parse_datetime(self['expiry']) - utcnow()
+            delta = h.parse_datetime(self['expiry']) - datetime.datetime.now(
+                UTC
+            ).replace(tzinfo=None)
             delta_seconds = delta.days * 24 * 3600 + delta.seconds
             delta_hours = delta_seconds / 3600
             return max(0.0, delta_hours)
         return 0.0
 
     def is_expired(self) -> bool:
-        return self['status'] == 'available' and self['expiry'] < utcnow().isoformat()
+        return self['status'] == 'available' and self['expiry'] < utcisoformat(
+            datetime.datetime.now(UTC)
+        )
 
     def dict(self) -> dict:
         """Converts this object into JSON-able dict.
@@ -94,7 +99,7 @@ class WaitingLoan(dict):
 
         def process_value(v):
             if isinstance(v, datetime.datetime):
-                v = v.isoformat()
+                v = utcisoformat(v)
             return v
 
         return {k: process_value(v) for k, v in self.items()}

@@ -17,26 +17,31 @@ DAY_SECS = HOUR_SECS * 24
 WEEK_SECS = DAY_SECS * 7
 
 
-def utcnow() -> datetime.datetime:
+def utcisoformat(dt: datetime.datetime, tz: bool = False) -> str:
     """
-    Returns a naive datetime object representing the current UTC time.
+    Formats a datetime object as an ISO 8601 string.
 
-    This is a replacement for datetime.datetime.utcnow(), which is deprecated.
-    It returns a naive datetime (no timezone info) to maintain compatibility
-    with existing code that expects naive datetimes.
+    This function ensures that the datetime represents UTC time and returns
+    it in ISO format, with or without timezone suffix based on the tz parameter.
+
+    Args:
+        dt: The datetime object to format. Can be naive or timezone-aware.
+        tz: If True, includes 'Z' suffix to indicate UTC. Default is False.
+
+    Returns:
+        ISO 8601 formatted string (e.g., "2024-01-15T10:30:00" or "2024-01-15T10:30:00Z")
+
+    Raises:
+        ValueError: If dt is timezone-aware but not in UTC.
     """
-    return datetime.datetime.now(UTC).replace(tzinfo=None)
+    if dt.tzinfo is not None and dt.tzinfo != UTC:
+        raise ValueError(f"utcisoformat requires a UTC datetime, got {dt.tzinfo}")
 
+    # Format as naive datetime (no timezone info) for backward compatibility
+    result = dt.replace(tzinfo=None).isoformat(timespec="seconds")
 
-def utcfromtimestamp(timestamp: float) -> datetime.datetime:
-    """
-    Returns a naive datetime object representing the UTC time from a timestamp.
-
-    This is a replacement for datetime.datetime.utcfromtimestamp(), which is deprecated.
-    It returns a naive datetime (no timezone info) to maintain compatibility
-    with existing code that expects naive datetimes.
-    """
-    return datetime.datetime.fromtimestamp(timestamp, UTC).replace(tzinfo=None)
+    # Add 'Z' suffix if requested to indicate UTC
+    return result + "Z" if tz else result
 
 
 def days_in_current_month() -> int:

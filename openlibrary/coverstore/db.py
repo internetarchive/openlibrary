@@ -1,9 +1,9 @@
 import datetime
+from datetime import UTC
 
 import web
 
 from openlibrary.coverstore import config
-from openlibrary.utils.dateutil import utcnow
 
 _categories = None
 _db = None
@@ -39,7 +39,7 @@ def new(
     height,
 ):
     category_id = get_category_id(category)
-    now = utcnow()
+    now = datetime.datetime.now(UTC)
 
     db = getdb()
 
@@ -136,7 +136,7 @@ def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.
     By doing so, this cover become comes in the top in query because the results are ordered by last_modified.
     """
-    now = utcnow()
+    now = datetime.datetime.now(UTC)
     db = getdb()
     t = db.transaction()
     try:
@@ -151,7 +151,7 @@ def touch(id):
 
 def delete(id):
     true = True
-    now = utcnow()
+    now = datetime.datetime.now(UTC)
 
     db = getdb()
     t = db.transaction()

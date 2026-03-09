@@ -9,6 +9,7 @@ import secrets
 import string
 import time
 import uuid
+from datetime import UTC
 from typing import TYPE_CHECKING, Literal
 
 import requests
@@ -25,7 +26,7 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.dateutil import utcnow
+from openlibrary.utils.dateutil import utcisoformat
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -254,7 +255,7 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-            self['last_login'] = utcnow().isoformat()
+            self['last_login'] = utcisoformat(datetime.datetime.now(UTC))
             self._save()
             return "ok"
 
@@ -610,7 +611,7 @@ class OpenLibraryAccount(Account):
 
     def update_last_login(self):
         _ol_account = web.ctx.site.store.get(self._key)
-        last_login = utcnow().isoformat()
+        last_login = utcisoformat(datetime.datetime.now(UTC))
         _ol_account['last_login'] = last_login
         web.ctx.site.store[self._key] = _ol_account
         self.last_login = last_login
