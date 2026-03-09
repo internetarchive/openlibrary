@@ -163,7 +163,7 @@ $def display_goodreads(label, ids):
             <dd><a href="$id.url">$id.value</a></dd>
 
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
-$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+$set_share_links(url=request.canonical_url, title=title)
 
 $if is_privileged_user:
   $:render_template("type/edition/admin_bar", work, edition, ocaid)
