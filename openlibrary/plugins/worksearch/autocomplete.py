@@ -168,27 +168,29 @@ class tags_autocomplete(delegate.page):
     def GET(self):
         i = web.input(q="", tag_type="", limit=10)
         limit = safeint(i.limit, 10)
-        
+
         # Query tags by name and tag_type
         q = {'type': '/type/tag', 'name~': i.q}
         if i.tag_type:
             q['tag_type'] = i.tag_type
-        
+
         tags = list(web.ctx.site.things(q))
-        
+
         # Sort by name or some relevance
         tags = sorted(tags, key=lambda t: t.name)
         tags = tags[:limit]
-        
+
         result = []
         for tag in tags:
-            result.append({
-                'key': tag.key,
-                'name': tag.name,
-                'tag_type': tag.tag_type,
-                'tag_description': tag.get('tag_description', ''),
-            })
-        
+            result.append(
+                {
+                    'key': tag.key,
+                    'name': tag.name,
+                    'tag_type': tag.tag_type,
+                    'tag_description': tag.get('tag_description', ''),
+                }
+            )
+
         return to_json(result)
 
 
