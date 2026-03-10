@@ -15,7 +15,7 @@
 
 ## Pull code locally
 
-Refer to these [these instructions](https://docs.openlibrary.org/developers/tools/git.html#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
+Refer to [these instructions](https://docs.openlibrary.org/developers/tools/git.html#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
 
 ```sh
 git clone git@github.com:YOUR_USERNAME/openlibrary.git
