@@ -6,7 +6,7 @@
 
 [Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
-Are you looking to get started? [This is the guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) you are looking for. You may wish to learn more about [Google Summer of Code (GSoC)?](https://docs.openlibrary.org/everyone/google-summer-of-code.html#google-summer-of-code) or [Hacktoberfest](https://docs.openlibrary.org/everyone/hacktoberfest.html).
+Are you looking to get started? [This is the guide](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) you are looking for. You may wish to learn more about [Google Summer of Code (GSoC)?](https://docs.openlibrary.org/everyone/google-summer-of-code.html) or [Hacktoberfest](https://docs.openlibrary.org/everyone/hacktoberfest.html).
 
 ## Table of Contents
    - [Overview](#overview)
