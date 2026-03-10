@@ -15,7 +15,7 @@
 
 ## Pull code locally
 
-Refer to these [these instructions](https://docs.openlibrary.org/developers/tools/git.html#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
+Refer to [these instructions](https://docs.openlibrary.org/developers/tools/git.html#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
 
 ```sh
 git clone git@github.com:YOUR_USERNAME/openlibrary.git
@@ -105,7 +105,7 @@ Occasionally, there will be cases when changes we pull or make to our codebase w
 |------|-----------|
 | **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: ```docker compose build home``` |
 | **`npm` packages** | run ```docker compose run --rm home npm install --no-audit``` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why) |
-| **`js`, `vue`, `css`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
+| **`js`, `vue`, `css`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html) to rebuild only certain asset types. |
 
 > [!WARNING]
 > In the off-chance you find yourself needing to edit core dependencies like `apt-get` or networking, you will most likely need to do a [full rebuild](#fully-resetting-your-environment). If you are making this sort of change, you will know exactly what you are doing. See [Developing the Dockerfile](#developing-the-dockerfile).
@@ -299,6 +299,6 @@ If you're making changes you think might affect Docker Hub, you can create a bra
 
 ## Debugging and Profiling the Docker Image
 
-See [Debugging and Performance Profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling) for more information on how to attach a debugger when running in the Docker Container.
+See [Debugging and Performance Profiling](https://docs.openlibrary.org/advanced/debugging-and-performance-profiling.html) for more information on how to attach a debugger when running in the Docker Container.
 
 
