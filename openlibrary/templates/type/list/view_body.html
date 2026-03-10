@@ -88,7 +88,8 @@ $def seed_attrs(seed):
             <div class="clearfix"></div>
 
         <div class="search-results-stats">
-            $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
+            $if not list.key.startswith('/series/'):
+                $:render_template("search/sort_options.html", selected_sort=sort, default_sort='index', search_scheme="lists_seeds")
             $ layout = get_remembered_layout()
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
