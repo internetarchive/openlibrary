@@ -64,7 +64,7 @@ class trending_books_api(delegate.page):
 
 In our first example `i = web.input(q='')` is used to access the GET query parameters specified by the patron's request from the URL (e.g. if the patron queries for /search/many?q=test then `i.q` will be "test".
 
-The final line of the Router in our example makes a call to `render_template` which will fetch the corresponding template, by name, from the `templates/` directory (specified by the 1st argument -- in this case the file "templates/search/many.html) and then pass in any of the variables this template needs to render (in this case the value `q`). The values passed in to the template must also be defined in the header of the HTML template within the `$ def with(...)` line. For more information on rendering templates, refer to the [Front-end Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html#routing-and-templates) in our Github Wiki.
+The final line of the Router in our example makes a call to `render_template` which will fetch the corresponding template, by name, from the `templates/` directory (specified by the 1st argument -- in this case the file "templates/search/many.html) and then pass in any of the variables this template needs to render (in this case the value `q`). The values passed in to the template must also be defined in the header of the HTML template within the `$ def with(...)` line. For more information on rendering templates, refer to the [Front-end Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html#routing-and-templates) in our docs.
 
 In order to get this example to work, you will first need to create a new file `templates/search/many.html` with the following body content:
 
