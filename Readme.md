@@ -91,6 +91,7 @@ There are many ways volunteers can contribute to the Open Library project, from 
 - **Data Contributions:** Learn how to contribute to our catalog and help improve book data on Open Library. Visit our [volunteer page](https://openlibrary.org/volunteer) for more information.
 
 ### Community Engagement
+
 - **Join our Community Calls:** Open Library hosts weekly community and design calls. Check the [community call schedule](https://github.com/internetarchive/openlibrary/wiki/Community-Call) for times and details.
 - **Ask Questions:** If you have any questions, request an invitation to our Slack channel on our [volunteers page](https://openlibrary.org/volunteer).
 
