@@ -1,6 +1,6 @@
 /**
  * WidgetBox
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#widgetbox
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#widgetbox
  */
 .widget-box .head > div {
   color: var(--olive) !important;
