@@ -40,6 +40,13 @@ export class OLChipGroup extends LitElement {
         this.gap = 'medium';
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        if (!this.hasAttribute('role')) {
+            this.setAttribute('role', 'group');
+        }
+    }
+
     render() {
         return html`<slot></slot>`;
     }

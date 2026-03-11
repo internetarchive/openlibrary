@@ -125,7 +125,7 @@ export class OLChip extends LitElement {
         this.dispatchEvent(new CustomEvent('ol-chip-select', {
             bubbles: true,
             composed: true,
-            detail: { selected: this.selected },
+            detail: { selected: !this.selected },
         }));
     }
 
