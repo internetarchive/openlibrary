@@ -18,7 +18,7 @@ import { LitElement, html, css } from 'lit';
  *                                   (default: "Page {page}, current page")
  * @prop {String} labelPagination - Aria label for the navigation landmark (default: "Pagination")
  *
- * @fires ol-pagination-change - Fired when a page is selected. detail: { page: Number }
+ * @fires update:page - Fired when a page is selected, detail contains the page number
  *
  * @example
  * <!-- Event-based -->
@@ -239,30 +239,25 @@ export class OlPagination extends LitElement {
             return;
         }
 
-        const event = new CustomEvent('ol-pagination-change', {
-            detail: { page },
+        this.dispatchEvent(new CustomEvent('update:page', {
+            detail: page,
             bubbles: true,
-            composed: true,
-            cancelable: true,
-        });
-        this.dispatchEvent(event);
-        if (event.defaultPrevented) return;
-
-        this.currentPage = page;
+            composed: true
+        }));
     }
 
     /**
      * Handle click on anchor-based page links.
-     * Dispatches the ol-pagination-change event to allow interception.
+     * Dispatches the update:page event to allow interception.
      * @param {Event} e - Click event
      * @param {Number} page - The page number
      */
     _handlePageClick(e, page) {
-        const event = new CustomEvent('ol-pagination-change', {
-            detail: { page },
+        const event = new CustomEvent('update:page', {
+            detail: page,
             bubbles: true,
             composed: true,
-            cancelable: true,
+            cancelable: true
         });
         this.dispatchEvent(event);
     }
