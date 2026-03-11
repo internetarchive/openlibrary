@@ -1,6 +1,6 @@
 /**
  * Search Result Item
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#searchresultitem
  */
 
 /* Some preview rules are too specific and need to be rewritten */
@@ -195,6 +195,13 @@
   color: var(--black);
   margin-bottom: 5px;
   font-size: var(--font-size-label-medium);
+}
+
+@media only screen and (min-width: 800px) {
+  .srw__chapters::part(toggle-btn) {
+    padding-left: 8px;
+    text-align: left;
+  }
 }
 
 .srw__chapters .srw__chapter {

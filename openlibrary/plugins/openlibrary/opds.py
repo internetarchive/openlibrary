@@ -7,8 +7,6 @@ from types import MappingProxyType
 
 import lxml.etree as ET
 
-from infogami.infobase.utils import parse_datetime
-
 
 class OPDS:
     xmlns_atom = 'http://www.w3.org/2005/Atom'
@@ -217,7 +215,7 @@ class OPDSEntry(OPDS):
         title = book.title
         if book.subtitle:
             title += " " + book.subtitle
-        updated = parse_datetime(book.last_modified).strftime('%Y-%m-%dT%H:%M:%SZ')
+        updated = book.last_modified.strftime('%Y-%m-%dT%H:%M:%SZ')
 
         work = book.works and book.works[0]
 
