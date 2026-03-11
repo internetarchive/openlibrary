@@ -34,7 +34,7 @@ assignees: ''
 </details>
 
 ## Steps to close
-<!-- For instructions, please see: https://github.com/internetarchive/openlibrary/wiki/Disaster-History-Log#how-to -->
+<!-- For instructions, please see: https://docs.openlibrary.org/advanced/disaster-history-log.html#how-to -->
 1. [ ] Assignment: Is someone assigned to this issue? (notetaker, responder)
 2. [ ] Labels: Is there an `Affects:` label applied?
 3. [ ] Diagnosis: Add a description and scope of the issue

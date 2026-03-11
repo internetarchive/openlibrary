@@ -1,4 +1,4 @@
-$def with (param, facet_counts=None, async_load=True, path=None, query={})
+$def with (param, facet_counts=None, async_load=True, path=None, query={}, show_merge_authors=False)
 
 $code:
     start_facet_count = 5
@@ -30,7 +30,7 @@ $code:
 $def facet(header, label, counts):
     <div class="facet $header">
         $ magic_wand_markup = ''
-        $if header == 'author_key' and len(counts) > 1 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
+        $if header == 'author_key' and len(counts) > 1 and show_merge_authors:
             $ keys = ','.join(k for k, display, count in counts)
             $ magic_wand_markup = ' <span class="merge"><a href="/authors/merge?records=%s" title="%s">%s</a></span>' % (keys, _('Merge duplicate authors from this search'), _("Merge duplicates"))
         <h4 class="facetHead">$(label)$:(magic_wand_markup)</h4>

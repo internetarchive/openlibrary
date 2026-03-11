@@ -15,19 +15,19 @@
 
 ## Pull code locally
 
-Refer to these [these instructions](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
+Refer to [these instructions](https://docs.openlibrary.org/developers/tools/git.html#forking-and-cloning-the-open-library-repository) to fork and clone the Open Library Repository:
 
 ```sh
 git clone git@github.com:YOUR_USERNAME/openlibrary.git
 ```
 
 > [!IMPORTANT]  
-> When cloning the openlibrary repository, `SSH` (i.e. `git clone git@github.com:internetarchive/openlibrary.git`) must be used and *not* `https`, otherwise git submodules (e.g. `infogami` and `acs`) may not be fetched correctly. If you accidentally cloned the repository using `git clone https://...`, follow these steps: [Modifying a repository wrongly cloned with https](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#modifying-a-repository-wrongly-cloned-with-https-or-one-that-is-missing-the-infogami-module).
+> When cloning the openlibrary repository, `SSH` (i.e. `git clone git@github.com:internetarchive/openlibrary.git`) must be used and *not* `https`, otherwise git submodules (e.g. `infogami` and `acs`) may not be fetched correctly. If you accidentally cloned the repository using `git clone https://...`, follow these steps: [Modifying a repository wrongly cloned with https](https://docs.openlibrary.org/developers/tools/git.html#modifying-a-repository-that-was-incorrectly-cloned-using-https-or-is-missing-the-infogami-module).
 
 ## Prepare your system
 
 > [!IMPORTANT]
-> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
+> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
 
 We recommend adjusting Docker's resource settings to use at least 4GB of RAM and 2GB of swap. The defaults of 2GB RAM and 1GB swap are likely to cause the error `Killed` when running `build-assets` to build `js` dependencies.
 
@@ -105,7 +105,7 @@ Occasionally, there will be cases when changes we pull or make to our codebase w
 |------|-----------|
 | **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: ```docker compose build home``` |
 | **`npm` packages** | run ```docker compose run --rm home npm install --no-audit``` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why) |
-| **`js`, `vue`, `css`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide#css-js-and-html) to rebuild only certain asset types. |
+| **`js`, `vue`, `css`** and other static front-end assets | perform a complete rebuild of assets using ```docker compose run --rm home npm run build-assets```, or follow the [Frontend Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html) to rebuild only certain asset types. |
 
 > [!WARNING]
 > In the off-chance you find yourself needing to edit core dependencies like `apt-get` or networking, you will most likely need to do a [full rebuild](#fully-resetting-your-environment). If you are making this sort of change, you will know exactly what you are doing. See [Developing the Dockerfile](#developing-the-dockerfile).
@@ -169,7 +169,7 @@ docker compose up  # or docker compose up -d
 
 These errors may appear in different containers or with different file names, but look for file-not-found type errors where `\r` is in the filename, or there's `exec`, a path that seems to exist, and a `no such file or directory` error, e.g. `openlibrary-web-1 | exec docker/ol-web-start.sh: no such file or directory`
 
-The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+The likely cause here is that text files were given CRLF line endings during cloning+checkout. See [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
 Note: after fixing this error, be on the lookout for another error that will appear almost immediately after running `docker compose up` that mentions something about the `role` of `openlibrary` not existing. Read on for how to address that.
 
@@ -192,7 +192,7 @@ The following should populate the target of the `infogami` symbolic link (i.e. `
 cd path/to/your/cloned/openlibrary
 git submodule init; git submodule sync; git submodule update
 ```
-Windows users may need to see [Fix line endings, symlinks, and git submodules](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
+Windows users may need to see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm).
 
 ### "no configuration file provided: not found" when running `docker compose <command>`
 
@@ -268,8 +268,6 @@ docker compose run --rm home npm install --no-audit
 docker compose run --rm home npm run build-assets
 ```
 
-https://github.com/internetarchive/openlibrary/wiki/Deployment-Guide#ol-web1
-
 ```sh
 # Launch a temporary container and run tests
 docker compose run --rm home make test
@@ -301,6 +299,6 @@ If you're making changes you think might affect Docker Hub, you can create a bra
 
 ## Debugging and Profiling the Docker Image
 
-See [Debugging and Performance Profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling) for more information on how to attach a debugger when running in the Docker Container.
+See [Debugging and Performance Profiling](https://docs.openlibrary.org/advanced/debugging-and-performance-profiling.html) for more information on how to attach a debugger when running in the Docker Container.
 
 
