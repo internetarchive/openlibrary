@@ -2695,42 +2695,6 @@
     "key": "/languages/syc"
   },
   {
-    "code": "sga",
-    "type": "/type/language",
-    "name": "Irish, Old (to 1100)",
-    "key": "/languages/sga"
-  },
-  {
-    "code": "sgn",
-    "type": "/type/language",
-    "name": "Sign languages",
-    "key": "/languages/sgn"
-  },
-  {
-    "code": "sma",
-    "type": "/type/language",
-    "name": "Southern Sami",
-    "key": "/languages/sma"
-  },
-  {
-    "code": "smj",
-    "type": "/type/language",
-    "name": "Lule Sami",
-    "key": "/languages/smj"
-  },
-  {
-    "code": "smn",
-    "type": "/type/language",
-    "name": "Inari Sami",
-    "key": "/languages/smn"
-  },
-  {
-    "code": "sms",
-    "type": "/type/language",
-    "name": "Skolt Sami",
-    "key": "/languages/sms"
-  },
-  {
     "code": "syr",
     "type": "/type/language",
     "name": "Syriac, Modern",
