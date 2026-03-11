@@ -20,28 +20,28 @@ from openlibrary.catalog.add_book.match import (
 
 def test_editions_match_identical_record(mock_site):
     rec = {
-        'title': 'Test item',
-        'lccn': ['12345678'],
-        'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
-        'source_records': ['ia:test_item'],
+        "title": "Test item",
+        "lccn": ["12345678"],
+        "authors": [{"name": "Smith, John", "birth_date": "1980"}],
+        "source_records": ["ia:test_item"],
     }
     reply = load(rec)
-    ekey = reply['edition']['key']
+    ekey = reply["edition"]["key"]
     e = mock_site.get(ekey)
     assert editions_match(rec, e) is True
 
 
 def test_add_db_name():
     authors = [
-        {'name': 'Smith, John'},
-        {'name': 'Smith, John', 'date': '1950'},
-        {'name': 'Smith, John', 'birth_date': '1895', 'death_date': '1964'},
+        {"name": "Smith, John"},
+        {"name": "Smith, John", "date": "1950"},
+        {"name": "Smith, John", "birth_date": "1895", "death_date": "1964"},
     ]
     orig = deepcopy(authors)
-    add_db_name({'authors': authors})
-    orig[0]['db_name'] = orig[0]['name']
-    orig[1]['db_name'] = orig[1]['name'] + ' 1950'
-    orig[2]['db_name'] = orig[2]['name'] + ' 1895-1964'
+    add_db_name({"authors": authors})
+    orig[0]["db_name"] = orig[0]["name"]
+    orig[1]["db_name"] = orig[1]["name"] + " 1950"
+    orig[2]["db_name"] = orig[2]["name"] + " 1895-1964"
     assert authors == orig
 
     rec = {}
@@ -49,39 +49,39 @@ def test_add_db_name():
     assert rec == {}
 
     # Handle `None` authors values.
-    rec = {'authors': None}
+    rec = {"authors": None}
     add_db_name(rec)
-    assert rec == {'authors': None}
+    assert rec == {"authors": None}
 
 
 titles = [
-    ('Hello this is a           Title', 'hello this is a title'),  # Spaces
-    ('Kitāb Yatīmat ud-Dahr', 'kitāb yatīmat ud dahr'),  # Unicode
-    ('This and That', 'this and that'),
-    ('This & That', 'this and that'),  # ampersand
-    ('A Title.', 'a title'),  # period and space stripping
-    ('A Title. ', 'a title'),
-    ('A Title .', 'a title'),
-    ('The Fish and Chips', 'the fish and chips'),
-    ('A Fish & Chip shop', 'a fish and chip shop'),
+    ("Hello this is a           Title", "hello this is a title"),  # Spaces
+    ("Kitāb Yatīmat ud-Dahr", "kitāb yatīmat ud dahr"),  # Unicode
+    ("This and That", "this and that"),
+    ("This & That", "this and that"),  # ampersand
+    ("A Title.", "a title"),  # period and space stripping
+    ("A Title. ", "a title"),
+    ("A Title .", "a title"),
+    ("The Fish and Chips", "the fish and chips"),
+    ("A Fish & Chip shop", "a fish and chip shop"),
 ]
 
 
-@pytest.mark.parametrize(('title', 'normalized'), titles)
+@pytest.mark.parametrize(("title", "normalized"), titles)
 def test_normalize(title, normalized):
     assert normalize(title) == normalized
 
 
 mk_norm_conversions = [
     ("Hello I'm a  title.", "helloi'matitle"),
-    ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
-    ('Kitāb Yatīmat ud-Dahr', 'kitābyatīmatuddahr'),
-    ('The Fish and Chips', 'fishchips'),
-    ('A Fish & Chip shop', 'fishchipshop'),
+    ("Forgotten Titles: A Novel.", "forgottentitlesanovel"),
+    ("Kitāb Yatīmat ud-Dahr", "kitābyatīmatuddahr"),
+    ("The Fish and Chips", "fishchips"),
+    ("A Fish & Chip shop", "fishchipshop"),
 ]
 
 
-@pytest.mark.parametrize(('title', 'expected'), mk_norm_conversions)
+@pytest.mark.parametrize(("title", "expected"), mk_norm_conversions)
 def test_mk_norm(title, expected):
     assert mk_norm(title) == expected
 
@@ -91,7 +91,7 @@ mk_norm_matches = [
 ]
 
 
-@pytest.mark.parametrize(('a', 'b'), mk_norm_matches)
+@pytest.mark.parametrize(("a", "b"), mk_norm_matches)
 def test_mk_norm_equality(a, b):
     assert mk_norm(a) == mk_norm(b)
 
@@ -99,54 +99,52 @@ def test_mk_norm_equality(a, b):
 class TestExpandRecord:
     rec = MappingProxyType(
         {
-            'title': 'A test full title',
-            'subtitle': 'subtitle (parens).',
-            'source_records': ['ia:test-source'],
+            "title": "A test full title",
+            "subtitle": "subtitle (parens).",
+            "source_records": ["ia:test-source"],
         }
     )
 
     def test_expand_record(self):
         edition = self.rec.copy()
         expanded_record = expand_record(edition)
-        assert isinstance(expanded_record['titles'], list)
-        assert self.rec['title'] not in expanded_record['titles']
+        assert isinstance(expanded_record["titles"], list)
+        assert self.rec["title"] not in expanded_record["titles"]
 
         expected_titles = [
-            edition['full_title'],
-            'a test full title subtitle (parens)',
-            'test full title subtitle (parens)',
-            'a test full title subtitle',
-            'test full title subtitle',
+            edition["full_title"],
+            "a test full title subtitle (parens)",
+            "test full title subtitle (parens)",
+            "a test full title subtitle",
+            "test full title subtitle",
         ]
         for t in expected_titles:
-            assert t in expanded_record['titles']
-        assert len(set(expanded_record['titles'])) == len(set(expected_titles))
-        assert (
-            expanded_record['normalized_title'] == 'a test full title subtitle (parens)'
-        )
-        assert expanded_record['short_title'] == 'a test full title subtitl'
+            assert t in expanded_record["titles"]
+        assert len(set(expanded_record["titles"])) == len(set(expected_titles))
+        assert expanded_record["normalized_title"] == "a test full title subtitle (parens)"
+        assert expanded_record["short_title"] == "a test full title subtitl"
 
     def test_expand_record_publish_country(self):
         edition = self.rec.copy()
         expanded_record = expand_record(edition)
-        assert 'publish_country' not in expanded_record
-        for publish_country in ('   ', '|||'):
-            edition['publish_country'] = publish_country
-            assert 'publish_country' not in expand_record(edition)
-        for publish_country in ('USA', 'usa'):
-            edition['publish_country'] = publish_country
-            assert expand_record(edition)['publish_country'] == publish_country
+        assert "publish_country" not in expanded_record
+        for publish_country in ("   ", "|||"):
+            edition["publish_country"] = publish_country
+            assert "publish_country" not in expand_record(edition)
+        for publish_country in ("USA", "usa"):
+            edition["publish_country"] = publish_country
+            assert expand_record(edition)["publish_country"] == publish_country
 
     def test_expand_record_transfer_fields(self):
         edition = self.rec.copy()
         expanded_record = expand_record(edition)
         transfer_fields = (
-            'lccn',
-            'publishers',
-            'publish_date',
-            'number_of_pages',
-            'authors',
-            'contribs',
+            "lccn",
+            "publishers",
+            "publish_date",
+            "number_of_pages",
+            "authors",
+            "contribs",
         )
         for field in transfer_fields:
             assert field not in expanded_record
@@ -159,50 +157,43 @@ class TestExpandRecord:
     def test_expand_record_isbn(self):
         edition = self.rec.copy()
         expanded_record = expand_record(edition)
-        assert expanded_record['isbn'] == []
+        assert expanded_record["isbn"] == []
         edition.update(
             {
-                'isbn': ['1234567890'],
-                'isbn_10': ['123', '321'],
-                'isbn_13': ['1234567890123'],
+                "isbn": ["1234567890"],
+                "isbn_10": ["123", "321"],
+                "isbn_13": ["1234567890123"],
             }
         )
         expanded_record = expand_record(edition)
-        assert expanded_record['isbn'] == ['1234567890', '123', '321', '1234567890123']
+        assert expanded_record["isbn"] == ["1234567890", "123", "321", "1234567890123"]
 
 
 class TestAuthors:
     def test_author_contrib(self):
         rec1 = {
-            'authors': [{'name': 'Bruner, Jerome S.'}],
-            'title': 'Contemporary approaches to cognition ',
-            'subtitle': 'a symposium held at the University of Colorado.',
-            'number_of_pages': 210,
-            'publish_country': 'xxu',
-            'publish_date': '1957',
-            'publishers': ['Harvard U.P'],
+            "authors": [{"name": "Bruner, Jerome S."}],
+            "title": "Contemporary approaches to cognition ",
+            "subtitle": "a symposium held at the University of Colorado.",
+            "number_of_pages": 210,
+            "publish_country": "xxu",
+            "publish_date": "1957",
+            "publishers": ["Harvard U.P"],
         }
         rec2 = {
-            'authors': [
-                {
-                    'name': (
-                        'University of Colorado (Boulder campus). '
-                        'Dept. of Psychology.'
-                    )
-                }
-            ],
-            'contribs': [{'name': 'Bruner, Jerome S.', 'db_name': 'Bruner, Jerome S.'}],
-            'title': 'Contemporary approaches to cognition ',
-            'subtitle': 'a symposium held at the University of Colorado',
-            'lccn': ['57012963'],
-            'number_of_pages': 210,
-            'publish_country': 'mau',
-            'publish_date': '1957',
-            'publishers': ['Harvard University Press'],
+            "authors": [{"name": ("University of Colorado (Boulder campus). Dept. of Psychology.")}],
+            "contribs": [{"name": "Bruner, Jerome S.", "db_name": "Bruner, Jerome S."}],
+            "title": "Contemporary approaches to cognition ",
+            "subtitle": "a symposium held at the University of Colorado",
+            "lccn": ["57012963"],
+            "number_of_pages": 210,
+            "publish_country": "mau",
+            "publish_date": "1957",
+            "publishers": ["Harvard University Press"],
         }
         assert compare_authors(expand_record(rec1), expand_record(rec2)) == (
-            'authors',
-            'exact match',
+            "authors",
+            "exact match",
             125,
         )
         assert threshold_match(rec1, rec2, THRESHOLD) is True
@@ -211,44 +202,44 @@ class TestAuthors:
 class TestTitles:
     def test_build_titles(self):
         # Used by openlibrary.catalog.merge.merge_marc.expand_record()
-        full_title = 'This is a title.'  # Input title
-        normalized = 'this is a title'  # Expected normalization
+        full_title = "This is a title."  # Input title
+        normalized = "this is a title"  # Expected normalization
         result = build_titles(full_title)
-        assert isinstance(result['titles'], list)
-        assert result['full_title'] == full_title
-        assert result['short_title'] == normalized
-        assert result['normalized_title'] == normalized
-        assert len(result['titles']) == 2
-        assert full_title in result['titles']
-        assert normalized in result['titles']
+        assert isinstance(result["titles"], list)
+        assert result["full_title"] == full_title
+        assert result["short_title"] == normalized
+        assert result["normalized_title"] == normalized
+        assert len(result["titles"]) == 2
+        assert full_title in result["titles"]
+        assert normalized in result["titles"]
 
     def test_build_titles_ampersand(self):
-        full_title = 'This & that'
+        full_title = "This & that"
         result = build_titles(full_title)
-        assert 'this and that' in result['titles']
-        assert 'This & that' in result['titles']
+        assert "this and that" in result["titles"]
+        assert "This & that" in result["titles"]
 
     def test_build_titles_complex(self):
-        full_title = 'A test full title : subtitle (parens)'
-        full_title_period = 'A test full title : subtitle (parens).'
-        titles_period = build_titles(full_title_period)['titles']
+        full_title = "A test full title : subtitle (parens)"
+        full_title_period = "A test full title : subtitle (parens)."
+        titles_period = build_titles(full_title_period)["titles"]
 
         assert isinstance(titles_period, list)
         assert full_title_period in titles_period
 
-        titles = build_titles(full_title)['titles']
+        titles = build_titles(full_title)["titles"]
         assert full_title in titles
 
         common_titles = [
-            'a test full title subtitle (parens)',
-            'test full title subtitle (parens)',
+            "a test full title subtitle (parens)",
+            "test full title subtitle (parens)",
         ]
         for t in common_titles:
             assert t in titles
             assert t in titles_period
 
-        assert 'test full title subtitle' in titles
-        assert 'a test full title subtitle' in titles
+        assert "test full title subtitle" in titles
+        assert "a test full title subtitle" in titles
 
         # Check for duplicates:
         assert len(titles_period) == len(set(titles_period))
@@ -257,17 +248,17 @@ class TestTitles:
 
 
 def test_compare_publisher():
-    foo = {'publishers': ['foo']}
-    bar = {'publishers': ['bar']}
-    foo2 = {'publishers': ['foo']}
-    both = {'publishers': ['foo', 'bar']}
-    assert compare_publisher({}, {}) == ('publisher', 'either missing', 0)
-    assert compare_publisher(foo, {}) == ('publisher', 'either missing', 0)
-    assert compare_publisher({}, bar) == ('publisher', 'either missing', 0)
-    assert compare_publisher(foo, foo2) == ('publisher', 'match', 100)
-    assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -51)
-    assert compare_publisher(bar, both) == ('publisher', 'match', 100)
-    assert compare_publisher(both, foo) == ('publisher', 'match', 100)
+    foo = {"publishers": ["foo"]}
+    bar = {"publishers": ["bar"]}
+    foo2 = {"publishers": ["foo"]}
+    both = {"publishers": ["foo", "bar"]}
+    assert compare_publisher({}, {}) == ("publisher", "either missing", 0)
+    assert compare_publisher(foo, {}) == ("publisher", "either missing", 0)
+    assert compare_publisher({}, bar) == ("publisher", "either missing", 0)
+    assert compare_publisher(foo, foo2) == ("publisher", "match", 100)
+    assert compare_publisher(foo, bar) == ("publisher", "mismatch", -51)
+    assert compare_publisher(bar, both) == ("publisher", "match", 100)
+    assert compare_publisher(both, foo) == ("publisher", "match", 100)
 
 
 class TestRecordMatching:
@@ -275,42 +266,40 @@ class TestRecordMatching:
         # Same year, different publishers
         # one with ISBN, one without
         bpl = {
-            'authors': [
+            "authors": [
                 {
-                    'birth_date': '1897',
-                    'entity_type': 'person',
-                    'name': 'Green, Constance McLaughlin',
-                    'personal_name': 'Green, Constance McLaughlin',
+                    "birth_date": "1897",
+                    "entity_type": "person",
+                    "name": "Green, Constance McLaughlin",
+                    "personal_name": "Green, Constance McLaughlin",
                 }
             ],
-            'title': 'Eli Whitney and the birth of American technology',
-            'isbn': ['188674632X'],
-            'number_of_pages': 215,
-            'publish_date': '1956',
-            'publishers': ['HarperCollins', '[distributed by Talman Pub.]'],
-            'source_records': ['marc:bpl/bpl101.mrc:0:1226'],
+            "title": "Eli Whitney and the birth of American technology",
+            "isbn": ["188674632X"],
+            "number_of_pages": 215,
+            "publish_date": "1956",
+            "publishers": ["HarperCollins", "[distributed by Talman Pub.]"],
+            "source_records": ["marc:bpl/bpl101.mrc:0:1226"],
         }
         lc = {
-            'authors': [
+            "authors": [
                 {
-                    'birth_date': '1897',
-                    'entity_type': 'person',
-                    'name': 'Green, Constance McLaughlin',
-                    'personal_name': 'Green, Constance McLaughlin',
+                    "birth_date": "1897",
+                    "entity_type": "person",
+                    "name": "Green, Constance McLaughlin",
+                    "personal_name": "Green, Constance McLaughlin",
                 }
             ],
-            'title': 'Eli Whitney and the birth of American technology.',
-            'isbn': [],
-            'number_of_pages': 215,
-            'publish_date': '1956',
-            'publishers': ['Little, Brown'],
-            'source_records': [
-                'marc:marc_records_scriblio_net/part04.dat:119539872:591'
-            ],
+            "title": "Eli Whitney and the birth of American technology.",
+            "isbn": [],
+            "number_of_pages": 215,
+            "publish_date": "1956",
+            "publishers": ["Little, Brown"],
+            "source_records": ["marc:marc_records_scriblio_net/part04.dat:119539872:591"],
         }
         assert compare_authors(expand_record(bpl), expand_record(lc)) == (
-            'authors',
-            'exact match',
+            "authors",
+            "exact match",
             125,
         )
         assert threshold_match(bpl, lc, THRESHOLD) is True
@@ -318,28 +307,26 @@ class TestRecordMatching:
     def test_match_low_threshold(self):
         # year is off by < 2 years, counts a little
         e1 = {
-            'publishers': ['Collins'],
-            'isbn_10': ['0002167530'],
-            'number_of_pages': 287,
-            'title': 'Sea Birds Britain Ireland',
-            'publish_date': '1975',
-            'authors': [{'name': 'Stanley Cramp'}],
+            "publishers": ["Collins"],
+            "isbn_10": ["0002167530"],
+            "number_of_pages": 287,
+            "title": "Sea Birds Britain Ireland",
+            "publish_date": "1975",
+            "authors": [{"name": "Stanley Cramp"}],
         }
         e2 = {
-            'publishers': ['Collins'],
-            'isbn_10': ['0002167530'],
-            'title': 'seabirds of Britain and Ireland',
-            'publish_date': '1974',
-            'authors': [
+            "publishers": ["Collins"],
+            "isbn_10": ["0002167530"],
+            "title": "seabirds of Britain and Ireland",
+            "publish_date": "1974",
+            "authors": [
                 {
-                    'entity_type': 'person',
-                    'name': 'Stanley Cramp.',
-                    'personal_name': 'Cramp, Stanley.',
+                    "entity_type": "person",
+                    "name": "Stanley Cramp.",
+                    "personal_name": "Cramp, Stanley.",
                 }
             ],
-            'source_records': [
-                'marc:marc_records_scriblio_net/part08.dat:61449973:855'
-            ],
+            "source_records": ["marc:marc_records_scriblio_net/part08.dat:61449973:855"],
         }
         threshold = 515
         assert threshold_match(e1, e2, threshold) is True
@@ -353,24 +340,24 @@ class TestRecordMatching:
         the criteria.
         """
         existing_edition = {
-            'authors': [{'name': 'Edgar Lee Masters'}],
-            'publish_date': '2022',
-            'publishers': ['Creative Media Partners, LLC'],
-            'title': 'Spoon River Anthology',
+            "authors": [{"name": "Edgar Lee Masters"}],
+            "publish_date": "2022",
+            "publishers": ["Creative Media Partners, LLC"],
+            "title": "Spoon River Anthology",
         }
 
         potential_match1 = {
-            'authors': [{'name': 'Edgar Lee Masters'}],
-            'publish_date': '2022',
-            'publishers': ['Standard Ebooks'],
-            'title': 'Spoon River Anthology',
+            "authors": [{"name": "Edgar Lee Masters"}],
+            "publish_date": "2022",
+            "publishers": ["Standard Ebooks"],
+            "title": "Spoon River Anthology",
         }
         assert threshold_match(existing_edition, potential_match1, THRESHOLD) is False
 
         potential_match2 = {
-            'authors': [{'name': 'Edgar Lee Masters'}],
-            'publish_date': '2022',
-            'title': 'Spoon River Anthology',
+            "authors": [{"name": "Edgar Lee Masters"}],
+            "publish_date": "2022",
+            "title": "Spoon River Anthology",
         }
 
         # If there is no publisher and nothing else to match, the editions should be
@@ -383,15 +370,15 @@ class TestRecordMatching:
             # NO author
             # NO date
             #'publishers': ['Creative Media Partners, LLC'],
-            'title': 'Just A Title',
-            'isbn_13': ['9780000000002'],
+            "title": "Just A Title",
+            "isbn_13": ["9780000000002"],
         }
         potential_match = {
-            'authors': [{'name': 'Bob Smith'}],
-            'publish_date': '1913',
-            'publishers': ['Early Editions'],
-            'title': 'Just A Title',
-            'source_records': ['marc:somelibrary/some_marc.mrc'],
+            "authors": [{"name": "Bob Smith"}],
+            "publish_date": "1913",
+            "publishers": ["Early Editions"],
+            "title": "Just A Title",
+            "source_records": ["marc:somelibrary/some_marc.mrc"],
         }
         assert threshold_match(existing_edition, potential_match, THRESHOLD) is False
 
@@ -400,17 +387,17 @@ class TestRecordMatching:
         existing_edition = {
             # NO author
             # NO date
-            'title': 'Psychology',
-            'isbn_10': ['8177583859'],
-            'isbn_13': ['9788177583854'],
-            'source_records': ['promise:bwb_daily_pallets_2024-09-09:W9-CKB-586'],
+            "title": "Psychology",
+            "isbn_10": ["8177583859"],
+            "isbn_13": ["9788177583854"],
+            "source_records": ["promise:bwb_daily_pallets_2024-09-09:W9-CKB-586"],
         }
         potential_match = {
-            'publish_date': '1897',
-            'publishers': ['Harper'],
-            'title': 'Psychology',
+            "publish_date": "1897",
+            "publishers": ["Harper"],
+            "title": "Psychology",
             #'oclc': '4790636',
-            'source_records': ['marc:somelibrary/some_marc.mrc'],
+            "source_records": ["marc:somelibrary/some_marc.mrc"],
         }
         assert threshold_match(existing_edition, potential_match, THRESHOLD) is False
 
@@ -419,17 +406,17 @@ class TestRecordMatching:
         # an earlier edition from the same publisher.
         existing_edition = {
             #'publish_date': '2025', NO DATE
-            'publishers': ['Penguin'],
-            'title': 'Sense and Sensibility',
-            'authors': [{'name': 'Jane Austen'}],
-            'isbn_13': ['9780241734872'],
+            "publishers": ["Penguin"],
+            "title": "Sense and Sensibility",
+            "authors": [{"name": "Jane Austen"}],
+            "isbn_13": ["9780241734872"],
         }
         potential_match = {
-            'authors': [{'name': 'Jane Austen'}],
-            'publish_date': '1913',
-            'publishers': ['Penguin'],
-            'title': 'Sense and Sensibility',
-            'source_records': ['marc:somelibrary/some_marc.mrc'],
+            "authors": [{"name": "Jane Austen"}],
+            "publish_date": "1913",
+            "publishers": ["Penguin"],
+            "title": "Sense and Sensibility",
+            "source_records": ["marc:somelibrary/some_marc.mrc"],
         }
         assert threshold_match(potential_match, existing_edition, THRESHOLD) is False
         assert threshold_match(existing_edition, potential_match, THRESHOLD) is False

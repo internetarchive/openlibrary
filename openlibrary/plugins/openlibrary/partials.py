@@ -6,6 +6,7 @@ import web
 from pydantic import BaseModel
 
 from infogami.utils.view import render_template
+from openlibrary.accounts import get_current_user
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
@@ -211,6 +212,10 @@ class SearchFacetsPartial(PartialDataHandler):
     def __init__(self, data: dict, sfw: bool = False):
         self.sfw = sfw
         self.data = data
+        user = get_current_user()
+        self.show_merge_authors = user and (
+            user.is_librarian() or user.is_super_librarian() or user.is_admin()
+        )
 
     def generate(self) -> dict:
         path = self.data.get('path')
@@ -236,6 +241,7 @@ class SearchFacetsPartial(PartialDataHandler):
             async_load=False,
             path=path,
             query=parsed_qs,
+            show_merge_authors=self.show_merge_authors,
         )
 
         active_facets = render_template(

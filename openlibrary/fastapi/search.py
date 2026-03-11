@@ -55,31 +55,21 @@ class PublicQueryOptions(BaseModel):
     public_scan_b: list[Literal["true", "false"]] = []
 
     # List fields (facets)
-    author_key: list[str] = Field(
-        [], description="Filter by author key.", examples=["OL1394244A"]
-    )
-    subject_facet: list[str] = Field(
-        [], description="Filter by subject.", examples=["Fiction", "City planning"]
-    )
+    author_key: list[str] = Field([], description="Filter by author key.", examples=["OL1394244A"])
+    subject_facet: list[str] = Field([], description="Filter by subject.", examples=["Fiction", "City planning"])
     person_facet: list[str] = Field(
         [],
         description="Filter by person. Not the author but the person who is the subject of the work.",
         examples=["Jane Jacobs (1916-2006)", "Cory Doctorow"],
     )
-    place_facet: list[str] = Field(
-        [], description="Filter by place.", examples=["New York", "Xiamen Shi"]
-    )
+    place_facet: list[str] = Field([], description="Filter by place.", examples=["New York", "Xiamen Shi"])
     time_facet: list[str] = Field(
         [],
         description="Filter by time. It can be formatted many ways.",
         examples=["20th century", "To 70 A.D."],
     )
-    first_publish_year: list[str] = Field(
-        [], description="Filter by first publish year.", examples=["2020"]
-    )
-    publisher_facet: list[str] = Field(
-        [], description="Filter by publisher.", examples=["Urban Land Institute"]
-    )
+    first_publish_year: list[str] = Field([], description="Filter by first publish year.", examples=["2020"])
+    publisher_facet: list[str] = Field([], description="Filter by publisher.", examples=["Urban Land Institute"])
     language: list[str] = Field(
         [],
         description="Filter by language using three-letter language codes.",
@@ -94,7 +84,7 @@ class PublicQueryOptions(BaseModel):
     isbn: str | None = None
     author: str | None = None
 
-    @field_validator('q')
+    @field_validator("q")
     @classmethod
     def parse_q_string(cls, v: str) -> str:
         if q_error := validate_search_json_query(v):
@@ -147,7 +137,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
 class SearchResponse(BaseModel):
     """The response from a (books) search query."""
 
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra="allow")
 
     numFound: int
     start: int
@@ -182,12 +172,12 @@ async def search_json(
         # so disable it. This makes it much faster.
         facet=False,
         spellcheck_count=params.spellcheck_count,
-        request_label='BOOK_SEARCH_API',
+        request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
     )
 
-    raw_response['q'] = params.q
-    raw_response['offset'] = params.offset
+    raw_response["q"] = params.q
+    raw_response["offset"] = params.offset
 
     return raw_response
 
@@ -195,7 +185,7 @@ async def search_json(
 @router.get("/search/inside.json")
 async def search_inside_json(
     pagination: Annotated[PaginationLimit20, Depends()],
-    q: str = Query(..., title="Search query"),
+    q: Annotated[str, Query(title="Search query")],
 ):
     return await fulltext_search_async(
         q,
@@ -210,23 +200,23 @@ async def search_inside_json(
 @router.get("/search/subjects.json")
 async def search_subjects_json(
     pagination: Annotated[Pagination, Depends()],
-    q: str = Query("", description="The search query"),
+    q: Annotated[str, Query(description="The search query")] = "",
 ):
     response = await run_solr_query_async(
         SubjectSearchScheme(),
-        {'q': q},
+        {"q": q},
         offset=pagination.offset,
         page=pagination.page,
         rows=pagination.limit,
-        sort='work_count desc',
-        request_label='SUBJECT_SEARCH_API',
+        sort="work_count desc",
+        request_label="SUBJECT_SEARCH_API",
     )
 
     # Backward compatibility
-    raw_resp = response.raw_resp['response']
-    for doc in raw_resp['docs']:
-        doc['type'] = doc.get('subject_type', 'subject')
-        doc['count'] = doc.get('work_count', 0)
+    raw_resp = response.raw_resp["response"]
+    for doc in raw_resp["docs"]:
+        doc["type"] = doc.get("subject_type", "subject")
+        doc["count"] = doc.get("work_count", 0)
 
     return raw_resp
 
@@ -240,7 +230,7 @@ def create_sort_option_type(sorts_map: Mapping):
     # I'm just not sure if it's a good idea to have the same sort options for Works and Editions
 
     # The prefixes allowed dynamically
-    RANDOM_PREFIXES = ('random_', 'random.hourly_', 'random.daily_')
+    RANDOM_PREFIXES = ("random_", "random.hourly_", "random.daily_")
 
     # The Validator
     def validate_sort(v: str) -> str:
@@ -257,8 +247,7 @@ def create_sort_option_type(sorts_map: Mapping):
         WithJsonSchema(
             {
                 "type": "string",
-                "enum": list(sorts_map.keys())
-                + [""],  # Include empty string for default
+                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
             }
         ),
     ]
@@ -271,9 +260,7 @@ class ListSearchRequestParams(PaginationLimit20):
     q: str = Field("", description="The search query")
     fields: str = Field("", description="Fields to return")
     sort: ListSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
-    api: Literal["next", ""] = Field(
-        "", description="API version: 'next' for new format, empty for old format"
-    )
+    api: Literal["next", ""] = Field("", description="API version: 'next' for new format, empty for old format")
 
     @model_validator(mode="after")
     def handle_legacy_logic(self) -> Self:
@@ -294,30 +281,30 @@ async def search_lists_json(
 ):
     response = await run_solr_query_async(
         ListSearchScheme(),
-        {'q': params.q},
+        {"q": params.q},
         offset=params.offset,
         page=params.page,
         rows=params.limit,
         fields=params.fields,
         sort=params.sort,
-        request_label='LIST_SEARCH_API',
+        request_label="LIST_SEARCH_API",
     )
 
-    if params.api == 'next':
+    if params.api == "next":
         # Match search.json
         return {
-            'numFound': response.num_found,
-            'num_found': response.num_found,
-            'start': response.raw_resp['response'].get('start', params.offset or 0),
-            'q': params.q,
-            'docs': response.docs,
+            "numFound": response.num_found,
+            "num_found": response.num_found,
+            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "q": params.q,
+            "docs": response.docs,
         }
     else:
         # Default to the old API shape for a while, then we'll flip
-        lists = web.ctx.site.get_many([doc['key'] for doc in response.docs])
+        lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
         return {
-            'start': response.raw_resp['response'].get('start', params.offset or 0),
-            'docs': [lst.preview() for lst in lists],
+            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "docs": [lst.preview() for lst in lists],
         }
 
 
@@ -336,18 +323,18 @@ async def search_authors_json(
 ):
     response = await run_solr_query_async(
         AuthorSearchScheme(),
-        {'q': params.q},
+        {"q": params.q},
         offset=params.offset,
         page=params.page,
         rows=params.limit,
         fields=params.fields,
         sort=params.sort,
-        request_label='AUTHOR_SEARCH_API',
+        request_label="AUTHOR_SEARCH_API",
     )
 
     # SIGH the public API exposes the key like this :(
-    raw_resp = response.raw_resp['response']
-    for doc in raw_resp['docs']:
-        doc['key'] = doc['key'].split('/')[-1]
+    raw_resp = response.raw_resp["response"]
+    for doc in raw_resp["docs"]:
+        doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp

@@ -1,4 +1,4 @@
-$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None)
+$def with (docs, key, shelf_count, doc_count, owners_page, current_page, sort_order='desc', user=None, include_ratings=False, q=None, results_per_page=25, ratings=[], checkin_year=None, mode='everything')
 
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
@@ -36,26 +36,24 @@ $add_metatag(property="og:image", content=meta_photo_url)
   $if len(docs) > 0:
     $if key in readlog_keys:
       <form method="GET" class="olform pagesearchbox">
+        $if mode != 'everything':
+          <input type="hidden" name="mode" value="$mode"/>
         $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search your reading log'))
       </form>
 
     <div class="search-results-stats">
-      $if q:
+      $if q or mode != 'everything':
         $ungettext('%(count)s hit', '%(count)s hits', doc_count, count=commify(doc_count))
       $else:
-        <span class="mybooks-tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" style="margin-right:10px;" width="9" height="11">
-          $if sort_order == 'desc':
-            <strong class="lightgreen">$_("Date Added (newest)")</strong>
-            |
-            <a href="$changequery(sort='asc')">$_("Date Added (oldest)")</a>
-          $else:
-            <a href="$changequery(sort='desc')">$_("Date Added (newest)")</a>
-            |
-            <strong class="lightgreen">$_("Date Added (oldest)")</strong>
-        </span>
+        $:render_template("search/sort_options.html", sort_order, default_sort='desc', search_scheme='reading_log')
 
       $ layout = get_remembered_layout()
       $:render_template("search/layout_options.html", selected_layout=layout)
+
+      $if mode == "everything" and doc_count > 1:
+        <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
+      $elif mode != "everything":
+        <span>$:_('— Show <a href="%(url)s">everything</a> in this shelf?', url=changequery(mode='everything'))</span>
     </div>
 
     $if not checkin_year:
@@ -81,15 +79,16 @@ $add_metatag(property="og:image", content=meta_photo_url)
       $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
   $else:
     <ul class="list-books">
-      $if q:
+      $if q or mode != 'everything':
         $ query = query_param('q')
         <div class="center">
           <hr>
           <div class="red">$_("No results found in this shelf") </div>
           <hr>
-          <div>
-            <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
-          </div>
+          $if q:
+            <div>
+              <a href="/search?$urlencode(dict(q=query))">$_('Search all of Open Library for "%s"?' % query)</a>
+            </div>
         </div>
       $elif checkin_year:
         <p>$_("You haven't marked any books as read for this year.")</p>

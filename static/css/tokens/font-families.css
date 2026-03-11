@@ -1,0 +1,56 @@
+/**
+ * Font Family Primitives
+ * ======================
+ * Raw, base font family definitions.
+ * Do NOT use these directly in components - use semantic tokens instead.
+ */
+:root {
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-family-serif: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  --font-family-mono: "Lucida Console", "Courier New", monospace;
+}
+
+/**
+ * Font Family Semantic Tokens
+ * ====================
+ * Reference these throughout the app for consistent text styling.
+ */
+:root {
+  --font-family-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* body text, paragraphs, lists */
+  --font-family-code: "Lucida Console", "Courier New", monospace; /* code, pre, inline code */
+  --font-family-title: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; /* large text in banners and hero sections, book titles */
+  --font-family-subtitle: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; /* small text in banners and hero sections, book subtitles */
+  --font-family-heading: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* headings in body text */
+  --font-family-subheading: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* subheadings in body text */
+  --font-family-quote: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; /* quotes */
+  --font-family-button: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; /* buttons */
+
+  /* TODO: Remove these two aliases and replace their uses with the tokens above */
+  --body-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --code-family: "Lucida Console", "Courier New", monospace;
+}
+
+/**
+ * Font Sizes
+ * ==========
+ */
+:root {
+  --font-size-display-large: 57px;
+  --font-size-display-medium: 45px;
+  --font-size-display-small: 36px;
+
+  --font-size-headline-large: 32px;
+  --font-size-headline-medium: 28px;
+  --font-size-headline-small: 24px;
+
+  --font-size-title-large: 22px;
+  --font-size-title-medium: 16px;
+  --font-size-title-small: 14px;
+
+  --font-size-label-large: 14px;
+  --font-size-label-medium: 12px;
+  --font-size-label-small: 11px;
+
+  --font-size-body-large: 16px;
+  --font-size-body-medium: 14px;
+}

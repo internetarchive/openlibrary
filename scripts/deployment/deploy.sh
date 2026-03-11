@@ -21,7 +21,7 @@ trap 'handle_error' ERR
 trap 'handle_exit' SIGINT
 set -e
 
-# See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+# See https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
 
@@ -387,6 +387,9 @@ deploy_openlibrary() {
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
+    # Don't copy over compose.override.yaml ; local dev only. If that file is accidentally
+    # used on our prod servers, it could result in data loss.
+    rm -f openlibrary_new/compose.override.yaml
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
