@@ -26,6 +26,11 @@
   flex-grow: 1;
   font-size: 1em !important;
   min-width: 0;
+  outline: none;
+}
+
+.searchbox:focus-within {
+  outline: auto;
 }
 
 /* --width-breakpoint-tablet */
