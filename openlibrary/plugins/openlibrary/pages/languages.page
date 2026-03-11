@@ -39,7 +39,7 @@
     "code": "afa",
     "type": "/type/language",
     "name": "Afroasiatic (Other)",
-    "key": "/languages/afa
+    "key": "/languages/afa"
   },
   {
      "code": "afh",
@@ -3188,12 +3188,6 @@
     "type": "/type/language",
     "name": "Zuni",
     "key": "/languages/zun"
-  },
-  {
-    "code": "zxx",
-    "type": "/type/language",
-    "name": "No linguistic content",
-    "key": "/languages/zxx"
   },
   {
     "code": "zza",
