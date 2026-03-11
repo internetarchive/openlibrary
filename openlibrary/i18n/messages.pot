@@ -1542,6 +1542,7 @@ msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
+#: search/work_search_selected_facets.html
 msgid "Author"
 msgstr ""
 
@@ -6791,7 +6792,7 @@ msgstr ""
 msgid "Open in a new window"
 msgstr ""
 
-#: merge/authors.html
+#: merge/authors.html search/work_search_selected_facets.html
 msgid "First published in"
 msgstr ""
 
@@ -7549,6 +7550,14 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Written in"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Published by"
 msgstr ""
 
 #: search/work_search_selected_facets.html
