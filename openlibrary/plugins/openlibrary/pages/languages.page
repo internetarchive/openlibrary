@@ -39,7 +39,13 @@
     "code": "afa",
     "type": "/type/language",
     "name": "Afroasiatic (Other)",
-    "key": "/languages/afa"
+    "key": "/languages/afa
+  },
+  {
+     "code": "afh",
+     "type": "/type/language",
+     "name": "Afrihili (Artificial language)",
+     "key": "/languages/afh"
   },
   {
     "code": "afr",
@@ -279,6 +285,12 @@
     "key": "/languages/bat"
   },
   {
+    "code": "bej",
+    "type": "/type/language",
+    "name": "Beja",
+    "key": "/languages/bej"
+  },
+  {
     "code": "bel",
     "type": "/type/language",
     "name": "Belarusian",
@@ -307,6 +319,12 @@
     "type": "/type/language",
     "name": "Bhojpuri",
     "key": "/languages/bho"
+  },
+  {
+    "code": "bih",
+    "type": "/type/language",
+    "name": "Bihari (Other)",
+    "key": "/languages/bih"
   },
   {
     "code": "bik",
@@ -393,6 +411,12 @@
     "key": "/languages/byn"
   },
   {
+    "code": "cad",
+    "type": "/type/language",
+    "name": "Caddo",
+    "key": "/languages/cad"
+  },
+  {
     "code": "cai",
     "type": "/type/language",
     "name": "Central American Indian (Other)",
@@ -437,6 +461,12 @@
     "key": "/languages/cel"
   },
   {
+    "code": "chb",
+    "type": "/type/language",
+    "name": "Chibcha",
+    "key": "/languages/chb"
+  },
+  {
     "code": "che",
     "type": "/type/language",
     "name": "Chechen",
@@ -479,6 +509,12 @@
     "key": "/languages/cho"
   },
   {
+    "code": "chp",
+    "type": "/type/language",
+    "name": "Chipewyan",
+    "key": "/languages/chp"
+  },
+  {
     "code": "chr",
     "type": "/type/language",
     "name": "Cherokee",
@@ -513,6 +549,12 @@
     "type": "/type/language",
     "name": "Mandarin",
     "key": "/languages/cmn"
+  },
+  {
+    "code": "cnr",
+    "type": "/type/language",
+    "name": "Montenegrin",
+    "key": "/languages/cnr"
   },
   {
     "code": "cop",
@@ -621,6 +663,12 @@
     "type": "/type/language",
     "name": "Slavey",
     "key": "/languages/den"
+  },
+  {
+    "code": "dgr",
+    "type": "/type/language",
+    "name": "Tlicho",
+    "key": "/languages/dgr"
   },
   {
     "code": "din",
@@ -1055,6 +1103,18 @@
     "key": "/languages/gul"
   },
   {
+    "code": "gwi",
+    "type": "/type/language",
+    "name": "Gwich'in",
+    "key": "/languages/gwi"
+  },
+  {
+    "code": "hai",
+    "type": "/type/language",
+    "name": "Haida",
+    "key": "/languages/hai"
+  },
+  {
     "code": "hat",
     "type": "/type/language",
     "name": "Haitian French Creole",
@@ -1109,6 +1169,12 @@
     "key": "/languages/hin"
   },
   {
+    "code": "hit",
+    "type": "/type/language",
+    "name": "Hittite",
+    "key": "/languages/hit"
+  },
+  {
     "code": "hmn",
     "type": "/type/language",
     "name": "Hmong",
@@ -1140,6 +1206,12 @@
     "key": "/languages/hun"
   },
   {
+    "code": "hup",
+    "type": "/type/language",
+    "name": "Hupa",
+    "key": "/languages/hup"
+  },
+  {
     "code": "iba",
     "type": "/type/language",
     "name": "Iban",
@@ -1164,6 +1236,12 @@
     "key": "/languages/ido"
   },
   {
+    "code": "iii",
+    "type": "/type/language",
+    "name": "Sichuan Yi",
+    "key": "/languages/iii"
+  },
+  {
     "code": "ijo",
     "type": "/type/language",
     "name": "Ijo",
@@ -1174,6 +1252,12 @@
     "type": "/type/language",
     "name": "Inuktitut",
     "key": "/languages/iku"
+  },
+  {
+    "code": "ile",
+    "type": "/type/language",
+    "name": "Interlingue",
+    "key": "/languages/ile"
   },
   {
     "code": "ilo",
@@ -1545,6 +1629,12 @@
     "key": "/languages/lez"
   },
   {
+    "code": "lim",
+    "type": "/type/language",
+    "name": "Limburgish",
+    "key": "/languages/lim"
+  },
+  {
     "code": "lin",
     "type": "/type/language",
     "name": "Lingala",
@@ -1591,6 +1681,12 @@
     "type": "/type/language",
     "name": "Ganda",
     "key": "/languages/lug"
+  },
+  {
+    "code": "lui",
+    "type": "/type/language",
+    "name": "Luiseño",
+    "key": "/languages/lui"
   },
   {
     "code": "lun",
@@ -1694,6 +1790,12 @@
     "name": "Moksha",
     "key": "/languages/mdf",
     "title": "Moksha"
+  },
+  {
+    "code": "mdr",
+    "type": "/type/language",
+    "name": "Mandar",
+    "key": "/languages/mdr"
   },
   {
     "code": "men",
@@ -1851,6 +1953,12 @@
     "key": "/languages/nai"
   },
   {
+    "code": "nap",
+    "type": "/type/language",
+    "name": "Neapolitan Italian",
+    "key": "/languages/nap"
+  },
+  {
     "code": "nau",
     "type": "/type/language",
     "name": "Nauru",
@@ -1897,6 +2005,12 @@
     "type": "/type/language",
     "name": "Newari",
     "key": "/languages/new"
+  },
+  {
+    "code": "nia",
+    "type": "/type/language",
+    "name": "Nias",
+    "key": "/languages/nia"
   },
   {
     "code": "nic",
@@ -1973,6 +2087,12 @@
     "type": "/type/language",
     "name": "Nyanja",
     "key": "/languages/nya"
+  },
+  {
+    "code": "nym",
+    "type": "/type/language",
+    "name": "Nyamwezi",
+    "key": "/languages/nym"
   },
   {
     "code": "nyn",
@@ -2102,6 +2222,12 @@
     "key": "/languages/phi"
   },
   {
+    "code": "phn",
+    "type": "/type/language",
+    "name": "Phoenician",
+    "key": "/languages/phn"
+  },
+  {
     "code": "pli",
     "type": "/type/language",
     "name": "Pali",
@@ -2154,6 +2280,12 @@
     "type": "/type/language",
     "name": "Rajasthani",
     "key": "/languages/raj"
+  },
+  {
+    "code": "rap",
+    "type": "/type/language",
+    "name": "Rapanui",
+    "key": "/languages/rap"
   },
   {
     "code": "rar",
@@ -2300,6 +2432,18 @@
     "key": "/languages/sem"
   },
   {
+    "code": "sga",
+    "type": "/type/language",
+    "name": "Irish, Old (to 1100)",
+    "key": "/languages/sga"
+  },
+  {
+    "code": "sgn",
+    "type": "/type/language",
+    "name": "Sign languages",
+    "key": "/languages/sgn"
+  },
+  {
     "code": "shn",
     "type": "/type/language",
     "name": "Shan",
@@ -2356,6 +2500,12 @@
     "key": "/languages/slv"
   },
   {
+    "code": "sma",
+    "type": "/type/language",
+    "name": "Southern Sami",
+    "key": "/languages/sma"
+  },
+  {
     "code": "sme",
     "type": "/type/language",
     "name": "Northern Sami",
@@ -2369,10 +2519,28 @@
     "key": "/languages/smi"
   },
   {
+    "code": "smj",
+    "type": "/type/language",
+    "name": "Lule Sami",
+    "key": "/languages/smj"
+  },
+  {
+    "code": "smn",
+    "type": "/type/language",
+    "name": "Inari Sami",
+    "key": "/languages/smn"
+  },
+  {
     "code": "smo",
     "type": "/type/language",
     "name": "Samoan",
     "key": "/languages/smo"
+  },
+  {
+    "code": "sms",
+    "type": "/type/language",
+    "name": "Skolt Sami",
+    "key": "/languages/sms"
   },
   {
     "code": "sna",
@@ -2992,12 +3160,6 @@
     "key": "/languages/zbl"
   },
   {
-    "code": "znd",
-    "type": "/type/language",
-    "name": "Zande languages",
-    "key": "/languages/znd"
-  },
-  {
     "code": "zen",
     "type": "/type/language",
     "name": "Zenaga",
@@ -3010,10 +3172,10 @@
     "key": "/languages/zha"
   },
   {
-    "code": "zxx",
+    "code": "znd",
     "type": "/type/language",
-    "name": "No linguistic content",
-    "key": "/languages/zxx"
+    "name": "Zande languages",
+    "key": "/languages/znd"
   },
   {
     "code": "zul",
@@ -3026,6 +3188,12 @@
     "type": "/type/language",
     "name": "Zuni",
     "key": "/languages/zun"
+  },
+  {
+    "code": "zxx",
+    "type": "/type/language",
+    "name": "No linguistic content",
+    "key": "/languages/zxx"
   },
   {
     "code": "zza",
