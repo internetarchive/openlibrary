@@ -90,14 +90,26 @@ export class OLChip extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        /* Check icon — absolutely positioned so it never affects chip height */
-        .check-icon {
+        /* Icons — absolutely positioned so they never affect chip height */
+        .icon {
             position: absolute;
             inset-inline-start: var(--chip-padding-inline);
             top: 50%;
             transform: translateY(-50%);
             width: var(--chip-icon-size);
             height: var(--chip-icon-size);
+        }
+
+        .icon-close {
+            display: none;
+        }
+
+        .chip:hover .icon-check {
+            display: none;
+        }
+
+        .chip:hover .icon-close {
+            display: block;
         }
 
         /* Count */
@@ -129,12 +141,12 @@ export class OLChip extends LitElement {
         }));
     }
 
-    _renderCheckIcon() {
+    _renderIcons() {
         if (!this.selected) return nothing;
 
         return html`
             <svg
-                class="check-icon"
+                class="icon icon-check"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -144,6 +156,18 @@ export class OLChip extends LitElement {
                 stroke-linejoin="round"
             >
                 <path d="M20 6 9 17l-5-5"/>
+            </svg>
+            <svg
+                class="icon icon-close"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
             </svg>
         `;
     }
@@ -156,7 +180,7 @@ export class OLChip extends LitElement {
 
     render() {
         const content = html`
-            ${this._renderCheckIcon()}
+            ${this._renderIcons()}
             <slot></slot>
             ${this._renderCount()}
         `;
