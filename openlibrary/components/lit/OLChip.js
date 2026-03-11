@@ -90,8 +90,8 @@ export class OLChip extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        /* Icons — absolutely positioned so they never affect chip height */
-        .icon {
+        /* Icon carousel — clips overflow so icons slide in/out */
+        .icon-slot {
             position: absolute;
             inset-inline-start: var(--chip-padding-inline);
             top: 50%;
@@ -100,16 +100,42 @@ export class OLChip extends LitElement {
             height: var(--chip-icon-size);
         }
 
-        .icon-close {
-            display: none;
+        .icon-carousel {
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s cubic-bezier(.25, .46, .45, .94);
+        }
+
+        .chip:hover .icon-carousel {
+            transform: translateY(-50%);
+        }
+
+        .icon {
+            width: var(--chip-icon-size);
+            height: var(--chip-icon-size);
+            flex-shrink: 0;
+            transition: opacity 0.2s cubic-bezier(.25, .46, .45, .94),
+                        filter 0.2s cubic-bezier(.25, .46, .45, .94);
+        }
+
+        .icon-check {
+            opacity: 1;
+            filter: blur(0);
         }
 
         .chip:hover .icon-check {
-            display: none;
+            opacity: 0;
+            filter: blur(2px);
+        }
+
+        .icon-close {
+            opacity: 0;
+            filter: blur(2px);
         }
 
         .chip:hover .icon-close {
-            display: block;
+            opacity: 1;
+            filter: blur(0);
         }
 
         /* Count */
@@ -145,30 +171,34 @@ export class OLChip extends LitElement {
         if (!this.selected) return nothing;
 
         return html`
-            <svg
-                class="icon icon-check"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M20 6 9 17l-5-5"/>
-            </svg>
-            <svg
-                class="icon icon-close"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-            </svg>
+            <span class="icon-slot">
+                <span class="icon-carousel">
+                    <svg
+                        class="icon icon-check"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M20 6 9 17l-5-5"/>
+                    </svg>
+                    <svg
+                        class="icon icon-close"
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="3"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                    >
+                        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                    </svg>
+                </span>
+            </span>
         `;
     }
 
