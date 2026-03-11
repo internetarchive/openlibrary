@@ -25,6 +25,7 @@ from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -62,7 +63,7 @@ def make_author(key: str, name: str) -> Author:
     <Author: '/authors/OL123A'>
     """
     key = "/authors/" + key
-    return web.ctx.site.new(
+    return site.get().new(
         key, {"key": key, "type": {"key": "/type/author"}, "name": name}
     )
 
