@@ -63,8 +63,14 @@ export class OLChip extends LitElement {
             text-decoration: none;
         }
 
-        .chip:hover {
-            background: var(--lightest-grey);
+        @media (hover: hover) and (pointer: fine) {
+            .chip:hover {
+                background: var(--lightest-grey);
+            }
+        }
+
+        .chip:active {
+            transform: scale(0.97);
         }
 
         .chip:focus-visible {
@@ -80,9 +86,11 @@ export class OLChip extends LitElement {
             color: var(--white);
         }
 
-        :host([selected]) .chip:hover {
-            background: var(--primary-blue);
-            filter: brightness(1.1);
+        @media (hover: hover) and (pointer: fine) {
+            :host([selected]) .chip:hover {
+                background: var(--primary-blue);
+                filter: brightness(1.1);
+            }
         }
 
         /* Small size */
@@ -103,11 +111,14 @@ export class OLChip extends LitElement {
         .icon-carousel {
             display: flex;
             flex-direction: column;
+            will-change: transform;
             transition: transform 0.2s cubic-bezier(.25, .46, .45, .94);
         }
 
-        .chip:hover .icon-carousel {
-            transform: translateY(-50%);
+        @media (hover: hover) and (pointer: fine) {
+            .chip:hover .icon-carousel {
+                transform: translateY(-50%);
+            }
         }
 
         .icon {
@@ -123,19 +134,21 @@ export class OLChip extends LitElement {
             filter: blur(0);
         }
 
-        .chip:hover .icon-check {
-            opacity: 0;
-            filter: blur(2px);
-        }
-
         .icon-close {
             opacity: 0;
             filter: blur(2px);
         }
 
-        .chip:hover .icon-close {
-            opacity: 1;
-            filter: blur(0);
+        @media (hover: hover) and (pointer: fine) {
+            .chip:hover .icon-check {
+                opacity: 0;
+                filter: blur(2px);
+            }
+
+            .chip:hover .icon-close {
+                opacity: 1;
+                filter: blur(0);
+            }
         }
 
         /* Count */
@@ -143,6 +156,7 @@ export class OLChip extends LitElement {
             margin-inline-start: 4px;
             color: #777;
             font-size: 0.85em;
+            font-variant-numeric: tabular-nums;
         }
 
         :host([selected]) .count {

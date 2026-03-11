@@ -160,6 +160,7 @@ A Work has many Editions. This is the central relationship in the data model.
 
 These companion docs cover specific areas in depth:
 
+- [Design](design.md) — UI design patterns: typography, layout shift prevention, animations
 - [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
 
 ## Key File Locations
