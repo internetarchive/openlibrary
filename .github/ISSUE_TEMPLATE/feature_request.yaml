@@ -32,7 +32,7 @@ body:
       label: Breakdown
       description: If you are unsure what to enter, please leave this section blank for leads/maintainers
       value: |
-        <details>
+        <details open>
         <summary><strong>Implementation Details</strong> (for maintainers)</summary>
 
         #### Related files
