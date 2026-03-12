@@ -52,7 +52,7 @@ $if "dev" in ctx.features:
                 </div>
 
                 <div class="input">
-                <input type="email" id="username" name="username" autocomplete="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
+                <input type="email" id="username" name="username" autocomplete="email" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
                 </div>
             </div>
 
