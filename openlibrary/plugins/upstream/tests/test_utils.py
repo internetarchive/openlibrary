@@ -334,3 +334,12 @@ def test_commify_list(name: str, seq: Sequence[str], locale: str, expected: str,
     request_context_fixture(lang=locale)
     got = utils.commify_list(seq)
     assert got == expected
+
+
+def test_get_language_name(add_languages):  # noqa: F811
+    # Falls back to name when no name_translated field exists
+    assert utils.get_language_name("/languages/fre", "fr") == "French"
+    # Returns translated name when available
+    assert utils.get_language_name("/languages/ger", "en") == "German"
+    # Falls back to name when translation missing for requested language
+    assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
