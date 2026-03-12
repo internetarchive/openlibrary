@@ -15,7 +15,7 @@ $var title: $_("Email Verification Failed")
         <input type="hidden" name="action" value="resent_verification_link"/>
 
         <div class="input">
-        <input type="text" name="email" id="email" value="$email" placeholder="$_('Enter your email address here')"/>
+        <input type="text" name="email" id="email" value="$email" autocomplete="email" placeholder="$_('Enter your email address here')"/>
         </div>
         $if email:
             <div class="invalid clearfix" htmlfor="email">$_("No user registered with this email address.")</div>

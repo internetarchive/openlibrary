@@ -52,7 +52,7 @@ $if "dev" in ctx.features:
                 </div>
 
                 <div class="input">
-                <input type="email" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
+                <input type="email" id="username" name="username" autocomplete="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
                 </div>
             </div>
 
@@ -62,7 +62,7 @@ $if "dev" in ctx.features:
                     <a class="ol-signup-form__note" href="https://archive.org/forgot-password">$_("Forgot your Password?")</a>
                 </div>
                 <div class="input">
-                    <input type="password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
+                    <input type="password" autocomplete="current-password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
                         <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
                     </a>
