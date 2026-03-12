@@ -148,4 +148,3 @@ class TestListRecord:
             # Blank keys should now raise ValueError during normalization
             with pytest.raises(ValueError, match="Seed key cannot be empty"):
                 ListRecord.from_input()
-
