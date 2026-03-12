@@ -1,0 +1,99 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Open Library Language Schema",
+    "type": "object",
+    "required": [
+        "key",
+        "name",
+        "code",
+        "type",
+        "revision",
+        "last_modified"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "key": {
+            "$ref": "shared_definitions.json#/language_key"
+        },
+        "name": {
+            "type": "string",
+            "description": "The name of the language, possibly including the native name",
+            "examples": [
+                "English",
+                "French / français"
+            ]
+        },
+        "code": {
+            "$ref": "shared_definitions.json#/language_code"
+        },
+        "type": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "/type/language"
+                    ]
+                }
+            }
+        },
+        "comment": {
+            "type": "string"
+        },
+        "m": {
+            "type": "string",
+            "description": "Edit mode indicator"
+        },
+        "location": {
+            "type": "string",
+            "description": "Search URL path for this language",
+            "examples": [
+                "/search?q=language:eng"
+            ]
+        },
+        "identifiers": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "wikidata": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^Q[0-9]+$"
+                    }
+                },
+                "iso_639_1": {
+                    "type": "array",
+                    "description": "ISO 639-1 two-letter language codes",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-z]{2}$"
+                    }
+                }
+            }
+        },
+        "name_translated": {
+            "type": "object",
+            "description": "A mapping of BCP 47 language codes to arrays of translated language names",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "revision": {
+            "type": "number"
+        },
+        "latest_revision": {
+            "type": "number"
+        },
+        "created": {
+            "$ref": "shared_definitions.json#/internal_datetime"
+        },
+        "last_modified": {
+            "$ref": "shared_definitions.json#/internal_datetime"
+        }
+    }
+}
