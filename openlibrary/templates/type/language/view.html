@@ -1,10 +1,11 @@
 $def with (page)
 
 $ name = get_language_name(page, get_lang() or 'en')
+$ page_title = name
 $if page.deprecated:
-    $ name += f' [{_("%(language)s deprecated", language=name)}]'
+    $ page_title = _("%(language)s [deprecated]", language=name)
 
-$var title: $name
+$var title: $page_title
 
 <div id="contentHead">
     $:macros.databarView(page)
