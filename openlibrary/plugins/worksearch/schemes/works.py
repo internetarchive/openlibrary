@@ -165,6 +165,7 @@ class WorkSearchScheme(SearchScheme):
             'currently_reading': 'currently_reading_count desc',
             'already_read': 'already_read_count desc',
             'title': 'title_sort asc',
+            'scans': 'ebook_count_i desc',  # Legacy, used in some collections
             # Classifications
             'lcc_sort': 'lcc_sort asc',
             'lcc_sort asc': 'lcc_sort asc',
