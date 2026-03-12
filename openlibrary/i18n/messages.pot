@@ -7956,7 +7956,7 @@ msgstr ""
 
 #: type/language/view.html
 #, python-format
-msgid "%(language)s deprecated"
+msgid "%(language)s [deprecated]"
 msgstr ""
 
 #: type/language/view.html
