@@ -658,6 +658,10 @@ div.valid {
 /* openlibrary/templates/search/publishers.html */
 /* openlibrary/templates/work_search.html */
 /* openlibrary/templates/search/subjects.html */
+.search-row {
+  margin-bottom: 8px;
+}
+
 div.siteSearch {
   overflow: visible;
   border-radius: 5px;
