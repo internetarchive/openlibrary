@@ -29,7 +29,7 @@ def find_ia_account(email=None):
 
 Login = Form(
     Textbox(
-        'username', description=_('Username'), klass='required', autocomplete="username"
+        'username', description=_('Username'), klass='required', autocomplete="email"
     ),
     Password(
         'password',
