@@ -2323,6 +2323,10 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
+msgid "Smoke tests status"
+msgstr ""
+
+#: status.html
 msgid "Staged"
 msgstr ""
 
