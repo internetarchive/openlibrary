@@ -28,8 +28,15 @@ def find_ia_account(email=None):
 
 
 Login = Form(
-    Textbox('username', description=_('Username'), klass='required', autocomplete="username"),
-    Password('password', description=_('Password'), klass='required', autocomplete="current-password"),
+    Textbox(
+        'username', description=_('Username'), klass='required', autocomplete="username"
+    ),
+    Password(
+        'password',
+        description=_('Password'),
+        klass='required',
+        autocomplete="current-password",
+    ),
     Hidden('redirect'),
     Hidden('action'),
 )
@@ -90,7 +97,7 @@ class RegisterForm(Form):
                 email_not_disposable,
                 email_domain_not_blocked,
             ],
-            autocomplete="email"
+            autocomplete="email",
         ),
         Textbox(
             'username',
@@ -102,7 +109,7 @@ class RegisterForm(Form):
             pattern=vlogin.rexp.pattern,
             title=vlogin.msg,
             required="true",
-            autocomplete="username"
+            autocomplete="username",
         ),
         Password(
             'password',
@@ -112,7 +119,7 @@ class RegisterForm(Form):
             minlength="3",
             maxlength="20",
             required="true",
-            autocomplete="new-password"
+            autocomplete="new-password",
         ),
     )
 
@@ -153,10 +160,15 @@ ForgotPassword = Form(
         'email',
         description=_("Your email address"),
         validators=[vemail, email_already_used],
-        autocomplete="email"
+        autocomplete="email",
     )
 )
 
 ResetPassword = Form(
-    Password('password', description=_("Choose a password"), validators=[vpass], autocomplete="new-password")
+    Password(
+        'password',
+        description=_("Choose a password"),
+        validators=[vpass],
+        autocomplete="new-password",
+    )
 )
