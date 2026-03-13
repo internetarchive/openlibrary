@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import contextlib
 import copy
 import hashlib
 import hmac
@@ -192,11 +193,9 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            try:
+            # Try to return the loan, catching PatronAccessException explicitly so we can verify if the loan is actually gone.
+            with contextlib.suppress(lending.PatronAccessException):
                 lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
-            except lending.PatronAccessException:
-                # Loan may have already expired — check status before claiming success
-                pass
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
