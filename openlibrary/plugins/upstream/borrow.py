@@ -1,6 +1,5 @@
 """Handlers for borrowing books"""
 
-import contextlib
 import copy
 import hashlib
 import hmac
@@ -163,18 +162,14 @@ class borrow(delegate.page):
 
         error_redirect = archive_url
 
-        # Sanitize i.redirect to prevent open redirect attacks by stripping
-        # any host/scheme from the URL, preserving only the path and query string.
-        parsed_redirect = urllib.parse.urlsplit(i.redirect) if i.redirect else None
-        redirect_path = (
-            (
-                parsed_redirect.path
-                + ('?' + parsed_redirect.query if parsed_redirect.query else '')
+        # Strip scheme/host to prevent open-redirect attacks.
+        if i.redirect:
+            parsed = urllib.parse.urlsplit(i.redirect)
+            edition_redirect = urllib.parse.urlunsplit(
+                ('', '', parsed.path, parsed.query, parsed.fragment)
             )
-            if parsed_redirect
-            else ''
-        )
-        edition_redirect = redirect_path or edition.url()
+        else:
+            edition_redirect = edition.url()
 
         user = accounts.get_current_user()
 
@@ -187,35 +182,33 @@ class borrow(delegate.page):
             )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            redirect_url = f"/account/login?redirect={urllib.parse.quote(edition_redirect, safe='')}%2Fborrow%3Faction%3D{action}"
+            return_path = f"{edition_redirect}/borrow?action={action}"
+            redirect_url = f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            # Try to return the loan, catching PatronAccessException explicitly so we can verify if the loan is actually gone.
-            with contextlib.suppress(lending.PatronAccessException):
+            try:
                 lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
-            stats.increment('ol.loans.return')
+            except lending.PatronAccessException:
+                pass  # 400/409 — loan may already be gone; verified below
+
             edition.update_loan_status()
             user.update_loan_status()
+            title = edition.title or _('this book')
 
             if user.has_borrowed(edition):
-                # The return failed and they still have the loan
                 add_flash_message(
                     'error',
                     _(
                         'Unable to return %s. Please try again later or contact info@archive.org.'
                     )
-                    % (edition.title or _('this book')),
+                    % title,
                 )
             else:
-                # The return succeeded or the loan was already expired/gone
-                title = edition.title or _('this book')
-                add_flash_message(
-                    'success',
-                    _('%s has been returned.') % title,
-                )
+                stats.increment('ol.loans.return')
+                add_flash_message('success', _('%s has been returned.') % title)
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(
