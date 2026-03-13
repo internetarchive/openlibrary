@@ -371,6 +371,11 @@ msgid "Read"
 msgstr ""
 
 #: LoanStatus.html
+#, python-format
+msgid "You have reached your borrowing limit of %(max)d books."
+msgstr ""
+
+#: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
 msgstr ""
 
