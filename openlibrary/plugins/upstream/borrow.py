@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import contextlib
 import copy
 import hashlib
 import hmac
@@ -105,7 +106,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):  # noqa: PLR0915
+    def POST(self, key):  # noqa: PLR0912, PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -191,10 +192,8 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            try:
+            with contextlib.suppress(lending.PatronAccessException):
                 lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
-            except lending.PatronAccessException:
-                pass  # 400/409 — loan may already be gone; verified below
 
             edition.update_loan_status()
             user.update_loan_status()
