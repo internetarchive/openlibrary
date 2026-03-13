@@ -8,4 +8,7 @@
 // Export components (importing also registers them as custom elements)
 export { OLReadMore } from './OLReadMore.js';
 export { OlPagination } from './OlPagination.js';
+export { OlPopover } from './OlPopover.js';
+export { OlAutocomplete } from './OlAutocomplete.js';
+export { OlLanguageEdit } from './OlLanguageEdit.js';
 
