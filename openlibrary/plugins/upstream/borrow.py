@@ -193,18 +193,31 @@ class borrow(delegate.page):
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            # Suppress PatronAccessException: the loan may have already expired
-            # on the IA side. Either way, proceed with redirect and confirmation.
-            with contextlib.suppress(lending.PatronAccessException):
+            try:
                 lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
+            except lending.PatronAccessException:
+                # Loan may have already expired — check status before claiming success
+                pass
             stats.increment('ol.loans.return')
             edition.update_loan_status()
             user.update_loan_status()
-            title = edition.title or _('this book')
-            add_flash_message(
-                'success',
-                _('You have successfully returned %s.') % title,
-            )
+
+            if user.has_borrowed(edition):
+                # The return failed and they still have the loan
+                add_flash_message(
+                    'error',
+                    _(
+                        'Unable to return %s. Please try again later or contact info@archive.org.'
+                    )
+                    % (edition.title or _('this book')),
+                )
+            else:
+                # The return succeeded or the loan was already expired/gone
+                title = edition.title or _('this book')
+                add_flash_message(
+                    'success',
+                    _('%s has been returned.') % title,
+                )
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(
