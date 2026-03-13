@@ -1428,12 +1428,12 @@ msgid "Loan History"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
-#, python-format
-msgid "Unable to return %s. Please try again later or contact info@archive.org."
+msgid "this book"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
-msgid "this book"
+#, python-format
+msgid "Unable to return %s. Please try again later or contact info@archive.org."
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py

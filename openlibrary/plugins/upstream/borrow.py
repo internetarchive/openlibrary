@@ -183,7 +183,9 @@ class borrow(delegate.page):
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             return_path = f"{edition_redirect}/borrow?action={action}"
-            redirect_url = f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
+            redirect_url = (
+                f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
+            )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
