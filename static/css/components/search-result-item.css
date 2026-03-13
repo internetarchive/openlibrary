@@ -137,24 +137,6 @@
   filter: blur(2px);
 }
 
-.preview-covers-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 5px;
-}
-
-.preview-covers a {
-  position: relative;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.preview-covers a:nth-child(n+2) {
-  margin-left: -15px;
-}
-
 .searchResultItem .bookcover {
   width: 100%;
   margin: 10px 10px 0 5px;
@@ -195,14 +177,43 @@
   text-overflow: ellipsis;
 }
 
-.preview-covers a:nth-child(1) { z-index: var(--z-index-level-4); }
-.preview-covers a:nth-child(2) { z-index: var(--z-index-level-3); }
-.preview-covers a:nth-child(3) { z-index: var(--z-index-level-2); }
-.preview-covers a:nth-child(4) { z-index: var(--z-index-level-1); }
-
 .srw__subjects em {
   font-weight: bold;
   font-style: normal;
+}
+
+.preview-covers-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.preview-covers a {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.preview-covers a:nth-child(n+2) {
+  margin-left: -15px;
+}
+
+.preview-covers a:nth-child(1) { 
+  z-index: var(--z-index-level-4); 
+}
+
+.preview-covers a:nth-child(2) { 
+  z-index: var(--z-index-level-3); 
+}
+
+.preview-covers a:nth-child(3) { 
+  z-index: var(--z-index-level-2); 
+}
+
+.preview-covers a:nth-child(4) { 
+  z-index: var(--z-index-level-1); 
 }
 
 .srw__chapters {
