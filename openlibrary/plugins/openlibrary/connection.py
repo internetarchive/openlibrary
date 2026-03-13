@@ -279,9 +279,9 @@ class MemcacheMiddleware(ConnectionMiddleware):
     def get_memcache(self, memcache_servers):
         global _memcache
         if _memcache is None:
-            from openlibrary.utils import olmemcache
+            import memcache
 
-            _memcache = olmemcache.Client(memcache_servers)
+            _memcache = memcache.Client(memcache_servers)
         return _memcache
 
     def get(self, sitename, data):
