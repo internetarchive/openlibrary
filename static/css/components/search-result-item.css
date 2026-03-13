@@ -196,24 +196,24 @@
   flex-shrink: 0;
 }
 
-.preview-covers a:nth-child(n+2) {
+.preview-covers a:nth-child(n + 2) {
   margin-left: -15px;
 }
 
-.preview-covers a:nth-child(1) { 
-  z-index: var(--z-index-level-4); 
+.preview-covers a:nth-child(1) {
+  z-index: var(--z-index-level-4);
 }
 
-.preview-covers a:nth-child(2) { 
-  z-index: var(--z-index-level-3); 
+.preview-covers a:nth-child(2) {
+  z-index: var(--z-index-level-3);
 }
 
-.preview-covers a:nth-child(3) { 
-  z-index: var(--z-index-level-2); 
+.preview-covers a:nth-child(3) {
+  z-index: var(--z-index-level-2);
 }
 
-.preview-covers a:nth-child(4) { 
-  z-index: var(--z-index-level-1); 
+.preview-covers a:nth-child(4) {
+  z-index: var(--z-index-level-1);
 }
 
 .srw__chapters {
