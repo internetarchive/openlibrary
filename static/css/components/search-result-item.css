@@ -155,11 +155,6 @@
   margin-left: -15px;
 }
 
-.preview-covers a:nth-child(1) { z-index: 4; }
-.preview-covers a:nth-child(2) { z-index: 3; }
-.preview-covers a:nth-child(3) { z-index: 2; }
-.preview-covers a:nth-child(4) { z-index: 1; }
-
 .searchResultItem .bookcover {
   width: 100%;
   margin: 10px 10px 0 5px;
@@ -199,6 +194,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.preview-covers a:nth-child(1) { z-index: var(--z-index-level-4); }
+.preview-covers a:nth-child(2) { z-index: var(--z-index-level-3); }
+.preview-covers a:nth-child(3) { z-index: var(--z-index-level-2); }
+.preview-covers a:nth-child(4) { z-index: var(--z-index-level-1); }
 
 .srw__subjects em {
   font-weight: bold;
@@ -255,7 +255,7 @@
 }
 
 .preview-covers img:hover {
-  z-index: 5;
+  z-index: var(--z-index-level-5);
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
