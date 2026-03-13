@@ -18,7 +18,11 @@ from pydantic import (
 )
 
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.fastapi.models import Pagination, PaginationLimit20
+from openlibrary.fastapi.models import (
+    Pagination,
+    PaginationLimit20,
+    SolrInternalsParams,
+)
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -157,10 +161,12 @@ class SearchResponse(BaseModel):
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)],
 ) -> Any:
     """
     Performs a search for documents based on the provided query.
     """
+
     raw_response = await work_search_async(
         params.selected_query,
         sort=params.sort,
@@ -174,6 +180,7 @@ async def search_json(
         spellcheck_count=params.spellcheck_count,
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
+        solr_internals_params=solr_internals_params,
     )
 
     raw_response["q"] = params.q
