@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -17,7 +17,6 @@ from pydantic import (
     model_validator,
 )
 
-from openlibrary.core.env import get_ol_env
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.fastapi.models import (
     Pagination,
@@ -162,7 +161,7 @@ class SearchResponse(BaseModel):
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
-    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)]
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)],
 ) -> Any:
     """
     Performs a search for documents based on the provided query.

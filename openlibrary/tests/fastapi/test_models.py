@@ -23,7 +23,4 @@ class TestSolrInternalsParams:
             solr_v="$userWorkQuery",
         )
         subquery = p.to_solr_edismax_subquery()
-        assert (
-            subquery
-            == '({!edismax qf="title^2 body" mm="2<-1 5<-2" boost=$my_boost_function v=$userWorkQuery})'
-        )
+        assert subquery == '({!edismax qf="title^2 body" mm="2<-1 5<-2" boost=$my_boost_function v=$userWorkQuery})'

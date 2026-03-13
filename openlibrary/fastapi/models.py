@@ -3,16 +3,10 @@ from __future__ import annotations
 import re
 from typing import Self
 
-from pydantic import BaseModel, Field, model_validator
 from fastapi import HTTPException, Request
-from pydantic import (
-    BaseModel,
-    Field,
-    model_validator,
-)
+from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.core.env import get_ol_env
-
 
 
 class Pagination(BaseModel):
@@ -55,9 +49,7 @@ class SolrInternalsParams(BaseModel):
         default=None,
         description="Minimum match: minimum number/percentage of clauses to match.",
     )
-    solr_pf: str | None = Field(
-        default=None, description="Phrase fields: fields to boost phrase matches."
-    )
+    solr_pf: str | None = Field(default=None, description="Phrase fields: fields to boost phrase matches.")
     solr_ps: str | None = Field(
         default=None,
         description="Phrase slop: allowable distance between terms in a phrase.",
@@ -67,9 +59,7 @@ class SolrInternalsParams(BaseModel):
         default=None,
         description="Tie breaker: how to combine scores from multiple fields.",
     )
-    solr_bq: str | None = Field(
-        default=None, description="Boost query: additive boost for matching documents."
-    )
+    solr_bq: str | None = Field(default=None, description="Boost query: additive boost for matching documents.")
     solr_bf: str | None = Field(
         default=None,
         description="Boost functions: additive boost based on function values (e.g., 'min(100,edition_count)').",
@@ -77,34 +67,20 @@ class SolrInternalsParams(BaseModel):
 
     # eDismax parameters
     # See https://solr.apache.org/guide/solr/latest/query-guide/edismax-query-parser.html
-    solr_sow: str | None = Field(
-        default=None, description="Split on whitespace: whether to split query terms."
-    )
-    solr_mm_autoRelax: str | None = Field(
-        default=None, description="Minimum match auto-relax behavior."
-    )
+    solr_sow: str | None = Field(default=None, description="Split on whitespace: whether to split query terms.")
+    solr_mm_autoRelax: str | None = Field(default=None, description="Minimum match auto-relax behavior.")
     solr_boost: str | None = Field(
         default=None,
         description="Boost function: multiplicative boost based on function values.",
     )
-    solr_lowercaseOperators: str | None = Field(
-        default=None, description="Whether to treat lowercase 'and'/'or' as operators."
-    )
-    solr_pf2: str | None = Field(
-        default=None, description="Phrase fields for bigrams (2-word phrases)."
-    )
+    solr_lowercaseOperators: str | None = Field(default=None, description="Whether to treat lowercase 'and'/'or' as operators.")
+    solr_pf2: str | None = Field(default=None, description="Phrase fields for bigrams (2-word phrases).")
     solr_ps2: str | None = Field(default=None, description="Phrase slop for bigrams.")
-    solr_pf3: str | None = Field(
-        default=None, description="Phrase fields for trigrams (3-word phrases)."
-    )
+    solr_pf3: str | None = Field(default=None, description="Phrase fields for trigrams (3-word phrases).")
     solr_ps3: str | None = Field(default=None, description="Phrase slop for trigrams.")
-    solr_stopwords: str | None = Field(
-        default=None, description="Whether to use stopwords filtering."
-    )
+    solr_stopwords: str | None = Field(default=None, description="Whether to use stopwords filtering.")
 
-    solr_v: str | None = Field(
-        default=None, description="The value of the edismax query."
-    )
+    solr_v: str | None = Field(default=None, description="The value of the edismax query.")
 
     @staticmethod
     def override(
@@ -124,35 +100,33 @@ class SolrInternalsParams(BaseModel):
         for field in SolrInternalsParams.model_fields:
             override_value = getattr(overrides, field)
 
-            if override_value == '__DELETE__':
+            if override_value == "__DELETE__":
                 combined_data[field] = None
             elif override_value is not None:
                 combined_data[field] = override_value
 
         return SolrInternalsParams.model_validate(combined_data)
 
-    def to_solr_edismax_subquery(
-        self, defaults: SolrInternalsParams | None = None
-    ) -> str:
+    def to_solr_edismax_subquery(self, defaults: SolrInternalsParams | None = None) -> str:
         params = []
         for field in SolrInternalsParams.model_fields:
-            solr_name = field[len('solr_') :].replace('_', '.')
+            solr_name = field[len("solr_") :].replace("_", ".")
             value = getattr(self, field)
             if defaults and value is None:
                 value = getattr(defaults, field)
             if value is None:
                 continue
 
-            if value and value.startswith('$'):
-                if not re.match(r'^\$[a-zA-Z0-9.-_]+$', value):
+            if value and value.startswith("$"):
+                if not re.match(r"^\$[a-zA-Z0-9.-_]+$", value):
                     raise ValueError("Invalid solr internal variable supplied")
                 # Variables shouldn't be quoted
-                params.append(f'{solr_name}={value}')
+                params.append(f"{solr_name}={value}")
             else:
                 if '"' in value:
                     raise ValueError("Invalid solr internal value supplied")
                 params.append(f'{solr_name}="{value}"')
-        return '({!edismax ' + ' '.join(params) + '})' if params else ''
+        return "({!edismax " + " ".join(params) + "})" if params else ""
 
     @staticmethod
     def from_request(request: Request) -> SolrInternalsParams | None:
