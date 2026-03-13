@@ -1,6 +1,5 @@
 """Handlers for borrowing books"""
 
-import contextlib
 import copy
 import hashlib
 import hmac
