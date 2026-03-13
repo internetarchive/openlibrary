@@ -40,40 +40,43 @@ loanstatus_url: http://web:8080/
 ia_access_secret: foobar
 
 memcache_servers:
-    - memcached:11211
+  - memcached:11211
 
 plugin_modules:
-    - openlibrary
-    - infogami.plugins.links
-    - infogami.plugins.api
+  - openlibrary
+  - infogami.plugins.links
+  - infogami.plugins.api
 
 plugin_worksearch:
-    solr_next: true
-    solr_base_url: http://solr:8983/solr/openlibrary
-    spellcheck_count: 3
+  solr_next: true
+  solr_base_url: http://solr:8983/solr/openlibrary
+  spellcheck_count: 3
 
 http_request_timeout: 10
 
 features:
-    cache_most_recent: enabled
-    debug: enabled
-    dev: enabled
-    history_v2: admin
-    inlibrary: enabled
-    lending_v2: enabled
-    lists: enabled
-    merge-authors:
-        filter: usergroup
-        usergroup: /usergroup/librarians
-    merge-editions: admin
-    publishers: enabled
-    recentchanges_v2: enabled
-    stats: enabled
-    stats-header: enabled
-    superfast: enabled
-    support: admin
-    undo: enabled
-    upstream: enabled
+  cache_most_recent: enabled
+  debug: enabled
+  dev: enabled
+  history_v2: admin
+  inlibrary: enabled
+  lending_v2: enabled
+  lists: enabled
+  merge-authors:
+    filter: usergroup
+    usergroup: /usergroup/librarians
+  merge-editions: admin
+  publishers: enabled
+  recentchanges_v2: enabled
+  stats: enabled
+  stats-header: enabled
+  superfast: enabled
+  support: admin
+  undo: enabled
+  upstream: enabled
+
+lending:
+  max_loans: 5
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -83,87 +86,87 @@ logging_config_file: conf/logging.ini
 email_config_file: conf/email.ini
 
 lists:
-    seeds_db: http://localhost:5984/seeds
-    editions_db: http://localhost:5984/editions
-    works_db: http://localhost:5984/works
-    editions_view: http://localhost:5984/editions/_fti/_design/seeds/by_seed
+  seeds_db: http://localhost:5984/seeds
+  editions_db: http://localhost:5984/editions
+  works_db: http://localhost:5984/works
+  editions_view: http://localhost:5984/editions/_fti/_design/seeds/by_seed
 
 admin:
-    nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
-    statsd_server: localhost:9090
-    admin_db: http://localhost:5984/admin
+  nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
+  statsd_server: localhost:9090
+  admin_db: http://localhost:5984/admin
 
 stats: # This section is used to state what stats need to be gathered.
-    pageload.all:
-      filter: all
-      time: total
+  pageload.all:
+    filter: all
+    time: total
 
-    pageload.books:
-      filter: url
-      pattern: /books/OL\d+M
-      time: total
+  pageload.books:
+    filter: url
+    pattern: /books/OL\d+M
+    time: total
 
-    pageload.works:
-      filter: url
-      pattern: /works/OL\d+M
-      time: total
+  pageload.works:
+    filter: url
+    pattern: /works/OL\d+M
+    time: total
 
-    pageload.authors:
-      filter: url
-      pattern: /authors/OL\d+M
-      time: total
+  pageload.authors:
+    filter: url
+    pattern: /authors/OL\d+M
+    time: total
 
-    pageload.author:
-      filter: url
-      pattern: /authors/OL\d+M
-      time: total
+  pageload.author:
+    filter: url
+    pattern: /authors/OL\d+M
+    time: total
 
-    pageload.home:
-      filter: url
-      pattern: ^/$
-      time: total
+  pageload.home:
+    filter: url
+    pattern: ^/$
+    time: total
 
-    pageload.recentchanges:
-      filter: url
-      pattern: /recentchanges
-      time: total
+  pageload.recentchanges:
+    filter: url
+    pattern: /recentchanges
+    time: total
 
-    pageload.lists:
-      filter: url
-      pattern: /lists
-      time: total
+  pageload.lists:
+    filter: url
+    pattern: /lists
+    time: total
 
-    ol.pageload.readapi:
-      filter: url
-      pattern: /api/volumes/.*
-      time: total
+  ol.pageload.readapi:
+    filter: url
+    pattern: /api/volumes/.*
+    time: total
 
 # prefixes ignored for /books/ia:xxx URLs and solr_updater.py
 ia_ignore_prefixes:
-    - "jstor-"
-    - "imslp-"
-    - "nasa_techdoc_"
-    - "gov.uscourts."
+  - "jstor-"
+  - "imslp-"
+  - "nasa_techdoc_"
+  - "gov.uscourts."
 
 plugin_recaptcha:
-    public_key: ''
-    private_key: ''
+  public_key: ""
+  private_key: ""
 
 plugin_invisible_recaptcha:
-    public_key: ''
-    private_key: ''
+  public_key: ""
+  private_key: ""
 
 plugin_inside:
-    search_endpoint: https://be-api.us.archive.org/fts/v1/search
+  search_endpoint: https://be-api.us.archive.org/fts/v1/search
 
 affiliate_ids:
-    # Amazon is a book source, not just an affiliate, so we make its affiliate
-    # tag generally available
-    amazon: internetarchi-20
+  # Amazon is a book source, not just an affiliate, so we make its affiliate
+  # tag generally available
+  amazon: internetarchi-20
 
 ia_ol_xauth_s3:
-    s3_key: XXX
-    s3_secret: XXX
+  s3_key: XXX
+  s3_secret: XXX
 
 ia_loan_api_url: http://web:8080/internal/fake/loans
 ia_xauth_api_url: http://web:8080/internal/fake/xauth
@@ -173,18 +176,18 @@ ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
 
 sentry:
-    enabled: false
-    # Dummy endpoint; where sentry logs are sent to
-    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
-    traces_sample_rate: 1.0
-    profiles_sample_rate: 0.001
-    environment: 'local'
+  enabled: false
+  # Dummy endpoint; where sentry logs are sent to
+  dsn: "https://examplePublicKey@o0.ingest.sentry.io/0"
+  traces_sample_rate: 1.0
+  profiles_sample_rate: 0.001
+  environment: "local"
 
 sentry_cron_jobs:
-    enabled: false
-    # Dummy endpoint; where sentry logs are sent to
-    dsn: 'https://examplePublicKey@o0.ingest.sentry.io/0'
-    environment: 'local'
+  enabled: false
+  # Dummy endpoint; where sentry logs are sent to
+  dsn: "https://examplePublicKey@o0.ingest.sentry.io/0"
+  environment: "local"
 
 # Observations cache settings:
 observation_cache_duration: 86400
