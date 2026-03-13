@@ -370,7 +370,7 @@ class WorkSearchScheme(SearchScheme):
             solr_v='$userWorkQuery',
         )
         if solr_internals_params:
-            edismax_params = SolrInternalsParams.combine(
+            edismax_params = SolrInternalsParams.override(
                 edismax_params, solr_internals_params
             )
 

@@ -162,17 +162,11 @@ class SearchResponse(BaseModel):
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)]
 ) -> Any:
     """
     Performs a search for documents based on the provided query.
     """
-    solr_internals_params = SolrInternalsParams.model_validate(request.query_params)
-    solr_internals_specified = bool(solr_internals_params.model_dump(exclude_none=True))
-    if solr_internals_specified and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
-        raise HTTPException(
-            status_code=403,
-            detail="Solr internals parameters are not allowed in this environment.",
-        )
 
     raw_response = await work_search_async(
         params.selected_query,

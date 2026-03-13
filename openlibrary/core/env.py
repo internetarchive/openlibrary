@@ -1,9 +1,7 @@
 import os
-from dataclasses import dataclass
 from functools import cached_property
 
 
-@dataclass
 class OLEnv:
     @cached_property
     def OL_EXPOSE_SOLR_INTERNALS_PARAMS(self) -> bool:

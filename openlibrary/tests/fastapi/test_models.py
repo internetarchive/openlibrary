@@ -8,10 +8,10 @@ class TestSolrInternalsParams:
         p = SolrInternalsParams(solr_qf="title^2")
         assert bool(p.model_dump(exclude_none=True)) is True
 
-    def test_combine_can_delete_fields(self):
+    def test_override_can_delete_fields(self):
         base = SolrInternalsParams(solr_qf="title^2", solr_mm="2<-1 5<-2")
         overrides = SolrInternalsParams(solr_qf="__DELETE__")
-        combined = SolrInternalsParams.combine(base, overrides)
+        combined = SolrInternalsParams.override(base, overrides)
         assert combined.solr_qf is None
         assert combined.solr_mm == "2<-1 5<-2"
 

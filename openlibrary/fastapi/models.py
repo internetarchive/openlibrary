@@ -4,6 +4,15 @@ import re
 from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
+from fastapi import HTTPException, Request
+from pydantic import (
+    BaseModel,
+    Field,
+    model_validator,
+)
+
+from openlibrary.core.env import get_ol_env
+
 
 
 class Pagination(BaseModel):
@@ -98,10 +107,17 @@ class SolrInternalsParams(BaseModel):
     )
 
     @staticmethod
-    def combine(
+    def override(
         base: SolrInternalsParams,
         overrides: SolrInternalsParams | None = None,
     ) -> SolrInternalsParams:
+        """
+        Overrides a base set of SolrInternalsParams with values from an overrides
+        instance.
+
+        You can use the special value "__DELETE__" in the overrides to explicitly set
+        a field to None in the combined result.
+        """
         if not overrides:
             return base.model_copy()
         combined_data = base.model_dump()
@@ -137,3 +153,22 @@ class SolrInternalsParams(BaseModel):
                     raise ValueError("Invalid solr internal value supplied")
                 params.append(f'{solr_name}="{value}"')
         return '({!edismax ' + ' '.join(params) + '})' if params else ''
+
+    @staticmethod
+    def from_request(request: Request) -> SolrInternalsParams | None:
+        """
+        FastAPI dependency that extracts and validates Solr internals params.
+
+        Returns None if the feature is not enabled or no params were provided.
+        Raises 403 if params are provided but feature is disabled.
+        """
+        params = SolrInternalsParams.model_validate(request.query_params)
+        has_params = bool(params.model_dump(exclude_none=True))
+
+        if has_params and not get_ol_env().OL_EXPOSE_SOLR_INTERNALS_PARAMS:
+            raise HTTPException(
+                status_code=403,
+                detail="Solr internals parameters are not allowed in this environment.",
+            )
+
+        return params if has_params else None
