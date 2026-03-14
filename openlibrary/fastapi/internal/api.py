@@ -61,7 +61,7 @@ class RatingsResponse(BaseModel):
     counts: dict[str, int] = Field(default_factory=dict, description="Per-star rating counts keyed by star number")
 
 
-@router.get("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA, response_model=RatingsResponse)
+@router.get("/works/OL{work_id}W/ratings.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA, response_model=RatingsResponse)
 async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
     """Get ratings summary for a work."""
     return RatingsResponse(**legacy_ratings.get_ratings_summary(work_id))
