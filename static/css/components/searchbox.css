@@ -30,7 +30,8 @@
 }
 
 .searchbox:focus-within {
-  outline: auto;
+  outline: none;
+  box-shadow: var(--box-shadow-focus);
 }
 
 /* --width-breakpoint-tablet */
