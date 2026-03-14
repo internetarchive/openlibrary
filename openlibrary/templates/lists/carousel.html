@@ -1,6 +1,7 @@
 $def with (lists, all_url)
 
-$ user_key = ctx.user and ctx.user.key
+$ user = get_current_user()
+$ user_key = user and user.key
 <div class="carousel-section">
     <div class="list-follow-showcase">
         $:render_template('lists/list_follow', lists, 5, user_key)

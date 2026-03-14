@@ -1,5 +1,5 @@
 /**
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#merge-form
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#merge-form
  */
 /* Consider using .merge-form OR #mergeForm for a common parent selector */
 /* openlibrary/templates/merge/authors.html */

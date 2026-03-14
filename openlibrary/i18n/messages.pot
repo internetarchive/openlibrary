@@ -1819,8 +1819,8 @@ msgstr ""
 #: design.html
 #, python-format
 msgid ""
-"When a page is clicked, the component fires an %(update_page)s event with"
-" the page number in %(event_detail)s."
+"When a page is clicked, the component fires an %(event_name)s event with "
+"the page number in %(event_detail)s."
 msgstr ""
 
 #: design.html
@@ -7993,7 +7993,8 @@ msgid "Loading Lists"
 msgstr ""
 
 #: type/language/view.html
-msgid "deprecated"
+#, python-format
+msgid "%(language)s [deprecated]"
 msgstr ""
 
 #: type/language/view.html

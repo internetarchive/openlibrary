@@ -20,15 +20,15 @@ $var title: $("Forgot Your Email?")
     <form class="forgot-email-form"  action="/account/email/forgot-ia" method="POST">
       <div class="form-row">
 	<div>
-	  <label>$_('Open Library Email')</label>
+	  <label for="email">$_('Open Library Email')</label>
 	</div>
-	<input type="text" name="email"/>
+	<input type="text" id="email" name="email" autocomplete="email"/>
       </div>
       <div class="form-row">
 	<div>
-	  <label>$_('Password')</label>
+	  <label for="password">$_('Password')</label>
 	</div>
-	<input type="password" name="password"/>
+	<input type="password" id="password" name="password" autocomplete="current-password"/>
       </div>
       <div>
 	<input type="submit" value="$_('Retrieve Archive.org Email')"/>
