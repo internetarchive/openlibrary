@@ -56,11 +56,17 @@ class Edition(models.Edition):
     title_prefix = property(get_title_prefix)
 
     def get_authors(self):
-        """Added to provide same interface for work and edition"""
-        work_authors = self.works[0].get_authors() if self.works else []
+        """Added to provide same interface for work and edition.
+
+        Returns the work's authors when a work exists. Falls back to the
+        edition's own author list only for orphaned editions (no linked work).
+        Combining both caused duplicate or stale author names when an edition
+        retained a redundant author reference after the work's author changed.
+        """
+        if self.works:
+            return self.works[0].get_authors()
         authors = [follow_redirect(a) for a in self.authors]
-        authors = [a for a in authors if a and a.type.key == "/type/author"]
-        return work_authors + authors
+        return [a for a in authors if a and a.type.key == "/type/author"]
 
     def get_covers(self):
         """
