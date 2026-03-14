@@ -6,9 +6,9 @@ from dataclasses import dataclass
 from typing import Literal, override
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
 from openlibrary.utils.async_utils import async_bridge
@@ -23,7 +23,9 @@ async def get_top_languages(
     user_lang: str,
     sort: Literal["count", "name", "ebook_edition_count"] = "count",
 ) -> list[web.storage]:
-    available_edition_counts = dict(await get_all_language_counts("edition", ebook_access="borrowable"))
+    available_edition_counts = dict(
+        await get_all_language_counts("edition", ebook_access="borrowable")
+    )
     results = [
         web.storage(
             name=get_language_name(lang_key, user_lang),
@@ -35,7 +37,9 @@ async def get_top_languages(
         for (lang_key, count) in await get_all_language_counts("work")
     ]
     if sort == "name":
-        results.sort(key=lambda x: unicodedata.normalize("NFD", x["name"] or "").casefold())
+        results.sort(
+            key=lambda x: unicodedata.normalize("NFD", x["name"] or "").casefold()
+        )
     else:
         results.sort(key=lambda x: x[sort], reverse=True)
     return results[:limit]
@@ -62,7 +66,9 @@ async def get_all_language_counts(
         _timeout=30,  # This query can be rather slow
         _pass_time_allowed=False,  # Let this long-running query complete solr-side
     )
-    return [(f"/languages/{row.value}", row.count) for row in result["facets"]["language"]]
+    return [
+        (f"/languages/{row.value}", row.count) for row in result["facets"]["language"]
+    ]
 
 
 class index(delegate.page):
