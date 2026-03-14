@@ -456,5 +456,3 @@ def mock_site(request):
 
     web.ctx.clear()
     web.ctx.update(old_ctx)
-
-    
