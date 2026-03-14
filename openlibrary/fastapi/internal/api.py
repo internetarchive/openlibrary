@@ -62,9 +62,9 @@ class RatingsResponse(BaseModel):
 
 
 @router.get("/works/OL{work_id}W/ratings.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA, response_model=RatingsResponse)
-async def get_ratings(work_id: Annotated[int, Path()]) -> RatingsResponse:
+async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
     """Get ratings summary for a work."""
-    return RatingsResponse(**legacy_ratings.get_ratings_summary(work_id))
+    return legacy_ratings.get_ratings_summary(work_id)
 
 
 @router.post("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)

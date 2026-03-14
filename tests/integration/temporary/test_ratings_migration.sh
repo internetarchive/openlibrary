@@ -112,7 +112,7 @@ echo "Code: $WEB_CODE"
 echo "Body: $WEB_BODY"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings.json" \
+FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings" \
     -H "Content-Type: application/json" \
     -d '{"rating": 4}' -w "\nStatus:%{http_code}")
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -141,7 +141,7 @@ WEB_CODE=$(echo "$WEB_RESP" | grep Status | cut -d: -f2)
 echo "Code: $WEB_CODE"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings.json" \
+FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings" \
     -H "Content-Type: application/json" \
     -d '{"rating": 5, "edition_id": "OL1M"}' -w "\nStatus:%{http_code}")
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -165,7 +165,7 @@ WEB_CODE=$(echo "$WEB_RESP" | grep Status | cut -d: -f2)
 echo "Code: $WEB_CODE"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings.json" \
+FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings" \
     -H "Content-Type: application/json" \
     -d '{}' -w "\nStatus:%{http_code}")
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -191,7 +191,7 @@ echo "Code: $WEB_CODE"
 echo "Body: $WEB_BODY"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings.json" \
+FASTAPI_RESP=$(curl -s -b session=$SESSION -X POST "$BASE_FASTAPI/works/OL45883W/ratings" \
     -H "Content-Type: application/json" \
     -d '{"rating": 10}' -w "\nStatus:%{http_code}")
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -218,7 +218,7 @@ WEB_CODE=$(echo "$WEB_RESP" | grep Status | cut -d: -f2)
 echo "Code: $WEB_CODE"
 
 echo "FastAPI:"
-FASTAPI_RESP=$(curl -s -X POST "$BASE_FASTAPI/works/OL45883W/ratings.json" \
+FASTAPI_RESP=$(curl -s -X POST "$BASE_FASTAPI/works/OL45883W/ratings" \
     -H "Content-Type: application/json" \
     -d '{"rating": 3}' -w "\nStatus:%{http_code}" -o /dev/null)
 FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -247,8 +247,8 @@ echo ""
 echo "Test URLs used:"
 echo "  GET  $BASE_WEB/works/OL45883W/ratings.json"
 echo "  GET  $BASE_FASTAPI/works/OL45883W/ratings.json"
-echo "  POST $BASE_WEB/works/OL45883W/ratings.json"
-echo "  POST $BASE_FASTAPI/works/OL45883W/ratings.json"
+echo "  POST $BASE_WEB/works/OL45883W/ratings"
+echo "  POST $BASE_FASTAPI/works/OL45883W/ratings"
 
 if [ $FAILED -gt 0 ]; then
     exit 1
