@@ -442,7 +442,11 @@ def mock_site(request):
 
     old_ctx = dict(web.ctx)
     web.ctx.clear()
-    web.ctx.site = site
+
+    # Ensure site exists in web.ctx
+    if not hasattr(web.ctx, "site"):
+        web.ctx.site = site
+
     site_context.set(site)
     web.ctx.conn = MockConnection()
     web.ctx.env = web.ctx.environ = web.storage()
@@ -452,3 +456,5 @@ def mock_site(request):
 
     web.ctx.clear()
     web.ctx.update(old_ctx)
+
+    
