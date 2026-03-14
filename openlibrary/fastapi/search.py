@@ -18,7 +18,7 @@ from pydantic import (
 )
 
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.fastapi.models import Pagination, PaginationLimit20
+from openlibrary.fastapi.models import Pagination, PaginationLimit20, parse_fields_string
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -105,12 +105,6 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
     )
-
-    @staticmethod
-    def parse_fields_string(v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            v = [v]
-        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
     @staticmethod
     def parse_query_json(v: str) -> dict[str, Any]:

@@ -8,14 +8,13 @@ its experience. This does not include public facing APIs with LTS
 
 from __future__ import annotations
 
-import asyncio
 import os
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, Path, Query, status
+from pydantic import BaseModel, BeforeValidator, Field
 
-from openlibrary.fastapi.models import Pagination  # noqa: TC001
+from openlibrary.fastapi.models import Pagination, parse_fields_string
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 router = APIRouter(tags=["internal"])
@@ -53,8 +52,18 @@ async def book_availability():
     pass
 
 
-def parse_comma_separated_list(fields_str: str) -> list[str] | None:
-    return [f.strip() for f in fields_str.split(",") if f.strip()] or None
+class TrendingRequestParams(Pagination):
+    limit: int = Field(100, ge=0, le=1000, description="Maximum number of results per page.")
+    hours: int = Field(0, ge=0, description="Custom number of hours to look back.")
+    sort_by_count: bool = Field(
+        True,
+        description="Sort results by total log count (most-logged first). Defaults to True, matching the legacy endpoint behaviour.",
+    )
+    minimum: int = Field(0, ge=0, description="Minimum log count a book must have to be included.")
+    fields: Annotated[list[str] | None, BeforeValidator(parse_fields_string)] = Field(
+        None,
+        description="Comma-separated list of Solr fields to include in each work.",
+    )
 
 
 @router.get(
@@ -64,40 +73,23 @@ def parse_comma_separated_list(fields_str: str) -> list[str] | None:
     response_model_exclude_none=True,
     description="Returns works sorted by recent activity (reads, loans, etc.)",
 )
-async def trending_books_api(
+def trending_books_api(
     period: Annotated[TrendingPeriod, Path(description="The time period for trending books")],
-    pagination: Annotated[Pagination, Depends()],
-    hours: Annotated[int, Query(ge=0, description="Custom number of hours to look back.")] = 0,
-    sort_by_count: Annotated[
-        bool,
-        Query(description=("Sort results by total log count (most-logged first). Defaults to True, matching the legacy endpoint behaviour.")),
-    ] = True,
-    minimum: Annotated[
-        int,
-        Query(ge=0, description="Minimum log count a book must have to be included."),
-    ] = 0,
-    fields: Annotated[
-        str,
-        Query(description="Comma-separated list of Solr fields to include in each work."),
-    ] = "",
+    params: Annotated[TrendingRequestParams, Query()],
 ) -> TrendingResponse:
     """Fetch trending books for the given period."""
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS[period]
-    parsed_fields: list[str] | None = parse_comma_separated_list(fields)
 
-    # get_trending_books is a synchronous DB call; run it in a thread pool to
-    # avoid blocking the async event loop.
     try:
-        works = await asyncio.to_thread(
-            get_trending_books,
+        works = get_trending_books(
             since_days=since_days,
-            since_hours=hours,
-            limit=pagination.limit,
-            page=pagination.page,
-            sort_by_count=sort_by_count,
-            minimum=minimum,
-            fields=parsed_fields,
+            since_hours=params.hours,
+            limit=params.limit,
+            page=params.page,
+            sort_by_count=params.sort_by_count,
+            minimum=params.minimum,
+            fields=params.fields,
         )
     except Exception as e:
         raise HTTPException(
@@ -109,7 +101,7 @@ async def trending_books_api(
         query=f"/trending/{period}",
         works=[SolrWork(**dict(work)) for work in works],
         days=since_days,
-        hours=hours,
+        hours=params.hours,
     )
 
 

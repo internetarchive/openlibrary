@@ -72,6 +72,66 @@ class TestTrendingBooksEndpoint:
                 "page=3&limit=50&hours=6&sort_by_count=false&minimum=10&fields=key,title",
                 {"page": 3, "limit": 50, "since_hours": 6, "sort_by_count": False, "minimum": 10, "fields": ["key", "title"]},
             ),
+            # User Requested scenarios:
+            ("limit=10", {"limit": 10}),
+            ("page=2", {"page": 2}),
+            ("minimum=50", {"minimum": 50}),
+            ("hours=24", {"since_hours": 24}),
+            ("fields=key", {"fields": ["key"]}),
+            ("fields=key,title,author_name,author_key", {"fields": ["key", "title", "author_name", "author_key"]}),
+            ("fields=key,title,cover_i,cover_edition_key", {"fields": ["key", "title", "cover_i", "cover_edition_key"]}),
+            ("fields=key,title,edition_count", {"fields": ["key", "title", "edition_count"]}),
+            ("fields=key,title,has_fulltext,ebook_access", {"fields": ["key", "title", "has_fulltext", "ebook_access"]}),
+            (
+                "fields=key,title,series_key,series_name,series_position",
+                {"fields": ["key", "title", "series_key", "series_name", "series_position"]},
+            ),
+            (
+                "fields=key,title,ratings_average,ratings_count,want_to_read_count",
+                {"fields": ["key", "title", "ratings_average", "ratings_count", "want_to_read_count"]},
+            ),
+            (
+                "fields=key,title,id_project_gutenberg,id_librivox,id_standard_ebooks",
+                {"fields": ["key", "title", "id_project_gutenberg", "id_librivox", "id_standard_ebooks"]},
+            ),
+            (
+                "fields=key,title,subtitle,author_name,author_key,cover_i,cover_edition_key,edition_count,first_publish_year,language,has_fulltext,ebook_access,ratings_average,ratings_count,want_to_read_count",
+                {
+                    "fields": [
+                        "key",
+                        "title",
+                        "subtitle",
+                        "author_name",
+                        "author_key",
+                        "cover_i",
+                        "cover_edition_key",
+                        "edition_count",
+                        "first_publish_year",
+                        "language",
+                        "has_fulltext",
+                        "ebook_access",
+                        "ratings_average",
+                        "ratings_count",
+                        "want_to_read_count",
+                    ]
+                },
+            ),
+            (
+                "limit=20&page=2&minimum=5&sort_by_count=true",
+                {"limit": 20, "page": 2, "minimum": 5, "sort_by_count": True},
+            ),
+            (
+                "limit=30&page=1&minimum=10&fields=key,title,author_name,cover_i",
+                {"limit": 30, "page": 1, "minimum": 10, "fields": ["key", "title", "author_name", "cover_i"]},
+            ),
+            (
+                "fields=key,title,ia,ia_collection",
+                {"fields": ["key", "title", "ia", "ia_collection"]},
+            ),
+            (
+                "fields=key,title,public_scan_b,lending_edition_s,lending_identifier_s",
+                {"fields": ["key", "title", "public_scan_b", "lending_edition_s", "lending_identifier_s"]},
+            ),
         ],
     )
     def test_query_params_forwarded(self, fastapi_client, mock_get_trending_books, query_string, expected_kwargs):
@@ -108,6 +168,17 @@ class TestTrendingBooksEndpoint:
         """page=0 is rejected — page must be >= 1."""
         assert fastapi_client.get("/trending/daily.json?page=0").status_code == 422
         mock_get_trending_books.assert_not_called()
+
+    def test_limit_exceeds_max_returns_422(self, fastapi_client, mock_get_trending_books):
+        """limit > 1000 is rejected with 422."""
+        assert fastapi_client.get("/trending/daily.json?limit=1001").status_code == 422
+        mock_get_trending_books.assert_not_called()
+
+    def test_limit_defaults_to_100(self, fastapi_client, mock_get_trending_books):
+        """If limit is not specified, it defaults to 100."""
+        response = fastapi_client.get("/trending/daily.json")
+        response.raise_for_status()
+        assert mock_get_trending_books.call_args.kwargs["limit"] == 100
 
     def test_trending_period_literal_matches_since_days(self):
         """Ensure TrendingPeriod Literal keys exactly match views.loanstats.SINCE_DAYS keys."""
