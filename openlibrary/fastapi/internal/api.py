@@ -41,7 +41,7 @@ async def browse():
     pass
 
 
-class RatingRequest(BaseModel):
+class RatingsRequest(BaseModel):
     rating: int | None = Field(default=None, ge=1, le=5)
     edition_id: str | None = None
 
@@ -51,7 +51,7 @@ class RatingsSummary(BaseModel):
 
     average: float | None = Field(default=None, description="Average star rating")
     count: int = Field(default=0, description="Total number of ratings")
-    sortable: float | None = Field(default=None, exclude=True, description="Bayesian sortable score (internal only)")
+    sortable: float | None = Field(default=None, description="Bayesian sortable score")
 
 
 class RatingsResponse(BaseModel):
@@ -68,10 +68,10 @@ async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
 
 
 @router.post("/works/OL{work_id}W/ratings", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
-async def post_rating(
-    work_id: Annotated[int, Path()],
-    data: RatingRequest,
+async def post_ratings(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    work_id: Annotated[int, Path()],
+    data: RatingsRequest,
 ) -> dict:
     """Register or remove a rating for a work.
 
