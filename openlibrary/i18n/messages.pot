@@ -8180,6 +8180,16 @@ msgid ""
 msgstr ""
 
 #: type/list/view_body.html
+msgid "Note:"
+msgstr ""
+
+#: type/list/view_body.html
+msgid ""
+"This series contains 100 or more works. Currently, only the first 100 "
+"works are displayed."
+msgstr ""
+
+#: type/list/view_body.html
 msgid "There are no items on this list."
 msgstr ""
 
