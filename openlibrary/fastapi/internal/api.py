@@ -11,10 +11,12 @@ from __future__ import annotations
 import os
 from typing import Annotated, Literal
 
+import web
 from fastapi import APIRouter, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.fastapi.models import Pagination, parse_fields_string
+from openlibrary.utils.request_context import site as site_ctx
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 router = APIRouter(tags=["internal"])
@@ -80,6 +82,7 @@ def trending_books_api(
     """Fetch trending books for the given period."""
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS[period]
+    web.ctx.site = site_ctx.get()
 
     try:
         works = get_trending_books(
