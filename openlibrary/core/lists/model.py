@@ -658,6 +658,7 @@ class SeriesDict(ListDict):
 
 class Series(List):
     SEED_LIMIT = 100
+
     @cached_property
     @typing.override
     def seeds(  # type: ignore[override]

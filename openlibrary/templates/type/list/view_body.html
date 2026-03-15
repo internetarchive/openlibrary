@@ -98,7 +98,7 @@ $def seed_attrs(seed):
         $if list.key.startswith('/series/') and len(list.seeds) >= series_display_limit:
             <div class="ol-message ol-message--warning" role="alert">
                 <p>
-                    <strong>$_("Note:")</strong> 
+                    <strong>$_("Note:")</strong>
                     $_("This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed.", limit=series_display_limit)
                 </p>
             </div>

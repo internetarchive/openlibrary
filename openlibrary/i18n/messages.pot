@@ -8184,9 +8184,10 @@ msgid "Note:"
 msgstr ""
 
 #: type/list/view_body.html
+#, python-format
 msgid ""
-"This series contains 100 or more works. Currently, only the first 100 "
-"works are displayed."
+"This series contains %(limit)d or more works. Currently, only the first "
+"%(limit)d works are displayed."
 msgstr ""
 
 #: type/list/view_body.html
