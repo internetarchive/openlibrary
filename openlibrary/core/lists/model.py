@@ -671,7 +671,8 @@ class Series(List):
             {
                 'type': '/type/work',
                 'series': {'series': {'key': self.key}},
-            }
+                'limit': 100,
+            },
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
         series_edges = [
