@@ -132,6 +132,12 @@ function addGoalSubmissionListener(submitButton) {
                             if (goalContainer) {
                                 goalContainer.remove()
                             }
+                            // Restore "Set reading goal" link hidden when goal was first set
+                            const setGoalLink = yearlyGoalSection.querySelector('.set-reading-goal-link')
+                            if (setGoalLink) {
+                                setGoalLink.classList.remove('hidden')
+                                setGoalLink.addEventListener('click', onYearlyGoalClick)
+                            }
                         } else {
                             const progressComponent = modal.closest('.reading-goal-progress')
                             updateProgressComponent(progressComponent, Number(formData.get('goal')))
