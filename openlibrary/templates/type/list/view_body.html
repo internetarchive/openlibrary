@@ -94,9 +94,13 @@ $def seed_attrs(seed):
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
 
-        $if list.key.startswith('/series/') and len(list.seeds) >= 100:
-            <div>
-                <p><strong>$_("Note:")</strong> $_("This series contains 100 or more works. Currently, only the first 100 works are displayed.")</p>
+        $ series_display_limit = 100
+        $if list.key.startswith('/series/') and len(list.seeds) >= series_display_limit:
+            <div class="ol-message ol-message--warning" role="alert">
+                <p>
+                    <strong>$_("Note:")</strong> 
+                    $_("This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed.", limit=series_display_limit)
+                </p>
             </div>
 
         $:macros.Pager(page+1, len(list.seeds), page_size)

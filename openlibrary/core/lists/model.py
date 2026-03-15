@@ -657,6 +657,7 @@ class SeriesDict(ListDict):
 
 
 class Series(List):
+    SEED_LIMIT = 100
     @cached_property
     @typing.override
     def seeds(  # type: ignore[override]
@@ -671,7 +672,7 @@ class Series(List):
             {
                 'type': '/type/work',
                 'series': {'series': {'key': self.key}},
-                'limit': 100,
+                'limit': self.SEED_LIMIT,
             },
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
