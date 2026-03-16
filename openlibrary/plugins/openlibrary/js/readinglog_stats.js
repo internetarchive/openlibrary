@@ -58,7 +58,9 @@ export function init(config) {
 
         for (const work of config.works) {
             const allKeys = getPath(work, chartConfig.key) || [];
-            const validKeys = allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key));
+            const validKeys = uniq(
+                allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key))
+            );
             if (!validKeys.length) {
                 excluded.push(work);
                 continue;

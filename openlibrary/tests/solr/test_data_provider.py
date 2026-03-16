@@ -17,17 +17,17 @@ class TestBetterDataProvider:
         mock_site.get_many.return_value = [
             Thing(
                 mock_site,
-                '/works/OL1W',
+                "/works/OL1W",
                 {
-                    'key': '/works/OL1W',
-                    'type': {'key': '/type/work'},
+                    "key": "/works/OL1W",
+                    "type": {"key": "/type/work"},
                 },
             )
         ]
         assert mock_site.get_many.call_count == 0
-        await dp.get_document('/works/OL1W')
+        await dp.get_document("/works/OL1W")
         assert mock_site.get_many.call_count == 1
-        await dp.get_document('/works/OL1W')
+        await dp.get_document("/works/OL1W")
         assert mock_site.get_many.call_count == 1
 
     @pytest.mark.asyncio
@@ -40,16 +40,16 @@ class TestBetterDataProvider:
         mock_site.get_many.return_value = [
             Thing(
                 mock_site,
-                '/works/OL1W',
+                "/works/OL1W",
                 {
-                    'key': '/works/OL1W',
-                    'type': {'key': '/type/work'},
+                    "key": "/works/OL1W",
+                    "type": {"key": "/type/work"},
                 },
             )
         ]
         assert mock_site.get_many.call_count == 0
-        await dp.get_document('/works/OL1W')
+        await dp.get_document("/works/OL1W")
         assert mock_site.get_many.call_count == 1
         dp.clear_cache()
-        await dp.get_document('/works/OL1W')
+        await dp.get_document("/works/OL1W")
         assert mock_site.get_many.call_count == 2

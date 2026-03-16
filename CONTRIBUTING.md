@@ -9,22 +9,22 @@ This welcome section is intended for new contributors.
 3. **Getting Started:**
     * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs)
 4. **Contributing:**
-    * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
+    * [How we use git](https://docs.openlibrary.org/developers/tools/git.html)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
-    * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
-    * [Enabling debugging & profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling)
+    * [Testing your code](https://docs.openlibrary.org/developers/tools/testing.html)
+    * [Enabling debugging & profiling](https://docs.openlibrary.org/advanced/debugging-and-performance-profiling.html)
 5. **Learning the Code:**
     * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
     * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
     * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
-    * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
+    * [Front-end Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html)
     * [Open Library Public APIs](https://openlibrary.org/developers/api)
 6. **Common Tasks**
-    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
+    * [Importing Production Book Data Locally](https://docs.openlibrary.org/developers/misc/loading-production-book-data.html)  
 7. **Questions?**
-    * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
+    * [Docs](https://docs.openlibrary.org/)
     * [Request a slack invite](https://openlibrary.org/volunteer)
-    * [Weekly Community calls](https://github.com/internetarchive/openlibrary/wiki/Community-Call)
+    * [Weekly Community calls](https://docs.openlibrary.org/everyone/community-call.html)
     * [Open Library FAQs](https://openlibrary.org/help/faq)
 ## Quick Tour
 
@@ -60,9 +60,9 @@ For instructions on setting up a local developer's instance of Open Library, ple
 
 [![archive org_details_openlibrary-developer-docs_zoom_0 mp4_autoplay=1 start=2](https://user-images.githubusercontent.com/978325/91351305-ef10ee00-e79c-11ea-9bfb-c2733696ec58.png)](https://archive.org/details/openlibrary-developer-docs/zoom_0.mp4)
 
-Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for more information about getting set up, understanding the codebase, contributing, and more.  Check out the sidebar for links to relevant topics.
+Refer to the [docs](https://docs.openlibrary.org/) for more information about getting set up, understanding the codebase, contributing, and more. Check out the sidebar for links to relevant topics.
 
-[Here's a handy cheat sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) if you are new to using Git.
+[Here's a handy cheat sheet](https://docs.openlibrary.org/developers/tools/git.html) if you are new to using Git.
 
 ## Common Setup Tasks
 
@@ -71,14 +71,14 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Submitting Issues
 
-[Interacting with GitHub Issues](https://github.com/internetarchive/openlibrary/wiki/Interacting-with-GitHub-Issues) and [Using Managed Labels to Track Issues](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues) explain how GitHub issues are triaged, labeled, and prioritized.
+[Project Management](https://docs.openlibrary.org/developers/misc/project-management.html) and [Using Managed Labels to Track Issues](https://docs.openlibrary.org/developers/misc/project-management.html#labeling-issues) explain how GitHub issues are triaged, labeled, and prioritized.
 
 ### Tagging
 - If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://docs.openlibrary.org/developers/misc/project-management.html#triage) designated by the `Lead: @person` label on the issue.
 
 ## Contributor Etiquette
 

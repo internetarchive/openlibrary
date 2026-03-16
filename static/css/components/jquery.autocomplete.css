@@ -1,0 +1,142 @@
+/* stylelint-disable no-descending-specificity */
+.ac_results {
+  padding: 0;
+  margin: 0;
+  overflow: auto;
+  z-index: var(--z-index-level-16);
+  position: absolute;
+  display: none;
+  top: -5px;
+  max-height: 290px;
+  max-width: 600px;
+  background-color: var(--white);
+  border: 1px solid var(--light-grey);
+  opacity: 0.95;
+  text-align: left;
+  list-style: none;
+}
+
+.ac_results li {
+  margin: 0;
+  padding: 5px;
+  display: block;
+  font-family: var(--body-family);
+  font-size: var(--font-size-label-medium);
+  cursor: pointer;
+  color: var(--dark-grey);
+  /*
+  it is very important, if line-height not set or set
+  in relative units scroll will be broken in firefox
+  */
+  line-height: 16px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--light-grey);
+}
+
+.ac_results li:last-child {
+  border-bottom: 0;
+}
+
+.ac_results li.ac_over {
+  background-color: var(--light-yellow);
+}
+
+.ac_results .ac_language {
+  font-size: var(--font-size-title-medium);
+  color: var(--black);
+}
+
+@media (pointer: coarse) {
+  .ac_results .ac_language {
+    padding: 12px 5px;
+    min-height: 44px;
+  }
+}
+
+.ac_author .action {
+  font-size: 9px;
+  color: var(--olive);
+}
+
+.ac_author .books {
+  font-size: var(--font-size-label-medium);
+  color: var(--dark-green);
+  font-weight: 700;
+  padding: 0;
+}
+
+.ac_author .subject {
+  font-size: var(--font-size-label-small);
+}
+
+.ac_author .olid {
+  font-family: var(--code-family);
+}
+
+.ac_author .name {
+  font-size: var(--font-size-title-medium);
+  display: block;
+  color: var(--black);
+}
+
+.ac_author .work {
+  font-size: var(--font-size-label-small);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.ac_author .work i {
+  color: var(--brown);
+}
+
+.ac_work .cover {
+  float: left;
+  margin-right: 5px;
+  width: 5em;
+  height: 5em;
+  overflow: hidden;
+  border-radius: 2px;
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 1) 15%);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+.ac_work .cover img {
+  width: 100%;
+}
+
+.ac_work .edition_count {
+  font-size: var(--font-size-label-medium);
+  color: var(--dark-green);
+  font-weight: 700;
+  padding: 0;
+}
+
+.ac_work .olid {
+  font-family: var(--code-family);
+}
+
+.ac_work .name {
+  display: block;
+  line-height: 1.1em;
+}
+
+.ac_work .title {
+  font-size: var(--font-size-title-medium);
+  color: var(--black);
+}
+
+.ac_work .first_publish_year {
+  font-size: var(--font-size-label-medium);
+}
+
+.ac_loading {
+  background: var(--white) url(/images/indicator.gif) right center no-repeat;
+}
+
+.ac_odd {
+  background-color: var(--lightest-grey);
+}
+
+.ac_even,
+.ac_odd {
+  background-color: inherit;
+}

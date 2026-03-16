@@ -13,6 +13,7 @@ from openlibrary.utils import (
     find_olid_in_string,
     olid_to_key,
 )
+from openlibrary.utils.solr import Solr
 
 
 def to_json(d):
@@ -22,7 +23,7 @@ def to_json(d):
 
 class autocomplete(delegate.page):
     path = "/_autocomplete"
-    fq = ('-type:edition',)
+    fq: tuple[str, ...] = ('-type:edition',)
     fl = 'key,type,name,title,score'
     olid_suffix: str | None = None
     sort: str | None = None
@@ -50,10 +51,8 @@ class autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        solr = get_solr()
-
         # look for ID in query string here
-        q = solr.escape(i.q).strip()
+        q = Solr.escape(i.q).strip()
         embedded_olid = None
         if self.olid_suffix:
             embedded_olid = find_olid_in_string(q, self.olid_suffix)
@@ -73,7 +72,7 @@ class autocomplete(delegate.page):
             **({'sort': self.sort} if self.sort else {}),
         }
 
-        data = solr.select(solr_q, **params)
+        data = get_solr().select(solr_q, **params)
         docs = data['docs']
 
         if embedded_olid and not docs:
@@ -136,6 +135,14 @@ class authors_autocomplete(autocomplete):
         else:
             doc['works'] = []
         doc['subjects'] = doc.pop('top_subjects', [])
+
+
+class series_autocomplete(autocomplete):
+    path = "/series/_autocomplete"
+    fq = ('type:series',)
+    fl = 'key,name'
+    olid_suffix = 'L'
+    query = 'name:({q}*) OR name:"{q}"^2'
 
 
 class subjects_autocomplete(autocomplete):

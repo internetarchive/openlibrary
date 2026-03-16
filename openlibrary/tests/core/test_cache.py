@@ -11,9 +11,9 @@ class Test_memcache_memoize:
     def test_encode_args(self):
         m = cache.memcache_memoize(None, key_prefix="foo")
 
-        assert m.encode_args([]) == ''
+        assert m.encode_args([]) == ""
         assert m.encode_args(["a"]) == '"a"'
-        assert m.encode_args([1]) == '1'
+        assert m.encode_args([1]) == "1"
         assert m.encode_args(["a", 1]) == '"a",1'
         assert m.encode_args([{"a": 1}]) == '{"a":1}'
         assert m.encode_args([["a", 1]]) == '["a",1]'
@@ -121,7 +121,7 @@ class Test_memoize:
         assert self.get("square-2") == 4
 
         # It should read from cache instead of computing if entry is present in the cache
-        self.set('square-42', 43)
+        self.set("square-42", 43)
         assert square(42) == 43
 
     def test_cache_with_tuple_keys(self):
@@ -181,7 +181,7 @@ class Test_memoize:
         assert call_count == 1  # Still 1
 
         # 3. Manual Injection (Simulate shared cache)
-        self.set('asquare-10', 1000)
+        self.set("asquare-10", 1000)
         result_3 = await asquare(10)
         assert result_3 == 1000  # Should get injected value, not 100
         assert call_count == 1  # Function wasn't called
@@ -226,38 +226,3 @@ class Test_memoize:
         self.set("parity_check-10", 999)
 
         assert await async_f(10) == 999
-
-
-class Test_method_memoize:
-    def test_handles_no_args(self):
-        class A:
-            def __init__(self):
-                self.result = 0
-
-            @cache.method_memoize
-            def foo(self):
-                self.result += 1
-                return self.result
-
-        a = A()
-        assert a.foo() == 1
-        assert a.foo() == 1
-        assert a.result == 1
-
-    def test_handles_args(self):
-        class A:
-            def __init__(self):
-                self.result = 1
-
-            @cache.method_memoize
-            def foo(self, multiplier):
-                self.result *= multiplier
-                return self.result
-
-        a = A()
-        assert a.foo(2) == 2
-        assert a.foo(2) == 2
-        assert a.result == 2
-        assert a.foo(3) == 6
-        assert a.foo(2) == 2
-        assert a.result == 6

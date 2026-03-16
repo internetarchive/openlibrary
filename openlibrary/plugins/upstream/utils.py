@@ -50,7 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.utils import async_utils
+from openlibrary.utils import request_context
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -237,18 +237,17 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
-        lang = web.ctx.lang
+        req_context = request_context.req_context.get()
+        lang = req_context.lang
         key_prefix = f'{name}.{lang}'
-        cookies = web.cookies()
-        if cookies.get('pd', False):
+        if req_context.print_disabled:
             key_prefix += '.pd'
-        if cookies.get('sfw', ''):
+        if req_context.sfw:
             key_prefix += '.sfw'
-        if is_bot():
+        if req_context.is_bot:
             key_prefix += '.bot'
         return key_prefix
 
@@ -317,7 +316,9 @@ def list_recent_pages(path, limit=100, offset=0):
 @public
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
-    lang = web.ctx.lang or 'en'
+
+    lang = request_context.req_context.get().lang or 'en'
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
     try:
@@ -727,7 +728,7 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    site = async_utils.site.get()
+    site = request_context.site.get()
     keys = site.things({"type": "/type/language", "limit": limit})
     return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
@@ -740,17 +741,19 @@ def word_prefix_match(prefix: str, text: str) -> bool:
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of the following:
-        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
-        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
+    Given, e.g., "English", this returns an iterator of the following,
+    sorted so that names starting with the prefix appear first (alphabetically),
+    followed by names that contain the prefix elsewhere (also alphabetically):
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
+        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
     """
 
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
-        user_lang = web.ctx.lang or 'en'
+        user_lang = request_context.req_context.get().lang or 'en'
         yield safeget(lambda: lang['name_translated'][user_lang][0])
 
         # The language's name translated into its native name (lang_iso_code)
@@ -764,15 +767,22 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         return strip_accents(s).lower()
 
     prefix = normalize_for_search(prefix)
+    matches = []
     for lang in get_languages().values():
         for lang_name in get_names_to_try(lang):
             if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
-                yield Storage(
-                    key=lang.key,
-                    code=lang.code,
-                    name=lang_name,
+                matches.append(
+                    Storage(
+                        key=lang.key,
+                        code=lang.code,
+                        name=lang_name,
+                    )
                 )
                 break
+    yield from sorted(
+        matches,
+        key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name),
+    )
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
@@ -1439,7 +1449,7 @@ def _get_blog_feeds():
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=60 * 60 * 24
 )
 
 

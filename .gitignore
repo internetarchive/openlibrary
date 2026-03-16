@@ -11,6 +11,8 @@ usr/
 static/build/
 static/css/page-dev.less
 build/
+*.local
+/.local
 *.tgz
 *.tar.gz
 *.org
@@ -47,3 +49,4 @@ android.keystore
 
 # Ignore checksum file if it’s generated during build
 manifest-checksum.txt
+.beads

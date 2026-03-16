@@ -1,6 +1,5 @@
 """Python library for accessing Solr"""
 
-import functools
 import logging
 import re
 from collections.abc import Callable, Iterable
@@ -53,21 +52,20 @@ class Solr:
         """
         self.base_url = base_url
         self.host = urlsplit(self.base_url)[1]
-        self.session = httpx.Client()
         self.async_session = httpx.AsyncClient()
 
-    def escape(self, query):
+    @staticmethod
+    def escape(query):
         r"""Escape special characters in the query string
 
-        >>> solr = Solr("")
-        >>> solr.escape("a[b]c")
+        >>> Solr.escape("a[b]c")
         'a\\[b\\]c'
         """
         chars = r'+-!(){}[]^"~*?:\\'
         pattern = re.compile("([%s])" % re.escape(chars))
         return pattern.sub(r'\\\1', query)
 
-    def get(
+    async def get_async(
         self,
         key: str,
         fields: list[str] | None = None,
@@ -75,26 +73,28 @@ class Solr:
         request_label: SolrRequestLabel = 'UNLABELLED',
     ) -> T | None:
         """Get a specific item from solr"""
-        logger.info(f"solr /get: {key}, {fields}")
-        resp = self.session.get(
-            f"{self.base_url}/get",
-            # It's unclear how field=None is getting in here; a better fix would be at the source.
-            params={
-                'id': key,
-                **(
-                    {'fl': ','.join([field for field in fields if field])}
-                    if fields
-                    else {}
-                ),
-                'ol.label': request_label,
-            },
-            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+        logger.debug(f"solr /get: {key}, {fields}")
+        resp = (
+            await self.async_session.get(
+                f"{self.base_url}/get",
+                # It's unclear how field=None is getting in here; a better fix would be at the source.
+                params={
+                    'id': key,
+                    **(
+                        {'fl': ','.join([field for field in fields if field])}
+                        if fields
+                        else {}
+                    ),
+                    'ol.label': request_label,
+                },
+                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+            )
         ).json()
 
         # Solr returns {doc: null} if the record isn't there
         return doc_wrapper(resp['doc']) if resp['doc'] else None
 
-    def get_many(
+    async def get_many_async(
         self,
         keys: Iterable[str],
         fields: Iterable[str] | None = None,
@@ -103,27 +103,31 @@ class Solr:
         ids = list(keys)
         if not ids:
             return []
-        logger.info(f"solr /get: {ids}, {fields}")
-        resp = self.session.post(
-            f"{self.base_url}/get",
-            data={
-                'ids': ','.join(ids),
-                **({'fl': ','.join(fields)} if fields else {}),
-            },
-            timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+        logger.debug(f"solr /get: {ids}, {fields}")
+        resp = (
+            await self.async_session.post(
+                f"{self.base_url}/get",
+                data={
+                    'ids': ','.join(ids),
+                    **({'fl': ','.join(fields)} if fields else {}),
+                },
+                timeout=DEFAULT_SOLR_TIMEOUT_SECONDS,
+            )
         ).json()
         return [doc_wrapper(doc) for doc in resp['response']['docs']]
 
-    def update_in_place(
+    async def update_in_place_async(
         self,
         request,
         commit: bool = False,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
-        resp = self.session.post(
-            f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
-            json=request,
-            timeout=_timeout,
+        resp = (
+            await self.async_session.post(
+                f'{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}',
+                json=request,
+                timeout=_timeout,
+            )
         ).json()
         return resp
 
@@ -186,15 +190,11 @@ class Solr:
             json_data, doc_wrapper=doc_wrapper, facet_wrapper=facet_wrapper
         )
 
-    @functools.wraps(select_async)
-    def select(self, *args, **kwargs):
-        """
-        Synchronously execute a solr query.
-
-        This is a wrapper around the async `select_async` method.
-        All parameters are passed directly to the async version.
-        """
-        return async_bridge.run(self.select_async(*args, **kwargs))
+    # Non-async versions for backwards compatibility
+    get = async_bridge.wrap(get_async)
+    get_many = async_bridge.wrap(get_many_async)
+    update_in_place = async_bridge.wrap(update_in_place_async)
+    select = async_bridge.wrap(select_async)
 
     async def raw_request(
         self,
@@ -228,10 +228,10 @@ class Solr:
         if len(payload) < 500:
             sep = '&' if '?' in url else '?'
             url = url + sep + payload
-            logger.info("solr request: %s", url)
+            logger.debug("solr request: %s", url)
             return await self.async_session.get(url, timeout=_timeout)
         else:
-            logger.info("solr request: %s ...", url)
+            logger.debug("solr request: %s ...", url)
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
             }

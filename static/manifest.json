@@ -1,7 +1,7 @@
 {
     "short_name": "Open Library",
     "name": "Open Library: A page for every book published",
-    "description": "An open, editable library catalog for every book published.",
+    "description": "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free.",
     "icons": [
         {
             "src": "/static/images/openlibrary-192x192.png",
@@ -38,6 +38,85 @@
             "text": "q"
         }
     },
+      "screenshots": [
+        {
+          "src": "/images/screenshots/desktop/MainPageDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Main Page - Desktop"
+        },
+        {
+          "src": "/images/screenshots/desktop/SearchBooksDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Search Books - Desktop"
+        },
+        {
+          "src": "/images/screenshots/desktop/StudentLibraryDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Student Library - Desktop"
+        },
+        {
+          "src": "/images/screenshots/desktop/TrendingDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Trending - Desktop"
+        },
+        {
+          "src": "/images/screenshots/desktop/ListsDesktop.png",
+          "sizes": "1280x720",
+          "type": "image/png",
+          "form_factor": "wide",
+          "label": "Lists - Desktop"
+        },
+        {
+          "src": "/images/screenshots/mobile/MainPageMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Main Page - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/BorrowMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Borrow - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/ExplorerMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Explorer - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/SearchMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Search Books - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/StudentLibraryMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Student Library - Mobile"
+        },
+        {
+          "src": "/images/screenshots/mobile/ListsMobile.png",
+          "sizes": "1080x2160",
+          "type": "image/png",
+          "form_factor": "narrow",
+          "label": "Lists - Mobile"
+        }
+      ],
     "shortcuts": [
       {
         "name": "My Books",

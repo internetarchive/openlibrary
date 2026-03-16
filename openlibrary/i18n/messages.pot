@@ -142,6 +142,7 @@ msgid "Description:"
 msgstr ""
 
 #: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html
 msgid "Create new list"
 msgstr ""
 
@@ -149,7 +150,7 @@ msgstr ""
 #: account/password/reset.html account/privacy.html admin/imports-add.html
 #: admin/permissions.html books/add.html databarEdit.html interstitial.html
 #: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/tag/form.html
+#: type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -618,14 +619,6 @@ msgstr ""
 msgid "Listen"
 msgstr ""
 
-#: ReadMore.html
-msgid "Read more"
-msgstr ""
-
-#: ReadMore.html
-msgid "Read less"
-msgstr ""
-
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: admin/ip/view.html admin/people/edits.html history.html
 #: recentchanges/render.html recentchanges/updated_records.html
@@ -783,10 +776,15 @@ msgid "added to"
 msgstr ""
 
 #: SearchResultsWork.html
+#, python-format
+msgid "Book %(position)s"
+msgstr ""
+
+#: SearchResultsWork.html design.html
 msgid "Show more"
 msgstr ""
 
-#: SearchResultsWork.html
+#: SearchResultsWork.html design.html
 msgid "Show less"
 msgstr ""
 
@@ -900,6 +898,10 @@ msgstr ""
 
 #: StarRatingsStats.html
 msgid "Have read"
+msgstr ""
+
+#: SubjectTags.html
+msgid "Manage Subjects"
 msgstr ""
 
 #: Subnavigation.html
@@ -1781,31 +1783,7 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Fonts"
-msgstr ""
-
-#: design.html
-msgid "Font-size"
-msgstr ""
-
-#: design.html
-msgid "Font-family"
-msgstr ""
-
-#: design.html
-msgid "Sans-serif: Verdana"
-msgstr ""
-
-#: design.html
-msgid "Serif: Georgia"
-msgstr ""
-
-#: design.html
 msgid "Colors"
-msgstr ""
-
-#: design.html
-msgid "Defaults"
 msgstr ""
 
 #: design.html
@@ -1822,6 +1800,136 @@ msgstr ""
 
 #: design.html
 msgid "Link (clicked)"
+msgstr ""
+
+#: design.html
+msgid "Pagination component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design.html
+msgid "Event-based"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(event_name)s event with "
+"the page number in %(event_detail)s."
+msgstr ""
+
+#: design.html
+msgid "Selected page:"
+msgstr ""
+
+#: design.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design.html
+msgid "3 pages"
+msgstr ""
+
+#: design.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Read More component"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design.html
+msgid "Custom button text"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design.html
+msgid "Custom background color"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design.html
+msgid "Small label size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design.html
+msgid "This is short content that fits within 5 lines, so no button appears."
 msgstr ""
 
 #: diff.html
@@ -2215,14 +2323,6 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
-msgid "System information"
-msgstr ""
-
-#: status.html
-msgid "Features enabled"
-msgstr ""
-
-#: status.html
 msgid "Staged"
 msgstr ""
 
@@ -2237,6 +2337,14 @@ msgstr ""
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
+msgstr ""
+
+#: status.html
+msgid "System information"
+msgstr ""
+
+#: status.html
+msgid "Features enabled"
 msgstr ""
 
 #: subjects.html
@@ -2981,16 +3089,14 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html search/sort_options.html
-msgid "Sorting by"
+#: account/reading_log.html type/author/view.html
+#, python-format
+msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
 #: account/reading_log.html
-msgid "Date Added (newest)"
-msgstr ""
-
-#: account/reading_log.html
-msgid "Date Added (oldest)"
+#, python-format
+msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
 msgstr ""
 
 #: account/reading_log.html
@@ -3122,7 +3228,7 @@ msgstr ""
 msgid "See All"
 msgstr ""
 
-#: account/sidebar.html type/list/edit.html
+#: account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
 msgstr ""
 
@@ -3458,7 +3564,7 @@ msgstr ""
 msgid "Imported Time"
 msgstr ""
 
-#: admin/imports_by_date.html admin/index.html
+#: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
 msgstr ""
 
@@ -3476,6 +3582,12 @@ msgstr ""
 
 #: admin/imports_by_date.html
 msgid "Items"
+msgstr ""
+
+#: admin/index.html
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
 msgstr ""
 
 #: admin/index.html
@@ -3614,6 +3726,14 @@ msgstr ""
 msgid "Borrows, last 2 years graph"
 msgstr ""
 
+#: admin/index.html
+msgid "Unique Logins"
+msgstr ""
+
+#: admin/index.html
+msgid "Gathering login statistics..."
+msgstr ""
+
 #: admin/loans_table.html
 msgid "BookReader"
 msgstr ""
@@ -3686,6 +3806,26 @@ msgstr ""
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Breakdown by Qualifying Authority"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "PDA"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Emailed"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Fulfilled"
+msgstr ""
+
+#: admin/pd_dashboard.html
+msgid "Totals"
 msgstr ""
 
 #: admin/permissions.html
@@ -3789,6 +3929,48 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
+msgstr ""
+
+#: admin/sync.html
+msgid "Sync"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+
+#: admin/sync.html
+msgid "Add Works to Staff Picks"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
+msgstr ""
+
+#: admin/sync.html
+msgid "add"
+msgstr ""
+
+#: admin/sync.html
+msgid "remove"
+msgstr ""
+
+#: admin/sync.html
+msgid "Update edition"
+msgstr ""
+
+#: admin/sync.html
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -4557,7 +4739,7 @@ msgstr ""
 msgid "Add a new author"
 msgstr ""
 
-#: books/author-autocomplete.html
+#: books/author-autocomplete.html books/series-autocomplete.html
 msgid "Create a new record for"
 msgstr ""
 
@@ -4797,6 +4979,25 @@ msgstr ""
 msgid "Links"
 msgstr ""
 
+#: books/edit.html
+msgid "Work Series"
+msgstr ""
+
+#: books/edit.html
+msgid ""
+"Series are currently in beta, and this section is only visible to super "
+"librarians and admins, like you! Any series you set will be visible by "
+"everyone, however. Please report any issues you have on Slack or GitHub."
+msgstr ""
+
+#: books/edit.html
+msgid "Is this work part of a larger series?"
+msgstr ""
+
+#: books/edit.html
+msgid "E.g. Harry Potter, The Sword of Truth"
+msgstr ""
+
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
 msgstr ""
@@ -4825,6 +5026,26 @@ msgstr ""
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Add a new series"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Series name"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Series position"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Remove this series"
+msgstr ""
+
+#: books/series-autocomplete.html
+msgid "Add another series?"
 msgstr ""
 
 #: books/edit/about.html
@@ -5564,18 +5785,6 @@ msgstr ""
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
-
-#: history/comment.html
-msgid "Imported from"
-msgstr ""
-
-#: history/comment.html
-msgid "Found a matching"
-msgstr ""
-
-#: history/comment.html
-msgid "Edited without comment."
 msgstr ""
 
 #: history/sources.html
@@ -6405,7 +6614,7 @@ msgstr ""
 msgid "Remove this seed?"
 msgstr ""
 
-#: lists/lists.html type/list/edit.html
+#: lists/lists.html type/list/edit.html type/series/edit.html
 msgid "Remove"
 msgstr ""
 
@@ -7156,6 +7365,14 @@ msgid "Ebook Edition Count"
 msgstr ""
 
 #: search/sort_options.html
+msgid "Date Added (newest)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Date Added (oldest)"
+msgstr ""
+
+#: search/sort_options.html
 msgid "Most Editions"
 msgstr ""
 
@@ -7177,6 +7394,10 @@ msgstr ""
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Sorting by"
 msgstr ""
 
 #: search/sort_options.html
@@ -7540,11 +7761,6 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
-
-#: type/author/view.html
-#, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
@@ -7619,6 +7835,19 @@ msgstr ""
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
+msgstr ""
+
+#: type/edition/title_and_author.html
+#, python-format
+msgid "Book %s"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
+msgid "Read Less"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7764,7 +7993,8 @@ msgid "Loading Lists"
 msgstr ""
 
 #: type/language/view.html
-msgid "deprecated"
+#, python-format
+msgid "%(language)s [deprecated]"
 msgstr ""
 
 #: type/language/view.html
@@ -7784,37 +8014,62 @@ msgstr ""
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Create a series"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
+#, python-format
+msgid "Editing series: %(list_name)s"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Edit Series"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 msgid "Edit List"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Move..."
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Position (optional), e.g. 1, 2, 1-7"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "List Name"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
+msgid "Series Name"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
 msgstr ""
 
-#: type/list/edit.html
+#: type/list/edit.html type/series/edit.html
 msgid "Add another book"
+msgstr ""
+
+#: type/list/edit.html type/series/edit.html
+msgid "Create new series"
 msgstr ""
 
 #: type/list/embed.html

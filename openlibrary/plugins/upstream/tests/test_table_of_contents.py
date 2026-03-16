@@ -193,9 +193,7 @@ class TestTocEntry:
 
         line = ' | Just title |  | {"authors": [{"name": "Author 1"}]}'
         entry = TocEntry.from_markdown(line)
-        assert entry == TocEntry(
-            level=0, title="Just title", authors=[{"name": "Author 1"}]
-        )
+        assert entry == TocEntry(level=0, title="Just title", authors=[{"name": "Author 1"}])
 
     def test_to_markdown(self):
         entry = TocEntry(level=0, title="Chapter 1", pagenum="1")

@@ -2,6 +2,9 @@ from typing import TYPE_CHECKING
 
 import web
 
+from infogami.utils.view import public
+from openlibrary.utils.request_context import site
+
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
 from .model import *  # noqa: F403
@@ -50,11 +53,12 @@ class RunAs:
 
 
 # Confirmed functions (these have to be here)
+@public
 def get_current_user() -> "User | None":
     """
     Returns the currently logged in user. None if not logged in.
     """
-    return web.ctx.site.get_user()
+    return site.get().get_user()
 
 
 def find(

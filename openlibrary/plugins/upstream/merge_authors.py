@@ -115,6 +115,12 @@ class BasicMergeEngine:
     def merge_property(self, a, b):
         if isinstance(a, list) and isinstance(b, list):
             return uniq(a + b, key=dicthash)
+        elif isinstance(a, dict) and isinstance(b, dict):
+            # Merge dictionaries (e.g., remote_ids)
+            # Master (a) values take preference over duplicate (b) values
+            result = b.copy()
+            result.update(a)
+            return result
         elif not a:
             return b
         else:

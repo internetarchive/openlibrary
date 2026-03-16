@@ -1,16 +1,13 @@
 """Language pages"""
 
-import json
 import logging
 from dataclasses import dataclass
 from typing import Literal, override
 
 import web
-from typing_extensions import deprecated
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
-from infogami.utils.view import render_template, safeint
+from infogami.utils.view import render_template
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
 from openlibrary.utils.async_utils import async_bridge
@@ -18,27 +15,6 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
-
-
-class languages(subjects.subjects):
-    path = '(/languages/[^_][^/]*)'
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-
-class languages_json(subjects.subjects_json):
-    path = '(/languages/[^_][^/]*)'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
 
 
 async def get_top_languages(
@@ -106,24 +82,6 @@ class index(delegate.page):
 
     def is_enabled(self):
         return True
-
-
-@deprecated("migrated to fastapi")
-class index_json(delegate.page):
-    path = "/languages"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self):
-        i = web.input(limit=15, sort="count")
-        limit = safeint(i.limit, 15)
-        if i.sort not in ("count", "name", "ebook_edition_count"):
-            raise web.badrequest("Invalid sort parameter")
-        return json.dumps(
-            async_bridge.run(
-                get_top_languages(limit, user_lang=web.ctx.lang, sort=i.sort)
-            )
-        )
 
 
 class language_search(delegate.page):

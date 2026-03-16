@@ -1,7 +1,12 @@
 *.ttf
 *.gif
-*.css
 *.woff
 *.svg
 *.eot
 *.md
+node_modules/
+vendor/
+static/build/
+static/css/lib/
+static/css/tokens.css
+static/css/tokens/

@@ -1,0 +1,44 @@
+.header-bar {
+  padding-top: 5px;
+}
+
+/* The width and height attributes of logo-icon should be equal to */
+/* dimensions of /static/images/openlibrary-logo-tighter.svg */
+.header-bar .logo-component .logo-icon {
+  height: 47px;
+  width: 189px;
+}
+
+.header-bar .auth-component .hide-me {
+  display: inline;
+}
+
+.header-bar .navigation-component .dropdown-menu {
+  border-top: none;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+.header-bar .search-component {
+  -webkit-box-ordinal-group: 4;
+  -ms-flex-order: 3;
+  order: 3;
+}
+
+.header-bar .search-component .search-bar-component {
+  width: 300px;
+}
+
+.header-bar .search-component .search-justify-right {
+  min-width: 210px;
+}
+
+.header-bar .search-component .search-bar {
+  width: auto;
+  max-width: 310px;
+}
+
+.header-bar .header-dropdown .account__icon {
+  width: 45px;
+  height: 45px;
+}

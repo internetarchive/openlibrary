@@ -5,7 +5,7 @@ from os import getenv
 
 import sentry_sdk
 import web
-from sentry_sdk.tracing import TRANSACTION_SOURCE_ROUTE, Transaction
+from sentry_sdk.tracing import Transaction, TransactionSource
 from sentry_sdk.utils import capture_internal_exceptions
 
 from infogami.utils.app import (
@@ -71,6 +71,7 @@ class Sentry:
             traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
             profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
             release=get_software_version(),
+            enable_logs=self.config.get('enable_logs', True),
         )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
@@ -86,6 +87,7 @@ class Sentry:
     def capture_exception_webpy(self) -> str | None:
         with sentry_sdk.push_scope() as scope:
             scope.add_event_processor(add_web_ctx_to_event)
+            scope.add_error_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception()
             transaction = sentry_sdk.get_current_scope().transaction
             trace_id = transaction.trace_id if transaction else None
@@ -139,7 +141,7 @@ class WebPySentryProcessor:
                 environ,
                 op="http.server",
                 name=route_name,
-                source=TRANSACTION_SOURCE_ROUTE,
+                source=TransactionSource.ROUTE,
             )
 
             with hub.start_transaction(transaction):
@@ -168,7 +170,7 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
         def find_route() -> InfogamiRoute:
             result = InfogamiRoute('<other>')
 
-            cls, args = find_page()
+            cls, _args = find_page()
             if cls:
                 if hasattr(cls, 'path'):
                     result.route = cls.path

@@ -1,10 +1,11 @@
 """Models of various OL objects."""
 
+import functools
 import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
 import requests
@@ -41,6 +42,9 @@ from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
 
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import Series, SeriesDict
+
 SubjectType = Literal["subject", "place", "person", "time"]
 
 logger = logging.getLogger("openlibrary.core")
@@ -66,7 +70,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = requests.get(url, timeout=3).json()
+            d = requests.get(url, timeout=1).json()
             d['created'] = parse_datetime(d['created'])
             if fetch_author:
                 if d['author'] == 'None':
@@ -101,8 +105,8 @@ class Thing(client.Thing):
 
     key: ThingKey
 
-    @cache.method_memoize
-    def get_history_preview(self):
+    @functools.cached_property
+    def history_preview(self):
         """Returns history preview."""
         history = self._get_history_preview()
         history = web.storage(history)
@@ -149,7 +153,7 @@ class Thing(client.Thing):
 
     def get_most_recent_change(self):
         """Returns the most recent change."""
-        preview = self.get_history_preview()
+        preview = self.history_preview
         if preview.recent:
             return preview.recent[0]
         else:
@@ -157,7 +161,7 @@ class Thing(client.Thing):
 
     def prefetch(self) -> None:
         """Prefetch all the anticipated data."""
-        preview = self.get_history_preview()
+        preview = self.history_preview
         authors = {v.author.key for v in preview.initial + preview.recent if v.author}
         # preload them
         self._site.get_many(list(authors))
@@ -481,8 +485,51 @@ class Edition(Thing):
         )
 
 
+class ListSeedMetadata(TypedDict):
+    position: NotRequired[str]
+    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
+
+    notes: NotRequired[str]
+    """Notes about the seed."""
+
+
+def does_seed_have_metadata(seed: ListSeedMetadata) -> bool:
+    """Returns True if the seed has any metadata."""
+    return bool(seed.get('position') or seed.get('notes'))
+
+
+def update_list_seed_metadata(a: ListSeedMetadata, b: ListSeedMetadata) -> None:
+    """Modifies the original ListSeedMetadata inplace."""
+
+    if p := b.get('position'):
+        a['position'] = p
+    else:
+        a.pop('position', None)
+
+    if n := b.get('notes'):
+        a['notes'] = n
+    else:
+        a.pop('notes', None)
+
+
+TSeries = TypeVar('TSeries', 'Series', ThingReferenceDict, 'SeriesDict')
+
+
+class WorkSeriesEdge[TSeries](ListSeedMetadata):
+    series: TSeries
+
+
+WorkSeriesEdgeDB = WorkSeriesEdge['Series']
+"""
+Note: In reality, since the DB always wraps dicts in a `Thing` object,
+this will be a `Thing` not a raw dict.
+"""
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
+
+    series: list[WorkSeriesEdgeDB] | None
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -495,8 +542,7 @@ class Work(Thing):
 
     __str__ = __repr__
 
-    @property  # type: ignore[misc]
-    @cache.method_memoize
+    @functools.cached_property
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
     def edition_count(self):
         return self._site._request("/count_editions_by_work", data={"key": self.key})
@@ -633,6 +679,21 @@ class Work(Thing):
             return [self._make_subject_link(s, "time:") for s in self.subject_times]
         else:
             return []
+
+    def get_primary_series(self) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        return series[0] if series else None
+
+    def find_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        for s in series:
+            if s['series']['key'] == series_key:
+                return s
+        return None
+
+    def remove_series_edge(self, series_key: str) -> None:
+        series = self.series or []
+        self.series = [s for s in series if s['series']['key'] != series_key]
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.
@@ -913,13 +974,9 @@ class User(Thing):
         def query_store(_key):
             return web.ctx.site.store.get(_key)
 
-        def query_fallback(_key):
-            results = web.ctx.site.get(_key)
-            return results and results.dict().get('notifications')
-
         key = f"{self.key}/preferences"
 
-        return query_store(key) or query_fallback(key) or self.get_default_preferences()
+        return query_store(key) or self.get_default_preferences()
 
     def save_preferences(self, new_prefs) -> None:
         key = f'{self.key}/preferences'
@@ -933,6 +990,12 @@ class User(Thing):
         if not usergroup.startswith('/usergroup/'):
             usergroup = f'/usergroup/{usergroup}'
         return usergroup in [g.key for g in self.usergroups]
+
+    def is_member_of_any(self, usergroups: list[str]) -> bool:
+        """
+        Returns True if `User` is a member of any of the given usergroups.
+        """
+        return any(self.is_usergroup_member(grp) for grp in usergroups)
 
     def is_subscribed_user(self, username: str) -> int:
         my_username = self.get_username()
@@ -988,7 +1051,7 @@ class User(Thing):
     @classmethod
     # @cache.memoize(engine="memcache", key="user-avatar")
     def get_avatar_url(cls, username: str) -> str:
-        username = username.split('/people/')[-1]
+        username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
         itemname = user.get_account().get('internetarchive_itemname')
 

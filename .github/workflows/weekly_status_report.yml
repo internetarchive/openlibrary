@@ -7,7 +7,7 @@ permissions:
   contents: read
   issues: read
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   TEAM_ABC_CONFIG: '.github/workflows/config/weekly_status_report_team_abc.json'
   LEADS_G_CONFIG: '.github/workflows/config/weekly_status_report_openlibrary_leads_g.json'
 jobs:
@@ -15,11 +15,11 @@ jobs:
     if: github.repository_owner == 'internetarchive'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         id: cache-octokit
         with:
           path: 'node_modules'

@@ -40,9 +40,9 @@ class Client:
     def add(self, key, val, time=0):
         return self._client.add(web.safestr(key), self.compress(val), time=time)
 
-    def delete(self, key, time=0):
+    def delete(self, key):
         key = web.safestr(key)
-        return self._client.delete(key, time=time)
+        return self._client.delete(key)
 
     def delete_multi(self, keys, time=0):
         keys = [web.safestr(k) for k in keys]

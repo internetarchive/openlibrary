@@ -8,6 +8,7 @@ the issues that were identified to the given channel.
 
 Adds the "Needs: Response" label to the issues in Github.
 """
+
 import argparse
 import errno
 import json
@@ -116,7 +117,7 @@ def filter_issues(issues: list, hours: int, leads: list[dict[str, str]]):
 
     results = []
 
-    since, date_string = time_since(hours)
+    since, _date_string = time_since(hours)
 
     # Filter out as many issues as possible before making API calls for comments:
     prefiltered_issues = []

@@ -304,7 +304,7 @@ export default {
 };
 </script>
 
-<style lang="less">
+<style>
 button {
   font-family: inherit;
   text-align: inherit;
@@ -323,135 +323,136 @@ button {
   pointer-events: none;
   z-index: 10;
   display: flex;
-
-  @media (max-width: 450px) {
+}
+@media (max-width: 450px) {
+  .lr-signs {
     top: 75%;
   }
 }
-.bookshelf-signage {
-  &--sign {
-    background: #232323;
-    color: white;
-    box-sizing: border-box;
-    border-radius: 4px;
-    overflow: hidden;
-    overflow: clip;
 
-    .sign-classification {
-      opacity: .5;
-      font-size: .9em;
-    }
+.bookshelf-signage--sign {
+  background: #232323;
+  color: white;
+  box-sizing: border-box;
+  border-radius: 4px;
+  overflow: hidden;
+  overflow: clip;
+}
+.bookshelf-signage--sign .sign-classification {
+  opacity: .5;
+  font-size: .9em;
+}
+
+.bookshelf-signage--lr-sign {
+  max-width: 300px;
+  margin: 0;
+  line-height: 1em;
+  padding: 14px;
+  pointer-events: all;
+  border: 0;
+}
+.bookshelf-signage--lr-sign:hover {
+  background: #303030;
+}
+.bookshelf-signage--lr-sign.left .sign-body .arrow-icon {
+  float: left;
+  transform: rotateZ(-180deg);
+  margin-right: 8px;
+}
+.bookshelf-signage--lr-sign.right .sign-body .arrow-icon {
+  float: right;
+}
+@media (min-width: 450px) {
+  .bookshelf-signage--lr-sign {
+    min-width: 150px;
+    width: 25%;
+    margin: 4px;
   }
-
-  &--lr-sign {
-    max-width: 300px;
-    margin: 0;
-    line-height: 1em;
-    padding: 14px;
-    pointer-events: all;
-
-    border: 0;
-    &:hover {
-      background: lighten(#232323, 5%);
-    }
-
-
-    &.left .sign-body .arrow-icon {
-      float: left;
-      transform: rotateZ(-180deg);
-      margin-right: 8px;
-    }
-
-    &.right .sign-body .arrow-icon { float: right; }
-
-    @media (min-width: 450px) {
-      min-width: 150px;
-      width: 25%;
-      margin: 4px;
-    }
-    @media (max-width: 450px) {
-      .sign-label, .sign-classification { display: none; }
-      &.left .sign-body .arrow-icon { margin-right: 0; }
-    }
-
-    .sign-toolbar { display: none; }
-
-    .sign-label {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      overflow: clip;
-      white-space: nowrap;
-    }
-
-    svg {
-      padding: .5em .2em;
-    }
+}
+@media (max-width: 450px) {
+  .bookshelf-signage--lr-sign .sign-label,
+  .bookshelf-signage--lr-sign .sign-classification {
+    display: none;
   }
-
-  &--center-sign {
-    display: flex;
-    flex-direction: column;
-
-
-    max-width: 500px;
-    min-height: 124px;
-    width: 100%;
-
-    @media (min-width: 450px) {
-      min-width: 400px;
-    }
-    .sign-body .arrow-icon { display: none; }
-
-    .sign-body { flex: 1; }
-    .sign-label { font-size: 1.3em; }
-
-    padding-top: 20px;
-    .sign-toolbar {
-      background: #2c2c2c;
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-end;
-
-      button {
-        font-size: 0.75em;
-        opacity: 0.95;
-      }
-      .label {
-        margin-left: 3px;
-      }
-
-      svg {
-        height: 14px;
-        width: 14px;
-        margin-bottom: -2px;
-      }
-    }
-
-    .sign-classification, .sign-label {
-      padding: 0 25px;
-    }
+  .bookshelf-signage--lr-sign.left .sign-body .arrow-icon {
+    margin-right: 0;
   }
+}
+.bookshelf-signage--lr-sign .sign-toolbar {
+  display: none;
+}
+.bookshelf-signage--lr-sign .sign-label {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  overflow: clip;
+  white-space: nowrap;
+}
+.bookshelf-signage--lr-sign svg {
+  padding: .5em .2em;
+}
 
-  &--breadcrumb-sign {
-    transform-origin: bottom center;
-    transform: scale(.85);
-    opacity: .8;
-
-    div {
-      display: inline-block;
-    }
-    .sign-label {
-      margin-left: 1em;
-    }
+.bookshelf-signage--center-sign {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  min-height: 124px;
+  width: 100%;
+  padding-top: 20px;
+}
+@media (min-width: 450px) {
+  .bookshelf-signage--center-sign {
+    min-width: 400px;
   }
+}
+.bookshelf-signage--center-sign .sign-body .arrow-icon {
+  display: none;
+}
+.bookshelf-signage--center-sign .sign-body {
+  flex: 1;
+}
+.bookshelf-signage--center-sign .sign-label {
+  font-size: 1.3em;
+}
+.bookshelf-signage--center-sign .sign-toolbar {
+  background: #2c2c2c;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.bookshelf-signage--center-sign .sign-toolbar button {
+  font-size: 0.75em;
+  opacity: 0.95;
+}
+.bookshelf-signage--center-sign .sign-toolbar .label {
+  margin-left: 3px;
+}
+.bookshelf-signage--center-sign .sign-toolbar svg {
+  height: 14px;
+  width: 14px;
+  margin-bottom: -2px;
+}
+.bookshelf-signage--center-sign .sign-classification,
+.bookshelf-signage--center-sign .sign-label {
+  padding: 0 25px;
+}
 
-  &--main-sign {
-    padding: 20px 30px;
+.bookshelf-signage--breadcrumb-sign {
+  transform-origin: bottom center;
+  transform: scale(.85);
+  opacity: .8;
+}
+.bookshelf-signage--breadcrumb-sign div {
+  display: inline-block;
+}
+.bookshelf-signage--breadcrumb-sign .sign-label {
+  margin-left: 1em;
+}
 
-    & .sign-label {
-      font-size: 1.3em;
-    }
-  }
+.bookshelf-signage--main-sign {
+  padding: 20px 30px;
+}
+.bookshelf-signage--main-sign .sign-label {
+  font-size: 1.3em;
 }
 
 .bookshelf-name-wrapper {
@@ -459,7 +460,6 @@ button {
   display: flex;
   align-items: flex-end;
 }
-
 
 .book-room.expanding-animation .bookshelf {
   transform: scale(.8);
@@ -489,16 +489,14 @@ button {
   border-bottom-right-radius: 0;
   transition-property: transform, opacity, filter;
   transition-duration: .2s;
-
   transform: scale(.8) translateY(12px);
   opacity: .9;
   filter: brightness(.6);
-
-  &.v-enter,
-  &.v-leave-to {
-    transform: initial;
-    filter: initial;
-    opacity: 0;
-  }
+}
+.bookshelf.bookshelf-back.v-enter,
+.bookshelf.bookshelf-back.v-leave-to {
+  transform: initial;
+  filter: initial;
+  opacity: 0;
 }
 </style>

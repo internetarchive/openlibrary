@@ -11,9 +11,7 @@ import urllib
 from datetime import datetime
 from typing import Literal
 
-import lxml.etree
 import web
-from lxml import etree
 
 from infogami import config
 from infogami.infobase.utils import parse_datetime
@@ -30,7 +28,6 @@ from openlibrary.core import (
     models,  # noqa: F401 side effects may be needed
     stats,
     vendors,
-    waitinglist,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
@@ -342,7 +339,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
             resource_pattern = r'acs:(\w+):(.*)'
             for resource_urn in resources:
                 if resource_urn.startswith('acs:'):
-                    (resource_type, resource_id) = re.match(
+                    resource_type, resource_id = re.match(
                         resource_pattern, resource_urn
                     ).groups()
                 else:
@@ -355,48 +352,7 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
     return web.storage(d)
 
 
-# Handler for /borrow/receive_notification - receive ACS4 status update notifications
-class borrow_receive_notification(delegate.page):
-    path = r"/borrow/receive_notification"
-
-    def GET(self):
-        web.header('Content-Type', 'application/json')
-        output = json.dumps({'success': False, 'error': 'Only POST is supported'})
-        return delegate.RawText(output, content_type='application/json')
-
-    def POST(self):
-        data = web.data()
-        try:
-            etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
-            output = json.dumps({'success': True})
-        except Exception as e:
-            output = json.dumps({'success': False, 'error': str(e)})
-        return delegate.RawText(output, content_type='application/json')
-
-
-class ia_borrow_notify(delegate.page):
-    """Invoked by archive.org to notify about change in loan/waiting list
-    status of an item.
-
-    The payload will be of the following format:
-
-        {"identifier": "foo00bar"}
-    """
-
-    path = "/borrow/notify"
-
-    def POST(self):
-        payload = web.data()
-        d = json.loads(payload)
-        identifier = d and d.get('identifier')
-        if identifier:
-            lending.sync_loan(identifier)
-            waitinglist.on_waitinglist_update(identifier)
-
-
 # ######### Public Functions
-
-
 @public
 def is_loan_available(edition, type) -> bool:
     resource_id = edition.get_lending_resource_id(type)

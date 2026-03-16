@@ -1,10 +1,8 @@
 """Open Library Import API"""
 
-import base64
 import json
 import logging
 import re
-import urllib
 from typing import Any
 
 import lxml.etree
@@ -14,7 +12,6 @@ from pydantic import ValidationError
 
 from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import add_hook
-from openlibrary import accounts, records
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_from_archive_bulk, get_marc_record_from_ia
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
@@ -341,7 +338,7 @@ class ia_importapi(importapi):
             # Get binary MARC by identifier = ocaid/filename:offset:length
             re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
-                ocaid, filename, offset, length = re_bulk_identifier.match(
+                ocaid, filename, offset, _length = re_bulk_identifier.match(
                     identifier
                 ).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
@@ -528,296 +525,13 @@ class ia_importapi(importapi):
         return json.dumps(reply)
 
 
-class ils_search:
-    """Search and Import API to use in Koha.
-
-    When a new catalog record is added to Koha, it makes a request with all
-    the metadata to find if OL has a matching record. OL returns the OLID of
-    the matching record if exists, if not it creates a new record and returns
-    the new OLID.
-
-    Request Format:
-
-        POST /api/ils_search
-        Content-Type: application/json
-        Authorization: Basic base64-of-username:password
-
-        {
-            'title': '',
-            'authors': ['...','...',...]
-            'publisher': '...',
-            'publish_year': '...',
-            'isbn': [...],
-            'lccn': [...],
-        }
-
-    Response Format:
-
-        {
-            'status': 'found | notfound | created',
-            'olid': 'OL12345M',
-            'key': '/books/OL12345M',
-            'cover': {
-                'small': 'https://covers.openlibrary.org/b/12345-S.jpg',
-                'medium': 'https://covers.openlibrary.org/b/12345-M.jpg',
-                'large': 'https://covers.openlibrary.org/b/12345-L.jpg',
-            },
-            ...
-        }
-
-    When authorization header is not provided and match is not found,
-    status='notfound' is returned instead of creating a new record.
-    """
-
-    def POST(self):
-        try:
-            rawdata = json.loads(web.data())
-        except ValueError:
-            raise self.error("Unparsable JSON input \n %s" % web.data())
-
-        # step 1: prepare the data
-        data = self.prepare_input_data(rawdata)
-
-        # step 2: search
-        matches = self.search(data)
-
-        # step 3: Check auth
-        try:
-            auth_header = http_basic_auth()
-            self.login(auth_header)
-        except accounts.ClientException:
-            raise self.auth_failed("Invalid credentials")
-
-        # step 4: create if logged in
-        keys = []
-        if auth_header:
-            keys = self.create(matches)
-
-        # step 4: format the result
-        d = self.format_result(matches, auth_header, keys)
-        return json.dumps(d)
-
-    def error(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
-        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
-
-    def auth_failed(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
-        return web.HTTPError(
-            "401 Authorization Required",
-            {
-                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
-                "Content-Type": "application/json",
-            },
-            d,
-        )
-
-    def login(self, auth_str):
-        if not auth_str:
-            return
-        auth_str = auth_str.replace("Basic ", "")
-        try:
-            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
-            auth_str = auth_str.decode('utf-8')
-        except AttributeError:
-            auth_str = base64.decodestring(auth_str)
-        username, password = auth_str.split(':')
-        accounts.login(username, password)
-
-    def prepare_input_data(self, rawdata):
-        data = dict(rawdata)
-        identifiers = rawdata.get('identifiers', {})
-        # TODO: Massage single strings here into lists. e.g. {"google" : "123"} into {"google" : ["123"]}.
-        for i in ["oclc_numbers", "lccn", "ocaid", "isbn"]:
-            if i in data:
-                val = data.pop(i)
-                if not isinstance(val, list):
-                    val = [val]
-                identifiers[i] = val
-        data['identifiers'] = identifiers
-
-        if "authors" in data:
-            authors = data.pop("authors")
-            data['authors'] = [{"name": i} for i in authors]
-
-        return {"doc": data}
-
-    def search(self, params):
-        matches = records.search(params)
-        return matches
-
-    def create(self, items):
-        return records.create(items)
-
-    def format_result(self, matches, authenticated, keys):
-        doc = matches.pop("doc", {})
-        if doc and doc['key']:
-            doc = web.ctx.site.get(doc['key']).dict()
-            # Sanitise for only information that we want to return.
-            for i in [
-                "created",
-                "last_modified",
-                "latest_revision",
-                "type",
-                "revision",
-            ]:
-                doc.pop(i)
-            # Main status information
-            d = {
-                'status': 'found',
-                'key': doc['key'],
-                'olid': doc['key'].split("/")[-1],
-            }
-            # Cover information
-            covers = doc.get('covers') or []
-            if covers and covers[0] > 0:
-                d['cover'] = {
-                    "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
-                    "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg"
-                    % covers[0],
-                    "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
-                }
-
-            # Pull out identifiers to top level
-            identifiers = doc.pop("identifiers", {})
-            for i in identifiers:
-                d[i] = identifiers[i]
-            d.update(doc)
-
-        elif authenticated:
-            d = {'status': 'created', 'works': [], 'authors': [], 'editions': []}
-            for i in keys:
-                if i.startswith('/books'):
-                    d['editions'].append(i)
-                if i.startswith('/works'):
-                    d['works'].append(i)
-                if i.startswith('/authors'):
-                    d['authors'].append(i)
-        else:
-            d = {'status': 'notfound'}
-        return d
-
-
-def http_basic_auth():
-    auth = web.ctx.env.get('HTTP_AUTHORIZATION')
-    return auth and web.lstrips(auth, "")
-
-
-class ils_cover_upload:
-    """Cover Upload API for Koha.
-
-    Request Format: Following input fields with enctype multipart/form-data
-
-        * olid: Key of the edition. e.g. OL12345M
-        * file: image file
-        * url: URL to image
-        * redirect_url: URL to redirect after upload
-
-        Other headers:
-           Authorization: Basic base64-of-username:password
-
-    One of file or url can be provided. If the former, the image is
-    directly used. If the latter, the image at the URL is fetched and
-    used.
-
-    On Success:
-          If redirect URL specified,
-                redirect to redirect_url?status=ok
-          else
-                return
-                {
-                  "status" : "ok"
-                }
-
-    On Failure:
-          If redirect URL specified,
-                redirect to redirect_url?status=error&reason=bad+olid
-          else
-                return
-                {
-                  "status" : "error",
-                  "reason" : "bad olid"
-                }
-    """
-
-    def error(self, i, reason):
-        if i.redirect_url:
-            url = self.build_url(i.redirect_url, status="error", reason=reason)
-            return web.seeother(url)
-        else:
-            d = json.dumps({"status": "error", "reason": reason})
-            return web.HTTPError(
-                "400 Bad Request", {"Content-Type": "application/json"}, d
-            )
-
-    def success(self, i):
-        if i.redirect_url:
-            url = self.build_url(i.redirect_url, status="ok")
-            return web.seeother(url)
-        else:
-            d = json.dumps({"status": "ok"})
-            return web.ok(d, {"Content-type": "application/json"})
-
-    def auth_failed(self, reason):
-        d = json.dumps({"status": "error", "reason": reason})
-        return web.HTTPError(
-            "401 Authorization Required",
-            {
-                "WWW-Authenticate": 'Basic realm="http://openlibrary.org"',
-                "Content-Type": "application/json",
-            },
-            d,
-        )
-
-    def build_url(self, url, **params):
-        if '?' in url:
-            return url + "&" + urllib.parse.urlencode(params)
-        else:
-            return url + "?" + urllib.parse.urlencode(params)
-
-    def login(self, auth_str):
-        if not auth_str:
-            raise self.auth_failed("No credentials provided")
-        auth_str = auth_str.replace("Basic ", "")
-        try:
-            auth_str = base64.decodebytes(bytes(auth_str, 'utf-8'))
-            auth_str = auth_str.decode('utf-8')
-        except AttributeError:
-            auth_str = base64.decodestring(auth_str)
-        username, password = auth_str.split(':')
-        accounts.login(username, password)
-
-    def POST(self):
-        i = web.input(olid=None, file={}, redirect_url=None, url="")
-
-        if not i.olid:
-            self.error(i, "olid missing")
-
-        key = '/books/' + i.olid
-        book = web.ctx.site.get(key)
-        if not book:
-            raise self.error(i, "bad olid")
-
-        try:
-            auth_header = http_basic_auth()
-            self.login(auth_header)
-        except accounts.ClientException:
-            raise self.auth_failed("Invalid credentials")
-
-        from openlibrary.plugins.upstream import covers
-
-        add_cover = covers.add_cover()
-
-        data = add_cover.upload(key, i)
-
-        if coverid := data.get('id'):
-            add_cover.save(book, coverid)
-            raise self.success(i)
-        else:
-            raise self.error(i, "upload failed")
-
-
 add_hook("import", importapi)
-add_hook("ils_search", ils_search)
-add_hook("ils_cover_upload", ils_cover_upload)
 add_hook("import/ia", ia_importapi)
+
+
+def setup():
+    """
+    This is just here to make sure this file is imported.
+    The two add_hook calls above are doing the work
+    """
+    pass

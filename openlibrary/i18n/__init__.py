@@ -4,6 +4,7 @@ import subprocess
 import sys
 from collections.abc import Iterator
 from datetime import datetime
+from functools import cache
 from io import BytesIO
 from pathlib import Path
 
@@ -18,6 +19,8 @@ from babel.messages.extract import (
 from babel.messages.mofile import write_mo
 from babel.messages.pofile import read_po, write_po
 from babel.support import Translations
+
+from openlibrary.utils.request_context import req_context
 
 from .validators import validate
 
@@ -345,7 +348,7 @@ def generate_po(args):
         print("Add failed. Missing required locale code.")
 
 
-@web.memoize
+@cache
 def load_translations(lang):
     mo_path = os.path.join(root, lang, 'messages.mo')
 
@@ -353,7 +356,7 @@ def load_translations(lang):
         return Translations(open(mo_path, 'rb'))
 
 
-@web.memoize
+@cache
 def load_locale(lang):
     try:
         return babel.Locale(lang)
@@ -365,7 +368,7 @@ class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
         # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-        translations = load_translations(web.ctx.lang)
+        translations = load_translations(req_context.get().lang)
         value = (translations and translations.ugettext(string)) or string
 
         if args:
@@ -407,7 +410,7 @@ class LazyObject:
 
 def ungettext(s1, s2, _n, *a, **kw):
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    translations = load_translations(web.ctx.lang)
+    translations = load_translations(req_context.get().lang)
     value = translations and translations.ungettext(s1, s2, _n)
     if not value:
         # fallback when translation is not provided
@@ -427,7 +430,7 @@ def ungettext(s1, s2, _n, *a, **kw):
 def gettext_territory(code):
     """Returns the territory name in the current locale."""
     # Get the website locale from the global ctx.lang variable, set in i18n_loadhook
-    locale = load_locale(web.ctx.lang)
+    locale = load_locale(req_context.get().lang)
     return locale.territories.get(code, code)
 
 

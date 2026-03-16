@@ -137,28 +137,28 @@ def build_data9():
                         "url": "http://en.wikipedia.org/wiki/foo",
                     }
                 ],
-                'subjects': [
+                "subjects": [
                     {
-                        'url': 'https://openlibrary.org/subjects/test_subject',
-                        'name': 'Test Subject',
+                        "url": "https://openlibrary.org/subjects/test_subject",
+                        "name": "Test Subject",
                     }
                 ],
-                'subject_places': [
+                "subject_places": [
                     {
-                        'url': 'https://openlibrary.org/subjects/place:test_place',
-                        'name': 'Test Place',
+                        "url": "https://openlibrary.org/subjects/place:test_place",
+                        "name": "Test Place",
                     }
                 ],
-                'subject_people': [
+                "subject_people": [
                     {
-                        'url': 'https://openlibrary.org/subjects/person:test_person',
-                        'name': 'Test Person',
+                        "url": "https://openlibrary.org/subjects/person:test_person",
+                        "name": "Test Person",
                     }
                 ],
-                'subject_times': [
+                "subject_times": [
                     {
-                        'url': 'https://openlibrary.org/subjects/time:test_time',
-                        'name': 'Test Time',
+                        "url": "https://openlibrary.org/subjects/time:test_time",
+                        "name": "Test Time",
                     }
                 ],
                 "cover": {
@@ -179,15 +179,9 @@ def build_data9():
                         "read_url": "https://archive.org/stream/foo12bar",
                         "availability": "full",
                         "formats": {
-                            "pdf": {
-                                "url": "https://archive.org/download/foo12bar/foo12bar.pdf"
-                            },
-                            "epub": {
-                                "url": "https://archive.org/download/foo12bar/foo12bar.epub"
-                            },
-                            "text": {
-                                "url": "https://archive.org/download/foo12bar/foo12bar_djvu.txt"
-                            },
+                            "pdf": {"url": "https://archive.org/download/foo12bar/foo12bar.pdf"},
+                            "epub": {"url": "https://archive.org/download/foo12bar/foo12bar.epub"},
+                            "text": {"url": "https://archive.org/download/foo12bar/foo12bar_djvu.txt"},
                         },
                     }
                 ],
@@ -236,13 +230,13 @@ def monkeypatch_ol(monkeypatch, solr_overrides: list[dict] | None = None):
 
 def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
     class FakeSolr(Solr):
-        def get_many[T](
+        def get_many[T](  # type: ignore[override]
             self,
             keys: Iterable[str],
             fields: Iterable[str] | None = None,
             doc_wrapper: Callable[[dict], T] = web.storage,
         ) -> list[T]:
-            return [doc for doc in (solr_overrides or []) if doc['key'] in set(keys)]  # type: ignore
+            return [doc for doc in (solr_overrides or []) if doc["key"] in set(keys)]  # type: ignore
 
     mock_solr = FakeSolr("http://fake-solr:8983/solr/ol")
     monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
@@ -250,25 +244,17 @@ def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    assert dynlinks.query_keys(["isbn:1234567890"]) == {
-        "isbn:1234567890": "/books/OL1M"
-    }
+    assert dynlinks.query_keys(["isbn:1234567890"]) == {"isbn:1234567890": "/books/OL1M"}
     assert dynlinks.query_keys(["isbn:9876543210"]) == {}
-    assert dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {
-        "isbn:1234567890": "/books/OL1M"
-    }
+    assert dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": "/books/OL1M"}
 
 
 def test_query_docs(monkeypatch):
     monkeypatch_ol(monkeypatch)
 
-    assert dynlinks.query_docs(["isbn:1234567890"]) == {
-        "isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}
-    }
+    assert dynlinks.query_docs(["isbn:1234567890"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
     assert dynlinks.query_docs(["isbn:9876543210"]) == {}
-    assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {
-        "isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}
-    }
+    assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
 
 
 def test_process_doc_for_view_api(monkeypatch):
@@ -288,20 +274,18 @@ def test_process_doc_for_view_api(monkeypatch):
     }
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
-    doc['ocaid'] = "ia-foo"
+    doc["ocaid"] = "ia-foo"
     expected_result["preview"] = "noview"
     expected_result["preview_url"] = "https://archive.org/details/ia-foo"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
-    doc['covers'] = [42, 53]
+    doc["covers"] = [42, 53]
     expected_result["thumbnail_url"] = "https://covers.openlibrary.org/b/id/42-S.jpg"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
 
 def test_process_result_for_details(monkeypatch):
-    assert dynlinks.process_result_for_details(
-        {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo", "preview": "noview"}}
-    ) == {
+    assert dynlinks.process_result_for_details({"isbn:1234567890": {"key": "/books/OL1M", "title": "foo", "preview": "noview"}}) == {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
             "info_url": "https://openlibrary.org/books/OL1M/foo",
@@ -359,12 +343,12 @@ def test_dynlinks(monkeypatch):
     }
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {})
-    match = re.match('^var _OLBookInfo = ({.*});$', js)
+    match = re.match("^var _OLBookInfo = ({.*});$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"callback": "func"})
-    match = re.match('^({.*})$', js)
+    match = re.match("^({.*})$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
@@ -393,12 +377,12 @@ def test_dynlinks_public(monkeypatch):
     }
 
     js = dynlinks.dynlinks(["OCAID:ia-bar"], {})
-    match = re.match('^var _OLBookInfo = ({.*});$', js)
+    match = re.match("^var _OLBookInfo = ({.*});$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["OCAID:ia-bar"], {"callback": "func"})
-    match = re.match('^({.*})$', js)
+    match = re.match("^({.*})$", js)
     assert match is not None
     assert json.loads(match.group(1)) == expected_result
 
@@ -459,13 +443,13 @@ class TestDataProcessor:
         data0 = build_data0()
         p = dynlinks.DataProcessor()
         p.authors = data0
-        assert p.get_authors(data0['/books/OL0M']) == []
+        assert p.get_authors(data0["/books/OL0M"]) == []
 
     def test_get_authors1(self):
         data1 = build_data1()
         p = dynlinks.DataProcessor()
         p.authors = data1
-        assert p.get_authors(data1['/works/OL1W']) == [
+        assert p.get_authors(data1["/works/OL1W"]) == [
             {
                 "url": "https://openlibrary.org/authors/OL1A/Mark_Twain",
                 "name": "Mark Twain",
@@ -475,7 +459,7 @@ class TestDataProcessor:
     def test_process_doc0(self):
         data0 = build_data0()
         p = dynlinks.DataProcessor()
-        assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
+        assert p.process_doc(data0["/books/OL0M"]) == data0["result"]["data"]
 
     def test_process_doc9(self, monkeypatch):
         data9 = build_data9()
@@ -486,7 +470,7 @@ class TestDataProcessor:
         p.works = data9
 
         # Expected to be augmented with the preview field.
-        doc = cast(dynlinks.OpenLibraryEditionWithPreview, data9['/books/OL9M'])
-        doc['preview'] = 'full'
+        doc = cast(dynlinks.OpenLibraryEditionWithPreview, data9["/books/OL9M"])
+        doc["preview"] = "full"
 
-        assert p.process_doc(doc) == data9['result']['data']
+        assert p.process_doc(doc) == data9["result"]["data"]

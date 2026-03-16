@@ -1,0 +1,11 @@
+.subNav {
+  margin-top: 10px;
+}
+
+.subNav ul {
+  list-style-type: none;
+}
+
+.subNav ul li {
+  display: inline;
+}

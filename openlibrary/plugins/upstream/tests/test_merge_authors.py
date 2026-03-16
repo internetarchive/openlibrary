@@ -59,10 +59,10 @@ class MockSite(client.Site):
     def save_many(self, docs, comment=None, data=None, action=None):
         data = data or {}
         self.add(docs)
-        return [{'key': d['key'], 'revision': 1} for d in docs]
+        return [{"key": d["key"], "revision": 1} for d in docs]
 
     def add(self, docs):
-        self.docs.update((doc['key'], doc) for doc in docs)
+        self.docs.update((doc["key"], doc) for doc in docs)
 
 
 def test_MockSite():
@@ -126,6 +126,14 @@ class TestBasicMergeEngine:
         assert engine.merge_property("foo", "bar") == "foo"
         assert engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
         assert engine.merge_property(None, ["bar"]) == ["bar"]
+        # Test dict merging (for remote_ids)
+        assert engine.merge_property({}, {"wikidata": "Q123"}) == {"wikidata": "Q123"}
+        assert engine.merge_property({"viaf": "123"}, {"wikidata": "Q456"}) == {
+            "viaf": "123",
+            "wikidata": "Q456",
+        }
+        # When both have the same key, master's value should take preference
+        assert engine.merge_property({"wikidata": "Q111"}, {"wikidata": "Q222"}) == {"wikidata": "Q111"}
 
 
 def test_get_many():
@@ -257,7 +265,7 @@ class TestAuthorMergeEngine:
         web.ctx.site.add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
-        links = web.ctx.site.get("/authors/a").dict()['links']
+        links = web.ctx.site.get("/authors/a").dict()["links"]
         assert links == [link_a, link_b]
 
     def test_new_field(self):
@@ -270,7 +278,7 @@ class TestAuthorMergeEngine:
         web.ctx.site.add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
-        master_birth_date = web.ctx.site.get("/authors/a").get('birth_date')
+        master_birth_date = web.ctx.site.get("/authors/a").get("birth_date")
         assert master_birth_date == birth_date
 
     def test_work_authors(self):
@@ -296,6 +304,30 @@ class TestAuthorMergeEngine:
             "type": {"key": "/type/work"},
             "authors": [{"type": "/type/author_role", "author": {"key": "/authors/a"}}],
         }
+
+    def test_remote_ids_merge_wikidata_from_duplicate(self):
+        """Test that Wikidata ID from duplicate author is merged into master.
+
+        This reproduces the bug where remote_ids.wikidata was lost during merge.
+        See: https://github.com/internetarchive/openlibrary/issues/11698
+        """
+        # Master author has no remote_ids (or empty dict)
+        a = dict(TEST_AUTHORS.a)
+
+        # Duplicate author has a Wikidata ID
+        b = dict(TEST_AUTHORS.b, remote_ids={"wikidata": "Q12345"})
+
+        c = dict(TEST_AUTHORS.c, remote_ids={"wikidata": "Q12346", "viaf": "123456"})
+
+        web.ctx.site.add([a, b, c])
+        self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
+
+        # The Wikidata ID should be merged into the master
+        master_remote_ids = dict(web.ctx.site.get("/authors/a").get("remote_ids"))
+        assert master_remote_ids == {
+            "wikidata": "Q12345",
+            "viaf": "123456",
+        }, "remote_ids from duplicate should be merged into master"
 
 
 def test_dicthash():

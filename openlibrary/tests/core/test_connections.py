@@ -11,11 +11,11 @@ class MockConnection:
     def request(self, sitename, path, method="GET", data=None):
         data = data or {}
         if path == "/get":
-            key = data['key']
+            key = data["key"]
             if key in self.docs:
                 return json.dumps(self.docs[key])
         if path == "/get_many":
-            keys = json.loads(data['keys'])
+            keys = json.loads(data["keys"])
             return json.dumps({k: self.docs[k] for k in keys})
         else:
             return None
@@ -26,7 +26,7 @@ class TestMigrationMiddleware:
         conn = connections.MigrationMiddleware(MockConnection())
 
         def add(doc):
-            conn.conn.docs[doc['key']] = doc
+            conn.conn.docs[doc["key"]] = doc
 
         def get(key):
             json_data = conn.request("openlibrary.org", "/get", data={"key": key})
@@ -80,7 +80,7 @@ class TestMigrationMiddleware:
         conn = connections.MigrationMiddleware(MockConnection())
 
         def add(doc):
-            conn.conn.docs[doc['key']] = doc
+            conn.conn.docs[doc["key"]] = doc
 
         def get(key):
             json_data = conn.request("openlibrary.org", "/get", data={"key": key})

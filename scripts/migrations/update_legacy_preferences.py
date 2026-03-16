@@ -2,6 +2,7 @@
 """
 Updates all legacy preferences, deleting "rpd" and "pda" values.
 """
+
 import argparse
 from pathlib import Path
 

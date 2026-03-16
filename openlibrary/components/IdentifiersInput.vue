@@ -249,6 +249,11 @@ export default {
             if (this.saveIdentifiersAsList) {
                 // collect id values of matching type, or empty array if none present
                 const existingIds = this.assignedIdentifiers[this.selectedIdentifier] ?? [];
+                // Only one Internet Archive ID (ocaid) is allowed per edition
+                if (this.selectedIdentifier === 'ocaid' && existingIds.length > 0) {
+                    errorDisplay('Only one Internet Archive ID is allowed per edition.', this.output_selector);
+                    return;
+                }
                 const validEditionId = validateIdentifiers(this.selectedIdentifier, this.inputValue, existingIds, this.output_selector);
                 if (validEditionId) {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
@@ -320,8 +325,8 @@ export default {
 }
 </script>
 
-<style lang="less">
-// This and .form-control ensure that select, input, and buttons are the same height
+<style>
+/* This and .form-control ensure that select, input, and buttons are the same height */
 select.form-control {
   height: calc(2.25rem + 2px);
 }
@@ -356,7 +361,7 @@ select.form-control {
 .remove-button {
   justify-self: end;
 }
-// The <select> element will cause the IdentifiersInput area to expand past its boundaries at around 850px which is why the media query targets 855px and not the standard tablet breakpoint of 768.
+/* The <select> element will cause the IdentifiersInput area to expand past its boundaries at around 850px which is why the media query targets 855px and not the standard tablet breakpoint of 768. */
 @media (max-width: 855px) {
   .identifiers-table {
     grid-template-columns: 1fr auto;

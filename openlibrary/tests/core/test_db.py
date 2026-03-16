@@ -77,7 +77,6 @@ CREATE TABLE yearly_reading_goals (
     username text not null,
     year integer not null,
     target integer not null,
-    current integer default 0,
     updated timestamp
 );
 """
@@ -120,9 +119,7 @@ class TestUpdateWorkID:
         }
         self.db.insert("bookshelves_books", **existing_book)
         assert len(list(self.db.select("bookshelves_books"))) == 2
-        Bookshelves.update_work_id(
-            self.source_book['work_id'], existing_book['work_id']
-        )
+        Bookshelves.update_work_id(self.source_book["work_id"], existing_book["work_id"])
         assert list(
             self.db.select(
                 "bookshelves_books",
@@ -138,7 +135,7 @@ class TestUpdateWorkID:
 
     def test_update_simple(self):
         assert len(list(self.db.select("bookshelves_books"))) == 1
-        Bookshelves.update_work_id(self.source_book['work_id'], "2")
+        Bookshelves.update_work_id(self.source_book["work_id"], "2")
 
     def test_no_allow_delete_on_conflict(self):
         rows = [
@@ -147,7 +144,7 @@ class TestUpdateWorkID:
         ]
         self.db.multiple_insert("booknotes", rows)
         resp = Booknotes.update_work_id("1", "2")
-        assert resp == {'rows_changed': 0, 'rows_deleted': 0, 'failed_deletes': 1}
+        assert resp == {"rows_changed": 0, "rows_deleted": 0, "failed_deletes": 1}
         assert [dict(row) for row in self.db.select("booknotes")] == rows
 
 
@@ -272,7 +269,7 @@ class TestUsernameUpdate:
         assert len(list(self.db.select("bookshelves_books"))) == 1
 
         assert len(list(self.db.select("booknotes"))) == 2
-        Booknotes.delete_all_by_username('@kilgore_trout')
+        Booknotes.delete_all_by_username("@kilgore_trout")
         assert len(list(self.db.select("booknotes"))) == 1
 
         assert len(list(self.db.select("ratings"))) == 2
@@ -308,23 +305,17 @@ class TestUsernameUpdate:
         assert len(list(self.db.select("observations", where=before_where))) == 0
         assert len(list(self.db.select("observations", where=after_where))) == 1
 
-        results = self.db.select(
-            "community_edits_queue", where={"submitter": "@kilgore_trout"}
-        )
+        results = self.db.select("community_edits_queue", where={"submitter": "@kilgore_trout"})
         assert len(list(results)) == 2
 
-        CommunityEditsQueue.update_submitter_name('@kilgore_trout', '@anonymous')
-        results = self.db.select(
-            "community_edits_queue", where={"submitter": "@kilgore_trout"}
-        )
+        CommunityEditsQueue.update_submitter_name("@kilgore_trout", "@anonymous")
+        results = self.db.select("community_edits_queue", where={"submitter": "@kilgore_trout"})
         assert len(list(results)) == 0
 
-        results = self.db.select(
-            "community_edits_queue", where={"submitter": "@anonymous"}
-        )
+        results = self.db.select("community_edits_queue", where={"submitter": "@anonymous"})
         assert len(list(results)) == 2
 
-        self.db.query('delete from community_edits_queue;')
+        self.db.query("delete from community_edits_queue;")
 
 
 BOOKSHELVES_EVENTS_SETUP_ROWS = [
@@ -388,146 +379,79 @@ class TestCheckIns:
 
     def setup_method(self):
         self.db = get_db()
-        self.db.multiple_insert('bookshelves_events', BOOKSHELVES_EVENTS_SETUP_ROWS)
+        self.db.multiple_insert("bookshelves_events", BOOKSHELVES_EVENTS_SETUP_ROWS)
 
     def teardown_method(self):
         self.db.query("delete from bookshelves_events;")
 
     def test_create_event(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 6
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@billy_pilgrim"}
-                    )
-                )
-            )
-            == 1
-        )
-        BookshelvesEvents.create_event('@billy_pilgrim', 5, 6, '2022-01', event_type=1)
-        assert len(list(self.db.select('bookshelves_events'))) == 7
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@billy_pilgrim"}
-                    )
-                )
-            )
-            == 2
-        )
+        assert len(list(self.db.select("bookshelves_events"))) == 6
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 1
+        BookshelvesEvents.create_event("@billy_pilgrim", 5, 6, "2022-01", event_type=1)
+        assert len(list(self.db.select("bookshelves_events"))) == 7
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@billy_pilgrim"}))) == 2
 
     def test_select_all_by_username(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 6
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 3
-        )
-        BookshelvesEvents.create_event(
-            '@kilgore_trout', 7, 8, '2011-01-09', event_type=1
-        )
-        assert len(list(self.db.select('bookshelves_events'))) == 7
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 4
-        )
+        assert len(list(self.db.select("bookshelves_events"))) == 6
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 3
+        BookshelvesEvents.create_event("@kilgore_trout", 7, 8, "2011-01-09", event_type=1)
+        assert len(list(self.db.select("bookshelves_events"))) == 7
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 4
 
     def test_update_event_date(self):
-        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
-        row = self.db.select('bookshelves_events', where={"id": 1})[0]
-        assert row['event_date'] == "2022-04-17"
+        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
+        row = self.db.select("bookshelves_events", where={"id": 1})[0]
+        assert row["event_date"] == "2022-04-17"
         new_date = "1999-01-01"
         BookshelvesEvents.update_event_date(1, new_date)
-        row = self.db.select('bookshelves_events', where={"id": 1})[0]
-        assert row['event_date'] == new_date
+        row = self.db.select("bookshelves_events", where={"id": 1})[0]
+        assert row["event_date"] == new_date
 
     def test_delete_by_id(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 6
-        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 1
+        assert len(list(self.db.select("bookshelves_events"))) == 6
+        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 1
         BookshelvesEvents.delete_by_id(1)
-        assert len(list(self.db.select('bookshelves_events'))) == 5
-        assert len(list(self.db.select('bookshelves_events', where={"id": 1}))) == 0
+        assert len(list(self.db.select("bookshelves_events"))) == 5
+        assert len(list(self.db.select("bookshelves_events", where={"id": 1}))) == 0
 
     def test_delete_by_username(self):
-        assert len(list(self.db.select('bookshelves_events'))) == 6
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 3
-        )
-        BookshelvesEvents.delete_by_username('@kilgore_trout')
-        assert len(list(self.db.select('bookshelves_events'))) == 3
-        assert (
-            len(
-                list(
-                    self.db.select(
-                        'bookshelves_events', where={"username": "@kilgore_trout"}
-                    )
-                )
-            )
-            == 0
-        )
+        assert len(list(self.db.select("bookshelves_events"))) == 6
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 3
+        BookshelvesEvents.delete_by_username("@kilgore_trout")
+        assert len(list(self.db.select("bookshelves_events"))) == 3
+        assert len(list(self.db.select("bookshelves_events", where={"username": "@kilgore_trout"}))) == 0
 
     def test_get_latest_event_date(self):
-        assert (
-            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 3)[
-                'event_date'
-            ]
-            == "2019-10"
-        )
-        assert (
-            BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 3)['id'] == 6
-        )
-        assert BookshelvesEvents.get_latest_event_date('@eliot_rosewater', 3, 1) is None
+        assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["event_date"] == "2019-10"
+        assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 3)["id"] == 6
+        assert BookshelvesEvents.get_latest_event_date("@eliot_rosewater", 3, 1) is None
 
 
 SETUP_ROWS = [
     {
-        'username': '@billy_pilgrim',
-        'year': 2022,
-        'target': 5,
-        'current': 6,
+        "username": "@billy_pilgrim",
+        "year": 2022,
+        "target": 5,
     },
     {
-        'username': '@billy_pilgrim',
-        'year': 2023,
-        'target': 7,
-        'current': 0,
+        "username": "@billy_pilgrim",
+        "year": 2023,
+        "target": 7,
     },
     {
-        'username': '@kilgore_trout',
-        'year': 2022,
-        'target': 4,
-        'current': 4,
+        "username": "@kilgore_trout",
+        "year": 2022,
+        "target": 4,
     },
 ]
 
 
 class TestYearlyReadingGoals:
-
     TABLENAME = YearlyReadingGoals.TABLENAME
 
     @classmethod
     def setup_class(cls):
-        web.config.db_parameters = {"dbn": 'sqlite', "db": ':memory:'}
+        web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         db = get_db()
         db.query(YEARLY_READING_GOALS_DDL)
 
@@ -536,70 +460,18 @@ class TestYearlyReadingGoals:
         self.db.multiple_insert(self.TABLENAME, SETUP_ROWS)
 
     def teardown_method(self):
-        self.db.query('delete from yearly_reading_goals')
+        self.db.query("delete from yearly_reading_goals")
 
     def test_create(self):
         assert len(list(self.db.select(self.TABLENAME))) == 3
-        assert (
-            len(
-                list(
-                    self.db.select(self.TABLENAME, where={'username': '@kilgore_trout'})
-                )
-            )
-            == 1
-        )
-        YearlyReadingGoals.create('@kilgore_trout', 2023, 5)
-        assert (
-            len(
-                list(
-                    self.db.select(self.TABLENAME, where={'username': '@kilgore_trout'})
-                )
-            )
-            == 2
-        )
-        new_row = list(
-            self.db.select(
-                self.TABLENAME, where={'username': '@kilgore_trout', 'year': 2023}
-            )
-        )
+        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 1
+        YearlyReadingGoals.create("@kilgore_trout", 2023, 5)
+        assert len(list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout"}))) == 2
+        new_row = list(self.db.select(self.TABLENAME, where={"username": "@kilgore_trout", "year": 2023}))
         assert len(new_row) == 1
-        assert new_row[0]['current'] == 0
 
     def test_select_by_username_and_year(self):
-        assert (
-            len(YearlyReadingGoals.select_by_username_and_year('@billy_pilgrim', 2022))
-            == 1
-        )
-
-    def test_has_reached_goal(self):
-        assert YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2022)
-        assert not YearlyReadingGoals.has_reached_goal('@billy_pilgrim', 2023)
-        assert YearlyReadingGoals.has_reached_goal('@kilgore_trout', 2022)
-
-    def test_update_current_count(self):
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
-                    )
-                )
-            )['current']
-            == 0
-        )
-        YearlyReadingGoals.update_current_count('@billy_pilgrim', 2023, 10)
-        assert (
-            next(
-                iter(
-                    self.db.select(
-                        self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
-                    )
-                )
-            )['current']
-            == 10
-        )
+        assert len(YearlyReadingGoals.select_by_username_and_year("@billy_pilgrim", 2022)) == 1
 
     def test_update_target(self):
         assert (
@@ -607,40 +479,26 @@ class TestYearlyReadingGoals:
                 iter(
                     self.db.select(
                         self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
+                        where={"username": "@billy_pilgrim", "year": 2023},
                     )
                 )
-            )['target']
+            )["target"]
             == 7
         )
-        YearlyReadingGoals.update_target('@billy_pilgrim', 2023, 14)
+        YearlyReadingGoals.update_target("@billy_pilgrim", 2023, 14)
         assert (
             next(
                 iter(
                     self.db.select(
                         self.TABLENAME,
-                        where={'username': '@billy_pilgrim', 'year': 2023},
+                        where={"username": "@billy_pilgrim", "year": 2023},
                     )
                 )
-            )['target']
+            )["target"]
             == 14
         )
 
     def test_delete_by_username(self):
-        assert (
-            len(
-                list(
-                    self.db.select(self.TABLENAME, where={'username': '@billy_pilgrim'})
-                )
-            )
-            == 2
-        )
-        YearlyReadingGoals.delete_by_username('@billy_pilgrim')
-        assert (
-            len(
-                list(
-                    self.db.select(self.TABLENAME, where={'username': '@billy_pilgrim'})
-                )
-            )
-            == 0
-        )
+        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 2
+        YearlyReadingGoals.delete_by_username("@billy_pilgrim")
+        assert len(list(self.db.select(self.TABLENAME, where={"username": "@billy_pilgrim"}))) == 0

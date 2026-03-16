@@ -3,7 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js'
-import '../../../../static/css/js-all.less';
+import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 
@@ -81,6 +81,7 @@ jQuery(function () {
 
     const edition = document.getElementById('addWork');
     const autocompleteAuthor = document.querySelector('.multi-input-autocomplete--author');
+    const autocompleteSeries = document.querySelector('.multi-input-autocomplete--series');
     const autocompleteLanguage = document.querySelector('.multi-input-autocomplete--language');
     const autocompleteWorks = document.querySelector('.multi-input-autocomplete--works');
     const autocompleteSeeds = document.querySelector('.multi-input-autocomplete--seeds');
@@ -94,7 +95,7 @@ jQuery(function () {
     // conditionally load for user edit page
     if (
         edition ||
-        autocompleteAuthor || autocompleteLanguage || autocompleteWorks ||
+        autocompleteAuthor || autocompleteSeries || autocompleteLanguage || autocompleteWorks ||
         autocompleteSeeds || autocompleteSubjects ||
         addRowButton || roles || classifications ||
         excerpts || links
@@ -115,6 +116,9 @@ jQuery(function () {
                 }
                 if (autocompleteAuthor) {
                     module.initAuthorMultiInputAutocomplete();
+                }
+                if (autocompleteSeries) {
+                    module.initSeriesMultiInputAutocomplete();
                 }
                 if (roles) {
                     module.initRoleValidation();
@@ -172,19 +176,16 @@ jQuery(function () {
     }
 
     // conditionally load clamping components
-    const readMoreComponents = document.getElementsByClassName('read-more');
     const clampers = document.querySelectorAll('.clamp');
-    if (readMoreComponents.length || clampers.length) {
-        import(/* webpackChunkName: "readmore" */ './readmore.js')
+    if (clampers.length) {
+        import(/* webpackChunkName: "clampers" */ './clampers.js')
             .then(module => {
-                if (readMoreComponents.length) {
-                    module.ReadMoreComponent.init();
-                }
                 if (clampers.length) {
                     module.initClampers(clampers);
                 }
             });
     }
+
     // conditionally loads Goodreads import based on class in the page
     if (document.getElementsByClassName('import-table').length) {
         import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
@@ -323,7 +324,22 @@ jQuery(function () {
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
-            .then((module) => module.init());
+            .then((module) => module.init())
+            .then(() => {
+                // book page subject editing
+                // Handle pencil clicks
+                document.querySelectorAll('.edit-subject-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault()
+                        const workOlid = btn.dataset.workOlid
+                        if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
+                            window.ILE.selectionManager.addSelectedItem(workOlid)
+                            window.ILE.selectionManager.updateToolbar()
+                        }
+                        window.ILE.updateAndShowBulkTagger([workOlid], true)
+                    })
+                })
+            })
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')
@@ -367,7 +383,7 @@ jQuery(function () {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,.cta-btn--preview');
+    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
     if ($dialogs.length) {
         import(/* webpackChunkName: "dialog" */ './dialog')
             .then(module => module.initDialogs())
@@ -581,5 +597,12 @@ jQuery(function () {
     if (document.querySelector('.list-books')) {
         import(/* webpackChunkName: "list-books" */ './list_books')
             .then(module => module.ListBooks.init());
+    }
+
+    // Stats page login counts
+    const monthlyLoginStats = document.querySelector('.monthly-login-counts')
+    if (monthlyLoginStats) {
+        import(/* webpackChunkName: "stats" */ './stats')
+            .then(module => module.initUniqueLoginCounts(monthlyLoginStats))
     }
 });

@@ -1,0 +1,19 @@
+/* Mobile */
+html {
+  /* Take into account sticky header bar */
+  scroll-padding-top: 60px;
+}
+
+/* Tablet */
+@media only screen and (min-width: 768px) {
+  html {
+    scroll-padding-top: 70px;
+  }
+}
+
+/* Desktop */
+@media all and (min-width: 960px) {
+  html {
+    scroll-padding-top: 0;
+  }
+}

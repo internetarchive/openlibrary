@@ -2,6 +2,7 @@
 """
 Copies all patrons' preferences to the `store` tables.
 """
+
 import argparse
 from pathlib import Path
 

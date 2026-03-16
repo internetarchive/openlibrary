@@ -61,5 +61,5 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
 
 
 def is_spam_email(email: str) -> bool:
-    domain = email.split("@")[-1].lower()
+    domain = email.rsplit("@", maxsplit=1)[-1].lower()
     return domain in get_spam_domains()

@@ -11,21 +11,21 @@ def add_languages(mock_site):
     convert_iso_to_marc.cache_clear()
 
     languages = [
-        ('eng', 'English', {}),
-        ('fre', 'French', {}),
-        ('fri', 'Frisian', {}),
-        ('fry', 'Frisian', {}),
-        ('ger', 'Deutsch', {'name_translated': {'en': ["German"]}}),
-        ('spa', 'Spanish', {'identifiers': {'iso_639_1': ['es']}}),
-        ('yid', 'Yiddish', {}),
+        ("eng", "English", {}),
+        ("fre", "French", {}),
+        ("fri", "Frisian", {}),
+        ("fry", "Frisian", {}),
+        ("ger", "Deutsch", {"name_translated": {"en": ["German"]}}),
+        ("spa", "Spanish", {"identifiers": {"iso_639_1": ["es"]}}),
+        ("yid", "Yiddish", {}),
     ]
     for code, name, extras in languages:
         mock_site.save(
             {
-                'code': code,
-                'key': '/languages/' + code,
-                'name': name,
-                'type': {'key': '/type/language'},
+                "code": code,
+                "key": "/languages/" + code,
+                "name": name,
+                "type": {"key": "/type/language"},
                 **extras,
             }
         )

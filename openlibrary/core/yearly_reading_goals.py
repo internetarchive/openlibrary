@@ -53,22 +53,6 @@ class YearlyReadingGoals:
         return list(oldb.select(cls.TABLENAME, where=where, vars=data))
 
     @classmethod
-    def has_reached_goal(cls, username: str, year: int) -> bool:
-        oldb = db.get_db()
-
-        where = 'username=$username AND year=$year'
-        data = {
-            'username': username,
-            'year': year,
-        }
-        results = list(oldb.select(cls.TABLENAME, where=where, vars=data))
-
-        if not results:
-            return False
-        else:
-            return results[0]['current'] >= results[0]['target']
-
-    @classmethod
     def total_yearly_reading_goals(cls, since: date | None = None) -> int:
         """Returns the number reading goals that were set. `since` may be used
         number reading goals updated. `since` may be used
@@ -85,24 +69,6 @@ class YearlyReadingGoals:
         return results[0]['count'] if results else 0
 
     # Update methods:
-    @classmethod
-    def update_current_count(cls, username: str, year: int, current_count: int) -> None:
-        oldb = db.get_db()
-
-        where = 'username=$username AND year=$year'
-        data = {
-            'username': username,
-            'year': year,
-        }
-
-        oldb.update(
-            cls.TABLENAME,
-            where=where,
-            vars=data,
-            current=current_count,
-            updated=datetime.now(),
-        )
-
     @classmethod
     def update_target(cls, username: str, year: int, new_target: int) -> None:
         oldb = db.get_db()
