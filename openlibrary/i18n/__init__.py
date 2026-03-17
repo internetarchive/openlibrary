@@ -438,3 +438,26 @@ gettext = GetText()
 ugettext = gettext
 lgettext = LazyGetText()
 _ = gettext
+
+
+def get_accept_languages():
+    """Returns the parsed Accept-Language preferences from the current request.
+
+    Returns a tuple of ParsedLanguagePreference objects sorted by quality (highest first).
+    Returns an empty tuple if no preferences are available.
+    """
+    try:
+        return req_context.get().accept_languages
+    except (LookupError, AttributeError):
+        return ()
+
+
+def get_wikipedia_languages() -> list[str]:
+    """Returns an ordered list of Wikipedia language codes to try for the current request.
+
+    Uses the full Accept-Language header preferences to build a prioritized
+    list of Wikipedia language codes, with English as a fallback.
+    """
+    from openlibrary.i18n.language_negotiation import get_preferred_wikipedia_languages
+
+    return get_preferred_wikipedia_languages(list(get_accept_languages()))

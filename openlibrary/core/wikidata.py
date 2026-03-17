@@ -74,15 +74,23 @@ class WikidataEntity:
         """If a description isn't available in the requested language default to English"""
         return self.descriptions.get(language) or self.descriptions.get('en')
 
-    def get_external_profiles(self, language: str = 'en') -> list[dict]:
+    def get_external_profiles(
+        self, language: str = 'en', preferred_languages: list[str] | None = None
+    ) -> list[dict]:
         """
         Get formatted social profile data for all configured social profiles.
+
+        Args:
+            language: The primary preferred language code (e.g., 'en')
+            preferred_languages: Optional ordered list of Wikipedia language codes
+                to try (from get_preferred_wikipedia_languages). Falls back to
+                [language, 'en'] if not provided.
 
         Returns:
             List of dicts containing url, icon_url, and label for all social profiles
         """
         profiles = []
-        profiles.extend(self._get_wiki_profiles(language))
+        profiles.extend(self._get_wiki_profiles(language, preferred_languages))
 
         for profile_config in SOCIAL_PROFILE_CONFIGS:
             values = self._get_statement_values(profile_config["wikidata_property"])
@@ -98,12 +106,16 @@ class WikidataEntity:
             )
         return profiles
 
-    def _get_wiki_profiles(self, language: str) -> list[dict]:
+    def _get_wiki_profiles(
+        self, language: str, preferred_languages: list[str] | None = None
+    ) -> list[dict]:
         """
         Get formatted Wikipedia and Wikidata profile data for rendering.
 
         Args:
-            language: The preferred language code (e.g., 'en')
+            language: The primary preferred language code (e.g., 'en')
+            preferred_languages: Optional ordered list of Wikipedia language codes
+                to try. Falls back to [language, 'en'] if not provided.
 
         Returns:
             List of dicts containing url, icon_url, and label for Wikipedia and Wikidata profiles
@@ -111,7 +123,7 @@ class WikidataEntity:
         profiles = []
 
         # Add Wikipedia link if available
-        if wiki_link := self._get_wikipedia_link(language):
+        if wiki_link := self._get_wikipedia_link(language, preferred_languages):
             url, lang = wiki_link
             label = "Wikipedia" if lang == language else f"Wikipedia (in {lang})"
             profiles.append(
@@ -145,18 +157,39 @@ class WikidataEntity:
             f"{base_url}{filename.replace(' ', '_')}" for filename in image_filenames
         ]
 
-    def _get_wikipedia_link(self, language: str = 'en') -> tuple[str, str] | None:
+    def _get_wikipedia_link(
+        self,
+        language: str = 'en',
+        preferred_languages: list[str] | None = None,
+    ) -> tuple[str, str] | None:
         """
         Get the Wikipedia URL and language for a given language code.
-        Falls back to English if requested language is unavailable.
-        """
-        requested_wiki = f'{language}wiki'
-        english_wiki = 'enwiki'
 
+        Tries each language in preferred_languages (if provided) before
+        falling back to the primary language, then English.
+
+        Args:
+            language: The primary preferred language code (e.g., 'en')
+            preferred_languages: Optional ordered list of Wikipedia language codes
+                to try (e.g., ['zh-hk', 'zh', 'en']).
+        """
+        # Try each preferred language in order
+        if preferred_languages:
+            for lang in preferred_languages:
+                wiki_key = f'{lang}wiki'
+                if wiki_key in self.sitelinks:
+                    return self.sitelinks[wiki_key]['url'], lang
+
+        # Fall back to the primary language
+        requested_wiki = f'{language}wiki'
         if requested_wiki in self.sitelinks:
             return self.sitelinks[requested_wiki]['url'], language
-        elif english_wiki in self.sitelinks:
+
+        # Fall back to English
+        english_wiki = 'enwiki'
+        if english_wiki in self.sitelinks:
             return self.sitelinks[english_wiki]['url'], 'en'
+
         return None
 
     def _get_statement_values(self, property_id: str) -> list[str]:

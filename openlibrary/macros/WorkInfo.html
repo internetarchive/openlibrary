@@ -29,6 +29,7 @@ $for name in s:
         </div>
 
 $ cur_locale = i18n.get_locale()
+$ preferred_wiki_langs = get_wikipedia_languages()
 $ this_lang = False
 $ simple = False
 $ wikipedia = []
@@ -41,7 +42,7 @@ $if links:
         $if not lang.replace('-', '').isalpha():
             $continue
         $ link['lang'] = lang
-        $if lang == cur_locale:
+        $if not this_lang and lang in preferred_wiki_langs:
             $ this_lang = link
         $if lang == 'simple':
             $ simple = link

@@ -1264,6 +1264,10 @@ def setup_template_globals():
             "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
         }
 
+    def _get_wikipedia_languages():
+        from openlibrary.i18n import get_wikipedia_languages
+        return get_wikipedia_languages()
+
     web.template.Template.globals.update(
         {
             'cookies': web.cookies,
@@ -1280,6 +1284,7 @@ def setup_template_globals():
             'choose_random_from': random.choice,
             'get_lang': lambda: web.ctx.lang,
             'get_supported_languages': get_supported_languages,
+            'get_wikipedia_languages': _get_wikipedia_languages,
             'ceil': math.ceil,
             'get_best_edition': get_best_edition,
             'get_book_provider': get_book_provider,

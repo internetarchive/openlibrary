@@ -5,8 +5,10 @@ This module provides utilities for managing request-scoped context variables
 and parsing request data for both web.py and FastAPI frameworks.
 """
 
+from __future__ import annotations
+
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.parse import unquote
 
 import web
@@ -15,6 +17,8 @@ from fastapi import Request
 from infogami import config
 from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site
+
+from openlibrary.i18n.language_negotiation import ParsedLanguagePreference
 
 
 @dataclass(frozen=True)
@@ -29,6 +33,7 @@ class RequestContextVars:
     lang: str | None
     solr_editions: bool | None
     print_disabled: bool
+    accept_languages: tuple[ParsedLanguagePreference, ...] = ()
     sfw: bool = False
     is_bot: bool = False
 
@@ -161,6 +166,8 @@ def set_context_from_legacy_web_py() -> None:
     """
     Extracts context from the global web.ctx and populates ContextVars.
     """
+    from openlibrary.i18n.language_negotiation import parse_accept_language
+
     solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get('pd', False))
     sfw = bool(web.cookies().get('sfw', ''))
@@ -171,6 +178,10 @@ def set_context_from_legacy_web_py() -> None:
         hhcl=web.ctx.env.get("HTTP_X_HHCL"),
     )
 
+    # Parse full Accept-Language header for multi-language support
+    accept_language_header = web.ctx.env.get("HTTP_ACCEPT_LANGUAGE", "")
+    accept_languages = tuple(parse_accept_language(accept_language_header))
+
     setup_site()
     req_context.set(
         RequestContextVars(
@@ -179,6 +190,7 @@ def set_context_from_legacy_web_py() -> None:
             lang=web.ctx.lang,
             solr_editions=solr_editions,
             print_disabled=print_disabled,
+            accept_languages=accept_languages,
             sfw=sfw,
             is_bot=is_bot,
         )
@@ -190,6 +202,8 @@ def set_context_from_fastapi(request: Request) -> None:
     Extracts context from a FastAPI request (async) and populates ContextVars.
     Should be called within the middleware stack.
     """
+    from openlibrary.i18n.language_negotiation import parse_accept_language
+
     # NOTE: Avoid adding new fields here if they can be passed as function arguments instead.
 
     solr_editions = _parse_solr_editions_from_fastapi(request)
@@ -200,6 +214,10 @@ def set_context_from_fastapi(request: Request) -> None:
         hhcl=request.headers.get("X-HHCL"),
     )
 
+    # Parse full Accept-Language header for multi-language support
+    accept_language_header = request.headers.get("accept-language", "")
+    accept_languages = tuple(parse_accept_language(accept_language_header))
+
     setup_site(request)
     req_context.set(
         RequestContextVars(
@@ -208,6 +226,7 @@ def set_context_from_fastapi(request: Request) -> None:
             lang=request.state.lang,
             solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get('pd', False)),
+            accept_languages=accept_languages,
             sfw=bool(request.cookies.get('sfw', '')),
             is_bot=is_bot,
         )

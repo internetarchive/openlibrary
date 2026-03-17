@@ -120,6 +120,64 @@ def test_get_wikipedia_link() -> None:
     assert entity_no_english._get_wikipedia_link("en") is None
 
 
+def test_get_wikipedia_link_with_preferred_languages() -> None:
+    entity = createWikidataEntity()
+    entity.sitelinks = {
+        "enwiki": {"url": "https://en.wikipedia.org/wiki/Example"},
+        "eswiki": {"url": "https://es.wikipedia.org/wiki/Ejemplo"},
+        "zhwiki": {"url": "https://zh.wikipedia.org/wiki/Example_zh"},
+    }
+
+    # preferred_languages should be tried in order
+    assert entity._get_wikipedia_link("en", preferred_languages=["es", "zh"]) == (
+        "https://es.wikipedia.org/wiki/Ejemplo",
+        "es",
+    )
+
+    # Falls back through preferred list
+    assert entity._get_wikipedia_link("en", preferred_languages=["fr", "zh"]) == (
+        "https://zh.wikipedia.org/wiki/Example_zh",
+        "zh",
+    )
+
+    # Falls back to primary language if none in preferred list match
+    assert entity._get_wikipedia_link("en", preferred_languages=["fr", "de"]) == (
+        "https://en.wikipedia.org/wiki/Example",
+        "en",
+    )
+
+    # Falls back to English if neither preferred nor primary match
+    assert entity._get_wikipedia_link("ja", preferred_languages=["fr", "de"]) == (
+        "https://en.wikipedia.org/wiki/Example",
+        "en",
+    )
+
+    # Empty preferred_languages behaves like old behavior
+    assert entity._get_wikipedia_link("es", preferred_languages=[]) == (
+        "https://es.wikipedia.org/wiki/Ejemplo",
+        "es",
+    )
+
+
+def test_get_external_profiles_with_preferred_languages() -> None:
+    entity = createWikidataEntity()
+    entity.statements = {}
+    entity.sitelinks = {
+        "enwiki": {"url": "https://en.wikipedia.org/wiki/Example"},
+        "eswiki": {"url": "https://es.wikipedia.org/wiki/Ejemplo"},
+    }
+
+    # With preferred_languages, should find Spanish Wikipedia
+    profiles = entity.get_external_profiles("en", preferred_languages=["es", "en"])
+    wiki_profile = next(p for p in profiles if "Wikipedia" in p["label"])
+    assert wiki_profile["url"] == "https://es.wikipedia.org/wiki/Ejemplo"
+
+    # Without preferred_languages, should use primary language
+    profiles = entity.get_external_profiles("en")
+    wiki_profile = next(p for p in profiles if "Wikipedia" in p["label"])
+    assert wiki_profile["url"] == "https://en.wikipedia.org/wiki/Example"
+
+
 def test_get_statement_values() -> None:
     entity = createWikidataEntity()
 
