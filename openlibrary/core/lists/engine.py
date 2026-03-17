@@ -1,6 +1,6 @@
 """Utility functions for processing lists."""
 
-import collections
+from collections import Counter, defaultdict
 import re
 
 
@@ -65,7 +65,7 @@ class SubjectProcessor:
     """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects."""
 
     def __init__(self):
-        self.subjects = collections.defaultdict(list)
+        self.subjects = defaultdict(list)
 
     def add_subjects(self, subjects):
         for s in subjects.get("subjects", []):
@@ -90,11 +90,10 @@ class SubjectProcessor:
             return {"key": key, "name": subject_name}
 
     def _most_used(self, seq):
-        d = collections.defaultdict(lambda: 0)
-        for x in seq:
-            d[x] += 1
-
-        return sorted(d, key=lambda k: d[k], reverse=True)[0]
+        """Returns the most frequent element in a sequence using collections.Counter."""
+        if not seq:
+            return None
+        return Counter(seq).most_common(1)[0][0]
 
     def top_subjects(self, limit=100):
         subjects = [
