@@ -10,6 +10,7 @@ import { LitElement, html, css, nothing } from 'lit';
  * @property {String} size - Chip size: "small" or "medium" (default)
  * @property {String} href - When set, the chip renders as a link
  * @property {String} count - Optional count displayed to the right of the label
+ * @property {String} accessibleLabel - Override aria-label on the inner interactive element
  *
  * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
  *
@@ -28,7 +29,7 @@ export class OLChip extends LitElement {
         size: { type: String, reflect: true },
         href: { type: String },
         count: { type: String },
-        chipLabel: { type: String, attribute: 'chip-label' },
+        accessibleLabel: { type: String, attribute: 'accessible-label' },
     };
 
     static styles = css`
@@ -111,7 +112,6 @@ export class OLChip extends LitElement {
         .icon-carousel {
             display: flex;
             flex-direction: column;
-            will-change: transform;
             transition: transform 0.2s cubic-bezier(.25, .46, .45, .94);
         }
 
@@ -170,7 +170,7 @@ export class OLChip extends LitElement {
         this.size = 'medium';
         this.href = null;
         this.count = null;
-        this.chipLabel = null;
+        this.accessibleLabel = null;
     }
 
     _handleClick() {
@@ -232,8 +232,7 @@ export class OLChip extends LitElement {
         if (this.href) {
             return html`
                 <a class="chip" href=${this.href}
-                    aria-label=${this.chipLabel || nothing}
-                    aria-current=${this.selected || nothing}
+                    aria-label=${this.accessibleLabel || nothing}
                     @click=${this._handleClick}>
                     ${content}
                 </a>
@@ -242,7 +241,7 @@ export class OLChip extends LitElement {
 
         return html`
             <button class="chip" type="button"
-                aria-label=${this.chipLabel || nothing}
+                aria-label=${this.accessibleLabel || nothing}
                 aria-pressed=${this.selected}
                 @click=${this._handleClick}>
                 ${content}

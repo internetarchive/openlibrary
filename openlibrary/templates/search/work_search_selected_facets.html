@@ -46,7 +46,7 @@ $if param and not search_response.error:
                     $ chip_display = display
                 $ chip_title = facet_tooltips.get(header, '')
                 $if chip_title:
-                    <ol-chip selected size="small" chip-label="$chip_title: $chip_display" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+                    <ol-chip selected size="small" accessible-label="$chip_title: $chip_display" href="$del_facet_url(header, k)">$chip_display</ol-chip>
                 $else:
                     <ol-chip selected size="small" href="$del_facet_url(header, k)">$chip_display</ol-chip>
         </div>
