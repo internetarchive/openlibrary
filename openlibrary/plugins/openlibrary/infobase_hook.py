@@ -3,7 +3,7 @@
 * Log all modified book pages as required for the search engine.
 """
 
-import datetime
+from datetime import UTC, datetime
 
 from infogami.infobase import config
 from infogami.infobase.logger import Logger
@@ -18,7 +18,7 @@ def hook(object):
     Add this hook to infobase.hooks to log all book modifications.
     """
     site = object._site
-    timestamp = datetime.datetime.utcnow()
+    timestamp = datetime.datetime.now(UTC)
     if object.type.key == '/type/edition':
         d = object._get_data(expand=True)
         # save some space by not expanding type

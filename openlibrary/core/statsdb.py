@@ -13,9 +13,9 @@ The stats table in the openlibrary database is of the following schema:
 see schema.py for more details.
 """
 
-import datetime
 import json
 import logging
+from datetime import UTC, datetime
 
 from .db import get_db
 
@@ -29,7 +29,7 @@ def add_entry(key, data, timestamp=None):
     and no changes will be made to the database.
     """
     jsontext = json.dumps(data)
-    timestamp = timestamp or datetime.datetime.utcnow()
+    timestamp = timestamp or datetime.datetime.now(UTC)
     t = timestamp.isoformat()
 
     db = get_db()
@@ -55,7 +55,7 @@ def update_entry(key, data, timestamp=None):
     after logging a warn message.
     """
     jsontext = json.dumps(data)
-    timestamp = timestamp or datetime.datetime.utcnow()
+    timestamp = timestamp or datetime.datetime.now(UTC)
     t = timestamp.isoformat()
 
     db = get_db()

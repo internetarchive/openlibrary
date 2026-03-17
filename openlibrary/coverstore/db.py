@@ -1,4 +1,5 @@
 import datetime
+from datetime import UTC
 
 import web
 
@@ -38,7 +39,7 @@ def new(
     height,
 ):
     category_id = get_category_id(category)
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(UTC)
 
     db = getdb()
 
@@ -135,7 +136,7 @@ def touch(id):
     """Sets the last_modified of the specified cover to the current timestamp.
     By doing so, this cover become comes in the top in query because the results are ordered by last_modified.
     """
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(UTC)
     db = getdb()
     t = db.transaction()
     try:
@@ -150,7 +151,7 @@ def touch(id):
 
 def delete(id):
     true = True
-    now = datetime.datetime.utcnow()
+    now = datetime.datetime.now(UTC)
 
     db = getdb()
     t = db.transaction()

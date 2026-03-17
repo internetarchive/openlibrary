@@ -1,10 +1,10 @@
 """Upstream customizations."""
 
-import datetime
 import hashlib
 import json
 import os.path
 import random
+from datetime import UTC, datetime
 
 import web
 
@@ -211,7 +211,7 @@ class DynamicDocument:
             self.last_modified = min(doc.last_modified for doc in docs)
             self._text = "\n\n".join(doc.get('body', '') for doc in docs)
         else:
-            self.last_modified = datetime.datetime.utcnow()
+            self.last_modified = datetime.datetime.now(UTC)
             self._text = ""
 
     def get_text(self):

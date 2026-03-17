@@ -3,6 +3,7 @@
 import calendar
 import datetime
 from contextlib import contextmanager
+from datetime import UTC
 from sys import stderr
 from time import perf_counter
 
@@ -14,6 +15,33 @@ HOUR_SECS = MINUTE_SECS * 60
 HALF_DAY_SECS = HOUR_SECS * 12
 DAY_SECS = HOUR_SECS * 24
 WEEK_SECS = DAY_SECS * 7
+
+
+def utcisoformat(dt: datetime.datetime, tz: bool = False) -> str:
+    """
+    Formats a datetime object as an ISO 8601 string.
+
+    This function ensures that the datetime represents UTC time and returns
+    it in ISO format, with or without timezone suffix based on the tz parameter.
+
+    Args:
+        dt: The datetime object to format. Can be naive or timezone-aware.
+        tz: If True, includes 'Z' suffix to indicate UTC. Default is False.
+
+    Returns:
+        ISO 8601 formatted string (e.g., "2024-01-15T10:30:00" or "2024-01-15T10:30:00Z")
+
+    Raises:
+        ValueError: If dt is timezone-aware but not in UTC.
+    """
+    if dt.tzinfo is not None and dt.tzinfo != UTC:
+        raise ValueError(f"utcisoformat requires a UTC datetime, got {dt.tzinfo}")
+
+    # Format as naive datetime (no timezone info) for backward compatibility
+    result = dt.replace(tzinfo=None).isoformat(timespec="seconds")
+
+    # Add 'Z' suffix if requested to indicate UTC
+    return result + "Z" if tz else result
 
 
 def days_in_current_month() -> int:
