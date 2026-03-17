@@ -8180,6 +8180,13 @@ msgid ""
 msgstr ""
 
 #: type/list/view_body.html
+#, python-format
+msgid ""
+"This series contains %(limit)d or more works. Currently, only the first "
+"%(limit)d works are displayed."
+msgstr ""
+
+#: type/list/view_body.html
 msgid "There are no items on this list."
 msgstr ""
 
