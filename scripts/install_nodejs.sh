@@ -3,7 +3,7 @@
 NODE_MAJOR=24
 
 # Download and import the Nodesource GPG key
-apt-get install -y ca-certificates curl gnupg
+apt-get install -y --no-install-recommends ca-certificates curl gnupg
 mkdir -p /etc/apt/keyrings
 curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
 
@@ -12,4 +12,4 @@ echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.co
 
 # Run Update and Install
 apt-get update
-apt-get install nodejs -y
+apt-get install --no install-recommends nodejs -y
