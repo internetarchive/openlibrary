@@ -97,10 +97,7 @@ $def seed_attrs(seed):
         $ series_display_limit = 100
         $if list.key.startswith('/series/') and len(list.seeds) >= series_display_limit:
             <div class="ol-message ol-message--warning" role="alert">
-                <p>
-                    <strong>$_("Note:")</strong>
-                    $_("This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed.", limit=series_display_limit)
-                </p>
+                $_("This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed.", limit=series_display_limit)
             </div>
 
         $:macros.Pager(page+1, len(list.seeds), page_size)
