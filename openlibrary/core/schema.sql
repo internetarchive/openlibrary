@@ -97,6 +97,8 @@ CREATE TABLE community_edits_queue (
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
 
+CREATE INDEX community_edits_queue_updated_idx ON community_edits_queue (updated);
+
 CREATE TABLE yearly_reading_goals (
     username text not null,
     year integer not null,
