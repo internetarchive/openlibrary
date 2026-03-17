@@ -356,7 +356,7 @@ class Account(web.storage):
 
             # Clear patron's profile page:
             data = {'key': patron.key, 'type': '/type/delete'}
-            patron.set_data(data)
+            patron.set_data(data, "delete-profile")
 
             # Remove account information from store:
             del web.ctx.site.store[f'account/{username}']

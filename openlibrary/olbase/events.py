@@ -44,6 +44,7 @@ def trigger_subevents(event):
             "Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys
         )
 
+        # XXX : is this triggering a save or save_many call?
         eventer.trigger("infobase.edit", changeset)
 
 

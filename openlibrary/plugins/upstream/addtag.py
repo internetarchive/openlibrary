@@ -185,10 +185,10 @@ class tag_edit(delegate.page):
                 tag = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
-                tag._save(comment=i._comment)
+                tag._save(comment=i._comment, action="delete-tag")
                 raise safe_seeother(key)
             tag.update(formdata)
-            tag._save(comment=i._comment)
+            tag._save(comment=i._comment, action="update-tag")
             raise safe_seeother(i.redir or key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))

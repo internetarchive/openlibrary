@@ -746,7 +746,11 @@ def load_data(  # noqa: PLR0912, PLR0915
         comment = (
             "overwrite existing edition" if existing_edition else "import new book"
         )
-        web.ctx.site.save_many(edits, comment=comment, action='add-book')
+        # This is still wrong -- the `edits` list can contain works, authors,
+        # and editions.  Some records may be new, and some may be existing.
+        # XXX : bulk-*
+        action = 'edit-edition' if existing_edition else 'add-edition'
+        web.ctx.site.save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:

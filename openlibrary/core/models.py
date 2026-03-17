@@ -1179,9 +1179,9 @@ class User(Thing):
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
-    def set_data(self, data):
+    def set_data(self, data, action):
         self._data = data
-        self._save()
+        self._save(action=action)
 
 
 class UserGroup(Thing):
@@ -1209,7 +1209,11 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
+            web.ctx.site.save(
+                self.dict(),
+                f"Adding {userkey} to {self.key}",
+                action="add-usergroup-member",
+            )
 
     def remove_user(self, userkey):
         if not web.ctx.site.get(userkey):
@@ -1224,7 +1228,11 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}")
+        web.ctx.site.save(
+            self.dict(),
+            f"Removing {userkey} from {self.key}",
+            action="remove-usergroup-member",
+        )
 
 
 class Subject(web.storage):
@@ -1308,10 +1316,7 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(
-                tag,
-                comment=comment,
-            )
+            t = web.ctx.site.save(tag, comment=comment, action="add-tag")
             return t
 
 

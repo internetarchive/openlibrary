@@ -135,7 +135,9 @@ def disassociate_dark_ocaids(s3_keys, es_editions, test=True):
             counts["updated"] += len(updated_eds)
             with RunAs('ImportBot'):
                 web.ctx.ip = web.ctx.ip or '127.0.0.1'
-                web.ctx.site.save_many(updated_eds, comment="Redacting ocaids")
+                web.ctx.site.save_many(
+                    updated_eds, comment="Redacting ocaids", action="bulk-redact-ocaid"
+                )
         print(counts)
         counts["batches"] += 1
     return counts
