@@ -176,14 +176,32 @@ class WikidataEntity:
         # Try each preferred language in order
         if preferred_languages:
             for lang in preferred_languages:
-                wiki_key = f'{lang}wiki'
-                if wiki_key in self.sitelinks:
-                    return self.sitelinks[wiki_key]['url'], lang
+                # Wikidata sitelinks often use underscores for composite codes
+                # (e.g., 'zh_yuewiki'), while preferred_languages may use
+                # BCP47 tags with hyphens (e.g., 'zh-yue').
+                wiki_keys: list[str] = [f'{lang}wiki']
+                if '-' in lang:
+                    normalized_lang = lang.replace('-', '_')
+                    # Avoid duplicates if replacement is a no-op for some reason
+                    if normalized_lang != lang:
+                        wiki_keys.append(f'{normalized_lang}wiki')
+
+                for wiki_key in wiki_keys:
+                    if wiki_key in self.sitelinks:
+                        # Always return the original lang value requested by the caller
+                        return self.sitelinks[wiki_key]['url'], lang
 
         # Fall back to the primary language
-        requested_wiki = f'{language}wiki'
-        if requested_wiki in self.sitelinks:
-            return self.sitelinks[requested_wiki]['url'], language
+        primary_keys: list[str] = [f'{language}wiki']
+        if '-' in language:
+            normalized_language = language.replace('-', '_')
+            if normalized_language != language:
+                primary_keys.append(f'{normalized_language}wiki')
+
+        for requested_wiki in primary_keys:
+            if requested_wiki in self.sitelinks:
+                # Return the original primary language code
+                return self.sitelinks[requested_wiki]['url'], language
 
         # Fall back to English
         english_wiki = 'enwiki'
