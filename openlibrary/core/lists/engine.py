@@ -1,7 +1,7 @@
 """Utility functions for processing lists."""
 
-from collections import Counter, defaultdict
 import re
+from collections import Counter, defaultdict
 
 
 def reduce_seeds(values):
