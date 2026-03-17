@@ -1,5 +1,6 @@
 import array
 import datetime
+import functools
 import io
 import itertools
 import json
@@ -391,7 +392,7 @@ class cover:
         return _query(category, key, value)
 
 
-@web.memoize
+@functools.cache
 def get_tar_index(tarindex, size):
     path = os.path.join(config.data_root, get_tarindex_path(tarindex, size))
     if not os.path.exists(path):

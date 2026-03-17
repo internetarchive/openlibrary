@@ -1225,7 +1225,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.

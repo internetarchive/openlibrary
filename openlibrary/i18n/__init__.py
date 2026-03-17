@@ -1,10 +1,10 @@
+import functools
 import os
 import shutil
 import subprocess
 import sys
 from collections.abc import Iterator
 from datetime import datetime
-from functools import cache
 from io import BytesIO
 from pathlib import Path
 
@@ -348,7 +348,7 @@ def generate_po(args):
         print("Add failed. Missing required locale code.")
 
 
-@cache
+@functools.cache
 def load_translations(lang):
     mo_path = os.path.join(root, lang, 'messages.mo')
 
@@ -356,7 +356,7 @@ def load_translations(lang):
         return Translations(open(mo_path, 'rb'))
 
 
-@cache
+@functools.cache
 def load_locale(lang):
     try:
         return babel.Locale(lang)
