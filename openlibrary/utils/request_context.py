@@ -8,7 +8,7 @@ and parsing request data for both web.py and FastAPI frameworks.
 from __future__ import annotations
 
 from contextvars import ContextVar
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from urllib.parse import unquote
 
 import web
@@ -17,7 +17,6 @@ from fastapi import Request
 from infogami import config
 from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site
-
 from openlibrary.i18n.language_negotiation import ParsedLanguagePreference
 
 

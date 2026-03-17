@@ -15,20 +15,40 @@ from dataclasses import dataclass
 
 from babel.core import negotiate_locale
 
-
 # Supported UI locales (matching the i18n translation directories)
 SUPPORTED_UI_LOCALES = [
-    'ar', 'as', 'bn', 'cs', 'de', 'en', 'es', 'fr', 'hi', 'hr',
-    'id', 'it', 'ja', 'pl', 'pt', 'ro', 'ru', 'sc', 'te', 'tr', 'uk', 'zh',
+    'ar',
+    'as',
+    'bn',
+    'cs',
+    'de',
+    'en',
+    'es',
+    'fr',
+    'hi',
+    'hr',
+    'id',
+    'it',
+    'ja',
+    'pl',
+    'pt',
+    'ro',
+    'ru',
+    'sc',
+    'te',
+    'tr',
+    'uk',
+    'zh',
 ]
 
 
 @dataclass(frozen=True)
 class ParsedLanguagePreference:
     """A single language preference from the Accept-Language header."""
-    tag: str       # Full BCP 47 tag (e.g., 'zh-TW', 'pt-BR', 'en')
+
+    tag: str  # Full BCP 47 tag (e.g., 'zh-TW', 'pt-BR', 'en')
     language: str  # Primary language subtag (e.g., 'zh', 'pt', 'en')
-    quality: float # Quality factor (0.0 to 1.0)
+    quality: float  # Quality factor (0.0 to 1.0)
 
 
 def parse_accept_language(header: str) -> list[ParsedLanguagePreference]:
@@ -71,11 +91,13 @@ def parse_accept_language(header: str) -> list[ParsedLanguagePreference]:
         # Extract primary language subtag
         language = tag.split('-')[0].lower()
 
-        preferences.append(ParsedLanguagePreference(
-            tag=tag,
-            language=language,
-            quality=quality,
-        ))
+        preferences.append(
+            ParsedLanguagePreference(
+                tag=tag,
+                language=language,
+                quality=quality,
+            )
+        )
 
     # Sort by quality descending, stable sort preserves original order for ties
     preferences.sort(key=lambda p: p.quality, reverse=True)

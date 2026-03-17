@@ -1266,6 +1266,7 @@ def setup_template_globals():
 
     def _get_wikipedia_languages():
         from openlibrary.i18n import get_wikipedia_languages
+
         return get_wikipedia_languages()
 
     web.template.Template.globals.update(
