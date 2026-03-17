@@ -327,7 +327,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
+              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key, get_lang() or 'en')</a>
         </p>
 
     <div class="subjects">
