@@ -117,7 +117,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/history.html
+#: covers/book_cover.html covers/change.html lib/exports.html
 #: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
 #: native_dialog.html
 msgid "Close"
@@ -4905,7 +4905,7 @@ msgid ""
 "href=\"/search\"> search for it</a>."
 msgstr ""
 
-#: books/daisy.html lib/history.html
+#: books/daisy.html lib/exports.html
 msgid "Need help?"
 msgstr ""
 
@@ -6023,6 +6023,38 @@ msgstr ""
 msgid "This doc was last edited anonymously"
 msgstr ""
 
+#: lib/exports.html
+msgid "Download catalog record:"
+msgstr ""
+
+#: lib/exports.html
+msgid "RDF"
+msgstr ""
+
+#: lib/exports.html type/list/exports.html
+msgid "JSON"
+msgstr ""
+
+#: lib/exports.html
+msgid "OPDS"
+msgstr ""
+
+#: lib/exports.html
+msgid "Cite this on Wikipedia"
+msgstr ""
+
+#: lib/exports.html
+msgid "Wikipedia citation"
+msgstr ""
+
+#: lib/exports.html
+msgid "Copy and paste this code into your Wikipedia page."
+msgstr ""
+
+#: lib/exports.html
+msgid "Get instructions at Wikipedia in a new window"
+msgstr ""
+
 #: lib/header_dropdown.html
 msgid "My account"
 msgstr ""
@@ -6051,38 +6083,6 @@ msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
 msgstr[1] ""
-
-#: lib/history.html
-msgid "Download catalog record:"
-msgstr ""
-
-#: lib/history.html
-msgid "RDF"
-msgstr ""
-
-#: lib/history.html type/list/exports.html
-msgid "JSON"
-msgstr ""
-
-#: lib/history.html
-msgid "OPDS"
-msgstr ""
-
-#: lib/history.html
-msgid "Cite this on Wikipedia"
-msgstr ""
-
-#: lib/history.html
-msgid "Wikipedia citation"
-msgstr ""
-
-#: lib/history.html
-msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
-
-#: lib/history.html
-msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
 
 #: lib/history.html
 msgid "an anonymous user"
