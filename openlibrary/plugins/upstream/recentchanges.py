@@ -201,6 +201,53 @@ class recentchanges_view(delegate.page):
         raise web.seeother(change.url())
 
 
+class recentchanges_undo_duplicate(delegate.page):
+    path = r"/recentchanges/\d\d\d\d/\d\d/\d\d/[^/]*/(\d+)/undo-duplicate"
+
+    def is_enabled(self):
+        return features.is_enabled("recentchanges_v2")
+
+    def POST(self, id):
+        allowed_usergroups = ['/usergroup/admin', '/usergroup/super-librarians']
+        if not (user := get_current_user()) or not (
+            user.is_member_of_any(allowed_usergroups)
+        ):
+            raise web.unauthorized()
+        if not features.is_enabled("undo"):
+            return render_template(
+                "permission_denied", web.ctx.path, "Permission denied to undo."
+            )
+
+        id = int(id)
+        change = web.ctx.site.get_change(id)
+        if not change:
+            raise web.notfound()
+
+        if not change.kind.startswith("merge-"):
+            raise web.badrequest("Single-duplicate undo is only available for merges")
+
+        if change.get_undo_changeset():
+            raise web.badrequest("This merge has already been undone")
+
+        i = web.input(duplicate_key="")
+        duplicate_key = i.duplicate_key
+        duplicates = change.data.get("duplicates") or []
+        if not duplicate_key:
+            raise web.badrequest("Missing required parameter: duplicate_key")
+        if duplicate_key not in duplicates:
+            raise web.badrequest("Invalid duplicate_key for this merge")
+
+        if change.get_duplicate_undo_changeset(duplicate_key):
+            raise web.badrequest("This duplicate has already been undone")
+
+        try:
+            change._undo_single_duplicate(duplicate_key)
+        except ValueError as err:
+            raise web.badrequest(str(err))
+
+        raise web.seeother(change.url())
+
+
 class history(delegate.mode):
     def GET(self, path):
         page = web.ctx.site.get(path)

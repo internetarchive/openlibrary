@@ -30,6 +30,7 @@ class TestModels:
             None: models.Changeset,
             "merge-authors": models.MergeAuthors,
             "undo": models.Undo,
+            "undo-single-duplicate": models.UndoSingleDuplicate,
             "add-book": models.AddBookChangeset,
             "lists": list_model.ListChangeset,
             "new-account": models.NewAccountChangeset,

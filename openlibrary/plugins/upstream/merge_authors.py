@@ -372,5 +372,74 @@ class merge_authors_json(delegate.page):
         )
 
 
+class WorkRedirectEngine(BasicRedirectEngine):
+    """Redirect engine for work merges."""
+
+    def find_references(self, key):
+        # Find editions that reference this work
+        q = {"type": "/type/edition", "works": key, "limit": 10000}
+        edition_keys = web.ctx.site.things(q)
+
+        # Find series that reference this work
+        q_series = {"type": "/type/series", "works": key, "limit": 10000}
+        series_keys = web.ctx.site.things(q_series)
+
+        return edition_keys + series_keys
+
+
+class WorkMergeEngine(BasicMergeEngine):
+    """Merge engine for works."""
+
+    def merge_docs(self, master, dup):
+        # Only merge if both are works
+        if dup['type']['key'] == '/type/work':
+            master = BasicMergeEngine.merge_docs(self, master, dup)
+        return master
+
+    def save(self, docs, master, duplicates):
+        return web.ctx.site.save_many(
+            docs,
+            comment='merge works',
+            action="merge-works",
+            data={"master": master, "duplicates": list(duplicates)},
+        )
+
+
+class merge_works_json(delegate.page):
+    """JSON API for merge works.
+
+    POSTs to /works/merge with JSON body containing:
+    - master: key of master work
+    - duplicates: list of duplicate work keys
+    - olids: comma-separated list of OL IDs
+    - comment: optional comment
+    """
+
+    path = "/works/merge"
+    encoding = "json"
+
+    def is_enabled(self):
+        user = web.ctx.site.get_user()
+        return "merge-works" in web.ctx.features or (user and user.is_admin())
+
+    def POST(self):
+        data = json.loads(web.data())
+        master = data['master']
+        duplicates = data['duplicates']
+
+        def merge_records() -> Any:
+            try:
+                engine = WorkMergeEngine(WorkRedirectEngine())
+                return engine.merge(master, duplicates)
+            except ClientException as e:
+                raise web.badrequest(json.loads(e.json))
+
+        # Actually perform merge and save affected records to db
+        merge_result = merge_records()
+        return delegate.RawText(
+            json.dumps(merge_result), content_type="application/json"
+        )
+
+
 def setup():
     pass
