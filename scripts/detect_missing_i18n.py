@@ -45,7 +45,7 @@ variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|\$[\{
 urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[A-Za-z]{2}[a-z]?"
 
 opening_tag_open = r"<(?!code|link|!--)[a-z][^>]*?"
-opening_tag_end = r"[^\/\-\s]>"
+opening_tag_end = r"[^\/\-\s]?>"
 opening_tag_syntax = opening_tag_open + opening_tag_end
 ignore_after_opening_tag = (
     r"(?![<\r\n]|$|\\\$\$|\$:?_?\(|\$:?ungettext\(|(?:"
@@ -56,6 +56,8 @@ ignore_after_opening_tag = (
     + variables
     + r"|"
     + urls_domains
+    + r"|"
+    + r"Lorem [^<]+"
     + r")+(?:[\r\n<]|$))"
 )
 warn_after_opening_tag = r"\$\(['\"]"
@@ -97,6 +99,66 @@ i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 
 def terminal_underline(text: str) -> str:
     return f"\033[4m{text}\033[0m"
+
+
+def check_html(html: str) -> list[tuple[Errtype, int, int, str]]:
+    """
+    Check HTML content for missing i18n strings.
+
+    :param html: Raw HTML content to check.
+    :return: A list of (errtype, line_number, char_position, matched_text) tuples,
+             where line_number and char_position are 1-based.
+    """
+    results = []
+    lines = html.splitlines()
+
+    for line_number, line in enumerate(lines, start=1):
+        includes_error_element = re.search(i18n_element_missing_regex, line)
+        includes_warn_element = re.search(i18n_element_warn_regex, line)
+        includes_error_attribute = re.search(i18n_attr_missing_regex, line)
+        includes_warn_attribute = re.search(i18n_attr_warn_regex, line)
+
+        char_index = -1
+        # Element with untranslated content
+        if includes_error_element:
+            char_index = includes_error_element.start()
+            errtype = Errtype.ERR
+        # Element with bypassed content
+        elif includes_warn_element:
+            char_index = includes_warn_element.start()
+            errtype = Errtype.WARN
+        # Element with untranslated attributes
+        elif includes_error_attribute:
+            char_index = includes_error_attribute.start()
+            errtype = Errtype.ERR
+        # Element with bypassed attributes
+        elif includes_warn_attribute:
+            char_index = includes_warn_attribute.start()
+            errtype = Errtype.WARN
+        # Don't proceed if the line doesn't match any of the four cases.
+        else:
+            continue
+
+        preceding_text = line[:char_index]
+        regex_match = line[char_index:]
+
+        # Don't proceed if the line is likely commented out or part of a $: function.
+        if "<!--" in preceding_text or "$:" in preceding_text or "$ " in preceding_text:
+            continue
+
+        # Don't proceed if skip directive is included inline.
+        if re.search(regex_skip_inline, regex_match):
+            continue
+
+        # Don't proceed if the previous line is a skip directive.
+        if line_number > 1 and re.match(
+            regex_skip_previous_line, lines[line_number - 2]
+        ):
+            continue
+
+        results.append((errtype, line_number, char_index + 1, regex_match))
+
+    return results
 
 
 def print_analysis(
@@ -142,61 +204,12 @@ def main(files: list[Path], skip_excluded: bool = True):
 
     for file in files:
         contents = file.read_text()
-        lines = contents.splitlines()
 
         if skip_excluded and str(file) in EXCLUDE_LIST:
             print_analysis(Errtype.SKIP, file, "", spacing_base)
             continue
 
-        for line_number, line in enumerate(lines, start=1):
-
-            includes_error_element = re.search(i18n_element_missing_regex, line)
-            includes_warn_element = re.search(i18n_element_warn_regex, line)
-            includes_error_attribute = re.search(i18n_attr_missing_regex, line)
-            includes_warn_attribute = re.search(i18n_attr_warn_regex, line)
-
-            char_index = -1
-            # Element with untranslated elements
-            if includes_error_element:
-                char_index = includes_error_element.start()
-                errtype = Errtype.ERR
-            # Element with bypassed elements
-            elif includes_warn_element:
-                char_index = includes_warn_element.start()
-                errtype = Errtype.WARN
-            # Element with untranslated attributes
-            elif includes_error_attribute:
-                char_index = includes_error_attribute.start()
-                errtype = Errtype.ERR
-            # Element with bypassed attributes
-            elif includes_warn_attribute:
-                char_index = includes_warn_attribute.start()
-                errtype = Errtype.WARN
-
-            # Don't proceed if the line doesn't match any of the four cases.
-            else:
-                continue
-
-            preceding_text = line[:char_index]
-            regex_match = line[char_index:]
-
-            # Don't proceed if the line is likely commented out or part of a $: function.
-            if (
-                "<!--" in preceding_text
-                or "$:" in preceding_text
-                or "$ " in preceding_text
-            ):
-                continue
-
-            # Don't proceed if skip directive is included inline.
-            if re.search(regex_skip_inline, regex_match):
-                continue
-
-            # Don't proceed if the previous line is a skip directive.
-            if re.match(regex_skip_previous_line, lines[line_number - 2]):
-                continue
-
-            print_position = char_index + 1
+        for errtype, line_number, print_position, regex_match in check_html(contents):
             print_analysis(
                 errtype,
                 file,
