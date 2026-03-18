@@ -1,19 +1,13 @@
+from __future__ import annotations
+
 import json
 import re
 from typing import Self
 
-from fastapi import Request, Response
-from pydantic import BaseModel, Field, model_validator
-from __future__ import annotations
-
-import re
-from typing import Self
-
-from fastapi import HTTPException, Request
+from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel, Field, model_validator
 
 from openlibrary.core.env import get_ol_env
-
 
 JS_CALLBACK_RE = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$.]*$")
 
@@ -75,7 +69,7 @@ def wrap_jsonp(request: Request, data: dict | str) -> Response:
         return Response(content=f"{callback}({json_string});", media_type="application/javascript")
     return Response(content=json_string, media_type="application/json")
 
-  
+
 class SolrInternalsParams(BaseModel):
     """
     Internal Solr query parameters for A/B testing search configurations.

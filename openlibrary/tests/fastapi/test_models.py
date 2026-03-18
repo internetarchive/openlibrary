@@ -5,8 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import Request
 
-from openlibrary.fastapi.models import wrap_jsonp
-from openlibrary.fastapi.models import SolrInternalsParams
+from openlibrary.fastapi.models import SolrInternalsParams, wrap_jsonp
 
 
 class TestWrapJsonp:
