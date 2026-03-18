@@ -242,6 +242,8 @@ textarea.toc-editor {
 @import "components/notes-view.css";
 /* Import styles for community merge request views */
 @import "components/merge-request-table.css";
+/* Import styles for recentchanges merge detail view */
+@import "components/recentchanges-merge-view.css";
 /* Import styles for want-to-read buttons */
 @import "legacy-tools.css";
 @import "components/generic-dropper.css";
