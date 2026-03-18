@@ -345,6 +345,10 @@ class lists_edit(delegate.page):
         if not list_record.name:
             raise web.badrequest("A list name is required.")
 
+        # Block spam lists at creation time (issue #11905)
+        if spamcheck.is_spam(list_record.to_thing_json()):
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
+
         # Creating a new list
         if not list_id:
             list_num = web.ctx.site.seq.next_value("list")
@@ -352,6 +356,7 @@ class lists_edit(delegate.page):
             list_record.key = list_key
 
         thing_json = list_record.to_thing_json()
+
         records_to_save = [thing_json]
         if list_type_plural == "series":
             # Don't save seeds on this record
