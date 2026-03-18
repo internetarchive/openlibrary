@@ -5818,6 +5818,14 @@ msgid ""
 "expands from the trigger."
 msgstr ""
 
+#: design/popover.html
+msgid "bottom-start"
+msgstr ""
+
+#: design/popover.html
+msgid "top-center"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
