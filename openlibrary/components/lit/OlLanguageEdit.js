@@ -246,6 +246,7 @@ export class OlLanguageEdit extends LitElement {
             <span class="display-text" itemprop="inLanguage">${this._displayText}</span>
             <ol-popover
                 ?open="${this._isOpen}"
+                label="Edit languages"
                 @ol-popover-close="${this._close}"
                 @ol-popover-open="${this._onPopoverOpen}"
             >
