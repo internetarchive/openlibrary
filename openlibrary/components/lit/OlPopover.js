@@ -14,7 +14,7 @@ import { LitElement, html, css, nothing } from 'lit';
  * @prop {Boolean} open - Whether the popover is currently open
  * @prop {String} placement - Preferred placement relative to the trigger.
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
- *     "start", "center", or "end". Default: "bottom-start"
+ *     "start", "center", or "end". Default: "bottom-center"
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
  *
  * @fires ol-popover-open - Fired when the popover opens
@@ -37,6 +37,7 @@ export class OlPopover extends LitElement {
         _position: { state: true },
         _transformOrigin: { state: true },
         _animState: { state: true },
+        _mobile: { state: true },
     };
 
     // Animation states: closed → preparing → entering → open → exiting → closed
@@ -55,7 +56,6 @@ export class OlPopover extends LitElement {
             position: fixed;
             z-index: 1000;
             background: var(--white, #fff);
-            border: 1px solid var(--color-border-subtle, hsl(0, 0%, 87%));
             border-radius: var(--border-radius-overlay, 12px);
             box-shadow: 0 8px 24px var(--boxshadow-black, hsla(0, 0%, 0%, 0.15));
             opacity: 0;
@@ -85,9 +85,76 @@ export class OlPopover extends LitElement {
                 transform 150ms cubic-bezier(0.165, 0.84, 0.44, 1);
         }
 
+        /* ── Mobile tray backdrop ── */
+
+        .backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: hsla(0, 0%, 0%, 0.4);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .backdrop[data-state="entering"],
+        .backdrop[data-state="open"] {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .backdrop[data-state="entering"] {
+            transition: opacity 280ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .backdrop[data-state="exiting"] {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* ── Mobile tray panel ── */
+
+        .panel.tray {
+            top: auto;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: auto;
+            max-height: 85vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 12px calc(12px + env(safe-area-inset-bottom));
+            border-radius: 20px;
+            opacity: 1;
+            transform: translateY(100%);
+            touch-action: manipulation;
+        }
+
+        .panel.tray[data-state="entering"],
+        .panel.tray[data-state="open"] {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .panel.tray[data-state="entering"] {
+            transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .panel.tray[data-state="exiting"] {
+            opacity: 1;
+            transform: translateY(100%);
+            pointer-events: none;
+            transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .panel[data-state="entering"],
-            .panel[data-state="exiting"] {
+            .panel[data-state="exiting"],
+            .panel.tray[data-state="entering"],
+            .panel.tray[data-state="exiting"],
+            .backdrop[data-state="entering"],
+            .backdrop[data-state="exiting"] {
                 transition: none;
             }
         }
@@ -96,11 +163,12 @@ export class OlPopover extends LitElement {
     constructor() {
         super();
         this.open = false;
-        this.placement = 'bottom-start';
+        this.placement = 'bottom-center';
         this.offset = 4;
         this._position = { top: 0, left: 0 };
         this._transformOrigin = 'top left';
         this._animState = 'closed';
+        this._mobile = false;
         this._onOutsideClick = this._onOutsideClick.bind(this);
         this._onKeydownGlobal = this._onKeydownGlobal.bind(this);
     }
@@ -110,15 +178,22 @@ export class OlPopover extends LitElement {
         return html`
             <slot name="trigger"></slot>
             ${showPanel ? html`
+                ${this._mobile ? html`
+                    <div
+                        class="backdrop"
+                        data-state="${this._animState}"
+                        @click="${this._requestClose}"
+                    ></div>
+                ` : nothing}
                 <div
-                    class="panel"
+                    class="panel ${this._mobile ? 'tray' : ''}"
                     data-state="${this._animState}"
                     role="dialog"
-                    style="
+                    style="${this._mobile ? '' : `
                         top: ${this._position.top}px;
                         left: ${this._position.left}px;
                         transform-origin: ${this._transformOrigin};
-                    "
+                    `}"
                     @transitionend="${this._onTransitionEnd}"
                 >
                     <slot></slot>
@@ -141,19 +216,27 @@ export class OlPopover extends LitElement {
         document.addEventListener('click', this._onOutsideClick, true);
         document.addEventListener('keydown', this._onKeydownGlobal);
 
+        this._mobile = window.matchMedia('(max-width: 767px)').matches;
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // Render panel off-screen first so we can measure it
-        this._position = { top: -9999, left: -9999 };
+        // On desktop, render panel off-screen first so we can measure it.
+        // On mobile, CSS positions the tray at the bottom automatically.
+        if (!this._mobile) {
+            this._position = { top: -9999, left: -9999 };
+        }
         this._animState = reducedMotion ? 'open' : 'preparing';
 
         this.updateComplete.then(() => {
             const panel = this.shadowRoot.querySelector('.panel');
             if (!panel) return;
 
-            // Now that the panel is in the DOM, measure and position it
-            const panelRect = panel.getBoundingClientRect();
-            this._computePosition(panelRect.width, panelRect.height);
+            // Desktop: measure and position relative to trigger.
+            // Use offsetWidth/Height — getBoundingClientRect includes the
+            // scale(0.95) transform from the preparing state, under-reporting
+            // the true layout size by 5%.
+            if (!this._mobile) {
+                this._computePosition(panel.offsetWidth, panel.offsetHeight);
+            }
 
             if (reducedMotion) {
                 this.dispatchEvent(new CustomEvent('ol-popover-open', {
@@ -278,7 +361,7 @@ export class OlPopover extends LitElement {
     }
 
     _parsePlacement(placement) {
-        const parts = (placement || 'bottom-start').split('-');
+        const parts = (placement || 'bottom-center').split('-');
         const side = parts[0] === 'top' ? 'top' : 'bottom';
         const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'start';
         return [side, align];

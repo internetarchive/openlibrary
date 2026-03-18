@@ -27,6 +27,7 @@ export class OlLanguageEdit extends LitElement {
         :host {
             display: inline-flex;
             align-items: center;
+            text-align: left;
         }
 
         .display-text {
@@ -239,7 +240,6 @@ export class OlLanguageEdit extends LitElement {
             <span class="display-text" itemprop="inLanguage">${this._displayText}</span>
             <ol-popover
                 ?open="${this._isOpen}"
-                placement="bottom-start"
                 @ol-popover-close="${this._close}"
                 @ol-popover-open="${this._onPopoverOpen}"
             >

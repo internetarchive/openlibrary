@@ -1,0 +1,70 @@
+$def with()
+
+<article class="design-pattern" id="popover">
+    <h2 class="design-pattern__title">$_("Popover component")</h2>
+    <p>$_("The ol-popover component provides a reusable animated popover panel anchored to a trigger element. It animates from the trigger using transform-origin, closes on Escape or outside click, and respects prefers-reduced-motion.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Menu popover")</h3>
+      <p>$_("Popovers animate from the trigger using transform-origin. Click the button to see the scale + fade entrance.")</p>
+      <code class="example__code">&lt;ol-popover&gt;&lt;button slot="trigger"&gt;Options&lt;/button&gt;&lt;ul&gt;...&lt;/ul&gt;&lt;/ol-popover&gt;</code>
+      <div class="example__output">
+        <ol-popover id="demo-popover">
+          <button slot="trigger" id="demo-popover-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Options")</button>
+          <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 180px;">
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Duplicate")</li>
+            <li style="padding: 10px 16px; cursor: pointer; border-top: 1px solid hsl(0,0%,93%);">$_("Archive")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Move")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Share")</li>
+            <li style="padding: 10px 16px; cursor: pointer; border-top: 1px solid hsl(0,0%,93%);">$_("Delete")</li>
+          </ul>
+        </ol-popover>
+      </div>
+      <script>
+        (function() {
+          var popover = document.getElementById('demo-popover');
+          var trigger = document.getElementById('demo-popover-trigger');
+          trigger.addEventListener('click', function() {
+            popover.open = !popover.open;
+          });
+          popover.addEventListener('ol-popover-close', function() {
+            popover.open = false;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Placement options")</h3>
+      <p>$:_("Use %(placement)s to control where the popover appears. The %(transform_origin)s automatically matches so the animation always expands from the trigger.", placement="<code>placement</code>", transform_origin="<code>transform-origin</code>")</p>
+      <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <ol-popover id="demo-popover-bs" placement="bottom-start">
+          <button slot="trigger" id="demo-popover-bs-trigger" style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">bottom-start</button>
+          <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 160px;">
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Duplicate")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Archive")</li>
+          </ul>
+        </ol-popover>
+        <ol-popover id="demo-popover-tc" placement="top-center">
+          <button slot="trigger" id="demo-popover-tc-trigger" style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">top-center</button>
+          <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 160px;">
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Duplicate")</li>
+            <li style="padding: 10px 16px; cursor: pointer;">$_("Archive")</li>
+          </ul>
+        </ol-popover>
+      </div>
+      <script>
+        (function() {
+          ['bs', 'tc'].forEach(function(id) {
+            var popover = document.getElementById('demo-popover-' + id);
+            var trigger = document.getElementById('demo-popover-' + id + '-trigger');
+            trigger.addEventListener('click', function() { popover.open = !popover.open; });
+            popover.addEventListener('ol-popover-close', function() { popover.open = false; });
+          });
+        })();
+      </script>
+    </section>
+  </article>

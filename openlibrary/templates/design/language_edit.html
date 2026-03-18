@@ -1,0 +1,24 @@
+$def with()
+
+<article class="design-pattern" id="language-edit">
+    <h2 class="design-pattern__title">$_("Language Edit component")</h2>
+    <p>$_("The ol-language-edit component provides inline editing of languages on edition pages with a popover interface.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Single language")</h3>
+      <p>$_("Hover over the language text to reveal the edit pencil. Click it to open the editing popover.")</p>
+      <code class="example__code">&lt;ol-language-edit edition-key="/books/OL1234M" languages='[{"key":"/languages/eng","name":"English"}]'&gt;&lt;/ol-language-edit&gt;</code>
+      <div class="example__output">
+        <ol-language-edit edition-key="/books/OL1234M" languages='[{"key":"/languages/eng","name":"English"}]'></ol-language-edit>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Multiple languages")</h3>
+      <p>$_("Editions can have multiple languages. The component displays them comma-separated.")</p>
+      <code class="example__code">&lt;ol-language-edit edition-key="/books/OL5678M" languages='[{"key":"/languages/eng","name":"English"},{"key":"/languages/fre","name":"French"}]'&gt;&lt;/ol-language-edit&gt;</code>
+      <div class="example__output">
+        <ol-language-edit edition-key="/books/OL5678M" languages='[{"key":"/languages/eng","name":"English"},{"key":"/languages/fre","name":"French"}]'></ol-language-edit>
+      </div>
+    </section>
+  </article>
