@@ -26,7 +26,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
  *     "start", "center", or "end". Default: "bottom-center"
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
- * @prop {String} label - Accessible label for the popover dialog
+ * @prop {String} accessibleLabel - Accessible label for the popover dialog
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
  *
@@ -39,7 +39,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @slot - Default slot for popover content
  *
  * @example
- * <ol-popover label="Edit options">
+ * <ol-popover accessible-label="Edit options">
  *   <button slot="trigger">Open</button>
  *   <div>Popover content here</div>
  * </ol-popover>
@@ -49,7 +49,7 @@ export class OlPopover extends LitElement {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
         offset: { type: Number },
-        label: { type: String },
+        accessibleLabel: { type: String, attribute: 'accessible-label' },
         autoClose: { type: Boolean, attribute: 'auto-close' },
         _position: { state: true },
         _transformOrigin: { state: true },
@@ -230,7 +230,7 @@ export class OlPopover extends LitElement {
         this.open = false;
         this.placement = 'bottom-center';
         this.offset = 4;
-        this.label = '';
+        this.accessibleLabel = '';
         this.autoClose = true;
         this._position = { top: 0, left: 0 };
         this._transformOrigin = 'top left';
@@ -274,7 +274,7 @@ export class OlPopover extends LitElement {
                     data-state="${this._animState}"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="${ifDefined(this.label || undefined)}"
+                    aria-label="${ifDefined(this.accessibleLabel || undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
                         top: ${this._position.top}px;

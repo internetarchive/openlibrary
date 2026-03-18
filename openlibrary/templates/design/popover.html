@@ -9,7 +9,7 @@ $def with()
       <p>$_("Popovers animate from the trigger using transform-origin. Click the button to see the scale + fade entrance.")</p>
       <code class="example__code">&lt;ol-popover&gt;&lt;button slot="trigger"&gt;Options&lt;/button&gt;&lt;ul&gt;...&lt;/ul&gt;&lt;/ol-popover&gt;</code>
       <div class="example__output">
-        <ol-popover id="demo-popover" label="Options menu">
+        <ol-popover id="demo-popover" accessible-label="Options menu">
           <button slot="trigger" id="demo-popover-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Options")</button>
           <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 180px;">
             <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
@@ -39,7 +39,7 @@ $def with()
       <h3 class="example__title">$_("Placement options")</h3>
       <p>$:_("Use %(placement)s to control where the popover appears. The %(transform_origin)s automatically matches so the animation always expands from the trigger.", placement="<code>placement</code>", transform_origin="<code>transform-origin</code>")</p>
       <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap;">
-        <ol-popover id="demo-popover-bs" placement="bottom-start" label="Actions">
+        <ol-popover id="demo-popover-bs" placement="bottom-start" accessible-label="Actions">
           <button slot="trigger" id="demo-popover-bs-trigger" style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">$_("bottom-start")</button>
           <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 160px;">
             <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
@@ -47,7 +47,7 @@ $def with()
             <li style="padding: 10px 16px; cursor: pointer;">$_("Archive")</li>
           </ul>
         </ol-popover>
-        <ol-popover id="demo-popover-tc" placement="top-center" label="Actions">
+        <ol-popover id="demo-popover-tc" placement="top-center" accessible-label="Actions">
           <button slot="trigger" id="demo-popover-tc-trigger" style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">$_("top-center")</button>
           <ul style="list-style: none; margin: 0; padding: 4px 0; min-width: 160px;">
             <li style="padding: 10px 16px; cursor: pointer;">$_("Edit")</li>
