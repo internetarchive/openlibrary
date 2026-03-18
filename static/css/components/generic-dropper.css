@@ -1,11 +1,11 @@
 .generic-dropper-wrapper {
   position: relative;
-  z-index: var(--z-index-level-3);
+  isolation: isolate;
   min-height: 50px;
 }
 
 .generic-dropper-wrapper--active {
-  z-index: var(--z-index-level-4);
+  z-index: 1;
 }
 
 .generic-dropper {

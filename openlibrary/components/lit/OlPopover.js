@@ -69,6 +69,7 @@ export class OlPopover extends LitElement {
             position: relative;
         }
 
+
         .panel {
             position: fixed;
             z-index: 1000;
@@ -114,7 +115,7 @@ export class OlPopover extends LitElement {
             position: fixed;
             inset: 0;
             z-index: 999;
-            background: hsla(0, 0%, 0%, 0.4);
+            background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
             pointer-events: none;
         }

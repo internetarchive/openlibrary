@@ -12,7 +12,6 @@
   background-color: var(--white);
   border-radius: 5px;
   border: 1px solid var(--dark-beige);
-  z-index: var(--z-index-level-1);
   position: relative;
 }
 
