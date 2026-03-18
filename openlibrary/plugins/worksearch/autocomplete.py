@@ -155,6 +155,7 @@ class series_autocomplete(autocomplete):
         """
         return f"/series/{olid}"
 
+
 class subjects_autocomplete(autocomplete):
     # can't use /subjects/_autocomplete because the subjects endpoint = /subjects/[^/]+
     path = "/subjects_autocomplete"
