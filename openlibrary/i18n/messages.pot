@@ -1819,8 +1819,8 @@ msgstr ""
 #: design.html
 #, python-format
 msgid ""
-"When a page is clicked, the component fires an %(update_page)s event with"
-" the page number in %(event_detail)s."
+"When a page is clicked, the component fires an %(event_name)s event with "
+"the page number in %(event_detail)s."
 msgstr ""
 
 #: design.html
@@ -7993,7 +7993,8 @@ msgid "Loading Lists"
 msgstr ""
 
 #: type/language/view.html
-msgid "deprecated"
+#, python-format
+msgid "%(language)s [deprecated]"
 msgstr ""
 
 #: type/language/view.html
@@ -8176,6 +8177,13 @@ msgstr ""
 msgid ""
 "You are about to remove the last item in the list. That will delete the "
 "whole list. Are you sure you want to continue?"
+msgstr ""
+
+#: type/list/view_body.html
+#, python-format
+msgid ""
+"This series contains %(limit)d or more works. Currently, only the first "
+"%(limit)d works are displayed."
 msgstr ""
 
 #: type/list/view_body.html
