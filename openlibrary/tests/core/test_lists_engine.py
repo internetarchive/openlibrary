@@ -1,7 +1,7 @@
 from openlibrary.core.lists import engine
 
 
-def test_reduce():
+def test_reduce_seeds():
     d1 = [1, 2, 1, "2010-11-11 10:20:30", {"subjects": ["Love", "Hate"]}]
 
     d2 = [1, 1, 0, "2009-01-02 10:20:30", {"subjects": ["Love"]}]
