@@ -6,41 +6,39 @@ from unittest.mock import MagicMock
 # detect_missing_i18n imports _init_path (for its side-effect)
 sys.modules["_init_path"] = MagicMock()
 
-from ..detect_missing_i18n import Errtype, check_html
+from ..detect_missing_i18n import ErrorLevel, check_html
 
 
 class TestCleanHTML:
-    def test_empty_string(self):
+    def test_empty_strings(self):
         assert check_html("") == []
+        assert check_html("<p></p>") == []
 
-    def test_no_tags(self):
+    def test_internationalized_content(self):
         assert check_html("<p>$_('About this book:')</p>") == []
+        assert check_html("<p>$:_('Would you like to <strong>return</strong>?')</p>") == []
+        assert check_html('<p>$ungettext("%(count)d edition", "%(count)d editions", count)</p>') == []
 
-    def test_properly_wrapped_text(self):
-        html = '<p>$_("About this book:")</p>'
-        assert check_html(html) == []
-
-    def test_properly_wrapped_text_colon_variant(self):
-        html = "<p>$:_('Would you like to <strong>return</strong>?')</p>"
-        assert check_html(html) == []
-
-    def test_ungettext_is_ok(self):
-        html = '<p>$ungettext("%(count)d edition", "%(count)d editions", count)</p>'
-        assert check_html(html) == []
-
-    def test_only_punctuation_after_tag(self):
-        # Just punctuation/numbers after the tag — should not be flagged
+    def test_non_translatable_content(self):
         assert check_html("<span>123</span>") == []
-
-    def test_url_after_tag(self):
+        assert check_html("<span>&times;</span>") == []
         assert check_html("<a href='https://example.com'>https://example.com</a>") == []
-
-    def test_variable_after_tag(self):
         assert check_html("<p>$variable</p>") == []
-
-    def test_lorem_after_tag(self):
-        # This is a common placeholder text that shouldn't be flagged
         assert check_html("<p>Lorem ipsum dolor sit amet</p>") == []
+        assert check_html("<a>$get_language_name(page.key, get_lang() or 'en')</a>") == []
+        assert check_html("<p>$:reformat_html(format(description), max_length=250)</p>") == []
+
+    def test_attributes(self):
+        assert check_html("<button title=\"$_('Submit')\"></button>") == []
+        assert check_html("<input placeholder=\"$_('Name')\" />") == []
+        assert check_html("<img alt='$_('Photo of author')'>") == []
+        assert check_html("<img alt='✓'>") == []
+
+    def test_html_comment_not_flagged(self):
+        assert check_html("<!-- <p>Untranslated text</p> -->") == []
+        assert check_html("$:_('Some content <i>HERE</i>')") == []
+        assert check_html("$# Avoid newlines in the <a> tags") == []
+        assert check_html("$ x = _('Some content <i>HERE</i>')") == []
 
 
 class TestErrors:
@@ -49,21 +47,21 @@ class TestErrors:
         results = check_html(html)
         assert len(results) == 1
         errtype, _line_no, _pos, _match = results[0]
-        assert errtype == Errtype.ERR
+        assert errtype == ErrorLevel.ERR
 
     def test_untranslated_title_attribute(self):
         html = '<button title="Submit">$_("Click")</button>'
         results = check_html(html)
         assert len(results) == 1
         errtype, _line_no, _pos, _match = results[0]
-        assert errtype == Errtype.ERR
+        assert errtype == ErrorLevel.ERR
 
     def test_untranslated_alt_attribute(self):
         html = '<img src="photo.jpg" alt="Photo of author">'
         results = check_html(html)
         assert len(results) == 1
         errtype, _line_no, _pos, _match = results[0]
-        assert errtype == Errtype.ERR
+        assert errtype == ErrorLevel.ERR
 
     def test_multiple_errors_across_lines(self):
         html = """
@@ -72,21 +70,7 @@ class TestErrors:
         """
         results = check_html(html)
         assert len(results) == 2
-        assert all(r[0] == Errtype.ERR for r in results)
-
-
-class TestTranslatedAttributes:
-    def test_translated_title_no_error(self):
-        html = "<button title=\"$_('Submit')\"></button>"
-        assert check_html(html) == []
-
-    def test_translated_placeholder_no_error(self):
-        html = "<input placeholder=\"$_('Enter your name')\" />"
-        assert check_html(html) == []
-
-    def test_translated_alt_no_error(self):
-        html = "<img src='photo.jpg' alt=\"$_('Photo of author')\">"
-        assert check_html(html) == []
+        assert all(r[0] == ErrorLevel.ERR for r in results)
 
 
 class TestSkipDirectives:
@@ -109,22 +93,10 @@ class TestSkipDirectives:
         """
         results = check_html(html)
         assert len(results) == 1
-        assert results[0][1] == 4  # line 4 is flagged
+        assert results[0][1] == 4  # line 4
 
     def test_inline_skip_with_dollar_prefix(self):
-        # The skip regex requires a leading $ before the comment marker
         html = "<p>Untranslated text</p> $# detect-missing-i18n-skip-line"
-        assert check_html(html) == []
-
-
-class TestCommentedOutLines:
-    def test_html_comment_not_flagged(self):
-        # The error is after <!--, so it should be skipped
-        html = "<!-- <p>Untranslated text</p> -->"
-        assert check_html(html) == []
-
-    def test_dollar_colon_prefix_not_flagged(self):
-        html = "<p>$:_('Some content')</p>"
         assert check_html(html) == []
 
 
@@ -134,10 +106,10 @@ class TestWarnCases:
         html = "<p>$('Some text')"
         results = check_html(html)
         assert len(results) == 1
-        assert results[0][0] == Errtype.WARN
+        assert results[0][0] == ErrorLevel.WARN
 
     def test_warn_for_dollar_paren_attribute(self):
         html = "<button title=\"$('Submit')\"></button>"
         results = check_html(html)
         assert len(results) == 1
-        assert results[0][0] == Errtype.WARN
+        assert results[0][0] == ErrorLevel.WARN
