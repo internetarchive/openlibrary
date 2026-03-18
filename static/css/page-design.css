@@ -5,12 +5,11 @@
  */
 
 .design-pattern-library {
-  padding: 0 24px;
+  padding: 16px;
+  max-width: 860px;
 }
 
 .design-pattern {
-  display: flex;
-  gap: 24px;
   padding-bottom: 24px;
   border-bottom: var(--border-divider);
   margin-bottom: 24px;
@@ -18,10 +17,6 @@
 
 .design-pattern__title {
   margin-top: 0;
-}
-
-.design-pattern__header {
-  flex: 0 0 300px;
 }
 
 .example {
@@ -47,6 +42,18 @@ p {
   border-radius: var(--border-radius-card);
   font-size: var(--font-size-body-medium);
   font-family: var(--font-family-code);
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+@media only screen and (min-width: 768px) {
+  .design-pattern-library {
+    padding: 24px;
+  }
+
+  .example__code {
+    word-break: normal;
+  }
 }
 
 .example__output {
