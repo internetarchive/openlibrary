@@ -1048,7 +1048,7 @@ msgid "Edit this page"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: my_books/check_ins/check_in_prompt.html
+#: design/popover.html my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -2976,7 +2976,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html design/popover.html
 msgid "Delete"
 msgstr ""
 
@@ -3279,7 +3279,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html type/edition/modal_links.html
+#: account/view.html design/popover.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -5766,6 +5766,56 @@ msgstr ""
 
 #: covers/saved.html
 msgid "Finished"
+msgstr ""
+
+#: design/popover.html
+msgid "Popover component"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"The ol-popover component provides a reusable animated popover panel "
+"anchored to a trigger element. It animates from the trigger using "
+"transform-origin, closes on Escape or outside click, and respects "
+"prefers-reduced-motion."
+msgstr ""
+
+#: design/popover.html
+msgid "Menu popover"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"Popovers animate from the trigger using transform-origin. Click the "
+"button to see the scale + fade entrance."
+msgstr ""
+
+#: design/popover.html
+msgid "Options"
+msgstr ""
+
+#: design/popover.html
+msgid "Duplicate"
+msgstr ""
+
+#: design/popover.html
+msgid "Archive"
+msgstr ""
+
+#: design/popover.html
+msgid "Move"
+msgstr ""
+
+#: design/popover.html
+msgid "Placement options"
+msgstr ""
+
+#: design/popover.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the popover appears. The "
+"%(transform_origin)s automatically matches so the animation always "
+"expands from the trigger."
 msgstr ""
 
 #: email/case_created.html
