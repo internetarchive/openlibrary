@@ -87,9 +87,8 @@ $if can_merge:
                             </div>
                     </label>
                     $if a.bio:
-                        <p>${ macros.TruncateString(a.bio, 250) }</p>
-                    $else:
-                        <p>No description.</p>
+                        <p>$:reformat_html(format(a.bio), max_length=250)</p>
+
                     <ul>
                     $for doc in top.docs:
                         <li><a href="$doc['key']" target="new" title="$_('Open in a new window')">$doc['title']</a> <span class="smaller">$ungettext('%(count)s edition', '%(count)s editions', doc['edition_count'], count=doc['edition_count']),
