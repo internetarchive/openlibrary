@@ -5,6 +5,7 @@ or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
 
+import requests
 import web
 
 import infogami
@@ -17,6 +18,10 @@ def handle_deprecated_request():
     is_dev = 'dev' in infogami.config.features
 
     if is_dev:
+        # Port 18080 is mapped to 8080 in the fast_web container
+        if web.ctx.method == 'POST':
+            return proxy_to_fastapi()
+
         # Simple string replacement to redirect to port 18080
         new_url = web.ctx.home.replace(':8080', ':18080') + web.ctx.fullpath
         raise web.seeother(new_url)
@@ -24,6 +29,43 @@ def handle_deprecated_request():
         # Raise a loud error in production
         error_msg = f'DEPRECATED ENDPOINT ACCESSED: {web.ctx.path}. This endpoint has been migrated to FastAPI and should not be accessed in production.'
         raise web.internalerror(error_msg)
+
+
+def proxy_to_fastapi():
+    """Proxy the current request to the FastAPI container."""
+    # Internal Docker URL for fast_web service
+    base_url = "http://fast_web:8080"
+    url = base_url + web.ctx.fullpath
+
+    # Forward headers (excluding Host which should be set by requests)
+    headers = {
+        k[5:].replace('_', '-').title(): v
+        for k, v in web.ctx.environ.items()
+        if k.startswith('HTTP_') and k != 'HTTP_HOST'
+    }
+    # Content-Type and Content-Length are usually not prefixed with HTTP_
+    if 'CONTENT_TYPE' in web.ctx.environ:
+        headers['Content-Type'] = web.ctx.environ['CONTENT_TYPE']
+
+    try:
+        resp = requests.request(
+            method=web.ctx.method,
+            url=url,
+            headers=headers,
+            data=web.data(),
+            cookies=web.cookies(),
+            allow_redirects=False,
+            timeout=60,
+        )
+    except requests.RequestException as e:
+        raise web.internalerror(f"Proxy request failed: {e}")
+
+    # Set response headers
+    for k, v in resp.headers.items():
+        if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length'):
+            web.header(k, v)
+
+    return delegate.RawText(resp.content)
 
 
 class DeprecatedEndpointHandler(delegate.page):
