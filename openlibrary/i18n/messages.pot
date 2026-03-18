@@ -780,11 +780,11 @@ msgstr ""
 msgid "Book %(position)s"
 msgstr ""
 
-#: SearchResultsWork.html design.html
+#: SearchResultsWork.html design/read_more.html
 msgid "Show more"
 msgstr ""
 
-#: SearchResultsWork.html design.html
+#: SearchResultsWork.html design/read_more.html
 msgid "Show less"
 msgstr ""
 
@@ -1048,6 +1048,7 @@ msgid "Edit this page"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
+#: design/popover.html design/tooltip.html
 #: my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
@@ -1779,157 +1780,35 @@ msgid "Not yet imported"
 msgstr ""
 
 #: design.html
-msgid "Design Pattern Library"
+msgid "Components"
+msgstr ""
+
+#: design.html type/edition/view.html type/work/view.html
+msgid "Pagination"
 msgstr ""
 
 #: design.html
-msgid "Colors"
+msgid "Popover"
 msgstr ""
 
 #: design.html
-msgid "Background"
+msgid "Tooltip"
 msgstr ""
 
 #: design.html
-msgid "Primary Call To Action"
+msgid "Autocomplete"
+msgstr ""
+
+#: design.html type/edition/view.html type/work/view.html
+msgid "Read More"
 msgstr ""
 
 #: design.html
-msgid "Link (unclicked)"
+msgid "Features"
 msgstr ""
 
 #: design.html
-msgid "Link (clicked)"
-msgstr ""
-
-#: design.html
-msgid "Pagination component"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-pagination component provides support for both event-based and "
-"URL-based navigation."
-msgstr ""
-
-#: design.html
-msgid "Event-based"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"When a page is clicked, the component fires an %(event_name)s event with "
-"the page number in %(event_detail)s."
-msgstr ""
-
-#: design.html
-msgid "Selected page:"
-msgstr ""
-
-#: design.html
-msgid "URL-based Navigation"
-msgstr ""
-
-#: design.html
-msgid ""
-"When base-url is provided, pagination renders anchor tags for SEO-"
-"friendly links."
-msgstr ""
-
-#: design.html
-msgid "First page (no previous arrow)"
-msgstr ""
-
-#: design.html
-msgid "Middle page (both arrows visible)"
-msgstr ""
-
-#: design.html
-msgid "Last page (no next arrow)"
-msgstr ""
-
-#: design.html
-msgid "3 pages"
-msgstr ""
-
-#: design.html
-msgid "5 pages (no ellipsis needed)"
-msgstr ""
-
-#: design.html
-msgid "100 pages with ellipsis:"
-msgstr ""
-
-#: design.html
-msgid "Read More component"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-read-more component provides expandable/collapsible content with "
-"two truncation modes: height-based and line-based."
-msgstr ""
-
-#: design.html
-msgid "Height-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
-
-#: design.html
-msgid "Line-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
-
-#: design.html
-msgid "Custom button text"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(more_text)s and %(less_text)s to customize the toggle button "
-"labels. We'll use the i18n strings for this example."
-msgstr ""
-
-#: design.html
-msgid "Custom background color"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(background_color)s to match the gradient fade to your container "
-"background."
-msgstr ""
-
-#: design.html
-msgid "Small label size"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
-
-#: design.html
-msgid "Content shorter than limit (no button)"
-msgstr ""
-
-#: design.html
-msgid "When content fits within the limit, no toggle button is shown."
-msgstr ""
-
-#: design.html
-msgid "This is short content that fits within 5 lines, so no button appears."
+msgid "Language Edit"
 msgstr ""
 
 #: diff.html
@@ -2976,7 +2855,8 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html design/popover.html
+#: design/tooltip.html
 msgid "Delete"
 msgstr ""
 
@@ -3279,8 +3159,8 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html type/edition/modal_links.html
-#: type/edition/title_and_author.html
+#: account/view.html design/popover.html design/tooltip.html
+#: type/edition/modal_links.html type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
 
@@ -5768,6 +5648,313 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/autocomplete.html
+msgid "Autocomplete component"
+msgstr ""
+
+#: design/autocomplete.html
+msgid ""
+"The ol-autocomplete component provides a reusable autocomplete input with"
+" ARIA combobox pattern, debounced fetch, and keyboard navigation."
+msgstr ""
+
+#: design/autocomplete.html
+msgid "Language autocomplete"
+msgstr ""
+
+#: design/autocomplete.html
+msgid ""
+"Type a language name to see autocomplete suggestions from the languages "
+"API."
+msgstr ""
+
+#: design/autocomplete.html
+msgid "Selected:"
+msgstr ""
+
+#: design/autocomplete.html
+msgid "With pre-selected value"
+msgstr ""
+
+#: design/autocomplete.html
+msgid "The component can be initialized with an existing selection."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Language Edit component"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"The ol-language-edit component provides inline editing of languages on "
+"edition pages with a popover interface."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Single language"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"Hover over the language text to reveal the edit pencil. Click it to open "
+"the editing popover."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Multiple languages"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"Editions can have multiple languages. The component displays them comma-"
+"separated."
+msgstr ""
+
+#: design/pagination.html
+msgid "Pagination component"
+msgstr ""
+
+#: design/pagination.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design/pagination.html
+msgid "Event-based"
+msgstr ""
+
+#: design/pagination.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(event_name)s event with "
+"the page number in %(event_detail)s."
+msgstr ""
+
+#: design/pagination.html
+msgid "Selected page:"
+msgstr ""
+
+#: design/pagination.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design/pagination.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design/pagination.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design/pagination.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design/pagination.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design/pagination.html
+msgid "3 pages"
+msgstr ""
+
+#: design/pagination.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design/pagination.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design/popover.html
+msgid "Popover component"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"The ol-popover component provides a reusable animated popover panel "
+"anchored to a trigger element. It animates from the trigger using "
+"transform-origin, closes on Escape or outside click, and respects "
+"prefers-reduced-motion."
+msgstr ""
+
+#: design/popover.html
+msgid "Menu popover"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"Popovers animate from the trigger using transform-origin. Click the "
+"button to see the scale + fade entrance."
+msgstr ""
+
+#: design/popover.html
+msgid "Options"
+msgstr ""
+
+#: design/popover.html
+msgid "Duplicate"
+msgstr ""
+
+#: design/popover.html
+msgid "Archive"
+msgstr ""
+
+#: design/popover.html
+msgid "Move"
+msgstr ""
+
+#: design/popover.html design/tooltip.html
+msgid "Placement options"
+msgstr ""
+
+#: design/popover.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the popover appears. The "
+"%(transform_origin)s automatically matches so the animation always "
+"expands from the trigger."
+msgstr ""
+
+#: design/read_more.html
+msgid "Read More component"
+msgstr ""
+
+#: design/read_more.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design/read_more.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design/read_more.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design/read_more.html
+msgid "Custom button text"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: design/read_more.html
+msgid "Custom background color"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design/read_more.html
+msgid "Small label size"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design/read_more.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design/read_more.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design/read_more.html
+msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Tooltip component"
+msgstr ""
+
+#: design/tooltip.html
+msgid ""
+"The ol-tooltip component displays contextual information on hover or "
+"focus. It supports configurable placement, show delay, arrow visibility, "
+"and warm-mode grouping where moving between tooltips skips the delay."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Basic tooltip"
+msgstr ""
+
+#: design/tooltip.html
+msgid ""
+"Hover or focus the button to see the tooltip. Default placement is top "
+"with a 150ms show delay."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Warm-mode grouping"
+msgstr ""
+
+#: design/tooltip.html
+msgid ""
+"Move your cursor between these buttons. The first tooltip has a 150ms "
+"delay, but subsequent tooltips appear instantly as long as you keep "
+"moving between them."
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the tooltip appears. It automatically "
+"flips when near viewport edges."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Without arrow"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid "Add %(attr)s to hide the directional arrow."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Hover me"
+msgstr ""
+
+#: design/tooltip.html
+msgid "Rich content via slot"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid "Use %(slot)s for HTML content inside the tooltip."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Info"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -7843,10 +8030,6 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "Read Less"
 msgstr ""
 
@@ -7936,10 +8119,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Pagination"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

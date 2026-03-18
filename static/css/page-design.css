@@ -90,7 +90,6 @@ p {
   margin-bottom: 24px;
 }
 
-
 @media only screen and (min-width: 768px) {
   .design-pattern-library {
     display: flex;
