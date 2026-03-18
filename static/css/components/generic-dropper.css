@@ -92,6 +92,11 @@
   text-overflow: ellipsis;
 }
 
+.generic-dropper__primary .book-progress-btn:disabled {
+  cursor: default;
+  opacity: 1; /*for the disabled state to avoid that "flickering */
+}
+
 /* Unified Read Button Styling */
 .cta-dropper {
   display: flex;
