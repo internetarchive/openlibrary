@@ -169,6 +169,7 @@ export class OlPopover extends LitElement {
         this._transformOrigin = 'top left';
         this._animState = 'closed';
         this._mobile = false;
+        this._reducedMotion = false;
         this._onOutsideClick = this._onOutsideClick.bind(this);
         this._onKeydownGlobal = this._onKeydownGlobal.bind(this);
     }
@@ -217,14 +218,14 @@ export class OlPopover extends LitElement {
         document.addEventListener('keydown', this._onKeydownGlobal);
 
         this._mobile = window.matchMedia('(max-width: 767px)').matches;
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // On desktop, render panel off-screen first so we can measure it.
         // On mobile, CSS positions the tray at the bottom automatically.
         if (!this._mobile) {
             this._position = { top: -9999, left: -9999 };
         }
-        this._animState = reducedMotion ? 'open' : 'preparing';
+        this._animState = this._reducedMotion ? 'open' : 'preparing';
 
         this.updateComplete.then(() => {
             const panel = this.shadowRoot.querySelector('.panel');
@@ -238,7 +239,7 @@ export class OlPopover extends LitElement {
                 this._computePosition(panel.offsetWidth, panel.offsetHeight);
             }
 
-            if (reducedMotion) {
+            if (this._reducedMotion) {
                 this.dispatchEvent(new CustomEvent('ol-popover-open', {
                     bubbles: true, composed: true
                 }));
@@ -258,8 +259,7 @@ export class OlPopover extends LitElement {
     _hide() {
         if (this._animState === 'closed') return;
 
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        if (reducedMotion) {
+        if (this._reducedMotion) {
             this._animState = 'closed';
             this._removeListeners();
             return;
@@ -363,7 +363,7 @@ export class OlPopover extends LitElement {
     _parsePlacement(placement) {
         const parts = (placement || 'bottom-center').split('-');
         const side = parts[0] === 'top' ? 'top' : 'bottom';
-        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'start';
+        const align = ['start', 'center', 'end'].includes(parts[1]) ? parts[1] : 'center';
         return [side, align];
     }
 

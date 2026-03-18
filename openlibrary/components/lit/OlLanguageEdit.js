@@ -219,11 +219,17 @@ export class OlLanguageEdit extends LitElement {
     }
 
     get _parsedLanguages() {
-        try {
-            return JSON.parse(this.languages);
-        } catch {
-            return [];
+        if (this._parsedLangsCache?.src === this.languages) {
+            return this._parsedLangsCache.val;
         }
+        let val;
+        try {
+            val = JSON.parse(this.languages);
+        } catch {
+            val = [];
+        }
+        this._parsedLangsCache = { src: this.languages, val };
+        return val;
     }
 
     get _displayText() {
@@ -327,17 +333,19 @@ export class OlLanguageEdit extends LitElement {
         });
     }
 
-    _onLangSelect(index, e) {
-        const { key, name } = e.detail;
+    _updateLang(index, updates) {
         this._editLanguages = this._editLanguages.map((l, i) =>
-            i === index ? { key, name } : l
+            i === index ? { ...l, ...updates } : l
         );
     }
 
+    _onLangSelect(index, e) {
+        const { key, name } = e.detail;
+        this._updateLang(index, { key, name });
+    }
+
     _onLangClear(index) {
-        this._editLanguages = this._editLanguages.map((l, i) =>
-            i === index ? { key: '', name: '' } : l
-        );
+        this._updateLang(index, { key: '', name: '' });
     }
 
     _addLang() {

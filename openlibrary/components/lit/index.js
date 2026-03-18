@@ -11,4 +11,5 @@ export { OlPagination } from './OlPagination.js';
 export { OlPopover } from './OlPopover.js';
 export { OlAutocomplete } from './OlAutocomplete.js';
 export { OlLanguageEdit } from './OlLanguageEdit.js';
+export { OlTooltip } from './OlTooltip.js';
 
