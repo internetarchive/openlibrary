@@ -276,7 +276,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
             $if edition.languages:
               <div class="edition-omniline-item">
                 <div class="language">$_("Language")</div>
-                <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
+                $if ctx.user:
+                  <ol-language-edit
+                    edition-key="$edition.key"
+                    languages='$json_encode([{"key": str(lang.key), "name": lang.name} for lang in edition.languages])'
+                  ></ol-language-edit>
+                $else:
+                  <span itemprop="inLanguage">$:thingrepr(edition.languages)</span>
               </div>
             $if edition.number_of_pages:
               <div class="edition-omniline-item">

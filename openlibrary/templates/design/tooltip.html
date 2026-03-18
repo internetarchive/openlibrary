@@ -1,0 +1,86 @@
+$def with()
+
+<article class="design-pattern" id="tooltip">
+    <h2 class="design-pattern__title">$_("Tooltip component")</h2>
+    <p>$_("The ol-tooltip component displays contextual information on hover or focus. It supports configurable placement, show delay, arrow visibility, and warm-mode grouping where moving between tooltips skips the delay.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Basic tooltip")</h3>
+      <p>$_("Hover or focus the button to see the tooltip. Default placement is top with a 150ms show delay.")</p>
+      <code class="example__code">&lt;ol-tooltip content="Edit this item"&gt;&lt;button&gt;Edit&lt;/button&gt;&lt;/ol-tooltip&gt;</code>
+      <div class="example__output" style="display: flex; gap: 24px; align-items: center; padding: 32px 16px;">
+        <ol-tooltip content="Edit this item">
+          <button style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Edit")</button>
+        </ol-tooltip>
+        <ol-tooltip content="Delete permanently">
+          <button style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Delete")</button>
+        </ol-tooltip>
+        <ol-tooltip content="Share with others">
+          <button style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Share")</button>
+        </ol-tooltip>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Warm-mode grouping")</h3>
+      <p>$_("Move your cursor between these buttons. The first tooltip has a 150ms delay, but subsequent tooltips appear instantly as long as you keep moving between them.")</p>
+      <div class="example__output" style="display: flex; gap: 8px; align-items: center; padding: 32px 16px;">
+        <ol-tooltip content="Bold">
+          <button style="padding: 8px 14px; border-radius: 6px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-weight: bold;">B</button>
+        </ol-tooltip>
+        <ol-tooltip content="Italic">
+          <button style="padding: 8px 14px; border-radius: 6px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-style: italic;">I</button>
+        </ol-tooltip>
+        <ol-tooltip content="Underline">
+          <button style="padding: 8px 14px; border-radius: 6px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; text-decoration: underline;">U</button>
+        </ol-tooltip>
+        <ol-tooltip content="Strikethrough">
+          <button style="padding: 8px 14px; border-radius: 6px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; text-decoration: line-through;">S</button>
+        </ol-tooltip>
+        <ol-tooltip content="Link">
+          <button style="padding: 8px 14px; border-radius: 6px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">&#128279;</button>
+        </ol-tooltip>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Placement options")</h3>
+      <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges.", placement="<code>placement</code>")</p>
+      <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 48px 16px;">
+        <ol-tooltip content="I'm on top" placement="top">
+          <button style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">top</button>
+        </ol-tooltip>
+        <ol-tooltip content="I'm on the bottom" placement="bottom">
+          <button style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">bottom</button>
+        </ol-tooltip>
+        <ol-tooltip content="I'm on the left" placement="left">
+          <button style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">left</button>
+        </ol-tooltip>
+        <ol-tooltip content="I'm on the right" placement="right">
+          <button style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff;">right</button>
+        </ol-tooltip>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Without arrow")</h3>
+      <p>$:_("Add %(attr)s to hide the directional arrow.", attr="<code>without-arrow</code>")</p>
+      <div class="example__output" style="padding: 32px 16px;">
+        <ol-tooltip content="No arrow here" without-arrow>
+          <button style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Hover me")</button>
+        </ol-tooltip>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Rich content via slot")</h3>
+      <p>$:_("Use %(slot)s for HTML content inside the tooltip.", slot="<code>slot=\"content\"</code>")</p>
+      <code class="example__code">&lt;ol-tooltip&gt;&lt;button&gt;Info&lt;/button&gt;&lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;&lt;/ol-tooltip&gt;</code>
+      <div class="example__output" style="padding: 32px 16px;">
+        <ol-tooltip>
+          <button style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Info")</button>
+          <span slot="content">Keyboard shortcut: <strong style="color: #a8d8ff;">Ctrl+K</strong></span>
+        </ol-tooltip>
+      </div>
+    </section>
+  </article>
