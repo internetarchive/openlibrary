@@ -1,0 +1,37 @@
+$def with (page)
+
+$if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"):
+    $if cur_v:
+        $ hist_addition = "?v=" + cur_v
+    $else:
+        $ hist_addition = ""
+
+    $ rdf = page.key + ".rdf" + hist_addition
+    $ json = page.key + ".json" + hist_addition
+    $ opds = page.key + ".opds" + hist_addition
+    <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
+        $_('Download catalog record:')
+        <a rel="nofollow" href="$rdf">$_("RDF")</a>
+        /
+        <a rel="nofollow" href="$json">$_("JSON")</a>
+        $if page.key.startswith("/books"):
+            /
+            <a rel="nofollow" href="$opds">$_("OPDS")</a>
+        $if show_wikipedia_citation_link:
+            | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
+    </span>
+
+    $if show_wikipedia_citation_link:
+        <div class="hidden">
+            <div class="coverFloat" id="wikicode">
+                <div class="coverFloatHead">
+                    <h2>$_("Wikipedia citation")</h2>
+                    <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
+                </div>
+                <p>$_("Copy and paste this code into your Wikipedia page.") <a href="https://en.wikipedia.org/wiki/Template:Cite_book" target="_blank" title="$_('Get instructions at Wikipedia in a new window')">$_('Need help?')</a></p>
+                <form method="get">
+                    $ cite = " |".join([k + '=' + v for k, v in page.wp_citation_fields.items() if v])
+                    <textarea cols="70" rows="10" readonly="readonly" id="wikiselect">{{cite book|$cite}}</textarea>
+                </form>
+            </div>
+        </div>
