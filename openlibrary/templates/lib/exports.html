@@ -1,10 +1,9 @@
 $def with (page)
 
 $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"):
-    $if cur_v:
-        $ hist_addition = "?v=" + cur_v
-    $else:
-        $ hist_addition = ""
+    $ show_wikipedia_citation_link = page.wp_citation_fields
+    $ cur_v = query_param("v", None)
+    $ hist_addition = "?v=" + cur_v if cur_v else ""
 
     $ rdf = page.key + ".rdf" + hist_addition
     $ json = page.key + ".json" + hist_addition
