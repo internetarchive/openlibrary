@@ -5,7 +5,7 @@ or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
 
-import requests
+import httpx
 import web
 
 import infogami
@@ -37,7 +37,7 @@ def proxy_to_fastapi():
     base_url = "http://fast_web:8080"
     url = base_url + web.ctx.fullpath
 
-    # Forward headers (excluding Host which should be set by requests)
+    # Forward headers (excluding Host which should be set by httpx)
     headers = {
         k[5:].replace('_', '-').title(): v
         for k, v in web.ctx.environ.items()
@@ -48,22 +48,24 @@ def proxy_to_fastapi():
         headers['Content-Type'] = web.ctx.environ['CONTENT_TYPE']
 
     try:
-        resp = requests.request(
-            method=web.ctx.method,
-            url=url,
-            headers=headers,
-            data=web.data(),
-            cookies=web.cookies(),
-            allow_redirects=False,
-            timeout=60,
-        )
-    except requests.RequestException as e:
+        with httpx.Client(follow_redirects=False, timeout=60.0) as client:
+            resp = client.request(
+                method=web.ctx.method,
+                url=url,
+                headers=headers,
+                content=web.data(),
+                cookies=web.cookies(),
+            )
+    except httpx.RequestError as e:
         raise web.internalerror(f"Proxy request failed: {e}")
 
     # Set response headers
     for k, v in resp.headers.items():
-        if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length'):
+        if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length', 'x-served-by'):
             web.header(k, v)
+
+    # Set a custom header to indicate this was proxied
+    web.header('x-served-by', 'FastAPI-Proxy')
 
     return delegate.RawText(resp.content)
 

@@ -4,8 +4,8 @@ $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=
 $def render_carousel_cover(book, lazy, index):
   $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
-  $ url = book.get('key') or book.url
-  $ title = book.title
+  $ url = book.get('key') or (book.url if hasattr(book, 'url') else '')
+  $ title = (book.title if hasattr(book, 'title') else None) or book.get('title') or url
 
   $ cover_id = book.get('cover_id') or book.get('cover_i') or book.get('covers') and book['covers'][0]
   $if book.get('cover_url'):
