@@ -144,7 +144,14 @@ class DocSaveHelper:
         """
         created = False
         for author_dict, author_name in zip(authors, author_names):
-            if author_dict['author']['key'] == '__new__':
+            author_key = author_dict['author']['key']
+            author_name = (author_name or '').strip()
+
+            if author_key == '__new__':
+                if len(author_name) < 2:
+                    raise ValidationException(
+                        "Author name must be at least 2 characters long"
+                    )
                 created = True
                 if not _test:
                     doc = new_doc('/type/author', name=author_name)
@@ -238,9 +245,46 @@ class addbook(delegate.page):
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
-        created_author = saveutil.create_authors_from_form_data(
-            i.authors, i.author_names, _test=i._test == 'true'
-        )
+        authors = i.authors or []
+        # Track which author entries the user attempted to create so we can
+        # restore `__new__` keys if validation fails (otherwise a partially
+        # updated form could submit non-existent author keys).
+        attempted_new_authors = [
+            (a.get('author', {}).get('key') == '__new__') for a in authors
+        ]
+        try:
+            created_author = saveutil.create_authors_from_form_data(
+                i.authors, i.author_names, _test=i._test == 'true'
+            )
+        except ValidationException as e:
+            # Restore `__new__` author keys for the entries the user attempted
+            # to create.
+            for idx, attempted in enumerate(attempted_new_authors):
+                if not attempted:
+                    continue
+                if idx >= len(i.authors):
+                    continue
+                i.authors[idx]['author']['key'] = '__new__'
+
+            add_flash_message('error', str(e))
+
+            # Re-render the add page with author autocomplete inputs filled
+            # from the user submission.
+            authors_for_template = [
+                web.storage(
+                    name=author_name,
+                    key=author_dict.get('author', {}).get('key', ''),
+                )
+                for author_dict, author_name in zip(
+                    i.authors or [], i.author_names or []
+                )
+            ]
+            return render_template(
+                'books/add',
+                work=None,
+                authors=authors_for_template,
+                recaptcha=get_recaptcha(),
+            )
         match = None if created_author else self.find_matches(i)
 
         if i._test == 'true' and not isinstance(match, list):
@@ -1011,6 +1055,8 @@ class author_edit(delegate.page):
             if not formdata:
                 raise web.badrequest()
             elif "_save" in i:
+                if len(formdata.name) < 2:
+                    raise ValidationException("Author name must be at least 2 characters long")
                 author.update(formdata)
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
