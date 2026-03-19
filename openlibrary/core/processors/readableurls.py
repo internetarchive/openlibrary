@@ -5,6 +5,7 @@ import os
 import urllib
 from urllib.parse import quote_plus
 
+import requests
 import web
 
 from infogami.utils.view import render
@@ -14,7 +15,7 @@ logger = logging.getLogger("openlibrary.readableurls")
 
 try:
     from booklending_utils.openlibrary import is_exclusion
-except ImportError:
+except (ImportError, requests.exceptions.RequestException):
 
     def is_exclusion(obj):
         """Processor for determining whether records require exclusion"""
