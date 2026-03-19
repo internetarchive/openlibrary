@@ -9,8 +9,13 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import os
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from openlibrary.core import lending
+from openlibrary.fastapi.models import Pagination  # noqa: TC001
 
 router = APIRouter()
 
@@ -27,8 +32,36 @@ async def trending_books_api(period: str):
     pass
 
 
-async def browse():
-    pass
+class BrowseRequest(BaseModel):
+    q: str = ""
+    subject: str = ""
+    sorts: str = ""
+
+
+@router.get(
+    "/browse.json",
+    tags=["internal"],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+)
+async def browse(request: Annotated[BrowseRequest, Depends()], pagination: Annotated[Pagination, Depends()]) -> dict:
+    """
+    Browse endpoint (migrated from openlibrary.plugins.openlibrary.api).
+    Dynamically fetches the next page of books and checks if they are
+    available to be borrowed from the Internet Archive without having
+    to reload the whole web page.
+    """
+    sorts_list = [s.strip() for s in request.sorts.split(",") if s.strip()]
+
+    url = lending.compose_ia_url(
+        query=request.q,
+        limit=pagination.limit,
+        page=pagination.page,
+        subject=request.subject,
+        sorts=sorts_list,
+    )
+
+    works = lending.get_available(url=url) if url else []
+    return {"query": url, "works": [work.dict() for work in works]}
 
 
 async def ratings():

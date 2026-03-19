@@ -11,6 +11,7 @@ from collections import defaultdict
 
 import qrcode
 import web
+from typing_extensions import deprecated
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -115,6 +116,7 @@ class trending_books_api(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class browse(delegate.page):
     path = "/browse"
     encoding = "json"
