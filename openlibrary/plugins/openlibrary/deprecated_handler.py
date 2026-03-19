@@ -61,7 +61,12 @@ def proxy_to_fastapi():
 
     # Set response headers
     for k, v in resp.headers.items():
-        if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length', 'x-served-by'):
+        if k.lower() not in (
+            'content-encoding',
+            'transfer-encoding',
+            'content-length',
+            'x-served-by',
+        ):
             web.header(k, v)
 
     # Set a custom header to indicate this was proxied
