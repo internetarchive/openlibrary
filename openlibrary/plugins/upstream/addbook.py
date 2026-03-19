@@ -1038,7 +1038,9 @@ class author_edit(delegate.page):
                 raise web.badrequest()
             elif "_save" in i:
                 if len(formdata.name) < 2:
-                    raise ValidationException("Author name must be at least 2 characters long")
+                    raise ValidationException(
+                        "Author name must be at least 2 characters long"
+                    )
                 author.update(formdata)
                 author._save(comment=i._comment)
                 raise safe_seeother(key)

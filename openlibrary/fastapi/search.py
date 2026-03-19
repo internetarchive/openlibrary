@@ -328,7 +328,7 @@ class AuthorSearchRequestParams(Pagination):
 async def search_authors_json(
     params: Annotated[AuthorSearchRequestParams, Depends()],
 ):
-    q = (params.q or '').strip()
+    q = (params.q or "").strip()
     if q and len(q) < 2:
         return {
             "numFound": 0,
