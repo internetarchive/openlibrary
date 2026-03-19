@@ -1,4 +1,5 @@
 $def with (page)
+$ import json
 $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian())
 <header id="header-bar" class="header-bar">
 
@@ -118,6 +119,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
         <script>
           (function(){
           if (typeof window.setupSearchValidation !== 'function') {
+            var searchValidationMessage = $:json.dumps(_("Please enter at least 2 characters"));
             window.setupSearchValidation = function setupSearchValidation(category, input, form) {
               if (!input) return;
 
@@ -146,7 +148,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
                   }
 
                   if (input.validity.patternMismatch) {
-                    input.setCustomValidity('$_("Please enter at least 2 characters")');
+                    input.setCustomValidity(searchValidationMessage);
                   } else {
                     input.setCustomValidity('');
                   }
