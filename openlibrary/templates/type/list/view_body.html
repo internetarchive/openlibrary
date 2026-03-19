@@ -35,16 +35,14 @@ $ sort = query_param('sort', None)
 $jsdef render_seed_count(seed_count):
     $ungettext("%(count)d item", "%(count)d items", seed_count, count=seed_count)
 
-$if not is_owner:
-    <div id="contentHead" style="margin-bottom:0;">
-        $:macros.databarView(list, edit=not list.key.startswith('/people/'))
-        <h1>$list.name</h1>
-        <p class="collapse sansserif">
-            $ component_times['render_seed_count'] = time()
-            <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
-            $ component_times['render_seed_count'] = time() - component_times['render_seed_count']
-        </p>
-    </div>
+<!-- Always show header/title (previously only shown when not is_owner) -->
+<div id="contentHead" style="margin-bottom:0;">
+    $:macros.databarView(list, edit=not list.key.startswith('/people/'))
+    <h1>$list.name</h1>
+    <p class="collapse sansserif">
+        <span class="darkgreen" id="list-items-count"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+    </p>
+</div>
 
 $def remove_item_link():
     $ owner = list.get_owner()
