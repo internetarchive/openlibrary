@@ -83,3 +83,30 @@ def get_service_ip(image_name: str) -> str:
         text=True,
     )
     return result.stdout.strip()
+
+
+def assign_stable_ids[T](
+    items_sorted: list[T], previous_id_map: dict[T, int]
+) -> dict[T, int]:
+    """
+    Assign stable integer IDs to items, recycling freed IDs (lowest first)
+    before minting new ones above the current maximum.
+
+    sorted_items: all current items in desired ID-assignment order
+    previous_ids: previously persisted {item: id} mapping (pass {} for first run)
+    Returns:      updated {item: id} mapping (only for items in sorted_items)
+    """
+    items_set = set(items_sorted)
+    freed_ids = sorted(v for k, v in previous_id_map.items() if k not in items_set)
+    persisted = {k: v for k, v in previous_id_map.items() if k in items_set}
+    new_items = [item for item in items_sorted if item not in previous_id_map]
+    max_id = max(persisted.values(), default=0)
+    freed_iter = iter(freed_ids)
+    next_new_id = max_id + 1
+    for item in new_items:
+        try:
+            persisted[item] = next(freed_iter)
+        except StopIteration:
+            persisted[item] = next_new_id
+            next_new_id += 1
+    return persisted
