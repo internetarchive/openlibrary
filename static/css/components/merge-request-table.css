@@ -101,7 +101,7 @@
   width: 13px;
   height: 17px;
   font-size: var(--font-size-headline-medium);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   cursor: pointer;
   background-color: transparent;
   border: 0;

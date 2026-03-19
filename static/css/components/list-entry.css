@@ -16,7 +16,7 @@
 }
 .listEntry .data {
   width: 100%;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .listEntry .name {
   font-size: 0.6875em;

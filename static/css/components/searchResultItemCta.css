@@ -7,7 +7,7 @@
   color: var(--white);
   cursor: pointer;
   text-align: center;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .searchResultItem > .searchResultItemCTA {
   padding: 0;

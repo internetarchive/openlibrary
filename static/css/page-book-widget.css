@@ -21,7 +21,7 @@ body {
 }
 
 .cta {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background: var(--primary-blue);
   border-radius: 3px;
   width: 130px;
@@ -75,7 +75,7 @@ a.noshow {
 }
 
 .author {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.7em;
   font-weight: normal;
   color: var(--grey);
@@ -84,7 +84,7 @@ a.noshow {
 }
 
 .service {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--light-grey);
   width: 130px;
   margin: 7px auto;

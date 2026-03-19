@@ -27,7 +27,7 @@
   color: var(--dark-grey);
   display: inline;
   text-decoration: none;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .fsi-snippet__main a:link,
 .fsi-snippet__main a:hover,

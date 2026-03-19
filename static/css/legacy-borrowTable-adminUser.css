@@ -10,13 +10,13 @@
 }
 .borrow-table table {
   width: 100%;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .borrow-table table th {
   border-bottom: 1px solid var(--beige-three);
   vertical-align: bottom;
   padding-bottom: 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   font-weight: 600;
   font-size: 0.6875em;

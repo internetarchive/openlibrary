@@ -4,7 +4,7 @@
  */
 
 .olform {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .olform .formBack {
@@ -27,7 +27,7 @@
 
 .olform .label label {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: 700;
 }
 
@@ -121,7 +121,7 @@
 .olform input[type="url"],
 .olform textarea {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding: 3px;
   max-width: 100%;
   resize: vertical;
@@ -140,7 +140,7 @@
 }
 
 .olform select {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding: 3px;
 }
 
@@ -191,7 +191,7 @@
 .olform .tip {
   font-size: var(--font-size-label-small);
   color: var(--grey);
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
 }
 
 .olform__input--large {

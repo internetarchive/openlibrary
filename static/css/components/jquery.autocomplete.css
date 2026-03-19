@@ -20,7 +20,7 @@
   margin: 0;
   padding: 5px;
   display: block;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-medium);
   cursor: pointer;
   color: var(--dark-grey);
@@ -70,7 +70,7 @@
 }
 
 .ac_author .olid {
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
 }
 
 .ac_author .name {
@@ -111,7 +111,7 @@
 }
 
 .ac_work .olid {
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
 }
 
 .ac_work .name {
