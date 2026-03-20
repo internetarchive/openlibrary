@@ -144,9 +144,11 @@ export function init(config) {
     SPARQL_FIELDS.map(f => `?${f.name} ${f.type === 'uri' ? `?${f.name}Label ` : ''}`).join('')
 }
             WHERE {
-              VALUES ?olids { ${authors.map(a => `"${a.key.split('/')[2]}"`).join(' ')} }
-              ?x wdt:P648 ?olids;
-                 wdt:P648 ?olid.
+              VALUES (?x ?olid) {
+                ${authors.filter(a => a.remote_ids.wikidata).map(
+        a => `"(wd:${a.remote_ids.wikidata} ${a.key.split('/')[2]})"`
+    ).join(' ')}
+              }
 
               ${
     SPARQL_FIELDS.map(f => (f.render || defaultFieldRender)(f))
