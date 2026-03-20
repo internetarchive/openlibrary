@@ -1079,7 +1079,7 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
 
@@ -7531,7 +7531,7 @@ msgstr ""
 msgid "It looks like you're offline."
 msgstr ""
 
-#: site/neck.html
+#: site/head.html
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published. Read, borrow, and discover more than"
