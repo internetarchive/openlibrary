@@ -2,92 +2,48 @@
 
 This is the canonical AI-agent reference for the Open Library codebase. Tool-specific bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) point here. If you update project guidance, update **this file** and leave the bridges alone.
 
+## Development Workflow
+
+**IMPORTANT:** All code verification (linting, testing, building) must be run inside Docker containers. See [Workflow Guide](workflow.md) for the complete development process.
+
+Quick reference:
+
+```bash
+# Start Docker
+docker compose up -d
+
+# Python lint (in Docker)
+docker compose run --rm home make lint
+
+# JS/CSS lint (in Docker)
+docker compose run --rm home npm run lint
+
+# Python tests (in Docker)
+docker compose run --rm home make test-py
+
+# JS tests (in Docker)
+docker compose run --rm home npm run test:js
+```
+
 ## Project Overview
 
 Open Library (openlibrary.org) is an open, editable library catalog by the Internet Archive. It's built on **Infogami**, a wiki framework using **web.py**, with a gradual migration to **FastAPI**. The frontend uses server-rendered templates (Templetor), jQuery, Vue 3 components, and Lit web components.
 
 ## Development Setup
 
-Run `make git` to initialize the Infogami submodule, then `docker compose up` and visit http://localhost:8080. The FastAPI server runs on port 18080.
+1. Initialize submodules: `make git`
+2. Start Docker: `docker compose up -d`
+3. Visit http://localhost:8080
 
-## Build Commands
+The FastAPI server runs on port 18080.
 
-Build targets are in the `Makefile`. Key dev workflow commands:
+## Topic Guides
 
-```bash
-make all                    # Build everything (css, js, components, lit-components, i18n)
-npm run watch               # Dev mode with hot reload (CSS + JS)
-npm run watch:lit-components # Watch Lit components
-```
+These companion docs cover specific areas in depth:
 
-## Testing
-
-```bash
-# Python tests (excludes integration tests by default)
-make test-py
-pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
-
-# Run a single Python test file
-pytest openlibrary/core/tests/test_models.py
-
-# Run a specific test
-pytest openlibrary/core/tests/test_models.py::test_function_name -xvs
-
-# JavaScript tests
-npm run test:js
-
-# i18n validation
-make test-i18n
-
-# All tests
-make test
-```
-
-## Troubleshooting
-
-### Books not appearing in search
-
-**Symptom:** You can view a book at `/books/OL1M` (DB has the record) but search returns no results.
-
-**Diagnosis:**
-```bash
-# Check DB record count
-docker compose exec db psql -U openlibrary -t -c "select count(*) from thing"
-
-# Check Solr index count
-curl "http://localhost:8983/solr/openlibrary/select?q=*:*&rows=0"
-```
-
-**Common cause:** New Solr fields were added to `conf/solr/conf/managed-schema.xml` but the local Solr core still has the old schema. The `solr-updater` fails silently when trying to index new field types.
-
-**Manual fix:**
-```bash
-# Option 1: Re-run the reindex
-docker compose run --rm home make reindex-solr
-
-# Option 2: If schema mismatch persists, fully reset Solr volume
-docker compose stop solr
-docker volume rm openlibrary_solr-data
-docker compose up -d solr
-docker compose run --rm home make reindex-solr
-```
-
-## Linting
-
-```bash
-# Python (ruff)
-make lint
-
-# JavaScript + CSS
-npm run lint
-npm run lint:js              # ESLint only
-npm run lint:css             # Stylelint only
-
-# Auto-fix
-npm run lint-fix
-```
-
-Pre-commit hooks are configured. Install with `pre-commit install`.
+- [Workflow Guide](workflow.md) — Complete development workflow from issue to PR
+- [Design](design.md) — UI design patterns: typography, layout shift prevention, animations
+- [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
 
 ## Architecture
 
@@ -100,6 +56,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 **Routes (FastAPI):** New endpoints go in `openlibrary/fastapi/`. The ASGI app in `openlibrary/asgi_app.py` mounts FastAPI alongside the legacy WSGI app.
 
 **Key plugins:**
+
 - `plugins/openlibrary/` — Main plugin: site routes, JS source files (`js/`), processors
 - `plugins/upstream/` — Core features: book editing, accounts, borrowing, models
 - `plugins/worksearch/` — Solr search integration
@@ -110,6 +67,7 @@ The app is loaded through Infogami's plugin system. `openlibrary/code.py` is the
 ### Templates (Templetor)
 
 Templates live in `openlibrary/templates/` and use web.py's Templetor syntax (not Jinja2):
+
 - `$def with (arg1, arg2)` — template arguments
 - `$variable` or `$:variable` (unescaped) — variable interpolation
 - `$if`, `$for`, `$while` — control flow
@@ -121,6 +79,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 ### Core Business Logic
 
 `openlibrary/core/` contains the data layer:
+
 - `models.py` — Data models (Work, Edition, Author, etc.)
 - `db.py` — Database access
 - `lending.py` — Book lending/availability
@@ -143,6 +102,7 @@ Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openli
 ### Data Model
 
 Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/infogami/` git submodule. The core entities are:
+
 - **Works** (`/works/OL123W`) — Abstract representation of a book (title, author associations)
 - **Editions** (`/books/OL456M`) — A specific publication of a Work (ISBN, publisher, format)
 - **Authors** (`/authors/OL789A`) — Author records linked from Works
@@ -156,39 +116,33 @@ A Work has many Editions. This is the central relationship in the data model.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)
 
-## Topic Guides
-
-These companion docs cover specific areas in depth:
-
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, animations
-- [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
-
 ## Key File Locations
 
-| What | Where |
-|---|---|
-| Python app entry | `openlibrary/code.py` |
-| FastAPI app | `openlibrary/asgi_app.py` |
-| Plugin route handlers | `openlibrary/plugins/*/code.py` |
-| HTML templates | `openlibrary/templates/` |
-| Template macros | `openlibrary/macros/` |
-| Core models & logic | `openlibrary/core/` |
-| JS source | `openlibrary/plugins/openlibrary/js/` |
-| CSS source | `static/css/` |
-| Vue components | `openlibrary/components/*.vue` |
-| Lit components | `openlibrary/components/lit/` |
-| Python tests | `tests/`, `openlibrary/**/tests/` |
-| JS tests | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
-| Docker config | `docker/`, `compose.yaml` |
-| Solr config | `conf/solr/` |
-| i18n translations | `openlibrary/i18n/` |
-| Infogami submodule | `vendor/infogami/` |
+| What                  | Where                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| Python app entry      | `openlibrary/code.py`                                               |
+| FastAPI app           | `openlibrary/asgi_app.py`                                           |
+| Plugin route handlers | `openlibrary/plugins/*/code.py`                                     |
+| HTML templates        | `openlibrary/templates/`                                            |
+| Template macros       | `openlibrary/macros/`                                               |
+| Core models & logic   | `openlibrary/core/`                                                 |
+| JS source             | `openlibrary/plugins/openlibrary/js/`                               |
+| CSS source            | `static/css/`                                                       |
+| Vue components        | `openlibrary/components/*.vue`                                      |
+| Lit components        | `openlibrary/components/lit/`                                       |
+| Python tests          | `tests/`, `openlibrary/**/tests/`                                   |
+| JS tests              | `tests/unit/js/`, `openlibrary/plugins/openlibrary/js/**/*.test.js` |
+| Docker config         | `docker/`, `compose.yaml`                                           |
+| Solr config           | `conf/solr/`                                                        |
+| i18n translations     | `openlibrary/i18n/`                                                 |
+| Infogami submodule    | `vendor/infogami/`                                                  |
 
 ## Contributing to These Docs
 
 This `docs/ai/` directory is the single source of truth for AI-agent guidance. The root-level bridge files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) are thin pointers — they rarely need updating.
 
 **To add a new topic:**
+
 1. Create `docs/ai/<topic>.md` (one domain per file, e.g., `solr.md`, `templates.md`).
 2. Add a link to it in the **Topic Guides** section above.
 3. No changes to the bridge files are needed — agents follow links from this README.

@@ -24,7 +24,7 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
     $if user_key:
       <input type="hidden" name="user-key" value="$(user_key)" />
 
-    <button class="book-progress-btn primary-action $(activated_status)" type="submit">
+    <button class="book-progress-btn primary-action $(activated_status)" type="submit" disabled>
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>
     </button>

@@ -130,6 +130,11 @@ export class ReadingLogForms {
                     this.dropperActions.toggleDropper()
                 })
             }
+
+            // Enable the primary button now that JS handlers are initialized
+            if (this.primaryButton) {
+                this.primaryButton.disabled = false
+            }
         }
     }
 

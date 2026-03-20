@@ -41,6 +41,11 @@
   margin-right: 2px;
 }
 
+.book-progress-btn:disabled {
+  cursor: pointer;
+  opacity: 1;
+}
+
 /* Styling for the My Books dropper's dropdown content: */
 .generic-dropper__dropdown {
   min-width: 200px;
