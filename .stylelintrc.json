@@ -33,7 +33,7 @@
 		"declaration-block-no-shorthand-property-overrides": true,
 		"selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["selected"]}],
 		"selector-pseudo-element-no-unknown": true,
-		"selector-type-no-unknown": true,
+		"selector-type-no-unknown": [true, {"ignoreTypes": ["/^ol-/"]}],
 		"media-feature-name-no-unknown": true,
 		"at-rule-no-unknown": true,
 		"comment-no-empty": true,

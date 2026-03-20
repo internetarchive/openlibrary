@@ -8,10 +8,10 @@ $ subject_list = [('subjects', _('Subjects'), 20), ('places', _('Places'), 20), 
 
 $def renderSubjects(subjects):
     $if len(subjects) > 0:
-        <span class="subject">
+        <ol-chip-group gap="small">
         $for s in subjects:
-            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
-        </span>
+            <ol-chip size="small" href="$s.key">$s.name</ol-chip>
+        </ol-chip-group>
     $else:
         <span class="title"><em>$_("None found.")</em></span>
 
