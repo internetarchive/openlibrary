@@ -127,7 +127,7 @@ class works_autocomplete(autocomplete):
     def make_solr_request(self, q, embedded_olid, limit, fq):
         if embedded_olid:
             return super().make_solr_request(q, embedded_olid, limit, fq)
-        
+
         from openlibrary.plugins.worksearch.code import work_search
 
         query_dict = {'q': q}
