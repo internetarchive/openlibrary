@@ -6,13 +6,9 @@ All functions prefixed with `admin_range__` will be run for each day and the
 result will be stored as the part after it. e.g. the result of
 admin_range__foo will be stored under the key `foo`.
 
-All functions prefixed with `admin_delta__` will be run for the current
-day and the result will be stored as the part after it. e.g. the
-result of `admin_delta__foo` will be stored under the key `foo`.
-
 All functions prefixed with `admin_total__` will be run for the current
 day and the result will be stored as `total_<key>`. e.g. the result of
-`admin_total__foo` will be stored under the key `total__foo`.
+`admin_total__foo` will be stored under the key `total_foo`.
 
 Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
@@ -66,10 +62,52 @@ def single_thing_skeleton(**kargs):
     return query_single_thing(db, typ, start, end)
 
 
+cached_bot_accounts = None
+
+
+def get_bot_accounts(thingdb=None) -> list[int]:
+    """
+    Returns a list of all `thing` table IDs that are associated with
+    bot accounts.
+    """
+    bot_query = """
+        SELECT id
+        FROM thing
+        WHERE key IN (
+          SELECT REPLACE(key, 'account/', '/people/')
+          FROM store
+          WHERE id IN (
+            SELECT store_id
+            FROM store_index
+            WHERE type = 'account'
+              AND name = 'bot'
+              AND value <> 'false'
+          )
+        )
+    """
+    oldb = thingdb
+    return [item.get('id') for item in list(oldb.query(bot_query))]
+
+
+def _get_cached_bot_accounts(thingdb=None) -> list[int]:
+    """
+    Returns a list of `thing` table IDs that are associated with
+    bot accounts.
+
+    Results are cached in the global `cached_bot_accounts`
+    variable.  If this variable is not set, the `get_bot_accounts`
+    function is used to fetch these identifiers.
+    """
+    global cached_bot_accounts
+    if cached_bot_accounts is None:
+        cached_bot_accounts = get_bot_accounts(thingdb=thingdb)
+    return cached_bot_accounts
+
+
 # Public functions that are used by stats.py
 def admin_range__human_edits(**kargs):
-    """Calculates the number of edits between the `start` and `end`
-    parameters done by humans. `thingdb` is the database.
+    """Calculates the number of edit actions performed by humans
+    between the given `start` and `end` dates. `thingdb` is the database.
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
@@ -77,22 +115,20 @@ def admin_range__human_edits(**kargs):
         db = kargs['thingdb']
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__human_edits")
-    q1 = f"SELECT count(*) AS count FROM transaction WHERE created >= '{start}' and created < '{end}'"
-    result = db.query(q1)
-    total_edits = result[0].count
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
     q1 = (
-        "SELECT count(DISTINCT t.id) AS count FROM transaction t, version v WHERE "
-        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+        "SELECT count(t.id) AS count FROM transaction t WHERE "
+        "t.created >= $start and t.created < $end AND "
+        "t.author_id NOT IN $bot_ids"
     )
-    result = db.query(q1)
-    bot_edits = result[0].count
-    return total_edits - bot_edits
+    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
+    count = result[0].count
+    return count
 
 
 def admin_range__bot_edits(**kargs):
-    """Calculates the number of edits between the `start` and `end`
-    parameters done by bots. `thingdb` is the database.
+    """Calculates the number of edit actions performed by bots between
+    the `start` and `end` dates. `thingdb` is the database.
     """
     try:
         start = kargs['start'].strftime("%Y-%m-%d")
@@ -100,12 +136,13 @@ def admin_range__bot_edits(**kargs):
         db = kargs['thingdb']
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
     q1 = (
-        "SELECT count(*) AS count FROM transaction t, version v WHERE "
-        f"v.transaction_id=t.id AND t.created >= '{start}' and t.created < '{end}' AND "
-        "t.author_id IN (SELECT thing_id FROM account WHERE bot = 't')"
+        "SELECT count(t.id) AS count FROM transaction t WHERE "
+        "t.created >= $start and t.created < $end AND "
+        "t.author_id IN $bot_ids"
     )
-    result = db.query(q1)
+    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
     count = result[0].count
     return count
 
@@ -134,9 +171,9 @@ admin_range__members = functools.partial(single_thing_skeleton, type="user")
 def admin_range__loans(**kargs):
     """Finds the number of loans on a given day.
 
-    Loan info is written to infobase write log. Grepping through the log file gives us the counts.
-
-    WARNING: This script must be run on the node that has infobase logs.
+    Loan info is written to the `stats` table.  Such entries will have
+    type `loan`.  As of writing, _only_ loan data is saved in the `stats`
+    table.
     """
     try:
         db = kargs['thingdb']
@@ -157,12 +194,6 @@ def admin_range__loans(**kargs):
 def admin_total__authors(**kargs):
     db = kargs['thingdb']
     return _count_things(db, "/type/author")
-
-
-def admin_total__subjects(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0
 
 
 def admin_total__lists(**kargs):
@@ -219,27 +250,6 @@ def _query_count(db, table, type, property, distinct=False):
     return result[0].count
 
 
-def admin_total__ebooks(**kargs):
-    # Anand - Dec 2014
-    # The following implementation is too slow. Disabling for now.
-    return 0
-
-    db = kargs['thingdb']
-    return _query_count(db, "edition_str", "/type/edition", "ocaid")
-
-
 def admin_total__members(**kargs):
     db = kargs['thingdb']
     return _count_things(db, '/type/user')
-
-
-def admin_delta__ebooks(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0
-
-
-def admin_delta__subjects(**kargs):
-    # Anand - Dec 2014 - TODO
-    # Earlier implementation that uses couchdb is gone now
-    return 0
