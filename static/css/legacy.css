@@ -1461,8 +1461,12 @@ ul.list-books span.resultType {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: 0;
+  margin-bottom: 0.5em;
+  aspect-ratio: 0.7;
+  overflow: hidden;
+  border-radius: 4px;
 }
 
 .list-books--grid .searchResultItem > .details,
@@ -1481,6 +1485,10 @@ ul.list-books span.resultType {
 .list-books--grid .searchResultItem .check-in-prompt,
 .list-books--grid .searchResultItem .star-rating-form {
   display: none;
+}
+
+.list-books--grid .searchResultItem .cta-btn.cta-btn--preview {
+  visibility: hidden;
 }
 
 .list-books--grid .list-books__note {
