@@ -113,6 +113,9 @@ export class ReadingLogForms {
      */
     initialize() {
         if (!this.isDropperDisabled) {
+            if (this.primaryButton) {
+                this.primaryButton.removeAttribute('disabled')
+            }
             if (this.readingLogForms.length) {
                 for (const form of this.readingLogForms) {
                     const submitButton = form.querySelector('button[type=submit]')
