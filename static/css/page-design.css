@@ -82,7 +82,7 @@ p {
   border-radius: 8px;
   border: 1px solid hsl(0, 0%, 87%);
   cursor: pointer;
-  background: #fff;
+  background: var(--white, hsl(0, 0%, 100%));
   font-size: 15px;
 }
 
