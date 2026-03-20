@@ -344,12 +344,13 @@ class addauthor(delegate.page):
         if not (get_current_user()):
             raise web.unauthorized()
         i = web.input('name')
-        if len(i.name) < 2:
-            return web.badrequest()
+        name = (i.name or '').strip()
+        if len(name) < 2:
+            raise web.badrequest("Author name must be at least 2 characters long")
         key = web.ctx.site.new_key('/type/author')
         web.ctx.path = key
         web.ctx.site.save(
-            {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
+            {'key': key, 'name': name, 'type': {'key': '/type/author'}},
             comment='New Author',
         )
         raise web.HTTPError('200 OK', {}, key)

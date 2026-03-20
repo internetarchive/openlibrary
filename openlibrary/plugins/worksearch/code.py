@@ -998,6 +998,19 @@ class author_search(delegate.page):
         fields='*',
         sort='',
     ):
+        q = (q or '').strip()
+        if q and len(q) < 2:
+            return SearchResponse(
+                facet_counts=None,
+                sort=sort,
+                docs=[],
+                num_found=0,
+                solr_select='',
+                raw_resp=None,
+                highlighting=None,
+                error=_('Author searches must be at least 2 characters long'),
+                time=None,
+            )
         resp = run_solr_query(
             AuthorSearchScheme(),
             {'q': q},

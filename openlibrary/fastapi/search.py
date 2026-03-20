@@ -328,9 +328,17 @@ class AuthorSearchRequestParams(Pagination):
 async def search_authors_json(
     params: Annotated[AuthorSearchRequestParams, Depends()],
 ):
+    q = (params.q or "").strip()
+    if q and len(q) < 2:
+        return {
+            "numFound": 0,
+            "start": params.offset or 0,
+            "docs": [],
+        }
+
     response = await run_solr_query_async(
         AuthorSearchScheme(),
-        {"q": params.q},
+        {"q": q},
         offset=params.offset,
         page=params.page,
         rows=params.limit,

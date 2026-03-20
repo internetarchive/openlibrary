@@ -1579,6 +1579,10 @@ msgstr ""
 msgid "Classic eBooks"
 msgstr ""
 
+#: openlibrary/plugins/worksearch/code.py
+msgid "Author searches must be at least 2 characters long"
+msgstr ""
+
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
 msgid "Settings"
@@ -6414,6 +6418,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Search by barcode"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Please enter at least 2 characters"
 msgstr ""
 
 #: lib/not_logged.html
