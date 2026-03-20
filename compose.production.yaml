@@ -346,6 +346,8 @@ services:
         - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
         - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
         - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped
@@ -358,6 +360,7 @@ services:
     volumes:
       # Needed to inspect other docker containers
       - /var/run/docker.sock:/var/run/docker.sock
+      - ../olsystem:/olsystem
     logging:
       options:
         max-size: "512m"
