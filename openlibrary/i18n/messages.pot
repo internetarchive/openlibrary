@@ -491,6 +491,26 @@ msgstr ""
 msgid "My Book Review"
 msgstr ""
 
+#: OlPagination.html
+msgid "Go to previous page"
+msgstr ""
+
+#: OlPagination.html
+msgid "Go to next page"
+msgstr ""
+
+#: OlPagination.html
+msgid "Go to page {page}"
+msgstr ""
+
+#: OlPagination.html
+msgid "Page {page}, current page"
+msgstr ""
+
+#: OlPagination.html type/edition/view.html type/work/view.html
+msgid "Pagination"
+msgstr ""
+
 #: Pager.html Pager_loanhistory.html
 msgid "First"
 msgstr ""
@@ -1813,18 +1833,19 @@ msgid ""
 msgstr ""
 
 #: design.html
-msgid "Event-based"
+msgid "Analytics tracking"
 msgstr ""
 
 #: design.html
 #, python-format
 msgid ""
 "When a page is clicked, the component fires an %(event_name)s event with "
-"the page number in %(event_detail)s."
+"the page number in %(event_detail)s. Use this to send analytics before "
+"the browser navigates."
 msgstr ""
 
 #: design.html
-msgid "Selected page:"
+msgid "Last tracked page:"
 msgstr ""
 
 #: design.html
@@ -1833,8 +1854,8 @@ msgstr ""
 
 #: design.html
 msgid ""
-"When base-url is provided, pagination renders anchor tags for SEO-"
-"friendly links."
+"By default, pagination renders anchor tags using the current page URL, "
+"preserving all query parameters. Use base-url to override the URL."
 msgstr ""
 
 #: design.html
@@ -7936,10 +7957,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Pagination"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
