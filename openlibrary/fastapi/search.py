@@ -22,6 +22,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     PaginationLimit20,
     SolrInternalsParams,
+    parse_comma_separated_list,
 )
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
@@ -97,7 +98,7 @@ class PublicQueryOptions(BaseModel):
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
-    fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
+    fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
@@ -109,12 +110,6 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
     )
-
-    @staticmethod
-    def parse_fields_string(v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            v = [v]
-        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
     @staticmethod
     def parse_query_json(v: str) -> dict[str, Any]:

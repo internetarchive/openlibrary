@@ -5,12 +5,14 @@ import re
 import urllib
 
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from openlibrary.plugins.books import dynlinks, readlinks
 
 
+@deprecated("migrated to fastapi")
 class books_json(delegate.page):
     """
     Endpoint for mapping bib keys (e.g. ISBN, LCCN) to certain links associated
@@ -48,6 +50,7 @@ class books_json(delegate.page):
         return dynlinks.dynlinks(bib_keys=i.bibkeys.split(","), options=i)
 
 
+@deprecated("migrated to fastapi")
 class read_singleget(delegate.page):
     """Handle the single-lookup form of the Hathi-style API"""
 
@@ -67,6 +70,7 @@ class read_singleget(delegate.page):
         return json.dumps(result)
 
 
+@deprecated("migrated to fastapi")
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API"""
 
