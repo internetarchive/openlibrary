@@ -47,6 +47,25 @@ class autocomplete(delegate.page):
     def GET(self):
         return self.direct_get()
 
+    def make_solr_request(self, q, embedded_olid, limit, fq):
+        if embedded_olid:
+            solr_q = f'key:"{olid_to_key(embedded_olid)}"'
+        else:
+            escaped_q = Solr.escape(q)
+            solr_q = self.query.format(q=escaped_q)
+
+        fq = fq or self.fq
+        params = {
+            'q_op': 'AND',
+            'rows': limit,
+            **({'fq': fq} if fq else {}),
+            'fl': self.fl,
+            **({'sort': self.sort} if self.sort else {}),
+        }
+
+        data = get_solr().select(solr_q, **params)
+        return data['docs']
+
     def direct_get(self, fq: Iterable[str] | None = None):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
@@ -57,23 +76,7 @@ class autocomplete(delegate.page):
         if self.olid_suffix:
             embedded_olid = find_olid_in_string(q, self.olid_suffix)
 
-        if embedded_olid:
-            solr_q = f'key:"{olid_to_key(embedded_olid)}"'
-        else:
-            solr_q = self.query.format(q=q)
-
-        fq = fq or self.fq
-        params = {
-            'q_op': 'AND',
-            'rows': i.limit,
-            **({'fq': fq} if fq else {}),
-            # limit the fields returned for better performance
-            'fl': self.fl,
-            **({'sort': self.sort} if self.sort else {}),
-        }
-
-        data = get_solr().select(solr_q, **params)
-        docs = data['docs']
+        docs = self.make_solr_request(q, embedded_olid, i.limit, fq)
 
         if embedded_olid and not docs:
             # Grumble! Work not in solr yet. Create a dummy.
@@ -120,6 +123,25 @@ class works_autocomplete(autocomplete):
         if 'subtitle' in doc:
             doc['full_title'] += ": " + doc['subtitle']
         doc['name'] = doc.get('title')
+
+    def make_solr_request(self, q, embedded_olid, limit, fq):
+        if embedded_olid:
+            return super().make_solr_request(q, embedded_olid, limit, fq)
+
+        from openlibrary.plugins.worksearch.code import work_search
+
+        query_dict = {'q': q}
+
+        search_results = work_search(
+            query=query_dict,
+            limit=limit,
+            fields=self.fl,
+            facet=False,
+            request_label='AUTOCOMPLETE_SEARCH',
+            spellcheck_count=0,
+        )
+
+        return search_results.get('docs', [])
 
 
 class authors_autocomplete(autocomplete):
