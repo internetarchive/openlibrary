@@ -20,13 +20,14 @@
  * Reference these throughout the app for consistent border-radius styling
  */
 :root {
-  --border-radius-button: 4px; /* buttons, tabs */
-  --border-radius-input: 4px; /* inputs, textareas */
-  --border-radius-thumbnail: 2px; /* small images */
-  --border-radius-media: 8px; /* large images, videos */
-  --border-radius-card: 8px; /* cards */
-  --border-radius-overlay: 12px; /* dialogs, modals */
-  --border-radius-badge: 2px; /* badges, tags */
-  --border-radius-notification: 8px; /* notifications, alerts */
-  --border-radius-avatar: 50%; /* avatars, profile pictures */
+  --border-radius-button: var(--border-radius-md); /* buttons, tabs */
+  --border-radius-input: var(--border-radius-md); /* inputs, textareas */
+  --border-radius-thumbnail: var(--border-radius-sm); /* small images */
+  --border-radius-media: var(--border-radius-lg); /* large images, videos */
+  --border-radius-card: var(--border-radius-lg); /* cards */
+  --border-radius-overlay: var(--border-radius-xl); /* dialogs, modals */
+  --border-radius-chip: var(--border-radius-xl); /* chips, pills that may wrap */
+  --border-radius-badge: var(--border-radius-sm); /* badges, tags */
+  --border-radius-notification: var(--border-radius-lg); /* notifications, alerts */
+  --border-radius-avatar: var(--border-radius-circle); /* avatars, profile pictures */
 }

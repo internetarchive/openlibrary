@@ -3,7 +3,7 @@ import { LitElement, html, css, nothing } from 'lit';
 /**
  * OLChip - A pill-shaped interactive chip web component
  *
- * Supports two sizes, a selected state with a checkmark icon,
+ * Supports two sizes, a selected state with a close icon,
  * click events, and optional link behavior via href.
  *
  * @property {Boolean} selected - Whether the chip is in a selected state
@@ -53,7 +53,7 @@ export class OLChip extends LitElement {
             align-items: center;
             padding: var(--chip-padding-block) var(--chip-padding-inline);
             border: var(--border-width) solid var(--color-border-subtle);
-            border-radius: var(--border-radius-pill);
+            border-radius: var(--border-radius-chip);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             line-height: var(--line-height-chip);
@@ -99,7 +99,7 @@ export class OLChip extends LitElement {
             font-size: var(--font-size-label-medium);
         }
 
-        /* Icon carousel — clips overflow so icons slide in/out */
+        /* Close icon for selected state */
         .icon-slot {
             position: absolute;
             inset-inline-start: var(--chip-padding-inline);
@@ -109,46 +109,9 @@ export class OLChip extends LitElement {
             height: var(--chip-icon-size);
         }
 
-        .icon-carousel {
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.2s cubic-bezier(.25, .46, .45, .94);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .chip:hover .icon-carousel {
-                transform: translateY(-50%);
-            }
-        }
-
         .icon {
             width: var(--chip-icon-size);
             height: var(--chip-icon-size);
-            flex-shrink: 0;
-            transition: opacity 0.2s cubic-bezier(.25, .46, .45, .94),
-                        filter 0.2s cubic-bezier(.25, .46, .45, .94);
-        }
-
-        .icon-check {
-            opacity: 1;
-            filter: blur(0);
-        }
-
-        .icon-close {
-            opacity: 0;
-            filter: blur(2px);
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .chip:hover .icon-check {
-                opacity: 0;
-                filter: blur(2px);
-            }
-
-            .chip:hover .icon-close {
-                opacity: 1;
-                filter: blur(0);
-            }
         }
 
         /* Count */
@@ -186,32 +149,18 @@ export class OLChip extends LitElement {
 
         return html`
             <span class="icon-slot">
-                <span class="icon-carousel">
-                    <svg
-                        class="icon icon-check"
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M20 6 9 17l-5-5"/>
-                    </svg>
-                    <svg
-                        class="icon icon-close"
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="3"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    >
-                        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-                    </svg>
-                </span>
+                <svg
+                    class="icon"
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+                </svg>
             </span>
         `;
     }
