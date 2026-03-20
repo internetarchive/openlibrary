@@ -19,7 +19,6 @@
  * and imported directly in one of the entry points that are prefixed
  * with `page-` or `js-`
  */
-@import "legacy-header.css";
 @import "legacy-tools.css";
 @import "legacy-wmd.css";
 

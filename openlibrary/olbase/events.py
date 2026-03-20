@@ -8,6 +8,7 @@ List of events:
     * infobase.edit: Triggered for edits. Changeset is passed as argument.
 """
 
+import functools
 import logging
 
 import eventer
@@ -126,7 +127,7 @@ class MemcacheInvalidater:
             return "/subjects/" + seed
 
 
-@web.memoize
+@functools.cache
 def get_memcache():
     """Returns memcache client created from infobase configuration."""
     cache = config.get("cache", {})

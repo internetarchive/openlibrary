@@ -263,6 +263,8 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
+        if page.get('do_not_cache') == 'True':
+            mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
     except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
@@ -1223,7 +1225,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.
