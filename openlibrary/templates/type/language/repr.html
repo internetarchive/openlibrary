@@ -1,2 +1,3 @@
 $def with (page)
-<a href="$page.key">$get_language_name(page.key)</a>
+$ user_lang = get_lang() or 'en'
+<a href="$page.key">$get_language_name(page.key, user_lang)</a>
