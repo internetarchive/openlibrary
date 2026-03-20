@@ -86,7 +86,7 @@ $jsdef render_work_autocomplete_item(item):
 
         <div class="formElement">
             <div class="label"><label for="edition-subtitle">$_("Subtitle")</label>
-                <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
+                <span class="tip">$_("Usually distinguished by different or smaller type.") $:_("For example: <i>envisioning the next 50 years</i>")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
@@ -109,7 +109,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publish_places">$_("Where was the book published?")</label>
-                        <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
+                        <span class="tip">$_("City, Country please.") $:_("For example: <i>New York, USA; Sydney, Australia</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
@@ -142,7 +142,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-edition_name">$_("Edition Name (if applicable):")</label>
-                        <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+                        <span class="tip">$:_("For example: <i>Centennial edition</i>; <i>First edition</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
@@ -152,7 +152,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-series">$_("Series Name (if applicable)")</label>
-                        <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+                        <span class="tip">$_("The name of the publisher's series.") $:_("For example: <i>The Story of Civilization, Part III</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
@@ -360,7 +360,7 @@ $jsdef render_work_autocomplete_item(item):
         <div class="formElement">
             <div class="label">
                 <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+            <span class="tip">$_("Anything about the book that may be of interest.") $:_("For example: <i>A Plume Book</i>")</span>
             </div>
             <div class="input">
                 <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
