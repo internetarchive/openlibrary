@@ -148,11 +148,6 @@ div.siteSearch.darker {
   background-color: var(--mid-grey);
 }
 /* stylelint-disable selector-max-specificity */
-div#headerNav ul.links li {
-  border-top: 1px solid var(--mid-grey);
-}
-/* stylelint-enable selector-max-specificity */
-/* stylelint-disable selector-max-specificity */
 div#contentHead {
   padding-bottom: 30px;
 }

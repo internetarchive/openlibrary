@@ -128,15 +128,12 @@ div#databar a {
 .formElement.pagetype #type\.key {
   width: 100%;
 }
-/* stylelint-disable selector-max-specificity */
 div#revertNotice,
-div#header,
 footer,
 div#bottom,
 .siteSearch {
   display: none;
 }
-/* stylelint-enable selector-max-specificity */
 
 /* Defined in openlibrary/macros/EditButtons.html */
 div.adminDelete {
