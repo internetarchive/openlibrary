@@ -5035,7 +5035,8 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
-#: books/edit.html type/author/edit.html type/template/edit.html
+#: books/edit.html type/author/edit.html type/tag/form.html
+#: type/template/edit.html
 msgid "Delete Record"
 msgstr ""
 

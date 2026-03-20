@@ -9,6 +9,11 @@ $ heading = _("Edit tag") if is_editing else _("Add a tag to Open Library")
 <div id="contentHead">
     $if is_editing:
         $:macros.databarEdit(page)
+        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+            <span class="adminOnly right">
+                <button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete"
+                    form="tag-form">$_("Delete Record")</button>
+            </span>
 
     <h1>$heading</h1>
     $if not is_editing:
@@ -16,7 +21,7 @@ $ heading = _("Edit tag") if is_editing else _("Add a tag to Open Library")
 </div>
 
 <div id="contentBody">
-    <form name="edit" method="post" class="olform">
+    <form id="tag-form" name="edit" method="post" class="olform">
         $if redirect:
             <input type="hidden" name="redir" value="$redirect">
         $:render_template("type/tag/tag_form_inputs", page)
