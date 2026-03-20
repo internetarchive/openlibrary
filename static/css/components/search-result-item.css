@@ -124,16 +124,13 @@
 }
 
 .searchResultItem .preview-covers {
-  display: block;
-  height: 45px;
-  overflow: hidden;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
 }
 
 .searchResultItem .preview-covers img {
-  border-radius: var(--border-radius-thumbnail);
-  opacity: 0.7;
+  border-radius: 4px;
+  opacity: 1;
 }
 
 .searchResultItem .preview-covers--blur img {
@@ -151,10 +148,6 @@
   max-width: 100%;
   max-height: 300px;
   width: 175px;
-}
-
-.searchResultItem .bookcover--blur img {
-  filter: blur(4px);
 }
 
 .searchResultItem .imageLg {
@@ -187,6 +180,40 @@
 .srw__subjects em {
   font-weight: bold;
   font-style: normal;
+}
+
+.preview-covers-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+}
+
+.preview-covers a {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.preview-covers a:nth-child(n + 2) {
+  margin-left: -15px;
+}
+
+.preview-covers a:nth-child(1) {
+  z-index: var(--z-index-level-4);
+}
+
+.preview-covers a:nth-child(2) {
+  z-index: var(--z-index-level-3);
+}
+
+.preview-covers a:nth-child(3) {
+  z-index: var(--z-index-level-2);
+}
+
+.preview-covers a:nth-child(4) {
+  z-index: var(--z-index-level-1);
 }
 
 .srw__chapters {
@@ -239,7 +266,7 @@
 }
 
 .preview-covers img:hover {
-  opacity: 1;
+  z-index: var(--z-index-level-5);
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */

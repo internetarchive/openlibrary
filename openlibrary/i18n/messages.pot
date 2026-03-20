@@ -826,6 +826,13 @@ msgid_plural "%(count)s editions"
 msgstr[0] ""
 msgstr[1] ""
 
+#: SearchResultsWork.html publishers/view.html
+#, python-format
+msgid "%(count)s ebook"
+msgid_plural "%(count)s ebooks"
+msgstr[0] ""
+msgstr[1] ""
+
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
@@ -7140,13 +7147,6 @@ msgstr ""
 #, python-format
 msgid "Publisher: %(name)s"
 msgstr ""
-
-#: publishers/view.html
-#, python-format
-msgid "%(count)s ebook"
-msgid_plural "%(count)s ebooks"
-msgstr[0] ""
-msgstr[1] ""
 
 #: publishers/view.html
 msgid "0 ebooks"

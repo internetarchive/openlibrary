@@ -175,30 +175,37 @@ $code:
             </ol-read-more>
 
         $if doc.get('ia') and len(doc.get('ia')) > 1:
-          <br />
           $ blur_preview = "preview-covers--blur" if blur else ""
-          <span class="preview-covers $blur_preview">
-            $for x, i in enumerate(doc.get('ia')[1:10]):
-              <a href="$(book_url)?edition=ia:$(urlquote(i))">
-                <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
-              </a>
-          </span>
 
-        <span class="resultDetails">
-          $if doc.get('first_publish_year'):
-            <span>
-              $_('First published in %(year)s', year=doc.first_publish_year)
-            </span>&mdash;
-          $if doc.get('edition_count'):
-            <span>
-              <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+          <div class="preview-covers-container">
+            <span class="preview-covers $blur_preview">
+              $for x, i in enumerate(doc.get('ia')[1:5]):
+                <a href="$(book_url)?edition=ia:$(urlquote(i))">
+                  <img width="30" height="45" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">
+                </a>
             </span>
-          $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
-            <span class="languages">
-              $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
-              $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
+
+            <span class="resultDetails">
+              $if doc.get('first_publish_year'):
+                <span>
+                  $_('First published in %(year)s', year=doc.first_publish_year)
+                </span>
+                <br>
+              $if doc.get('edition_count'):
+                <span>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>,
+                </span>
+              $if doc.get('ia'):
+                <span>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s ebook', '%(count)s ebooks', len(doc.get('ia')), count=len(doc.get('ia')))</a>
+                </span>
+              $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
+                <span class="languages">
+                  $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
+                  $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
+                </span>
             </span>
-        </span>
+          </div>
 
         $if show_librarian_extras:
           <div class="searchResultItem__librarian-extras" title="$_('This is only visible to librarians.')">
