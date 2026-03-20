@@ -52,6 +52,7 @@ CREATE TABLE bookshelves_books (
 );
 CREATE INDEX bookshelves_books_work_id_idx ON bookshelves_books (work_id);
 CREATE INDEX bookshelves_books_updated_idx ON bookshelves_books (updated);
+CREATE INDEX bookshelves_books_created_idx ON bookshelves_books (created);
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');
@@ -95,6 +96,8 @@ CREATE TABLE community_edits_queue (
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc')
 );
+
+CREATE INDEX community_edits_queue_updated_idx ON community_edits_queue (updated);
 
 CREATE TABLE yearly_reading_goals (
     username text not null,
