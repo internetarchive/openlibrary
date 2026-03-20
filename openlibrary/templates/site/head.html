@@ -37,16 +37,36 @@ $def with (page)
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
 
     <style>
-      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content. The min-height is set to match the default height of the component. */
-      ol-read-more {
-        min-height: 121px;
-        visibility: hidden;
-        overflow: hidden;
-      }
-      ol-read-more[label-size="small"] {
-        min-height: 107px;
+      /* DSD: hide web components in browsers without Declarative Shadow DOM */
+      @supports not (selector(:has(> template[shadowrootmode]))) {
+        ol-read-more:not(:defined),
+        ol-pagination:not(:defined) {
+          visibility: hidden;
+        }
       }
     </style>
+    <script>
+      /* DSD polyfill */
+      (function() {
+        if (!HTMLTemplateElement.prototype.hasOwnProperty('shadowRootMode')) {
+          document.querySelectorAll
+            || document.addEventListener('DOMContentLoaded', applyDSD);
+          function applyDSD() {
+            document.querySelectorAll('template[shadowrootmode]').forEach(function(tpl) {
+              var mode = tpl.getAttribute('shadowrootmode');
+              var parent = tpl.parentElement;
+              if (parent && !parent.shadowRoot) {
+                var shadow = parent.attachShadow({ mode: mode });
+                shadow.appendChild(tpl.content);
+                tpl.remove();
+              }
+            });
+          }
+          if (document.readyState !== 'loading') applyDSD();
+          else document.addEventListener('DOMContentLoaded', applyDSD);
+        }
+      })();
+    </script>
 
     <noscript>
       <style>

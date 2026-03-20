@@ -144,7 +144,7 @@ $code:
             <br />
             $ matching_chapters = highlighting.get('chapter', [])
 
-            <ol-read-more class="srw__chapters" more-text="$_('Show more')" less-text="$_('Show less')" background-color="#E2ECF8" label-size="small">
+            $:dsd_read_more(more_text=_('Show more'), less_text=_('Show less'), background_color='#E2ECF8', label_size='small', **{'class': 'srw__chapters'})
               $for chapter in matching_chapters:
                 $if not chapter.strip():
                   $continue
@@ -172,7 +172,7 @@ $code:
                     <div style="flex:1; border-bottom: 1px dotted;"></div>
                     Page $pagenum
                 </$tag>
-            </ol-read-more>
+            $:dsd_read_more_close()
 
         $if doc.get('ia') and len(doc.get('ia')) > 1:
           <br />

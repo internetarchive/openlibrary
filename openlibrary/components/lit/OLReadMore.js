@@ -127,11 +127,9 @@ export class OLReadMore extends LitElement {
     firstUpdated() {
         this._checkIfTruncationNeeded();
         this._updateBackgroundColor();
-        // Remove styles that were used to prevent layout shift
-        // Now that the component has rendered, it can size naturally
-        this.style.minHeight = 'auto';
+        // Ensure component is visible after JS hydration (handles both
+        // DSD pre-rendered and legacy FOUC-prevention cases)
         this.style.visibility = 'visible';
-        this.style.overflow = 'visible';
     }
 
     updated(changedProperties) {

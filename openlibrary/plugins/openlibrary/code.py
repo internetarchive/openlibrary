@@ -1265,6 +1265,12 @@ def setup_template_globals():
             "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
         }
 
+    from openlibrary.core.dsd import (
+        dsd_pagination,
+        dsd_read_more,
+        dsd_read_more_close,
+    )
+
     web.template.Template.globals.update(
         {
             'cookies': web.cookies,
@@ -1291,6 +1297,10 @@ def setup_template_globals():
             'time': time,
             'input': web.input,
             'dumps': json.dumps,
+            # Declarative Shadow DOM helpers for Lit web components
+            'dsd_read_more': dsd_read_more,
+            'dsd_read_more_close': dsd_read_more_close,
+            'dsd_pagination': dsd_pagination,
         }
     )
 
