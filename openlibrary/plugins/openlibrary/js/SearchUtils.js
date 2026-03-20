@@ -123,6 +123,17 @@ export const mode = new PersistentValue('mode', {
     }
 });
 
+/**
+ * Normalizes a raw mode string against the known allowlist.
+ * Returns the lowercased valid mode, or null if invalid/absent.
+ * @param {*} mode
+ * @returns {String|null}
+ */
+export function normalizeMode(mode) {
+    const lower = (typeof mode === 'string' ? mode : '').toLowerCase();
+    return MODES.includes(lower) ? lower : null;
+}
+
 /** Manages interactions of the search mode radio buttons */
 export class SearchModeSelector {
     /**
