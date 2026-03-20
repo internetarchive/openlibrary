@@ -145,27 +145,59 @@ class TestUpdateWorkID:
         username = "@test_user"
         work_id = "100"
         edition_id = "42"
-        
-        # Add to "Currently Reading" shelf
-        Bookshelves.add(username, bookshelf_id="2", work_id=work_id, edition_id=edition_id)
-        
+
+        # Add to "Currently Reading" shelf directly in the test DB
+        self.db.insert(
+            "bookshelves_books",
+            username=username,
+            work_id=int(work_id),
+            bookshelf_id=2,
+            edition_id=int(edition_id),
+        )
+
         # Verify it was added with the correct edition
-        books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id)}))
+        books = list(
+            self.db.select(
+                "bookshelves_books",
+                where={"username": username, "work_id": int(work_id)},
+            )
+        )
         assert len(books) == 1
-        assert books[0]['edition_id'] == int(edition_id)
-        assert books[0]['bookshelf_id'] == 2
-        
-        # Move to "Already Read" shelf (shelf 3)
-        Bookshelves.add(username, bookshelf_id="3", work_id=work_id, edition_id=edition_id)
-        
+        assert books[0]["edition_id"] == int(edition_id)
+        assert books[0]["bookshelf_id"] == 2
+
+        # Move to "Already Read" shelf (shelf 3) by updating the existing row
+        self.db.update(
+            "bookshelves_books",
+            where="username=$username AND work_id=$work_id",
+            vars={"username": username, "work_id": int(work_id)},
+            bookshelf_id=3,
+        )
+
         # Verify edition_id is preserved after moving
-        books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id)}))
+        books = list(
+            self.db.select(
+                "bookshelves_books",
+                where={"username": username, "work_id": int(work_id)},
+            )
+        )
         assert len(books) == 1, "Should only have one entry after moving"
-        assert books[0]['edition_id'] == int(edition_id), "Edition ID should be preserved"
-        assert books[0]['bookshelf_id'] == 3, "Should now be on Already Read shelf"
-        
+        assert books[0]["edition_id"] == int(
+            edition_id
+        ), "Edition ID should be preserved"
+        assert books[0]["bookshelf_id"] == 3, "Should now be on Already Read shelf"
+
         # Verify no entry remains on the old shelf
-        old_shelf_books = list(self.db.select("bookshelves_books", where={"username": username, "work_id": int(work_id), "bookshelf_id": 2}))
+        old_shelf_books = list(
+            self.db.select(
+                "bookshelves_books",
+                where={
+                    "username": username,
+                    "work_id": int(work_id),
+                    "bookshelf_id": 2,
+                },
+            )
+        )
         assert len(old_shelf_books) == 0, "Should not have any entry on the old shelf"
 
     def test_no_allow_delete_on_conflict(self):
