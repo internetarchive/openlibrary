@@ -42,7 +42,11 @@ export class OlTooltip extends LitElement {
     // ── Warm-mode tracking ──
     // When any tooltip hides, we record the timestamp. If another tooltip
     // tries to show within the warm window, we skip its show delay entirely.
+    // We also save the outgoing tooltip's position so the next tooltip can
+    // morph (slide) from the old position to its own.
     static _lastHideTime = 0;
+    static _lastRect = null;
+    static _activeInstance = null;
     static WARM_WINDOW = 300; // ms
     static _idCounter = 0;
 
@@ -81,9 +85,27 @@ export class OlTooltip extends LitElement {
             user-select: none;
             width: max-content;
 
-            /* Start state */
+            /* Hidden by default */
+            display: none;
             opacity: 0;
-            transform: scale(0.88);
+            transform: scale(0.8);
+        }
+
+        /* ── Content wrapper for text crossfade ── */
+
+        .tooltip-content {
+            display: block;
+        }
+
+        /* ── Entering (normal show) ── */
+
+        .tooltip[data-state="preparing"],
+        .tooltip[data-state="entering"],
+        .tooltip[data-state="open"],
+        .tooltip[data-state="morph-preparing"],
+        .tooltip[data-state="morphing"],
+        .tooltip[data-state="exiting"] {
+            display: block;
         }
 
         .tooltip[data-state="entering"],
@@ -92,18 +114,52 @@ export class OlTooltip extends LitElement {
             transform: scale(1);
         }
 
+        .tooltip[data-state="morph-preparing"] {
+            opacity: 1;
+            transform: scale(1);
+        }
+
         .tooltip[data-state="entering"] {
             transition:
-                opacity 250ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
+                opacity 350ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 350ms cubic-bezier(0.23, 1, 0.32, 1);
         }
+
+        /* ── Warm-mode morph: slide panel, crossfade text ── */
+
+        .tooltip[data-state="morphing"] {
+            opacity: 1;
+            transform: scale(1);
+            transition:
+                top 300ms cubic-bezier(0.23, 1, 0.32, 1),
+                left 300ms cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .tooltip[data-state="morph-preparing"] .tooltip-content {
+            opacity: 0;
+        }
+
+        .tooltip[data-state="morphing"] .tooltip-content {
+            animation: content-enter 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        /* ── Exiting ── */
 
         .tooltip[data-state="exiting"] {
             opacity: 0;
-            transform: scale(0.88);
+            transform: scale(0.8);
             transition:
-                opacity 180ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+                opacity 250ms cubic-bezier(0.165, 0.84, 0.44, 1),
+                transform 250ms cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes content-enter {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
 
         /* ── Arrow ── */
@@ -131,8 +187,15 @@ export class OlTooltip extends LitElement {
 
         @media (prefers-reduced-motion: reduce) {
             .tooltip[data-state="entering"],
-            .tooltip[data-state="exiting"] {
+            .tooltip[data-state="exiting"],
+            .tooltip[data-state="morphing"] {
                 transition: none;
+            }
+            .tooltip[data-state="entering"] .tooltip-content,
+            .tooltip[data-state="exiting"] .tooltip-content,
+            .tooltip[data-state="morphing"] .tooltip-content {
+                transition: none;
+                animation: none;
             }
         }
     `;
@@ -185,37 +248,36 @@ export class OlTooltip extends LitElement {
     }
 
     render() {
-        const show = this._animState !== 'closed';
         // Reflect the actual side as a host attribute for arrow CSS
-        if (show) {
+        if (this._animState !== 'closed') {
             this.dataset.side = this._actualSide;
         }
 
         return html`
             <slot @slotchange="${this._onSlotChange}"></slot>
-            ${show ? html`
-                <div
-                    class="tooltip"
-                    id="${this._tooltipId}"
-                    role="tooltip"
-                    data-state="${this._animState}"
-                    style="
-                        top: ${this._position.top}px;
-                        left: ${this._position.left}px;
-                        transform-origin: ${this._transformOrigin};
-                    "
-                    @transitionend="${this._onTransitionEnd}"
-                >
+            <div
+                class="tooltip"
+                id="${this._tooltipId}"
+                role="tooltip"
+                data-state="${this._animState}"
+                style="
+                    top: ${this._position.top}px;
+                    left: ${this._position.left}px;
+                    transform-origin: ${this._transformOrigin};
+                "
+                @transitionend="${this._onTransitionEnd}"
+            >
+                <span class="tooltip-content">
                     <slot name="content">${this.content}</slot>
-                    ${!this.withoutArrow ? html`
-                        <div
-                            class="arrow"
-                            aria-hidden="true"
-                            style="${this._arrowStyle}"
-                        ></div>
-                    ` : nothing}
-                </div>
-            ` : nothing}
+                </span>
+                ${!this.withoutArrow ? html`
+                    <div
+                        class="arrow"
+                        aria-hidden="true"
+                        style="${this._arrowStyle}"
+                    ></div>
+                ` : nothing}
+            </div>
         `;
     }
 
@@ -285,41 +347,112 @@ export class OlTooltip extends LitElement {
     // ── Show / Hide ──
 
     _show() {
-        if (this._animState === 'open' || this._animState === 'entering') return;
+        if (this._animState === 'open' || this._animState === 'entering' || this._animState === 'morphing' || this._animState === 'morph-preparing') return;
 
         this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const warm = this._isWarm();
+        const morphFrom = warm ? OlTooltip._lastRect : null;
 
-        // Render off-screen to measure
-        this._position = { top: -9999, left: -9999 };
-        this._animState = this._reducedMotion ? 'open' : 'preparing';
+        // Clear saved rect so it's only used once
+        OlTooltip._lastRect = null;
 
-        this.updateComplete.then(() => {
-            const tooltip = this.shadowRoot.querySelector('.tooltip');
-            if (!tooltip) return;
+        // Force-close any tooltip that's still animating out,
+        // so only one panel is visible during a morph
+        if (morphFrom && OlTooltip._activeInstance && OlTooltip._activeInstance !== this) {
+            OlTooltip._activeInstance._animState = 'closed';
+            OlTooltip._activeInstance.requestUpdate();
+        }
 
-            this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
+        OlTooltip._activeInstance = this;
 
-            if (this._reducedMotion) {
+        if (morphFrom) {
+            // Morph: render at previous tooltip's position first (visible, no transition),
+            // then slide to the computed position via CSS transition.
+            //
+            // Three-phase sequence:
+            //   1. Render at old position with 'morph-preparing' (visible, no transition)
+            //   2. Measure panel, compute final position, switch to 'morphing' (adds transition)
+            //   3. On next frame, update position — CSS transition animates the slide
+            this._position = { top: morphFrom.top, left: morphFrom.left };
+            this._animState = 'morph-preparing';
+
+            this.updateComplete.then(() => {
+                const tooltip = this.shadowRoot.querySelector('.tooltip');
+                if (!tooltip) return;
+
+                // Measure panel and compute final position
+                const panelW = tooltip.offsetWidth;
+                const panelH = tooltip.offsetHeight;
+                this._computePosition(panelW, panelH);
+                const finalPos = { ...this._position };
+                const finalSide = this._actualSide;
+                const finalArrowOffset = this._arrowOffset;
+
+                if (this._reducedMotion) {
+                    this._animState = 'open';
+                    this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
+                        bubbles: true, composed: true
+                    }));
+                    return;
+                }
+
+                // Restore old position and enable transition
+                this._position = { top: morphFrom.top, left: morphFrom.left };
+                this._animState = 'morphing';
+
+                // After Lit renders with transition active, update to final position
+                this.updateComplete.then(() => {
+                    tooltip.getBoundingClientRect();
+
+                    this._position = finalPos;
+                    this._actualSide = finalSide;
+                    this._arrowOffset = finalArrowOffset;
+
+                    this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
+                        bubbles: true, composed: true
+                    }));
+                });
+            });
+        } else {
+            // Normal show: render off-screen to measure, then animate in
+            this._position = { top: -9999, left: -9999 };
+            this._animState = this._reducedMotion ? 'open' : 'preparing';
+
+            this.updateComplete.then(() => {
+                const tooltip = this.shadowRoot.querySelector('.tooltip');
+                if (!tooltip) return;
+
+                this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
+
+                if (this._reducedMotion) {
+                    this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
+                        bubbles: true, composed: true
+                    }));
+                    return;
+                }
+
+                // Force reflow so browser paints the start position
+                tooltip.getBoundingClientRect();
+
+                this._animState = 'entering';
                 this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
                     bubbles: true, composed: true
                 }));
-                return;
-            }
-
-            // Force reflow so browser paints the start position
-            tooltip.getBoundingClientRect();
-
-            this._animState = 'entering';
-            this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
-                bubbles: true, composed: true
-            }));
-        });
+            });
+        }
     }
 
     _hide() {
         if (this._animState === 'closed' || this._animState === 'exiting') return;
 
         OlTooltip._lastHideTime = Date.now();
+        OlTooltip._activeInstance = null;
+
+        // Save position for morph handoff to the next tooltip
+        OlTooltip._lastRect = {
+            top: this._position.top,
+            left: this._position.left,
+        };
 
         if (this._reducedMotion) {
             this._animState = 'closed';
@@ -338,7 +471,7 @@ export class OlTooltip extends LitElement {
     _onTransitionEnd(e) {
         if (e.target !== e.currentTarget) return;
 
-        if (this._animState === 'entering') {
+        if (this._animState === 'entering' || this._animState === 'morphing') {
             this._animState = 'open';
         } else if (this._animState === 'exiting') {
             this._animState = 'closed';
