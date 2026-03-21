@@ -87,7 +87,7 @@ $if can_merge:
                             </div>
                     </label>
                     $if a.bio:
-                        <p>${ macros.TruncateString(a.bio, 250) }</p>
+                        <p>$:macros.TruncateString(a.bio, 250)</p>
                     $else:
                         <p>No description.</p>
                     <ul>
