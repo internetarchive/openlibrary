@@ -930,6 +930,60 @@ class Changeset(client.Changeset):
     def can_undo(self):
         return False
 
+    @staticmethod
+    def _find_referenced_duplicate_keys(value, duplicate_keys):
+        """Return duplicate keys referenced anywhere in a nested value."""
+        matches = set()
+        if isinstance(value, dict):
+            key = value.get('key')
+            if key in duplicate_keys:
+                matches.add(key)
+            for item in value.values():
+                matches.update(
+                    Changeset._find_referenced_duplicate_keys(item, duplicate_keys)
+                )
+        elif isinstance(value, list):
+            for item in value:
+                matches.update(
+                    Changeset._find_referenced_duplicate_keys(item, duplicate_keys)
+                )
+        return matches
+
+    def get_related_changes_by_duplicate(self):
+        """Group non-master, non-duplicate merge changes by referenced duplicate key."""
+        duplicate_keys = self.data.get('duplicates') or []
+        related_by_duplicate = {dup_key: [] for dup_key in duplicate_keys}
+        if not duplicate_keys:
+            return related_by_duplicate
+
+        master_key = self.data.get('master')
+        duplicate_key_set = set(duplicate_keys)
+
+        for item in self.changes or []:
+            item_key = item.get('key')
+            item_revision = item.get('revision')
+            if item_key == master_key or item_key in duplicate_key_set:
+                continue
+            if not item_key or not item_revision or item_revision <= 1:
+                continue
+
+            doc = web.ctx.site.get(item_key, revision=item_revision - 1)
+            if not doc:
+                continue
+
+            try:
+                doc_data = doc.dict()
+            except Exception:
+                continue
+
+            matched_duplicates = self._find_referenced_duplicate_keys(
+                doc_data, duplicate_key_set
+            )
+            for dup_key in matched_duplicates:
+                related_by_duplicate[dup_key].append(item)
+
+        return related_by_duplicate
+
     def _get_doc(self, key, revision):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
