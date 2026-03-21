@@ -5913,19 +5913,6 @@ msgid "right"
 msgstr ""
 
 #: design/tooltip.html
-msgid "Without arrow"
-msgstr ""
-
-#: design/tooltip.html
-#, python-format
-msgid "Add %(attr)s to hide the directional arrow."
-msgstr ""
-
-#: design/tooltip.html
-msgid "Hover me"
-msgstr ""
-
-#: design/tooltip.html
 msgid "Rich content via slot"
 msgstr ""
 
