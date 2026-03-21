@@ -446,7 +446,9 @@ export class OlTooltip extends LitElement {
         if (this._animState === 'closed' || this._animState === 'exiting') return;
 
         OlTooltip._lastHideTime = Date.now();
-        OlTooltip._activeInstance = null;
+        // Don't clear _activeInstance here — keep it pointing to this tooltip
+        // so the next tooltip's _show() can force-close it instantly during
+        // warm handoff, preventing two tooltips from being visible at once.
 
         // Save position for morph handoff to the next tooltip
         OlTooltip._lastRect = {
@@ -456,6 +458,9 @@ export class OlTooltip extends LitElement {
 
         if (this._reducedMotion) {
             this._animState = 'closed';
+            if (OlTooltip._activeInstance === this) {
+                OlTooltip._activeInstance = null;
+            }
             this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
                 bubbles: true, composed: true
             }));
@@ -475,6 +480,9 @@ export class OlTooltip extends LitElement {
             this._animState = 'open';
         } else if (this._animState === 'exiting') {
             this._animState = 'closed';
+            if (OlTooltip._activeInstance === this) {
+                OlTooltip._activeInstance = null;
+            }
         }
     }
 
