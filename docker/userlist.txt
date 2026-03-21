@@ -1,0 +1,5 @@
+; userlist.txt for pgbouncer
+; auth_type = trust locally, so passwords are ignored — entries just need to exist
+; for pgbouncer to recognise the user names it may receive.
+"postgres" ""
+"openlibrary" ""

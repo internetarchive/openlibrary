@@ -3,7 +3,7 @@
 db_parameters:
     engine: postgres
     database: openlibrary
-    host: db
+    host: pgbouncer
 
 account_bot: /people/AccountBot
 user_root: /people/

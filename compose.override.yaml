@@ -71,6 +71,20 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
+  pgbouncer:
+    # Sits in front of the postgres container and pools connections.
+    # coverstore and infobase both point at this instead of db directly.
+    # edoburu/pgbouncer is a well-used community image (~10M pulls); no official image exists.
+    # Pin to a specific tag rather than latest for reproducibility.
+    image: edoburu/pgbouncer:v1.25.1-p0
+    networks:
+      - dbnet
+    volumes:
+      - ./docker/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./docker/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - db
+
   db:
     image: postgres:${POSTGRES_VERSION:-9.3}
     networks:
