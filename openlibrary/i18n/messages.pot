@@ -1806,6 +1806,10 @@ msgstr ""
 msgid "Components"
 msgstr ""
 
+#: design.html
+msgid "Tooltip"
+msgstr ""
+
 #: design.html type/edition/view.html type/work/view.html
 msgid "Read More"
 msgstr ""
