@@ -42,16 +42,6 @@ $def with()
     </section>
 
     <section class="example">
-      <h3 class="example__title">$_("Without arrow")</h3>
-      <p>$:_("Add %(attr)s to hide the directional arrow.", attr="<code>without-arrow</code>")</p>
-      <div class="example__output" style="padding: 32px 16px;">
-        <ol-tooltip content="No arrow here" without-arrow>
-          <button class="demo-btn">$_("Hover me")</button>
-        </ol-tooltip>
-      </div>
-    </section>
-
-    <section class="example">
       <h3 class="example__title">$_("Rich content via slot")</h3>
       <p>$:_("Use %(slot)s for HTML content inside the tooltip.", slot="<code>slot=\"content\"</code>")</p>
       <code class="example__code">&lt;ol-tooltip&gt;&lt;button&gt;Info&lt;/button&gt;&lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;&lt;/ol-tooltip&gt;</code>
