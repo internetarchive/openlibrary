@@ -7307,6 +7307,22 @@ msgid "Duplicates"
 msgstr ""
 
 #: recentchanges/merge/view.html
+msgid "Related Records"
+msgstr ""
+
+#: recentchanges/merge/view.html
+msgid "No related records found for this duplicate."
+msgstr ""
+
+#: recentchanges/merge/view.html
+msgid "Individually Undone"
+msgstr ""
+
+#: recentchanges/merge/view.html
+msgid "Undo"
+msgstr ""
+
+#: recentchanges/merge/view.html
 #, python-format
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."

@@ -930,6 +930,60 @@ class Changeset(client.Changeset):
     def can_undo(self):
         return False
 
+    @staticmethod
+    def _find_referenced_duplicate_keys(value, duplicate_keys):
+        """Return duplicate keys referenced anywhere in a nested value."""
+        matches = set()
+        if isinstance(value, dict):
+            key = value.get('key')
+            if key in duplicate_keys:
+                matches.add(key)
+            for item in value.values():
+                matches.update(
+                    Changeset._find_referenced_duplicate_keys(item, duplicate_keys)
+                )
+        elif isinstance(value, list):
+            for item in value:
+                matches.update(
+                    Changeset._find_referenced_duplicate_keys(item, duplicate_keys)
+                )
+        return matches
+
+    def get_related_changes_by_duplicate(self):
+        """Group non-master, non-duplicate merge changes by referenced duplicate key."""
+        duplicate_keys = self.data.get('duplicates') or []
+        related_by_duplicate = {dup_key: [] for dup_key in duplicate_keys}
+        if not duplicate_keys:
+            return related_by_duplicate
+
+        master_key = self.data.get('master')
+        duplicate_key_set = set(duplicate_keys)
+
+        for item in self.changes or []:
+            item_key = item.get('key')
+            item_revision = item.get('revision')
+            if item_key == master_key or item_key in duplicate_key_set:
+                continue
+            if not item_key or not item_revision or item_revision <= 1:
+                continue
+
+            doc = web.ctx.site.get(item_key, revision=item_revision - 1)
+            if not doc:
+                continue
+
+            try:
+                doc_data = doc.dict()
+            except Exception:
+                continue
+
+            matched_duplicates = self._find_referenced_duplicate_keys(
+                doc_data, duplicate_key_set
+            )
+            for dup_key in matched_duplicates:
+                related_by_duplicate[dup_key].append(item)
+
+        return related_by_duplicate
+
     def _get_doc(self, key, revision):
         if revision == 0:
             return {"key": key, "type": {"key": "/type/delete"}}
@@ -956,6 +1010,29 @@ class Changeset(client.Changeset):
         comment = 'undo ' + self.comment
         return web.ctx.site.save_many(docs, action="undo", data=data, comment=comment)
 
+    def _undo_single_duplicate(self, duplicate_key):
+        """Undo only one duplicate document from a merge changeset."""
+        if existing_undo := self.get_duplicate_undo_changeset(duplicate_key):
+            return existing_undo
+
+        duplicate_changes = [c for c in self.changes if c.get('key') == duplicate_key]
+        if not duplicate_changes:
+            raise ValueError(
+                f"No merge changes found for duplicate key: {duplicate_key}"
+            )
+
+        docs = [self._get_doc(c['key'], c['revision'] - 1) for c in duplicate_changes]
+        docs = self.process_docs_before_undo(docs)
+
+        data = {"parent_changeset": self.id, "duplicate_key": duplicate_key}
+        comment = f"undo {self.comment} ({duplicate_key})"
+        return web.ctx.site.save_many(
+            docs,
+            action="undo-single-duplicate",
+            data=data,
+            comment=comment,
+        )
+
     def get_undo_changeset(self):
         """Returns the changeset that undone this transaction if one exists, None otherwise."""
         try:
@@ -969,6 +1046,31 @@ class Changeset(client.Changeset):
         # return the first undo changeset
         self._undo_changeset = (changesets and changesets[-1]) or None
         return self._undo_changeset
+
+    def get_duplicate_undo_changesets(self):
+        """Return all single-duplicate undo changesets for this transaction."""
+        return web.ctx.site.recentchanges(
+            {
+                "kind": "undo-single-duplicate",
+                "data": {"parent_changeset": self.id},
+            }
+        )
+
+    def get_duplicate_undo_changeset(self, duplicate_key):
+        """Return the latest single-duplicate undo for duplicate_key, if any."""
+        duplicate_undo = None
+        for changeset in self.get_duplicate_undo_changesets() or []:
+            if changeset.data.get("duplicate_key") == duplicate_key:
+                duplicate_undo = changeset
+        return duplicate_undo
+
+    def get_undone_duplicate_keys(self):
+        """Return a set of duplicate keys already undone for this transaction."""
+        return {
+            c.data.get("duplicate_key")
+            for c in self.get_duplicate_undo_changesets() or []
+            if c.data.get("duplicate_key")
+        }
 
 
 class NewAccountChangeset(Changeset):
@@ -1029,6 +1131,18 @@ class Undo(Changeset):
         return web.ctx.site.get_change(parent)
 
 
+class UndoSingleDuplicate(Changeset):
+    def can_undo(self):
+        return False
+
+    def get_parent_changeset(self):
+        parent = self.data['parent_changeset']
+        return web.ctx.site.get_change(parent)
+
+    def get_duplicate_key(self):
+        return self.data.get('duplicate_key')
+
+
 class AddBookChangeset(Changeset):
     def get_work(self):
         book = self.get_edition()
@@ -1068,6 +1182,7 @@ def setup():
     client.register_changeset_class('merge-authors', MergeAuthors)
     client.register_changeset_class('merge-works', MergeWorks)
     client.register_changeset_class('undo', Undo)
+    client.register_changeset_class('undo-single-duplicate', UndoSingleDuplicate)
 
     client.register_changeset_class('add-book', AddBookChangeset)
     client.register_changeset_class('new-account', NewAccountChangeset)

@@ -1,0 +1,120 @@
+/* openlibrary/templates/recentchanges/merge/view.html */
+.record-duplicates .duplicate-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  border-top: 1px solid var(--mid-grey);
+}
+
+.record-duplicates .duplicate-row:first-child {
+  border-top: 0;
+}
+
+.record-duplicates .duplicate-link-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  align-items: start;
+  column-gap: 6px;
+  min-width: 0;
+}
+
+.record-duplicates .duplicate-link-wrap > a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.record-duplicates .duplicate-actions {
+  display: flex;
+  width: 130px;
+  justify-content: flex-end;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.record-duplicates .duplicate-actions .linkButton {
+  padding: 4px 8px;
+}
+
+.record-duplicates .duplicate-related {
+  display: inline-block;
+  position: relative;
+}
+
+.record-duplicates .duplicate-link-wrap .duplicate-related {
+  width: 100%;
+  justify-self: end;
+}
+
+.record-duplicates .duplicate-related summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  margin: 0;
+  white-space: nowrap;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.record-duplicates .duplicate-related summary::marker {
+  content: "";
+  font-size: 0;
+}
+
+.record-duplicates .duplicate-related summary::-webkit-details-marker {
+  display: none;
+}
+
+.record-duplicates .duplicate-related-toggle:focus-visible {
+  outline: 2px solid var(--dark-grey);
+  outline-offset: 1px;
+}
+
+.record-duplicates .duplicate-related-toggle::after {
+  content: "\25BE";
+  margin-left: 4px;
+}
+
+.duplicate-related[open] > summary::after {
+  content: "\25B4";
+}
+
+.record-duplicates .related-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 320px;
+  max-width: min(640px, 80vw);
+  z-index: var(--z-index-level-4);
+  padding: 8px;
+  border: 1px solid var(--mid-grey);
+  background: var(--white);
+}
+
+.record-duplicates a.removed {
+  text-decoration: line-through;
+}
+
+.record-duplicates .duplicate-status-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  width: 130px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.record-duplicates .duplicate-status-control-form {
+  display: inline-block;
+  margin: 0;
+  width: 130px;
+}
+
+.record-duplicates .duplicate-status-control-form .linkButton {
+  width: 100%;
+}

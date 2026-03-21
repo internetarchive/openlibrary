@@ -9,10 +9,11 @@ $ label = primary.name if type == "author" else primary.title
 
 
 <div id="contentBody">
-    $if change.get_undo_changeset():
+    $ undo_all_changeset = change.get_undo_changeset()
+    $if undo_all_changeset:
         <p class="alert">
             $_('This merge has been undone.')
-            <a href="$change.get_undo_changeset().url()">$_('Details here')</a>
+            <a href="$undo_all_changeset.url()">$_('Details here')</a>
         </p>
 
     <div id="mergeHead" class="sansserif">
@@ -37,14 +38,68 @@ $ label = primary.name if type == "author" else primary.title
         </div>
 
         <div class="smallest lightgreen">$_('Duplicates')</div>
-        <div id="recordDuplicates">
-            <p class="small collapse">
-                $for dup in change.get_duplicates():
+        <div id="recordDuplicates" class="record-duplicates">
+            $ duplicate_keys = change.data.get('duplicates') or []
+            $ duplicate_revisions = {}
+            $ duplicate_docs = {}
+            $ duplicate_undo_changesets = {}
+            $for item in (change.changes or []):
+                $ duplicate_revisions[item['key']] = item['revision']
+            $for dup in (change.get_duplicates() or []):
+                $ duplicate_docs[dup.key] = dup
+            $for undo_change in (change.get_duplicate_undo_changesets() or []):
+                $ undo_key = undo_change.data.get('duplicate_key')
+                $if undo_key and undo_key not in duplicate_undo_changesets:
+                    $ duplicate_undo_changesets[undo_key] = undo_change
+            $ related_changes_by_duplicate = change.get_related_changes_by_duplicate()
+            <ul class="small" style="list-style:none; margin:0; padding:0;">
+                $for dup_key in duplicate_keys:
+                    $ duplicate_undo = duplicate_undo_changesets.get(dup_key)
+                    $ dup_revision = duplicate_revisions.get(dup_key)
+                    $ dup_href = ('%s?m=diff&b=%s' % (dup_key, dup_revision)) if dup_revision else dup_key
+                    $ dup = duplicate_docs.get(dup_key)
+                    $ duplicate_related_changes = related_changes_by_duplicate.get(dup_key) or []
                     $if type == "author":
-                        $dup.name
+                        $ item_label = (dup and dup.name) or dup_key
                     $else:
-                        $dup.title
-            </p>
+                        $ item_label = (dup and dup.title) or dup_key
+                    <li class="duplicate-row">
+                        <span class="duplicate-link-wrap">
+                            <a href="$dup_href" class="$('removed' if (undo_all_changeset or duplicate_undo) else '')">$item_label</a>
+                            <details class="duplicate-related">
+                                <summary class="linkButton duplicate-related-toggle">
+                                    <span>$_('Related Records')</span>
+                                </summary>
+                                <div class="related-panel">
+                                    $if duplicate_related_changes:
+                                        <ul class="small" style="margin:0; padding-left:18px;">
+                                            $for item in duplicate_related_changes:
+                                                $ related_href = '%s?m=diff&b=%s' % (item['key'], item['revision'])
+                                                <li><a href="$related_href">$item['key']</a></li>
+                                        </ul>
+                                    $else:
+                                        <div class="small">$_('No related records found for this duplicate.')</div>
+                                </div>
+                            </details>
+                        </span>
+                        <span class="duplicate-actions">
+                            $if duplicate_undo:
+                                <a href="$duplicate_undo.url()" class="small duplicate-status-control">$_('Individually Undone')</a>
+                            $elif not undo_all_changeset:
+                                <form method="POST" action="$change.url()/undo-duplicate" class="duplicate-status-control-form">
+                                    <input type="hidden" name="duplicate_key" value="$dup_key" />
+                                    <button
+                                        type="submit"
+                                        class="linkButton duplicate-status-control"
+                                        data-duplicate-key="$dup_key"
+                                        data-parent-changeset="$change.id"
+                                    >
+                                        $_('Undo')
+                                    </button>
+                                </form>
+                        </span>
+                    </li>
+            </ul>
         </div>
 
         <p class="smallest gray sansserif">
