@@ -50,7 +50,9 @@ def find_spam_lists(site: Site, spam_words: list[str]) -> list[dict]:
     offset = 0
     batch_size = 1000
     while True:
-        keys = site.things({'type': '/type/list', 'limit': batch_size, 'offset': offset})
+        keys = site.things(
+            {'type': '/type/list', 'limit': batch_size, 'offset': offset}
+        )
         if not keys:
             break
         # Fetch all documents for this batch in a single call
@@ -118,7 +120,9 @@ def main():
             delete_list(site, item['key'])
 
     if not dry_run:
-        print("Done. Re-run the Solr indexer to remove deleted lists from search results.")
+        print(
+            "Done. Re-run the Solr indexer to remove deleted lists from search results."
+        )
     else:
         print("\nDry run complete. Run with --confirm to perform actual deletions.")
 
