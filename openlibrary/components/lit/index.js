@@ -8,6 +8,7 @@
 // Export components (importing also registers them as custom elements)
 export { OLReadMore } from './OLReadMore.js';
 export { OlPagination } from './OlPagination.js';
+export { OlTooltip } from './OlTooltip.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 

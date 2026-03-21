@@ -1068,7 +1068,7 @@ msgid "Edit this page"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: my_books/check_ins/check_in_prompt.html
+#: design/tooltip.html my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -1804,6 +1804,10 @@ msgstr ""
 
 #: design.html
 msgid "Components"
+msgstr ""
+
+#: design.html
+msgid "Tooltip"
 msgstr ""
 
 #: design.html type/edition/view.html type/work/view.html
@@ -3067,7 +3071,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html design/tooltip.html
 msgid "Delete"
 msgstr ""
 
@@ -3370,7 +3374,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html type/edition/modal_links.html
+#: account/view.html design/tooltip.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -5858,6 +5862,72 @@ msgstr ""
 
 #: covers/saved.html
 msgid "Finished"
+msgstr ""
+
+#: design/tooltip.html
+msgid "Tooltip component"
+msgstr ""
+
+#: design/tooltip.html
+msgid ""
+"The ol-tooltip component displays contextual information on hover or "
+"focus. It supports configurable placement, show delay, arrow visibility, "
+"and warm-mode grouping where moving between tooltips skips the delay."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Basic tooltip"
+msgstr ""
+
+#: design/tooltip.html
+msgid ""
+"Hover or focus the button to see the tooltip. Default placement is top "
+"with a 150ms show delay."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Placement options"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the tooltip appears. It automatically "
+"flips when near viewport edges."
+msgstr ""
+
+#: design/tooltip.html
+msgid "top"
+msgstr ""
+
+#: design/tooltip.html
+msgid "bottom"
+msgstr ""
+
+#: design/tooltip.html
+msgid "left"
+msgstr ""
+
+#: design/tooltip.html
+msgid "right"
+msgstr ""
+
+#: design/tooltip.html
+msgid "Rich content via slot"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid "Use %(slot)s for HTML content inside the tooltip."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Info"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid "Keyboard shortcut: %(shortcut)s"
 msgstr ""
 
 #: email/case_created.html

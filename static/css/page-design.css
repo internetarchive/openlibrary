@@ -130,4 +130,19 @@
 .color-block-link-unclicked {
   background-color: var(--link-blue);
 }
+.demo-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid hsl(0, 0%, 87%);
+  cursor: pointer;
+  background: var(--white, hsl(0, 0%, 100%));
+  font-size: 15px;
+}
+
+.demo-btn--small {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: inherit;
+}
+
 @import "legacy.css";
