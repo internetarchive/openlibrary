@@ -2,6 +2,9 @@
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 
+from datetime import datetime
+
+import pytest
 import web
 
 import openlibrary.core.lists.model as list_model
@@ -96,3 +99,87 @@ class TestModels:
         assert user.get_safe_mode() == "no"
         user.save_preferences({"safe_mode": "yes"})
         assert user.get_safe_mode() == "yes"
+
+    def _mock_recentchanges_func(self, query):
+        kind = query.get("kind")
+        data = query.get("data") or {}
+        return [
+            models.Changeset(web.ctx.site, changeset)
+            for changeset in reversed(web.ctx.site.changesets)
+            if (not kind or changeset.get("kind") == kind) and all(changeset.get("data", {}).get(k) == v for k, v in data.items())
+        ]
+
+    def _seed_single_duplicate_merge_change(self, duplicate_keys):
+        site = web.ctx.site
+
+        site.recentchanges = self._mock_recentchanges_func
+
+        changes = []
+        for duplicate_key in duplicate_keys:
+            site.save({"key": duplicate_key, "type": {"key": "/type/work"}, "title": "Before merge"})
+            site.save({"key": duplicate_key, "type": {"key": "/type/redirect"}, "location": "/works/OL1W"})
+            changes.append(web.storage({"key": duplicate_key, "revision": 2}))
+
+        merge_changeset = site._make_changeset(
+            timestamp=datetime.now(),
+            kind="merge-works",
+            comment="merge works",
+            data={"master": "/works/OL1W", "duplicates": duplicate_keys},
+            changes=changes,
+        )
+        site.changesets.append(merge_changeset)
+        return site.get_change(merge_changeset["id"])
+
+    def _assert_single_duplicate_undo(self, change, before_count, result, duplicate_key):
+        assert result is None
+        assert len(web.ctx.site.changesets) == before_count + 1
+        undo_changeset = web.ctx.site.changesets[-1]
+        change_doc = undo_changeset["changes"][0]
+
+        assert undo_changeset["kind"] == "undo-single-duplicate"
+        assert undo_changeset["data"]["parent_changeset"] == change.id
+        assert undo_changeset["data"]["duplicate_key"] == duplicate_key
+        assert len(undo_changeset["changes"]) == 1
+        assert change_doc["key"] == duplicate_key
+        assert change_doc["revision"] == 3
+
+    @pytest.mark.parametrize(
+        ("duplicate_keys", "target_duplicate_key"),
+        [
+            (["/works/OL2W"], "/works/OL2W"),
+            (["/works/OL2W", "/works/OL3W"], "/works/OL2W"),
+        ],
+    )
+    def test_single_duplicate_undo_saves_changeset(self, duplicate_keys, target_duplicate_key):
+        change = self._seed_single_duplicate_merge_change(duplicate_keys)
+
+        before_count = len(web.ctx.site.changesets)
+        result = change._undo_single_duplicate(target_duplicate_key)
+
+        self._assert_single_duplicate_undo(
+            change,
+            before_count,
+            result,
+            target_duplicate_key,
+        )
+
+    def test_single_duplicate_undo_is_idempotent(self):
+        duplicate_key = "/works/OL2W"
+        change = self._seed_single_duplicate_merge_change([duplicate_key])
+
+        change._undo_single_duplicate(duplicate_key)
+        first_count = len(web.ctx.site.changesets)
+        existing_undo = change._undo_single_duplicate(duplicate_key)
+
+        assert isinstance(existing_undo, models.Changeset)
+        assert existing_undo.kind == "undo-single-duplicate"
+        assert existing_undo.data["duplicate_key"] == duplicate_key
+        assert len(web.ctx.site.changesets) == first_count
+
+    def test_single_duplicate_get_undone_keys(self):
+        duplicate_key = "/works/OL2W"
+        change = self._seed_single_duplicate_merge_change([duplicate_key])
+
+        assert change.get_undone_duplicate_keys() == set()
+        change._undo_single_duplicate(duplicate_key)
+        assert change.get_undone_duplicate_keys() == {duplicate_key}

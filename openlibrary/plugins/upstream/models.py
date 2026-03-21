@@ -958,6 +958,9 @@ class Changeset(client.Changeset):
 
     def _undo_single_duplicate(self, duplicate_key):
         """Undo only one duplicate document from a merge changeset."""
+        if existing_undo := self.get_duplicate_undo_changeset(duplicate_key):
+            return existing_undo
+
         duplicate_changes = [c for c in self.changes if c.get('key') == duplicate_key]
         if not duplicate_changes:
             raise ValueError(
