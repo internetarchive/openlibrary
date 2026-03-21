@@ -688,7 +688,8 @@ class Series(List):
             return position_float
 
         sorted_edges = sorted(
-            series_edges, key=lambda tpl: get_work_position(tpl[1].get('position'))
+            series_edges,
+            key=lambda tpl: (get_work_position(tpl[1].get('position')), tpl[0].key),
         )
 
         seeds: list[Seed] = []
