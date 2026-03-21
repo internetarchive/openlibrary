@@ -5886,17 +5886,6 @@ msgid ""
 msgstr ""
 
 #: design/tooltip.html
-msgid "Warm-mode grouping"
-msgstr ""
-
-#: design/tooltip.html
-msgid ""
-"Move your cursor between these buttons. The first tooltip has a 150ms "
-"delay, but subsequent tooltips appear instantly as long as you keep "
-"moving between them."
-msgstr ""
-
-#: design/tooltip.html
 msgid "Placement options"
 msgstr ""
 
@@ -5905,6 +5894,22 @@ msgstr ""
 msgid ""
 "Use %(placement)s to control where the tooltip appears. It automatically "
 "flips when near viewport edges."
+msgstr ""
+
+#: design/tooltip.html
+msgid "top"
+msgstr ""
+
+#: design/tooltip.html
+msgid "bottom"
+msgstr ""
+
+#: design/tooltip.html
+msgid "left"
+msgstr ""
+
+#: design/tooltip.html
+msgid "right"
 msgstr ""
 
 #: design/tooltip.html
@@ -5931,6 +5936,11 @@ msgstr ""
 
 #: design/tooltip.html
 msgid "Info"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid "Keyboard shortcut: %(shortcut)s"
 msgstr ""
 
 #: email/case_created.html
