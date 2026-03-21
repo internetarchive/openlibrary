@@ -17,6 +17,10 @@
   margin-top: 1.75em;
 }
 
+.home-h2--plain {
+  color: var(--black);
+}
+
 .carousel-container,
 .lazy-carousel {
   margin: 0 -20px;
