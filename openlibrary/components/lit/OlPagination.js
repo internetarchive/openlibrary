@@ -62,14 +62,14 @@ export class OlPagination extends LitElement {
         .pagination {
             display: flex;
             font-size: 14px;
-            gap: 2px;
+            gap: var(--spacing-inline-xs);
         }
 
         .pagination-item {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.2em 0.6em;
+            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             border: 1px solid transparent;
             border-radius: 4px;
             background: transparent;
@@ -103,7 +103,7 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-arrow {
-            padding: 0 0.15em;
+            padding: 0 var(--spacing-inline-xs);
         }
 
         .ellipsis {
