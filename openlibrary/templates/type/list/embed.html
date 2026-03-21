@@ -61,7 +61,7 @@ $def render_seed_count(seed_count):
                                 </a>
                             $elif 'borrow_url' in ebook:
                                 $if ebook.get('borrowed'):
-                                    <a href="$ebook['borrow_url']" title="$_('This book is checked out')">
+                                    <a href="$seed.url" title="$_('This book is checked out')">
                                         <span class="image checked-out"></span>
                                         <span class="label">$_('Checked out')</span>
                                     </a>
