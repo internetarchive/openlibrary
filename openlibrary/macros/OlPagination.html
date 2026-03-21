@@ -1,0 +1,12 @@
+$def with (page, total_pages)
+
+$if total_pages > 1:
+    <ol-pagination
+        total-pages="$total_pages"
+        current-page="$page"
+        label-previous-page="$_('Go to previous page')"
+        label-next-page="$_('Go to next page')"
+        label-go-to-page="$_('Go to page {page}')"
+        label-current-page="$_('Page {page}, current page')"
+        label-pagination="$_('Pagination')"
+    ></ol-pagination>
