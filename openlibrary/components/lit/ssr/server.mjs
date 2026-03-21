@@ -32,7 +32,7 @@ function ssrRender(templateStr) {
 }
 
 // Signal to Python that we're ready to accept requests
-process.stdout.write(JSON.stringify({ ready: true }) + '\n');
+process.stdout.write(`${JSON.stringify({ ready: true })}\n`);
 
 // Read line-delimited JSON requests from stdin
 const rl = createInterface({ input: process.stdin });
@@ -51,10 +51,10 @@ rl.on('line', (line) => {
             : `<${tag} ${attrStr}></${tag}>`;
 
         const rendered = ssrRender(templateStr);
-        process.stdout.write(JSON.stringify({ html: rendered }) + '\n');
+        process.stdout.write(`${JSON.stringify({ html: rendered })}\n`);
     } catch (err) {
         process.stdout.write(
-            JSON.stringify({ error: err.message }) + '\n'
+            `${JSON.stringify({ error: err.message })}\n`
         );
     }
 });

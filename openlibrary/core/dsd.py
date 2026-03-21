@@ -86,7 +86,9 @@ def _start_ssr_server() -> subprocess.Popen | None:
         return proc
 
     except FileNotFoundError:
-        logger.warning('Node.js not found — SSR disabled, components will render client-side')
+        logger.warning(
+            'Node.js not found — SSR disabled, components will render client-side'
+        )
         _ssr_available = False
         return None
     except Exception:
@@ -206,8 +208,7 @@ def dsd_read_more(
     # Try SSR rendering via @lit-labs/ssr
     # We render with a placeholder slot content, then split to extract
     # just the opening tag + DSD template
-    ssr_html = _ssr_render('ol-read-more', all_attrs, '')
-    if ssr_html:
+    if ssr_html := _ssr_render('ol-read-more', all_attrs, ''):
         # The SSR output is a complete element. We need just the opening part
         # (everything up to and including </template>) so the template can
         # inject slot content before the closing tag.
@@ -219,9 +220,7 @@ def dsd_read_more(
             return ssr_html[: template_end + len('</template>')]
 
     # Fallback: return a plain custom element (no DSD, client-side rendering)
-    attr_str = ' '.join(
-        f'{k}="{escape(v)}"' for k, v in all_attrs.items()
-    )
+    attr_str = ' '.join(f'{k}="{escape(v)}"' for k, v in all_attrs.items())
     return f'<ol-read-more {attr_str}>'
 
 
@@ -260,9 +259,7 @@ def dsd_pagination(
             label_next_page if label_next_page != 'Go to next page' else None
         ),
         'label-go-to-page': (
-            label_go_to_page
-            if label_go_to_page != 'Go to page {page}'
-            else None
+            label_go_to_page if label_go_to_page != 'Go to page {page}' else None
         ),
         'label-current-page': (
             label_current_page
@@ -276,12 +273,9 @@ def dsd_pagination(
     all_attrs = _build_attrs(component_attrs, attrs)
 
     # Try SSR rendering via @lit-labs/ssr
-    ssr_html = _ssr_render('ol-pagination', all_attrs)
-    if ssr_html:
+    if ssr_html := _ssr_render('ol-pagination', all_attrs):
         return ssr_html
 
     # Fallback: plain custom element (client-side rendering)
-    attr_str = ' '.join(
-        f'{k}="{escape(v)}"' for k, v in all_attrs.items()
-    )
+    attr_str = ' '.join(f'{k}="{escape(v)}"' for k, v in all_attrs.items())
     return f'<ol-pagination {attr_str}></ol-pagination>'
