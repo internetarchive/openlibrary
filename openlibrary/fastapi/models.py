@@ -30,6 +30,14 @@ class PaginationLimit20(Pagination):
     limit: int = Field(20, ge=0, description="Maximum number of results to return.")
 
 
+def parse_fields_string(v: str | list[str] | None) -> list[str]:
+    if not v:
+        return []
+    if isinstance(v, str):
+        v = [v]
+    return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
+
+
 class SolrInternalsParams(BaseModel):
     """
     Internal Solr query parameters for A/B testing search configurations.
