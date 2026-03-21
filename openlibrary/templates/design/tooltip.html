@@ -26,19 +26,19 @@ $def with()
       <p>$_("Move your cursor between these buttons. The first tooltip has a 150ms delay, but subsequent tooltips appear instantly as long as you keep moving between them.")</p>
       <div class="example__output" style="display: flex; gap: 8px; align-items: center; padding: 32px 16px;">
         <ol-tooltip content="Bold">
-          <button class="demo-btn demo-btn--small" style="font-weight: bold;">B</button>
+          <button class="demo-btn demo-btn--small" style="font-weight: bold;">$_("B")</button>
         </ol-tooltip>
         <ol-tooltip content="Italic">
-          <button class="demo-btn demo-btn--small" style="font-style: italic;">I</button>
+          <button class="demo-btn demo-btn--small" style="font-style: italic;">$_("I")</button>
         </ol-tooltip>
         <ol-tooltip content="Underline">
-          <button class="demo-btn demo-btn--small" style="text-decoration: underline;">U</button>
+          <button class="demo-btn demo-btn--small" style="text-decoration: underline;">$_("U")</button>
         </ol-tooltip>
         <ol-tooltip content="Strikethrough">
-          <button class="demo-btn demo-btn--small" style="text-decoration: line-through;">S</button>
+          <button class="demo-btn demo-btn--small" style="text-decoration: line-through;">$_("S")</button>
         </ol-tooltip>
         <ol-tooltip content="Link">
-          <button class="demo-btn demo-btn--small">&#128279;</button>
+          <button class="demo-btn demo-btn--small">$_("🔗")</button>
         </ol-tooltip>
       </div>
     </section>
@@ -48,16 +48,16 @@ $def with()
       <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges.", placement="<code>placement</code>")</p>
       <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 48px 16px;">
         <ol-tooltip content="I'm on top" placement="top">
-          <button class="demo-btn">top</button>
+          <button class="demo-btn">$_("top")</button>
         </ol-tooltip>
         <ol-tooltip content="I'm on the bottom" placement="bottom">
-          <button class="demo-btn">bottom</button>
+          <button class="demo-btn">$_("bottom")</button>
         </ol-tooltip>
         <ol-tooltip content="I'm on the left" placement="left">
-          <button class="demo-btn">left</button>
+          <button class="demo-btn">$_("left")</button>
         </ol-tooltip>
         <ol-tooltip content="I'm on the right" placement="right">
-          <button class="demo-btn">right</button>
+          <button class="demo-btn">$_("right")</button>
         </ol-tooltip>
       </div>
     </section>
@@ -79,7 +79,7 @@ $def with()
       <div class="example__output" style="padding: 32px 16px;">
         <ol-tooltip>
           <button class="demo-btn">$_("Info")</button>
-          <span slot="content">Keyboard shortcut: <strong style="color: #a8d8ff;">Ctrl+K</strong></span>
+          <span slot="content">$:_("Keyboard shortcut: %(shortcut)s", shortcut="<strong style='color: #a8d8ff;'>Ctrl+K</strong>")</span>
         </ol-tooltip>
       </div>
     </section>
