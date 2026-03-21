@@ -24,9 +24,9 @@ def test_post_follows_nonexistent_publisher_returns_404():
         )
         mock_get_current_user.return_value = FakeUser('test_user')
         mock_find.return_value = None
-        mock_notfound.side_effect = Exception("404 Not Found")
+        mock_notfound.side_effect = web.HTTPError("404 Not Found")
 
-        with pytest.raises(Exception):
+        with pytest.raises(web.HTTPError):
             patrons_follows_json().POST('/people/test_user')
 
         mock_notfound.assert_called_once()
@@ -45,9 +45,9 @@ def test_post_follows_valid_publisher_succeeds():
         )
         mock_get_current_user.return_value = FakeUser('test_user')
         mock_find.return_value = FakeUser('existing_user')
-        mock_seeother.side_effect = Exception("303 See Other")
+        mock_seeother.side_effect = web.HTTPError("303 See Other")
 
-        with pytest.raises(Exception):
+        with pytest.raises(web.HTTPError):
             patrons_follows_json().POST('/people/test_user')
 
         mock_subscribe.assert_called_once()
