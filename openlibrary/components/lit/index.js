@@ -16,4 +16,6 @@ import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 // Export components (importing also registers them as custom elements)
 export { OLReadMore } from './OLReadMore.js';
 export { OlPagination } from './OlPagination.js';
+export { OLChip } from './OLChip.js';
+export { OLChipGroup } from './OLChipGroup.js';
 
