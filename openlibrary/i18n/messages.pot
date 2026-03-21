@@ -63,7 +63,7 @@ msgstr ""
 msgid "Bookshop.org"
 msgstr ""
 
-#: AffiliateLinks.html home/about.html
+#: AffiliateLinks.html home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -117,7 +117,7 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
 #: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/history.html
+#: covers/book_cover.html covers/change.html lib/exports.html
 #: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
 #: native_dialog.html
 msgid "Close"
@@ -489,6 +489,26 @@ msgstr ""
 
 #: ObservationsModal.html
 msgid "My Book Review"
+msgstr ""
+
+#: OlPagination.html
+msgid "Go to previous page"
+msgstr ""
+
+#: OlPagination.html
+msgid "Go to next page"
+msgstr ""
+
+#: OlPagination.html
+msgid "Go to page {page}"
+msgstr ""
+
+#: OlPagination.html
+msgid "Page {page}, current page"
+msgstr ""
+
+#: OlPagination.html design.html type/edition/view.html type/work/view.html
+msgid "Pagination"
 msgstr ""
 
 #: Pager.html Pager_loanhistory.html
@@ -1018,7 +1038,7 @@ msgid "View the editing history of this page"
 msgstr ""
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: lib/history.html openlibrary/plugins/openlibrary/home.py
+#: design.html lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr ""
 
@@ -1079,7 +1099,7 @@ msgstr ""
 msgid "Search Results"
 msgstr ""
 
-#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/neck.html
+#: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
 msgstr ""
 
@@ -1213,7 +1233,7 @@ msgstr ""
 msgid "Music"
 msgstr ""
 
-#: openlibrary/plugins/openlibrary/home.py
+#: design.html openlibrary/plugins/openlibrary/home.py
 msgid "Science"
 msgstr ""
 
@@ -1783,27 +1803,15 @@ msgid "Design Pattern Library"
 msgstr ""
 
 #: design.html
-msgid "Colors"
+msgid "Components"
+msgstr ""
+
+#: design.html type/edition/view.html type/work/view.html
+msgid "Read More"
 msgstr ""
 
 #: design.html
-msgid "Background"
-msgstr ""
-
-#: design.html
-msgid "Primary Call To Action"
-msgstr ""
-
-#: design.html
-msgid "Link (unclicked)"
-msgstr ""
-
-#: design.html
-msgid "Link (clicked)"
-msgstr ""
-
-#: design.html
-msgid "Pagination component"
+msgid "Chip"
 msgstr ""
 
 #: design.html
@@ -1819,8 +1827,8 @@ msgstr ""
 #: design.html
 #, python-format
 msgid ""
-"When a page is clicked, the component fires an %(event_name)s event with "
-"the page number in %(event_detail)s."
+"When a page is clicked, the component fires an %(update_page)s event with"
+" the page number in %(event_detail)s."
 msgstr ""
 
 #: design.html
@@ -1859,10 +1867,6 @@ msgstr ""
 
 #: design.html
 msgid "100 pages with ellipsis:"
-msgstr ""
-
-#: design.html
-msgid "Read More component"
 msgstr ""
 
 #: design.html
@@ -1930,6 +1934,93 @@ msgstr ""
 
 #: design.html
 msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"The ol-chip component is a pill-shaped interactive element for filters, "
+"tags, and selections. It fires an %(event)s event on click."
+msgstr ""
+
+#: design.html
+msgid "Default (medium)"
+msgstr ""
+
+#: design.html
+msgid "Basic chips at the default medium size."
+msgstr ""
+
+#: design.html
+msgid "Fiction"
+msgstr ""
+
+#: design.html
+msgid "Selected state"
+msgstr ""
+
+#: design.html
+msgid "A selected chip displays a checkmark icon and uses an active color scheme."
+msgstr ""
+
+#: design.html
+msgid "Small size"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(size)s for a compact chip."
+msgstr ""
+
+#: design.html
+msgid "Poetry"
+msgstr ""
+
+#: design.html
+msgid "Drama"
+msgstr ""
+
+#: design.html
+msgid "Essays"
+msgstr ""
+
+#: design.html
+msgid "With count"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(count)s to display a number alongside the label."
+msgstr ""
+
+#: design.html
+msgid "As a link"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"When %(href)s is provided, the chip renders as an anchor tag instead of a"
+" button."
+msgstr ""
+
+#: design.html
+msgid "Interactive toggle"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Clicking a chip fires an %(event)s event. Toggle the selected state by "
+"listening to the event."
+msgstr ""
+
+#: design.html
+msgid "Toggle me"
+msgstr ""
+
+#: design.html
+msgid "Toggle me too"
 msgstr ""
 
 #: diff.html
@@ -4905,7 +4996,7 @@ msgid ""
 "href=\"/search\"> search for it</a>."
 msgstr ""
 
-#: books/daisy.html lib/history.html
+#: books/daisy.html lib/exports.html
 msgid "Need help?"
 msgstr ""
 
@@ -4944,7 +5035,8 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
-#: books/edit.html type/author/edit.html type/template/edit.html
+#: books/edit.html type/author/edit.html type/tag/form.html
+#: type/template/edit.html
 msgid "Delete Record"
 msgstr ""
 
@@ -6023,6 +6115,38 @@ msgstr ""
 msgid "This doc was last edited anonymously"
 msgstr ""
 
+#: lib/exports.html
+msgid "Download catalog record:"
+msgstr ""
+
+#: lib/exports.html
+msgid "RDF"
+msgstr ""
+
+#: lib/exports.html type/list/exports.html
+msgid "JSON"
+msgstr ""
+
+#: lib/exports.html
+msgid "OPDS"
+msgstr ""
+
+#: lib/exports.html
+msgid "Cite this on Wikipedia"
+msgstr ""
+
+#: lib/exports.html
+msgid "Wikipedia citation"
+msgstr ""
+
+#: lib/exports.html
+msgid "Copy and paste this code into your Wikipedia page."
+msgstr ""
+
+#: lib/exports.html
+msgid "Get instructions at Wikipedia in a new window"
+msgstr ""
+
 #: lib/header_dropdown.html
 msgid "My account"
 msgstr ""
@@ -6051,38 +6175,6 @@ msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
 msgstr[1] ""
-
-#: lib/history.html
-msgid "Download catalog record:"
-msgstr ""
-
-#: lib/history.html
-msgid "RDF"
-msgstr ""
-
-#: lib/history.html type/list/exports.html
-msgid "JSON"
-msgstr ""
-
-#: lib/history.html
-msgid "OPDS"
-msgstr ""
-
-#: lib/history.html
-msgid "Cite this on Wikipedia"
-msgstr ""
-
-#: lib/history.html
-msgid "Wikipedia citation"
-msgstr ""
-
-#: lib/history.html
-msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
-
-#: lib/history.html
-msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
 
 #: lib/history.html
 msgid "an anonymous user"
@@ -7449,11 +7541,7 @@ msgid "Merge duplicates"
 msgstr ""
 
 #: search/work_search_facets.html
-msgid "more"
-msgstr ""
-
-#: search/work_search_facets.html
-msgid "less"
+msgid "Less"
 msgstr ""
 
 #: search/work_search_facets.html
@@ -7482,31 +7570,6 @@ msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
 msgstr ""
 
 #: search/work_search_selected_facets.html
-msgid "eBook"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBook"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Search facets"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Explore Classic eBooks"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Only Classic eBooks"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-#, python-format
-msgid "Explore books about %(subject)s"
-msgstr ""
-
-#: search/work_search_selected_facets.html
 msgid "Written in"
 msgstr ""
 
@@ -7515,7 +7578,19 @@ msgid "Published by"
 msgstr ""
 
 #: search/work_search_selected_facets.html
-msgid "Click to remove this facet"
+msgid "eBook"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Classic eBook"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Only Classic eBooks"
+msgstr ""
+
+#: search/work_search_selected_facets.html
+msgid "Classic eBooks hidden"
 msgstr ""
 
 #: search/work_search_selected_facets.html
@@ -7531,7 +7606,7 @@ msgstr ""
 msgid "It looks like you're offline."
 msgstr ""
 
-#: site/neck.html
+#: site/head.html
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published. Read, borrow, and discover more than"
@@ -7843,10 +7918,6 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
 msgid "Read Less"
 msgstr ""
 
@@ -7936,10 +8007,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
-
-#: type/edition/view.html type/work/view.html
-msgid "Pagination"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -8177,6 +8244,13 @@ msgstr ""
 msgid ""
 "You are about to remove the last item in the list. That will delete the "
 "whole list. Are you sure you want to continue?"
+msgstr ""
+
+#: type/list/view_body.html
+#, python-format
+msgid ""
+"This series contains %(limit)d or more works. Currently, only the first "
+"%(limit)d works are displayed."
 msgstr ""
 
 #: type/list/view_body.html

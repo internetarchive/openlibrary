@@ -19,7 +19,6 @@
  * and imported directly in one of the entry points that are prefixed
  * with `page-` or `js-`
  */
-@import "legacy-header.css";
 @import "legacy-tools.css";
 @import "legacy-wmd.css";
 
@@ -658,6 +657,10 @@ div.valid {
 /* openlibrary/templates/search/publishers.html */
 /* openlibrary/templates/work_search.html */
 /* openlibrary/templates/search/subjects.html */
+.search-row {
+  margin-bottom: 8px;
+}
+
 div.siteSearch {
   overflow: visible;
   border-radius: 5px;
@@ -963,21 +966,25 @@ div#searchFacets {
 /* openlibrary/templates/work_search.html */
 div.facet {
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+div.facet .facetHead {
+  flex-basis: 100%;
 }
 
 div.facetEntry {
   font-family: var(--body-family);
-  margin-bottom: 5px;
-}
-
-div.facetEntry a {
-  text-decoration: none !important;
-  line-height: var(--line-height-list);
 }
 
 div.facetMoreLess {
+  flex-basis: 100%;
   font-family: var(--body-family);
-  margin-bottom: 5px;
+  position: relative;
+  top: -4px;
+  padding-left: 8px;
 }
 
 div.facetMoreLess a {

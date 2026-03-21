@@ -21,6 +21,7 @@ Each doc is a storage object with "id", "key", "revision" and "data".
 """
 
 import datetime
+import functools
 import json
 import sys
 import time
@@ -224,6 +225,6 @@ def debug(*a):
     print(time.asctime(), a, file=sys.stderr)
 
 
-@web.memoize
+@functools.cache
 def get_thing_id(key):
     return db.query("SELECT * FROM thing WHERE key=$key", vars=locals())[0].id

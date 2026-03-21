@@ -1,5 +1,6 @@
 """Interface to access the database of openlibrary."""
 
+import functools
 import sqlite3
 from datetime import datetime
 from sqlite3 import IntegrityError
@@ -10,7 +11,7 @@ from psycopg2.errors import UniqueViolation
 from infogami.utils import stats
 
 
-@web.memoize
+@functools.cache
 def _get_db():
     return web.database(**web.config.db_parameters)
 
