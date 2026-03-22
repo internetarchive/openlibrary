@@ -248,7 +248,9 @@ def _is_low_quality(doc):
     if any(word in title for word in REJECTED_TITLE_WORDS):
         return True
     publishers = doc.get("publisher", [])
-    return bool(publishers and all(p.casefold() in REJECTED_PUBLISHERS for p in publishers[:3]))
+    return bool(
+        publishers and all(p.casefold() in REJECTED_PUBLISHERS for p in publishers[:3])
+    )
 
 
 def _pick_publisher(doc):
@@ -269,18 +271,15 @@ def _search_doc_to_record(doc, source_tag):
         "source_records": [source_tag],
         "subjects": doc.get("subject", [])[:10],
     }
-    isbns = doc.get("isbn", [])
-    if isbns:
+    if isbns := doc.get("isbn", []):
         isbn = isbns[0]
         if len(isbn) == 13:
             record["isbn_13"] = [isbn]
         elif len(isbn) == 10:
             record["isbn_10"] = [isbn]
-    cover_id = doc.get("cover_i")
-    if cover_id:
+    if cover_id := doc.get("cover_i"):
         record["cover"] = COVERS_URL_TEMPLATE.format(cover_id)
-    pages = doc.get("number_of_pages_median")
-    if pages:
+    if pages := doc.get("number_of_pages_median"):
         record["number_of_pages"] = pages
     return record
 
@@ -303,12 +302,36 @@ def _import_and_get_work_key(ol, record):
 
 
 SEARCH_QUERIES = [
-    "fiction", "science fiction", "fantasy", "mystery", "romance",
-    "history", "biography", "philosophy", "poetry", "adventure",
-    "horror", "thriller", "children", "young adult", "graphic novel",
-    "cooking", "travel", "science", "mathematics", "art",
-    "music", "psychology", "economics", "politics", "religion",
-    "classic literature", "detective", "war", "nature", "technology",
+    "fiction",
+    "science fiction",
+    "fantasy",
+    "mystery",
+    "romance",
+    "history",
+    "biography",
+    "philosophy",
+    "poetry",
+    "adventure",
+    "horror",
+    "thriller",
+    "children",
+    "young adult",
+    "graphic novel",
+    "cooking",
+    "travel",
+    "science",
+    "mathematics",
+    "art",
+    "music",
+    "psychology",
+    "economics",
+    "politics",
+    "religion",
+    "classic literature",
+    "detective",
+    "war",
+    "nature",
+    "technology",
 ]
 
 
@@ -328,7 +351,12 @@ def _fetch_books_from_prod(count):
         try:
             resp = requests.get(
                 "https://openlibrary.org/search.json",
-                params={"q": query, "limit": batch_size, "offset": offset, "fields": SEARCH_FIELDS},
+                params={
+                    "q": query,
+                    "limit": batch_size,
+                    "offset": offset,
+                    "fields": SEARCH_FIELDS,
+                },
                 timeout=15,
             )
             resp.raise_for_status()
@@ -363,7 +391,9 @@ def _import_books(ol, records):
             else:
                 errors += 1
                 if errors <= 3:
-                    print(f"  Failed: {record['title']} - {result_data.get('error_message', result_data)}")
+                    print(
+                        f"  Failed: {record['title']} - {result_data.get('error_message', result_data)}"
+                    )
         except (OLError, requests.RequestException, json.JSONDecodeError) as e:
             errors += 1
             if errors <= 3:
@@ -447,8 +477,7 @@ def cmd_set_role(ol, username=None, role=None, action="add"):
                 group = ol.get(f"/usergroup/{group_name}")
                 members = group.get("members", [])
                 member_keys = [
-                    m.get("key", m) if isinstance(m, dict) else str(m)
-                    for m in members
+                    m.get("key", m) if isinstance(m, dict) else str(m) for m in members
                 ]
                 if user_key in member_keys:
                     current_groups.append(group_name)
@@ -476,7 +505,9 @@ def cmd_set_role(ol, username=None, role=None, action="add"):
 
     raw_members = group.get("members", [])
     # Normalize: Reference strings or dicts -> plain string keys
-    member_keys = [str(m) if not isinstance(m, dict) else m.get("key", str(m)) for m in raw_members]
+    member_keys = [
+        str(m) if not isinstance(m, dict) else m.get("key", str(m)) for m in raw_members
+    ]
 
     if action == "add":
         if user_key in member_keys:
@@ -496,7 +527,10 @@ def cmd_set_role(ol, username=None, role=None, action="add"):
         "members": [{"key": k} for k in member_keys],
     }
     try:
-        infobase_save([doc], comment=f"shelfie: {'adding' if action == 'add' else 'removing'} {username} {'to' if action == 'add' else 'from'} {role}")
+        infobase_save(
+            [doc],
+            comment=f"shelfie: {'adding' if action == 'add' else 'removing'} {username} {'to' if action == 'add' else 'from'} {role}",
+        )
         verb = "Added" if action == "add" else "Removed"
         prep = "to" if action == "add" else "from"
         print(f"  {verb} '{username}' {prep} '{role}'.")
@@ -510,7 +544,10 @@ def cmd_set_role(ol, username=None, role=None, action="add"):
 
 
 PROD_LIST_USERS = [
-    "mekBot", "openlibrary", "staffpicks", "internetarchive",
+    "mekBot",
+    "openlibrary",
+    "staffpicks",
+    "internetarchive",
 ]
 
 
@@ -564,12 +601,14 @@ def _fetch_prod_lists(count):
                         seed_titles[url] = title
 
             if len(seed_keys) >= 3:
-                fetched.append({
-                    "name": name,
-                    "description": f"From {user}'s lists on openlibrary.org",
-                    "seed_keys": seed_keys,
-                    "_seed_titles": seed_titles,
-                })
+                fetched.append(
+                    {
+                        "name": name,
+                        "description": f"From {user}'s lists on openlibrary.org",
+                        "seed_keys": seed_keys,
+                        "_seed_titles": seed_titles,
+                    }
+                )
 
     return fetched
 
@@ -581,7 +620,9 @@ def _import_list_seeds(ol, prod_list):
         title = prod_list.get("_seed_titles", {}).get(seed_key)
         if not title:
             try:
-                resp = requests.get(f"https://openlibrary.org{seed_key}.json", timeout=5)
+                resp = requests.get(
+                    f"https://openlibrary.org{seed_key}.json", timeout=5
+                )
                 resp.raise_for_status()
                 title = resp.json().get("title", "")
             except (requests.RequestException, ValueError):
@@ -602,7 +643,9 @@ def _import_list_seeds(ol, prod_list):
         if not docs:
             continue
 
-        record = _search_doc_to_record(docs[0], f"shelfie:list-{docs[0].get('key', '')}")
+        record = _search_doc_to_record(
+            docs[0], f"shelfie:list-{docs[0].get('key', '')}"
+        )
         work_key = _import_and_get_work_key(ol, record)
         if work_key:
             imported_keys.append(work_key)
@@ -631,11 +674,13 @@ def cmd_generate_lists(ol, count=1, username=None):
         for i in range(count):
             template = list_templates[i % len(list_templates)]
             num_seeds = min(random.randint(5, 20), len(work_keys))
-            prod_lists.append({
-                "name": template["name"],
-                "description": template["description"],
-                "seed_keys": random.sample(work_keys, num_seeds),
-            })
+            prod_lists.append(
+                {
+                    "name": template["name"],
+                    "description": template["description"],
+                    "seed_keys": random.sample(work_keys, num_seeds),
+                }
+            )
 
     print(f"  Got {len(prod_lists)} lists. Importing seed works and creating lists...")
 
@@ -649,11 +694,13 @@ def cmd_generate_lists(ol, count=1, username=None):
             print(f"  Skipping '{pl['name']}': no works could be imported")
             continue
 
-        list_data = json.dumps({
-            "name": pl["name"],
-            "description": pl.get("description", ""),
-            "seeds": seeds,
-        })
+        list_data = json.dumps(
+            {
+                "name": pl["name"],
+                "description": pl.get("description", ""),
+                "seeds": seeds,
+            }
+        )
 
         try:
             resp = ol._request(
@@ -824,13 +871,21 @@ def cmd_stats(ol):
     total_works = solr_counts.get("Works", 0)
 
     print(f"    {'Works with covers':<20} {works_with_covers:>6}", end="")
-    if isinstance(works_with_covers, int) and isinstance(total_works, int) and total_works > 0:
+    if (
+        isinstance(works_with_covers, int)
+        and isinstance(total_works, int)
+        and total_works > 0
+    ):
         print(f"  ({works_with_covers * 100 // total_works}%)")
     else:
         print()
 
     print(f"    {'Works with subjects':<20} {works_with_subjects:>6}", end="")
-    if isinstance(works_with_subjects, int) and isinstance(total_works, int) and total_works > 0:
+    if (
+        isinstance(works_with_subjects, int)
+        and isinstance(total_works, int)
+        and total_works > 0
+    ):
         print(f"  ({works_with_subjects * 100 // total_works}%)")
     else:
         print()
@@ -910,7 +965,9 @@ def cmd_manage_solr(ol):
 # ---------------------------------------------------------------------------
 
 
-def cmd_create_accounts(ol, count=5, prefix="testuser", password=None, interactive=True):
+def cmd_create_accounts(
+    ol, count=5, prefix="testuser", password=None, interactive=True
+):
     """Create test user accounts with known passwords."""
     print_header("Create Test Accounts")
 
@@ -920,19 +977,25 @@ def cmd_create_accounts(ol, count=5, prefix="testuser", password=None, interacti
         prefix = ask("Username prefix", "testuser")
 
     if not password:
-        password = ask("Password for all accounts", "password123") if interactive else "password123"
+        password = (
+            ask("Password for all accounts", "password123")
+            if interactive
+            else "password123"
+        )
 
     success = 0
     for i in range(1, count + 1):
         username = f"{prefix}_{i}"
         email = f"{username}@example.com"
 
-        data = json.dumps({
-            "username": username,
-            "email": email,
-            "password": password,
-            "displayname": f"Test User {i}",
-        })
+        data = json.dumps(
+            {
+                "username": username,
+                "email": email,
+                "password": password,
+                "displayname": f"Test User {i}",
+            }
+        )
 
         try:
             ol._request(
@@ -953,13 +1016,20 @@ def cmd_create_accounts(ol, count=5, prefix="testuser", password=None, interacti
     print(f"\n  Done! {success}/{count} accounts ready.")
     print(f"  Login with: username='{prefix}_N', password='{password}'")
 
-    if interactive and success > 0 and confirm("  Assign a role to all created accounts?"):
+    if (
+        interactive
+        and success > 0
+        and confirm("  Assign a role to all created accounts?")
+    ):
         role = choose("Select role", USERGROUPS)
         group_key = f"/usergroup/{role}"
         try:
             group = ol.get(group_key)
             raw_members = group.get("members", [])
-            member_keys = {str(m) if not isinstance(m, dict) else m.get("key", str(m)) for m in raw_members}
+            member_keys = {
+                str(m) if not isinstance(m, dict) else m.get("key", str(m))
+                for m in raw_members
+            }
             for i in range(1, count + 1):
                 member_keys.add(f"/people/{prefix}_{i}")
             doc = {
@@ -1000,10 +1070,12 @@ def cmd_seed_ratings(ol, count=10, username=None):
         work_id = work_key.split("/")[-1]
 
         try:
-            data = json.dumps({
-                "rating": rating,
-                "edition_key": "",
-            })
+            data = json.dumps(
+                {
+                    "rating": rating,
+                    "edition_key": "",
+                }
+            )
             ol._request(
                 f"/works/{work_id}/ratings.json",
                 method="POST",
@@ -1263,7 +1335,9 @@ def cmd_seed_series(ol, count=3):
         }
 
         try:
-            infobase_save([series_doc], comment=f"shelfie: creating series '{series_name}'")
+            infobase_save(
+                [series_doc], comment=f"shelfie: creating series '{series_name}'"
+            )
         except requests.RequestException as e:
             print(f"  Error creating series '{series_name}': {e}")
             continue
@@ -1277,10 +1351,14 @@ def cmd_seed_series(ol, count=3):
             for pos, wk in enumerate(imported_work_keys)
         ]
         with contextlib.suppress(requests.RequestException):
-            infobase_save(work_docs, comment=f"shelfie: linking works to series '{series_name}'")
+            infobase_save(
+                work_docs, comment=f"shelfie: linking works to series '{series_name}'"
+            )
 
-        print(f"  Created: {series_name} ({series_key}) with {len(imported_work_keys)} works")
-        titles = [w["title"] for w in works[:len(imported_work_keys)]]
+        print(
+            f"  Created: {series_name} ({series_key}) with {len(imported_work_keys)} works"
+        )
+        titles = [w["title"] for w in works[: len(imported_work_keys)]]
         for pos, title in enumerate(titles, 1):
             print(f"    {pos}. {title}")
         success += 1
@@ -1431,10 +1509,14 @@ def _print_startup_stats():
     def fmt(n):
         return str(n) if isinstance(n, int) else "?"
 
-    print(f"  {DIM}works: {fmt(works)}  editions: {fmt(editions)}  authors: {fmt(authors)}  "
-          f"covers: {fmt(covers)}")
-    print(f"  lists: {fmt(lists)}  series: {fmt(series)}  subjects: {fmt(subjects)}  "
-          f"users: {fmt(users)}{RESET}")
+    print(
+        f"  {DIM}works: {fmt(works)}  editions: {fmt(editions)}  authors: {fmt(authors)}  "
+        f"covers: {fmt(covers)}"
+    )
+    print(
+        f"  lists: {fmt(lists)}  series: {fmt(series)}  subjects: {fmt(subjects)}  "
+        f"users: {fmt(users)}{RESET}"
+    )
 
 
 def interactive_menu():
@@ -1458,7 +1540,9 @@ def interactive_menu():
                 cmd_populate_all(ol)
             elif choice == "Add books":
                 count_choice = choose("How many books?", ["10", "100", "1000"])
-                source_choice = choose("Source?", ["Production (openlibrary.org)", "Seed data (offline)"])
+                source_choice = choose(
+                    "Source?", ["Production (openlibrary.org)", "Seed data (offline)"]
+                )
                 source = "production" if "Production" in source_choice else "seed"
                 cmd_add_books(ol, count=int(count_choice), source=source)
             elif choice == "Generate lists":
@@ -1501,12 +1585,8 @@ def build_parser():
         prog="shelfie",
         description="Open Library development helper tool",
     )
-    parser.add_argument(
-        "--url", default=DEFAULT_BASE_URL, help="OL server URL"
-    )
-    parser.add_argument(
-        "--email", default=DEFAULT_LOGIN_EMAIL, help="Login email"
-    )
+    parser.add_argument("--url", default=DEFAULT_BASE_URL, help="OL server URL")
+    parser.add_argument("--email", default=DEFAULT_LOGIN_EMAIL, help="Login email")
     parser.add_argument(
         "--password", default=DEFAULT_LOGIN_PASSWORD, help="Login password"
     )
@@ -1515,16 +1595,18 @@ def build_parser():
     # add-books
     p = sub.add_parser("add-books", help="Import books into local dev")
     p.add_argument("--count", type=int, default=10)
-    p.add_argument("--source", default="production", choices=["production", "seed"],
-                   help="'production' fetches from openlibrary.org (default), 'seed' uses offline data")
+    p.add_argument(
+        "--source",
+        default="production",
+        choices=["production", "seed"],
+        help="'production' fetches from openlibrary.org (default), 'seed' uses offline data",
+    )
 
     # set-role
     p = sub.add_parser("set-role", help="Change a user's role")
     p.add_argument("--username", required=True)
     p.add_argument("--role", required=True, choices=USERGROUPS)
-    p.add_argument(
-        "--action", default="add", choices=["add", "remove"]
-    )
+    p.add_argument("--action", default="add", choices=["add", "remove"])
 
     # generate-lists
     p = sub.add_parser("generate-lists", help="Create reading lists")
@@ -1603,7 +1685,6 @@ def main():
         cmd_populate_all(ol)
     elif args.command == "reset":
         cmd_reset_state(ol)
-
 
 
 if __name__ == "__main__":
