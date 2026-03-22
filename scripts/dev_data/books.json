@@ -1,0 +1,1114 @@
+[
+  {
+    "title": "The Great Gatsby",
+    "authors": [{"name": "F. Scott Fitzgerald"}],
+    "publishers": ["Scribner"],
+    "publish_date": "1925",
+    "subjects": ["American fiction", "Jazz Age", "Long Island"],
+    "number_of_pages": 180
+  },
+  {
+    "title": "To Kill a Mockingbird",
+    "authors": [{"name": "Harper Lee"}],
+    "publishers": ["J. B. Lippincott & Co."],
+    "publish_date": "1960",
+    "subjects": ["Southern United States", "Race relations", "Legal stories"],
+    "number_of_pages": 281
+  },
+  {
+    "title": "1984",
+    "authors": [{"name": "George Orwell"}],
+    "publishers": ["Secker & Warburg"],
+    "publish_date": "1949",
+    "subjects": ["Dystopian fiction", "Totalitarianism", "Political fiction"],
+    "number_of_pages": 328
+  },
+  {
+    "title": "Pride and Prejudice",
+    "authors": [{"name": "Jane Austen"}],
+    "publishers": ["T. Egerton"],
+    "publish_date": "1813",
+    "subjects": ["Romance", "Regency England", "Social classes"],
+    "number_of_pages": 432
+  },
+  {
+    "title": "The Hobbit",
+    "authors": [{"name": "J.R.R. Tolkien"}],
+    "publishers": ["George Allen & Unwin"],
+    "publish_date": "1937",
+    "subjects": ["Fantasy", "Adventure", "Middle Earth"],
+    "number_of_pages": 310
+  },
+  {
+    "title": "The Fellowship of the Ring",
+    "authors": [{"name": "J.R.R. Tolkien"}],
+    "publishers": ["George Allen & Unwin"],
+    "publish_date": "1954",
+    "subjects": ["Fantasy", "Epic fantasy", "Middle Earth"],
+    "number_of_pages": 423
+  },
+  {
+    "title": "The Two Towers",
+    "authors": [{"name": "J.R.R. Tolkien"}],
+    "publishers": ["George Allen & Unwin"],
+    "publish_date": "1954",
+    "subjects": ["Fantasy", "Epic fantasy", "Middle Earth"],
+    "number_of_pages": 352
+  },
+  {
+    "title": "The Return of the King",
+    "authors": [{"name": "J.R.R. Tolkien"}],
+    "publishers": ["George Allen & Unwin"],
+    "publish_date": "1955",
+    "subjects": ["Fantasy", "Epic fantasy", "Middle Earth"],
+    "number_of_pages": 416
+  },
+  {
+    "title": "Harry Potter and the Sorcerer's Stone",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "1997",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 309
+  },
+  {
+    "title": "Harry Potter and the Chamber of Secrets",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "1998",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 341
+  },
+  {
+    "title": "Harry Potter and the Prisoner of Azkaban",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "1999",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 317
+  },
+  {
+    "title": "Harry Potter and the Goblet of Fire",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2000",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 636
+  },
+  {
+    "title": "Harry Potter and the Order of the Phoenix",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2003",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 766
+  },
+  {
+    "title": "Harry Potter and the Half-Blood Prince",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2005",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 607
+  },
+  {
+    "title": "Harry Potter and the Deathly Hallows",
+    "authors": [{"name": "J.K. Rowling"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2007",
+    "subjects": ["Fantasy", "Magic", "Young adult fiction"],
+    "number_of_pages": 607
+  },
+  {
+    "title": "Foundation",
+    "authors": [{"name": "Isaac Asimov"}],
+    "publishers": ["Gnome Press"],
+    "publish_date": "1951",
+    "subjects": ["Science fiction", "Space opera", "Galactic Empire"],
+    "number_of_pages": 244
+  },
+  {
+    "title": "Foundation and Empire",
+    "authors": [{"name": "Isaac Asimov"}],
+    "publishers": ["Gnome Press"],
+    "publish_date": "1952",
+    "subjects": ["Science fiction", "Space opera", "Galactic Empire"],
+    "number_of_pages": 247
+  },
+  {
+    "title": "Second Foundation",
+    "authors": [{"name": "Isaac Asimov"}],
+    "publishers": ["Gnome Press"],
+    "publish_date": "1953",
+    "subjects": ["Science fiction", "Space opera", "Galactic Empire"],
+    "number_of_pages": 210
+  },
+  {
+    "title": "I, Robot",
+    "authors": [{"name": "Isaac Asimov"}],
+    "publishers": ["Gnome Press"],
+    "publish_date": "1950",
+    "subjects": ["Science fiction", "Robots", "Artificial intelligence"],
+    "number_of_pages": 253
+  },
+  {
+    "title": "Dune",
+    "authors": [{"name": "Frank Herbert"}],
+    "publishers": ["Chilton Books"],
+    "publish_date": "1965",
+    "subjects": ["Science fiction", "Desert planet", "Political intrigue"],
+    "number_of_pages": 412
+  },
+  {
+    "title": "Dune Messiah",
+    "authors": [{"name": "Frank Herbert"}],
+    "publishers": ["Putnam"],
+    "publish_date": "1969",
+    "subjects": ["Science fiction", "Desert planet", "Political intrigue"],
+    "number_of_pages": 256
+  },
+  {
+    "title": "Brave New World",
+    "authors": [{"name": "Aldous Huxley"}],
+    "publishers": ["Chatto & Windus"],
+    "publish_date": "1932",
+    "subjects": ["Dystopian fiction", "Science fiction", "Social criticism"],
+    "number_of_pages": 311
+  },
+  {
+    "title": "Fahrenheit 451",
+    "authors": [{"name": "Ray Bradbury"}],
+    "publishers": ["Ballantine Books"],
+    "publish_date": "1953",
+    "subjects": ["Dystopian fiction", "Censorship", "Science fiction"],
+    "number_of_pages": 158
+  },
+  {
+    "title": "The Catcher in the Rye",
+    "authors": [{"name": "J.D. Salinger"}],
+    "publishers": ["Little, Brown and Company"],
+    "publish_date": "1951",
+    "subjects": ["Coming of age", "American fiction", "New York City"],
+    "number_of_pages": 234
+  },
+  {
+    "title": "One Hundred Years of Solitude",
+    "authors": [{"name": "Gabriel Garcia Marquez"}],
+    "publishers": ["Harper & Row"],
+    "publish_date": "1967",
+    "subjects": ["Magical realism", "Latin American fiction", "Family sagas"],
+    "number_of_pages": 417
+  },
+  {
+    "title": "The Lord of the Flies",
+    "authors": [{"name": "William Golding"}],
+    "publishers": ["Faber and Faber"],
+    "publish_date": "1954",
+    "subjects": ["Allegory", "Survival", "Human nature"],
+    "number_of_pages": 224
+  },
+  {
+    "title": "Moby-Dick",
+    "authors": [{"name": "Herman Melville"}],
+    "publishers": ["Harper & Brothers"],
+    "publish_date": "1851",
+    "subjects": ["Adventure", "Whaling", "American fiction"],
+    "number_of_pages": 585
+  },
+  {
+    "title": "War and Peace",
+    "authors": [{"name": "Leo Tolstoy"}],
+    "publishers": ["The Russian Messenger"],
+    "publish_date": "1869",
+    "subjects": ["Historical fiction", "Russian literature", "Napoleonic Wars"],
+    "number_of_pages": 1225
+  },
+  {
+    "title": "Anna Karenina",
+    "authors": [{"name": "Leo Tolstoy"}],
+    "publishers": ["The Russian Messenger"],
+    "publish_date": "1877",
+    "subjects": ["Russian literature", "Romance", "Social criticism"],
+    "number_of_pages": 864
+  },
+  {
+    "title": "Crime and Punishment",
+    "authors": [{"name": "Fyodor Dostoevsky"}],
+    "publishers": ["The Russian Messenger"],
+    "publish_date": "1866",
+    "subjects": ["Russian literature", "Psychological fiction", "Crime"],
+    "number_of_pages": 671
+  },
+  {
+    "title": "The Brothers Karamazov",
+    "authors": [{"name": "Fyodor Dostoevsky"}],
+    "publishers": ["The Russian Messenger"],
+    "publish_date": "1880",
+    "subjects": ["Russian literature", "Philosophical fiction", "Family"],
+    "number_of_pages": 796
+  },
+  {
+    "title": "Jane Eyre",
+    "authors": [{"name": "Charlotte Bronte"}],
+    "publishers": ["Smith, Elder & Co."],
+    "publish_date": "1847",
+    "subjects": ["Gothic fiction", "Romance", "Victorian literature"],
+    "number_of_pages": 500
+  },
+  {
+    "title": "Wuthering Heights",
+    "authors": [{"name": "Emily Bronte"}],
+    "publishers": ["Thomas Cautley Newby"],
+    "publish_date": "1847",
+    "subjects": ["Gothic fiction", "Romance", "Victorian literature"],
+    "number_of_pages": 464
+  },
+  {
+    "title": "Great Expectations",
+    "authors": [{"name": "Charles Dickens"}],
+    "publishers": ["Chapman & Hall"],
+    "publish_date": "1861",
+    "subjects": ["Victorian literature", "Coming of age", "Social classes"],
+    "number_of_pages": 544
+  },
+  {
+    "title": "A Tale of Two Cities",
+    "authors": [{"name": "Charles Dickens"}],
+    "publishers": ["Chapman & Hall"],
+    "publish_date": "1859",
+    "subjects": ["Historical fiction", "French Revolution", "Victorian literature"],
+    "number_of_pages": 489
+  },
+  {
+    "title": "Oliver Twist",
+    "authors": [{"name": "Charles Dickens"}],
+    "publishers": ["Richard Bentley"],
+    "publish_date": "1838",
+    "subjects": ["Victorian literature", "Social criticism", "Orphans"],
+    "number_of_pages": 608
+  },
+  {
+    "title": "The Picture of Dorian Gray",
+    "authors": [{"name": "Oscar Wilde"}],
+    "publishers": ["Lippincott's Monthly Magazine"],
+    "publish_date": "1890",
+    "subjects": ["Gothic fiction", "Aestheticism", "Victorian literature"],
+    "number_of_pages": 254
+  },
+  {
+    "title": "Frankenstein",
+    "authors": [{"name": "Mary Shelley"}],
+    "publishers": ["Lackington, Hughes, Harding, Mavor & Jones"],
+    "publish_date": "1818",
+    "subjects": ["Gothic fiction", "Science fiction", "Horror"],
+    "number_of_pages": 280
+  },
+  {
+    "title": "Dracula",
+    "authors": [{"name": "Bram Stoker"}],
+    "publishers": ["Archibald Constable and Company"],
+    "publish_date": "1897",
+    "subjects": ["Gothic fiction", "Horror", "Vampires"],
+    "number_of_pages": 418
+  },
+  {
+    "title": "The Adventures of Sherlock Holmes",
+    "authors": [{"name": "Arthur Conan Doyle"}],
+    "publishers": ["George Newnes"],
+    "publish_date": "1892",
+    "subjects": ["Mystery", "Detective fiction", "Short stories"],
+    "number_of_pages": 307
+  },
+  {
+    "title": "The Hound of the Baskervilles",
+    "authors": [{"name": "Arthur Conan Doyle"}],
+    "publishers": ["George Newnes"],
+    "publish_date": "1902",
+    "subjects": ["Mystery", "Detective fiction", "Gothic fiction"],
+    "number_of_pages": 256
+  },
+  {
+    "title": "And Then There Were None",
+    "authors": [{"name": "Agatha Christie"}],
+    "publishers": ["Collins Crime Club"],
+    "publish_date": "1939",
+    "subjects": ["Mystery", "Detective fiction", "Thriller"],
+    "number_of_pages": 272
+  },
+  {
+    "title": "Murder on the Orient Express",
+    "authors": [{"name": "Agatha Christie"}],
+    "publishers": ["Collins Crime Club"],
+    "publish_date": "1934",
+    "subjects": ["Mystery", "Detective fiction", "Hercule Poirot"],
+    "number_of_pages": 256
+  },
+  {
+    "title": "The Hitchhiker's Guide to the Galaxy",
+    "authors": [{"name": "Douglas Adams"}],
+    "publishers": ["Pan Books"],
+    "publish_date": "1979",
+    "subjects": ["Science fiction", "Humor", "Space travel"],
+    "number_of_pages": 224
+  },
+  {
+    "title": "Slaughterhouse-Five",
+    "authors": [{"name": "Kurt Vonnegut"}],
+    "publishers": ["Delacorte Press"],
+    "publish_date": "1969",
+    "subjects": ["Science fiction", "Anti-war", "American fiction"],
+    "number_of_pages": 275
+  },
+  {
+    "title": "Catch-22",
+    "authors": [{"name": "Joseph Heller"}],
+    "publishers": ["Simon & Schuster"],
+    "publish_date": "1961",
+    "subjects": ["Satire", "War fiction", "American fiction"],
+    "number_of_pages": 453
+  },
+  {
+    "title": "The Grapes of Wrath",
+    "authors": [{"name": "John Steinbeck"}],
+    "publishers": ["The Viking Press"],
+    "publish_date": "1939",
+    "subjects": ["American fiction", "Great Depression", "Social criticism"],
+    "number_of_pages": 464
+  },
+  {
+    "title": "Of Mice and Men",
+    "authors": [{"name": "John Steinbeck"}],
+    "publishers": ["Covici Friede"],
+    "publish_date": "1937",
+    "subjects": ["American fiction", "Great Depression", "Friendship"],
+    "number_of_pages": 107
+  },
+  {
+    "title": "East of Eden",
+    "authors": [{"name": "John Steinbeck"}],
+    "publishers": ["The Viking Press"],
+    "publish_date": "1952",
+    "subjects": ["American fiction", "Family sagas", "California"],
+    "number_of_pages": 601
+  },
+  {
+    "title": "Beloved",
+    "authors": [{"name": "Toni Morrison"}],
+    "publishers": ["Alfred A. Knopf"],
+    "publish_date": "1987",
+    "subjects": ["African American fiction", "Slavery", "Historical fiction"],
+    "number_of_pages": 324
+  },
+  {
+    "title": "Song of Solomon",
+    "authors": [{"name": "Toni Morrison"}],
+    "publishers": ["Alfred A. Knopf"],
+    "publish_date": "1977",
+    "subjects": ["African American fiction", "Identity", "Family"],
+    "number_of_pages": 337
+  },
+  {
+    "title": "Invisible Man",
+    "authors": [{"name": "Ralph Ellison"}],
+    "publishers": ["Random House"],
+    "publish_date": "1952",
+    "subjects": ["African American fiction", "Identity", "Social criticism"],
+    "number_of_pages": 581
+  },
+  {
+    "title": "The Color Purple",
+    "authors": [{"name": "Alice Walker"}],
+    "publishers": ["Harcourt Brace Jovanovich"],
+    "publish_date": "1982",
+    "subjects": ["African American fiction", "Epistolary novel", "Feminism"],
+    "number_of_pages": 295
+  },
+  {
+    "title": "Don Quixote",
+    "authors": [{"name": "Miguel de Cervantes"}],
+    "publishers": ["Francisco de Robles"],
+    "publish_date": "1605",
+    "subjects": ["Spanish literature", "Satire", "Adventure"],
+    "number_of_pages": 1072
+  },
+  {
+    "title": "The Alchemist",
+    "authors": [{"name": "Paulo Coelho"}],
+    "publishers": ["HarperOne"],
+    "publish_date": "1988",
+    "subjects": ["Philosophical fiction", "Adventure", "Quest"],
+    "number_of_pages": 197
+  },
+  {
+    "title": "The Kite Runner",
+    "authors": [{"name": "Khaled Hosseini"}],
+    "publishers": ["Riverhead Books"],
+    "publish_date": "2003",
+    "subjects": ["Afghan fiction", "Friendship", "Redemption"],
+    "number_of_pages": 371
+  },
+  {
+    "title": "Life of Pi",
+    "authors": [{"name": "Yann Martel"}],
+    "publishers": ["Knopf Canada"],
+    "publish_date": "2001",
+    "subjects": ["Adventure", "Survival", "Philosophical fiction"],
+    "number_of_pages": 319
+  },
+  {
+    "title": "The Road",
+    "authors": [{"name": "Cormac McCarthy"}],
+    "publishers": ["Alfred A. Knopf"],
+    "publish_date": "2006",
+    "subjects": ["Post-apocalyptic fiction", "Survival", "Father and son"],
+    "number_of_pages": 287
+  },
+  {
+    "title": "Blood Meridian",
+    "authors": [{"name": "Cormac McCarthy"}],
+    "publishers": ["Random House"],
+    "publish_date": "1985",
+    "subjects": ["Western fiction", "Violence", "American frontier"],
+    "number_of_pages": 337
+  },
+  {
+    "title": "No Country for Old Men",
+    "authors": [{"name": "Cormac McCarthy"}],
+    "publishers": ["Alfred A. Knopf"],
+    "publish_date": "2005",
+    "subjects": ["Thriller", "Western fiction", "Crime"],
+    "number_of_pages": 309
+  },
+  {
+    "title": "The Handmaid's Tale",
+    "authors": [{"name": "Margaret Atwood"}],
+    "publishers": ["McClelland and Stewart"],
+    "publish_date": "1985",
+    "subjects": ["Dystopian fiction", "Feminism", "Speculative fiction"],
+    "number_of_pages": 311
+  },
+  {
+    "title": "Neuromancer",
+    "authors": [{"name": "William Gibson"}],
+    "publishers": ["Ace Books"],
+    "publish_date": "1984",
+    "subjects": ["Cyberpunk", "Science fiction", "Artificial intelligence"],
+    "number_of_pages": 271
+  },
+  {
+    "title": "Snow Crash",
+    "authors": [{"name": "Neal Stephenson"}],
+    "publishers": ["Bantam Books"],
+    "publish_date": "1992",
+    "subjects": ["Cyberpunk", "Science fiction", "Virtual reality"],
+    "number_of_pages": 440
+  },
+  {
+    "title": "Ender's Game",
+    "authors": [{"name": "Orson Scott Card"}],
+    "publishers": ["Tor Books"],
+    "publish_date": "1985",
+    "subjects": ["Science fiction", "Military fiction", "Young adult"],
+    "number_of_pages": 324
+  },
+  {
+    "title": "The Left Hand of Darkness",
+    "authors": [{"name": "Ursula K. Le Guin"}],
+    "publishers": ["Ace Books"],
+    "publish_date": "1969",
+    "subjects": ["Science fiction", "Gender", "Anthropology"],
+    "number_of_pages": 304
+  },
+  {
+    "title": "A Wizard of Earthsea",
+    "authors": [{"name": "Ursula K. Le Guin"}],
+    "publishers": ["Parnassus Press"],
+    "publish_date": "1968",
+    "subjects": ["Fantasy", "Coming of age", "Magic"],
+    "number_of_pages": 183
+  },
+  {
+    "title": "The Dispossessed",
+    "authors": [{"name": "Ursula K. Le Guin"}],
+    "publishers": ["Harper & Row"],
+    "publish_date": "1974",
+    "subjects": ["Science fiction", "Utopian fiction", "Anarchism"],
+    "number_of_pages": 341
+  },
+  {
+    "title": "2001: A Space Odyssey",
+    "authors": [{"name": "Arthur C. Clarke"}],
+    "publishers": ["New American Library"],
+    "publish_date": "1968",
+    "subjects": ["Science fiction", "Space exploration", "Artificial intelligence"],
+    "number_of_pages": 297
+  },
+  {
+    "title": "Childhood's End",
+    "authors": [{"name": "Arthur C. Clarke"}],
+    "publishers": ["Ballantine Books"],
+    "publish_date": "1953",
+    "subjects": ["Science fiction", "Aliens", "Evolution"],
+    "number_of_pages": 214
+  },
+  {
+    "title": "The Martian Chronicles",
+    "authors": [{"name": "Ray Bradbury"}],
+    "publishers": ["Doubleday"],
+    "publish_date": "1950",
+    "subjects": ["Science fiction", "Mars", "Colonization"],
+    "number_of_pages": 222
+  },
+  {
+    "title": "Stranger in a Strange Land",
+    "authors": [{"name": "Robert A. Heinlein"}],
+    "publishers": ["Putnam"],
+    "publish_date": "1961",
+    "subjects": ["Science fiction", "Social criticism", "Mars"],
+    "number_of_pages": 408
+  },
+  {
+    "title": "The Count of Monte Cristo",
+    "authors": [{"name": "Alexandre Dumas"}],
+    "publishers": ["Chapman & Hall"],
+    "publish_date": "1844",
+    "subjects": ["Adventure", "Revenge", "Historical fiction"],
+    "number_of_pages": 1276
+  },
+  {
+    "title": "Les Miserables",
+    "authors": [{"name": "Victor Hugo"}],
+    "publishers": ["A. Lacroix, Verboeckhoven & Cie"],
+    "publish_date": "1862",
+    "subjects": ["French literature", "Social criticism", "Historical fiction"],
+    "number_of_pages": 1463
+  },
+  {
+    "title": "The Odyssey",
+    "authors": [{"name": "Homer"}],
+    "publishers": ["Penguin Classics"],
+    "publish_date": "-700",
+    "subjects": ["Epic poetry", "Greek mythology", "Adventure"],
+    "number_of_pages": 541
+  },
+  {
+    "title": "The Iliad",
+    "authors": [{"name": "Homer"}],
+    "publishers": ["Penguin Classics"],
+    "publish_date": "-750",
+    "subjects": ["Epic poetry", "Greek mythology", "War"],
+    "number_of_pages": 683
+  },
+  {
+    "title": "The Divine Comedy",
+    "authors": [{"name": "Dante Alighieri"}],
+    "publishers": ["Penguin Classics"],
+    "publish_date": "1320",
+    "subjects": ["Epic poetry", "Italian literature", "Religion"],
+    "number_of_pages": 798
+  },
+  {
+    "title": "The Metamorphosis",
+    "authors": [{"name": "Franz Kafka"}],
+    "publishers": ["Kurt Wolff Verlag"],
+    "publish_date": "1915",
+    "subjects": ["Existentialism", "Novella", "Absurdist fiction"],
+    "number_of_pages": 55
+  },
+  {
+    "title": "The Trial",
+    "authors": [{"name": "Franz Kafka"}],
+    "publishers": ["Verlag Die Schmiede"],
+    "publish_date": "1925",
+    "subjects": ["Existentialism", "Absurdist fiction", "Bureaucracy"],
+    "number_of_pages": 255
+  },
+  {
+    "title": "The Stranger",
+    "authors": [{"name": "Albert Camus"}],
+    "publishers": ["Gallimard"],
+    "publish_date": "1942",
+    "subjects": ["Existentialism", "French literature", "Absurdist fiction"],
+    "number_of_pages": 123
+  },
+  {
+    "title": "Siddhartha",
+    "authors": [{"name": "Hermann Hesse"}],
+    "publishers": ["New Directions"],
+    "publish_date": "1922",
+    "subjects": ["Philosophical fiction", "Buddhism", "Spiritual journey"],
+    "number_of_pages": 152
+  },
+  {
+    "title": "Steppenwolf",
+    "authors": [{"name": "Hermann Hesse"}],
+    "publishers": ["S. Fischer Verlag"],
+    "publish_date": "1927",
+    "subjects": ["Philosophical fiction", "German literature", "Identity"],
+    "number_of_pages": 237
+  },
+  {
+    "title": "One Flew Over the Cuckoo's Nest",
+    "authors": [{"name": "Ken Kesey"}],
+    "publishers": ["Viking Press"],
+    "publish_date": "1962",
+    "subjects": ["American fiction", "Mental illness", "Counterculture"],
+    "number_of_pages": 311
+  },
+  {
+    "title": "On the Road",
+    "authors": [{"name": "Jack Kerouac"}],
+    "publishers": ["Viking Press"],
+    "publish_date": "1957",
+    "subjects": ["Beat Generation", "American fiction", "Road trip"],
+    "number_of_pages": 307
+  },
+  {
+    "title": "The Bell Jar",
+    "authors": [{"name": "Sylvia Plath"}],
+    "publishers": ["Heinemann"],
+    "publish_date": "1963",
+    "subjects": ["Autobiographical fiction", "Mental illness", "Feminism"],
+    "number_of_pages": 244
+  },
+  {
+    "title": "Lolita",
+    "authors": [{"name": "Vladimir Nabokov"}],
+    "publishers": ["Olympia Press"],
+    "publish_date": "1955",
+    "subjects": ["Controversial fiction", "American fiction", "Unreliable narrator"],
+    "number_of_pages": 336
+  },
+  {
+    "title": "Heart of Darkness",
+    "authors": [{"name": "Joseph Conrad"}],
+    "publishers": ["Blackwood's Magazine"],
+    "publish_date": "1899",
+    "subjects": ["Colonialism", "Adventure", "Novella"],
+    "number_of_pages": 96
+  },
+  {
+    "title": "Lord Jim",
+    "authors": [{"name": "Joseph Conrad"}],
+    "publishers": ["Blackwood's Magazine"],
+    "publish_date": "1900",
+    "subjects": ["Adventure", "Redemption", "Maritime fiction"],
+    "number_of_pages": 400
+  },
+  {
+    "title": "Treasure Island",
+    "authors": [{"name": "Robert Louis Stevenson"}],
+    "publishers": ["Cassell and Company"],
+    "publish_date": "1883",
+    "subjects": ["Adventure", "Pirates", "Young adult"],
+    "number_of_pages": 292
+  },
+  {
+    "title": "The Jungle Book",
+    "authors": [{"name": "Rudyard Kipling"}],
+    "publishers": ["Macmillan Publishers"],
+    "publish_date": "1894",
+    "subjects": ["Children's literature", "Animals", "India"],
+    "number_of_pages": 277
+  },
+  {
+    "title": "A Clockwork Orange",
+    "authors": [{"name": "Anthony Burgess"}],
+    "publishers": ["William Heinemann"],
+    "publish_date": "1962",
+    "subjects": ["Dystopian fiction", "Violence", "Free will"],
+    "number_of_pages": 192
+  },
+  {
+    "title": "Watership Down",
+    "authors": [{"name": "Richard Adams"}],
+    "publishers": ["Rex Collings"],
+    "publish_date": "1972",
+    "subjects": ["Fantasy", "Adventure", "Animals"],
+    "number_of_pages": 478
+  },
+  {
+    "title": "The Name of the Wind",
+    "authors": [{"name": "Patrick Rothfuss"}],
+    "publishers": ["DAW Books"],
+    "publish_date": "2007",
+    "subjects": ["Fantasy", "Epic fantasy", "Magic"],
+    "number_of_pages": 662
+  },
+  {
+    "title": "A Game of Thrones",
+    "authors": [{"name": "George R.R. Martin"}],
+    "publishers": ["Bantam Spectra"],
+    "publish_date": "1996",
+    "subjects": ["Fantasy", "Epic fantasy", "Political intrigue"],
+    "number_of_pages": 694
+  },
+  {
+    "title": "A Clash of Kings",
+    "authors": [{"name": "George R.R. Martin"}],
+    "publishers": ["Bantam Spectra"],
+    "publish_date": "1998",
+    "subjects": ["Fantasy", "Epic fantasy", "Political intrigue"],
+    "number_of_pages": 761
+  },
+  {
+    "title": "A Storm of Swords",
+    "authors": [{"name": "George R.R. Martin"}],
+    "publishers": ["Bantam Spectra"],
+    "publish_date": "2000",
+    "subjects": ["Fantasy", "Epic fantasy", "Political intrigue"],
+    "number_of_pages": 973
+  },
+  {
+    "title": "American Gods",
+    "authors": [{"name": "Neil Gaiman"}],
+    "publishers": ["William Morrow"],
+    "publish_date": "2001",
+    "subjects": ["Fantasy", "Mythology", "American fiction"],
+    "number_of_pages": 465
+  },
+  {
+    "title": "Good Omens",
+    "authors": [{"name": "Terry Pratchett"}, {"name": "Neil Gaiman"}],
+    "publishers": ["Gollancz"],
+    "publish_date": "1990",
+    "subjects": ["Fantasy", "Humor", "Apocalypse"],
+    "number_of_pages": 288
+  },
+  {
+    "title": "The Color of Magic",
+    "authors": [{"name": "Terry Pratchett"}],
+    "publishers": ["Colin Smythe"],
+    "publish_date": "1983",
+    "subjects": ["Fantasy", "Humor", "Discworld"],
+    "number_of_pages": 288
+  },
+  {
+    "title": "Small Gods",
+    "authors": [{"name": "Terry Pratchett"}],
+    "publishers": ["Gollancz"],
+    "publish_date": "1992",
+    "subjects": ["Fantasy", "Humor", "Religion"],
+    "number_of_pages": 284
+  },
+  {
+    "title": "The Hunger Games",
+    "authors": [{"name": "Suzanne Collins"}],
+    "publishers": ["Scholastic Press"],
+    "publish_date": "2008",
+    "subjects": ["Dystopian fiction", "Young adult", "Survival"],
+    "number_of_pages": 374
+  },
+  {
+    "title": "Catching Fire",
+    "authors": [{"name": "Suzanne Collins"}],
+    "publishers": ["Scholastic Press"],
+    "publish_date": "2009",
+    "subjects": ["Dystopian fiction", "Young adult", "Revolution"],
+    "number_of_pages": 391
+  },
+  {
+    "title": "Mockingjay",
+    "authors": [{"name": "Suzanne Collins"}],
+    "publishers": ["Scholastic Press"],
+    "publish_date": "2010",
+    "subjects": ["Dystopian fiction", "Young adult", "War"],
+    "number_of_pages": 390
+  },
+  {
+    "title": "The Fault in Our Stars",
+    "authors": [{"name": "John Green"}],
+    "publishers": ["Dutton Books"],
+    "publish_date": "2012",
+    "subjects": ["Young adult", "Romance", "Cancer"],
+    "number_of_pages": 313
+  },
+  {
+    "title": "The Perks of Being a Wallflower",
+    "authors": [{"name": "Stephen Chbosky"}],
+    "publishers": ["Pocket Books"],
+    "publish_date": "1999",
+    "subjects": ["Young adult", "Coming of age", "Epistolary novel"],
+    "number_of_pages": 213
+  },
+  {
+    "title": "The Book Thief",
+    "authors": [{"name": "Markus Zusak"}],
+    "publishers": ["Picador"],
+    "publish_date": "2005",
+    "subjects": ["Historical fiction", "World War II", "Young adult"],
+    "number_of_pages": 552
+  },
+  {
+    "title": "The Giver",
+    "authors": [{"name": "Lois Lowry"}],
+    "publishers": ["Houghton Mifflin"],
+    "publish_date": "1993",
+    "subjects": ["Dystopian fiction", "Young adult", "Utopian fiction"],
+    "number_of_pages": 208
+  },
+  {
+    "title": "A Brief History of Time",
+    "authors": [{"name": "Stephen Hawking"}],
+    "publishers": ["Bantam Dell"],
+    "publish_date": "1988",
+    "subjects": ["Cosmology", "Physics", "Popular science"],
+    "number_of_pages": 256
+  },
+  {
+    "title": "Sapiens: A Brief History of Humankind",
+    "authors": [{"name": "Yuval Noah Harari"}],
+    "publishers": ["Harper"],
+    "publish_date": "2011",
+    "subjects": ["History", "Anthropology", "Popular science"],
+    "number_of_pages": 443
+  },
+  {
+    "title": "The Selfish Gene",
+    "authors": [{"name": "Richard Dawkins"}],
+    "publishers": ["Oxford University Press"],
+    "publish_date": "1976",
+    "subjects": ["Evolutionary biology", "Genetics", "Popular science"],
+    "number_of_pages": 360
+  },
+  {
+    "title": "Cosmos",
+    "authors": [{"name": "Carl Sagan"}],
+    "publishers": ["Random House"],
+    "publish_date": "1980",
+    "subjects": ["Astronomy", "Popular science", "Space exploration"],
+    "number_of_pages": 365
+  },
+  {
+    "title": "Thinking, Fast and Slow",
+    "authors": [{"name": "Daniel Kahneman"}],
+    "publishers": ["Farrar, Straus and Giroux"],
+    "publish_date": "2011",
+    "subjects": ["Psychology", "Behavioral economics", "Decision making"],
+    "number_of_pages": 499
+  },
+  {
+    "title": "The Art of War",
+    "authors": [{"name": "Sun Tzu"}],
+    "publishers": ["Shambhala"],
+    "publish_date": "-500",
+    "subjects": ["Military strategy", "Philosophy", "Chinese classics"],
+    "number_of_pages": 273
+  },
+  {
+    "title": "Meditations",
+    "authors": [{"name": "Marcus Aurelius"}],
+    "publishers": ["Penguin Classics"],
+    "publish_date": "180",
+    "subjects": ["Stoicism", "Philosophy", "Self-improvement"],
+    "number_of_pages": 254
+  },
+  {
+    "title": "The Republic",
+    "authors": [{"name": "Plato"}],
+    "publishers": ["Penguin Classics"],
+    "publish_date": "-375",
+    "subjects": ["Philosophy", "Political philosophy", "Greek classics"],
+    "number_of_pages": 416
+  },
+  {
+    "title": "Thus Spoke Zarathustra",
+    "authors": [{"name": "Friedrich Nietzsche"}],
+    "publishers": ["Ernst Schmeitzner"],
+    "publish_date": "1883",
+    "subjects": ["Philosophy", "German literature", "Existentialism"],
+    "number_of_pages": 352
+  },
+  {
+    "title": "The Prince",
+    "authors": [{"name": "Niccolo Machiavelli"}],
+    "publishers": ["Antonio Blado d'Asola"],
+    "publish_date": "1532",
+    "subjects": ["Political philosophy", "Italian literature", "Leadership"],
+    "number_of_pages": 140
+  },
+  {
+    "title": "The Autobiography of Malcolm X",
+    "authors": [{"name": "Malcolm X"}, {"name": "Alex Haley"}],
+    "publishers": ["Grove Press"],
+    "publish_date": "1965",
+    "subjects": ["Autobiography", "Civil rights", "African American history"],
+    "number_of_pages": 500
+  },
+  {
+    "title": "The Diary of a Young Girl",
+    "authors": [{"name": "Anne Frank"}],
+    "publishers": ["Contact Publishing"],
+    "publish_date": "1947",
+    "subjects": ["Autobiography", "Holocaust", "World War II"],
+    "number_of_pages": 283
+  },
+  {
+    "title": "Into the Wild",
+    "authors": [{"name": "Jon Krakauer"}],
+    "publishers": ["Villard"],
+    "publish_date": "1996",
+    "subjects": ["Biography", "Adventure", "Wilderness"],
+    "number_of_pages": 224
+  },
+  {
+    "title": "In Cold Blood",
+    "authors": [{"name": "Truman Capote"}],
+    "publishers": ["Random House"],
+    "publish_date": "1966",
+    "subjects": ["True crime", "Journalism", "Murder"],
+    "number_of_pages": 343
+  },
+  {
+    "title": "Kitchen Confidential",
+    "authors": [{"name": "Anthony Bourdain"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2000",
+    "subjects": ["Memoir", "Food", "Restaurant industry"],
+    "number_of_pages": 312
+  },
+  {
+    "title": "Educated",
+    "authors": [{"name": "Tara Westover"}],
+    "publishers": ["Random House"],
+    "publish_date": "2018",
+    "subjects": ["Memoir", "Education", "Family"],
+    "number_of_pages": 334
+  },
+  {
+    "title": "The Martian",
+    "authors": [{"name": "Andy Weir"}],
+    "publishers": ["Crown Publishing"],
+    "publish_date": "2014",
+    "subjects": ["Science fiction", "Survival", "Mars"],
+    "number_of_pages": 369
+  },
+  {
+    "title": "Project Hail Mary",
+    "authors": [{"name": "Andy Weir"}],
+    "publishers": ["Ballantine Books"],
+    "publish_date": "2021",
+    "subjects": ["Science fiction", "Space exploration", "First contact"],
+    "number_of_pages": 476
+  },
+  {
+    "title": "The Three-Body Problem",
+    "authors": [{"name": "Liu Cixin"}],
+    "publishers": ["Tor Books"],
+    "publish_date": "2008",
+    "subjects": ["Science fiction", "First contact", "Chinese fiction"],
+    "number_of_pages": 302
+  },
+  {
+    "title": "Circe",
+    "authors": [{"name": "Madeline Miller"}],
+    "publishers": ["Little, Brown and Company"],
+    "publish_date": "2018",
+    "subjects": ["Fantasy", "Greek mythology", "Feminism"],
+    "number_of_pages": 393
+  },
+  {
+    "title": "The Song of Achilles",
+    "authors": [{"name": "Madeline Miller"}],
+    "publishers": ["Ecco"],
+    "publish_date": "2012",
+    "subjects": ["Fantasy", "Greek mythology", "Romance"],
+    "number_of_pages": 378
+  },
+  {
+    "title": "Where the Crawdads Sing",
+    "authors": [{"name": "Delia Owens"}],
+    "publishers": ["G.P. Putnam's Sons"],
+    "publish_date": "2018",
+    "subjects": ["Mystery", "Coming of age", "Nature"],
+    "number_of_pages": 368
+  },
+  {
+    "title": "Normal People",
+    "authors": [{"name": "Sally Rooney"}],
+    "publishers": ["Faber & Faber"],
+    "publish_date": "2018",
+    "subjects": ["Literary fiction", "Romance", "Irish fiction"],
+    "number_of_pages": 273
+  },
+  {
+    "title": "The Goldfinch",
+    "authors": [{"name": "Donna Tartt"}],
+    "publishers": ["Little, Brown and Company"],
+    "publish_date": "2013",
+    "subjects": ["Literary fiction", "Art", "Coming of age"],
+    "number_of_pages": 771
+  },
+  {
+    "title": "The Secret History",
+    "authors": [{"name": "Donna Tartt"}],
+    "publishers": ["Alfred A. Knopf"],
+    "publish_date": "1992",
+    "subjects": ["Literary fiction", "Mystery", "Academia"],
+    "number_of_pages": 559
+  },
+  {
+    "title": "A Man Called Ove",
+    "authors": [{"name": "Fredrik Backman"}],
+    "publishers": ["Atria Books"],
+    "publish_date": "2012",
+    "subjects": ["Literary fiction", "Humor", "Community"],
+    "number_of_pages": 337
+  },
+  {
+    "title": "The Night Circus",
+    "authors": [{"name": "Erin Morgenstern"}],
+    "publishers": ["Doubleday"],
+    "publish_date": "2011",
+    "subjects": ["Fantasy", "Romance", "Magic"],
+    "number_of_pages": 387
+  },
+  {
+    "title": "Station Eleven",
+    "authors": [{"name": "Emily St. John Mandel"}],
+    "publishers": ["Knopf"],
+    "publish_date": "2014",
+    "subjects": ["Post-apocalyptic fiction", "Science fiction", "Art"],
+    "number_of_pages": 333
+  },
+  {
+    "title": "The House in the Cerulean Sea",
+    "authors": [{"name": "TJ Klune"}],
+    "publishers": ["Tor Books"],
+    "publish_date": "2020",
+    "subjects": ["Fantasy", "LGBTQ fiction", "Found family"],
+    "number_of_pages": 398
+  },
+  {
+    "title": "Piranesi",
+    "authors": [{"name": "Susanna Clarke"}],
+    "publishers": ["Bloomsbury"],
+    "publish_date": "2020",
+    "subjects": ["Fantasy", "Mystery", "Philosophical fiction"],
+    "number_of_pages": 245
+  },
+  {
+    "title": "Klara and the Sun",
+    "authors": [{"name": "Kazuo Ishiguro"}],
+    "publishers": ["Faber & Faber"],
+    "publish_date": "2021",
+    "subjects": ["Science fiction", "Artificial intelligence", "Literary fiction"],
+    "number_of_pages": 307
+  },
+  {
+    "title": "Never Let Me Go",
+    "authors": [{"name": "Kazuo Ishiguro"}],
+    "publishers": ["Faber & Faber"],
+    "publish_date": "2005",
+    "subjects": ["Science fiction", "Dystopian fiction", "Literary fiction"],
+    "number_of_pages": 288
+  },
+  {
+    "title": "The Remains of the Day",
+    "authors": [{"name": "Kazuo Ishiguro"}],
+    "publishers": ["Faber & Faber"],
+    "publish_date": "1989",
+    "subjects": ["Literary fiction", "Historical fiction", "British fiction"],
+    "number_of_pages": 245
+  }
+]
