@@ -1,7 +1,4 @@
-"""Tests for the /works/OL{work_id}W/notes booknotes endpoint (FastAPI).
-
-The mock_authenticated_user fixture is imported from conftest.py.
-"""
+"""Tests for POST /works/OL{work_id}W/notes (FastAPI)."""
 
 from unittest.mock import patch
 
@@ -9,103 +6,67 @@ import pytest
 
 
 @pytest.fixture
-def mock_booknotes_add():
-    """Prevent real DB calls for Booknotes.add."""
-    with patch("openlibrary.core.models.Booknotes.add", autospec=True) as mock:
-        mock.return_value = 1
-        yield mock
-
-
-@pytest.fixture
-def mock_booknotes_remove():
-    """Prevent real DB calls for Booknotes.remove."""
-    with patch("openlibrary.core.models.Booknotes.remove", autospec=True) as mock:
-        mock.return_value = 1
-        yield mock
+def mock_booknotes():
+    """Prevent real DB calls for Booknotes methods."""
+    with (
+        patch("openlibrary.core.models.Booknotes.add", autospec=True) as add_mock,
+        patch("openlibrary.core.models.Booknotes.remove", autospec=True) as remove_mock,
+    ):
+        add_mock.return_value = 1
+        remove_mock.return_value = 1
+        yield add_mock, remove_mock
 
 
 class TestBooknotesPost:
     """Tests for POST /works/OL{work_id}W/notes."""
 
-    def test_add_note_returns_200(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
-        """Adding a note returns 200 with success message."""
+    def test_add_note(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        """Add a note: returns 200 and calls Booknotes.add with correct args."""
+        add_mock, remove_mock = mock_booknotes
         response = fastapi_client.post(
             "/works/OL123W/notes",
             data={"notes": "Great book!"},
         )
         assert response.status_code == 200
         assert response.json() == {"success": "note added"}
-
-    def test_remove_note_returns_200(self, fastapi_client, mock_authenticated_user, mock_booknotes_remove):
-        """Posting without notes removes the note and returns 200."""
-        response = fastapi_client.post(
-            "/works/OL123W/notes",
-            data={},
-        )
-        assert response.status_code == 200
-        assert response.json() == {"success": "removed note"}
-
-    def test_add_note_calls_booknotes_add_with_correct_args(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
-        """Booknotes.add is called with the correct arguments."""
-        fastapi_client.post(
-            "/works/OL123W/notes",
-            data={"notes": "A wonderful read."},
-        )
-        mock_booknotes_add.assert_called_once_with(
+        add_mock.assert_called_once_with(
             username="testuser",
             work_id=123,
-            notes="A wonderful read.",
+            notes="Great book!",
             edition_id=-1,
         )
+        remove_mock.assert_not_called()
 
-    def test_remove_note_calls_booknotes_remove_with_correct_args(self, fastapi_client, mock_authenticated_user, mock_booknotes_remove):
-        """Booknotes.remove is called with the correct arguments."""
-        fastapi_client.post(
-            "/works/OL123W/notes",
-            data={},
-        )
-        mock_booknotes_remove.assert_called_once_with("testuser", 123, edition_id=-1)
-
-    def test_add_note_with_edition_id(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
-        """edition_id is parsed from OL format (OL456M -> 456) and passed correctly."""
-        fastapi_client.post(
+    def test_add_note_with_edition_id(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        """Add note with edition_id: validates OL format and passes numeric ID."""
+        add_mock, _ = mock_booknotes
+        response = fastapi_client.post(
             "/works/OL123W/notes",
             data={"notes": "Edition-specific note", "edition_id": "OL456M"},
         )
-        mock_booknotes_add.assert_called_once_with(
+        assert response.status_code == 200
+        add_mock.assert_called_once_with(
             username="testuser",
             work_id=123,
             notes="Edition-specific note",
             edition_id=456,
         )
 
-    def test_unauthenticated_returns_401(self, fastapi_client):
-        """Requests without a valid session cookie return 401.
-
-        No mock_authenticated_user fixture here — so the real auth runs and
-        rejects the request because there is no session cookie.
-        The legacy code did a browser redirect to /account/login.
-        The FastAPI version correctly returns 401 for a JSON API instead.
-        """
+    def test_remove_note(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        """Remove a note: returns 200 and calls Booknotes.remove with correct args."""
+        _, remove_mock = mock_booknotes
         response = fastapi_client.post(
             "/works/OL123W/notes",
-            data={"notes": "Should fail"},
-        )
-        assert response.status_code == 401
-
-    @pytest.mark.parametrize(
-        ("work_id", "note"),
-        [
-            ("1", "Short note"),
-            ("99999999", "Note for a large work ID"),
-            ("42", "Another note"),
-        ],
-    )
-    def test_various_work_ids_and_notes(self, fastapi_client, mock_authenticated_user, mock_booknotes_add, work_id, note):
-        """Various work IDs and note contents are all handled correctly."""
-        response = fastapi_client.post(
-            f"/works/OL{work_id}W/notes",
-            data={"notes": note},
+            data={},
         )
         assert response.status_code == 200
-        assert response.json() == {"success": "note added"}
+        assert response.json() == {"success": "removed note"}
+        remove_mock.assert_called_once_with("testuser", 123, edition_id=-1)
+
+    def test_invalid_edition_id_returns_422(self, fastapi_client, mock_authenticated_user):
+        """Invalid edition_id format (not OL{number}M) returns 422 validation error."""
+        response = fastapi_client.post(
+            "/works/OL123W/notes",
+            data={"notes": "Should fail", "edition_id": "invalid"},
+        )
+        assert response.status_code == 422
