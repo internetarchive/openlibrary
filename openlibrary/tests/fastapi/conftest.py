@@ -5,6 +5,8 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
+from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+
 
 @pytest.fixture
 def fastapi_client():
@@ -13,6 +15,26 @@ def fastapi_client():
 
     app = create_app()
     return TestClient(app)
+
+
+@pytest.fixture
+def mock_authenticated_user(fastapi_client):
+    """Provide an authenticated test user using FastAPI's dependency_overrides.
+
+    This is the correct FastAPI way to override dependencies in tests.
+    Patching the function directly does not work because FastAPI's dependency
+    injection system has already wired up the dependency when the app starts.
+    So instead we tell the app: 'for this test, replace require_authenticated_user
+    with a function that just returns our fake user'.
+    """
+    fake_user = AuthenticatedUser(
+        username="testuser",
+        user_key="/people/testuser",
+        timestamp="2026-01-01T00:00:00",
+    )
+    fastapi_client.app.dependency_overrides[require_authenticated_user] = lambda: fake_user
+    yield fake_user
+    fastapi_client.app.dependency_overrides.clear()
 
 
 @pytest.fixture
