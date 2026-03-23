@@ -1285,6 +1285,15 @@ def websafe(text: str) -> str:
         return web.safestr(text)
     else:
         return _websafe(text)
+    
+    def html_safe_unescape(text) -> str:
+    """Unescape HTML entities then re-escape for safe template rendering.
+    Fixes double-escaping of stored HTML entities (e.g. &quot; displays
+    as &quot; instead of quotes). Used where bio text is already escaped."""
+    from html import unescape
+    if not text:
+        return ''
+    return websafe(unescape(str(text)))
 
 
 import memcache
@@ -1737,6 +1746,7 @@ def setup() -> None:
             'logger': logging.getLogger("openlibrary.template"),
             'sum': sum,
             'websafe': web.websafe,
+            'html_safe_unescape': html_safe_unescape,
         }
     )
 

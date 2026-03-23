@@ -385,3 +385,28 @@ def test_get_language_name(add_languages):  # noqa: F811
     assert utils.get_language_name("/languages/ger", "en") == "German"
     # Falls back to name when translation missing for requested language
     assert utils.get_language_name("/languages/ger", "fr") == "Deutsch"
+    def test_html_safe_unescape_basic():
+    from openlibrary.plugins.upstream.utils import html_safe_unescape
+
+    # Basic HTML entity unescaping
+    assert html_safe_unescape('&quot;Hello&quot;') == '"Hello"'
+    assert html_safe_unescape('it&#39;s') == "it's"
+    assert html_safe_unescape('a &amp; b') == 'a &amp; b'
+
+
+def test_html_safe_unescape_xss():
+    
+    
+    from openlibrary.plugins.upstream.utils import html_safe_unescape
+
+    # Must not allow XSS — script tags must be escaped in output
+    result = html_safe_unescape('<script>alert("hi")</script>')
+    assert '<script>' not in result
+    assert 'alert' in result  # content preserved but tags escaped
+
+
+def test_html_safe_unescape_empty():
+    from openlibrary.plugins.upstream.utils import html_safe_unescape
+
+    assert html_safe_unescape('') == ''
+    assert html_safe_unescape(None) == ''
