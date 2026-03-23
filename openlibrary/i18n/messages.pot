@@ -1870,6 +1870,28 @@ msgid "100 pages with ellipsis:"
 msgstr ""
 
 #: design.html
+msgid "Arrows mode"
+msgstr ""
+
+#: design.html
+msgid ""
+"When total pages is unknown, use arrows mode to show only previous/next "
+"navigation."
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (has next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (no next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (first page, has next)"
+msgstr ""
+
+#: design.html
 msgid ""
 "The ol-read-more component provides expandable/collapsible content with "
 "two truncation modes: height-based and line-based."
