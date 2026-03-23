@@ -491,11 +491,11 @@ msgstr ""
 msgid "My Book Review"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
 msgstr ""
 
@@ -507,7 +507,8 @@ msgstr ""
 msgid "Page {page}, current page"
 msgstr ""
 
-#: OlPagination.html design.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
 msgstr ""
 
