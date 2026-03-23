@@ -60,7 +60,6 @@
   min-width: 0;
 }
 
-
 .design-pattern {
   padding-bottom: 24px;
   border-bottom: var(--border-divider);
@@ -77,7 +76,6 @@
   font-size: 18px;
   color: var(--mid-grey);
 }
-
 
 .example {
   margin-bottom: 48px;

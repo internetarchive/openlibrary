@@ -1799,11 +1799,11 @@ msgid "Not yet imported"
 msgstr ""
 
 #: design.html
-msgid "Design Pattern Library"
+msgid "Web Component Library"
 msgstr ""
 
 #: design.html
-msgid "Components"
+msgid "Popover"
 msgstr ""
 
 #: design.html type/edition/view.html type/work/view.html
