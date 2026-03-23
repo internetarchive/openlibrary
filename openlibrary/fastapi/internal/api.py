@@ -80,10 +80,10 @@ class BooknoteResponse(BaseModel):
     include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
 )
 async def booknotes_post(
-    work_id: Annotated[int, Path()],
+    work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     notes: Annotated[str | None, Form()] = None,
-    edition_id: Annotated[str | None, Form(pattern=r"^OL\d+M$")] = None,
+    edition_id: Annotated[str | None, Form(pattern=r"(?i)^OL\d+M$")] = None,
 ) -> BooknoteResponse:
     """
     Add or remove a note for a work (and optionally a specific edition).

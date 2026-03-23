@@ -52,6 +52,21 @@ class TestBooknotesPost:
             edition_id=456,
         )
 
+    def test_add_note_with_lowercase_edition_id(self, fastapi_client, mock_authenticated_user, mock_booknotes):
+        """Add note with lowercase edition_id: accepts case-insensitive OL format."""
+        add_mock, _ = mock_booknotes
+        response = fastapi_client.post(
+            "/works/OL123W/notes",
+            data={"notes": "Edition-specific note", "edition_id": "ol456m"},
+        )
+        assert response.status_code == 200
+        add_mock.assert_called_once_with(
+            username="testuser",
+            work_id=123,
+            notes="Edition-specific note",
+            edition_id=456,
+        )
+
     def test_remove_note(self, fastapi_client, mock_authenticated_user, mock_booknotes):
         """Remove a note: returns 200 and calls Booknotes.remove with correct args."""
         _, remove_mock = mock_booknotes
@@ -68,5 +83,13 @@ class TestBooknotesPost:
         response = fastapi_client.post(
             "/works/OL123W/notes",
             data={"notes": "Should fail", "edition_id": "invalid"},
+        )
+        assert response.status_code == 422
+
+    def test_invalid_work_id_returns_422(self, fastapi_client, mock_authenticated_user):
+        """Invalid work_id (negative) returns 422 validation error."""
+        response = fastapi_client.post(
+            "/works/OL-1W/notes",
+            data={"notes": "Should fail"},
         )
         assert response.status_code == 422
