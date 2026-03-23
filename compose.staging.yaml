@@ -21,6 +21,7 @@ services:
       - ./.env.local
     volumes:
       - ../olsystem:/olsystem
+      # - ../olsystem-db0:/olsystem
       - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
       # Persistent volume mount for installed git submodules
@@ -46,6 +47,7 @@ services:
       - ./.env.local
     volumes:
       - ../olsystem:/olsystem
+      # - ../olsystem-db0:/olsystem
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       - .:/openlibrary
@@ -53,6 +55,16 @@ services:
 
   memcached:
     restart: unless-stopped
+
+  infobase:
+    restart: unless-stopped
+    hostname: "$HOSTNAME"
+    environment:
+      # - INFOBASE_OPTS=fastcgi
+      - INFOBASE_CONFIG=/olsystem/etc/infobase.yml
+    volumes:
+      - ../olsystem-db0:/olsystem
+      # - /1/var/lib/openlibrary/infobase:/var/lib/openlibrary/infobase
 
 volumes:
   ol-vendor:
