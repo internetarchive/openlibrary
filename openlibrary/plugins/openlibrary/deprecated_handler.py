@@ -15,19 +15,14 @@ from infogami.utils import delegate
 def handle_deprecated_request():
     """Handle the deprecated endpoint request."""
     # Check if we're in dev environment
-    is_dev = 'dev' in infogami.config.features
-
-    if is_dev:
-        # Port 18080 is mapped to 8080 in the fast_web container
-        if web.ctx.method == 'POST':
-            return proxy_to_fastapi()
-
-        # Simple string replacement to redirect to port 18080
-        new_url = web.ctx.home.replace(':8080', ':18080') + web.ctx.fullpath
-        raise web.seeother(new_url)
+    if 'dev' in infogami.config.features:
+        return proxy_to_fastapi()
     else:
         # Raise a loud error in production
-        error_msg = f'DEPRECATED ENDPOINT ACCESSED: {web.ctx.path}. This endpoint has been migrated to FastAPI and should not be accessed in production.'
+        error_msg = (
+            f'DEPRECATED ENDPOINT ACCESSED: {web.ctx.path}. '
+            'This endpoint has been migrated to FastAPI and should not be accessed in production.'
+        )
         raise web.internalerror(error_msg)
 
 
@@ -72,6 +67,9 @@ def proxy_to_fastapi():
     # Set a custom header to indicate this was proxied
     web.header('x-served-by', 'FastAPI-Proxy')
 
+    # Set response status code
+    web.ctx.status = f"{resp.status_code} {resp.reason_phrase}"
+
     return delegate.RawText(resp.content)
 
 
@@ -84,6 +82,9 @@ class DeprecatedEndpointHandler(delegate.page):
         return handle_deprecated_request()
 
     def POST(self, *args):
+        return handle_deprecated_request()
+
+    def DELETE(self, *args):
         return handle_deprecated_request()
 
 
