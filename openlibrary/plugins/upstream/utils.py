@@ -1285,7 +1285,7 @@ def websafe(text: str) -> str:
         return web.safestr(text)
     else:
         return _websafe(text)
-    
+
     def html_safe_unescape(text) -> str:
     """Unescape HTML entities then re-escape for safe template rendering.
     Fixes double-escaping of stored HTML entities (e.g. &quot; displays

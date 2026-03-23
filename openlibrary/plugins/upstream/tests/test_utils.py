@@ -395,8 +395,8 @@ def test_get_language_name(add_languages):  # noqa: F811
 
 
 def test_html_safe_unescape_xss():
-    
-    
+
+
     from openlibrary.plugins.upstream.utils import html_safe_unescape
 
     # Must not allow XSS — script tags must be escaped in output
