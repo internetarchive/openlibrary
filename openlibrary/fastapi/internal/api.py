@@ -11,8 +11,7 @@ from __future__ import annotations
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, Query
 
 from openlibrary.core import lending
 from openlibrary.fastapi.models import Pagination  # noqa: TC001
@@ -32,31 +31,29 @@ async def trending_books_api(period: str):
     pass
 
 
-class BrowseRequest(BaseModel):
-    q: str = ""
-    subject: str = ""
-    sorts: str = ""
-
-
 @router.get(
     "/browse.json",
     tags=["internal"],
     include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
 )
-async def browse(request: Annotated[BrowseRequest, Depends()], pagination: Annotated[Pagination, Depends()]) -> dict:
+async def browse(
+    pagination: Annotated[Pagination, Depends()],
+    q: Annotated[str, Query()] = "",
+    subject: Annotated[str, Query()] = "",
+    sorts: Annotated[str, Query()] = "",
+) -> dict:
     """
-    Browse endpoint
     Dynamically fetches the next page of books and checks if they are
     available to be borrowed from the Internet Archive without having
     to reload the whole web page.
     """
-    sorts_list = [s.strip() for s in request.sorts.split(",") if s.strip()]
+    sorts_list = [s.strip() for s in sorts.split(",") if s.strip()]
 
     url = lending.compose_ia_url(
-        query=request.q,
+        query=q,
         limit=pagination.limit,
         page=pagination.page,
-        subject=request.subject,
+        subject=subject,
         sorts=sorts_list,
     )
 
