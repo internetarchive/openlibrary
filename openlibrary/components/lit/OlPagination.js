@@ -93,10 +93,17 @@ export class OlPagination extends LitElement {
             color: var(--darker-grey, #444);
             cursor: pointer;
             text-decoration: none;
+            font-variant-numeric: tabular-nums;
         }
 
-        .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-            background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+        @media (hover: hover) and (pointer: fine) {
+            .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
+                background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+            }
+        }
+
+        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
+            transform: scale(0.92);
         }
 
         .pagination-item:focus {
