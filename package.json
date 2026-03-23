@@ -9,7 +9,8 @@
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "env NODE_ENV=development npx webpack --config webpack.config.css.js --watch --progress",
     "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
-    "build-assets": "make js && make css && make components && make lit-components",
+    "build-assets": "make icons && make js && make css && make components && make lit-components",
+    "build-icons": "node scripts/build-icons.js",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
     "build-assets:js": "make js",
@@ -59,6 +60,7 @@
     "lit": "^3.2.1",
     "lodash": "4.17.21",
     "lucene-query-parser": "1.2.0",
+    "lucide-static": "^1.0.1",
     "mini-css-extract-plugin": "^2.9.2",
     "prettier": "^3.5.3",
     "promise-polyfill": "8.3.0",
@@ -108,7 +110,6 @@
     },
     "collectCoverage": false
   },
-  "dependencies": {},
   "overrides": {
     "@ericblade/quagga2": {
       "form-data": "4.0.4",

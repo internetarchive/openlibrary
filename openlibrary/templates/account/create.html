@@ -42,7 +42,7 @@ $var title: $_("Sign Up to Open Library")
                 $:input.render()
                 $if input.name == 'password':
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
-                        <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
+                        $:macros.Icon("eye-off", size=16, label=_('Toggle Password Visibility'))
                     </a>
                 $else:
                     <div class="ol-signup-form__icon-wrap">

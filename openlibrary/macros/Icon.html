@@ -1,0 +1,12 @@
+$def with (name, size=24, label=None, cls="")
+
+$if label:
+    <svg class="icon icon--$name $cls" width="$size" height="$size"
+         viewBox="0 0 24 24" aria-label="$label" role="img">
+        <use href="$static_url('icons/sprite.svg')#$name"></use>
+    </svg>
+$else:
+    <svg class="icon icon--$name $cls" width="$size" height="$size"
+         viewBox="0 0 24 24" aria-hidden="true">
+        <use href="$static_url('icons/sprite.svg')#$name"></use>
+    </svg>

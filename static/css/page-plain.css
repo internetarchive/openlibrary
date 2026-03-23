@@ -180,5 +180,6 @@ div#listsWork p {
   margin-bottom: 5px !important;
 }
 
+@import "components/icon.css";
 /* Import all common components */
 @import "legacy.css";

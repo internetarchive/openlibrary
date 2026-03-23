@@ -215,10 +215,9 @@
 }
 
 .header-bar .hamburger-component .hamburger__icon {
-  width: 22px;
-  padding: 0 10px;
-  border-radius: 3px;
-  box-sizing: content-box;
+  margin-left: 10px;
+  color: var(--brown);
+  stroke-width: 3;
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
@@ -462,9 +461,16 @@
 }
 
 .header-bar .search-component .search-bar-submit {
-  background: url(/static/images/search-icon.svg) center no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 35px;
   height: 45px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--grey);
   border-top-left-radius: 0.3em;
   border-bottom-left-radius: 0.3em;
 }

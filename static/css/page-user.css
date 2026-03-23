@@ -36,6 +36,7 @@
  * - /works/OL53924W/The_complete_works_of_Mark_Twain
  * - /works/OL1930026W/No_easy_walk?m=diff&b=5
  */
+@import "components/icon.css";
 @import "components/flash-messages.css";
 @import "components/provider-table.css";
 

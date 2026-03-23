@@ -130,4 +130,32 @@
 .color-block-link-unclicked {
   background-color: var(--link-blue);
 }
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 16px;
+}
+
+.icon-grid__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 4px;
+  border-radius: var(--border-radius-card);
+  transition: background-color 0.15s;
+}
+
+.icon-grid__item:hover {
+  background-color: var(--lightest-grey);
+}
+
+.icon-grid__label {
+  font-size: 11px;
+  color: var(--mid-grey);
+  text-align: center;
+  word-break: break-word;
+}
+
+@import "components/icon.css";
 @import "legacy.css";

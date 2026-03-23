@@ -1806,12 +1806,103 @@ msgstr ""
 msgid "Components"
 msgstr ""
 
+#: design.html
+msgid "Icons"
+msgstr ""
+
 #: design.html type/edition/view.html type/work/view.html
 msgid "Read More"
 msgstr ""
 
 #: design.html
 msgid "Chip"
+msgstr ""
+
+#: design.html
+msgid ""
+"Icons use an SVG sprite sheet powered by Lucide. Render icons with the "
+"Icon macro."
+msgstr ""
+
+#: design.html
+msgid "Basic usage"
+msgstr ""
+
+#: design.html
+msgid "Icons inherit their color from the parent element's CSS color property."
+msgstr ""
+
+#: design.html
+msgid "Sizes"
+msgstr ""
+
+#: design.html
+msgid "Pass a size parameter to control icon dimensions. Default is 24."
+msgstr ""
+
+#: design.html
+msgid "16px"
+msgstr ""
+
+#: design.html
+msgid "20px"
+msgstr ""
+
+#: design.html
+msgid "24px"
+msgstr ""
+
+#: design.html
+msgid "32px"
+msgstr ""
+
+#: design.html
+msgid "Color inheritance"
+msgstr ""
+
+#: design.html
+msgid "Icons use currentColor, so they inherit the text color of their parent."
+msgstr ""
+
+#: design.html
+msgid "Info"
+msgstr ""
+
+#: design.html
+msgid "Success"
+msgstr ""
+
+#: design.html
+msgid "Warning"
+msgstr ""
+
+#: design.html
+msgid "Accessibility"
+msgstr ""
+
+#: design.html
+msgid ""
+"Decorative icons (next to text) are hidden from screen readers by "
+"default. For standalone icons, pass a label."
+msgstr ""
+
+#: authors/index.html design.html lib/nav_head.html lists/home.html
+#: publishers/index.html publishers/notfound.html publishers/view.html
+#: search/advancedsearch.html search/publishers.html search/searchbox.html
+#: type/local_id/view.html
+msgid "Search"
+msgstr ""
+
+#: design.html
+msgid "(decorative, aria-hidden)"
+msgstr ""
+
+#: design.html
+msgid "(standalone, aria-label='Close dialog')"
+msgstr ""
+
+#: design.html
+msgid "All available icons"
 msgstr ""
 
 #: design.html
@@ -4426,12 +4517,6 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
-#: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html type/local_id/view.html
-msgid "Search"
-msgstr ""
-
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
@@ -6481,6 +6566,10 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Advanced"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Search submit"
 msgstr ""
 
 #: lib/nav_head.html

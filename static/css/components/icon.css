@@ -1,0 +1,12 @@
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  /* width/height are set via attributes on the <svg> element by the Icon macro.
+     Do not set them here — CSS overrides SVG attributes. */
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

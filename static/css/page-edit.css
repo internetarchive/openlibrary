@@ -17,6 +17,7 @@
  * Used on pages:
  * - /people/openlibrary9157?m=edit
  */
+@import "components/icon.css";
 @import "legacy.css";
 
 /* stylelint-disable selector-max-specificity */

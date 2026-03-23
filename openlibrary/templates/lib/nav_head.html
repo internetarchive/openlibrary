@@ -45,8 +45,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   $     [ { "subsection": _("Browse") } ] + browseLinks +
   $     [ { "subsection": _("Contribute") } ] + contributeLinks +
   $     [ { "subsection": _("Resources") } ] + resourceLinks,
-  $  'image': '/static/images/hamburger-icon.svg',
-  $  'image-class': 'hamburger__icon',
+  $  'icon': 'menu',
+  $  'icon-class': 'hamburger__icon',
   $  'label': 'additional options menu',
   $  'show_mask': True
   $ }
@@ -104,7 +104,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
         <form class="search-bar-input" action="/search" method="get" role="search">
           <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
           <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
-          <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
+          <button type="submit" class="search-bar-submit" aria-label="$_('Search submit')">$:macros.Icon("search", size=20)</button>
           <div class="vertical-separator"></div>
           <a
             id="barcode_scanner_link"

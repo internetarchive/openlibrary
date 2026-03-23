@@ -19,6 +19,7 @@
 @import "layout/index.css";
 
 /* Components (modules) in order of appearance on page */
+@import "components/icon.css";
 @import "components/header-bar.css";
 @import "components/buttonGhost.css";
 @import "components/iaBar.css";

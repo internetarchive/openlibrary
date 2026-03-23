@@ -9,6 +9,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
     <nav class="design-pattern-nav">
       <h2 class="design-pattern-nav__title">$_("Components")</h2>
       <ul class="design-pattern-nav__list">
+        <li><a href="#icons">$_("Icons")</a></li>
         <li><a href="#pagination">$_("Pagination")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
@@ -16,6 +17,97 @@ $ _x = ctx.setdefault('cssfile', 'design')
     </nav>
 
     <main class="design-pattern-main">
+      <article class="design-pattern" id="icons">
+        <h2 class="design-pattern__title">$_("Icons")</h2>
+        <p class="design-pattern__description">$_("Icons use an SVG sprite sheet powered by Lucide. Render icons with the Icon macro.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Basic usage")</h3>
+          <p>$_("Icons inherit their color from the parent element's CSS color property.")</p>
+          <code class="example__code">&#36;:macros.Icon("search")</code>
+          <div class="example__output">
+            $:macros.Icon("search")
+            $:macros.Icon("book-open")
+            $:macros.Icon("heart")
+            $:macros.Icon("star")
+            $:macros.Icon("edit")
+            $:macros.Icon("trash-2")
+            $:macros.Icon("share")
+            $:macros.Icon("download")
+            $:macros.Icon("eye")
+            $:macros.Icon("lock")
+            $:macros.Icon("info")
+            $:macros.Icon("check")
+            $:macros.Icon("x")
+            $:macros.Icon("globe")
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Sizes")</h3>
+          <p>$_("Pass a size parameter to control icon dimensions. Default is 24.")</p>
+          <code class="example__code">&#36;:macros.Icon("heart", size=16)
+&#36;:macros.Icon("heart", size=20)
+&#36;:macros.Icon("heart", size=24)
+&#36;:macros.Icon("heart", size=32)</code>
+          <div class="example__output" style="display: flex; align-items: center; gap: 12px;">
+            <span>$_("16px") $:macros.Icon("heart", size=16)</span>
+            <span>$_("20px") $:macros.Icon("heart", size=20)</span>
+            <span>$_("24px") $:macros.Icon("heart", size=24)</span>
+            <span>$_("32px") $:macros.Icon("heart", size=32)</span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Color inheritance")</h3>
+          <p>$_("Icons use currentColor, so they inherit the text color of their parent.")</p>
+          <code class="example__code">&lt;span style="color: green"&gt;&#36;:macros.Icon("check-circle")&lt;/span&gt;</code>
+          <div class="example__output" style="display: flex; align-items: center; gap: 16px;">
+            <span style="color: var(--link-blue);">$:macros.Icon("info", size=20) $_("Info")</span>
+            <span style="color: var(--green);">$:macros.Icon("check-circle", size=20) $_("Success")</span>
+            <span style="color: var(--red);">$:macros.Icon("alert-triangle", size=20) $_("Warning")</span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Accessibility")</h3>
+          <p>$_("Decorative icons (next to text) are hidden from screen readers by default. For standalone icons, pass a label.")</p>
+          <code class="example__code">$# Decorative (default) - aria-hidden="true"
+&#36;:macros.Icon("search") Search
+
+$# Standalone with label - role="img" aria-label="..."
+&#36;:macros.Icon("x", label="Close dialog")</code>
+          <div class="example__output">
+            <span>$:macros.Icon("search") $_("Search") $_("(decorative, aria-hidden)")</span>
+            <br>
+            <span>$:macros.Icon("x", size=20, label="Close dialog") $_("(standalone, aria-label='Close dialog')")</span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("All available icons")</h3>
+          <div class="example__output icon-grid">
+            $ all_icons = [
+            $   "alert-circle", "alert-triangle", "arrow-left", "arrow-right",
+            $   "arrow-up-down", "book-marked", "book-open", "bookmark",
+            $   "check", "check-circle", "chevron-down", "chevron-left",
+            $   "chevron-right", "chevron-up", "circle-help", "copy",
+            $   "download", "edit", "external-link", "eye", "eye-off",
+            $   "globe", "hand-helping", "headphones", "heart", "info",
+            $   "library", "list", "lock", "loader", "map-pin", "menu",
+            $   "merge", "message-square", "plus", "qr-code",
+            $   "scan-barcode", "search", "share", "star", "tag",
+            $   "trash-2", "x",
+            $ ]
+            $for name in all_icons:
+              <div class="icon-grid__item">
+                $:macros.Icon(name)
+                <span class="icon-grid__label">$name</span>
+              </div>
+          </div>
+        </section>
+      </article>
+
       <article class="design-pattern" id="pagination">
         <h2 class="design-pattern__title">$_("Pagination")</h2>
         <p class="design-pattern__description">$_("The ol-pagination component provides support for both event-based and URL-based navigation.")</p>

@@ -15,6 +15,7 @@
 @import "layout/index.css";
 
 /* Components in order of appearance */
+@import "components/icon.css";
 /* Header sub-imports */
 @import "components/header-bar.css";
 @import "components/buttonGhost.css";
