@@ -88,9 +88,6 @@ async def booknotes_post(
     """
     Add or remove a note for a work (and optionally a specific edition).
 
-    Mirrors the legacy `class booknotes(delegate.page)` in
-    openlibrary/plugins/openlibrary/api.py
-
     - If `notes` is provided: create or update the note.
     - If `notes` is omitted: remove the existing note.
     """

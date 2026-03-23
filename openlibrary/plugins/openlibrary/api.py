@@ -231,6 +231,7 @@ class ratings(delegate.page):
         return r
 
 
+@deprecated("migrated to fastapi")
 class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
     encoding = "json"
