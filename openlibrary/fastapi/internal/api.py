@@ -11,16 +11,14 @@ from __future__ import annotations
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, Query
 from pydantic import BaseModel, Field
 
+from openlibrary.core import lending
 from openlibrary.core.models import Booknotes
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.utils import extract_numeric_id_from_olid
-from fastapi import APIRouter, Depends, Query
-
-from openlibrary.core import lending
 from openlibrary.fastapi.models import Pagination  # noqa: TC001
+from openlibrary.utils import extract_numeric_id_from_olid
 
 router = APIRouter()
 
