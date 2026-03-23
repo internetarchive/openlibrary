@@ -511,19 +511,6 @@ msgstr ""
 msgid "Pagination"
 msgstr ""
 
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
-msgstr ""
-
 #: Profile.html
 msgid "Component"
 msgstr ""
@@ -683,12 +670,12 @@ msgid "View MARC"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Older"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Newer"
 msgstr ""
 
@@ -2136,10 +2123,6 @@ msgstr ""
 msgid "...to this version"
 msgstr ""
 
-#: books/daisy.html history.html
-msgid "Back"
-msgstr ""
-
 #: import_preview.html
 msgid "Import Preview"
 msgstr ""
@@ -2425,6 +2408,10 @@ msgstr ""
 
 #: showmarc.html
 msgid "Download Link"
+msgstr ""
+
+#: showmarc.html
+msgid "Next"
 msgstr ""
 
 #: status.html
@@ -4245,10 +4232,6 @@ msgstr ""
 msgid "mark"
 msgstr ""
 
-#: admin/memory/index.html
-msgid "Prev"
-msgstr ""
-
 #: admin/memory/object.html
 msgid "Referents"
 msgstr ""
@@ -4905,6 +4888,10 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/daisy.html
+msgid "Back"
 msgstr ""
 
 #: books/daisy.html

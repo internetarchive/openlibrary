@@ -47,7 +47,5 @@ $def with (observations, user, num_found, page=1, results_per_page=25)
     $else:
       $_("No observations found.")<br>
   </div>
-  <div class="pager">
-    $:macros.Pager(page, num_found, results_per_page)
-  </div>
+  $:macros.OlPagination(page, ceil(num_found / results_per_page))
 </div>

@@ -52,4 +52,4 @@ $ changes = all_changes[offset:offset+pagesize]
     </tbody>
 </table>
 
-$:render_template("lib/pagination", pagecount, page, lambda page: changequery(page=page))
+$:macros.OlPagination(page, pagecount)
