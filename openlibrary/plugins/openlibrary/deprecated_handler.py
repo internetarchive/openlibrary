@@ -51,7 +51,7 @@ def proxy_to_fastapi():
                 content=web.data(),
                 cookies=web.cookies(),
             )
-    except httpx.RequestError as e:
+    except (httpx.RequestError, httpx.HTTPStatusError) as e:
         raise web.internalerror(f"Proxy request failed: {e}")
 
     # Set response headers
@@ -60,12 +60,11 @@ def proxy_to_fastapi():
             'content-encoding',
             'transfer-encoding',
             'content-length',
-            'x-served-by',
         ):
             web.header(k, v)
 
-    # Set a custom header to indicate this was proxied
-    web.header('x-served-by', 'FastAPI-Proxy')
+    # Set a custom header to indicate this was proxied through web.py
+    web.header('x-proxied-by', 'web.py')
 
     # Set response status code
     web.ctx.status = f"{resp.status_code} {resp.reason_phrase}"
