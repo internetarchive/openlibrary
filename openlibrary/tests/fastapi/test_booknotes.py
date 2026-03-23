@@ -1,34 +1,11 @@
 """Tests for the /works/OL{work_id}W/notes booknotes endpoint (FastAPI).
 
-Mirrors the legacy `class booknotes(delegate.page)` in
-openlibrary/plugins/openlibrary/api.py
+The mock_authenticated_user fixture is imported from conftest.py.
 """
 
 from unittest.mock import patch
 
 import pytest
-
-from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-
-
-@pytest.fixture
-def mock_auth_user(fastapi_client):
-    """Bypass real cookie auth using FastAPI's dependency_overrides.
-
-    This is the correct FastAPI way to override dependencies in tests.
-    Patching the function directly does not work because FastAPI's dependency
-    injection system has already wired up the dependency when the app starts.
-    So instead we tell the app: 'for this test, replace require_authenticated_user
-    with a function that just returns our fake user'.
-    """
-    fake_user = AuthenticatedUser(
-        username="testuser",
-        user_key="/people/testuser",
-        timestamp="2026-01-01T00:00:00",
-    )
-    fastapi_client.app.dependency_overrides[require_authenticated_user] = lambda: fake_user
-    yield fake_user
-    fastapi_client.app.dependency_overrides.clear()
 
 
 @pytest.fixture
@@ -50,7 +27,7 @@ def mock_booknotes_remove():
 class TestBooknotesPost:
     """Tests for POST /works/OL{work_id}W/notes."""
 
-    def test_add_note_returns_200(self, fastapi_client, mock_auth_user, mock_booknotes_add):
+    def test_add_note_returns_200(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
         """Adding a note returns 200 with success message."""
         response = fastapi_client.post(
             "/works/OL123W/notes",
@@ -59,7 +36,7 @@ class TestBooknotesPost:
         assert response.status_code == 200
         assert response.json() == {"success": "note added"}
 
-    def test_remove_note_returns_200(self, fastapi_client, mock_auth_user, mock_booknotes_remove):
+    def test_remove_note_returns_200(self, fastapi_client, mock_authenticated_user, mock_booknotes_remove):
         """Posting without notes removes the note and returns 200."""
         response = fastapi_client.post(
             "/works/OL123W/notes",
@@ -68,7 +45,7 @@ class TestBooknotesPost:
         assert response.status_code == 200
         assert response.json() == {"success": "removed note"}
 
-    def test_add_note_calls_booknotes_add_with_correct_args(self, fastapi_client, mock_auth_user, mock_booknotes_add):
+    def test_add_note_calls_booknotes_add_with_correct_args(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
         """Booknotes.add is called with the correct arguments."""
         fastapi_client.post(
             "/works/OL123W/notes",
@@ -81,7 +58,7 @@ class TestBooknotesPost:
             edition_id=-1,
         )
 
-    def test_remove_note_calls_booknotes_remove_with_correct_args(self, fastapi_client, mock_auth_user, mock_booknotes_remove):
+    def test_remove_note_calls_booknotes_remove_with_correct_args(self, fastapi_client, mock_authenticated_user, mock_booknotes_remove):
         """Booknotes.remove is called with the correct arguments."""
         fastapi_client.post(
             "/works/OL123W/notes",
@@ -89,7 +66,7 @@ class TestBooknotesPost:
         )
         mock_booknotes_remove.assert_called_once_with("testuser", 123, edition_id=-1)
 
-    def test_add_note_with_edition_id(self, fastapi_client, mock_auth_user, mock_booknotes_add):
+    def test_add_note_with_edition_id(self, fastapi_client, mock_authenticated_user, mock_booknotes_add):
         """edition_id is parsed from OL format (OL456M -> 456) and passed correctly."""
         fastapi_client.post(
             "/works/OL123W/notes",
@@ -105,7 +82,7 @@ class TestBooknotesPost:
     def test_unauthenticated_returns_401(self, fastapi_client):
         """Requests without a valid session cookie return 401.
 
-        No mock_auth_user fixture here — so the real auth runs and
+        No mock_authenticated_user fixture here — so the real auth runs and
         rejects the request because there is no session cookie.
         The legacy code did a browser redirect to /account/login.
         The FastAPI version correctly returns 401 for a JSON API instead.
@@ -124,7 +101,7 @@ class TestBooknotesPost:
             ("42", "Another note"),
         ],
     )
-    def test_various_work_ids_and_notes(self, fastapi_client, mock_auth_user, mock_booknotes_add, work_id, note):
+    def test_various_work_ids_and_notes(self, fastapi_client, mock_authenticated_user, mock_booknotes_add, work_id, note):
         """Various work IDs and note contents are all handled correctly."""
         response = fastapi_client.post(
             f"/works/OL{work_id}W/notes",
