@@ -1,4 +1,5 @@
 .ol-pagination-wrapper {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
 }
