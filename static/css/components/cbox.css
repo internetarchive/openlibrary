@@ -133,7 +133,7 @@
 
 /* VIEW LARGER COVER POP-UP */
 div.coverFloat {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background: var(--white);
   text-align: left;
 }
@@ -158,7 +158,7 @@ div.coverFloatHead h2 {
 /* ADD IMAGE/COVER POP-UP */
 div.floater {
   position: relative;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   min-height: 675px;
   background: var(--white);
   text-align: left;
@@ -194,7 +194,7 @@ div.floaterBody p {
 
 .floatform,
 .ol-cover-form {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .floatform button[type="submit"],
@@ -213,7 +213,7 @@ div.floaterBody p {
 .floatform .label label,
 .ol-cover-form .label label {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: 700;
 }
 
@@ -229,7 +229,7 @@ div.floaterBody p {
 .ol-cover-form input[type="url"],
 .ol-cover-form input[type="file"] {
   font-size: 1.125em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding: 3px;
 }
 
@@ -344,7 +344,7 @@ div.imageIntro {
 /* ADD ROLES, ETC. */
 div.floaterAdd {
   position: relative;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background: var(--white);
   text-align: left;
 }
@@ -364,7 +364,7 @@ div.floaterAdd form.floatform .label {
 /* stylelint-disable-next-line max-nesting-depth */
 div.floaterAdd form.floatform .label label {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: 700;
 }
 

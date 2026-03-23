@@ -17,6 +17,10 @@ from pydantic import BaseModel, Field
 from openlibrary.core.models import Booknotes
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.utils import extract_numeric_id_from_olid
+from fastapi import APIRouter, Depends, Query
+
+from openlibrary.core import lending
+from openlibrary.fastapi.models import Pagination  # noqa: TC001
 
 router = APIRouter()
 
@@ -37,8 +41,34 @@ async def trending_books_api(period: str):
     pass
 
 
-async def browse():
-    pass
+@router.get(
+    "/browse.json",
+    tags=["internal"],
+    include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
+)
+async def browse(
+    pagination: Annotated[Pagination, Depends()],
+    q: Annotated[str, Query()] = "",
+    subject: Annotated[str, Query()] = "",
+    sorts: Annotated[str, Query()] = "",
+) -> dict:
+    """
+    Dynamically fetches the next page of books and checks if they are
+    available to be borrowed from the Internet Archive without having
+    to reload the whole web page.
+    """
+    sorts_list = [s.strip() for s in sorts.split(",") if s.strip()]
+
+    url = lending.compose_ia_url(
+        query=q,
+        limit=pagination.limit,
+        page=pagination.page,
+        subject=subject,
+        sorts=sorts_list,
+    )
+
+    works = lending.get_available(url=url) if url else []
+    return {"query": url, "works": [work.dict() for work in works]}
 
 
 async def ratings():

@@ -45,13 +45,13 @@ def setup_site(request: Request | None = None):
     When called from FastAPI, we need to set it.
     create_site() automatically uses the cookie to set the auth token
     """
+    s = create_site()
     if request:
         cookie_name = config.get("login_cookie_name", "session")
-        cookie_value = request.cookies.get(cookie_name)
-        cookie_value = unquote(cookie_value) if cookie_value else ""
-        web.ctx._parsed_cookies = {cookie_name: cookie_value}
+        if cookie_value := request.cookies.get(cookie_name):
+            s._conn.set_auth_token(unquote(cookie_value))
 
-    site.set(create_site())
+    site.set(s)
 
 
 def _compute_is_bot(user_agent: str | None, hhcl: str | None) -> bool:

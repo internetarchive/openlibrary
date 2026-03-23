@@ -1,6 +1,7 @@
 """Upstream customizations."""
 
 import datetime
+import functools
 import hashlib
 import json
 import os.path
@@ -158,7 +159,7 @@ class merge_work(delegate.page):
         )
 
 
-@web.memoize
+@functools.cache
 @public
 def vendor_js():
     pardir = os.path.pardir
@@ -180,7 +181,7 @@ def vendor_js():
     return '/static/upstream/js/vendor.js?v=' + digest
 
 
-@web.memoize
+@functools.cache
 @public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""

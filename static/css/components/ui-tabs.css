@@ -1,11 +1,11 @@
 /**
  * TabPanel
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#tabspanel
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#tabspanel
  */
 
 .ui-tabs-nav,
 .ui-tabs-panel {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .ui-tabs-nav {

@@ -7,9 +7,10 @@ import { LitElement, html, css } from 'lit';
  *
  * @prop {Number} totalPages - Total number of pages
  * @prop {Number} currentPage - Currently selected page (1-indexed)
- * @prop {String} baseUrl - Optional base URL for generating page links. When provided,
- *                          renders anchor tags for SEO-friendly navigation. When omitted,
- *                          renders buttons and emits events.
+ * @prop {String} baseUrl - Optional base URL for generating page links. When omitted,
+ *                          falls back to the current page URL, preserving all existing
+ *                          query parameters (similar to changequery). Always renders
+ *                          anchor tags for SEO-friendly navigation.
  * @prop {String} labelPreviousPage - Aria label for "previous page" button (default: "Go to previous page")
  * @prop {String} labelNextPage - Aria label for "next page" button (default: "Go to next page")
  * @prop {String} labelGoToPage - Aria label template for page buttons, use {page} as placeholder
@@ -18,15 +19,21 @@ import { LitElement, html, css } from 'lit';
  *                                   (default: "Page {page}, current page")
  * @prop {String} labelPagination - Aria label for the navigation landmark (default: "Pagination")
  *
- * @fires update:page - Fired when a page is selected, detail contains the page number
+ * @fires ol-pagination-change - Fired when a page is selected. detail: { page: Number }
  *
  * @example
- * <!-- Event-based -->
+ * <!-- Uses current page URL, preserving query params -->
  * <ol-pagination total-pages="50" current-page="1"></ol-pagination>
  *
  * @example
- * <!-- URL-based -->
+ * <!-- Explicit base URL -->
  * <ol-pagination total-pages="50" current-page="1" base-url="/search?q=hello"></ol-pagination>
+ *
+ * @example
+ * <!-- Intercept navigation with event -->
+ * <ol-pagination total-pages="50" current-page="1"
+ *     @ol-pagination-change=${(e) => { e.preventDefault(); handlePage(e.detail.page); }}
+ * ></ol-pagination>
  *
  * @example
  * <!-- With translated labels -->
@@ -73,13 +80,13 @@ export class OlPagination extends LitElement {
             border: 1px solid transparent;
             border-radius: 4px;
             background: transparent;
-            color: #444;
+            color: var(--darker-grey, #444);
             cursor: pointer;
             text-decoration: none;
         }
 
         .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-            background: rgba(0, 0, 0, 0.1);
+            background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
         }
 
         .pagination-item:focus {
@@ -87,18 +94,19 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:focus-visible {
-            outline: 2px solid #5B8DD9;
+            outline: 2px solid var(--color-focus-ring, #5B8DD9);
             outline-offset: 2px;
         }
 
         .pagination-item[aria-current="page"] {
-            border-color: #ddd;
+            border-color: var(--lighter-grey, #ddd);
+            background-color: var(--lightest-grey, #eee);
             cursor: default;
             user-select: none;
         }
 
         .pagination-item[aria-disabled="true"] {
-            color: #ddd;
+            color: var(--lighter-grey, #ddd);
             cursor: not-allowed;
         }
 
@@ -110,7 +118,7 @@ export class OlPagination extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #aaa;
+            color: var(--mid-grey, #aaa);
             cursor: default;
             user-select: none;
         }
@@ -149,15 +157,15 @@ export class OlPagination extends LitElement {
 
     /**
      * Build URL for a specific page number.
-     * Returns null if baseUrl is not set.
+     * Uses baseUrl if provided, otherwise falls back to the current window location.
+     * This preserves all existing query parameters (like changequery() does).
      * @param {Number} page - The page number
-     * @returns {String|null} The URL for the page, or null if baseUrl not set
+     * @returns {String|null} The URL for the page
      */
     _getPageUrl(page) {
-        if (!this.baseUrl) return null;
-
         try {
-            const url = new URL(this.baseUrl, window.location.origin);
+            const base = this.baseUrl || window.location.href;
+            const url = new URL(base, window.location.origin);
             if (page === 1) {
                 url.searchParams.delete('page');
             } else {
@@ -239,27 +247,37 @@ export class OlPagination extends LitElement {
             return;
         }
 
-        this.dispatchEvent(new CustomEvent('update:page', {
-            detail: page,
+        const event = new CustomEvent('ol-pagination-change', {
+            detail: { page },
             bubbles: true,
-            composed: true
-        }));
+            composed: true,
+            cancelable: true,
+        });
+        this.dispatchEvent(event);
+        if (event.defaultPrevented) return;
+
+        this.currentPage = page;
     }
 
     /**
      * Handle click on anchor-based page links.
-     * Dispatches the update:page event to allow interception.
+     * Dispatches the ol-pagination-change event to allow interception.
+     * If the event is cancelled via preventDefault(), anchor navigation is also prevented.
      * @param {Event} e - Click event
      * @param {Number} page - The page number
      */
     _handlePageClick(e, page) {
-        const event = new CustomEvent('update:page', {
-            detail: page,
+        const event = new CustomEvent('ol-pagination-change', {
+            detail: { page },
             bubbles: true,
             composed: true,
-            cancelable: true
+            cancelable: true,
         });
         this.dispatchEvent(event);
+        if (event.defaultPrevented) {
+            e.preventDefault();
+            this.currentPage = page;
+        }
     }
 
     /**

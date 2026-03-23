@@ -1,7 +1,7 @@
 """Admin functionality."""
 
 import calendar
-import datetime
+from datetime import date, datetime, timedelta
 
 import requests
 import web
@@ -44,7 +44,7 @@ class Stats:
         def _convert_to_milli_timestamp(d):
             """Uses the `_id` of the document `d` to create a UNIX
             timestamp and converts it to milliseconds"""
-            t = datetime.datetime.strptime(d, "counts-%Y-%m-%d")
+            t = datetime.strptime(d, "counts-%Y-%m-%d")
             return calendar.timegm(t.timetuple()) * 1000
 
         if times:
@@ -146,8 +146,8 @@ def _get_count_docs(ndays):
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = datetime.datetime.utcnow().date()
-    dates = [today - datetime.timedelta(days=i) for i in range(ndays)]
+    today = date.today()
+    dates = [today - timedelta(days=i) for i in range(ndays)]
 
     # we want the dates in reverse order
     dates.reverse()
@@ -178,7 +178,7 @@ def get_stats(ndays=30, use_mock_data=False):
 
 
 def get_unique_logins_since(since_days=30):
-    since_date = datetime.datetime.now() - datetime.timedelta(days=since_days)
+    since_date = datetime.now() - timedelta(days=since_days)
     date_str = since_date.strftime("%Y-%m-%d")
 
     query = """
@@ -230,11 +230,9 @@ def mock_get_stats():
     ]
 
     docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
-    today = datetime.date.today()
+    today = date.today()
     for x in range(28):
-        docs[x]["_key"] = (today - datetime.timedelta(days=x + 1)).strftime(
-            'counts-%Y-%m-%d'
-        )
+        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime('counts-%Y-%m-%d')
     return {
         'human_edits': Stats(docs, "human_edits", "human_edits"),
         'bot_edits': Stats(docs, "bot_edits", "bot_edits"),

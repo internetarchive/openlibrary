@@ -1,11 +1,11 @@
 /**
  * FlashMessage
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#flashmessage
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#flashmessage
  */
 
 .flash-messages {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   clear: both;
 }
 
@@ -33,7 +33,7 @@
 .flash-messages .bookadded span span {
   display: inline;
   padding: 0;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .flash-messages .bookadded h3 {

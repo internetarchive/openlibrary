@@ -1,7 +1,7 @@
 """Subject pages."""
 
-import datetime
 from dataclasses import dataclass
+from datetime import date
 from typing import cast
 
 import web
@@ -313,7 +313,7 @@ class SubjectEngine:
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
-            current_year = datetime.datetime.utcnow().year
+            current_year = date.today().year
             subject.publishing_history = [
                 [year, count]
                 for year, count in cast(  # These are fetched in a different format, we need to fix the types

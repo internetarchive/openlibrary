@@ -383,7 +383,7 @@ jQuery(function () {
     }
 
     // TODO: Make these selectors a consistent interface
-    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,.cta-btn--preview');
+    const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
     if ($dialogs.length) {
         import(/* webpackChunkName: "dialog" */ './dialog')
             .then(module => module.initDialogs())

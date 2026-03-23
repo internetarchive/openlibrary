@@ -560,11 +560,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     $:render_template("books/RelatedWorksCarousel", work)
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
-
-  $ component_times['HistoryTable'] = time()
-  $:render_template("lib/history", page)
-  $ component_times['HistoryTable'] = time() - component_times['HistoryTable']
-
+  $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
   $if query_param('debug'):

@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 import web
 
+from infogami.utils.view import public
 from openlibrary.utils.request_context import site
 
 # FIXME: several modules import things from accounts.model
@@ -52,6 +53,7 @@ class RunAs:
 
 
 # Confirmed functions (these have to be here)
+@public
 def get_current_user() -> "User | None":
     """
     Returns the currently logged in user. None if not logged in.
