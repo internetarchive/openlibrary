@@ -45,7 +45,7 @@ class BrowseRequest(BaseModel):
 )
 async def browse(request: Annotated[BrowseRequest, Depends()], pagination: Annotated[Pagination, Depends()]) -> dict:
     """
-    Browse endpoint (migrated from openlibrary.plugins.openlibrary.api).
+    Browse endpoint
     Dynamically fetches the next page of books and checks if they are
     available to be borrowed from the Internet Archive without having
     to reload the whole web page.
