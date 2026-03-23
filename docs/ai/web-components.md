@@ -163,6 +163,7 @@ button:focus-visible {
 
 - Scope all styles via Lit's `static styles` (Shadow DOM).
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
+- Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
 
 ## Lifecycle and Performance
 

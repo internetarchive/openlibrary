@@ -46,6 +46,10 @@ p { margin-bottom: 1rem; }
 .book-card .book-card__title { }
 ```
 
+## Spacing and Margins
+
+Use only bottom margins for vertical spacing, never top margins. One-directional margins keep layout predictable and avoid margin-collapse surprises.
+
 ## Design Tokens
 
 Always use semantic tokens instead of hardcoded values. Stylelint will reject raw hex colors, named colors, and hardcoded values for `font-family`, `background-color`, `z-index`, and `color`.
