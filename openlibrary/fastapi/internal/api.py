@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Query
+from fastapi import APIRouter, Depends, Form, Path, Query
 from pydantic import BaseModel, Field
 
 from openlibrary.core import lending
@@ -23,10 +23,6 @@ from openlibrary.utils import extract_numeric_id_from_olid
 router = APIRouter()
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
-
-
-class BooknoteResponse(BaseModel):
-    success: str = Field(..., description="Status message")
 
 
 @router.get("/availability/v2", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
@@ -73,6 +69,10 @@ async def ratings():
     pass
 
 
+class BooknoteResponse(BaseModel):
+    success: str = Field(..., description="Status message")
+
+
 @router.post(
     "/works/OL{work_id}W/notes",
     response_model=BooknoteResponse,
@@ -80,10 +80,10 @@ async def ratings():
     include_in_schema=SHOW_INTERNAL_IN_SCHEMA,
 )
 async def booknotes_post(
-    work_id: int,
+    work_id: Annotated[int, Path()],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     notes: Annotated[str | None, Form()] = None,
-    edition_id: Annotated[str | None, Form()] = None,
+    edition_id: Annotated[str | None, Form(pattern=r"^OL\d+M$")] = None,
 ) -> BooknoteResponse:
     """
     Add or remove a note for a work (and optionally a specific edition).
@@ -91,9 +91,11 @@ async def booknotes_post(
     - If `notes` is provided: create or update the note.
     - If `notes` is omitted: remove the existing note.
     """
-    resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else Booknotes.NULL_EDITION_VALUE
+    resolved_edition_id = Booknotes.NULL_EDITION_VALUE
+    if edition_id:
+        resolved_edition_id = int(extract_numeric_id_from_olid(edition_id))
 
-    if notes is None:
+    if not notes:
         Booknotes.remove(user.username, work_id, edition_id=resolved_edition_id)
         return BooknoteResponse(success="removed note")
 
