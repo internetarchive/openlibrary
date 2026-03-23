@@ -26,10 +26,46 @@ git clone git@github.com:YOUR_USERNAME/openlibrary.git
 
 ## Prepare your system
 
-> [!IMPORTANT]
-> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
-
 We recommend adjusting Docker's resource settings to use at least 4GB of RAM and 2GB of swap. The defaults of 2GB RAM and 1GB swap are likely to cause the error `Killed` when running `build-assets` to build `js` dependencies.
+
+### Windows users: required steps before building
+
+> [!IMPORTANT]
+> **Skip these steps and the containers will silently fail to start.** The full external guide is [here](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm), but the critical steps are inlined below.
+
+**Why this matters:** Open Library uses git symlinks for `infogami` and `config` at the repo root. On Windows, git creates plain text files in their place by default. When Docker mounts the directory and Python tries to import `infogami`, it finds a text file instead of a package, and the app fails to start.
+
+**Step 1 — Enable Windows Developer Mode** (required for git to create symlinks without admin rights)
+
+`Settings → System → For developers → Developer Mode → On`
+
+Then **restart your terminal** before continuing.
+
+**Step 2 — Configure git and fix symlinks**
+
+```sh
+# Set globally so all future clones work correctly
+git config --global core.autocrlf input
+git config --global core.symlinks true
+
+# Set locally for this repo (required even with the global setting)
+cd path/to/your/cloned/openlibrary
+git config --local core.symlinks true
+
+# Re-create the symlinks
+# (If you cloned BEFORE enabling Developer Mode, git made plain text files
+# instead of symlinks. Delete them first so git can recreate them correctly.)
+rm -f infogami config
+git checkout HEAD -- infogami config
+
+# Fix the infogami submodule
+cd vendor/infogami
+git config --local core.symlinks true
+git checkout HEAD -- .
+cd ../..
+```
+
+**How to verify it worked:** Run `ls -la infogami config`. The output should start with `l` (for symlink), like `lrwxrwxrwx`. If it starts with `-`, the symlinks are still broken — check that Developer Mode is on and your terminal was restarted after enabling it.
 
 ## Install Docker
 

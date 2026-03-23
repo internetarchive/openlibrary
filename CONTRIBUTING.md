@@ -136,7 +136,7 @@ After executing the last command, when you normally run `git commit`, pre-commit
 ### Running manually
 
 ```
-pre-commit run --files pre-commit-config.yml
+pre-commit run --all-files
 ```
 
 > **_Warning:_**  If you don't clone with **ssh** then infogami will have pre-commit issues [You can read this section to resolve it](docker/README.md#cloning-the-open-library-repository).
@@ -153,4 +153,11 @@ Follow these rules when creating a PR:
 3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
 4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
 5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+
+### What to expect after opening your first PR
+
+- **Automated checks will run first.** You'll see status checks appear on your PR — including pre-commit linting and CI tests. If any fail, click "Details" to see what to fix. This is normal and expected.
+- **Reviews take time.** Maintainers are volunteers. If you don't hear back within a week, a polite follow-up comment is welcome.
+- **Most PRs need at least one round of edits.** Getting change requests doesn't mean your PR is rejected — it means a maintainer read it carefully enough to give you feedback. Address each comment and mark it resolved.
+- **Be specific when asking for feedback.** Instead of "please review," try: "I changed X in file Y to fix Z — I'm unsure whether approach A or B is better here." Clear questions get faster, more useful responses.
 
