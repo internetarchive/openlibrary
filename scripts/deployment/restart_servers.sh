@@ -9,7 +9,7 @@ set -e
 # Example: restart_servers.sh ol-home0 ol-covers0 ol-web1
 # Recognized servers: ol-covers0*, ol-dev*, ol-home0*, ol-web*
 
-# https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+# https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 
 PRODUCTION="compose.yaml:compose.production.yaml"
 # zsh uses HOST (although we're in a bash context, so maybe not needed?)

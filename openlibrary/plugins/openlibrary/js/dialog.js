@@ -50,11 +50,13 @@ function initConfirmationDialogs() {
 
 
 export function initPreviewDialogs() {
-    // Colorbox modal + iframe for Book Preview Button
-    const $buttons = $('.cta-btn--preview');
-    $buttons.each((i, button) => {
-        const $button = $(button);
-        $button.colorbox({
+    // Delegated click handler for Book Preview buttons.
+    // Uses event delegation so dynamically-added buttons (e.g. from
+    // lazy-loaded carousels) work without re-initialization.
+    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function (e) {
+        e.preventDefault();
+        const $button = $(this);
+        $.colorbox({
             width: '100%',
             maxWidth: '640px',
             inline: true,

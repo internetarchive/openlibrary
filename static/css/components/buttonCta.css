@@ -1,6 +1,6 @@
 /**
  * CtaBtn
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#ctabtn
  */
 
 /* `a` specificity is needed to override default anchor styles */
@@ -15,7 +15,7 @@ a.cta-btn {
   margin-top: 5px;
   box-sizing: border-box;
   cursor: pointer;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   text-align: center;
   padding: 7px;
   white-space: nowrap;

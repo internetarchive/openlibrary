@@ -216,7 +216,7 @@ def main(files: list[Path], skip_excluded: bool = True):
     )
     if errcount > 0 or warnings > 0:
         print(
-            "Learn how to fix these errors by reading our i18n documentation: https://github.com/internetarchive/openlibrary/wiki/Internationalization#internationalization-i18n-developers-guide"
+            "Learn how to fix these errors by reading our i18n documentation: https://docs.openlibrary.org/everyone/internationalization.html#internationalization-i18n-developer-s-guide"
         )
 
     if errcount > 0:

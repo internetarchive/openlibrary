@@ -1,6 +1,6 @@
 /**
  * Search Result Item
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#searchresultitem
  */
 .fulltext-suggestions {
   list-style-type: none;
@@ -37,7 +37,7 @@
   padding: 5px;
   font-size: medium;
   font-weight: 700;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* --width-breakpoint-tablet: 768px */
 @media (min-width: 768px) {
@@ -60,7 +60,7 @@
   padding: 5px;
   font-size: small;
   font-weight: 700;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* --width-breakpoint-mobile-m: 425px */
 @media (min-width: 425px) {

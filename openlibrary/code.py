@@ -10,14 +10,7 @@ import sys
 
 import infogami
 from infogami.utils.app import pages
-from openlibrary.plugins.admin.code import setup as admin_setup
-from openlibrary.plugins.books.code import setup as books_setup
-from openlibrary.plugins.importapi.code import setup as importapi_setup
-from openlibrary.plugins.inside.code import setup as inside_setup
 from openlibrary.plugins.openlibrary import deprecated_handler
-from openlibrary.plugins.openlibrary.code import setup as openlibrary_setup
-from openlibrary.plugins.upstream.code import setup as upstream_setup
-from openlibrary.plugins.worksearch.code import setup as worksearch_setup
 
 
 def setup():
@@ -26,15 +19,16 @@ def setup():
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
 
-    # Calling the setup function itself may not be strictly needed in all cases.
-    # However, by importing the functions, we ensure the side effects are executed.
-    openlibrary_setup()
-    worksearch_setup()
-    inside_setup()
-    books_setup()
-    admin_setup()
-    upstream_setup()
-    importapi_setup()
+    # In infogami, importing a module has the side effect of registering any endpoints
+    # defined in that module, so we just need to import all the modules that define
+    # endpoints to register them.
+    import openlibrary.plugins.openlibrary.code  # noqa: I001 registers endpoints
+    import openlibrary.plugins.worksearch.code
+    import openlibrary.plugins.inside.code
+    import openlibrary.plugins.books.code
+    import openlibrary.plugins.admin.code
+    import openlibrary.plugins.upstream.code
+    import openlibrary.plugins.importapi.code  # noqa: F401 registers endpoints
 
     # Register deprecated endpoint handlers AFTER all plugins have loaded
     # This must be done here, after all plugins are imported, to ensure our handlers

@@ -21,7 +21,7 @@ trap 'handle_error' ERR
 trap 'handle_exit' SIGINT
 set -e
 
-# See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+# See https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
 

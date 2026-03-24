@@ -5,7 +5,7 @@
 
 /**
  * Carousel
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#carousel
  */
 
 /* Badly named. Should be renamed "carousel-heading" or similar. */
@@ -117,7 +117,7 @@
 
 /**
  * Carousel (decorated)
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#decorated-carousel
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#decorated-carousel
  */
 
 .carousel-container-decorated {

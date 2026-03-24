@@ -175,7 +175,7 @@ form.olform.books .formElement .input .wmd-preview {
 
 /**
  * Wmd ButtonBar
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#wmdbuttonbar
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#wmdbuttonbar
  */
 .wmd-button-bar {
   overflow: hidden;

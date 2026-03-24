@@ -1,6 +1,6 @@
 /**
  * MyBooksList
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#mybooks-list
+ * https://docs.openlibrary.org/designers/design-pattern-library.html#mybooks-list
  * Used in:
  * - openlibrary/templates/account/books.html
  * - openlibrary/templates/stats/readinglog.html
@@ -42,6 +42,7 @@
 
 .mybooks-list {
   overflow-wrap: anywhere;
+  margin-bottom: 12px;
 }
 
 .chip-group + .mybooks-list {
@@ -61,7 +62,7 @@
 .mybooks-list--clean h3 {
   display: inline;
   padding-right: 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1em;
   font-weight: normal;
   margin-bottom: 0;

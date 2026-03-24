@@ -9,23 +9,24 @@ This welcome section is intended for new contributors.
 3. **Getting Started:**
     * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs)
 4. **Contributing:**
-    * [How we use git](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet)
+    * [How we use git](https://docs.openlibrary.org/developers/tools/git.html)
     * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
-    * [Testing your code](https://github.com/internetarchive/openlibrary/wiki/Testing)
-    * [Enabling debugging & profiling](https://github.com/internetarchive/openlibrary/wiki/Debugging-and-Performance-Profiling)
+    * [Testing your code](https://docs.openlibrary.org/developers/tools/testing.html)
+    * [Enabling debugging & profiling](https://docs.openlibrary.org/advanced/debugging-and-performance-profiling.html)
 5. **Learning the Code:**
     * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
     * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
     * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
-    * [Front-end Guide](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
+    * [Front-end Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html)
     * [Open Library Public APIs](https://openlibrary.org/developers/api)
 6. **Common Tasks**
-    * [Importing Production Book Data Locally](https://github.com/internetarchive/openlibrary/wiki/Loading-Production-Book-Data)  
+    * [Importing Production Book Data Locally](https://docs.openlibrary.org/developers/misc/loading-production-book-data.html)  
 7. **Questions?**
-    * [Wiki](https://github.com/internetarchive/openlibrary/wiki)
+    * [Docs](https://docs.openlibrary.org/)
     * [Request a slack invite](https://openlibrary.org/volunteer)
-    * [Weekly Community calls](https://github.com/internetarchive/openlibrary/wiki/Community-Call)
+    * [Weekly Community calls](https://docs.openlibrary.org/everyone/community-call.html)
     * [Open Library FAQs](https://openlibrary.org/help/faq)
+
 ## Quick Tour
 
 A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
@@ -60,9 +61,9 @@ For instructions on setting up a local developer's instance of Open Library, ple
 
 [![archive org_details_openlibrary-developer-docs_zoom_0 mp4_autoplay=1 start=2](https://user-images.githubusercontent.com/978325/91351305-ef10ee00-e79c-11ea-9bfb-c2733696ec58.png)](https://archive.org/details/openlibrary-developer-docs/zoom_0.mp4)
 
-Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for more information about getting set up, understanding the codebase, contributing, and more.  Check out the sidebar for links to relevant topics.
+Refer to the [docs](https://docs.openlibrary.org/) for more information about getting set up, understanding the codebase, contributing, and more. Check out the sidebar for links to relevant topics.
 
-[Here's a handy cheat sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) if you are new to using Git.
+[Here's a handy cheat sheet](https://docs.openlibrary.org/developers/tools/git.html) if you are new to using Git.
 
 ## Common Setup Tasks
 
@@ -78,7 +79,7 @@ Refer to the [wiki](https://github.com/internetarchive/openlibrary/wiki) for mor
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://github.com/internetarchive/openlibrary/wiki/Using-Managed-Labels-to-Track-Issues#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned. If you have questions, please ask the [Lead](https://docs.openlibrary.org/developers/misc/project-management.html#triage) designated by the `Lead: @person` label on the issue.
 
 ## Contributor Etiquette
 
@@ -113,34 +114,7 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 ```
 
 ### Testing
-See https://docs.openlibrary.org/2_Developers/misc/Testing.html for more information.
-
-## pre-commit hooks
-
-Be confident in changing files you can check the quality (linter) with [pre-commit](https://pre-commit.com/index.html).
-It is used to inspect the snapshot that is about to be committed, to see if there are any syntax errors, typos, or a handful of other common issues.
-You can see the actions descriptions in [pre-commit-config.yml](https://github.com/internetarchive/openlibrary/blob/master/.pre-commit-config.yaml).
-
-The pre-commit is automatically run against open PRs. Install the pre-commit locally to avoid waiting for the PR checks to run in the cloud.
-
-### Installation
-
-```
-pip install pre-commit
-# or on mac you can run
-brew install pre-commit
-```
-
-After executing the last command, when you normally run `git commit`, pre-commit will also perform its checks.
-
-### Running manually
-
-```
-pre-commit run --files pre-commit-config.yml
-```
-
-> **_Warning:_**  If you don't clone with **ssh** then infogami will have pre-commit issues [You can read this section to resolve it](docker/README.md#cloning-the-open-library-repository).
-
+See https://docs.openlibrary.org/developers/tools/testing.html for more information.
 
 ### Submitting Pull Requests
 

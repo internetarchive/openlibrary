@@ -1,9 +1,50 @@
 import fnmatch
 import os
+import pickle
+import socket
+import struct
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
+from typing import cast
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+
+@dataclass
+class GraphiteEvent:
+    path: str
+    value: float
+    timestamp: int
+
+    def serialize(self):
+        return (self.path, (self.timestamp, self.value))
+
+    def serialize_str(self) -> str:
+        return f"{self.path} {self.value} {self.timestamp}"
+
+    def submit(self, graphite_address: str | tuple[str, int]):
+        GraphiteEvent.submit_many([self], graphite_address)
+
+    @staticmethod
+    def submit_many(
+        events: list['GraphiteEvent'], graphite_address: str | tuple[str, int]
+    ):
+        if isinstance(graphite_address, str):
+            graphite_host, graphite_port = cast(
+                tuple[str, str], tuple(graphite_address.split(':', 1))
+            )
+            graphite_address_tuple = (graphite_host, int(graphite_port))
+        else:
+            graphite_address_tuple = graphite_address
+
+        payload = pickle.dumps([event.serialize() for event in events], protocol=2)
+        header = struct.pack('!L', len(payload))
+        message = header + payload
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.connect(graphite_address_tuple)
+            sock.sendall(message)
 
 
 def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=False):
@@ -58,28 +99,3 @@ def limit_server(allowed_servers: list[str], scheduler: AsyncIOScheduler):
         return func
 
     return decorator
-
-
-def get_service_ip(image_name: str) -> str:
-    """
-    Get the IP address of a Docker image.
-
-    :param image_name: The name of the Docker image.
-    :return: The IP address of the Docker image.
-    """
-    if '-' not in image_name:
-        image_name = f'openlibrary-{image_name}-1'
-
-    result = subprocess.run(
-        [
-            "docker",
-            "inspect",
-            "-f",
-            "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
-            image_name,
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    return result.stdout.strip()
