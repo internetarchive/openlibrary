@@ -588,18 +588,28 @@ class SaveBookHelper:
 
         formdata = utils.unflatten(formdata)
 
-        if 'work' in formdata and isinstance(formdata['work'], dict) and 'series' in formdata['work']:
+        if (
+            'work' in formdata
+            and isinstance(formdata['work'], dict)
+            and 'series' in formdata['work']
+        ):
             seen_series_keys = set()
             unique_work_series = []
             unique_series_names = []
-            
+
             raw_work_series = formdata['work'].get('series', [])
             raw_series_names = formdata.get('series', [])
-            
+
             for s_idx, s_obj in enumerate(raw_work_series):
-                s_name = raw_series_names[s_idx] if s_idx < len(raw_series_names) else ""
-                
-                if isinstance(s_obj, dict) and 'series' in s_obj and isinstance(s_obj['series'], dict):
+                s_name = (
+                    raw_series_names[s_idx] if s_idx < len(raw_series_names) else ""
+                )
+
+                if (
+                    isinstance(s_obj, dict)
+                    and 'series' in s_obj
+                    and isinstance(s_obj['series'], dict)
+                ):
                     s_key = s_obj['series'].get('key', '').strip()
                     if not s_key:
                         continue
@@ -611,7 +621,7 @@ class SaveBookHelper:
                 else:
                     unique_work_series.append(s_obj)
                     unique_series_names.append(s_name)
-                    
+
             formdata['work']['series'] = unique_work_series
             formdata['series'] = unique_series_names
 

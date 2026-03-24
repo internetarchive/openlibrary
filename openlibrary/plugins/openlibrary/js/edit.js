@@ -386,7 +386,7 @@ export function initSeriesMultiInputAutocomplete() {
     $('form').on('submit.seriesValidation', function(e) {
         var invalidSeries = false;
         var $firstInvalid = null;
-        
+
         $('.multi-input-autocomplete--series .ac-input').each(function() {
             var $textInput = $(this).find('.ac-input__visible');
             var $keyInput = $(this).find('.ac-input__value');
@@ -403,9 +403,9 @@ export function initSeriesMultiInputAutocomplete() {
 
         if (invalidSeries) {
             e.preventDefault();
-            alert("Please select a Series from the dropdown list menu to link it, or clear the text box.");
+            alert('Please select a Series from the dropdown list menu to link it, or clear the text box.');
             if ($firstInvalid) {
-                setTimeout(function() { $firstInvalid.focus(); }, 10);
+                setTimeout(function() { $firstInvalid.trigger('focus'); }, 10);
             }
             return false;
         }

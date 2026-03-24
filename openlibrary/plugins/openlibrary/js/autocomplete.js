@@ -119,7 +119,7 @@ export function init() {
                         }
                         $errorDiv.text(message).show();
                         setTimeout(function() { $errorDiv.fadeOut() }, 4000);
-                        
+
                         $this.val('');
                         return false; // Prevent selection
                     }
@@ -192,13 +192,13 @@ export function init() {
                     if ($textInput.val().trim() !== '' && $keyInput.val().trim() === '') {
                         $textInput.css({ 'border-color': '#e44028', 'background-color': '#fcece9' });
                         var $errorDiv = $textInput.siblings('.ac-unselected-error');
-                        
+
                         // MUST create the div first before trying to set its text!
                         if (!$errorDiv.length) {
                             $errorDiv = $('<div class="ac-unselected-error" style="color: #e44028; font-size: 0.9em; margin-top: 4px;"></div>').insertAfter($textInput);
                         }
-                        $errorDiv.text("Please select an option from the dropdown to link it.").show();
-                        
+                        $errorDiv.text('Please select an option from the dropdown to link it.').show();
+
                         setTimeout(function() { $errorDiv.fadeOut() }, 3000);
                     } else {
                         $textInput.css({ 'border-color': '', 'background-color': '' });
