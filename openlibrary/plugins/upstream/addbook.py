@@ -173,7 +173,7 @@ class DocSaveHelper:
         """
         created = False
         for series_dict, series_name in zip(series, series_names):
-            if series_dict['series']['key'] == '__new__':
+            if series_dict.get('series', {}).get('key') == '__new__':
                 created = True
                 if not _test:
                     doc = new_doc('/type/series', name=series_name)
@@ -587,6 +587,34 @@ class SaveBookHelper:
         )
 
         formdata = utils.unflatten(formdata)
+
+        if 'work' in formdata and isinstance(formdata['work'], dict) and 'series' in formdata['work']:
+            seen_series_keys = set()
+            unique_work_series = []
+            unique_series_names = []
+            
+            raw_work_series = formdata['work'].get('series', [])
+            raw_series_names = formdata.get('series', [])
+            
+            for s_idx, s_obj in enumerate(raw_work_series):
+                s_name = raw_series_names[s_idx] if s_idx < len(raw_series_names) else ""
+                
+                if isinstance(s_obj, dict) and 'series' in s_obj and isinstance(s_obj['series'], dict):
+                    s_key = s_obj['series'].get('key', '').strip()
+                    if not s_key:
+                        continue
+                    if s_key == '__new__' or s_key not in seen_series_keys:
+                        if s_key != '__new__':
+                            seen_series_keys.add(s_key)
+                        unique_work_series.append(s_obj)
+                        unique_series_names.append(s_name)
+                else:
+                    unique_work_series.append(s_obj)
+                    unique_series_names.append(s_name)
+                    
+            formdata['work']['series'] = unique_work_series
+            formdata['series'] = unique_series_names
+
         work_data, edition_data = self.process_input(formdata)
 
         saveutil = DocSaveHelper()

@@ -92,6 +92,39 @@ export function init() {
             select: function (_event, ui) {
                 var item = ui.item;
                 var $this = $(this);
+
+                if (ol_ac_opts.preventDuplicates) {
+                    var isDuplicate = false;
+                    var $container = $this.closest('.multi-input-autocomplete');
+                    var newText = (item.name || $this.val()).trim().toLowerCase();
+
+                    $container.find('.ac-input').not($this.closest('.ac-input')).each(function() {
+                        var existingKey = $(this).find('.ac-input__value').val();
+                        var $existingVisible = $(this).find('.ac-input__visible');
+                        var existingText = $existingVisible.length ? $existingVisible.val().trim().toLowerCase() : '';
+
+                        if (item.key !== '__new__' && existingKey && existingKey === item.key) {
+                            isDuplicate = true;
+                        }
+                        if (existingText && newText && existingText === newText) {
+                            isDuplicate = true;
+                        }
+                    });
+
+                    if (isDuplicate) {
+                        var message = ol_ac_opts.duplicateMessage || 'This item has already been added.';
+                        var $errorDiv = $this.siblings('.ac-duplicate-error');
+                        if (!$errorDiv.length) {
+                            $errorDiv = $('<div class="ac-duplicate-error" style="color: #e44028; font-size: 0.9em; margin-top: 4px;"></div>').insertAfter($this);
+                        }
+                        $errorDiv.text(message).show();
+                        setTimeout(function() { $errorDiv.fadeOut() }, 4000);
+                        
+                        $this.val('');
+                        return false; // Prevent selection
+                    }
+                }
+
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
                 const $preview = $this.closest('.ac-input').find('.ac-input__preview');
                 if ($preview.length) {
@@ -149,6 +182,29 @@ export function init() {
             .autocompleteHTML(options)
             .on('keypress', function() {
                 $(this).removeClass('accept').removeClass('reject');
+            })
+            .on('focusout', function() {
+                var $textInput = $(this);
+                var $keyInput = $textInput.closest('.ac-input').find('.ac-input__value');
+                if (!$keyInput.length) return;
+
+                setTimeout(function() {
+                    if ($textInput.val().trim() !== '' && $keyInput.val().trim() === '') {
+                        $textInput.css({ 'border-color': '#e44028', 'background-color': '#fcece9' });
+                        var $errorDiv = $textInput.siblings('.ac-unselected-error');
+                        
+                        // MUST create the div first before trying to set its text!
+                        if (!$errorDiv.length) {
+                            $errorDiv = $('<div class="ac-unselected-error" style="color: #e44028; font-size: 0.9em; margin-top: 4px;"></div>').insertAfter($textInput);
+                        }
+                        $errorDiv.text("Please select an option from the dropdown to link it.").show();
+                        
+                        setTimeout(function() { $errorDiv.fadeOut() }, 3000);
+                    } else {
+                        $textInput.css({ 'border-color': '', 'background-color': '' });
+                        $textInput.siblings('.ac-unselected-error').remove();
+                    }
+                }, 200);
             });
     }
 

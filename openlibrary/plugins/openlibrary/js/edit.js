@@ -371,6 +371,8 @@ export function initSeriesMultiInputAutocomplete() {
                 // Don't render "Create new series" if searching by key
                 addnew: query => !/OL\d+L/i.test(query),
                 sortable: true,
+                preventDuplicates: true,
+                duplicateMessage: 'This series has already been added to this work.'
             },
             {
                 minChars: 2,
@@ -379,6 +381,34 @@ export function initSeriesMultiInputAutocomplete() {
                 autoFill: true,
                 formatItem: render_series_autocomplete_item
             });
+    });
+
+    $('form').on('submit.seriesValidation', function(e) {
+        var invalidSeries = false;
+        var $firstInvalid = null;
+        
+        $('.multi-input-autocomplete--series .ac-input').each(function() {
+            var $textInput = $(this).find('.ac-input__visible');
+            var $keyInput = $(this).find('.ac-input__value');
+            if ($textInput.length && $keyInput.length) {
+                if ($textInput.val().trim() !== '' && $keyInput.val().trim() === '') {
+                    invalidSeries = true;
+                    $textInput.css({ 'border-color': '#e44028', 'background-color': '#fcece9' });
+                    if (!$firstInvalid) $firstInvalid = $textInput;
+                } else {
+                    $textInput.css({ 'border-color': '', 'background-color': '' });
+                }
+            }
+        });
+
+        if (invalidSeries) {
+            e.preventDefault();
+            alert("Please select a Series from the dropdown list menu to link it, or clear the text box.");
+            if ($firstInvalid) {
+                setTimeout(function() { $firstInvalid.focus(); }, 10);
+            }
+            return false;
+        }
     });
 }
 
