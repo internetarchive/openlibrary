@@ -579,25 +579,10 @@ class SaveBookHelper:
         """
         comment = formdata.pop('_comment', '')
 
-        user = accounts.get_current_user()
-        delete = (
-            user
-            and (user.is_admin() or user.is_super_librarian())
-            and formdata.pop('_delete', '')
-        )
-
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
         saveutil = DocSaveHelper()
-
-        if delete:
-            if self.edition:
-                self.delete(self.edition.key, comment=comment)
-
-            if self.work and self.work.edition_count == 0:
-                self.delete(self.work.key, comment=comment)
-            return
 
         just_editing_work = edition_data is None
         if work_data:
@@ -892,9 +877,23 @@ class book_edit(delegate.page):
         else:
             work = None
 
+        if is_delete_req := ("_delete" in i):
+            user = accounts.get_current_user()
+            permitted_groups = ["/usergroup/super-librarians", "/usergroup/admin"]
+            if not user or not user.is_member_of(permitted_groups):
+                raise web.unauthorized()
+
         try:
             helper = SaveBookHelper(work, edition)
-            helper.save(web.input())
+            if is_delete_req:
+                # delete and return
+                comment = i.pop('_comment', '')
+                if edition:
+                    SaveBookHelper.delete(edition.key, comment=comment)
+                if work and work.edition_count == 0:
+                    SaveBookHelper.delete(work.key, comment=comment)
+            else:
+                helper.save(web.input())
 
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
@@ -954,9 +953,22 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
+        if is_delete_req := ("_delete" in i):
+            user = accounts.get_current_user()
+            permitted_groups = ["/usergroup/super-librarians", "/usergroup/admin"]
+            if not user or not user.is_member_of(permitted_groups):
+                raise web.unauthorized()
+
         try:
             helper = SaveBookHelper(work, None)
-            helper.save(web.input())
+            if is_delete_req:
+                if work.edition_count != 0:
+                    raise web.badrequest("Cannot delete work that is associated with editions.")
+                comment = i.pop('_comment', '')
+                SaveBookHelper.delete(work.key, comment=comment)
+            else:
+                helper.save(web.input())
+
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
