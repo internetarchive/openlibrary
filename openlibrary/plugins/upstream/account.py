@@ -450,9 +450,6 @@ class otp_service_issue(delegate.page):
     path = "/account/otp/issue"
 
     def POST(self):
-        """
-        >>> requests.post("https://staging.openlibrary.org/account/otp/issue", data={"email": "email@example.com", "ip": "127.0.0.1"})
-        """
         web.header('Content-Type', 'application/json')
         i = web.input(email="", ip="", challenge_url="", sendmail='true')
         required_keys = ("email", "ip", "service_ip")
