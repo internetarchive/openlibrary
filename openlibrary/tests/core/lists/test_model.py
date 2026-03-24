@@ -1,6 +1,7 @@
+import web
+
 import openlibrary.core.lists.model as list_model
 from openlibrary.mocks.mock_infobase import MockSite
-import web
 
 
 class TestList:
@@ -28,6 +29,7 @@ class TestList:
         d = {"key": key, "type": {"key": type}}
         d.update(fields)
         site.save(d)
+
 
 class MockWork:
     def __init__(self, key, position):
@@ -73,17 +75,17 @@ class TestSeries:
 
         result_keys = [seed.key for seed in seeds]
         expected_keys = [
-            "/works/OL2W",   # 1
-            "/works/OL5W",   # 2
+            "/works/OL2W",  # 1
+            "/works/OL5W",  # 2
             "/works/OL11W",  # 3 (tie-break by work key)
-            "/works/OL3W",   # 3
+            "/works/OL3W",  # 3
             "/works/OL10W",  # None -> non-numeric bucket
-            "/works/OL8W",   # Non-numeric
-            "/works/OL7W",   # 4-5   (range size 1, lower 4)
-            "/works/OL1W",   # 22-23 (range size 1, lower 22)
-            "/works/OL4W",   # 24-25 (range size 1, lower 24)
-            "/works/OL6W",   # 1-3   (range size 2, lower 1)
-            "/works/OL9W",   # 1-9   (range size 8, lower 1)
+            "/works/OL8W",  # Non-numeric
+            "/works/OL7W",  # 4-5   (range size 1, lower 4)
+            "/works/OL1W",  # 22-23 (range size 1, lower 22)
+            "/works/OL4W",  # 24-25 (range size 1, lower 24)
+            "/works/OL6W",  # 1-3   (range size 2, lower 1)
+            "/works/OL9W",  # 1-9   (range size 8, lower 1)
         ]
 
         assert result_keys == expected_keys

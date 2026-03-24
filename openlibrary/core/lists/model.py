@@ -696,8 +696,7 @@ class Series(List):
             with contextlib.suppress(ValueError):
                 return ("A: Numeric", 1, int(float(pos_str)), work.key)
 
-            match = re.fullmatch(r'(\d+)\s*[-–]\s*(\d+)', pos_str)
-            if match:
+            if match := re.fullmatch(r'(\d+)\s*[-–]\s*(\d+)', pos_str):
                 lower = int(match.group(1))
                 upper = int(match.group(2))
                 return ("C: Range", upper - lower, lower, work.key)
