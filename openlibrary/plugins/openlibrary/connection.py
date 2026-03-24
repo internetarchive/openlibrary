@@ -1,12 +1,10 @@
 """Open Library extension to provide a new kind of client connection with caching support."""
 
-import json
-import logging
-from datetime import UTC, datetime
 import datetime
 import functools
 import json
 import logging
+from datetime import UTC, datetime
 from typing import cast
 
 import web
