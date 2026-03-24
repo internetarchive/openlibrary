@@ -20,8 +20,8 @@ services:
     env_file:
       - ./.env.local
     volumes:
-      - ../olsystem:/olsystem
-      # - ../olsystem-db0:/olsystem
+      # - ../olsystem:/olsystem
+      - ../olsystem-db0:/olsystem
       - ../booklending_utils:/booklending_utils
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
       # Persistent volume mount for installed git submodules
@@ -46,8 +46,8 @@ services:
     env_file:
       - ./.env.local
     volumes:
-      - ../olsystem:/olsystem
-      # - ../olsystem-db0:/olsystem
+      # - ../olsystem:/olsystem
+      - ../olsystem-db0:/olsystem
       # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
       - .:/openlibrary
