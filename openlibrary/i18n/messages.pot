@@ -924,6 +924,10 @@ msgstr ""
 msgid "Manage Subjects"
 msgstr ""
 
+#: SubjectTags.html
+msgid "Genres"
+msgstr ""
+
 #: Subnavigation.html
 msgid "Developer Center (Home)"
 msgstr ""
