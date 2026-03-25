@@ -682,10 +682,6 @@ class Series(List):
             (work, edge) for work in works if (edge := work.find_series_edge(self.key))
         ]
 
-        series_edges = [
-            (work, edge) for work in works if (edge := work.find_series_edge(self.key))
-        ]
-
         def get_work_sort_key(
             tpl: tuple[Work, dict],
         ) -> tuple[str, int, int, str]:
