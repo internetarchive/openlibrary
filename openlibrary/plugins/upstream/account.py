@@ -33,6 +33,7 @@ from openlibrary.accounts import (
 )
 from openlibrary.core import helpers as h
 from openlibrary.core import lending, stats
+from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
@@ -298,17 +299,10 @@ class account_create(delegate.page):
         return f
 
     def get_recap(self):
-        if self.is_plugin_enabled('recaptcha'):
-            public_key = config.plugin_invisible_recaptcha.public_key
-            private_key = config.plugin_invisible_recaptcha.private_key
-            if public_key and private_key:
-                return recaptcha.Recaptcha(public_key, private_key)
-
-    def is_plugin_enabled(self, name):
-        return (
-            name in delegate.get_plugins()
-            or "openlibrary.plugins." + name in delegate.get_plugins()
-        )
+        public_key = config.plugin_invisible_recaptcha.public_key
+        private_key = config.plugin_invisible_recaptcha.private_key
+        if public_key and private_key:
+            return recaptcha.Recaptcha(public_key, private_key)
 
     def POST(self):
         f: forms.RegisterForm = self.get_form()
@@ -420,9 +414,6 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
-        from openlibrary.plugins.openlibrary.code import (
-            BadRequest,  # noqa: F401 side effects may be needed
-        )
 
         d = json.loads(web.data())
         access = d.get('access', None)
@@ -1263,8 +1254,28 @@ class account_anonymization_json(delegate.page):
     encoding = "json"
 
     def POST(self):
-        i = web.input(test='false')
+        i = web.input(test='false', digest="", msg="")
         test = i.test == "true"
+        digest = i.digest
+        msg = i.msg
+
+        try:
+            if not HMACToken.verify(
+                digest, msg, "ia_sync_secret", delimiter=":", unix_time=True
+            ):
+                raise web.HTTPError(
+                    "401 Unauthorized", {"Content-Type": "application/json"}
+                )
+        except ValueError:
+            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"})
+        except ExpiredTokenError:
+            raise web.HTTPError(
+                "401 Unauthorized", {"Content-Type": "application/json"}
+            )
+        except MissingKeyError:
+            raise web.HTTPError(
+                "503 Service Unavailable", {"Content-Type": "application/json"}
+            )
 
         # Get S3 keys from request header
         try:

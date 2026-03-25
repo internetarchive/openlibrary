@@ -1,0 +1,12 @@
+.provider-table {
+  margin-bottom: 10px;
+  background-color: var(--lightest-grey);
+}
+
+.provider-table th {
+  min-width: 200px;
+}
+
+.provider-table tbody input {
+  padding: 4px;
+}

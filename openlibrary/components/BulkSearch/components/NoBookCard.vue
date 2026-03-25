@@ -9,7 +9,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style>
 .noBookCard{
     flex-shrink: 0;
     margin-right: 6px;
@@ -25,8 +25,8 @@ export default {
     position: relative;
     align-items: center;
     justify-content: center;
-    &:first-child {
-        animation: slideUp .8s;
-      }
+}
+.noBookCard:first-child {
+    animation: slideUp .8s;
 }
 </style>

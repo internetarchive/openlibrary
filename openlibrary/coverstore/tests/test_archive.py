@@ -6,30 +6,15 @@ def test_get_filename():
     assert archive.Batch.get_relpath("0008", "80") == "covers_0008/covers_0008_80"
 
     # Sizes
-    assert (
-        archive.Batch.get_relpath("0008", "80", size="s")
-        == "s_covers_0008/s_covers_0008_80"
-    )
-    assert (
-        archive.Batch.get_relpath("0008", "80", size="m")
-        == "m_covers_0008/m_covers_0008_80"
-    )
-    assert (
-        archive.Batch.get_relpath("0008", "80", size="l")
-        == "l_covers_0008/l_covers_0008_80"
-    )
+    assert archive.Batch.get_relpath("0008", "80", size="s") == "s_covers_0008/s_covers_0008_80"
+    assert archive.Batch.get_relpath("0008", "80", size="m") == "m_covers_0008/m_covers_0008_80"
+    assert archive.Batch.get_relpath("0008", "80", size="l") == "l_covers_0008/l_covers_0008_80"
 
     # Ext
-    assert (
-        archive.Batch.get_relpath("0008", "80", ext="tar")
-        == "covers_0008/covers_0008_80.tar"
-    )
+    assert archive.Batch.get_relpath("0008", "80", ext="tar") == "covers_0008/covers_0008_80.tar"
 
     # Ext + Size
-    assert (
-        archive.Batch.get_relpath("0008", "80", size="l", ext="zip")
-        == "l_covers_0008/l_covers_0008_80.zip"
-    )
+    assert archive.Batch.get_relpath("0008", "80", size="l", ext="zip") == "l_covers_0008/l_covers_0008_80.zip"
 
 
 def test_get_batch_end_id():
@@ -37,4 +22,4 @@ def test_get_batch_end_id():
 
 
 def test_id_to_item_and_batch_id():
-    assert archive.Cover.id_to_item_and_batch_id(987_654_321) == ('0987', '65')
+    assert archive.Cover.id_to_item_and_batch_id(987_654_321) == ("0987", "65")

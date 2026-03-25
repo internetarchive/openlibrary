@@ -263,8 +263,9 @@ $jsdef render_work_autocomplete_item(item):
                     <span class="tip"></span>
                 </div>
                 $if book.languages:
+                    $ user_lang = get_lang() or 'en'
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang, get_language_name(lang))
+                        $:render_language_field(i, lang, get_language_name(lang, user_lang))
                 $else:
                     $:render_language_field(0, storage(name="", key=""), None)
                 <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
@@ -307,8 +308,9 @@ $jsdef render_work_autocomplete_item(item):
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
+                        $ user_lang = get_lang() or 'en'
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang, user_lang))
                     $else:
                         $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
@@ -548,7 +550,7 @@ $ })
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
                     <input name="edition--weight--value" type="number" step="any"
-                           id="edition--weight--value" min="0.01" size="6" value="$weight.value"/>
+                           id="edition--weight--value" min="0.001" size="6" value="$weight.value"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -570,17 +572,17 @@ $ })
                             <tr>
                                 <td rowspan="3"><img src="/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.01"
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.001"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0.01"
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any" min="0.001"
                                            id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0.01"
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any" min="0.001"
                                            id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>

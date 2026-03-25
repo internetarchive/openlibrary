@@ -19,7 +19,6 @@ pytest --doctest-modules \
         --ignore=openlibrary/catalog/add_book/tests \
         --ignore=openlibrary/core/ia.py \
         --ignore=openlibrary/plugins/akismet/code.py \
-        --ignore=openlibrary/plugins/openlibrary/dev_instance.py \
         --ignore=openlibrary/plugins/openlibrary/tests/test_home.py \
         --ignore=openlibrary/plugins/search/code.py \
         --ignore=openlibrary/plugins/search/collapse.py \

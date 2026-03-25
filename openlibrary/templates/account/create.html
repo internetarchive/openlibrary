@@ -80,17 +80,17 @@ $var title: $_("Sign Up to Open Library")
                 <label for="ia_newsletter">$:_('I want to receive news, announcements, and resources from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library.')</label>
             </div>
             <div id="rpd-checkbox" class="ol-signup-form__checkbox">
-                <input type="checkbox" id="pd_request" name="pd_request"/>
-                <label for="pd_request">$:_('I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">special print disability access</a> through a qualifying program.')</label>
+                <input type="checkbox" id="pd-request" name="pd_request" aria-expanded="false" aria-controls="pda-selector"/>
+                <label for="pd-request" id="pd-request-label">$:_('I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">special print disability access</a> through a qualifying program.')</label>
             </div>
-            <div id="pda-selector" class="ol-signup-form__select hidden">
-                <div class="ol-signup-form__error" id="pd_programMessage"></div>
-                <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')">
+            <div id="pda-selector" class="ol-signup-form__select hidden" role="region" aria-labelledby="pd-request-label" aria-hidden="true">
+                <div class="ol-signup-form__error" id="pd_programMessage" role="alert" aria-live="polite" aria-atomic="true"></div>
+                <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')" aria-describedby="pd-program-advisory" aria-invalid="false" aria-required="false">
                     <option value="" disabled selected>$_("Select qualifying program")</option>
                     $for option in pd_options:
                         <option value="$option.value" label="$option.label"></option>
                 </select>
-                <span class="email-advisory">$_("* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps.")</span>
+                <span class="email-advisory" id="pd-program-advisory">$_("* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps.")</span>
             </div>
             <input type="hidden" id="secret" value="" name="secret" />
             <input type="hidden" id="access" value="" name="access" />

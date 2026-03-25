@@ -7,11 +7,10 @@ code duplication and ensure consistent behavior.
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import Field
 
-from openlibrary.core.models import Subject
 from openlibrary.fastapi.models import Pagination
 from openlibrary.plugins.worksearch.subjects import (
     DEFAULT_RESULTS,
@@ -19,6 +18,9 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import Subject
 
 
 class BaseSubjectRequestParams(Pagination):
@@ -29,12 +31,8 @@ class BaseSubjectRequestParams(Pagination):
 
     details: bool = Field(False, description="Include facets and detailed metadata")
     has_fulltext: bool = Field(False, description="Filter to works with fulltext")
-    sort: str = Field(
-        "editions", description="Sort order: editions, old, new, ranking, etc."
-    )
-    published_in: str | None = Field(
-        None, description="Date range filter: YYYY or YYYY-YYYY"
-    )
+    sort: str = Field("editions", description="Sort order: editions, old, new, ranking, etc.")
+    published_in: str | None = Field(None, description="Date range filter: YYYY or YYYY-YYYY")
     limit: int = Field(
         DEFAULT_RESULTS,
         ge=0,
@@ -67,9 +65,7 @@ async def fetch_subject_data(
     filters = {}
     if params.has_fulltext:
         filters["has_fulltext"] = "true"
-    if publish_year_filter := date_range_to_publish_year_filter(
-        params.published_in or ""
-    ):
+    if publish_year_filter := date_range_to_publish_year_filter(params.published_in or ""):
         filters["publish_year"] = publish_year_filter
 
     subject: Subject = await get_subject_async(

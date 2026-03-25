@@ -61,7 +61,7 @@ HONORIFICS: Final = sorted(
         'sra.',
         'srta.',
     ],
-    key=lambda x: len(x),
+    key=len,
     reverse=True,
 )
 
@@ -104,6 +104,7 @@ class AuthorImportDict(TypedDict):
 
     name: str
     personal_name: NotRequired[str]
+    alternate_names: NotRequired[list]
     entity_type: NotRequired[str]
     remote_ids: NotRequired[dict]
     birth_date: NotRequired[str]
@@ -114,9 +115,13 @@ class AuthorImportDict(TypedDict):
 
 def do_flip(author: AuthorImportDict) -> None:
     """
-    Given an author import dict, flip its name in place
+    Given an author import dict, flip its name
+    and any alternate_names in place
     i.e. Smith, John => John Smith
     """
+    alternate_names = [flip_name(name) for name in author.get('alternate_names', [])]
+    if alternate_names:
+        author['alternate_names'] = alternate_names
     if 'personal_name' in author and author['personal_name'] != author['name']:
         # Don't flip names if name is more complex than personal_name (legacy behaviour)
         return
@@ -215,22 +220,25 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
             return [selected_match]
 
     # Fall back to name/date matching, which we did before introducing identifiers.
-    name = author["name"].replace("*", r"\*")
-    queries = [
-        {"type": "/type/author", "name~": name},
-        {"type": "/type/author", "alternate_names~": name},
-        {
-            "type": "/type/author",
-            "name~": f"* {name.split()[-1]}",
-            "birth_date~": f"*{extract_year(author.get('birth_date', '')) or -1}*",
-            "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
-        },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
-    ]
+    names = [author["name"]]
+    names += author.get("alternate_names", [])
     things = []
-    for query in queries:
-        if reply := list(web.ctx.site.things(query)):
-            things = get_redirected_authors(list(web.ctx.site.get_many(reply)))
-            break
+    for name in names:
+        name = name.replace("*", r"\*")
+        queries = [
+            {"type": "/type/author", "name~": name},
+            {"type": "/type/author", "alternate_names~": name},
+            {
+                "type": "/type/author",
+                "name~": f"* {name.split()[-1]}",
+                "birth_date~": f"*{extract_year(author.get('birth_date', '')) or -1}*",
+                "death_date~": f"*{extract_year(author.get('death_date', '')) or -1}*",
+            },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
+        ]
+        for query in queries:
+            if reply := list(web.ctx.site.things(query)):
+                things += get_redirected_authors(list(web.ctx.site.get_many(reply)))
+                break
     match = []
     seen = set()
     # If author has dates, we only consider dated candidates,
@@ -335,6 +343,8 @@ def author_import_record_to_author(
         'death_date',
         'date',
         'remote_ids',
+        'entity_type',
+        'alternate_names',
     ):
         if f in author_import_record:
             a[f] = author_import_record[f]

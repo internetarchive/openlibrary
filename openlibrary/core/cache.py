@@ -563,28 +563,3 @@ def build_memcache_key(prefix: str, *args, **kw) -> str:
         key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
     return key
-
-
-def method_memoize(f):
-    """
-    object-local memoize.
-    Works only for functions with simple arguments; i.e. JSON serializeable
-    """
-
-    @functools.wraps(f)
-    def g(self, *args, **kwargs):
-        cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = json.dumps(
-            {
-                'function': f.__name__,
-                'args': args,
-                'kwargs': kwargs,
-            },
-            sort_keys=True,
-        )
-
-        if key not in cache:
-            cache[key] = f(self, *args, **kwargs)
-        return cache[key]
-
-    return g

@@ -1,10 +1,11 @@
 $def with (page)
 
-$ name = page.name
+$ name = get_language_name(page, get_lang() or 'en')
+$ page_title = name
 $if page.deprecated:
-    $ name += f' [{_("deprecated")}]'
+    $ page_title = _("%(language)s [deprecated]", language=name)
 
-$var title: $name
+$var title: $page_title
 
 <div id="contentHead">
     $:macros.databarView(page)
@@ -33,7 +34,7 @@ $var title: $name
 	   <span class="tag"><a href="$page.current">$page.current</a></span>
        </div>
 
-    <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(page.name))</p>
+    <p>$:_('Try a <a href="%(href)s">search for readable books in %(language)s</a>?', href="/search?" + urlencode(dict(q="language:" + page.code, has_fulltext="true", sort='random')), language=websafe(name))</p>
 
     $:render_template("lib/history", page)
 

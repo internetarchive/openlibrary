@@ -1,0 +1,140 @@
+/* Common styling */
+.my-observations,
+.my-notes {
+  flex: 1;
+  padding: 10px;
+}
+
+.list-container {
+  margin-top: 1em;
+}
+
+.main-list-item {
+  border-bottom: 1px solid var(--cream);
+  margin-bottom: 1em;
+  background-color: var(--grey-fafafa);
+}
+
+.work-section {
+  display: flex;
+  padding: 1em;
+}
+
+.work-section .imageLg {
+  padding-right: 1em;
+}
+
+.no-content {
+  padding: 1em;
+  text-align: center;
+}
+
+.pager .pagination {
+  justify-content: center;
+}
+
+/* Notes view */
+.notes-list .notes-list-item {
+  border-top: 2px solid var(--lightest-grey);
+}
+
+.book-info {
+  padding: 1em;
+}
+
+.book-note {
+  padding: 1em;
+}
+
+.book-note textarea {
+  width: 100%;
+  resize: none;
+  padding: 0.25em;
+  font-size: var(--font-size-title-medium);
+}
+
+.book-note .notes-view-modal-link {
+  margin-top: 1em;
+  text-align: center;
+}
+
+.note-page-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.note-page-buttons button {
+  font-size: 1.2em;
+  width: unset;
+}
+
+.note-page-buttons .update-note-link-button {
+  margin-left: auto;
+  margin-top: 5px;
+  font-size: 1.2em;
+  padding: 7px;
+}
+
+/* Observations view */
+.observations-header {
+  color: var(--dark-grey);
+  padding: 1em 1em 0;
+  text-decoration: underline;
+}
+
+.observations-list {
+  padding: 0 1em;
+}
+
+.observations-modal-link {
+  margin-top: 1em;
+  font-size: 1.2em;
+}
+
+.observation-category {
+  font-weight: bold;
+}
+
+.observation-buttons {
+  display: flex;
+  justify-content: space-between;
+  padding: 1em;
+}
+
+.observation-buttons .delete-observations-button {
+  background-color: var(--red);
+  width: unset;
+  font-size: 1.2em;
+}
+
+.observation-buttons .delete-observations-button:hover {
+  background-color: hsl(8, 78%, 29%);
+}
+
+.throbber-li .throbber {
+  position: relative;
+  top: unset;
+  left: unset;
+  height: unset;
+  margin: 1em auto;
+}
+
+.throbber-li .throbber h3 {
+  padding-top: 1.5em;
+  margin-top: unset;
+}
+
+@media screen and (max-width: 768px) /* @width-breakpoint-tablet */ {
+  .observation-buttons {
+    flex-direction: column-reverse;
+    text-align: center;
+  }
+
+  .observation-buttons .delete-observations-button {
+    margin-top: 1em;
+  }
+
+  .update-note-link-button {
+    line-height: 1.5em;
+  }
+}

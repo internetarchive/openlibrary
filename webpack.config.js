@@ -46,7 +46,7 @@ module.exports = {
                 }
             }
         }, {
-            test: /\.less$/,
+            test: /\.css$/,
             use: [
                 {
                     loader: 'style-loader'
@@ -56,10 +56,6 @@ module.exports = {
                     options: {
                         url: false
                     }
-                },
-                {
-                    // compiles Less to CSS
-                    loader: 'less-loader'
                 }
             ]
         }]

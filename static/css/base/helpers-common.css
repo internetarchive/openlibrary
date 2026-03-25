@@ -1,0 +1,65 @@
+/* A standard list of helpers */
+.hidden {
+  display: none !important;
+}
+.inline {
+  display: inline;
+}
+
+/* All inline elements following an inline element
+   e.g. heading should be a little smaller
+   See /subjects "Try a keyword" */
+.inline + span {
+  font-size: var(--font-size-label-small);
+}
+
+.desktop-only {
+  display: none !important;
+}
+
+/* Desktop: min-width: 960px */
+@media only screen and (min-width: 960px) {
+  .desktop-only {
+    display: block !important;
+  }
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+#offline-info {
+  text-align: center;
+  padding: 10px 5px;
+  display: none;
+  background-color: var(--grey);
+  color: var(--white);
+}
+.hidden--nojs {
+  display: none;
+}
+.client-js .hidden--nojs {
+  display: block;
+}
+.clearfix {
+  width: 100%;
+  clear: both;
+  padding: 5px;
+}
+/* To be used for shifting content so its accessible to screen readers
+   but not visible to anyone else. */
+.shift {
+  position: absolute !important;
+  left: -10000px !important;
+}
+
+a.hoverlink {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+.local-date-time {
+  color: var(--dark-green);
+  font-size: var(--font-size-label-small);
+  text-align: center;
+  padding: 5px 0 0;
+}

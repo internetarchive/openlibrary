@@ -205,7 +205,7 @@ def pick_best_name(names):
     names = [norm(n) for n in names]
     n1 = names[0]
     assert all(match_with_bad_chars(n1, n2) for n2 in names[1:])
-    names.sort(key=lambda n: accent_count(n), reverse=True)
+    names.sort(key=accent_count, reverse=True)
     assert '?' not in names[0]
     return names[0]
 

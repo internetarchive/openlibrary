@@ -189,7 +189,7 @@ class tag_edit(delegate.page):
                 raise safe_seeother(key)
             tag.update(formdata)
             tag._save(comment=i._comment)
-            raise safe_seeother(i.redir if i.redir else key)
+            raise safe_seeother(i.redir or key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             return render_template("type/tag/form", tag, redirect=i.redir)

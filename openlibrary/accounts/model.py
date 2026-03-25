@@ -519,7 +519,7 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
-        username = key.split('/')[-1]
+        username = key.rsplit('/', maxsplit=1)[-1]
         return cls.get_by_username(username)
 
     @classmethod
@@ -975,6 +975,6 @@ def audit_accounts(
 
 @public
 def get_internet_archive_id(key: str) -> str | None:
-    username = key.split('/')[-1]
+    username = key.rsplit('/', maxsplit=1)[-1]
     ol_account = OpenLibraryAccount.get_by_username(username)
     return ol_account.itemname if ol_account else None

@@ -58,9 +58,11 @@ async def main(
 
         # If an offset file is specified, read the ISO timestamp in it and if we're behind,
         # run the trending_updater_init script to catch up.
+        # NOTE: Synchronous pathlib operations are acceptable here since this is CLI-only code
+        # that runs once at startup. Use asyncio.to_thread() if this becomes a hot path.
         offset = None
-        if trending_offset_file.exists() and (
-            contents := trending_offset_file.read_text().strip()
+        if trending_offset_file.exists() and (  # noqa: ASYNC240
+            contents := trending_offset_file.read_text().strip()  # noqa: ASYNC240
         ):
             offset = datetime.datetime.fromisoformat(contents)
 

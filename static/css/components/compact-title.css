@@ -1,0 +1,41 @@
+:root {
+  --compact-title-height: 35px;
+  --desktop-title-max-width: calc(
+    var(--test-body-mobile-width) - var(--sidebar-width-with-margin)
+  );
+}
+
+@media screen and (min-width: 769px /* @width-breakpoint-tablet */) {
+  .compact-title {
+    background: var(--white);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    z-index: var(--z-index-level-5);
+    position: fixed;
+    top: 0;
+    height: var(--compact-title-height);
+    width: calc(100% - var(--contentBody-padding));
+    padding: 0 14px;
+  }
+
+  .compact-title__edit-btn {
+    transform: translateY(6px);
+  }
+
+  .compact-title__heading {
+    font-size: 1.25em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-title);
+    font-weight: 600;
+  }
+}
+
+@media only screen and (min-width: 960px /* @width-breakpoint-desktop */) {
+  .compact-title {
+    width: calc(100% - var(--sidebar-width-with-margin));
+    max-width: var(--desktop-title-max-width);
+  }
+}

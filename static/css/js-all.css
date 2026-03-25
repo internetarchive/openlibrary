@@ -1,0 +1,55 @@
+/**
+ * Styles here will load for all users, but only if JavaScript is enabled.
+ * At time of writing, this stylesheet is not render blocking.
+ */
+
+@import "components/header-bar--js.css";
+@import "components/cbox.css";
+@import "components/native-dialog.css";
+@import "components/flash-messages.css";
+@import "components/jquery.autocomplete.css";
+
+@import "components/read-statuses.css";
+@import "components/manage-covers.css";
+@import "components/throbber.css";
+
+/* Loading indicators */
+@import "components/buttonCta--js.css";
+
+/* Book cover overlay */
+@import "components/ui-tabs.css";
+
+/* Remove items from list */
+@import "components/ui-dialog.css";
+
+@import "components/wmd-prompt-dialog--js.css";
+@import "legacy-jquery-ui.css";
+
+/* openlibrary/plugins/openlibrary/js/subjects.js */
+.coverEbook {
+  cursor: pointer;
+  z-index: var(--z-index-level-6);
+}
+
+.coverEbook img {
+  opacity: 0.85;
+  filter: alpha(opacity=85);
+}
+
+.coverEbook a.cta-btn {
+  position: absolute;
+  padding: 0 5px;
+  right: 0;
+  bottom: 3px;
+  border-radius: 3px;
+}
+
+/* Not clear if these are needed. please review. */
+/* The on class is added inside openlibrary/plugins/openlibrary/js/ol.js */
+.tools a.on,
+.tools a.on:hover,
+.tools a.on:active {
+  color: var(--dark-grey);
+  cursor: default;
+  text-decoration: none;
+}

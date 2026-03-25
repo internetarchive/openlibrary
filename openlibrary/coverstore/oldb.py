@@ -1,5 +1,6 @@
 """Library to talk directly to OL database to avoid expensive API calls."""
 
+import functools
 import json
 
 import web
@@ -34,7 +35,7 @@ def get_memcache():
     return _memcache
 
 
-@web.memoize
+@functools.cache
 def get_property_id(name):
     db = get_db()
     try:
