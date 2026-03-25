@@ -121,7 +121,7 @@
 
 .Tools table td {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .Tools table td.price {
@@ -136,7 +136,7 @@
   font-size: 100%;
   min-height: 32px;
   width: 250px;
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
   font-weight: normal;
   outline: 0;
   position: relative;
@@ -209,7 +209,7 @@
 
 .Tools h4 {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
   margin: 0 0 10px;
@@ -261,7 +261,7 @@
 
 .Tools p {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding-left: 42px;
   margin-bottom: 5px;
 }

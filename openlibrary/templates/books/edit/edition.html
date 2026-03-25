@@ -263,8 +263,9 @@ $jsdef render_work_autocomplete_item(item):
                     <span class="tip"></span>
                 </div>
                 $if book.languages:
+                    $ user_lang = get_lang() or 'en'
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang, get_language_name(lang))
+                        $:render_language_field(i, lang, get_language_name(lang, user_lang))
                 $else:
                     $:render_language_field(0, storage(name="", key=""), None)
                 <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
@@ -307,8 +308,9 @@ $jsdef render_work_autocomplete_item(item):
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
+                        $ user_lang = get_lang() or 'en'
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang, user_lang))
                     $else:
                         $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>

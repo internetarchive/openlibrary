@@ -1,4 +1,61 @@
-from openlibrary.fastapi.models import SolrInternalsParams
+import pytest
+
+from openlibrary.fastapi.models import SolrInternalsParams, parse_comma_separated_list
+
+
+class TestParseCommaSeparatedList:
+    """Tests for parse_comma_separated_list utility function.
+
+    This function is used by FastAPI endpoints to parse comma-separated
+    parameters from query strings into a clean list of values.
+    """
+
+    @pytest.mark.parametrize(
+        ("input_val", "expected"),
+        [
+            (None, []),
+            ("", []),
+            ([], []),
+        ],
+    )
+    def test_falsy_inputs_return_empty_list(self, input_val, expected):
+        assert parse_comma_separated_list(input_val) == expected
+
+    @pytest.mark.parametrize(
+        ("input_val", "expected"),
+        [
+            ("key", ["key"]),
+            (["key"], ["key"]),
+        ],
+    )
+    def test_single_item(self, input_val, expected):
+        assert parse_comma_separated_list(input_val) == expected
+
+    def test_multiple_comma_separated_items(self):
+        assert parse_comma_separated_list("key,title,author_name") == ["key", "title", "author_name"]
+
+    def test_whitespace_trimming(self):
+        assert parse_comma_separated_list(" key , title , author_name ") == ["key", "title", "author_name"]
+
+    def test_empty_values_filtered(self):
+        assert parse_comma_separated_list("key,,title") == ["key", "title"]
+
+    def test_list_with_comma_separated_strings(self):
+        assert parse_comma_separated_list(["key", "title,author_name"]) == ["key", "title", "author_name"]
+
+    def test_list_with_whitespace_and_empty_strings(self):
+        assert parse_comma_separated_list([" key ", "", " title "]) == ["key", "title"]
+
+    def test_real_world_complex_case(self):
+        assert parse_comma_separated_list("key,title,subtitle,author_name,author_key,cover_i,cover_edition_key") == [
+            "key",
+            "title",
+            "subtitle",
+            "author_name",
+            "author_key",
+            "cover_i",
+            "cover_edition_key",
+        ]
 
 
 class TestSolrInternalsParams:

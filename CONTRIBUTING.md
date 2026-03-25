@@ -26,6 +26,7 @@ This welcome section is intended for new contributors.
     * [Request a slack invite](https://openlibrary.org/volunteer)
     * [Weekly Community calls](https://docs.openlibrary.org/everyone/community-call.html)
     * [Open Library FAQs](https://openlibrary.org/help/faq)
+
 ## Quick Tour
 
 A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
@@ -78,7 +79,7 @@ Refer to the [docs](https://docs.openlibrary.org/) for more information about ge
 
 ## Picking Good First Issues
 
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned.  If you have questions, please ask the [Lead](https://docs.openlibrary.org/developers/misc/project-management.html#triage) designated by the `Lead: @person` label on the issue.
+[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned. If you have questions, please ask the [Lead](https://docs.openlibrary.org/developers/misc/project-management.html#triage) designated by the `Lead: @person` label on the issue.
 
 ## Contributor Etiquette
 

@@ -3,8 +3,7 @@ from datetime import datetime
 
 import httpx
 
-from scripts.monitoring.haproxy_monitor import GraphiteEvent
-from scripts.monitoring.utils import bash_run
+from scripts.monitoring.utils import GraphiteEvent, bash_run
 
 
 async def get_solr_updater_lag_event(solr_next=False) -> GraphiteEvent:

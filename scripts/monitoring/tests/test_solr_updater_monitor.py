@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from scripts.monitoring.haproxy_monitor import GraphiteEvent
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
+from scripts.monitoring.utils import GraphiteEvent
 
 
 @pytest.mark.asyncio

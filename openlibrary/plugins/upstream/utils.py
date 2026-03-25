@@ -1185,7 +1185,7 @@ def get_marc21_language(language: str) -> str | None:
 
 @public
 def get_language_name(
-    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+    lang_or_key: "Nothing | str | Thing", user_lang: str
 ) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
