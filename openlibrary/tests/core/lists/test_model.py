@@ -89,3 +89,45 @@ class TestSeries:
         ]
 
         assert result_keys == expected_keys
+
+
+class TestWorkSortKey:
+    def test_numeric_position(self):
+        class DummyWork:
+            def __init__(self, key):
+                self.key = key
+
+        work = DummyWork("/works/OL1W")
+
+        key = list_model.get_work_sort_key((work, {"position": "2"}))
+        assert key == ("A: Numeric", 1, 2.0, "/works/OL1W")
+
+    def test_range_position(self):
+        class DummyWork:
+            def __init__(self, key):
+                self.key = key
+
+        work = DummyWork("/works/OL1W")
+
+        key = list_model.get_work_sort_key((work, {"position": "1-3"}))
+        assert key == ("C: Range", 2, 1.0, "/works/OL1W")
+
+    def test_non_numeric_position(self):
+        class DummyWork:
+            def __init__(self, key):
+                self.key = key
+
+        work = DummyWork("/works/OL1W")
+
+        key = list_model.get_work_sort_key((work, {"position": "abc"}))
+        assert key == ("B: Non-numeric", 0, 0.0, "/works/OL1W")
+
+    def test_none_position(self):
+        class DummyWork:
+            def __init__(self, key):
+                self.key = key
+
+        work = DummyWork("/works/OL1W")
+
+        key = list_model.get_work_sort_key((work, {"position": None}))
+        assert key == ("B: Non-numeric", 0, 0.0, "/works/OL1W")
