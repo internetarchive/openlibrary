@@ -6,7 +6,7 @@ import re
 import typing
 from collections.abc import Iterable
 from functools import cached_property
-from typing import NotRequired, TypedDict, cast
+from typing import Any, NotRequired, TypedDict, cast
 
 import web
 
@@ -683,8 +683,8 @@ class Series(List):
         ]
 
         def get_work_sort_key(
-            tpl: tuple[Work, dict],
-        ) -> tuple[str, int, int, str]:
+            tpl: tuple[Work, dict[Any, Any]],
+        ) -> tuple[str, int, float, str]:
             work, edge = tpl
             position = edge.get('position')
             pos_str = str(position or "").strip()
@@ -692,14 +692,14 @@ class Series(List):
             with contextlib.suppress(ValueError):
                 return ("A: Numeric", 1, float(pos_str), work.key)
 
-            if match := re.fullmatch(r'(\d+)\s*[-–]\s*(\d+)', pos_str):
+            if match := re.fullmatch(r'(\d+)\s*-\s*(\d+)', pos_str):
                 lower = int(match.group(1))
                 upper = int(match.group(2))
-                return ("C: Range", upper - lower, lower, work.key)
+                return ("C: Range", upper - lower, float(lower), work.key)
 
-            return ("B: Non-numeric", 0, 0, work.key)
+            return ("B: Non-numeric", 0, 0.0, work.key)
 
-        sorted_edges = sorted(series_edges, key=get_work_sort_key)
+        sorted_edges = sorted(series_edges, key=get_work_sort_key)  # type: ignore[arg-type]
 
         seeds: list[Seed] = []
         for work, edge in sorted_edges:
