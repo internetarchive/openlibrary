@@ -690,7 +690,7 @@ class Series(List):
             pos_str = str(position or "").strip()
 
             with contextlib.suppress(ValueError):
-                return ("A: Numeric", 1, int(float(pos_str)), work.key)
+                return ("A: Numeric", 1, float(pos_str), work.key)
 
             if match := re.fullmatch(r'(\d+)\s*[-–]\s*(\d+)', pos_str):
                 lower = int(match.group(1))
