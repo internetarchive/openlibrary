@@ -70,14 +70,6 @@ def wrap_jsonp(request: Request, data: dict | str) -> Response:
     return Response(content=json_string, media_type="application/json")
 
 
-def parse_comma_separated_list(v: str | list[str] | None) -> list[str]:
-    if not v:
-        return []
-    if isinstance(v, str):
-        v = [v]
-    return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
-
-
 class SolrInternalsParams(BaseModel):
     """
     Internal Solr query parameters for A/B testing search configurations.
