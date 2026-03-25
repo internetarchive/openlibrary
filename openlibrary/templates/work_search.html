@@ -15,7 +15,7 @@ $ layout = get_remembered_layout()
   $:macros.SearchNavigation()
   <div class="section">
 
-    <form method="get" action="/search" class="siteSearch olform">
+    <form method="get" action="/search" class="siteSearch search-row olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       $:render_template("search/searchbox", q=q_param)
       <span class="mode-options">
