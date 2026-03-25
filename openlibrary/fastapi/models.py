@@ -69,7 +69,7 @@ def wrap_jsonp(request: Request, data: dict | str) -> Response:
         return Response(content=f"{callback}({json_string});", media_type="application/javascript")
     return Response(content=json_string, media_type="application/json")
 
-  
+
 def parse_comma_separated_list(v: str | list[str] | None) -> list[str]:
     if not v:
         return []
