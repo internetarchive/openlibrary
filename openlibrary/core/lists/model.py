@@ -6,7 +6,7 @@ import re
 import typing
 from collections.abc import Iterable
 from functools import cached_property
-from typing import Any, NotRequired, TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 import web
 
@@ -22,6 +22,7 @@ from openlibrary.core.models import (
     Thing,
     ThingKey,
     ThingReferenceDict,
+    WorkSeriesEdgeDB,
     does_seed_have_metadata,
     update_list_seed_metadata,
 )
@@ -664,7 +665,7 @@ class SeriesDict(ListDict):
 
 
 def get_work_sort_key(
-    tpl: tuple[Work, dict[str, Any]],
+    tpl: tuple[Work, WorkSeriesEdgeDB],
 ) -> tuple[str, int, float, str]:
     work, edge = tpl
     position = edge.get('position')
