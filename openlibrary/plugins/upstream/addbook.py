@@ -1,10 +1,13 @@
 """Handlers for adding and editing books."""
 
+import copy
 import csv
 import datetime
 import io
 import logging
 import urllib
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Literal, NoReturn, overload
 
 import web
@@ -13,7 +16,7 @@ from web.webapi import SeeOther
 from infogami import config
 from infogami.core.db import ValidationException
 from infogami.infobase.client import ClientException
-from infogami.utils import delegate
+from infogami.utils import delegate, features
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
@@ -125,23 +128,23 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
     data['type'] = {"key": type_}
     return web.ctx.site.new(key, data)
 
+class DocSaveUtility(ABC):
 
-class DocSaveHelper:
-    """Simple utility to collect the saves and save them together at the end."""
-
-    def __init__(self):
-        self.docs = []
-
+    @abstractmethod
     def save(self, doc) -> None:
-        """Adds the doc to the list of docs to be saved."""
-        if not isinstance(doc, dict):  # thing
-            doc = doc.dict()
-        self.docs.append(doc)
+        """
+        Stages the given doc for persistence in Infobase.
 
-    def commit(self, **kw) -> None:
-        """Saves all the collected docs."""
-        if self.docs:
-            web.ctx.site.save_many(self.docs, **kw)
+        DOES NOT ACTUALLY SAVE THE DOCUMENT.
+        """
+        pass
+
+    @abstractmethod
+    def commit(self):
+        """
+        Saves the staged documents in Infobase.
+        """
+        pass
 
     def create_authors_from_form_data(
         self, authors: list[dict], author_names: list[str], _test: bool = False
@@ -180,6 +183,155 @@ class DocSaveHelper:
                     self.save(doc)
                     series_dict['series']['key'] = doc.key
         return created
+
+
+@dataclass
+class DocumentRevision:
+    """Represents the full set of changes made to a single record via an edit UI.
+
+    If a new record is being created, `original` will be `None`.
+
+    Args:
+        revised:  A representation of the record containing all the updated values.
+        original: A representation of the record's initial state, or `None` if the record being created.
+    """
+    revised: dict
+    original: dict|None
+
+
+@dataclass
+class AnnotatedCommit:
+    """Represents a record that is ready to be persisted, and its corresponding action."""
+    doc: dict
+    action: str
+
+
+class MultiCommitSaveUtility(DocSaveUtility):
+    """
+    Utility that saves record edits using one transaction per modified attribute.
+    """
+    def __init__(self):
+        self.docs: list[DocumentRevision] = []
+
+    def save(self, doc, orig_doc: dict|None=None) -> None:
+        if not isinstance(doc, dict):  # thing
+            doc = doc.dict()
+        self.docs.append(DocumentRevision(revised=doc, original=orig_doc))
+
+    def commit(self, **kw) -> None:
+        if 'action' in kw:
+            del kw['action']
+        for doc in self.docs:
+            doc_type = doc.revised['type']['key'].split('/')[-1]
+            if doc.original:
+                # Make granular commits
+                commits = self.prepare_commits(doc.revised, doc.original)
+                for commit in commits:
+                    web.ctx.site.save(commit.doc, action=f'update-{doc_type}-{commit.action}', **kw)
+            else:
+                # Commit new record in a single transaction
+                web.ctx.site.save(doc.revised, action=f"add-{doc_type}", **kw)
+
+    @staticmethod
+    def prepare_commits(revision: dict, original: dict, delim="|") -> list[AnnotatedCommit]:
+        commits = []
+        def diff_objects(obj1, obj2, path: str="") -> list[str]:
+            """
+            Recursively compare two objects and return a list of differing delimited attribute paths.
+
+            Example output: ['description', 'identifiers|foo', 'publisher']
+            """
+            diffs = []
+
+            # Both are plain objects (custom classes) — check first before dict/list
+            if hasattr(obj1, "__dict__") and hasattr(obj2, "__dict__"):
+                keys = set(vars(obj1)) | set(vars(obj2))
+                for k in keys:
+                    full = f"{path}{delim}{k}" if path else k
+                    if not hasattr(obj1, k) or not hasattr(obj2, k):
+                        diffs.append(full)
+                    else:
+                        diffs.extend(diff_objects(getattr(obj1, k), getattr(obj2, k), full))
+
+            # Both are dicts
+            elif isinstance(obj1, dict) and isinstance(obj2, dict):
+                keys = set(obj1) | set(obj2)
+                for k in keys:
+                    full = f"{path}{delim}{k}" if path else k
+                    if k not in obj1 or k not in obj2:
+                        diffs.append(full)
+                    else:
+                        diffs.extend(diff_objects(obj1[k], obj2[k], full))
+
+            # Both are lists/tuples
+            elif isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
+                if obj1 != obj2:
+                    diffs.append(path)
+
+            # Primitives / fallback
+            else:
+                if obj1 != obj2:
+                    diffs.append(path)
+
+            return diffs
+
+        diff_paths = diff_objects(revision, original)
+
+        def apply_single_diff(_revision, _original, _path: str):
+            result = copy.deepcopy(_original)
+            segments = _path.split(delim)
+
+            def get_node(obj, segs):
+                for s in segs:
+                    if isinstance(obj, dict):
+                        obj = obj[s]
+                    else:
+                        obj = getattr(obj, s)
+                return obj
+
+            def set_node(obj, segs, value):
+                for s in segs[:-1]:
+                    if isinstance(obj, dict):
+                        obj = obj[s]
+                    else:
+                        obj = getattr(obj, s)
+                last = segs[-1]
+                if isinstance(obj, dict):
+                    obj[last] = value
+                else:
+                    setattr(obj, last, value)
+
+            src_value = copy.deepcopy(get_node(_revision, segments))
+            set_node(result, segments, src_value)
+            return result
+
+        updated_rec = original
+        for p in diff_paths:
+            updated_rec = apply_single_diff(revision, updated_rec, p)
+            commits.append(AnnotatedCommit(
+                doc=updated_rec,
+                action=p.replace(delim, '-')
+            ))
+
+        return commits
+
+
+class DocSaveHelper(DocSaveUtility):
+    """Simple utility to collect the saves and save them together at the end."""
+
+    def __init__(self):
+        self.docs = []
+
+    def save(self, doc) -> None:
+        """Adds the doc to the list of docs to be saved."""
+        if not isinstance(doc, dict):  # thing
+            doc = doc.dict()
+        self.docs.append(doc)
+
+    def commit(self, **kw) -> None:
+        """Saves all the collected docs."""
+        if self.docs:
+            web.ctx.site.save_many(self.docs, **kw)
 
 
 def encode_url_path(url: str) -> str:
@@ -266,7 +418,10 @@ class addbook(delegate.page):
                 )
 
         i = utils.unflatten(i)
-        saveutil = DocSaveHelper()
+
+        using_granular_edits = features.is_enabled('multi_commit_edits')
+        saveutil = MultiCommitSaveUtility() if using_granular_edits else DocSaveHelper()
+
         created_author = saveutil.create_authors_from_form_data(
             i.authors, i.author_names, _test=i._test == 'true'
         )
@@ -567,22 +722,27 @@ class SaveBookHelper:
 
     def __init__(self, work: Work | None, edition: Edition | None):
         """
-        :param Work|None work: None if editing an orphan edition
-        :param Edition|None edition: None if just editing work
+        :param Work|None work:          None if editing an orphan edition
+        :param Edition|None edition:    None if just editing work
+        :param dict|None orig_work:     The original state of the work. `None` if work is new
+        :param dict|None orig_edition:  The original state of the edition.  `None` if edition is new
         """
         self.work = work
         self.edition = edition
+        self.orig_work: dict|None = copy.deepcopy(work.dict()) if work else None
+        self.orig_edition: dict|None = copy.deepcopy(edition.dict()) if edition else None
 
     def save(self, formdata: web.Storage) -> None:
         """
         Update work and edition documents according to the specified formdata.
         """
+        using_granular_edits = features.is_enabled('multi_commit_edits')
         comment = formdata.pop('_comment', '')
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
 
-        saveutil = DocSaveHelper()
+        saveutil = MultiCommitSaveUtility() if using_granular_edits else DocSaveHelper()
 
         just_editing_work = edition_data is None
         if work_data:
@@ -615,7 +775,9 @@ class SaveBookHelper:
                 work_identifiers = work_data.pop('identifiers', {})
                 self.work.set_identifiers(work_identifiers)
                 self.work.update(work_data)
-                saveutil.save(self.work)
+
+                _kwargs = {"orig_doc": self.orig_work} if using_granular_edits else {}
+                saveutil.save(self.work, **_kwargs)
 
         if self.edition and edition_data:
             # Create a new work if so desired
@@ -645,7 +807,8 @@ class SaveBookHelper:
                             new_work[field] = val
 
                 self.work = new_work
-                saveutil.save(self.work)
+                _kwargs = {"orig_doc": None} if using_granular_edits else {}
+                saveutil.save(self.work, **_kwargs)
 
             identifiers = edition_data.pop('identifiers', [])
             self.edition.set_identifiers(identifiers)
@@ -675,9 +838,11 @@ class SaveBookHelper:
             self.edition.set_providers(providers)
 
             self.edition.update(edition_data)
-            saveutil.save(self.edition)
 
-        saveutil.commit(comment=comment, action="edit-book")
+            _kwargs = {"orig_doc": self.orig_edition} if using_granular_edits else {}
+            saveutil.save(self.edition, **_kwargs)
+
+        saveutil.commit(comment=comment)
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
@@ -689,9 +854,9 @@ class SaveBookHelper:
         )
 
     @staticmethod
-    def delete(key, comment=""):
+    def delete(key, comment="", action=""):
         doc = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
-        doc._save(comment=comment)
+        doc._save(comment=comment, action=action)
 
     def process_input(self, i):
         if 'edition' in i:
@@ -965,7 +1130,7 @@ class work_edit(delegate.page):
                 if work.edition_count != 0:
                     raise web.badrequest("Cannot delete work that is associated with editions.")
                 comment = i.pop('_comment', '')
-                SaveBookHelper.delete(work.key, comment=comment)
+                SaveBookHelper.delete(work.key, comment=comment, action="work-delete")
             else:
                 helper.save(web.input())
 
@@ -1055,7 +1220,8 @@ class work_identifiers(delegate.view):
     def POST(self, edition):
         if not accounts.get_current_user():
             raise web.unauthorized()
-        saveutil = DocSaveHelper()
+        using_granular_edits = features.is_enabled('multi_commit_edits')
+        saveutil = MultiCommitSaveUtility() if using_granular_edits else DocSaveHelper()
         i = web.input(isbn="")
         isbn = i.get("isbn")
         # Need to do some simple validation here. Perhaps just check if it's a number?
@@ -1068,8 +1234,10 @@ class work_identifiers(delegate.view):
         else:
             add_flash_message("error", "The ISBN number you entered was not valid")
             raise web.redirect(web.ctx.path)
+        orig_edition = edition.dict()
         edition.set_identifiers(data)
-        saveutil.save(edition)
+        _kwargs = {"orig_doc": orig_edition} if using_granular_edits else {}
+        saveutil.save(edition, **_kwargs)
         saveutil.commit(comment="Added an %s identifier." % typ, action="edit-book")
         add_flash_message("info", "Thank you very much for improving that record!")
         raise web.redirect(web.ctx.path)

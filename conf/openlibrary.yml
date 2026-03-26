@@ -74,6 +74,7 @@ features:
     support: admin
     undo: enabled
     upstream: enabled
+    multi_commit_edits: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
