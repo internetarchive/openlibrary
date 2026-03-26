@@ -156,7 +156,7 @@ $:post
 
 $if query_param('debug'):
   $ loanstatus_end_time = time() - loanstatus_start_time
-  <p>get_waiting_loan_for(ocaid) took $("%.2f" % waiting_loan_total_time) seconds</p>
-  <p>get_loan_for(ocaid) took $("%.2f" % get_loan_for_total_time) seconds</p>
-  <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>
+  <p>get_waiting_loan_for(ocaid) took $("%.2f" % waiting_loan_total_time) seconds</p>  $# detect-missing-i18n-skip-line
+  <p>get_loan_for(ocaid) took $("%.2f" % get_loan_for_total_time) seconds</p>  $# detect-missing-i18n-skip-line
+  <p>LoanStatus took $("%.2f" % loanstatus_end_time) seconds</p>  $# detect-missing-i18n-skip-line
   <p>$availability</p>
