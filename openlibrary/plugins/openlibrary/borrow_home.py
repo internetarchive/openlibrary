@@ -5,8 +5,9 @@ These endpoints are largely deprecated, and only maintained for
 backwards compatibility.
 """
 
+import datetime
 import json
-from datetime import UTC, datetime
+from datetime import UTC
 
 import eventer
 import web

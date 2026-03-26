@@ -13,9 +13,10 @@ http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
 
+import datetime
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import UTC
 from gzip import open as gzopen
 
 import web

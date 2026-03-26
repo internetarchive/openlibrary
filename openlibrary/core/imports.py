@@ -1,12 +1,13 @@
 """Interface to import queue."""
 
 import contextlib
+import datetime
 import json
 import logging
 import time
 from collections import defaultdict
 from collections.abc import Iterable
-from datetime import UTC, datetime
+from datetime import UTC
 from typing import TYPE_CHECKING, Any, Final
 
 import web

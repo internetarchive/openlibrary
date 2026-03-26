@@ -3,7 +3,8 @@
 * Log all modified book pages as required for the search engine.
 """
 
-from datetime import UTC, datetime
+import datetime
+from datetime import UTC
 
 from infogami.infobase import config
 from infogami.infobase.logger import Logger
