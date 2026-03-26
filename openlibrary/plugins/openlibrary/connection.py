@@ -4,7 +4,7 @@ import datetime
 import functools
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import UTC
 from typing import cast
 
 import web

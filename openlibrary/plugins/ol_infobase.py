@@ -10,7 +10,7 @@ import os
 import re
 import sys
 import traceback
-from datetime import UTC, datetime
+from datetime import UTC
 
 import requests
 import web

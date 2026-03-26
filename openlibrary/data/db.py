@@ -25,7 +25,7 @@ import functools
 import json
 import sys
 import time
-from datetime import UTC, datetime
+from datetime import UTC
 
 import web
 

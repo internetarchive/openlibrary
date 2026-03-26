@@ -6,7 +6,7 @@ import hashlib
 import json
 import os.path
 import random
-from datetime import UTC, datetime
+from datetime import UTC
 
 import web
 

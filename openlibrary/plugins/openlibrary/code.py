@@ -12,7 +12,7 @@ import os
 import random
 import socket
 import sys
-from datetime import UTC, datetime
+from datetime import UTC
 from time import time
 from urllib.parse import parse_qs, urlencode
 
