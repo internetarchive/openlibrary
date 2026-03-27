@@ -30,6 +30,8 @@ def parse_comma_separated_list(v: str | list[str]) -> list[str]:
     Returns:
         List of trimmed strings with empty items filtered out
     """
+    if not v:
+        return []
     if isinstance(v, str):
         v = [v]
     return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
