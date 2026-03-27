@@ -1454,6 +1454,20 @@ msgid "Loan History"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
+msgid "this book"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "Unable to return %s. Please try again later or contact info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "%s has been returned."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
 msgid ""
 "Your account has hit a lending limit. Please try again later or contact "
 "info@archive.org."
@@ -3544,6 +3558,10 @@ msgid ""
 "to block that IP."
 msgstr ""
 
+#: admin/block.html
+msgid "Blocked IP Addresses"
+msgstr ""
+
 #: admin/graphs.html
 msgid "Performance Graphs"
 msgstr ""
@@ -4062,6 +4080,10 @@ msgstr ""
 msgid ""
 "Updates an edition on archive.org by writing in its latest  "
 "openlibrary_edition and openlibrary_work identifier values"
+msgstr ""
+
+#: admin/sync.html
+msgid "TODO"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -4756,7 +4778,7 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
-#: books/add.html books/edit/edition.html books/edit/excerpts.html
+#: books/add.html
 msgid "For example:"
 msgstr ""
 
@@ -5233,6 +5255,10 @@ msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>envisioning the next 50 years</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Publishing Info"
 msgstr ""
 
@@ -5249,6 +5275,10 @@ msgid "City, Country please."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>New York, USA; Sydney, Australia</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "What is the copyright date?"
 msgstr ""
 
@@ -5261,11 +5291,19 @@ msgid "Edition Name (if applicable):"
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Series Name (if applicable)"
 msgstr ""
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <i>The Story of Civilization, Part III</i>"
 msgstr ""
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
@@ -5363,6 +5401,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <i>A Plume Book</i>"
 msgstr ""
 
 #: books/edit/edition.html
@@ -5602,6 +5644,10 @@ msgstr ""
 
 #: books/edit/excerpts.html
 msgid "Page number?"
+msgstr ""
+
+#: books/edit/excerpts.html
+msgid "For example: <i>23, xi or 433-434</i>"
 msgstr ""
 
 #: books/edit/excerpts.html
@@ -5931,11 +5977,11 @@ msgstr ""
 #: home/loans.html
 #, python-format
 msgid ""
-"You can still <a href=\"/borrow\">borrow</a> one more book until you've "
-"hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one"
+" more book until you've hit the limit!"
 msgid_plural ""
-"You can still <a href=\"/borrow\">borrow</a> %(count)d more books until "
-"you've hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
+"%(count)d more books until you've hit the limit!"
 msgstr[0] ""
 msgstr[1] ""
 

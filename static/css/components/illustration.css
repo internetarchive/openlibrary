@@ -74,7 +74,7 @@
 }
 .illustration .edition {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   margin: 10px auto;
 }
 .editionCover .SRPCoverBlank {

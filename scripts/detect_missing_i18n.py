@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Utility script to list html files which might be missing i18n strings."""
 
-import glob
 import re
 import sys
 from enum import StrEnum
@@ -13,8 +12,6 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 # This is a list of files that are intentionally excluded from the i18n process
 EXCLUDE_LIST = {
-    # These are excluded because they require more info to fix
-    "openlibrary/templates/books/edit.html",
     # These can't be fixed since they're rendered as static html
     "static/offline.html",
     "static/status-500.html",
@@ -25,7 +22,7 @@ EXCLUDE_LIST = {
 default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
 
 
-class Errtype(StrEnum):
+class ErrorLevel(StrEnum):
     WARN = "\033[93mWARN\033[0m"
     ERR = "\033[91mERRO\033[0m"
     SKIP = "\033[94mSKIP\033[0m"
@@ -41,48 +38,55 @@ regex_skip_previous_line = r"^\s*\$?" + skip_directive
 # TODO: replace the huge punctuation array with \p{L} - only supported in pip regex and not re
 punctuation = r"[\(\)\{\}\[\]\/\\:;\-_\s+=*^%#\.•·\?♥|≡0-9,!xX✓×@\"'†★]"  # noqa: RUF001
 htmlents = r"&[a-z0-9]+;"
-variables = r"\$:?[^\s]+|\$[^\s\(]+[\(][^\)]+[\)]|\$[^\s\[]+[\[][^\]]+[\]]|\$[\{][^\}]+[\}]|%\(?[a-z_]+\)?|\{\{[^\}]+\}\}"
+variables = r"""
+    \$:?[^\s]+
+    | \$:?[^\s]+ \( .+ \)
+    | \$:?[^\s]+ \[ .+ \]
+    | \$\{ [^\}]+ \}
+    | %\(? [a-z_]+ \)?  # Some odd legacy syntax
+    | \{\{ [^\}]+ \}\}
+"""
 urls_domains = r"https?:\/\/[^\s]+|[a-z\-]+\.[A-Za-z]{2}[a-z]?"
 
 opening_tag_open = r"<(?!code|link|!--)[a-z][^>]*?"
-opening_tag_end = r"[^\/\-\s]>"
+opening_tag_end = r"[^\/\-\s]?>"
 opening_tag_syntax = opening_tag_open + opening_tag_end
-ignore_after_opening_tag = (
-    r"(?![<\r\n]|$|\\\$\$|\$:?_?\(|\$:?ungettext\(|(?:"
-    + punctuation
-    + r"|"
-    + htmlents
-    + r"|"
-    + variables
-    + r"|"
-    + urls_domains
-    + r")+(?:[\r\n<]|$))"
-)
+ignore_after_opening_tag = rf"""
+    (?!
+        [<\r\n]     # Empty; no content
+        | $         # End of line
+        | \\\$\$    # Escaped dollar sign (prices)
+        | \$:?_?\(  # Translated text (eg $_('foo'))
+        | \$:?ungettext\(  # ungettext
+        # Text that doesn't need translating
+        | (?:{punctuation} | {htmlents} | {variables} | {urls_domains})+(?:[\r\n<]|$)
+        | Lorem\s[^<\r\n]+
+    )
+"""
 warn_after_opening_tag = r"\$\(['\"]"
 
 i18n_element_missing_regex = opening_tag_syntax + ignore_after_opening_tag
 i18n_element_warn_regex = opening_tag_syntax + r"\$\(['\"]"
 
 attr_syntax = r"(title|placeholder|alt)="
-ignore_double_quote = (
-    r"\"(?!\$:?_?\(|\$:?ungettext\(|\\\$\$|(?:"
-    + punctuation
-    + r"|"
-    + variables
-    + r"|"
-    + urls_domains
-    + r")*\")"
-)
-ignore_single_quote = (
-    r"\'(?!\$:?_?\(|\$:?ungettext\(|\\\$\$|(?:"
-    + punctuation
-    + r"|"
-    + variables
-    + r"|"
-    + urls_domains
-    + r")*\')"
-)
-
+ignore_double_quote = rf"""
+    "
+    (?!
+        \$:?_?\(
+        | \$:?ungettext\(
+        | \\\$\$
+        | (?:{punctuation} | {variables} | {urls_domains})*"
+    )
+"""
+ignore_single_quote = rf"""
+    '
+    (?!
+        \$:?_?\(
+        | \$:?ungettext\(
+        | \\\$\$
+        | (?:{punctuation} | {variables} | {urls_domains})*'
+    )
+"""
 i18n_attr_missing_regex = (
     opening_tag_open
     + attr_syntax
@@ -97,6 +101,60 @@ i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 
 def terminal_underline(text: str) -> str:
     return f"\033[4m{text}\033[0m"
+
+
+def check_html(html: str) -> list[tuple[ErrorLevel, int, int, str]]:
+    """
+    Check HTML content for missing i18n strings.
+
+    :param html: Raw HTML content to check.
+    :return: A list of (errtype, line_number, char_position, matched_text) tuples,
+             where line_number and char_position are 1-based.
+    """
+    results = []
+    lines = html.splitlines()
+
+    for line_number, line in enumerate(lines, start=1):
+        # Element with untranslated content
+        if m := re.search(i18n_element_missing_regex, line, re.VERBOSE):
+            char_index = m.start()
+            errtype = ErrorLevel.ERR
+        # Element with bypassed content
+        elif m := re.search(i18n_element_warn_regex, line, re.VERBOSE):
+            char_index = m.start()
+            errtype = ErrorLevel.WARN
+        # Element with untranslated attributes
+        elif m := re.search(i18n_attr_missing_regex, line, re.VERBOSE):
+            char_index = m.start()
+            errtype = ErrorLevel.ERR
+        # Element with bypassed attributes
+        elif m := re.search(i18n_attr_warn_regex, line, re.VERBOSE):
+            char_index = m.start()
+            errtype = ErrorLevel.WARN
+        # Don't proceed if the line doesn't match any of the four cases.
+        else:
+            continue
+
+        preceding_text = line[:char_index]
+        regex_match = line[char_index:]
+
+        # Don't proceed if the line is likely commented out or part of a $: function.
+        if re.search(r'<!--|\$:|\$#|\$ | _\(', preceding_text):
+            continue
+
+        # Don't proceed if skip directive is included inline.
+        if re.search(regex_skip_inline, regex_match):
+            continue
+
+        # Don't proceed if the previous line is a skip directive.
+        if line_number > 1 and re.match(
+            regex_skip_previous_line, lines[line_number - 2]
+        ):
+            continue
+
+        results.append((errtype, line_number, char_index + 1, regex_match))
+
+    return results
 
 
 def print_analysis(
@@ -128,9 +186,9 @@ def main(files: list[Path], skip_excluded: bool = True):
 
     if not files:
         files = [
-            Path(file_path)
+            file_path
             for ddir in default_directories
-            for file_path in glob.glob(f'{ddir}**/*.html', recursive=True)
+            for file_path in Path(ddir).rglob('*.html')
         ]
 
     # Figure out how much padding to put between the filename and the error output
@@ -141,62 +199,15 @@ def main(files: list[Path], skip_excluded: bool = True):
     warnings: int = 0
 
     for file in files:
-        contents = file.read_text()
-        lines = contents.splitlines()
-
-        if skip_excluded and str(file) in EXCLUDE_LIST:
-            print_analysis(Errtype.SKIP, file, "", spacing_base)
+        if skip_excluded and file.as_posix() in EXCLUDE_LIST:
+            print_analysis(ErrorLevel.SKIP, file, "", spacing_base)
             continue
 
-        for line_number, line in enumerate(lines, start=1):
+        # Need to specify encoding to avoid Windows-specific errors when we
+        # have emoji in our HTML
+        contents = file.read_text(encoding='utf-8')
 
-            includes_error_element = re.search(i18n_element_missing_regex, line)
-            includes_warn_element = re.search(i18n_element_warn_regex, line)
-            includes_error_attribute = re.search(i18n_attr_missing_regex, line)
-            includes_warn_attribute = re.search(i18n_attr_warn_regex, line)
-
-            char_index = -1
-            # Element with untranslated elements
-            if includes_error_element:
-                char_index = includes_error_element.start()
-                errtype = Errtype.ERR
-            # Element with bypassed elements
-            elif includes_warn_element:
-                char_index = includes_warn_element.start()
-                errtype = Errtype.WARN
-            # Element with untranslated attributes
-            elif includes_error_attribute:
-                char_index = includes_error_attribute.start()
-                errtype = Errtype.ERR
-            # Element with bypassed attributes
-            elif includes_warn_attribute:
-                char_index = includes_warn_attribute.start()
-                errtype = Errtype.WARN
-
-            # Don't proceed if the line doesn't match any of the four cases.
-            else:
-                continue
-
-            preceding_text = line[:char_index]
-            regex_match = line[char_index:]
-
-            # Don't proceed if the line is likely commented out or part of a $: function.
-            if (
-                "<!--" in preceding_text
-                or "$:" in preceding_text
-                or "$ " in preceding_text
-            ):
-                continue
-
-            # Don't proceed if skip directive is included inline.
-            if re.search(regex_skip_inline, regex_match):
-                continue
-
-            # Don't proceed if the previous line is a skip directive.
-            if re.match(regex_skip_previous_line, lines[line_number - 2]):
-                continue
-
-            print_position = char_index + 1
+        for errtype, line_number, print_position, regex_match in check_html(contents):
             print_analysis(
                 errtype,
                 file,
@@ -206,9 +217,9 @@ def main(files: list[Path], skip_excluded: bool = True):
                 print_position,
             )
 
-            if errtype == Errtype.WARN:
+            if errtype == ErrorLevel.WARN:
                 warnings += 1
-            elif errtype == Errtype.ERR:
+            elif errtype == ErrorLevel.ERR:
                 errcount += 1
 
     print(

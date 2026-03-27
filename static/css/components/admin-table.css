@@ -4,7 +4,7 @@
   color: var(--dark-grey);
 }
 .measurements th {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   text-align: right;
   vertical-align: bottom;
@@ -17,7 +17,7 @@
   font-size: 0.75em;
 }
 .measurements td.type {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
 }
 .measurements .major .amount {

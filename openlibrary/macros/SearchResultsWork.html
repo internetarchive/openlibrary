@@ -195,7 +195,8 @@ $code:
             </span>
           $if doc.get('languages') and doc_type in ['infogami_work', 'solr_work']:
             <span class="languages">
-              $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages' + lang) for lang in doc.languages]
+              $ user_lang = get_lang() or 'en'
+              $ langs = [get_language_name(lang.key if hasattr(lang, 'key') else '/languages/' + lang, user_lang) for lang in doc.languages]
               $:ungettext('in <a class="hoverlink" title="%(langs)s">%(count)d language</a>', 'in <a class="hoverlink" title="%(langs)s">%(count)d languages</a>', len(doc.languages), count=len(doc.languages), langs=commify_list(langs))
             </span>
         </span>

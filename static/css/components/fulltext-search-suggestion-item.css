@@ -74,7 +74,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .fsi__book-title {
   font-size: large;
