@@ -580,6 +580,7 @@ class patrons_observations(delegate.page):
         return response("Observations removed")
 
 
+@deprecated("migrated to fastapi")
 class public_observations(delegate.page):
     """
     Public observations fetches anonymized community reviews

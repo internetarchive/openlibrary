@@ -17,6 +17,7 @@ from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
+from openlibrary.core.observations import get_observation_metrics
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
@@ -225,8 +226,21 @@ async def patrons_observations():
     pass
 
 
-async def public_observations():
-    pass
+@router.get(
+    "/observations.json",
+    description="Returns anonymized community reviews for a list of works.",
+)
+async def public_observations(
+    olid: Annotated[list[str] | None, Query(description="List of Work OLIDs")] = None
+) -> dict:
+    """
+    Public observations fetches anonymized community reviews
+    for a list of works. Useful for decorating search results.
+    """
+    if olid is None:
+        olid = []
+    metrics = {w: get_observation_metrics(w) for w in olid}
+    return {"observations": metrics}
 
 
 async def bestbook_award():
