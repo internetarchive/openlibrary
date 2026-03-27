@@ -1,8 +1,12 @@
 import logging
+import typing
 from datetime import datetime
 from types import MappingProxyType
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+
+if typing.TYPE_CHECKING:
+    from openlibrary.fastapi.models import SolrInternalsParams
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -47,6 +51,7 @@ class SubjectSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
+        solr_internals_params: 'SolrInternalsParams | None' = None,
     ) -> list[tuple[str, str]]:
         return [
             ('q', q),

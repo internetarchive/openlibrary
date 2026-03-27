@@ -218,9 +218,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                             <li itemprop="alternateName">$alternate_name</li>
                     </ul>
                 </div>
-
     </div>
-
-    $:render_template("lib/history", page)
+    $:render_template("lib/exports", page)
+    <div class="clearfix"></div>
 </div>
-

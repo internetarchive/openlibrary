@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import datetime
+import functools
 import json
 import logging
 import multiprocessing
 import os
 import sys
 import time
-
-import web
 
 from openlibrary.api import OLError, OpenLibrary
 from openlibrary.config import load_config
@@ -18,7 +17,7 @@ from openlibrary.core.imports import Batch, ImportItem
 logger = logging.getLogger("openlibrary.importer")
 
 
-@web.memoize
+@functools.cache
 def get_ol(servername=None):
     if os.getenv('LOCAL_DEV'):
         ol = OpenLibrary(base_url="http://localhost:8080")

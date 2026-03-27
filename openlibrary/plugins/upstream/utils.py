@@ -263,6 +263,8 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
+        if page.get('do_not_cache') == 'True':
+            mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
     except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
@@ -1183,7 +1185,7 @@ def get_marc21_language(language: str) -> str | None:
 
 @public
 def get_language_name(
-    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+    lang_or_key: "Nothing | str | Thing", user_lang: str
 ) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
@@ -1223,7 +1225,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.

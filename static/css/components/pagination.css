@@ -36,3 +36,8 @@
   margin-right: 10px;
   background-color: var(--lightest-grey);
 }
+
+.ol-pagination-wrapper {
+  display: flex;
+  justify-content: center;
+}

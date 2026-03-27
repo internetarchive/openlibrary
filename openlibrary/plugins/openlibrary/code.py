@@ -3,6 +3,7 @@ Open Library Plugin.
 """
 
 import datetime
+import functools
 import gzip
 import json
 import logging
@@ -481,7 +482,7 @@ class robotstxt(delegate.page):
         return web.ok(open(f'static/{robots_file}').read())
 
 
-@web.memoize
+@functools.cache
 def fetch_ia_js(filename: str) -> str:
     return requests.get(f'https://archive.org/includes/{filename}').text
 

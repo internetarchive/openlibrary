@@ -20,9 +20,47 @@ make lit-components            # One-off build
 
 - Start narrow — it is easy to add attributes later, hard to remove them.
 - Attribute names: kebab-case, semantic (e.g., `total-pages`, not `tp`). Map to camelCase properties via `{ attribute: 'kebab-name' }`.
-- Boolean attributes: presence = true (no value needed).
 - Provide sensible defaults in the constructor.
 - Document with JSDoc: include `@element`, `@prop`, `@fires`, and `@example` tags. See `OlPagination.js` for the reference pattern.
+- Boolean attributes: presence = true (no value needed).
+
+### Compound Components
+
+Use compound components when a component has multiple related parts that need to share state. Child elements use slots and the parent coordinates behavior.
+
+```html
+<!-- Good — compound components with slots -->
+<ol-dialog>
+  <button slot="trigger">Open</button>
+  <div slot="content">
+    <span slot="title">Are you sure?</span>
+    <p slot="description">This action cannot be undone.</p>
+    <button slot="close">Cancel</button>
+  </div>
+</ol-dialog>
+
+<!-- Bad — prop drilling everything -->
+<ol-dialog
+  trigger="Open"
+  title="Are you sure?"
+  description="This action cannot be undone."
+  close-text="Cancel"
+></ol-dialog>
+```
+
+#### When to Use Compound Components
+
+- Multiple related elements that share implicit state
+- Components with slots (header, body, footer)
+- Components where order/presence of children varies
+- When you need flexible composition
+
+#### When NOT to Use
+
+- Simple components with fixed structure
+- Components with 1-3 props
+- When the structure never changes
+
 
 ## HTML and Semantics
 
@@ -50,7 +88,7 @@ make lit-components            # One-off build
 ## Styling
 
 - Scope all styles via Lit's `static styles` (Shadow DOM).
-- Use OL design tokens where possible. Token files live in `static/css/`.
+- Use OL design tokens where possible. Token files live in `static/css/tokens/`.
 
 ## Lifecycle and Performance
 

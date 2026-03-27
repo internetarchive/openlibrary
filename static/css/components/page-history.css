@@ -36,7 +36,7 @@ table.history tr:last-child {
 
 table.history td {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   border-bottom: 1px solid var(--grey-e7e7e7);
 }
