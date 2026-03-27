@@ -74,6 +74,27 @@ $ _x = ctx.setdefault('cssfile', 'design')
             <ol-pagination total-pages="100" current-page="50"></ol-pagination>
           </div>
         </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Arrows mode")</h3>
+          <p>$_("When total pages is unknown, use arrows mode to show only previous/next navigation.")</p>
+          <code class="example__code">&lt;ol-pagination mode="arrows" current-page="3" has-next-page&gt;&lt;/ol-pagination&gt;</code>
+
+          <h3 class="example__title">$_("Arrows mode (has next page)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
+          </div>
+
+          <h3 class="example__title">$_("Arrows mode (no next page)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="3"></ol-pagination>
+          </div>
+
+          <h3 class="example__title">$_("Arrows mode (first page, has next)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="1" has-next-page></ol-pagination>
+          </div>
+        </section>
       </article>
 
       $:render_template("design/popover")

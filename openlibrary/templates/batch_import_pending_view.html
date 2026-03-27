@@ -28,5 +28,5 @@ $var title: $_("Pending Batch Imports")
     </tbody>
   </table>
 
-    $:macros.Pager(page, limit)
+    $:macros.OlPagination(page, ceil(limit / limit))
 </div>

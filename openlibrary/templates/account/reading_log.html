@@ -57,7 +57,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
     </div>
 
     $if not checkin_year:
-      $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
+      $:macros.OlPagination(int(current_page), ceil(doc_count / results_per_page))
     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
       $if docs:
         $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
@@ -76,7 +76,7 @@ $add_metatag(property="og:image", content=meta_photo_url)
           $ doc_number = doc_number + 1
     </ul>
     $if not checkin_year:
-      $:macros.Pager(int(current_page), doc_count, results_per_page=results_per_page)
+      $:macros.OlPagination(int(current_page), ceil(doc_count / results_per_page))
   $else:
     <ul class="list-books">
       $if q or mode != 'everything':

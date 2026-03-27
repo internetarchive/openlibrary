@@ -491,11 +491,11 @@ msgstr ""
 msgid "My Book Review"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
 msgstr ""
 
@@ -507,21 +507,9 @@ msgstr ""
 msgid "Page {page}, current page"
 msgstr ""
 
-#: OlPagination.html design.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
 msgstr ""
 
 #: Profile.html
@@ -683,12 +671,12 @@ msgid "View MARC"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Older"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Newer"
 msgstr ""
 
@@ -1884,6 +1872,28 @@ msgid "100 pages with ellipsis:"
 msgstr ""
 
 #: design.html
+msgid "Arrows mode"
+msgstr ""
+
+#: design.html
+msgid ""
+"When total pages is unknown, use arrows mode to show only previous/next "
+"navigation."
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (has next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (no next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (first page, has next)"
+msgstr ""
+
+#: design.html
 msgid ""
 "The ol-read-more component provides expandable/collapsible content with "
 "two truncation modes: height-based and line-based."
@@ -2126,10 +2136,6 @@ msgstr ""
 
 #: history.html
 msgid "...to this version"
-msgstr ""
-
-#: books/daisy.html history.html
-msgid "Back"
 msgstr ""
 
 #: import_preview.html
@@ -2417,6 +2423,10 @@ msgstr ""
 
 #: showmarc.html
 msgid "Download Link"
+msgstr ""
+
+#: showmarc.html
+msgid "Next"
 msgstr ""
 
 #: status.html
@@ -4245,10 +4255,6 @@ msgstr ""
 msgid "mark"
 msgstr ""
 
-#: admin/memory/index.html
-msgid "Prev"
-msgstr ""
-
 #: admin/memory/object.html
 msgid "Referents"
 msgstr ""
@@ -4905,6 +4911,10 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/daisy.html
+msgid "Back"
 msgstr ""
 
 #: books/daisy.html
