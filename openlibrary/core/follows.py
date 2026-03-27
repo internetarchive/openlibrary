@@ -97,9 +97,7 @@ class PubSub:
             return []
 
         # Filter to only publishers with public reading logs
-        prefs = web.ctx.site.get_many(
-            [f'/people/{u}/preferences' for u in usernames]
-        )
+        prefs = web.ctx.site.get_many([f'/people/{u}/preferences' for u in usernames])
         usernames = [
             p.key.split('/')[2]
             for p in prefs

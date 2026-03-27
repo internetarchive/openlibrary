@@ -20,16 +20,14 @@ CREATE TABLE bookshelves_books (
 def _make_pref(username, public):
     """Build a mock preferences object like web.ctx.site.get_many returns."""
     p = MagicMock()
-    p.key = f'/people/{username}/preferences'
-    p.dict.return_value = {
-        'notifications': {'public_readlog': 'yes' if public else 'no'}
-    }
+    p.key = f"/people/{username}/preferences"
+    p.dict.return_value = {"notifications": {"public_readlog": "yes" if public else "no"}}
     return p
 
 
 def _make_subscriptions(publishers):
     """Simulate get_following() return value for a list of publisher usernames."""
-    return [{'publisher': u, 'subscriber': 'alice', 'disabled': False} for u in publishers]
+    return [{"publisher": u, "subscriber": "alice", "disabled": False} for u in publishers]
 
 
 class TestGetFeedPrivacy:
@@ -50,11 +48,10 @@ class TestGetFeedPrivacy:
         """Publishers with private reading logs must not appear in the feed."""
         prefs = [_make_pref("bob", public=True), _make_pref("carol", public=False)]
 
-        with patch.object(PubSub, 'get_following', return_value=_make_subscriptions(["bob", "carol"])):
-            with patch("openlibrary.core.follows.web") as mock_web:
-                with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
-                    mock_web.ctx.site.get_many.return_value = prefs
-                    feed = PubSub.get_feed("alice")
+        with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
+            with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
+                mock_web.ctx.site.get_many.return_value = prefs
+                feed = PubSub.get_feed("alice")
 
         usernames = [r.username for r in feed]
         assert "bob" in usernames
@@ -64,11 +61,10 @@ class TestGetFeedPrivacy:
         """Publishers with public reading logs should appear in the feed."""
         prefs = [_make_pref("bob", public=True), _make_pref("carol", public=True)]
 
-        with patch.object(PubSub, 'get_following', return_value=_make_subscriptions(["bob", "carol"])):
-            with patch("openlibrary.core.follows.web") as mock_web:
-                with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
-                    mock_web.ctx.site.get_many.return_value = prefs
-                    feed = PubSub.get_feed("alice")
+        with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
+            with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
+                mock_web.ctx.site.get_many.return_value = prefs
+                feed = PubSub.get_feed("alice")
 
         usernames = [r.username for r in feed]
         assert "bob" in usernames
@@ -78,16 +74,15 @@ class TestGetFeedPrivacy:
         """If all followed publishers have private logs, feed should be empty."""
         prefs = [_make_pref("bob", public=False), _make_pref("carol", public=False)]
 
-        with patch.object(PubSub, 'get_following', return_value=_make_subscriptions(["bob", "carol"])):
-            with patch("openlibrary.core.follows.web") as mock_web:
-                mock_web.ctx.site.get_many.return_value = prefs
-                feed = PubSub.get_feed("alice")
+        with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
+            mock_web.ctx.site.get_many.return_value = prefs
+            feed = PubSub.get_feed("alice")
 
         assert feed == []
 
     def test_get_feed_no_subscriptions_returns_empty(self):
         """No subscriptions should return an empty feed without querying bookshelves."""
-        with patch.object(PubSub, 'get_following', return_value=[]):
+        with patch.object(PubSub, "get_following", return_value=[]):
             feed = PubSub.get_feed("nobody")
 
         assert feed == []
