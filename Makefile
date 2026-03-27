@@ -13,6 +13,8 @@ OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 all: git css js components lit-components i18n
 
+frontend: css js components lit-components
+
 css:
 	mkdir -p $(BUILD)/css_new
 	BUILD_DIR=$(BUILD)/css_new NODE_ENV=production npx webpack --config webpack.config.css.js
