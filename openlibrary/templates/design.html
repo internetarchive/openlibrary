@@ -3,13 +3,13 @@ $# /developers/design
 $ _x = ctx.setdefault('cssfile', 'design')
 
 <div class="design-pattern-library">
-  <h1>$_("Design Pattern Library")</h1>
+  <h1>$_("Web Component Library")</h1>
 
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
-      <h2 class="design-pattern-nav__title">$_("Components")</h2>
       <ul class="design-pattern-nav__list">
         <li><a href="#pagination">$_("Pagination")</a></li>
+        <li><a href="#popover">$_("Popover")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
       </ul>
@@ -75,6 +75,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
           </div>
         </section>
       </article>
+
+      $:render_template("design/popover")
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">$_("Read More")</h2>

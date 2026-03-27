@@ -5,7 +5,8 @@
  */
 
 .design-pattern-library {
-  padding: 0 24px;
+  padding: 16px;
+  max-width: 860px;
 }
 
 .design-pattern-library__layout {
@@ -19,7 +20,7 @@
   position: sticky;
   top: 24px;
   flex: 0 0 200px;
-  padding: 16px 0;
+  padding: 0;
 }
 
 .design-pattern-nav__title {
@@ -100,6 +101,18 @@
   border-radius: var(--border-radius-card);
   font-size: var(--font-size-body-medium);
   font-family: var(--font-family-code);
+  overflow-x: auto;
+  word-break: break-all;
+}
+
+@media only screen and (min-width: 768px) {
+  .design-pattern-library {
+    padding: 24px;
+  }
+
+  .example__code {
+    word-break: normal;
+  }
 }
 
 .example__output {
