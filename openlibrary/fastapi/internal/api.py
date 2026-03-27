@@ -15,10 +15,17 @@ import web
 from fastapi import APIRouter, Depends, Form, Path, Query
 from pydantic import BaseModel, BeforeValidator, Field
 
-from openlibrary.core import lending
+from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
-from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.fastapi.models import Pagination, parse_comma_separated_list
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    require_authenticated_user,
+)
+from openlibrary.fastapi.models import (
+    Pagination,
+    parse_comma_separated_list,
+)
+from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.request_context import site as site_ctx
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -127,8 +134,37 @@ async def browse(
     return {"query": url, "works": [work.dict() for work in works]}
 
 
-async def ratings():
-    pass
+@router.get("/works/OL{work_id}W/ratings.json")
+async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+    """Get ratings summary for a work."""
+    return legacy_ratings.get_ratings_summary(work_id)
+
+
+@router.post("/works/OL{work_id}W/ratings.json")
+async def post_ratings(
+    work_id: Annotated[int, Path(gt=0)],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    rating: Annotated[int | None, Form(ge=1, le=5)] = None,
+    edition_id: Annotated[str | None, Form()] = None,
+) -> dict[str, str]:
+    """Register or remove a rating for a work.
+
+    If rating is None, the existing rating is removed.
+    If rating is provided, it must be in the valid range (1-5).
+    """
+    resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
+
+    if rating is None:
+        models.Ratings.remove(user.username, work_id)
+        return {"success": "removed rating"}
+
+    models.Ratings.add(
+        username=user.username,
+        work_id=work_id,
+        rating=rating,
+        edition_id=resolved_edition_id,
+    )
+    return {"success": "rating added"}
 
 
 class BooknoteResponse(BaseModel):

@@ -142,6 +142,7 @@ class browse(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
