@@ -15,16 +15,16 @@ echo "===== GET ENDPOINT TESTS ====="
 run_test() {
     local test_name="$1"
     local query_string="$2"
-    
+
     echo ""
     echo "=== $test_name ==="
-    
+
     echo "Web.py:"
     WEB_RESP=$(curl -s "$BASE_WEB/observations.json$query_string" -w "\nStatus:%{http_code}")
     WEB_CODE=$(echo "$WEB_RESP" | grep Status | cut -d: -f2)
     WEB_BODY=$(echo "$WEB_RESP" | grep -v Status)
     echo "Code: $WEB_CODE"
-    
+
     echo "FastAPI:"
     FASTAPI_RESP=$(curl -s "$BASE_FASTAPI/observations.json$query_string" -w "\nStatus:%{http_code}")
     FASTAPI_CODE=$(echo "$FASTAPI_RESP" | grep Status | cut -d: -f2)
@@ -45,7 +45,7 @@ run_test() {
 
     WEB_NORM=$(echo "$WEB_BODY" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin),sort_keys=True))")
     FASTAPI_NORM=$(echo "$FASTAPI_BODY" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin),sort_keys=True))")
-    
+
     if [ "$WEB_NORM" = "$FASTAPI_NORM" ]; then
         echo "PASS"
         ((PASSED++))

@@ -230,9 +230,7 @@ async def patrons_observations():
     "/observations.json",
     description="Returns anonymized community reviews for a list of works.",
 )
-async def public_observations(
-    olid: Annotated[list[str] | None, Query(description="List of Work OLIDs")] = None
-) -> dict:
+async def public_observations(olid: Annotated[list[str] | None, Query(description="List of Work OLIDs")] = None) -> dict:
     """
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.

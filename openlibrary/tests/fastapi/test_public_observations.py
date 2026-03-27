@@ -9,6 +9,7 @@ import pytest
 def mock_get_metrics():
     """Prevent real DB calls for get_observation_metrics."""
     with patch("openlibrary.fastapi.internal.api.get_observation_metrics", autospec=True) as mock:
+
         def mock_metrics_return(olid):
             if olid == "OL27482W":
                 return {
@@ -21,16 +22,12 @@ def mock_get_metrics():
                             "multi_choice": True,
                             "total_respondents_for_type": 1,
                             "values": [{"value": "Recommend", "count": 1}],
-                            "total_responses": 1
+                            "total_responses": 1,
                         }
-                    ]
+                    ],
                 }
             elif olid == "OL24204W":
-                return {
-                    "work_id": "24204",
-                    "total_respondents": 0,
-                    "observations": []
-                }
+                return {"work_id": "24204", "total_respondents": 0, "observations": []}
             elif olid == "hehe":
                 raise Exception("Backend crash due to invalid OLID")
             return {}
