@@ -142,7 +142,8 @@
 
 .searchResultItem .bookcover {
   width: 100%;
-  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0 var(--spacing-inline-sm);
+  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0
+    var(--spacing-inline-sm);
   text-align: center;
 }
 
@@ -160,7 +161,8 @@
 .searchResultItem .imageLg {
   text-align: center;
   width: 100%;
-  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0 var(--spacing-inline-sm);
+  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0
+    var(--spacing-inline-sm);
 }
 
 .searchResultItem .imageLg img {
