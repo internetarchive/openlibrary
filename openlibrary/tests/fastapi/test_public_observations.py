@@ -28,8 +28,6 @@ def mock_get_metrics():
                 }
             elif olid == "OL24204W":
                 return {"work_id": "24204", "total_respondents": 0, "observations": []}
-            elif olid == "hehe":
-                raise Exception("Backend crash due to invalid OLID")
             return {}
 
         mock.side_effect = mock_metrics_return
@@ -75,8 +73,9 @@ class TestPublicObservations:
         mock_get_metrics.assert_any_call("OL27482W")
         mock_get_metrics.assert_any_call("OL24204W")
 
-    def test_invalid_olid_raises_500(self, fastapi_client, mock_get_metrics):
-        """Invalid OLID that causes the backend to crash should propagate the Exception."""
-        with pytest.raises(Exception, match="Backend crash due to invalid OLID"):
-            fastapi_client.get("/observations.json?olid=hehe")
+    def test_invalid_olid_returns_empty_metrics(self, fastapi_client, mock_get_metrics):
+        """Invalid OLID returns an empty observation dict (like legacy)."""
+        response = fastapi_client.get("/observations.json?olid=hehe")
+        assert response.status_code == 200
+        assert response.json() == {"observations": {"hehe": {}}}
         mock_get_metrics.assert_called_once_with("hehe")
