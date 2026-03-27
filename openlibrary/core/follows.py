@@ -1,6 +1,8 @@
 import logging
 from typing import cast
 
+import web
+
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -90,6 +92,19 @@ class PubSub:
 
         # Extract usernames from subscriptions
         usernames = [sub['publisher'] for sub in subscriptions]
+
+        if not usernames:
+            return []
+
+        # Filter to only publishers with public reading logs
+        prefs = web.ctx.site.get_many(
+            [f'/people/{u}/preferences' for u in usernames]
+        )
+        usernames = [
+            p.key.split('/')[2]
+            for p in prefs
+            if p.dict().get('notifications', {}).get('public_readlog') == 'yes'
+        ]
 
         if not usernames:
             return []
