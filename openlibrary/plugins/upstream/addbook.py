@@ -235,7 +235,7 @@ class MultiCommitSaveUtility(DocSaveUtility):
     @staticmethod
     def prepare_commits(revision: dict, original: dict, delim="|") -> list[AnnotatedCommit]:
         commits = []
-        diff_paths = diff_objects(revision, original)
+        diff_paths = diff_objects(revision, original, delim=delim)
 
         def apply_single_diff(_revision, _original, _path: str):
             result = copy.deepcopy(_original)
@@ -684,13 +684,11 @@ class SaveBookHelper:
         """
         :param Work|None work:          None if editing an orphan edition
         :param Edition|None edition:    None if just editing work
-        :param dict|None orig_work:     The original state of the work. `None` if work is new
-        :param dict|None orig_edition:  The original state of the edition.  `None` if edition is new
         """
         self.work = work
         self.edition = edition
-        self.orig_work: dict|None = copy.deepcopy(work.dict()) if work else None
-        self.orig_edition: dict|None = copy.deepcopy(edition.dict()) if edition else None
+        self.orig_work: dict|None = work.dict() if work else None
+        self.orig_edition: dict|None = edition.dict() if edition else None
 
     def save(self, formdata: web.Storage) -> None:
         """
@@ -802,7 +800,7 @@ class SaveBookHelper:
             _kwargs = {"orig_doc": self.orig_edition} if using_granular_edits else {}
             saveutil.save(self.edition, **_kwargs)
 
-        saveutil.commit(comment=comment)
+        saveutil.commit(comment=comment, action="edit-book")
 
     @staticmethod
     def new_work(edition: Edition) -> Work:
