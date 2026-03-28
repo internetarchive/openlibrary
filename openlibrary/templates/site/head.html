@@ -27,30 +27,10 @@ $def with (title)
     <link href="/static/images/openlibrary-128x128.png" rel="icon" sizes="128x128" />
     $# CSS Custom Properties (design tokens) - loaded separately for caching
     <link href="$static_url('build/css/tokens.css')" rel="stylesheet" type="text/css" />
+    $# Pre-hydration styles — prevents FOUC for web components before JS hydration
+    <link href="$static_url('build/css/pre-hydration.css')" rel="stylesheet" type="text/css" />
     $ style = 'build/css/page-%s.css'%ctx.get('cssfile', 'user')
     <link href="$static_url(style)" rel="stylesheet" type="text/css" />
-
-    <!-- TODO: Move these pre-hydration web component styles into a dedicated CSS file -->
-    <style>
-      /* Hide ol-read-more content before component is defined to prevent flash of unstyled content. The min-height is set to match the default height of the component. */
-      ol-read-more {
-        min-height: 121px;
-        visibility: hidden;
-        overflow: hidden;
-      }
-      ol-read-more[label-size="small"] {
-        min-height: 107px;
-      }
-
-      /* Reserve height for ol-chip before Lit hydrates to prevent layout shift */
-      ol-chip:not(:defined) {
-        display: inline-block;
-        height: 30px;
-      }
-      ol-chip[size="small"]:not(:defined) {
-        height: 24px;
-      }
-    </style>
 
     <noscript>
       <style>

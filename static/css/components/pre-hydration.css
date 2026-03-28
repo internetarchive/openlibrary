@@ -1,0 +1,28 @@
+/**
+ * Pre-hydration web component styles
+ *
+ * Prevents FOUC and layout shift for web components
+ * before JavaScript defines/hydrates them.
+ * Loaded globally in <head> via a dedicated stylesheet.
+ */
+
+/* ol-read-more */
+ol-read-more {
+  min-height: 121px;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+ol-read-more[label-size="small"] {
+  min-height: 107px;
+}
+
+/* ol-chip */
+ol-chip:not(:defined) {
+  display: inline-block;
+  height: 30px;
+}
+
+ol-chip[size="small"]:not(:defined) {
+  height: 24px;
+}
