@@ -1130,14 +1130,21 @@ class author_edit(delegate.page):
             if not formdata:
                 raise web.badrequest()
             elif "_save" in i:
+                using_granular_edits = features.is_enabled('multi_commit_edits')
+                saveutil = MultiCommitSaveUtility() if using_granular_edits else DocSaveHelper()
+
+                orig_author = author.dict()
                 author.update(formdata)
-                author._save(comment=i._comment)
+
+                _kwargs = {"orig_doc": orig_author} if using_granular_edits else {}
+                saveutil.save(author.dict(), **_kwargs)
+                saveutil.commit(comment=i._comment, action="edit-author")
                 raise safe_seeother(key)
             elif "_delete" in i:
                 author = web.ctx.site.new(
                     key, {"key": key, "type": {"key": "/type/delete"}}
                 )
-                author._save(comment=i._comment)
+                author._save(comment=i._comment, action="delete-author")
                 raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
