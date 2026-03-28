@@ -26,7 +26,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
-from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
+from openlibrary.plugins.upstream.utils import diff_objects, fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.request_context import site
 
@@ -235,46 +235,6 @@ class MultiCommitSaveUtility(DocSaveUtility):
     @staticmethod
     def prepare_commits(revision: dict, original: dict, delim="|") -> list[AnnotatedCommit]:
         commits = []
-        def diff_objects(obj1, obj2, path: str="") -> list[str]:
-            """
-            Recursively compare two objects and return a list of differing delimited attribute paths.
-
-            Example output: ['description', 'identifiers|foo', 'publisher']
-            """
-            diffs = []
-
-            # Both are plain objects (custom classes) — check first before dict/list
-            if hasattr(obj1, "__dict__") and hasattr(obj2, "__dict__"):
-                keys = set(vars(obj1)) | set(vars(obj2))
-                for k in keys:
-                    full = f"{path}{delim}{k}" if path else k
-                    if not hasattr(obj1, k) or not hasattr(obj2, k):
-                        diffs.append(full)
-                    else:
-                        diffs.extend(diff_objects(getattr(obj1, k), getattr(obj2, k), full))
-
-            # Both are dicts
-            elif isinstance(obj1, dict) and isinstance(obj2, dict):
-                keys = set(obj1) | set(obj2)
-                for k in keys:
-                    full = f"{path}{delim}{k}" if path else k
-                    if k not in obj1 or k not in obj2:
-                        diffs.append(full)
-                    else:
-                        diffs.extend(diff_objects(obj1[k], obj2[k], full))
-
-            # Both are lists/tuples
-            elif isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
-                if obj1 != obj2:
-                    diffs.append(path)
-
-            # Primitives / fallback
-            else:
-                if obj1 != obj2:
-                    diffs.append(path)
-
-            return diffs
-
         diff_paths = diff_objects(revision, original)
 
         def apply_single_diff(_revision, _original, _path: str):

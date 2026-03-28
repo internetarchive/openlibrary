@@ -1696,6 +1696,37 @@ def subject_name_to_key(subject: str, prefix='') -> str:
     return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
 
 
+def diff_objects(obj1, obj2, path: str="", delim="|") -> list[str]:
+    """
+    Recursively compare two objects and return a list of differing delimited attribute paths.
+
+    Example output: ['description', 'identifiers|foo', 'publisher']
+    """
+    diffs = []
+
+    # Both are dicts
+    if isinstance(obj1, dict) and isinstance(obj2, dict):
+        keys = set(obj1) | set(obj2)
+        for k in keys:
+            full = f"{path}{delim}{k}" if path else k
+            if k not in obj1 or k not in obj2:
+                diffs.append(full)
+            else:
+                diffs.extend(diff_objects(obj1[k], obj2[k], path=full, delim=delim))
+
+    # Both are lists/tuples
+    elif isinstance(obj1, (list, tuple)) and isinstance(obj2, (list, tuple)):
+        if obj1 != obj2:
+            diffs.append(path)
+
+    # Primitives / fallback
+    else:
+        if obj1 != obj2:
+            diffs.append(path)
+
+    return diffs
+
+
 def setup_requests(config=config) -> None:
     logger.info("Setting up requests")
 
