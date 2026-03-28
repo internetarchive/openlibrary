@@ -3,16 +3,19 @@ import * as SearchUtils from '../../../openlibrary/plugins/openlibrary/js/Search
 
 describe('PersistentValue', () => {
     const PV = SearchUtils.PersistentValue;
-    afterEach(() => localStorage.clear());
-
-    test('Saves to localStorage', () => {
-        const pv = new PV('foo');
-        pv.write('bar');
-        expect(localStorage.getItem('foo')).toBe('bar');
+    afterEach(() => {
+        sessionStorage.clear();
+        localStorage.clear();
     });
 
-    test('Reads from localStorage', () => {
-        localStorage.setItem('foo', 'bar');
+    test('Saves to sessionStorage', () => {
+        const pv = new PV('foo');
+        pv.write('bar');
+        expect(sessionStorage.getItem('foo')).toBe('bar');
+    });
+
+    test('Reads from sessionStorage', () => {
+        sessionStorage.setItem('foo', 'bar');
         const pv = new PV('foo');
         expect(pv.read()).toBe('bar');
     });
@@ -23,13 +26,13 @@ describe('PersistentValue', () => {
     });
 
     test('Does not writes default on init if already set', () => {
-        localStorage.setItem('foo', 'green');
+        sessionStorage.setItem('foo', 'green');
         const pv = new PV('foo', { default: 'blue' });
         expect(pv.read()).toBe('green');
     });
 
     test('Writes default on invalid init', () => {
-        localStorage.setItem('foo', 'anything');
+        sessionStorage.setItem('foo', 'anything');
         const pv = new PV('foo', {
             default: 'blue',
             initValidation: () => false
@@ -38,7 +41,7 @@ describe('PersistentValue', () => {
     });
 
     test('Writes null on invalid init', () => {
-        localStorage.setItem('foo', 'anything');
+        sessionStorage.setItem('foo', 'anything');
         const pv = new PV('foo', {
             initValidation: () => false
         });
@@ -46,7 +49,7 @@ describe('PersistentValue', () => {
     });
 
     test('Does not writes default on valid init', () => {
-        localStorage.setItem('foo', 'anything');
+        sessionStorage.setItem('foo', 'anything');
         const pv = new PV('foo', {
             default: 'blue',
             initValidation: () => true
@@ -55,7 +58,7 @@ describe('PersistentValue', () => {
     });
 
     test('Writing applies transformation', () => {
-        localStorage.setItem('foo', 'blue');
+        sessionStorage.setItem('foo', 'blue');
         const pv = new PV('foo', {
             writeTransformation: (newVal, oldVal) => oldVal + newVal
         });

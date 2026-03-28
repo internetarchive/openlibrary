@@ -57,7 +57,7 @@ export class PersistentValue {
      * @return {String}
      */
     read() {
-        return localStorage.getItem(this.key);
+        return sessionStorage.getItem(this.key);
     }
 
     /**
@@ -72,9 +72,9 @@ export class PersistentValue {
         }
 
         if (toWrite === null) {
-            localStorage.removeItem(this.key);
+            sessionStorage.removeItem(this.key);
         } else {
-            localStorage.setItem(this.key, toWrite);
+            sessionStorage.setItem(this.key, toWrite);
         }
 
         if (oldValue !== toWrite) {

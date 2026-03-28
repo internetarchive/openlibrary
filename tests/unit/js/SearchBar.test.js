@@ -19,7 +19,7 @@ describe('SearchBar', () => {
             sb = new SearchBar($(DUMMY_COMPONENT_HTML));
             sinon.stub(sb, 'getCurUrl').returns(new URL('https://openlibrary.org/search'));
         });
-        afterEach(() => localStorage.clear());
+        afterEach(() => sessionStorage.clear());
         test('Does not throw on empty params', () => {
             sb.initFromUrlParams({});
         });
@@ -49,9 +49,9 @@ describe('SearchBar', () => {
         });
 
         test('Persists value in url param', () => {
-            expect(localStorage.getItem('facet')).not.toBe('title');
+            expect(sessionStorage.getItem('facet')).not.toBe('title');
             sb.initFromUrlParams({facet: 'title'});
-            expect(localStorage.getItem('facet')).toBe('title');
+            expect(sessionStorage.getItem('facet')).toBe('title');
         });
     });
 
@@ -60,7 +60,7 @@ describe('SearchBar', () => {
         beforeEach(() => {
             sb = new SearchBar($(DUMMY_COMPONENT_HTML));
         });
-        afterEach(() => localStorage.clear());
+        afterEach(() => sessionStorage.clear());
 
         test('Queries are marshalled before submit for titles', () => {
             sb.initFromUrlParams({facet: 'title'});
@@ -88,7 +88,7 @@ describe('SearchBar', () => {
         /** @type {SearchBar?} */
         let sb;
         beforeEach(() => sb = new SearchBar($(DUMMY_COMPONENT_HTML)));
-        afterEach(() => localStorage.clear());
+        afterEach(() => sessionStorage.clear());
 
         test('Only enters collapsible mode if not already there', () => {
             sb.inCollapsibleMode = true;
@@ -125,17 +125,17 @@ describe('SearchBar', () => {
         const sandbox = sinon.createSandbox();
         afterEach(() => {
             sandbox.restore();
-            localStorage.clear();
+            sessionStorage.clear();
         });
 
         test('When localStorage empty, defaults to facet=all', () => {
-            localStorage.clear();
+            sessionStorage.clear();
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
             expect(sb.facet.read()).toBe('all');
         });
 
         test('Facet persists between page loads', () => {
-            localStorage.setItem('facet', 'title');
+            sessionStorage.setItem('facet', 'title');
             const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
             expect(sb.facet.read()).toBe('title');
             const sb2 = new SearchBar($(DUMMY_COMPONENT_HTML));
