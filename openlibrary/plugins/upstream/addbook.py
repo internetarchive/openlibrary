@@ -128,6 +128,7 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
     data['type'] = {"key": type_}
     return web.ctx.site.new(key, data)
 
+
 class DocSaveUtility(ABC):
 
     @abstractmethod
@@ -195,13 +196,15 @@ class DocumentRevision:
         revised:  A representation of the record containing all the updated values.
         original: A representation of the record's initial state, or `None` if the record being created.
     """
+
     revised: dict
-    original: dict|None
+    original: dict | None
 
 
 @dataclass
 class AnnotatedCommit:
     """Represents a record that is ready to be persisted, and its corresponding action."""
+
     doc: dict
     action: str
 
@@ -210,30 +213,34 @@ class MultiCommitSaveUtility(DocSaveUtility):
     """
     Utility that saves record edits using one transaction per modified attribute.
     """
+
     def __init__(self):
         self.docs: list[DocumentRevision] = []
 
-    def save(self, doc, orig_doc: dict|None=None) -> None:
+    def save(self, doc, orig_doc: dict | None = None) -> None:
         if not isinstance(doc, dict):  # thing
             doc = doc.dict()
         self.docs.append(DocumentRevision(revised=doc, original=orig_doc))
 
     def commit(self, **kw) -> None:
-        if 'action' in kw:
-            del kw['action']
+        kw.pop('action', None)
         for doc in self.docs:
             doc_type = doc.revised['type']['key'].split('/')[-1]
             if doc.original:
                 # Make granular commits
                 commits = self.prepare_commits(doc.revised, doc.original)
                 for commit in commits:
-                    web.ctx.site.save(commit.doc, action=f'update-{doc_type}-{commit.action}', **kw)
+                    web.ctx.site.save(
+                        commit.doc, action=f'update-{doc_type}-{commit.action}', **kw
+                    )
             else:
                 # Commit new record in a single transaction
                 web.ctx.site.save(doc.revised, action=f"add-{doc_type}", **kw)
 
     @staticmethod
-    def prepare_commits(revision: dict, original: dict, delim="|") -> list[AnnotatedCommit]:
+    def prepare_commits(
+        revision: dict, original: dict, delim="|"
+    ) -> list[AnnotatedCommit]:
         commits = []
         diff_paths = diff_objects(revision, original, delim=delim)
 
@@ -268,10 +275,9 @@ class MultiCommitSaveUtility(DocSaveUtility):
         updated_rec = original
         for p in diff_paths:
             updated_rec = apply_single_diff(revision, updated_rec, p)
-            commits.append(AnnotatedCommit(
-                doc=updated_rec,
-                action=p.replace(delim, '-')
-            ))
+            commits.append(
+                AnnotatedCommit(doc=updated_rec, action=p.replace(delim, '-'))
+            )
 
         return commits
 
@@ -687,8 +693,8 @@ class SaveBookHelper:
         """
         self.work = work
         self.edition = edition
-        self.orig_work: dict|None = work.dict() if work else None
-        self.orig_edition: dict|None = edition.dict() if edition else None
+        self.orig_work: dict | None = work.dict() if work else None
+        self.orig_edition: dict | None = edition.dict() if edition else None
 
     def save(self, formdata: web.Storage) -> None:
         """
@@ -1086,7 +1092,9 @@ class work_edit(delegate.page):
             helper = SaveBookHelper(work, None)
             if is_delete_req:
                 if work.edition_count != 0:
-                    raise web.badrequest("Cannot delete work that is associated with editions.")
+                    raise web.badrequest(
+                        "Cannot delete work that is associated with editions."
+                    )
                 comment = i.pop('_comment', '')
                 SaveBookHelper.delete(work.key, comment=comment, action="work-delete")
             else:
@@ -1129,7 +1137,11 @@ class author_edit(delegate.page):
                 raise web.badrequest()
             elif "_save" in i:
                 using_granular_edits = features.is_enabled('multi_commit_edits')
-                saveutil = MultiCommitSaveUtility() if using_granular_edits else DocSaveHelper()
+                saveutil = (
+                    MultiCommitSaveUtility()
+                    if using_granular_edits
+                    else DocSaveHelper()
+                )
 
                 orig_author = author.dict()
                 author.update(formdata)

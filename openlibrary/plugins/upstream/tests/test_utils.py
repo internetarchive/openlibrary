@@ -395,14 +395,18 @@ def diff(*args, **kwargs):
 
 # --- Identical inputs ---
 
+
 def test_identical_dicts():
     assert diff({"a": 1}, {"a": 1}) == []
+
 
 def test_identical_nested_dicts():
     assert diff({"a": {"b": 1}}, {"a": {"b": 1}}) == []
 
+
 def test_identical_lists():
     assert diff({"a": [1, 2]}, {"a": [1, 2]}) == []
+
 
 def test_empty_dicts():
     assert diff({}, {}) == []
@@ -410,14 +414,18 @@ def test_empty_dicts():
 
 # --- Flat dicts ---
 
+
 def test_missing_key_in_obj2():
     assert diff({"a": 1, "b": 2}, {"a": 1}) == ["b"]
+
 
 def test_missing_key_in_obj1():
     assert diff({"a": 1}, {"a": 1, "b": 2}) == ["b"]
 
+
 def test_different_primitive_value():
     assert diff({"a": 1}, {"a": 2}) == ["a"]
+
 
 def test_multiple_differing_keys():
     assert diff({"a": 1, "b": 2}, {"a": 9, "b": 9}) == ["a", "b"]
@@ -425,11 +433,14 @@ def test_multiple_differing_keys():
 
 # --- Type mismatches ---
 
+
 def test_str_vs_list():
     assert diff({"a": ""}, {"a": []}) == ["a"]
 
+
 def test_int_vs_str():
     assert diff({"a": 1}, {"a": "1"}) == ["a"]
+
 
 def test_none_vs_str():
     assert diff({"a": None}, {"a": ""}) == ["a"]
@@ -437,11 +448,14 @@ def test_none_vs_str():
 
 # --- Nested dicts ---
 
+
 def test_nested_diff():
     assert diff({"a": {"b": 1}}, {"a": {"b": 2}}) == ["a|b"]
 
+
 def test_nested_missing_key():
     assert diff({"a": {"b": 1, "c": 2}}, {"a": {"b": 1}}) == ["a|c"]
+
 
 def test_deeply_nested_diff():
     assert diff({"a": {"b": {"c": 1}}}, {"a": {"b": {"c": 2}}}) == ["a|b|c"]
@@ -449,11 +463,14 @@ def test_deeply_nested_diff():
 
 # --- Lists ---
 
+
 def test_list_values_differ():
     assert diff({"a": [1, 2]}, {"a": [1, 3]}) == ["a"]
 
+
 def test_list_length_differs():
     assert diff({"a": [1]}, {"a": [1, 2]}) == ["a"]
+
 
 def test_list_order_matters():
     assert diff({"a": [1, 2]}, {"a": [2, 1]}) == ["a"]
@@ -461,9 +478,11 @@ def test_list_order_matters():
 
 # --- Custom delimiter ---
 
+
 def test_custom_delim():
     result = utils.diff_objects({"a": {"b": 1}}, {"a": {"b": 2}}, delim=".")
     assert sorted(result) == ["a.b"]
+
 
 def test_custom_delim_deep():
     result = utils.diff_objects({"a": {"b": {"c": 1}}}, {"a": {"b": {"c": 2}}}, delim="/")
@@ -472,15 +491,19 @@ def test_custom_delim_deep():
 
 # --- Edge cases ---
 
+
 def test_both_empty_lists():
     assert diff({"a": []}, {"a": []}) == []
 
+
 def test_both_none():
     assert diff({"a": None}, {"a": None}) == []
+
 
 def test_multiple_nested_diffs():
     obj1 = {"a": {"x": 1, "y": 2}, "b": 3}
     obj2 = {"a": {"x": 9, "y": 2}, "b": 4}
     assert diff(obj1, obj2) == ["a|x", "b"]
+
 
 # END : diff_objects tests

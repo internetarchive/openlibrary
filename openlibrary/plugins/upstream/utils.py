@@ -1696,7 +1696,7 @@ def subject_name_to_key(subject: str, prefix='') -> str:
     return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
 
 
-def diff_objects(obj1, obj2, path: str="", delim="|") -> list[str]:
+def diff_objects(obj1, obj2, path: str = "", delim="|") -> list[str]:
     """
     Recursively compare two objects and return a list of differing delimited attribute paths.
 
@@ -1720,9 +1720,8 @@ def diff_objects(obj1, obj2, path: str="", delim="|") -> list[str]:
             diffs.append(path)
 
     # Primitives / fallback
-    else:
-        if obj1 != obj2:
-            diffs.append(path)
+    elif obj1 != obj2:
+        diffs.append(path)
 
     return diffs
 
