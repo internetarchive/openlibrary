@@ -318,7 +318,7 @@ def get_available(
         books = web.ctx.site.get_many([f'/books/{olid}' for olid in results.values()])
         books = add_availability(books)
         return books
-    except Exception:  # TODO: Narrow exception scope
+    except (httpx.HTTPError, JSONDecodeError):
         logger.exception(f"get_available({url})")
         return {'error': 'request_timeout'}
 
@@ -490,7 +490,7 @@ def get_availability(
             expires=5 * dateutil.MINUTE_SECS,
         )
         return availabilities
-    except Exception as e:  # TODO: Narrow exception scope
+    except (httpx.HTTPError, JSONDecodeError) as e:
         logger.exception("lending.get_availability", extra={'ids': ids})
         availabilities.update(
             {
@@ -628,7 +628,7 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     try:
         response = ia.session.get(url, timeout=config_http_request_timeout).json()
         return response and response.get('checkedout')
-    except Exception:  # TODO: Narrow exception scope
+    except (httpx.HTTPError, JSONDecodeError):
         logger.exception(f"is_loaned_out_on_ia({identifier})")
         return None
 
@@ -665,12 +665,12 @@ def get_loan(identifier: str, user_key: str | None = None):
             return None
     try:
         _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
-    except Exception:  # TODO: Narrow exception scope
+    except (httpx.HTTPError, JSONDecodeError):
         logger.exception(f"get_loan({identifier}) 1 of 2")
 
     try:
         _loan = _get_ia_loan(identifier, account and account.itemname)
-    except Exception:  # TODO: Narrow exception scope
+    except (httpx.HTTPError, JSONDecodeError):
         logger.exception(f"get_loan({identifier}) 2 of 2")
 
     return _loan
@@ -812,7 +812,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     }
     try:
         ebook.update(**kwargs)
-    except Exception:  # TODO: Narrow exception scope
+    except Exception:
         # updating ebook document is sometimes failing with
         # "Document update conflict" error.
         # Log the error in such cases, don't crash.
@@ -1122,7 +1122,7 @@ class IA_Lending_API:
         except JSONDecodeError:
             logger.exception("POST failed to openlibrary.php, no json")
             return {}
-        except Exception:  # TODO: Narrow exception scope
+        except requests.RequestException:
             logger.exception("POST failed")
             raise
 
