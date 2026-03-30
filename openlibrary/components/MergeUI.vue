@@ -1,244 +1,200 @@
 <template>
-  <div id="app">
-    <div v-if="!olids.length">
-      No records to merge. Specify some records in the url like so: <code>?records=OL123W,OL234W</code>
-    </div>
-    <template v-else>
-      <MergeTable
-        ref="mergeTable"
-        :olids="olids"
-        :show_diffs="show_diffs"
-        :primary="primary"
-      />
-      <div class="action-bar">
-        <div class="comment-input">
-          <label for="comment">Comment: </label>
-          <input
-            v-model="comment"
-            name="comment"
-            type="text"
-          >
-        </div>
-        <div class="btn-group">
-          <button
-            class="merge-btn"
-            :disabled="isDisabled"
-            @click="doMerge"
-          >
-            {{ mergeStatus }}
-          </button>
-          <button
-            v-if="showRejectButton"
-            class="reject-btn"
-            @click="rejectMerge"
-          >
-            Reject Merge
-          </button>
-        </div>
-        <div id="diffs-toggle">
-          <label>
-            <input
-              v-model="show_diffs"
-              type="checkbox"
-              title="Show textual differences"
-            >
-            Show text diffs
-          </label>
-        </div>
-      </div>
-      <pre v-if="mergeOutput">{{ mergeOutput }}</pre>
-    </template>
+  <div id="app" role="main">
+    <BookRoom
+      :classification="settingsState.selectedClassification"
+      :filter="computedFilter"
+      :sort="sortState.order"
+      :class="bookRoomClass"
+      :features="bookRoomFeatures"
+      :app-settings="settingsState"
+      :jump-to="jumpTo"
+    />
+
+    <LibraryToolbar
+      :filter-state="filterState"
+      :settings-state="settingsState"
+      :sort-state="sortState"
+    />
   </div>
 </template>
 
 <script>
-import MergeTable from './MergeUI/MergeTable.vue'
-import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIMIT } from './MergeUI/utils.js';
+import BookRoom from './LibraryExplorer/components/BookRoom.vue';
+import LibraryToolbar from './LibraryExplorer/components/LibraryToolbar.vue';
+import DDC from './LibraryExplorer/ddc.json';
+import LCC from './LibraryExplorer/lcc.json';
+import { recurForEach } from './LibraryExplorer/utils.js';
+import { sortable_lcc_to_short_lcc, short_lcc_to_sortable_lcc } from './LibraryExplorer/utils/lcc.js';
+import maxBy from 'lodash/maxBy';
 
-const DO_MERGE = 'Do Merge'
-const REQUEST_MERGE = 'Request Merge'
-const LOADING = 'Loading...'
-const SAVING = 'Saving...'
+class FilterState {
+    constructor() {
+        this.filter = '';
+        /** @type {boolean} */
+        this.has_ebook = true;
+        this.languages = [];
+        this.age = '';
+        // Use '*' as upper bound for Solr range
+        this.year = '[1985 TO *]';
+    }
 
-export default {
-    name: 'App',
-    components: {
-        MergeTable
-    },
-    props: {
-        mrid: {
-            type: [Number, String],
-            required: false,
-            default: ''
-        },
-        primary: {
-            type: String,
-            required: false
-        },
-        canmerge: {
-            type: String,
-            required: false,
-            default: 'true',
+    solrQueryParts() {
+        const filters = this.filter ? [this.filter] : [];
+
+        if (this.has_ebook !== null) {
+            filters.push(`has_fulltext:${this.has_ebook ? 'true' : 'false'}`);
         }
-    },
-    data() {
-        return {
-            url: new URL(location.toString()),
-            mergeStatus: LOADING,
-            mergeOutput: null,
-            show_diffs: false,
-            comment: ''
-        }
-    },
-    computed: {
-        olids() {
-            const olidsString = this.url.searchParams.get('records');
-            if (!olidsString) return [];
-            return olidsString
-                .split(',')
-                // Ignore trailing commas
+
+        if (this.languages.length) {
+            const langs = this.languages
+                .map(lang => lang.key?.split('/')[2])
                 .filter(Boolean);
-        },
-
-        isSuperLibrarian() {
-            return this.canmerge === 'true'
-        },
-
-        isDisabled() {
-            return this.mergeStatus !== DO_MERGE && this.mergeStatus !== REQUEST_MERGE
-        },
-
-        showRejectButton() {
-            return this.mrid && this.isSuperLibrarian
+            if (langs.length) {
+                filters.push(`language:(${langs.join(' OR ')})`);
+            }
         }
-    },
-    mounted() {
-        const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE
-        this.$watch(
-            '$refs.mergeTable.merge',
-            (new_value) => {
-                if (new_value !== undefined && this.mergeStatus === LOADING) this.mergeStatus = readyCta;
-            }
-        );
-    },
-    methods: {
-        async doMerge() {
-            if (!this.$refs.mergeTable.merge) return;
-            const { record: master, dupes, editions_to_move, unmergeable_works } = this.$refs.mergeTable.merge;
 
-            this.mergeStatus = SAVING;
-            if (this.isSuperLibrarian) {
-                // Perform the merge and create new/update existing merge request
-                try {
-                    if (unmergeable_works.length)
-                    {
-                        throw new Error(`Could not merge: ${unmergeable_works.join(', ')} has more than ${DEFAULT_EDITION_LIMIT} editions.`);
-                    }
-                    const r = await do_merge(master, dupes, editions_to_move, this.mrid);
-                    if (r.status === 403)
-                    {
-                        throw new Error('Merge failed, your account may be missing the /usergroup/api permission.');
-                    }
-                    this.mergeOutput = await r.json();
-                    if (this.mrid) {
-                        await update_merge_request(this.mrid, 'approve', this.comment)
-                    } else {
-                        const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                        await createMergeRequest(workIds)
-                    }
-                } catch (e) {
-                    this.mergeOutput = e.message;
-                    this.mergeStatus = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE;
-                    throw e;
-                }
-            } else {
-                // Create a new merge request with "pending" status
-                const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                const splitKey = master.key.split('/')
-                const primaryRecord = splitKey[splitKey.length - 1]
-                await createMergeRequest(workIds, primaryRecord, 'create-pending', this.comment)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'ok') {
-                            // Redirect to merge table on success:
-                            window.location.replace(`/merges#mrid-${data.id}`)
-                        }
-                    })
-            }
-            this.mergeStatus = 'Done';
-        },
-
-        async rejectMerge() {
-            try {
-                await update_merge_request(this.mrid, 'decline', this.comment)
-                this.mergeOutput = 'Merge request closed'
-            } catch (e) {
-                this.mergeOutput = e.message;
-                throw e;
-            }
-            this.mergeStatus = 'Reject Merge';
+        if (this.age) {
+            filters.push(`subject:${this.age}`);
         }
+
+        if (this.year) {
+            filters.push(`first_publish_year:${this.year}`);
+        }
+
+        return filters;
+    }
+
+    solrQuery() {
+        return this.solrQueryParts().join(' AND ');
     }
 }
+
+export default {
+    components: {
+        BookRoom,
+        LibraryToolbar,
+    },
+
+    data() {
+        const classifications = [
+            {
+                name: 'DDC',
+                longName: 'Dewey Decimal Classification',
+                field: 'ddc',
+                fieldTransform: ddc => ddc,
+                toQueryFormat: ddc => ddc,
+                chooseBest: ddcs =>
+                    maxBy(ddcs, ddc =>
+                        ddc.replace(/[\d.]/g, '') ? ddc.length : 100 + ddc.length
+                    ),
+                root: recurForEach({ children: DDC, query: '*' }, n => {
+                    n.position = 'root';
+                    n.offset = 0;
+                    n.requests = {};
+                })
+            },
+            {
+                name: 'LCC',
+                longName: 'Library of Congress Classification',
+                field: 'lcc',
+                fieldTransform: sortable_lcc_to_short_lcc,
+                toQueryFormat: lcc => {
+                    const normalized = short_lcc_to_sortable_lcc(lcc);
+                    return normalized ? normalized.split(' ')[0] : lcc;
+                },
+                chooseBest: lccs => maxBy(lccs, lcc => lcc.length),
+                root: recurForEach({ children: LCC, query: '*' }, n => {
+                    n.position = 'root';
+                    n.offset = 0;
+                    n.requests = {};
+                })
+            }
+        ];
+
+        const urlParams = new URLSearchParams(location.search);
+        let selectedClassification = classifications[0];
+        let jumpTo = null;
+
+        if (urlParams.has('jumpTo')) {
+            const [classificationName, classificationString] = urlParams.get('jumpTo').split(':');
+
+            const found = classifications.find(c => c.field === classificationName);
+            if (found) {
+                selectedClassification = found;
+                jumpTo = found.toQueryFormat(classificationString);
+            }
+        }
+
+        const seed = new Date().toISOString().split(':')[0];
+
+        return {
+            filterState: new FilterState(),
+
+            sortState: {
+                order: jumpTo
+                    ? `${selectedClassification.field}_sort asc`
+                    : `random_${seed}`,
+            },
+
+            jumpTo,
+
+            settingsState: {
+                selectedClassification,
+                classifications,
+
+                labels: ['classification'],
+
+                styles: {
+                    book: {
+                        options: ['default', '3d', 'spines', '3d-spines', '3d-flat'],
+                        selected: 'default'
+                    },
+
+                    cover: {
+                        options: ['image', 'text'],
+                        selected: 'image'
+                    },
+
+                    shelfLabel: {
+                        debugModeOnly: true,
+                        options: ['slider', 'expander'],
+                        selected: 'slider'
+                    },
+
+                    aesthetic: {
+                        debugModeOnly: true,
+                        options: ['mockup', 'wip'],
+                        selected: 'wip'
+                    },
+
+                    scrollbar: {
+                        options: ['default', 'thin', 'hidden'],
+                        selected: 'thin',
+                    },
+                },
+            },
+        };
+    },
+
+    computed: {
+        computedFilter() {
+            return this.filterState.solrQuery();
+        },
+
+        bookRoomFeatures() {
+            return {
+                book3d: this.settingsState.styles.book.selected.startsWith('3d'),
+                cover: this.settingsState.styles.cover.selected,
+                shelfLabel: this.settingsState.styles.shelfLabel.selected
+            };
+        },
+
+        bookRoomClass() {
+            return Object.entries(this.settingsState.styles)
+                .map(([key, val]) => `style--${key}--${val.selected}`)
+                .join(' ');
+        }
+    }
+};
 </script>
-
-<style>
-#app {
-    font-family: monospace;
-}
-
-#app div#diffs-toggle {
-    float: right;
-    padding: 4px 8px 0 0;
-}
-
-.btn-group {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    padding: 5px;
-}
-
-.btn-group > button {
-    font-size: 1.3em;
-    padding: 10px;
-    margin: 5px;
-    border: none;
-    border-radius: 5px;
-    color: white;
-}
-
-.btn-group .merge-btn {
-    background-color: rgb(76, 118, 76);
-}
-.btn-group .merge-btn:hover {
-    background-color: rgb(100, 156, 100);
-}
-
-.btn-group .merge-btn[disabled] {
-    background-color: rgb(117, 117, 117);
-}
-.btn-group .merge-btn[disabled]:hover {
-    background-color: rgb(117, 117, 117);
-}
-.btn-group .reject-btn {
-    background-color: rgb(125, 43, 43);
-}
-.btn-group .reject-btn:hover {
-    background-color: rgb(161, 56, 56);
-}
-
-.comment-input {
-    display: flex;
-    flex-direction: column;
-    padding: 0 5px 5px 10px;
-}
-
-.comment-input input {
-    width: 90%;
-}
-
-.action-bar {
-    margin: 5px;
-}
-</style>
