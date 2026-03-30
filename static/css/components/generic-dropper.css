@@ -65,7 +65,7 @@
 .generic-dropper__actions .generic-dropper__dropclick .arrow {
   width: 23px;
   height: 23px;
-  background-image: url(/images/icons/icon_dropit.png);
+  background-image: url(/static/images/icons/icon_dropit.png);
   background-repeat: no-repeat;
   filter: grayscale(100%);
   background-position: 0 0;
