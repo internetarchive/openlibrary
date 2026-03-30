@@ -42,7 +42,7 @@ class OLAuthenticationError(Exception):
 
 
 def append_random_suffix(text: str, limit: int = 9999) -> str:
-    return f'{text}{random.randint(0, limit)}'
+   return f'{text}{secrets.randbelow(limit + 1)}'
 
 
 def valid_email(email: str) -> bool:
@@ -82,7 +82,7 @@ def generate_hash(secret_key, text, salt=None) -> str:
     salt = (
         salt
         or hmac.HMAC(
-            secret_key, str(random.random()).encode('utf-8'), hashlib.md5
+            secret_key, secrets.token_hex(8).encode('utf-8'), hashlib.md5
         ).hexdigest()[:5]
     )
     hash = hmac.HMAC(
@@ -260,10 +260,9 @@ class Account(web.storage):
     @classmethod
     def generate_random_password(cls, n: int = 12) -> str:
         return ''.join(
-            random.SystemRandom().choice(string.ascii_uppercase + string.digits)
-            for _ in range(n)
-        )
-
+    secrets.choice(string.ascii_uppercase + string.digits)
+    for _ in range(n)
+)
     def generate_login_code(self) -> str:
         """Returns a string that can be set as login cookie to log in as this user."""
         return generate_login_code_for_user(self.username)
