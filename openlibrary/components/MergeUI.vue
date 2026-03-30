@@ -1,5 +1,8 @@
 <template>
-  <div id="app" role="main">
+  <div
+    id="app"
+    role="main"
+  >
     <BookRoom
       :classification="settingsState.selectedClassification"
       :filter="computedFilter"
