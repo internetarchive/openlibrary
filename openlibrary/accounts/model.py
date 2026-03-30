@@ -4,7 +4,6 @@ import datetime
 import hashlib
 import hmac
 import logging
-import random
 import secrets
 import string
 import time
@@ -42,7 +41,7 @@ class OLAuthenticationError(Exception):
 
 
 def append_random_suffix(text: str, limit: int = 9999) -> str:
-   return f'{text}{secrets.randbelow(limit + 1)}'
+    return f'{text}{secrets.randbelow(limit + 1)}'
 
 
 def valid_email(email: str) -> bool:
@@ -260,9 +259,9 @@ class Account(web.storage):
     @classmethod
     def generate_random_password(cls, n: int = 12) -> str:
         return ''.join(
-    secrets.choice(string.ascii_uppercase + string.digits)
-    for _ in range(n)
-)
+            secrets.choice(string.ascii_uppercase + string.digits) for _ in range(n)
+        )
+
     def generate_login_code(self) -> str:
         """Returns a string that can be set as login cookie to log in as this user."""
         return generate_login_code_for_user(self.username)
