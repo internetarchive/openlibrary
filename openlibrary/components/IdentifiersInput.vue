@@ -240,7 +240,7 @@ export default {
 
       const url = this.resolveIdentifierUrl(name, value);
       if (url) {
-        window.open(url, '_blank');
+        window.open(url, '_blank', 'noopener,noreferrer');
       }
     },
 
