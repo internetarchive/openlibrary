@@ -10,9 +10,7 @@ from openlibrary.tests.solr.integration.helpers import (
 )
 
 
-@pytest.mark.skip(
-    reason=("Failing test - documents incorrect behavior of name sort option. ")
-)
+@pytest.mark.skip(reason=("Failing test - documents incorrect behavior of name sort option. "))
 @pytest.mark.asyncio
 async def test_author_search_sort_by_name(solr_container):
     """
@@ -45,9 +43,7 @@ async def test_author_search_sort_by_name(solr_container):
 
         expected_order = ["Tavernier, Alice", "Tavernier, Bob", "Tavernier, John"]
 
-        assert (
-            result_names == expected_order
-        ), f"Expected {expected_order}, got {result_names}"
+        assert result_names == expected_order, f"Expected {expected_order}, got {result_names}"
 
     finally:
         author_keys = [author["key"] for author in authors]

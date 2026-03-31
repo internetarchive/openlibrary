@@ -107,8 +107,7 @@ def solr_container():
                 capture_output=True,
             )
             pytest.fail(
-                f"Solr container failed to start within timeout.\n"
-                f"Container logs:\n{logs[-2000:]}"  # Last 2000 chars
+                f"Solr container failed to start within timeout.\nContainer logs:\n{logs[-2000:]}"  # Last 2000 chars
             )
 
         yield solr_base_url

@@ -18,9 +18,7 @@ def create_test_author(key: str, name: str, **kwargs) -> dict[str, Any]:
     return author
 
 
-async def insert_authors_to_solr(
-    solr_url: str, authors: list[dict[str, Any]], commit: bool = True
-) -> None:
+async def insert_authors_to_solr(solr_url: str, authors: list[dict[str, Any]], commit: bool = True) -> None:
 
     all_adds = []
 
@@ -49,8 +47,8 @@ async def insert_authors_to_solr(
 
         builder = AuthorSolrBuilder(author, mock_solr_reply)
         solr_doc = builder.build()
-        if solr_doc.get('name'):
-            solr_doc['name_str'] = solr_doc['name']
+        if solr_doc.get("name"):
+            solr_doc["name_str"] = solr_doc["name"]
         all_adds.append(solr_doc)
 
     update_request = SolrUpdateRequest(adds=all_adds, commit=commit)
