@@ -30,11 +30,11 @@ from openlibrary.plugins.worksearch.code import (
     validate_search_json_query,
     work_search_async,
 )
+from openlibrary.plugins.worksearch.intent import QueryClassifier
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.plugins.worksearch.intent import QueryClassifier
 
 router = APIRouter()
 
@@ -116,19 +116,19 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
     @classmethod
     def apply_intent_classification(cls, data: Any) -> Any:
         if isinstance(data, dict):
-            if "query" in data and data["query"]:
+            if data.get("query"):
                 return data
-            
+
             raw_q = data.get("q")
             if raw_q:
                 if not data.get("isbn") and not data.get("publish_year") and not data.get("first_publish_year"):
                     intent_data = QueryClassifier.parse_intent(raw_q)
-                    
+
                     if "isbn" in intent_data and not data.get("isbn"):
                         data["isbn"] = intent_data["isbn"]
                     if "publish_year" in intent_data and not data.get("first_publish_year"):
                         data["first_publish_year"] = intent_data["publish_year"]
-                    
+
                     data["q"] = intent_data["q"]
         return data
 
