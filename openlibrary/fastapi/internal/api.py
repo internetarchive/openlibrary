@@ -230,15 +230,14 @@ async def patrons_observations():
     "/observations.json",
     description="Returns anonymized community reviews for a list of works.",
 )
-async def public_observations(olid: Annotated[list[str] | None, Query(description="List of Work OLIDs")] = None) -> dict:
+async def public_observations(
+    olid: Annotated[list[str], Query(description="List of Work OLIDs")] = [],  # noqa: B006, mutable defaults are safe in fastapi
+) -> dict:
     """
     Public observations fetches anonymized community reviews
     for a list of works. Useful for decorating search results.
     """
-    if olid is None:
-        olid = []
-    metrics = {w: get_observation_metrics(w) for w in olid}
-    return {"observations": metrics}
+    return {"observations": {w: get_observation_metrics(w) for w in olid}}
 
 
 async def bestbook_award():
