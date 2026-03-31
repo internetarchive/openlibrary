@@ -3,28 +3,6 @@
 import collections
 import re
 
-
-def reduce_seeds(values):
-    """Function to reduce the seed values got from works db."""
-    d = {
-        "works": 0,
-        "editions": 0,
-        "ebooks": 0,
-        "last_update": "",
-    }
-    subject_processor = SubjectProcessor()
-
-    for v in values:
-        d["works"] += v[0]
-        d['editions'] += v[1]
-        d['ebooks'] += v[2]
-        d['last_update'] = max(d['last_update'], v[3])
-        subject_processor.add_subjects(v[4])
-
-    d['subjects'] = subject_processor.top_subjects()
-    return d
-
-
 RE_SUBJECT = re.compile("[, _]+")
 
 
