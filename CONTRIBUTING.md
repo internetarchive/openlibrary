@@ -1,6 +1,6 @@
 # Contributing
 
-This page covers the community norms, contribution standards, and project management practices for Open Library. For setup and getting started, see the [Quick Start](/developers/quick-start.md) guide.
+This page covers the community norms, contribution standards, and project management practices for Open Library. For setup and getting started, see the [Quick Start](https://docs.openlibrary.org/developers/quick-start.html) guide.
 
 ## Contributor Etiquette
 
@@ -53,8 +53,6 @@ If all Good First Issues are taken, here's how to find something to work on:
 ### Tagging
 
 - If an issue requires immediate fixing, include a comment requesting it be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22).
-
-For how issues are triaged, labeled, and prioritized, see [Project Management](/developers/misc/project-management.md).
 
 ## Code of Conduct
 
