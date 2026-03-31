@@ -82,8 +82,7 @@ services:
     volumes:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
-      # if the db is empty (which as of now is always, since we don't store the
-      # postgres data anywhere).
+      # if the db is empty (ie during first run).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
       - ol-postgres:/var/lib/postgresql
 
