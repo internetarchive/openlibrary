@@ -1212,7 +1212,7 @@ class UserGroup(Thing):
             web.ctx.site.save(
                 self.dict(),
                 f"Adding {userkey} to {self.key}",
-                action="edit-usergroup-add-member"
+                action="edit-usergroup-add-member",
             )
 
     def remove_user(self, userkey):
@@ -1231,7 +1231,7 @@ class UserGroup(Thing):
         web.ctx.site.save(
             self.dict(),
             f"Removing {userkey} from {self.key}",
-            action="edit-usergroup-delete-member"
+            action="edit-usergroup-delete-member",
         )
 
 
@@ -1316,11 +1316,7 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(
-                tag,
-                comment=comment,
-                action="create-tag"
-            )
+            t = web.ctx.site.save(tag, comment=comment, action="create-tag")
             return t
 
 

@@ -351,7 +351,7 @@ class addauthor(delegate.page):
         web.ctx.site.save(
             {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
-            action="create-author"
+            action="create-author",
         )
         raise web.HTTPError('200 OK', {}, key)
 

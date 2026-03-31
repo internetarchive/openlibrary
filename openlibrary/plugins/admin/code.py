@@ -104,11 +104,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     delete_payload = [
         {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
     ]
-    web.ctx.site.save_many(
-        delete_payload,
-        'Delete spam',
-        action="bulk-revert-spam"
-    )
+    web.ctx.site.save_many(delete_payload, 'Delete spam', action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -752,7 +748,7 @@ class permissions:
         web.ctx.site.save_many(
             [root, works, books, authors],
             comment="Updated edit policy.",
-            action="bulk-edit-permissions"
+            action="bulk-edit-permissions",
         )
 
         add_flash_message("info", "Edit policy has been updated!")

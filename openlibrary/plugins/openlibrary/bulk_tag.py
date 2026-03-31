@@ -70,9 +70,7 @@ class bulk_tag_works(delegate.page):
             )  # need to convert class to raw dict in order for save_many to work
 
         web.ctx.site.save_many(
-            docs_to_update,
-            comment="Bulk tagging works",
-            action="bulk-edit-work-tags"
+            docs_to_update, comment="Bulk tagging works", action="bulk-edit-work-tags"
         )
 
         def response(msg, status="success"):
