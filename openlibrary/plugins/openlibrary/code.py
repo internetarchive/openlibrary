@@ -57,6 +57,38 @@ from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 
+def get_patron_status(user) -> str:
+    """Return a Matomo custom dimension value for patron account age.
+
+    Buckets for visit-scoped dimension 1 ("Days Since Registration"):
+      visitor  — not logged in
+      d0       — account created today (UTC)
+      d1+      — 1-6 days since registration
+      d7+      — 7-13 days
+      d14+     — 14-29 days
+      d30+     — 30-89 days
+      d90+     — 90+ days (also the safe fallback on any error)
+    """
+    if not user:
+        return 'visitor'
+    try:
+        reg_date = user.created.date()
+    except (AttributeError, TypeError):
+        return 'd90+'
+    days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
+    if days <= 0:
+        return 'd0'
+    elif days < 7:
+        return 'd1+'
+    elif days < 14:
+        return 'd7+'
+    elif days < 30:
+        return 'd14+'
+    elif days < 90:
+        return 'd30+'
+    return 'd90+'
+
+
 def setup_contextvars(handler):
     """Processor that sets up context variables for the entire request lifecycle.
 
@@ -69,6 +101,7 @@ def setup_contextvars(handler):
     """
     # Set context variables for this request
     set_context_from_legacy_web_py()
+    web.ctx.patron_status = get_patron_status(get_current_user())
 
     # Run the handler (and all subsequent processors)
     return handler()
@@ -1298,7 +1331,7 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5, 'patron_status': 'visitor'})
 
 
 def setup():
