@@ -231,3 +231,29 @@ textarea.toc-editor {
 /* Import styles for sort options */
 @import "components/sort-dropper.css";
 @import "components/pagination.css";
+
+@media only screen and (max-width: 768px) {
+  /* Remove extra top gap above username on My Books mobile header */
+  .mybooks-details header {
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .mybooks-details .account-breadcrumb {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  h2.account-username {
+    margin-top: 0;
+    margin-bottom: 12px;
+  }
+
+  /* Keep mobile section headers flush-left and consistent */
+  .mybooks-menu-mobile .details-title,
+  .mybooks-menu-mobile .carousel-section-header,
+  .mybooks-menu-mobile .carousel-section-header a {
+    margin-left: 0;
+    padding-left: 0;
+  }
+}
