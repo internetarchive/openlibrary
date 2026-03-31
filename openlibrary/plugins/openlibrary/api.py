@@ -52,6 +52,7 @@ from openlibrary.views.loanstats import get_trending_books
 logger = logging.getLogger(__name__)
 
 
+@deprecated("migrated to fastapi")
 class book_availability(delegate.page):
     path = "/availability/v2"
 
