@@ -73,9 +73,9 @@ def get_patron_status(user) -> str:
         return 'visitor'
     try:
         reg_date = user.created.date()
-    except (AttributeError, TypeError):
+        days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
+    except Exception:
         return 'd90+'
-    days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
     if days <= 0:
         return 'd0'
     elif days < 7:
