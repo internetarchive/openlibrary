@@ -1,95 +1,18 @@
-# Getting Started
+# Contributing
 
-## Welcome!
-This welcome section is intended for new contributors.
-
-1. **Quick Tour:** [Quick Public Tour of Open Library (10min)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
-2. **Orientation:** [Volunteer Orientation Video (1.5h)](https://archive.org/details/openlibrary-orientation-2020?start=80)
-    * [Code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md)
-3. **Getting Started:**
-    * [Installation README](https://github.com/internetarchive/openlibrary/tree/master/docker) + [Docker Setup Walk-through (video)](https://archive.org/embed/openlibrary-developer-docs)
-4. **Contributing:**
-    * [How we use git](https://docs.openlibrary.org/developers/tools/git.html)
-    * [Finding good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
-    * [Testing your code](https://docs.openlibrary.org/developers/tools/testing.html)
-    * [Enabling debugging & profiling](https://docs.openlibrary.org/advanced/debugging-and-performance-profiling.html)
-5. **Learning the Code:**
-    * [Technical Tour & System Overview (1h)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
-    * [Walkthrough videos](https://archive.org/details/openlibrary-tour-2020)
-    * [Code Architecture](https://github.com/internetarchive/openlibrary#architecture)
-    * [Front-end Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html)
-    * [Open Library Public APIs](https://openlibrary.org/developers/api)
-6. **Common Tasks**
-    * [Importing Production Book Data Locally](https://docs.openlibrary.org/developers/misc/loading-production-book-data.html)  
-7. **Questions?**
-    * [Docs](https://docs.openlibrary.org/)
-    * [Request a slack invite](https://openlibrary.org/volunteer)
-    * [Weekly Community calls](https://docs.openlibrary.org/everyone/community-call.html)
-    * [Open Library FAQs](https://openlibrary.org/help/faq)
-
-## Quick Tour
-
-A quick public tour of Open Library to get you familiar with the service and its offerings (10min)
-
-[![archive org_embed_openlibrary-tour-2020_openlibrary ogv (1)](https://user-images.githubusercontent.com/978325/91348906-55940d00-e799-11ea-83b9-17cd4d99642b.png)](https://archive.org/embed/openlibrary-tour-2020/openlibrary.ogv)
-
-## Onboarding
-
-A comprehensive volunteer orientation video to learn what it means to work on Open Library (1.5h).
-If you're looking for a good first issue, check out [Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee).
-
-[![archive org_details_openlibrary-orientation-2020_start=80](https://user-images.githubusercontent.com/978325/91350387-78272580-e79b-11ea-9e26-85cfd1d38fe1.png)](https://archive.org/details/openlibrary-orientation-2020?start=80)
-
-## Technical Walkthrough
-
-A deep dive into the technical details, architecture, and code structure behind OpenLibrary.org
-
-[![archive org_details_openlibrary-tour-2020_technical_overview mp4](https://user-images.githubusercontent.com/978325/91350097-11097100-e79b-11ea-87bd-ca9724d5e43c.png)](https://archive.org/details/openlibrary-tour-2020/technical_overview.mp4)
-
-### Code of Conduct
-
-Before continuing, please familiarize yourself with our [code of conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md).
-We are a non-profit, open-source, inclusive project, and we believe everyone deserves a safe place to make the world a little better. We're committed to creating this safe place.
-
-### Join our Community
-
-* The core Open Library team communicates over an invite-only Slack channel. You may request an invitation on our [volunteers](https://openlibrary.org/volunteer) page.
-* The Open Library hosts weekly video calls. Check the [community call page](https://docs.openlibrary.org/1_Everyone/Community-Call.html) for times and details.
-
-## Installing Open Library
-For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation).
-
-[![archive org_details_openlibrary-developer-docs_zoom_0 mp4_autoplay=1 start=2](https://user-images.githubusercontent.com/978325/91351305-ef10ee00-e79c-11ea-9bfb-c2733696ec58.png)](https://archive.org/details/openlibrary-developer-docs/zoom_0.mp4)
-
-Refer to the [docs](https://docs.openlibrary.org/) for more information about getting set up, understanding the codebase, contributing, and more. Check out the sidebar for links to relevant topics.
-
-[Here's a handy cheat sheet](https://docs.openlibrary.org/developers/tools/git.html) if you are new to using Git.
-
-## Common Setup Tasks
-
-### Adding Data to Open Library
-- If you are looking to add data using MARC and ONIX records, visit [Open Library Bots](https://github.com/internetarchive/openlibrary-bots).
-
-## Submitting Issues
-
-[Project Management](https://docs.openlibrary.org/developers/misc/project-management.html) and [Using Managed Labels to Track Issues](https://docs.openlibrary.org/developers/misc/project-management.html#labeling-issues) explain how GitHub issues are triaged, labeled, and prioritized.
-
-### Tagging
-- If an issue requires immediate fixing, please include a comment requesting for it to be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22+).
-
-## Picking Good First Issues
-
-[Here's a list of good first issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee) to help you get started. Please only pick issues that are not assigned to anyone, or if an issue has been assigned but has seen no response or activity for 2 weeks. Do not request to be assigned to issues that are actively being worked on. If you're interested in working on an issue without an assignee or one that has been inactive, comment on it to ask if you can be assigned. If you have questions, please ask the [Lead](https://docs.openlibrary.org/developers/misc/project-management.html#triage) designated by the `Lead: @person` label on the issue.
+This page covers the community norms, contribution standards, and project management practices for Open Library. For setup and getting started, see the [Quick Start](/developers/quick-start.md) guide.
 
 ## Contributor Etiquette
 
 We value all contributors and want to ensure a positive and collaborative environment. Please follow these guidelines:
 
 ### Respecting Other Contributors' Work
+
 - **Do not undermine others' efforts**: If someone has already asked to work on an issue and been assigned (or is actively working on it), please respect their effort. Opening a competing PR without coordination undermines their contribution and violates our community spirit.
 - **Check before starting**: Before beginning work on an issue, check if someone else is already assigned or has recently expressed interest in working on it.
 
 ### Requesting Issue Assignments
+
 - **Quality over quantity**: Please do not ask to be assigned to dozens of issues at a time. Focus on making meaningful contributions rather than accumulating assignments.
 - **Demonstrate understanding**: When requesting to be assigned to an issue, show that you understand the problem by including:
   - A summary of the challenge or bug
@@ -98,33 +21,50 @@ We value all contributors and want to ensure a positive and collaborative enviro
   - Any questions you have about the implementation
 - **Use AI tools responsibly**: While you're encouraged to use AI tools (like LLMs) to assist with research and understanding the codebase, please don't simply copy-paste AI-generated responses into your comments. Take time to understand the suggestions and present them in your own words, demonstrating genuine comprehension of the issue.
 
-### Our Roadmap(s)
-You can see this year (and previous year's) roadmap(s) [here](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
-
-## Development Practices
-
-### Branch Names
-Whenever working on a new feature/hotfix/refactor, make sure a corresponding issue exists.
-We use the issue number in the branch name.
-
-A branch name consists of the: issue number, whether it is a feature/hotfix/refactor, and a human readable slug, e.g:
-
-```
-123/refactor/simplifying-authentication-using-xauthn
-```
-
-### Testing
-See https://docs.openlibrary.org/developers/tools/testing.html for more information.
-
-### Submitting Pull Requests
-
-Once you've finished making your changes, submit a pull request (PR). Please take the time to check whether someone has already raised the issue you are solving. Thank you for your contributions!
-
-Follow these rules when creating a PR:
+## Submitting Pull Requests
 
 1. **Test your code before opening a PR**: Maintainers may close your PR if it has clearly not been tested.
 2. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
 3. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
 4. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
-5. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+5. **Reply when resolving CR comments**: When resolving a comment, reply with "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
 
+## Managing Issues
+
+### Picking Good First Issues
+
+[Browse Good First Issues](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+label%3A%22Good+First+Issue%22+no%3Aassignee)
+
+- Only pick issues that are **not assigned** to anyone
+- If an issue has been assigned but has seen no response or activity for 2 weeks, you may comment to ask if you can take it
+- Do not request to be assigned to issues that are actively being worked on
+- If you have questions, ask the Lead designated by the `Lead: @person` label on the issue
+
+### When No Good First Issues Are Available
+
+If all Good First Issues are taken, here's how to find something to work on:
+
+1. **Browse all unassigned issues** — [filter by recently updated](https://github.com/internetarchive/openlibrary/issues?q=is%3Aissue+is%3Aopen+-linked%3Apr+no%3Aassignee+sort%3Aupdated-desc) to find active discussions
+2. **Look for older issues** that haven't had much activity. Before starting, verify the issue is still relevant by checking that the code area hasn't changed significantly, and leave a comment on the issue to confirm your intent
+3. **Ask in Slack** — request an invite on our [volunteers page](https://openlibrary.org/volunteer). Maintainers can point you to what's actually useful right now
+4. **Attend a weekly community call** — a good place to hear about current priorities
+5. **Documentation improvements** are always welcome and don't require a full dev setup
+
+### Tagging
+
+- If an issue requires immediate fixing, include a comment requesting it be labeled and promoted as [`Priority: 0`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22Priority%3A+0%22).
+
+For how issues are triaged, labeled, and prioritized, see [Project Management](/developers/misc/project-management.md).
+
+## Code of Conduct
+
+Please familiarize yourself with our [Code of Conduct](https://github.com/internetarchive/openlibrary/blob/master/CODE_OF_CONDUCT.md). We are a non-profit, open-source, inclusive project, and we believe everyone deserves a safe place to make the world a little better. We're committed to creating this safe place.
+
+## Community
+
+- The core Open Library team communicates over an invite-only Slack channel. Request an invitation on our [volunteers page](https://openlibrary.org/volunteer).
+- We host weekly video calls. Check the [community call page](https://docs.openlibrary.org/everyone/community-call.html) for times and details.
+
+## Roadmap
+
+View this year's roadmap (and previous years') in the [Open Library Roadmap document](https://docs.google.com/document/d/1KJr3A81Gew7nfuyo9PnCLCjNBDs5c7iR4loOGm1Pafs/edit).
