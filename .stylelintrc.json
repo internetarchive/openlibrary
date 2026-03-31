@@ -1,7 +1,23 @@
 {
-  "extends": [],
-  "plugins": [],
+  "extends": ["stylelint-prettier/recommended"],
+  "plugins": [
+    "stylelint-declaration-strict-value"
+  ],
   "rules": {
+    "scale-unlimited/declaration-strict-value": [
+      [
+        "font-family",
+        "background-color",
+        "z-index",
+        "color"
+      ],
+      {
+        "disableFix": true,
+        "ignoreValues": [
+          "inherit", "transparent", "none"
+        ]
+      }
+    ],
     "color-no-hex": true,
     "color-named": "never",
     "declaration-block-no-duplicate-properties": true,
