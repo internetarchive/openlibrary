@@ -93,7 +93,7 @@ div.chartHome a:hover,
 }
 
 #home-stats-charts .statschart a .label {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.625em;
   text-transform: uppercase;
 }

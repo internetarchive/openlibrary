@@ -9,7 +9,7 @@ from collections.abc import Callable, Generator, Iterable, Iterator
 from dataclasses import dataclass
 from typing import Literal
 
-from scripts.monitoring.haproxy_monitor import GraphiteEvent
+from scripts.monitoring.utils import GraphiteEvent
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 

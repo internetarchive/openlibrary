@@ -10,7 +10,7 @@ table#editions,
   margin-top: 15px;
   border-collapse: collapse;
   clear: both;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 table#editions .cta-button-group,
@@ -43,7 +43,7 @@ table#editions thead tr th.title:focus,
 
 table#editions th,
 .editions-table th {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: 600;
   text-transform: uppercase;
@@ -122,13 +122,13 @@ table#editions .highlight,
 }
 
 .lists table#editions h3 {
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
   font-size: 0.75em;
   display: inline;
 }
 
 .lists table#editions th {
-  font-family: var(--body-family) !important;
+  font-family: var(--font-family-body) !important;
   background-color: transparent;
   text-align: left;
   font-weight: normal;

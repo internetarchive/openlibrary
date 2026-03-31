@@ -28,7 +28,7 @@ div#content {
 
 /* stylelint-disable selector-max-specificity */
 div#content {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -43,11 +43,11 @@ div#revertLink {
   top: 60px;
   right: 20px;
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* stylelint-enable selector-max-specificity */
 .formElement {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--darker-grey);
 }
 .label {
@@ -55,15 +55,15 @@ div#revertLink {
 }
 .label label {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: 700;
 }
 .label span {
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 textarea {
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   font-size: 0.875em;
   padding: 5px;
   resize: vertical;
@@ -71,7 +71,7 @@ textarea {
 .formElement input[type="text"],
 .formElement select {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--dark-grey);
   padding: 5px;
 }
@@ -84,7 +84,7 @@ table.code {
 table.code td {
   background-color: var(--white);
   vertical-align: top;
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   font-size: 0.875em;
   padding: 5px;
 }
@@ -109,7 +109,7 @@ div#databar a {
   margin: 0 0 5px;
 }
 #editHead h2 a {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--red);
   font-size: var(--font-size-label-large);
   font-weight: normal;

@@ -44,6 +44,9 @@ class autocomplete(delegate.page):
         """Exclude certain documents"""
         return True
 
+    def olid_to_key(self, olid: str) -> str:
+        return olid_to_key(olid)
+
     def GET(self):
         return self.direct_get()
 
@@ -58,7 +61,7 @@ class autocomplete(delegate.page):
             embedded_olid = find_olid_in_string(q, self.olid_suffix)
 
         if embedded_olid:
-            solr_q = f'key:"{olid_to_key(embedded_olid)}"'
+            solr_q = f'key:"{self.olid_to_key(embedded_olid)}"'
         else:
             solr_q = self.query.format(q=q)
 
@@ -77,7 +80,7 @@ class autocomplete(delegate.page):
 
         if embedded_olid and not docs:
             # Grumble! Work not in solr yet. Create a dummy.
-            fake_doc = self.db_fetch(olid_to_key(embedded_olid))
+            fake_doc = self.db_fetch(self.olid_to_key(embedded_olid))
             if fake_doc:
                 docs = [fake_doc]
 
@@ -143,6 +146,14 @@ class series_autocomplete(autocomplete):
     fl = 'key,name'
     olid_suffix = 'L'
     query = 'name:({q}*) OR name:"{q}"^2'
+
+    def olid_to_key(self, olid: str) -> str:
+        """
+        Series records live under /series/ but OLIDs ending with 'L'
+        normally map to /lists/ via olid_to_key. Override to use the
+        correct path.
+        """
+        return f"/series/{olid}"
 
 
 class subjects_autocomplete(autocomplete):

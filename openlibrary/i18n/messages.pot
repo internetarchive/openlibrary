@@ -491,11 +491,11 @@ msgstr ""
 msgid "My Book Review"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
 msgstr ""
 
@@ -507,21 +507,9 @@ msgstr ""
 msgid "Page {page}, current page"
 msgstr ""
 
-#: OlPagination.html design.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
 msgstr ""
 
 #: Profile.html
@@ -683,12 +671,12 @@ msgid "View MARC"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Older"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Newer"
 msgstr ""
 
@@ -1068,7 +1056,7 @@ msgid "Edit this page"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: my_books/check_ins/check_in_prompt.html
+#: design/popover.html my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -1454,6 +1442,20 @@ msgid "Loan History"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
+msgid "this book"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "Unable to return %s. Please try again later or contact info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "%s has been returned."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
 msgid ""
 "Your account has hit a lending limit. Please try again later or contact "
 "info@archive.org."
@@ -1799,11 +1801,11 @@ msgid "Not yet imported"
 msgstr ""
 
 #: design.html
-msgid "Design Pattern Library"
+msgid "Web Component Library"
 msgstr ""
 
 #: design.html
-msgid "Components"
+msgid "Popover"
 msgstr ""
 
 #: design.html type/edition/view.html type/work/view.html
@@ -1867,6 +1869,28 @@ msgstr ""
 
 #: design.html
 msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode"
+msgstr ""
+
+#: design.html
+msgid ""
+"When total pages is unknown, use arrows mode to show only previous/next "
+"navigation."
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (has next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (no next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (first page, has next)"
 msgstr ""
 
 #: design.html
@@ -2112,10 +2136,6 @@ msgstr ""
 
 #: history.html
 msgid "...to this version"
-msgstr ""
-
-#: books/daisy.html history.html
-msgid "Back"
 msgstr ""
 
 #: import_preview.html
@@ -2403,6 +2423,10 @@ msgstr ""
 
 #: showmarc.html
 msgid "Download Link"
+msgstr ""
+
+#: showmarc.html
+msgid "Next"
 msgstr ""
 
 #: status.html
@@ -3067,7 +3091,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html design/popover.html
 msgid "Delete"
 msgstr ""
 
@@ -3370,7 +3394,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html type/edition/modal_links.html
+#: account/view.html design/popover.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -3542,6 +3566,10 @@ msgstr ""
 msgid ""
 "IP address %(address)s has been added to the textarea. Please click Save "
 "to block that IP."
+msgstr ""
+
+#: admin/block.html
+msgid "Blocked IP Addresses"
 msgstr ""
 
 #: admin/graphs.html
@@ -4064,6 +4092,10 @@ msgid ""
 "openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
 
+#: admin/sync.html
+msgid "TODO"
+msgstr ""
+
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
 msgstr ""
@@ -4221,10 +4253,6 @@ msgstr ""
 
 #: admin/memory/index.html
 msgid "mark"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "Prev"
 msgstr ""
 
 #: admin/memory/object.html
@@ -4756,7 +4784,7 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
-#: books/add.html books/edit/edition.html books/edit/excerpts.html
+#: books/add.html
 msgid "For example:"
 msgstr ""
 
@@ -4883,6 +4911,10 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/daisy.html
+msgid "Back"
 msgstr ""
 
 #: books/daisy.html
@@ -5233,6 +5265,10 @@ msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>envisioning the next 50 years</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Publishing Info"
 msgstr ""
 
@@ -5249,6 +5285,10 @@ msgid "City, Country please."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>New York, USA; Sydney, Australia</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "What is the copyright date?"
 msgstr ""
 
@@ -5261,11 +5301,19 @@ msgid "Edition Name (if applicable):"
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Series Name (if applicable)"
 msgstr ""
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <i>The Story of Civilization, Part III</i>"
 msgstr ""
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
@@ -5363,6 +5411,10 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <i>A Plume Book</i>"
 msgstr ""
 
 #: books/edit/edition.html
@@ -5602,6 +5654,10 @@ msgstr ""
 
 #: books/edit/excerpts.html
 msgid "Page number?"
+msgstr ""
+
+#: books/edit/excerpts.html
+msgid "For example: <i>23, xi or 433-434</i>"
 msgstr ""
 
 #: books/edit/excerpts.html
@@ -5860,6 +5916,64 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/popover.html
+msgid "Popover component"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"The ol-popover component provides a reusable animated popover panel "
+"anchored to a trigger element. It animates from the trigger using "
+"transform-origin, closes on Escape or outside click, and respects "
+"prefers-reduced-motion."
+msgstr ""
+
+#: design/popover.html
+msgid "Menu popover"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"Popovers animate from the trigger using transform-origin. Click the "
+"button to see the scale + fade entrance."
+msgstr ""
+
+#: design/popover.html
+msgid "Options"
+msgstr ""
+
+#: design/popover.html
+msgid "Duplicate"
+msgstr ""
+
+#: design/popover.html
+msgid "Archive"
+msgstr ""
+
+#: design/popover.html
+msgid "Move"
+msgstr ""
+
+#: design/popover.html
+msgid "Placement options"
+msgstr ""
+
+#: design/popover.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the popover appears. The "
+"%(transform_origin)s automatically matches so the animation always "
+"expands from the trigger."
+msgstr ""
+
+#: design/popover.html
+msgid "bottom-start"
+msgstr ""
+
+#: design/popover.html
+msgid "top-center"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -5931,11 +6045,11 @@ msgstr ""
 #: home/loans.html
 #, python-format
 msgid ""
-"You can still <a href=\"/borrow\">borrow</a> one more book until you've "
-"hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one"
+" more book until you've hit the limit!"
 msgid_plural ""
-"You can still <a href=\"/borrow\">borrow</a> %(count)d more books until "
-"you've hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
+"%(count)d more books until you've hit the limit!"
 msgstr[0] ""
 msgstr[1] ""
 

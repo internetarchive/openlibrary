@@ -11,6 +11,7 @@ from collections import defaultdict
 
 import qrcode
 import web
+from typing_extensions import deprecated
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -51,6 +52,7 @@ from openlibrary.views.loanstats import get_trending_books
 logger = logging.getLogger(__name__)
 
 
+@deprecated("migrated to fastapi")
 class book_availability(delegate.page):
     path = "/availability/v2"
 
@@ -77,6 +79,7 @@ class book_availability(delegate.page):
             return []
 
 
+@deprecated("migrated to fastapi")
 class trending_books_api(delegate.page):
     path = "/trending(/?.*)"
     # path = "/trending/(now|daily|weekly|monthly|yearly|forever)"
@@ -115,6 +118,7 @@ class trending_books_api(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class browse(delegate.page):
     path = "/browse"
     encoding = "json"
@@ -139,6 +143,7 @@ class browse(delegate.page):
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
+@deprecated("migrated to fastapi")
 class ratings(delegate.page):
     path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
@@ -229,6 +234,7 @@ class ratings(delegate.page):
         return r
 
 
+@deprecated("migrated to fastapi")
 class booknotes(delegate.page):
     path = r"/works/OL(\d+)W/notes"
     encoding = "json"
@@ -575,6 +581,7 @@ class patrons_observations(delegate.page):
         return response("Observations removed")
 
 
+@deprecated("migrated to fastapi")
 class public_observations(delegate.page):
     """
     Public observations fetches anonymized community reviews
@@ -988,21 +995,22 @@ class unlink_ia_ol(delegate.page):
         try:
             HMACToken.verify(digest, msg, "ia_sync_secret")
         except (ValueError, ExpiredTokenError):
-            raise web.HTTPError("401 Unauthorized")
+            raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         ocaid, ts = msg.split("|")
 
         if not ts or not ocaid:
-            raise web.HTTPError("400 Bad Request", data=json.dumps({"error": "Invalid inputs"}))
+            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, data=json.dumps({"error": "Invalid inputs"}))
 
         # Fetch affected editions
         if not (edition_keys := web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})):
-            raise web.HTTPError("404 Not Found")
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
         if len(editions) > 1:
             raise web.HTTPError(
                 "409 Conflict",
+                {"Content-Type": "application/json"},
                 data=json.dumps({"error": "Multiple editions associated with given ocaid"}),
             )
 
@@ -1013,7 +1021,7 @@ class unlink_ia_ol(delegate.page):
             self.make_dark(edition)
         except ClientException as e:
             logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
-            raise web.HTTPError("500 Internal Server Error", data=json.dumps({"error": str(e)}))
+            raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"}, data=json.dumps({"error": str(e)}))
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 

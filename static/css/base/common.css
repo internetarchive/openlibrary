@@ -38,7 +38,7 @@ body {
   font-size: 100%;
   line-height: normal;
   background-color: var(--beige);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 fieldset {
   width: 100%;
@@ -76,7 +76,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   font-weight: 600;
 }

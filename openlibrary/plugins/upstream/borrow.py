@@ -1,5 +1,6 @@
 """Handlers for borrowing books"""
 
+import contextlib
 import copy
 import hashlib
 import hmac
@@ -105,7 +106,7 @@ class borrow(delegate.page):
     def GET(self, key):
         return self.POST(key)
 
-    def POST(self, key):  # noqa: PLR0915
+    def POST(self, key):  # noqa: PLR0912, PLR0915
         """Called when the user wants to borrow the edition"""
 
         i = web.input(
@@ -161,7 +162,16 @@ class borrow(delegate.page):
             raise web.seeother(archive_url)
 
         error_redirect = archive_url
-        edition_redirect = urllib.parse.quote(i.redirect or edition.url())
+
+        # Strip scheme/host to prevent open-redirect attacks.
+        if i.redirect:
+            parsed = urllib.parse.urlsplit(i.redirect)
+            edition_redirect = urllib.parse.urlunsplit(
+                ('', '', parsed.path, parsed.query, parsed.fragment)
+            )
+        else:
+            edition_redirect = edition.url()
+
         user = accounts.get_current_user()
 
         if user:
@@ -173,18 +183,33 @@ class borrow(delegate.page):
             )  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
+            return_path = f"{edition_redirect}/borrow?action={action}"
             redirect_url = (
-                f"/account/login?redirect={edition_redirect}/borrow?action={action}"
+                f"/account/login?redirect={urllib.parse.quote(return_path, safe='')}"
             )
             if i._autoReadAloud is not None:
                 redirect_url += '&_autoReadAloud=' + i._autoReadAloud
             raise web.seeother(redirect_url)
 
         if action == 'return':
-            lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
-            stats.increment('ol.loans.return')
+            with contextlib.suppress(lending.PatronAccessException):
+                lending.s3_loan_api(s3_keys, ocaid=edition.ocaid, action='return_loan')
+
             edition.update_loan_status()
             user.update_loan_status()
+            title = edition.title or _('this book')
+
+            if user.has_borrowed(edition):
+                add_flash_message(
+                    'error',
+                    _(
+                        'Unable to return %s. Please try again later or contact info@archive.org.'
+                    )
+                    % title,
+                )
+            else:
+                stats.increment('ol.loans.return')
+                add_flash_message('success', _('%s has been returned.') % title)
             raise web.seeother(edition_redirect)
         elif action == 'join-waitinglist':
             lending.get_cached_user_waiting_loans.memcache_delete(

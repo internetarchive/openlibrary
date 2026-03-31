@@ -41,7 +41,7 @@ dd {
 }
 .diff .revisions th {
   padding: 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: 700;
   color: var(--black);
@@ -51,7 +51,7 @@ dd {
 }
 .diff .revisions td {
   padding: 10px;
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   background: var(--lightest-grey);
   vertical-align: top;
   font-size: 0.875em;

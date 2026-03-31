@@ -9,9 +9,11 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint
+.PHONY: all clean distclean git css js components lit-components i18n lint frontend
 
 all: git css js components lit-components i18n
+
+frontend: css js components lit-components
 
 css:
 	mkdir -p $(BUILD)/css_new
