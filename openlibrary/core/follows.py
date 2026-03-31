@@ -97,11 +97,11 @@ class PubSub:
             return []
 
         # Filter to only publishers with public reading logs
-        prefs = web.ctx.site.get_many([f'/people/{u}/preferences' for u in usernames])
         usernames = [
-            p.key.split('/')[2]
-            for p in prefs
-            if p.dict().get('notifications', {}).get('public_readlog') == 'yes'
+            u
+            for u in usernames
+            if (user := web.ctx.site.get(f'/people/{u}'))
+            and user.preferences().get('public_readlog', 'no') == 'yes'
         ]
 
         if not usernames:

@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import web
 
+from openlibrary.core import db as ol_db
 from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
 
@@ -17,12 +18,11 @@ CREATE TABLE bookshelves_books (
 """
 
 
-def _make_pref(username, public):
-    """Build a mock preferences object like web.ctx.site.get_many returns."""
-    p = MagicMock()
-    p.key = f"/people/{username}/preferences"
-    p.dict.return_value = {"notifications": {"public_readlog": "yes" if public else "no"}}
-    return p
+def _make_user(username, public):
+    """Build a mock User object whose .preferences() returns the real stored shape."""
+    u = MagicMock()
+    u.preferences.return_value = {"public_readlog": "yes" if public else "no"}
+    return u
 
 
 def _make_subscriptions(publishers):
@@ -33,8 +33,13 @@ def _make_subscriptions(publishers):
 class TestGetFeedPrivacy:
     @classmethod
     def setup_class(cls):
+        ol_db._get_db.cache_clear()
         web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
         get_db().query(READING_LOG_DDL)
+
+    @classmethod
+    def teardown_class(cls):
+        ol_db._get_db.cache_clear()
 
     def setup_method(self):
         self.db = get_db()
@@ -44,14 +49,26 @@ class TestGetFeedPrivacy:
     def teardown_method(self):
         self.db.query("delete from bookshelves_books;")
 
+    def _site_get(self, user_map):
+        """Return a side_effect function for web.ctx.site.get() keyed by username."""
+
+        def _get(path):
+            username = path.split("/")[-1]
+            return user_map.get(username)
+
+        return _get
+
     def test_get_feed_excludes_private_readlog(self):
         """Publishers with private reading logs must not appear in the feed."""
-        prefs = [_make_pref("bob", public=True), _make_pref("carol", public=False)]
+        user_map = {"bob": _make_user("bob", public=True), "carol": _make_user("carol", public=False)}
 
-        with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
-            with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
-                mock_web.ctx.site.get_many.return_value = prefs
-                feed = PubSub.get_feed("alice")
+        with (
+            patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])),
+            patch("openlibrary.core.follows.web") as mock_web,
+            patch("openlibrary.core.follows.Bookshelves.add_solr_works"),
+        ):
+            mock_web.ctx.site.get.side_effect = self._site_get(user_map)
+            feed = PubSub.get_feed("alice")
 
         usernames = [r.username for r in feed]
         assert "bob" in usernames
@@ -59,12 +76,15 @@ class TestGetFeedPrivacy:
 
     def test_get_feed_includes_public_readlog(self):
         """Publishers with public reading logs should appear in the feed."""
-        prefs = [_make_pref("bob", public=True), _make_pref("carol", public=True)]
+        user_map = {"bob": _make_user("bob", public=True), "carol": _make_user("carol", public=True)}
 
-        with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
-            with patch("openlibrary.core.follows.Bookshelves.add_solr_works"):
-                mock_web.ctx.site.get_many.return_value = prefs
-                feed = PubSub.get_feed("alice")
+        with (
+            patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])),
+            patch("openlibrary.core.follows.web") as mock_web,
+            patch("openlibrary.core.follows.Bookshelves.add_solr_works"),
+        ):
+            mock_web.ctx.site.get.side_effect = self._site_get(user_map)
+            feed = PubSub.get_feed("alice")
 
         usernames = [r.username for r in feed]
         assert "bob" in usernames
@@ -72,10 +92,10 @@ class TestGetFeedPrivacy:
 
     def test_get_feed_all_private_returns_empty(self):
         """If all followed publishers have private logs, feed should be empty."""
-        prefs = [_make_pref("bob", public=False), _make_pref("carol", public=False)]
+        user_map = {"bob": _make_user("bob", public=False), "carol": _make_user("carol", public=False)}
 
         with patch.object(PubSub, "get_following", return_value=_make_subscriptions(["bob", "carol"])), patch("openlibrary.core.follows.web") as mock_web:
-            mock_web.ctx.site.get_many.return_value = prefs
+            mock_web.ctx.site.get.side_effect = self._site_get(user_map)
             feed = PubSub.get_feed("alice")
 
         assert feed == []
