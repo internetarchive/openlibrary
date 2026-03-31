@@ -1,6 +1,6 @@
 # Docker Guide
 
-This guide covers everything Docker-related for local Open Library development. For the fastest path to your first contribution, start with the [Quick Start](/developers/quick-start.md) guide.
+This guide covers everything Docker-related for local Open Library development. For the fastest path to your first contribution, start with the [Quick Start](https://docs.openlibrary.org/developers/quick-start.html) guide.
 
 ## Install Docker
 
@@ -12,7 +12,7 @@ This guide covers everything Docker-related for local Open Library development. 
 
 - Docker Desktop: <https://docs.docker.com/get-docker/>
 
-For **macs** using an `M1 Chip`, please use [Docker Desktop >= 4.3.0](https://docs.docker.com/desktop/mac/release-notes/) and make sure that Docker Desktop Preferences `General / Use Docker Compose V2` is checked, enabling Docker to run without requiring `Rosetta 2`.
+For **macs** using an `M1 Chip`, please make sure that Docker Desktop Preferences `General / Use Docker Compose V2` is checked, enabling Docker to run without requiring `Rosetta 2`.
 
 ### Test Docker
 
@@ -29,7 +29,7 @@ Linux users, note the lack of `sudo` before `docker run hello-world`. See the [L
 ## Prepare your system
 
 > [!IMPORTANT]
-> **Windows** users should see [Fix line endings, symlinks, and git submodules](/developers/tools/git.md#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
+> **Windows** users should see [Fix line endings, symlinks, and git submodules](https://docs.openlibrary.org/developers/tools/git.html#fix-line-endings-symlinks-and-git-submodules-only-for-windows-users-not-using-a-linux-vm). Skipping those steps will likely prevent the containers from coming up.
 
 We recommend adjusting Docker's resource settings to use at least 4GB of RAM and 2GB of swap. The defaults of 2GB RAM and 1GB swap are likely to cause the error `Killed` when running `build-assets` to build JS dependencies.
 
@@ -88,7 +88,7 @@ Occasionally, there will be cases when changes we pull or make to our codebase w
 | --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **`pip` python package dependencies** (e.g. `requirements.txt`) | rebuild just the `home` image with: `docker compose build home`                                                                                                                                             |
 | **`npm` packages**                                              | run `docker compose run --rm home npm install --no-audit` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)                                                                 |
-| **`js`, `vue`, `css`** and other static front-end assets        | perform a complete rebuild of assets using `docker compose run --rm home npm run build-assets`, or follow the [Frontend Guide](/developers/frontend/frontend-guide.md) to rebuild only certain asset types. |
+| **`js`, `vue`, `css`** and other static front-end assets        | perform a complete rebuild of assets using `docker compose run --rm home npm run build-assets`, or follow the [Frontend Guide](https://docs.openlibrary.org/developers/frontend/frontend-guide.html) to rebuild only certain asset types. |
 
 > [!WARNING]
 > In the off-chance you find yourself needing to edit core dependencies like `apt-get` or networking, you will most likely need to do a [full rebuild](#fully-resetting-your-environment). If you are making this sort of change, you will know exactly what you are doing. See [Developing the Dockerfile](#developing-the-dockerfile).
