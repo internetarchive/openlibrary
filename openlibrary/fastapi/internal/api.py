@@ -176,21 +176,20 @@ async def browse(
     pagination: Annotated[Pagination, Depends()],
     q: Annotated[str, Query()] = "",
     subject: Annotated[str, Query()] = "",
-    sorts: Annotated[str, Query()] = "",
+    sorts: Annotated[list[str], BeforeValidator(parse_comma_separated_list), Query()] = [],  # noqa: B006
 ) -> dict:
     """
     Dynamically fetches the next page of books and checks if they are
     available to be borrowed from the Internet Archive without having
     to reload the whole web page.
     """
-    sorts_list = [s.strip() for s in sorts.split(",") if s.strip()]
 
     url = lending.compose_ia_url(
         query=q,
         limit=pagination.limit,
         page=pagination.page,
         subject=subject,
-        sorts=sorts_list,
+        sorts=sorts,
     )
 
     works = lending.get_available(url=url) if url else []
