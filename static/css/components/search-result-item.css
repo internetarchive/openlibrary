@@ -142,7 +142,7 @@
 
 .searchResultItem .bookcover {
   width: 100%;
-  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0
+  margin: var(--spacing-inline-sm) var(--spacing-inline-md) 0
     var(--spacing-inline-sm);
   text-align: center;
 }
