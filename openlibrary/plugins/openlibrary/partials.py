@@ -17,7 +17,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
-from openlibrary.views.loanstats import get_trending_books
+from openlibrary.views.loanstats import get_trending_books_async
 
 
 class PartialDataHandler(ABC):
@@ -133,7 +133,7 @@ class CarouselCardPartial(PartialDataHandler):
         if query_type == "BROWSE":
             return await self._do_browse_query(params)
         if query_type == "TRENDING":
-            return self._do_trends_query(params)
+            return await self._do_trends_query(params)
         if query_type == "SUBJECTS":
             return await self._do_subjects_query(params)
 
@@ -182,8 +182,8 @@ class CarouselCardPartial(PartialDataHandler):
         results = await get_available_async(url=url)
         return results if "error" not in results else []
 
-    def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
-        return get_trending_books(
+    async def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
+        return await get_trending_books_async(
             minimum=3, limit=params.limit, page=params.page, sort_by_count=False
         )
 

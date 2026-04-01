@@ -20,7 +20,8 @@ from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import async_utils, dateutil, uniq
+from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -1131,5 +1132,5 @@ class IA_Lending_API:
 ia_lending_api = IA_Lending_API()
 
 # Create a sync wrapper for backward compatibility
-get_available = async_utils.async_bridge.wrap(get_available_async)
+get_available = async_bridge.wrap(get_available_async)
 public(get_available)

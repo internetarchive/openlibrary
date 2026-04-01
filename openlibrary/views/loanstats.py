@@ -6,6 +6,7 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import public
+from openlibrary.utils.async_utils import async_bridge
 
 from .. import app
 from ..core import cache
@@ -48,8 +49,7 @@ def reading_log_summary():
     return stats
 
 
-@public
-def get_trending_books(
+async def get_trending_books_async(
     since_days=1,
     since_hours=0,
     limit=18,
@@ -69,7 +69,7 @@ def get_trending_books(
             minimum=minimum,
         )
     )
-    Bookshelves.add_solr_works(logged_books, fields=fields)
+    await Bookshelves.add_solr_works_async(logged_books, fields=fields)
 
     return [book['work'] for book in logged_books if book.get('work')]
 
@@ -204,3 +204,8 @@ class readinglog_stats(app.view):
                     item['availability'] = availabilities.get(item['work']['key'])
 
         return app.render_template("stats/readinglog", stats=stats)
+
+
+# Create a sync wrapper for backward compatibility
+get_trending_books = async_bridge.wrap(get_trending_books_async)
+public(get_trending_books)

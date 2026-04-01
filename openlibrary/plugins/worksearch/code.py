@@ -87,8 +87,7 @@ def get_facet_map() -> tuple[tuple[str, str]]:
     )
 
 
-@public
-def get_solr_works(
+async def get_solr_works_async(
     work_keys: set[str], fields: Iterable[str] | None = None, editions=False
 ) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
@@ -102,7 +101,7 @@ def get_solr_works(
 
     if editions:
         # To get the top matching edition, need to do a proper query
-        resp = run_solr_query(
+        resp = await run_solr_query_async(
             WorkSearchScheme(),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
@@ -115,7 +114,10 @@ def get_solr_works(
             for doc in resp.docs
         }
     else:
-        return {doc['key']: doc for doc in get_solr().get_many(work_keys, fields)}
+        return {
+            doc['key']: doc
+            for doc in await get_solr().get_many_async(work_keys, fields)
+        }
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -1205,6 +1207,11 @@ def validate_search_json_query(q: str | None) -> str | None:
         )
 
     return None
+
+
+# Create a sync wrapper for backward compatibility
+get_solr_works = async_bridge.wrap(get_solr_works_async)
+public(get_solr_works)
 
 
 def setup():

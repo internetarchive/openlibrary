@@ -11,6 +11,7 @@ from infogami.infobase.utils import flatten
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -159,7 +160,7 @@ class Bookshelves(db.CommonExtras):
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def add_solr_works(
+    async def add_solr_works_async(
         cls, readinglog_items, fields: Iterable[str] | None = None
     ) -> None:
         """Given a list of readinglog_items, such as those returned by
@@ -168,11 +169,11 @@ class Bookshelves(db.CommonExtras):
         to each item in readinglog_items.
         """
         from openlibrary.core.lending import add_availability
-        from openlibrary.plugins.worksearch.code import get_solr_works
+        from openlibrary.plugins.worksearch.code import get_solr_works_async
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
-        work_index = get_solr_works(
+        work_index = await get_solr_works_async(
             {f"/works/OL{i['work_id']}W" for i in readinglog_items},
             fields,
             editions=True,
@@ -191,6 +192,13 @@ class Bookshelves(db.CommonExtras):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
                 readinglog_items[i]['work'] = work_index[key]
+
+    @classmethod
+    def add_solr_works(
+        cls, readinglog_items, fields: Iterable[str] | None = None
+    ) -> None:
+        """Sync version for backwards compatibility."""
+        return async_bridge.run(cls.add_solr_works_async(readinglog_items, fields))
 
     @classmethod
     def count_total_books_logged_by_user(
