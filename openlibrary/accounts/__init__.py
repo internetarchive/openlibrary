@@ -44,20 +44,19 @@ class RunAs:
         if not site.get(None):
             setup_site()
 
-        account = site.get_user()
-        self.calling_user_auth_token = account and account.generate_login_code()
+        self.calling_user_auth_token = site.get()._conn.get_auth_token()
 
         # Temporarily become user
         web.ctx.conn.set_auth_token(self.tmp_account.generate_login_code())
         # Here we have both web.ctx and the context vars site so this work in fastapi and web.py
         # We are moving towards the fastapi only world so this is a holdover.
-        site._conn.set_auth_token(self.tmp_account.generate_login_code())
+        site.get()._conn.set_auth_token(self.tmp_account.generate_login_code())
         return self.tmp_account
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Return auth token to original user or no-user
         web.ctx.conn.set_auth_token(self.calling_user_auth_token)
-        site._conn.set_auth_token(self.calling_user_auth_token)
+        site.get()._conn.set_auth_token(self.calling_user_auth_token)
 
 
 # Confirmed functions (these have to be here)
