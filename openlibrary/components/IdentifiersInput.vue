@@ -91,6 +91,19 @@
         >
           {{ item }}
         </div>
+        <div class="preview-cell" role="cell">
+          <a
+            v-if="identifierConfigsByKey[name] && identifierConfigsByKey[name].url"
+            :href="identifierConfigsByKey[name].url.replace('@@@', item)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="form-control preview-btn"
+            title="Preview in new tab"
+          >
+            Preview ↗
+          </a>
+        </div>
+
         <div
           class="remove-button"
           role="cell"
@@ -345,8 +358,7 @@ select.form-control {
 }
 .assigned-identifiers-table {
   display: grid;
-  grid-template-columns: 60% auto auto;
-  gap: 4px;
+  grid-template-columns: 50% 1fr auto auto;
   align-items: center;
   margin-top: 4px;
   border-top: 1px solid #ddd;
@@ -361,26 +373,39 @@ select.form-control {
 .remove-button {
   justify-self: end;
 }
+.preview-btn {
+  text-decoration: none;
+  white-space: nowrap;
+  text-align: center;
+  color: #02598b;
+  background-color: #f8f9fa;
+}
+.preview-btn:hover {
+  text-decoration: underline;
+  background-color: #e2e6ea;
+}
 /* The <select> element will cause the IdentifiersInput area to expand past its boundaries at around 850px which is why the media query targets 855px and not the standard tablet breakpoint of 768. */
 @media (max-width: 855px) {
   .identifiers-table {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "cell1 cell1"
-      "cell2 cell3";
+      "cell2 cell3";  grid-template-columns: 50% auto auto auto; 
+
   }
   .cell1 { grid-area: cell1; }
   .cell2 { grid-area: cell2; }
   .cell3 { grid-area: cell3; }
   .assigned-identifiers-table {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     grid-template-areas:
-      "identifier-name remove-button"
-      "identifier-value remove-button";
+      "identifier-name preview-cell remove-button"
+      "identifier-value preview-cell remove-button";
   }
   .identifier-name { grid-area: identifier-name; font-weight: bold; }
   .identifier-value { grid-area: identifier-value; }
-  .remove-button { grid-area: remove-button; }
+  .preview-cell { grid-area: preview-cell; justify-self: end; }
+  .remove-button { grid-area: remove-button; justify-self: end; }
 }
 .form-control {
   padding: .375rem .75rem;
