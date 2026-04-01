@@ -41,7 +41,7 @@ class RunAs:
     def __enter__(self):
         # Save token of currently logged in user (or no-user)
         # If being called from the context of a script, we setup a context vars site
-        if not site.get(default=None):
+        if not site.get(None):
             setup_site()
 
         account = site.get_user()
