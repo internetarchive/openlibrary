@@ -91,7 +91,10 @@
         >
           {{ item }}
         </div>
-        <div class="preview-cell" role="cell">
+        <div
+          class="preview-cell"
+          role="cell"
+        >
           <a
             v-if="identifierConfigsByKey[name]?.url"
             :href="getPreviewUrl(name, item)"
