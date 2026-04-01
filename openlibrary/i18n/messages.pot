@@ -2068,7 +2068,7 @@ msgstr ""
 msgid "history"
 msgstr ""
 
-#: diff.html
+#: diff.html status.html
 msgid "Added"
 msgstr ""
 
@@ -2434,6 +2434,64 @@ msgstr ""
 
 #: status.html
 msgid "Server status"
+msgstr ""
+
+#: status.html
+msgid "Testing Environment"
+msgstr ""
+
+#: status.html
+msgid "PR number or GitHub PR URL"
+msgstr ""
+
+#: status.html
+msgid "Add PR"
+msgstr ""
+
+#: status.html
+msgid "PR"
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html status.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr ""
+
+#: status.html
+msgid "Pinned Commit"
+msgstr ""
+
+#: status.html
+msgid "Branch HEAD"
+msgstr ""
+
+#: status.html
+msgid "Drift"
+msgstr ""
+
+#: status.html
+msgid "Active"
+msgstr ""
+
+#: status.html
+msgid "Pull to Latest"
+msgstr ""
+
+#: status.html
+msgid "Toggle Active"
+msgstr ""
+
+#: lists/lists.html status.html type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
+#: status.html
+msgid "Force Rebuild"
+msgstr ""
+
+#: status.html
+msgid "No PRs in testing set."
 msgstr ""
 
 #: status.html
@@ -4780,12 +4838,6 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
-msgid "Title"
-msgstr ""
-
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
@@ -6858,10 +6910,6 @@ msgstr ""
 
 #: lists/lists.html
 msgid "Remove this seed?"
-msgstr ""
-
-#: lists/lists.html type/list/edit.html type/series/edit.html
-msgid "Remove"
 msgstr ""
 
 #: lists/lists.html
