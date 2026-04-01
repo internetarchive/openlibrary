@@ -18,7 +18,7 @@
   background-color: var(--black);
   opacity: 0.5;
   filter: alpha(opacity=50);
-  z-index: var(--z-index-level-13) !important;
+  z-index: var(--z-index-modal) !important;
 }
 .ui-sortable-placeholder {
   border: 1px dotted var(--mid-grey);

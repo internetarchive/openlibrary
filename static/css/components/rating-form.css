@@ -58,6 +58,7 @@
   width: 150px;
   cursor: pointer;
   margin: 0 auto 10px;
+  isolation: isolate;
 }
 
 .stars input[type="submit"] {
@@ -101,7 +102,7 @@
   text-indent: -999em;
   float: left;
   position: relative;
-  z-index: var(--z-index-level-3);
+  z-index: 1;
   background: transparent;
   cursor: pointer;
 }

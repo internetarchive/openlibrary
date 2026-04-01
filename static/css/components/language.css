@@ -63,7 +63,7 @@
   position: absolute;
   right: 0;
   top: 30px;
-  z-index: var(--z-index-level-5);
+  z-index: var(--z-index-modal);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */

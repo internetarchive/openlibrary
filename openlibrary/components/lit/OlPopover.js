@@ -72,7 +72,7 @@ export class OlPopover extends LitElement {
 
         .panel {
             position: fixed;
-            z-index: 1000;
+            z-index: var(--z-index-modal, 40);
             background: var(--white, #fff);
             border-radius: var(--border-radius-overlay, 12px);
             box-shadow: 0 8px 24px var(--boxshadow-black, hsla(0, 0%, 0%, 0.15));
@@ -114,7 +114,7 @@ export class OlPopover extends LitElement {
         .backdrop {
             position: fixed;
             inset: 0;
-            z-index: 999;
+            z-index: var(--z-index-modal, 40);
             background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
             backdrop-filter: blur(2px);

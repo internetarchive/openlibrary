@@ -49,7 +49,7 @@
   inline-size: 100%;
   block-size: 100%;
   opacity: 0.01;
-  z-index: var(--z-index-level-2);
+  z-index: 1;
 }
 
 .dropdown {
@@ -61,7 +61,6 @@
   margin: 6px 10px 0 3px;
   display: inline-block;
   transform: rotate(90deg);
-  z-index: var(--z-index-level-1);
 }
 
 .mybooks-details {

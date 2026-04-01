@@ -8,7 +8,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  z-index: var(--z-index-level-17);
+  z-index: var(--z-index-toast);
 }
 
 #colorbox {
@@ -120,7 +120,6 @@
   /* but avoid modifying the UI */
   display: inline-block;
   position: relative;
-  z-index: var(--z-index-level-1);
   padding: 11px 17px;
   margin: -11px -17px;
 }

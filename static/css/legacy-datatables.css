@@ -21,7 +21,6 @@
 .dataTables_wrapper {
   font-family: var(--font-family-body);
   position: relative;
-  z-index: var(--z-index-level-1);
   clear: both;
   zoom: 1; /* Feeling sorry for IE */
 }

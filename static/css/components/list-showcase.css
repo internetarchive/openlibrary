@@ -61,6 +61,7 @@ a.list-card {
   flex: 1;
   min-height: 1px; /* fallback */
   overflow: clip;
+  isolation: isolate;
 
   display: flex;
   align-items: center;
@@ -75,17 +76,17 @@ a.list-card {
 
 /* @overlap: 8.5px */
 .list-card__covers img:nth-child(1) {
-  z-index: var(--z-index-level-3);
+  z-index: 3;
   transform: translate(0, 20px);
 }
 
 .list-card__covers img:nth-child(2) {
-  z-index: var(--z-index-level-2);
+  z-index: 2;
   transform: translate(-8.5px, 20px);
 }
 
 .list-card__covers img:nth-child(3) {
-  z-index: var(--z-index-level-1);
+  z-index: 1;
   transform: translate(-17px, 20px);
 }
 

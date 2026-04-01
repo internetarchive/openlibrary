@@ -24,7 +24,7 @@
     transform 0.8s,
     opacity 0.8s;
   position: relative;
-  z-index: var(--z-index-level-negative);
+  z-index: -1;
 }
 
 .editionCover .cover-animation:hover {

@@ -11,7 +11,7 @@
   border: 1px solid;
   border-radius: 5px;
   border-color: var(--light-grey);
-  z-index: var(--z-index-level-1);
+  z-index: var(--z-index-dropdown);
 }
 .sort-content-inner a {
   text-decoration: none;

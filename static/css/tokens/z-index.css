@@ -1,18 +1,40 @@
 /**
  * Z-Index Scale
  * =============
+ * These tokens are for GLOBAL stacking layers — elements that need to
+ * appear above other unrelated elements on the page (e.g. the header
+ * above sticky content, modals above everything).
+ *
+ * When to use a token:
+ *   The element competes with elements outside its own component.
+ *   Example: the site header must sit above the sticky book nav-bar.
+ *
+ * When to use a plain integer (1, 2, 3):
+ *   The element only needs to stack relative to its siblings within
+ *   the same component. Use `isolation: isolate` on the component's
+ *   container to prevent the integer from leaking into the global
+ *   stacking order.
+ *
+ *   Example — cascading book covers that overlap each other:
+ *
+ *     .list-card__covers {
+ *       isolation: isolate;   <-- creates a stacking context
+ *     }
+ *     .list-card__covers img:nth-child(1) { z-index: 3; }
+ *     .list-card__covers img:nth-child(2) { z-index: 2; }
+ *     .list-card__covers img:nth-child(3) { z-index: 1; }
+ *
+ *   Without `isolation: isolate`, a z-index of 3 on an image could
+ *   cause it to paint above a dropdown (z-index 30) if the image's
+ *   parent has no stacking context. `isolation: isolate` caps the
+ *   children so their z-indexes only compete with each other.
  */
 :root {
-  --z-index-level-negative: -1;
-  --z-index-level-1: 1;
-  --z-index-level-2: 2;
-  --z-index-level-3: 3;
-  --z-index-level-4: 10;
-  --z-index-level-5: 999;
-  --z-index-level-6: 1000;
-  --z-index-level-7: 1001;
-  --z-index-level-13: 9999;
-  --z-index-level-14: 10000;
-  --z-index-level-16: 99999;
-  --z-index-level-17: 999999;
+  --z-index-sticky:    10;   /* Sticky page elements (nav-bar, compact-title) */
+  --z-index-dropdown:  20;   /* Dropdowns, popovers, menus */
+  --z-index-header:    30;   /* Site header bar — above sticky content AND dropdowns,
+                                because the header itself contains dropdowns (search,
+                                browse, account) that must not be clipped */
+  --z-index-modal:     40;   /* Modal dialogs and overlays */
+  --z-index-toast:     50;   /* Toasts, lightboxes, autocomplete — topmost */
 }

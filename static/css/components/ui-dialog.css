@@ -10,7 +10,7 @@
   border-radius: var(--border-radius-overlay);
   -webkit-box-shadow: 1px 3px 10px var(--black);
   box-shadow: 1px 3px 10px var(--black);
-  z-index: var(--z-index-level-14) !important;
+  z-index: var(--z-index-modal) !important;
 }
 .ui-dialog .ui-dialog-titlebar {
   position: relative;

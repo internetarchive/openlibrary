@@ -5,13 +5,13 @@
 }
 
 .generic-dropper-wrapper--active {
-  z-index: var(--z-index-level-1);
+  z-index: 1;
 }
 
 .generic-dropper {
   position: absolute;
   width: 100%;
-  z-index: var(--z-index-level-14);
+  z-index: var(--z-index-dropdown);
 }
 
 .generic-dropper__actions {
@@ -133,7 +133,7 @@
 
 /* dropdown containing Listen/Search/Download/Locate buttons */
 .dropper-menu {
-  z-index: var(--z-index-level-4);
+  z-index: 1;
   border: 1px solid var(--lighter-grey);
   border-radius: 5px;
   background-color: var(--white);

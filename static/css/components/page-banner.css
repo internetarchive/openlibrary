@@ -9,7 +9,6 @@
   background: var(--dark-grey);
   padding: 15px;
   border-bottom: 1px solid var(--beige);
-  z-index: var(--z-index-level-2);
 }
 .page-banner-mybooks {
   color: var(--black);

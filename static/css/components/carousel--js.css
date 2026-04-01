@@ -16,7 +16,7 @@
 
 .carousel .slick-prev,
 .carousel .slick-next {
-  z-index: var(--z-index-level-4);
+  z-index: 1;
 }
 
 .carousel .slick-prev:before {

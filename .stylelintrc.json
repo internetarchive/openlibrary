@@ -8,7 +8,6 @@
       [
         "font-family",
         "background-color",
-        "z-index",
         "color"
       ],
       {
