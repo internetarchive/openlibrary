@@ -390,8 +390,7 @@ select.form-control {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "cell1 cell1"
-      "cell2 cell3";  grid-template-columns: 50% auto auto auto; 
-
+      "cell2 cell3";  grid-template-columns: 50% auto auto auto;
   }
   .cell1 { grid-area: cell1; }
   .cell2 { grid-area: cell2; }
