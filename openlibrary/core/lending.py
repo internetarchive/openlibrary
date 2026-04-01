@@ -299,15 +299,11 @@ async def get_available_async(
             },
         )
         return {'error': 'no_url'}
-    # Ensure web.ctx is initialized - this is needed when running
-    # in background threads (e.g., from async_bridge)
-    if 'env' not in web.ctx:
-        delegate.fakeload()
     try:
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = req_context.get().x_forwarded_for or "ol-internal"
+        client_ip = getattr(req_context.get(), 'x_forwarded_for', None) or "ol-internal"
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
