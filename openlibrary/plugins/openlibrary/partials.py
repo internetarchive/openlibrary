@@ -7,15 +7,15 @@ from pydantic import BaseModel
 
 from infogami.utils.view import render_template
 from openlibrary.accounts import get_current_user
-from openlibrary.core.fulltext import fulltext_search
+from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
-from openlibrary.plugins.worksearch.code import do_search, work_search
+from openlibrary.plugins.worksearch.code import do_search, work_search_async
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
-    get_subject,
+    get_subject_async,
 )
 from openlibrary.views.loanstats import get_trending_books
 
@@ -92,10 +92,13 @@ class CarouselCardPartial(PartialDataHandler):
         self.params = params
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         p = self.params
 
         # Do search
-        search_results = self._make_book_query(p.queryType, p)
+        search_results = await self._make_book_query(p.queryType, p)
 
         # Render cards
         cards = []
@@ -122,19 +125,21 @@ class CarouselCardPartial(PartialDataHandler):
 
         return {"partials": [str(template) for template in cards]}
 
-    def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
+    async def _make_book_query(
+        self, query_type: str, params: CarouselLoadMoreParams
+    ) -> list:
         if query_type == "SEARCH":
-            return self._do_search_query(params)
+            return await self._do_search_query(params)
         if query_type == "BROWSE":
             return self._do_browse_query(params)
         if query_type == "TRENDING":
             return self._do_trends_query(params)
         if query_type == "SUBJECTS":
-            return self._do_subjects_query(params)
+            return await self._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
 
-    def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
         fields = [
             'key',
             'title',
@@ -154,7 +159,7 @@ class CarouselCardPartial(PartialDataHandler):
         if params.hasFulltextOnly:
             query_params['has_fulltext'] = 'true'
 
-        results = work_search(
+        results = await work_search_async(
             query_params,
             sort=params.sorts or "new",
             fields=','.join(fields),
@@ -182,9 +187,9 @@ class CarouselCardPartial(PartialDataHandler):
             minimum=3, limit=params.limit, page=params.page, sort_by_count=False
         )
 
-    def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
-        subject = get_subject(
+        subject = await get_subject_async(
             params.q, offset=params.page, limit=params.limit, publish_year=publish_year
         )
         return subject.get("works", [])
@@ -268,8 +273,11 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         self.has_error: bool = False
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         query = self.query
-        data = fulltext_search(query)
+        data = await fulltext_search_async(query)
         # Add caching headers only if there were no errors in the search results
         self.has_error = "error" in data
         hits = data.get('hits', [])
