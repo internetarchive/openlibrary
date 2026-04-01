@@ -44,6 +44,7 @@ repos:
         # values and \N nulls which sqlfluff cannot parse.
         # import-partial.sql uses a psql variable placeholder (:source) in a COPY
         # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
         exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
 
 
