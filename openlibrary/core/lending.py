@@ -303,7 +303,9 @@ async def get_available_async(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = getattr(req_context.get(), 'x_forwarded_for', None) or "ol-internal"
+        client_ip = (
+            getattr(req_context.get(None), 'x_forwarded_for', None) or "ol-internal"
+        )
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
