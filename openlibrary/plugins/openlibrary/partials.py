@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from infogami.utils.view import render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -131,7 +131,7 @@ class CarouselCardPartial(PartialDataHandler):
         if query_type == "SEARCH":
             return await self._do_search_query(params)
         if query_type == "BROWSE":
-            return self._do_browse_query(params)
+            return await self._do_browse_query(params)
         if query_type == "TRENDING":
             return self._do_trends_query(params)
         if query_type == "SUBJECTS":
@@ -169,7 +169,7 @@ class CarouselCardPartial(PartialDataHandler):
         )
         return results.get("docs", [])
 
-    def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
         url = compose_ia_url(
             query=params.q,
             limit=params.limit,
@@ -179,7 +179,7 @@ class CarouselCardPartial(PartialDataHandler):
             advanced=True,
             safe_mode=True,
         )
-        results = get_available(url=url)
+        results = await get_available_async(url=url)
         return results if "error" not in results else []
 
     def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:

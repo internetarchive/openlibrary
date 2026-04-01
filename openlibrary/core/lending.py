@@ -20,7 +20,7 @@ from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
-from openlibrary.utils import dateutil, uniq
+from openlibrary.utils import async_utils, dateutil, uniq
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -259,7 +259,8 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     return response
 
 
-def get_available(
+@public
+async def get_available_async(
     limit=None,
     page=1,
     subject=None,
@@ -307,7 +308,7 @@ def get_available(
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = ia.session.get(
+        response = await ia.async_session.get(
             url, headers=headers, timeout=config_http_request_timeout
         )
         items = response.json().get('response', {}).get('docs', [])
@@ -1128,3 +1129,7 @@ class IA_Lending_API:
 
 
 ia_lending_api = IA_Lending_API()
+
+# Create a sync wrapper for backward compatibility
+get_available = async_utils.async_bridge.wrap(get_available_async)
+public(get_available)
