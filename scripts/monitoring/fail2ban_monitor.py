@@ -6,7 +6,7 @@ def get_fail2ban_counts(jail: str) -> tuple[int, int]:
     Returns (currently_failed, currently_banned) counts for the given fail2ban jail.
     """
     result = bash_run(
-        f"sudo fail2ban-client status {jail} | grep 'Currently'",
+        f"fail2ban-client status {jail} | grep 'Currently'",
         capture_output=True,
     )
     failed = 0
