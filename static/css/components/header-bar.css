@@ -351,9 +351,6 @@
   -webkit-box-ordinal-group: 6;
   -ms-flex-order: 5;
   order: 5;
-  /* Despite occurring later in the DOM, this header should be overlaid underneath the items
-   * above. E.g. search and account dropdowns. */
-  z-index: 1;
 }
 
 .header-bar .navigation-component li {
@@ -382,6 +379,7 @@
   text-align: left;
   width: 100%;
   top: 4px;
+  z-index: var(--z-index-dropdown);
 }
 
 .header-bar .navigation-component li .dropdown-menu li a {
