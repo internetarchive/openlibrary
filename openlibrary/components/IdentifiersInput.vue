@@ -93,8 +93,8 @@
         </div>
         <div class="preview-cell" role="cell">
           <a
-            v-if="identifierConfigsByKey[name] && identifierConfigsByKey[name].url"
-            :href="identifierConfigsByKey[name].url.replace('@@@', item)"
+            v-if="identifierConfigsByKey[name]?.url"
+            :href="getPreviewUrl(name, item)"
             target="_blank"
             rel="noopener noreferrer"
             class="form-control preview-btn"
@@ -252,6 +252,12 @@ export default {
     },
 
     methods: {
+        getPreviewUrl: function(name, item) {
+            const url = this.identifierConfigsByKey[name]?.url;
+            if (!url) return '';
+            const encodedItem = encodeURIComponent(item);
+            return url.includes('@@@') ? url.replace('@@@', encodedItem) : url + encodedItem;
+        },
         setIdentifier: function(){
             // if no identifier selected don't execute
             if (!this.setButtonEnabled) return
@@ -390,7 +396,7 @@ select.form-control {
     grid-template-columns: 1fr auto;
     grid-template-areas:
       "cell1 cell1"
-      "cell2 cell3";  grid-template-columns: 50% auto auto auto;
+      "cell2 cell3";
   }
   .cell1 { grid-area: cell1; }
   .cell2 { grid-area: cell2; }
