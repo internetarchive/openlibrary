@@ -1,4 +1,4 @@
-$def with (status = {}, flags = {}, dev_merged_status=None)
+$def with (status = {}, flags = {}, dev_merged_status=None, testing_prs=None, drift_info=None, is_maintainer=False, show_testing=False)
 $# Template entry point for /status page
 $var title: $_("Open Library server status")
 
@@ -20,6 +20,14 @@ $var title: $_("Open Library server status")
   #show_changed:checked ~ table tr.tr-body {
     display: table-row;
   }
+
+  .testing-table td, .testing-table th { padding: 6px 8px; }
+  .drift-low { background: #fffbe6; }
+  .drift-high { background: #fff1f0; }
+  .row-merged td { text-decoration: line-through; color: #999; }
+  .row-inactive { opacity: 0.6; }
+  .testing-actions { margin-top: 0.5em; }
+  .testing-actions button { margin-right: 4px; }
 </style>
 
 <div id="contentHead">
@@ -27,6 +35,81 @@ $var title: $_("Open Library server status")
 </div>
 
 <div id="contentBody">
+
+  $if show_testing:
+    <h2>$_("Testing Environment")</h2>
+
+    $if is_maintainer:
+      <form method="POST" action="/status/add" style="margin-bottom: 1em;">
+        <input type="text" name="pr" placeholder="$_('PR numbers or URLs, space/comma separated')" size="50">
+        <button type="submit">$_("Add PR")</button>
+      </form>
+
+    $if testing_prs:
+      <form method="POST" id="testing-form">
+        <table class="testing-table">
+          <thead>
+            <tr>
+              $if is_maintainer:
+                <th><input type="checkbox" id="select-all" onclick="document.querySelectorAll('[name=prs]').forEach(function(cb){ cb.checked = this.checked; }.bind(this))"></th>
+              <th>$_("PR")</th>
+              <th>$_("Title")</th>
+              <th>$_("Pinned Commit")</th>
+              <th>$_("Branch HEAD")</th>
+              <th>$_("Drift")</th>
+              <th>$_("Active")</th>
+              <th>$_("Added")</th>
+            </tr>
+          </thead>
+          <tbody>
+            $for pr in testing_prs:
+              $ d = (drift_info or {}).get(pr.pr, {})
+              $ drift = d.get('drift', -1)
+              $ head_sha = d.get('head_sha', '')
+              $ merged = d.get('merged', False)
+              $ row_class = ('row-merged ' if merged else '') + ('row-inactive ' if not pr.active else '') + ('drift-high' if drift > 5 else ('drift-low' if drift > 0 else ''))
+              <tr class="$row_class.strip()">
+                $if is_maintainer:
+                  <td><input type="checkbox" name="prs" value="$pr.pr"></td>
+                <td><a href="https://github.com/internetarchive/openlibrary/pull/$pr.pr">#$pr.pr</a></td>
+                <td>$pr.title</td>
+                <td><a href="https://github.com/internetarchive/openlibrary/commit/$pr.commit">$pr.short_commit</a></td>
+                <td>$head_sha</td>
+                <td>
+                  $if drift == 0:
+                    up to date
+                  $elif drift < 0:
+                    unknown
+                  $else:
+                    $drift commit$("s" if drift != 1 else "") behind
+                </td>
+                <td>
+                  $if pr.active:
+                    &#x2705;
+                  $else:
+                    &#x23F8;
+                </td>
+                <td title="$pr.added_by">$pr.added_date</td>
+              </tr>
+          </tbody>
+        </table>
+
+        $if is_maintainer:
+          <div class="testing-actions">
+            <button formaction="/status/pull-latest" type="submit">$_("Pull to Latest")</button>
+            <button formaction="/status/toggle" type="submit">$_("Toggle Active")</button>
+            <button formaction="/status/remove" type="submit">$_("Remove")</button>
+          </div>
+      </form>
+
+      $if is_maintainer:
+        <form method="POST" action="/status/rebuild" style="margin-top: 0.5em;">
+          <button type="submit">$_("Force Rebuild")</button>
+        </form>
+
+    $else:
+      <p>$_("No PRs in testing set.")</p>
+
   $if dev_merged_status:
       <h2> $_("Staged") </h2>
       <pre>$dev_merged_status.git_status</pre>
