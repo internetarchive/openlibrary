@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from infogami.utils.view import render_template
 from openlibrary.accounts import get_current_user
-from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
@@ -273,11 +273,8 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         self.has_error: bool = False
 
     def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
-
-    async def generate_async(self) -> dict:
         query = self.query
-        data = await fulltext_search_async(query)
+        data = fulltext_search(query)
         # Add caching headers only if there were no errors in the search results
         self.has_error = "error" in data
         hits = data.get('hits', [])
