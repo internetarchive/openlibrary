@@ -108,6 +108,7 @@ def get_solr_works(
             rows=len(work_keys),
             fields=list(fields),
             facet=False,
+            editions=editions,
         )
         return {
             # storify isn't typed properly, but basically recursively call web.storage
@@ -225,6 +226,7 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
     solr_internals_params: SolrInternalsParams | None = None,
+    editions: bool = True,
 ) -> tuple[list[tuple[str, Any]], list[str]]:
     """
     :param param: dict of query parameters
@@ -320,6 +322,7 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params,
             highlight=highlight,
             solr_internals_params=solr_internals_params,
+            editions=editions,
         )
 
     if sort:
@@ -349,6 +352,21 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
+def conditionally_get_editions(editions: bool | None = None) -> bool:
+    """Resolve the editions flag, falling back to request context when not specified.
+
+    When editions is explicitly True/False, that value is used directly.
+    When None (the default), the value is read from the request context,
+    which reflects the user's query string or cookie preference.
+
+    This allows callers in non-request contexts (crons, scripts) to avoid
+    the ContextVar lookup by passing an explicit value.
+    """
+    if editions is None:
+        editions = req_context.get().solr_editions
+    return editions
+
+
 def run_solr_query(
     scheme: SearchScheme,
     param: dict | None = None,
@@ -364,6 +382,7 @@ def run_solr_query(
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
     solr_internals_params: SolrInternalsParams | None = None,
+    editions: bool | None = None,
 ) -> 'SearchResponse':
     """
     Builds and executes a synchronous Solr query.
@@ -383,6 +402,7 @@ def run_solr_query(
         extra_params=extra_params,
         request_label=request_label,
         solr_internals_params=solr_internals_params,
+        editions=conditionally_get_editions(editions),
     )
 
     url = f'{solr_select_url}?{urlencode(params)}'
@@ -399,12 +419,15 @@ def run_solr_query(
 async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
+    editions: bool | None = None,
     **kwargs,
 ) -> 'SearchResponse':
     """
     Builds and executes an asynchronous Solr query.
     """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
+    params, fields = _prepare_solr_query_params(
+        scheme, param, editions=conditionally_get_editions(editions), **kwargs
+    )
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()

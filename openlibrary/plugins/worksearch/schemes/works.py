@@ -320,6 +320,7 @@ class WorkSearchScheme(SearchScheme):
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
         solr_internals_params: 'SolrInternalsParams | None' = None,
+        editions: bool = True,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -378,7 +379,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if req_context.get().solr_editions and 'editions:[subquery]' in solr_fields:
+        if editions and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
