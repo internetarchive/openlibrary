@@ -49,7 +49,5 @@ $def arrow(name):
         </tbody>
     </table>
 
-    <div>
-        <a href="$changequery(page=page-1)">$_("Prev")</a> | <a href="$changequery(page=page+1)">$_("Next")</a>
-    </div>
+    $:macros.OlPaginationArrows(page, True)
 </div>

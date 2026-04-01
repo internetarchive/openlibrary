@@ -862,7 +862,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: 0;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* openlibrary/templates/books/check.html */

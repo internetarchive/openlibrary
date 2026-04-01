@@ -11,16 +11,22 @@ from __future__ import annotations
 import os
 from typing import Annotated, Literal
 
-import web
 from fastapi import APIRouter, Depends, Form, Path, Query
 from pydantic import BaseModel, BeforeValidator, Field
 
-from openlibrary.core import lending
+from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
-from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.fastapi.models import Pagination, parse_comma_separated_list
+from openlibrary.core.observations import get_observation_metrics
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    require_authenticated_user,
+)
+from openlibrary.fastapi.models import (
+    Pagination,
+    parse_comma_separated_list,
+)
+from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.request_context import site as site_ctx
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -33,9 +39,71 @@ router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 TrendingPeriod = Literal["now", "daily", "weekly", "monthly", "yearly", "forever"]
 
 
-@router.get("/availability/v2")
-async def book_availability():
-    pass
+class AvailabilityStatusV2(BaseModel):
+    """Model matching the shape of book availability data returned by IA/Lending."""
+
+    status: str = Field(..., description="Availability status of the book")
+    # error_message: str | None = None
+
+    available_to_browse: bool | None = None
+    available_to_borrow: bool | None = None
+    available_to_waitlist: bool | None = None
+
+    is_printdisabled: bool | None = None
+    is_readable: bool | None = None
+    is_lendable: bool | None = None
+    is_previewable: bool = False
+    is_restricted: bool = False
+    is_browseable: bool | None = None
+
+    identifier: str | None = None
+    isbn: str | None = None
+    oclc: str | None = None
+    openlibrary_work: str | None = None
+    openlibrary_edition: str | None = None
+
+    last_loan_date: str | None = None
+    num_waitlist: str | None = None
+    last_waitlist_date: str | None = None
+
+    model_config = {"extra": "allow"}
+
+
+AvailabilityIDType = Literal["openlibrary_work", "openlibrary_edition", "identifier"]
+
+
+class AvailabilityRequest(BaseModel):
+    """Request body for bulk book availability queries (POST)."""
+
+    ids: Annotated[list[str], Field(..., min_length=1, description="List of identifiers")]
+
+
+@router.get(
+    "/availability/v2",
+    response_model=dict[str, AvailabilityStatusV2],
+    description="Returns availability status for one or more books",
+)
+def get_book_availability(
+    id_type: Annotated[AvailabilityIDType, Query(alias="type", description="Type of the identifiers")],
+    ids: Annotated[
+        list[str],
+        BeforeValidator(parse_comma_separated_list),
+        Query(min_length=1, description="Comma-separated list of IDs (e.g. OL123W, ISBN, ocaid)"),
+    ],
+) -> dict:
+    return lending.get_availability(id_type, ids)
+
+
+@router.post(
+    "/availability/v2",
+    response_model=dict[str, AvailabilityStatusV2],
+    description="Returns availability status for one or more books",
+)
+def post_book_availability(
+    id_type: Annotated[AvailabilityIDType, Query(alias="type")],
+    request: AvailabilityRequest,
+) -> dict:
+    return lending.get_availability(id_type, request.ids)
 
 
 class TrendingRequestParams(Pagination):
@@ -79,10 +147,6 @@ def trending_books_api(
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS.get(period, params.days)
 
-    # Setting web.ctx.site is an ANTIPATTERN and we should avoid it elsewhere.
-    # It will be removed via #12178
-    web.ctx.site = site_ctx.get()
-
     works = get_trending_books(
         since_days=since_days,
         since_hours=params.hours,
@@ -106,29 +170,57 @@ async def browse(
     pagination: Annotated[Pagination, Depends()],
     q: Annotated[str, Query()] = "",
     subject: Annotated[str, Query()] = "",
-    sorts: Annotated[str, Query()] = "",
+    sorts: Annotated[list[str], BeforeValidator(parse_comma_separated_list), Query()] = [],  # noqa: B006
 ) -> dict:
     """
     Dynamically fetches the next page of books and checks if they are
     available to be borrowed from the Internet Archive without having
     to reload the whole web page.
     """
-    sorts_list = [s.strip() for s in sorts.split(",") if s.strip()]
 
     url = lending.compose_ia_url(
         query=q,
         limit=pagination.limit,
         page=pagination.page,
         subject=subject,
-        sorts=sorts_list,
+        sorts=sorts,
     )
 
     works = lending.get_available(url=url) if url else []
     return {"query": url, "works": [work.dict() for work in works]}
 
 
-async def ratings():
-    pass
+@router.get("/works/OL{work_id}W/ratings.json")
+async def get_ratings(work_id: Annotated[int, Path()]) -> dict:
+    """Get ratings summary for a work."""
+    return legacy_ratings.get_ratings_summary(work_id)
+
+
+@router.post("/works/OL{work_id}W/ratings.json")
+async def post_ratings(
+    work_id: Annotated[int, Path(gt=0)],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    rating: Annotated[int | None, Form(ge=1, le=5)] = None,
+    edition_id: Annotated[str | None, Form()] = None,
+) -> dict[str, str]:
+    """Register or remove a rating for a work.
+
+    If rating is None, the existing rating is removed.
+    If rating is provided, it must be in the valid range (1-5).
+    """
+    resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
+
+    if rating is None:
+        models.Ratings.remove(user.username, work_id)
+        return {"success": "removed rating"}
+
+    models.Ratings.add(
+        username=user.username,
+        work_id=work_id,
+        rating=rating,
+        edition_id=resolved_edition_id,
+    )
+    return {"success": "rating added"}
 
 
 class BooknoteResponse(BaseModel):
@@ -189,8 +281,18 @@ async def patrons_observations():
     pass
 
 
-async def public_observations():
-    pass
+@router.get(
+    "/observations.json",
+    description="Returns anonymized community reviews for a list of works.",
+)
+async def public_observations(
+    olid: Annotated[list[str], Query(description="List of Work OLIDs")] = [],  # noqa: B006, mutable defaults are safe in fastapi
+) -> dict:
+    """
+    Public observations fetches anonymized community reviews
+    for a list of works. Useful for decorating search results.
+    """
+    return {"observations": {w: get_observation_metrics(w) for w in olid}}
 
 
 async def bestbook_award():

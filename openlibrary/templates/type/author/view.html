@@ -141,7 +141,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                         <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
+                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
@@ -150,7 +150,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     </ul>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
+                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
         </div>
     </div>
     <div class="contentOnethird">

@@ -113,7 +113,7 @@ repos:
       files: \.css$
       additional_dependencies:
         - stylelint@16.22.0
-        - stylelint-declaration-strict-value@1.10.11
+        - stylelint-declaration-strict-value@1.11.1
         - stylelint-prettier@5.0.3
       args: [--fix]
 
