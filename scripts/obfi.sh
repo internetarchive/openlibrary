@@ -352,7 +352,7 @@ obfi_top_bots() {
 ###############################################################
 
 obfi_grep_bots() {
-    # FIXME: Should be in sync with openlibrary/plugins/openlibrary/code.py
+    # FIXME: Should be in sync with openlibrary/utils/request_context.py::_compute_is_bot()
     grep $1 -iE 'ahrefsbot|amazonbot|applebot|aranet-searchbot|bingbot|bytespider|cheap-books-crawler|claudebot|dataforseobot|discordbot|dotbot|googlebot|gptbot|historichotspotsbot|iaskbot|likemindedbiobot|meta-externalagent|mj12bot|mojeekbot|perplexitybot|petalbot|pinterestbot|qwantbot|semanticscholarbot|semrushbot|seznambot|tiktokspider|ttspider|uptimerobot|yandexaccessibilitybot|yandexbot|yandexrenderresourcesbot|youbot' -
 }
 
