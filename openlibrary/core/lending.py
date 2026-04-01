@@ -299,6 +299,10 @@ async def get_available_async(
             },
         )
         return {'error': 'no_url'}
+    # Ensure web.ctx is initialized - this is needed when running
+    # in background threads (e.g., from async_bridge)
+    if 'env' not in web.ctx:
+        delegate.fakeload()
     try:
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
