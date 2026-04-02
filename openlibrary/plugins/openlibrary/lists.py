@@ -1056,6 +1056,7 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
 
 
+@public
 async def get_lists_async(keys: list[str]):
     # Fetches and caches the lists through Solr, rather than through the DB.
     from openlibrary.core.lists.model import List
