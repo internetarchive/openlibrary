@@ -59,18 +59,9 @@ def get_field_updates(record: dict, fields: list[str]) -> dict[str, str]:
 
 def process_dump(dump_path: str, record_type: str, dry_run: bool = True):
     """
-    Scan dump file, detect broken records, and optionally preview fixes.
+    Scan dump file, output keys of records with HTML entity encoding errors.
     """
     fields = FIELDS_BY_TYPE[record_type]
-
-    total = 0
-    broken = 0
-
-    print(f"Processing: {dump_path}")
-    print(f"Record type: {record_type}")
-    print(f"Dry run: {dry_run}")
-    print(f"Fields: {fields}")
-    print("-" * 60)
 
     with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -78,7 +69,6 @@ def process_dump(dump_path: str, record_type: str, dry_run: bool = True):
             if len(parts) < 5:
                 continue
 
-            total += 1
             key = parts[1]
             raw_json = parts[4]
 
@@ -92,19 +82,7 @@ def process_dump(dump_path: str, record_type: str, dry_run: bool = True):
             if not updates:
                 continue
 
-            broken += 1
-
-            # Show preview
-            print(f"KEY:   {key}")
-            for field, new_value in updates.items():
-                print(f"FIELD:  {field}")
-                print(f"BEFORE: {record[field]}")
-                print(f"AFTER:  {new_value}")
-            print("-" * 60)
-
-    print("\nSummary:")
-    print(f"  Total scanned: {total}")
-    print(f"  Broken found:  {broken}")
+            print(key)
 
 
 def main():
@@ -133,14 +111,5 @@ def main():
         dry_run=args.dry_run,
     )
 
-
-# ------------------------------------------------------------
-# FUTURE WORK (These will be decided during PR Discussion)
-# ------------------------------------------------------------
-# - Batch keys (~1000)
-# - Fetch via web.ctx.site.get_many(keys)
-# - Apply updates from get_field_updates()
-# - Save via save_many(...) or per-record commits
-# ------------------------------------------------------------
 if __name__ == '__main__':
     main()
