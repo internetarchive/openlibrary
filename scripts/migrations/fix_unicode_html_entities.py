@@ -132,13 +132,6 @@ def main():
         '--dry-run', action='store_true', help='Preview changes (default behavior)'
     )
 
-    parser.add_argument(
-        '--limit',
-        type=int,
-        default=20,
-        help='Limit number of broken records to display (default: 20)',
-    )
-
     args = parser.parse_args()
 
     process_dump(
