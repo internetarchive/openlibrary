@@ -80,7 +80,7 @@ async def book_page_lists_partial(
 
     At least one of workId or editionId must be provided.
     """
-    return BookPageListsPartial(workId=workId, editionId=editionId).generate()
+    return await BookPageListsPartial(workId=workId, editionId=editionId).generate_async()
 
 
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
