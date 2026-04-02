@@ -6,8 +6,8 @@ Example of the problem:
     &#1057;&#1077;&#1088;&#1075;&#1077;&#1081; -> Сергей
 
 Usage:
-    python3 scripts/fix_unicode_html_entities.py --dump ol_dump_authors_latest.txt.gz --type authors --dry-run
-    python3 scripts/fix_unicode_html_entities.py --dump ol_dump_editions_latest.txt.gz --type editions --dry-run
+    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_authors_latest.txt.gz --type authors --dry-run
+    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_editions_latest.txt.gz --type editions --dry-run
 """
 
 import argparse
@@ -57,9 +57,7 @@ def get_field_updates(record: dict, fields: list[str]) -> dict[str, str]:
     return updates
 
 
-def process_dump(
-    dump_path: str, record_type: str, dry_run: bool = True, limit: int = None
-):
+def process_dump(dump_path: str, record_type: str, dry_run: bool = True):
     """
     Scan dump file, detect broken records, and optionally preview fixes.
     """
@@ -104,11 +102,6 @@ def process_dump(
                 print(f"AFTER:  {new_value}")
             print("-" * 60)
 
-            # Limit output for readability
-            if limit and broken >= limit:
-                print(f"\nStopping early at {limit} broken records.")
-                break
-
     print("\nSummary:")
     print(f"  Total scanned: {total}")
     print(f"  Broken found:  {broken}")
@@ -138,7 +131,6 @@ def main():
         dump_path=args.dump,
         record_type=args.type,
         dry_run=args.dry_run,
-        limit=args.limit,
     )
 
 
