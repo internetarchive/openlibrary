@@ -27,7 +27,7 @@ class RequestContextVars:
     x_forwarded_for: str | None
     user_agent: str | None
     lang: str | None
-    solr_editions: bool | None
+    solr_editions: bool
     print_disabled: bool
     sfw: bool = False
     is_bot: bool = False
