@@ -15,23 +15,20 @@ import gzip
 import html
 import json
 import re
-from typing import Tuple, Dict, List
-
 
 # Matches:
 #   &#1234;
 #   &#x1A;
 #   &alpha;
 HTML_ENTITY_PATTERN = re.compile(
-    r'&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});',
-    re.IGNORECASE
+    r'&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});', re.IGNORECASE
 )
 
 
 FIELDS_BY_TYPE = {
-    'authors':  ['name', 'personal_name'],
+    'authors': ['name', 'personal_name'],
     'editions': ['title', 'subtitle'],
-    'works':    ['title', 'subtitle'],
+    'works': ['title', 'subtitle'],
 }
 
 
@@ -40,7 +37,7 @@ def has_entities(value: str) -> bool:
     return bool(HTML_ENTITY_PATTERN.search(value))
 
 
-def get_field_updates(record: Dict, fields: List[str]) -> Dict[str, str]:
+def get_field_updates(record: dict, fields: list[str]) -> dict[str, str]:
     """
     Return only the fields that need updating.
     Ensures we don't overwrite unchanged values.
@@ -61,10 +58,7 @@ def get_field_updates(record: Dict, fields: List[str]) -> Dict[str, str]:
 
 
 def process_dump(
-    dump_path: str,
-    record_type: str,
-    dry_run: bool = True,
-    limit: int | None = None
+    dump_path: str, record_type: str, dry_run: bool = True, limit: int | None = None
 ):
     """
     Scan dump file, detect broken records, and optionally preview fixes.
@@ -125,30 +119,24 @@ def main():
         description="Detect and fix HTML-escaped Unicode in OL dumps"
     )
 
-    parser.add_argument(
-        '--dump',
-        required=True,
-        help='Path to .txt.gz dump file'
-    )
+    parser.add_argument('--dump', required=True, help='Path to .txt.gz dump file')
 
     parser.add_argument(
         '--type',
         required=True,
         choices=['authors', 'editions', 'works'],
-        help='Record type'
+        help='Record type',
     )
 
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Preview changes (default behavior)'
+        '--dry-run', action='store_true', help='Preview changes (default behavior)'
     )
 
     parser.add_argument(
         '--limit',
         type=int,
         default=20,
-        help='Limit number of broken records to display (default: 20)'
+        help='Limit number of broken records to display (default: 20)',
     )
 
     args = parser.parse_args()
@@ -157,8 +145,9 @@ def main():
         dump_path=args.dump,
         record_type=args.type,
         dry_run=args.dry_run,
-        limit=args.limit
+        limit=args.limit,
     )
+
 
 # ------------------------------------------------------------
 # FUTURE WORK (These will be decided during PR Discussion)
