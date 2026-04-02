@@ -352,7 +352,7 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
-def run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -396,7 +396,7 @@ def run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = execute_solr_query(solr_select_url, params)
+    response = await execute_solr_query_async(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -405,28 +405,7 @@ def run_solr_query(
     )
 
 
-async def run_solr_query_async(
-    scheme: SearchScheme,
-    param: dict | None = None,
-    editions: bool = True,
-    **kwargs,
-) -> 'SearchResponse':
-    """
-    Builds and executes an asynchronous Solr query.
-    """
-    params, fields = _prepare_solr_query_params(
-        scheme, param, editions=editions, **kwargs
-    )
-
-    url = f'{solr_select_url}?{urlencode(params)}'
-    start_time = time.time()
-    response = await execute_solr_query_async(solr_select_url, params)
-    end_time = time.time()
-    duration = end_time - start_time
-
-    return _process_solr_response_and_enrich(
-        response, scheme, fields, kwargs.get('sort'), url, duration
-    )
+run_solr_query = async_bridge.wrap(run_solr_query_async)
 
 
 @functools.cache
