@@ -1,6 +1,6 @@
+import datetime
 from typing import TYPE_CHECKING
 
-import datetime
 import web
 
 from infogami.utils.view import public
