@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+import datetime
 import web
 
 from infogami.utils.view import public
@@ -80,6 +81,8 @@ def get_days_registered(user) -> str:
         reg_date = user.created.date()
         days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
     except Exception:
+        # If the date is incorrectly encoded, assume the patron
+        # registered a long time ago before we had this set up.
         return 'd90+'
     if days <= 0:
         return 'd0'

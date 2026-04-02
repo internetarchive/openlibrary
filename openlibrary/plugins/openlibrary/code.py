@@ -1303,7 +1303,6 @@ def setup_context_defaults():
             'features': [],
             'user': None,
             'MAX_VISIBLE_BOOKS': 5,
-            'patron_status': 'visitor',
         }
     )
 
