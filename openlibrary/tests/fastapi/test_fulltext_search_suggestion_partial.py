@@ -4,19 +4,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-SAMPLE_SEARCH_RESPONSE_WITH_HITS = {
-    "hits": {
-        "hits": [
-            {"fields": {"identifier": ["test-book"]}}
-        ]
-    }
-}
+SAMPLE_SEARCH_RESPONSE_WITH_HITS = {"hits": {"hits": [{"fields": {"identifier": ["test-book"]}}]}}
 
-SAMPLE_SEARCH_RESPONSE_NO_HITS: dict = {
-    "hits": {
-        "hits": []
-    }
-}
+SAMPLE_SEARCH_RESPONSE_NO_HITS: dict = {"hits": {"hits": []}}
 
 
 @pytest.fixture
