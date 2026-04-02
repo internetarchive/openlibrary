@@ -33,19 +33,20 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.0.4
+    rev: 4.1.0
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
         files: \.sql$
         # Rule exclusions and their rationale are documented in pyproject.toml
         # under [tool.sqlfluff.core].
-        # patron_data.sql is a dev-instance fixture with synthetic test data.
-        # import-partial.sql and prod-partial-dump.sql are auto-generated
-        # partial-dump scripts that use psql meta-commands (\copy, \set)
-        # which sqlfluff cannot parse.
-        # See: https://github.com/sqlfluff/sqlfluff/issues/7512
-        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/(import-partial|prod-partial-dump)\.sql)$
+        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
+        # values and \N nulls which sqlfluff cannot parse.
+        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
+        # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
+
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.4
