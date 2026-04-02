@@ -21,11 +21,11 @@ import re
 import sys
 from pathlib import Path
 
-import infogami
 import web
+
+import infogami
 from openlibrary.config import load_config
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
-
 
 # Matches:
 #   &#1234;
@@ -114,7 +114,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
     setup(config_path)
 
     # Read all keys from the file
-    with open(keys_path, 'r') as f:
+    with open(keys_path) as f:
         all_keys = [line.strip() for line in f if line.strip()]
 
     # Check for existing progress
@@ -130,7 +130,10 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
 
     for key in keys_to_process:
         if was_shutdown_requested():
-            print(f"Shutdown requested. Stopped at record {records_processed}.", file=sys.stderr)
+            print(
+                f"Shutdown requested. Stopped at record {records_processed}.",
+                file=sys.stderr,
+            )
             break
 
         record = web.ctx.site.get(key)
@@ -147,7 +150,9 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
         if updates:
             if not dry_run:
                 data.update(updates)
-                web.ctx.site.save(data, comment='Fix HTML entity encoding in Unicode fields')
+                web.ctx.site.save(
+                    data, comment='Fix HTML entity encoding in Unicode fields'
+                )
 
         records_processed += 1
 
@@ -163,32 +168,26 @@ def main():
         description="Detect and fix HTML-escaped Unicode in OL dumps"
     )
 
-    parser.add_argument(
-        '--dump',
-        help='Path to .txt.gz dump file (Phase 1)'
-    )
+    parser.add_argument('--dump', help='Path to .txt.gz dump file (Phase 1)')
 
     parser.add_argument(
         '--type',
         choices=['authors', 'editions', 'works'],
-        help='Record type (required for Phase 1)'
+        help='Record type (required for Phase 1)',
     )
 
     parser.add_argument(
-        '--keys',
-        help='Path to keys file produced by Phase 1 (Phase 2)'
+        '--keys', help='Path to keys file produced by Phase 1 (Phase 2)'
     )
 
     parser.add_argument(
         '--config',
         default=DEFAULT_CONFIG_PATH,
-        help='Path to openlibrary.yml config file (Phase 2)'
+        help='Path to openlibrary.yml config file (Phase 2)',
     )
 
     parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Preview changes without saving'
+        '--dry-run', action='store_true', help='Preview changes without saving'
     )
 
     args = parser.parse_args()
