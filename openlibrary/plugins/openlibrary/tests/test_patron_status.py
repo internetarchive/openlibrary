@@ -1,11 +1,11 @@
-"""Tests for get_patron_status — Matomo retention dimension helper."""
+"""Tests for get_days_registered — Matomo retention dimension helper."""
 
 import datetime
 from unittest.mock import MagicMock
 
 import pytest
 
-from openlibrary.plugins.openlibrary.code import get_patron_status
+from openlibrary.accounts import get_days_registered
 
 
 def _user(days_ago):
@@ -21,24 +21,24 @@ def _user(days_ago):
 
 
 def test_no_user_returns_visitor():
-    assert get_patron_status(None) == "visitor"
+    assert get_days_registered(None) == "visitor"
 
 
 def test_falsy_user_returns_visitor():
-    assert get_patron_status(0) == "visitor"
-    assert get_patron_status("") == "visitor"
+    assert get_days_registered(0) == "visitor"
+    assert get_days_registered("") == "visitor"
 
 
 def test_missing_created_returns_d90_plus():
     user = MagicMock()
     user.created = None
-    assert get_patron_status(user) == "d90+"
+    assert get_days_registered(user) == "d90+"
 
 
 def test_invalid_created_returns_d90_plus():
     user = MagicMock()
     user.created = "not-a-date"
-    assert get_patron_status(user) == "d90+"
+    assert get_days_registered(user) == "d90+"
 
 
 # ---------------------------------------------------------------------------
@@ -63,4 +63,4 @@ def test_invalid_created_returns_d90_plus():
     ],
 )
 def test_day_buckets(days_ago, expected):
-    assert get_patron_status(_user(days_ago)) == expected
+    assert get_days_registered(_user(days_ago)) == expected
