@@ -35,6 +35,7 @@ from openlibrary.plugins.upstream.account import MyBooksTemplate
 from openlibrary.plugins.upstream.addbook import safe_seeother
 from openlibrary.plugins.worksearch import subjects
 from openlibrary.utils import olid_to_key
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import site
 
 
@@ -1055,15 +1056,14 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
 
 
-@public
-def get_lists(keys: list[str]):
+async def get_lists_async(keys: list[str]):
     # Fetches and caches the lists through Solr, rather than through the DB.
     from openlibrary.core.lists.model import List
-    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.code import run_solr_query_async
     from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 
     or_query = " OR ".join(f'"{k}"' for k in keys)
-    response = run_solr_query(
+    response = await run_solr_query_async(
         param={"q": f"seed:({or_query})"},
         scheme=ListSearchScheme(),
         fields=["key"],
@@ -1076,6 +1076,11 @@ def get_lists(keys: list[str]):
     lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
 
     return [get_list_data(lst, None) for lst in lists]
+
+
+# Sync wrapper for backward compatibility
+get_lists = async_bridge.wrap(get_lists_async)
+public(get_lists)
 
 
 class lists_preview(delegate.page):

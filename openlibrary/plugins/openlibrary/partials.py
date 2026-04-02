@@ -10,7 +10,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
+from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search
 from openlibrary.plugins.worksearch.subjects import (
@@ -293,11 +293,14 @@ class BookPageListsPartial(PartialDataHandler):
         self.editionId = editionId
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         results: dict = {"partials": []}
         keys = [k for k in (self.workId, self.editionId) if k]
 
         # Do checks and render
-        lists = get_lists(keys)
+        lists = await get_lists_async(keys)
         results["hasLists"] = bool(lists)
 
         if not lists:
