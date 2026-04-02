@@ -27,3 +27,9 @@
   background: none;
   cursor: pointer;
 }
+
+.link-box.clamp h3 {
+  display: inline;
+  margin: 0 8px 0 0;
+  vertical-align: baseline;
+}
