@@ -94,7 +94,7 @@ async def fulltext_search_suggestion_partial(
     The data parameter is the raw search query string.
     """
     partial = FullTextSuggestionsPartial(query=data)
-    result = partial.generate()
+    result = await partial.generate_async()
 
     if not partial.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"
