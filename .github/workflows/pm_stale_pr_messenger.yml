@@ -19,8 +19,9 @@ jobs:
           stale-pr-message: >
             Hello! This pull request has been marked as stale because it has been
             waiting for submitter input for 7 days. If you're still working on
-            this, please add a comment to keep it open. Otherwise, it will be
-            automatically closed in 7 days.
+            this, please add a comment to keep it open. Otherwise, a maintainer
+            will have to determine how to proceed including reassigning or opening
+            the issue for others to work on after communicating with you.
 
             For guidance on contributing, please see our
             [Contributing guide](https://docs.openlibrary.org/developers/CONTRIBUTING.html).
