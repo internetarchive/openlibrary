@@ -443,7 +443,9 @@ def cmd_add_books(ol, count=10, source="production"):
 
     success, errors = _import_books(ol, records)
 
-    print(f"\n  Done! {GREEN}{success} books imported{RESET}, {RED}{errors} errors{RESET}.")
+    print(
+        f"\n  Done! {GREEN}{success} books imported{RESET}, {RED}{errors} errors{RESET}."
+    )
     if success > 0:
         print(f"  {DIM}Tip: Books may not appear in search until Solr reindexes.")
         print(f"  Use 'Manage Solr Index' or wait for solr-updater to catch up.{RESET}")
@@ -788,7 +790,9 @@ def cmd_populate_subjects(ol):
             if errors <= 3:
                 print(f"  Error updating {work_key}: {e}")
 
-    print(f"\n  Done! {GREEN}{updated} works updated{RESET}, {skipped} already had subjects.")
+    print(
+        f"\n  Done! {GREEN}{updated} works updated{RESET}, {skipped} already had subjects."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1448,7 +1452,9 @@ def _delete_keys(keys, comment):
 def cmd_reset_state(ol):
     """Clear shelfie-created data from local database."""
     print_header("Reset Local State")
-    print(f"  {YELLOW}WARNING: This will delete data from your local dev database.{RESET}")
+    print(
+        f"  {YELLOW}WARNING: This will delete data from your local dev database.{RESET}"
+    )
     print("  This does NOT affect production.")
     print()
 
