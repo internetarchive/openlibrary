@@ -14,7 +14,7 @@ jobs:
         with:
           only-pr-labels: "Needs: Submitter Input"
           days-before-issue-stale: -1 # disable issue stale
-          days-before-pr-close: 14
+          days-before-pr-close: 7
           days-before-pr-stale: 7
           stale-pr-message: >
             Hello! This pull request has been marked as stale because it has been
@@ -26,7 +26,7 @@ jobs:
             [Contributing guide](https://docs.openlibrary.org/developers/CONTRIBUTING.html).
           close-pr-message: >
             This pull request has been automatically closed after being marked as
-            stale for 14 days with no response. If you'd like to revisit this
+            stale for 7 days with no response. If you'd like to revisit this
             work, feel free to open a new pull request. Thank you!
 
             For guidance on contributing, please see our
