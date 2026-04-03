@@ -1,0 +1,35 @@
+name: "Stale submitter input PRs"
+on:
+  schedule:
+    - cron: "12 2 * * *"
+
+jobs:
+  stale-prs:
+    if: github.repository_owner == 'internetarchive'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v10
+        with:
+          only-pr-labels: "Needs: Submitter Input"
+          days-before-issue-stale: -1 # disable issue stale
+          days-before-pr-close: -1 # For now, no closing just nudging
+          days-before-pr-stale: 7
+          stale-pr-message: >
+            Hello! This pull request has been marked as stale because it has been
+            waiting for submitter input for 7 days. If you're still working on
+            this, please add a comment to keep it open. Otherwise, a maintainer
+            will have to determine how to proceed including reassigning or opening
+            the issue for others to work on after communicating with you.
+
+            For guidance on contributing, please see our
+            [Contributing guide](https://docs.openlibrary.org/developers/CONTRIBUTING.html).
+          close-pr-message: >
+            This pull request has been automatically closed after being marked as
+            stale for 7 days with no response. If you'd like to revisit this
+            work, feel free to open a new pull request. Thank you!
+
+            For guidance on contributing, please see our
+            [Contributing guide](https://docs.openlibrary.org/developers/CONTRIBUTING.html).
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
