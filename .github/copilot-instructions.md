@@ -50,7 +50,7 @@ npm run watch               # Dev mode with hot reload
 
 **DRY:** Abstract repeated code blocks into shared helpers.
 
-**i18n:** Wrap all user-facing strings in translation functions (`$_(...)` or `$:_('...')`). Use named placeholders (`_('Hello, %(name)s')`) and `$:_()` for HTML content to prevent double-escaping.
+**i18n:** Wrap all user-facing strings in translation functions (`$_(...)` or `$:_('...')`). Do not use string concatenation to construct user-visible strings; prefer a single parameterized translation string instead. Use named placeholders (`_('Hello, %(name)s')`) rather than positional placeholders such as `%s` so translators have more context. Use `$:_()` for HTML content to prevent double-escaping.
 
 **FastAPI:** When touching FastAPI code, follow [FastAPI best practices](https://raw.githubusercontent.com/fastapi/fastapi/refs/heads/master/fastapi/.agents/skills/fastapi/SKILL.md) and ensure compliance with their recommendations. When in doubt, reference other parts of our FastAPI codebase for how we do things, as we generally follow established best practices.
 
