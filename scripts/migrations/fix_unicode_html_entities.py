@@ -147,12 +147,11 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
         fields = FIELDS_BY_TYPE.get(record_type, [])
         updates = get_field_updates(data, fields)
 
-        if updates:
-            if not dry_run:
-                data.update(updates)
-                web.ctx.site.save(
-                    data, comment='Fix HTML entity encoding in Unicode fields'
-                )
+        if updates and not dry_run:
+            data.update(updates)
+            web.ctx.site.save(
+                data, comment='Fix HTML entity encoding in Unicode fields'
+            )
 
         records_processed += 1
 
