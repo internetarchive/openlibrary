@@ -401,7 +401,10 @@ def _import_books(ol, records):
 
         done = i + 1
         if done % 10 == 0 or done == total:
-            print(f"  Progress: {done}/{total} (success={success}, errors={errors})")
+            print(
+                f"  Progress: {done}/{total} "
+                f"({GREEN}success={success}{RESET}, {RED}errors={errors}{RESET})"
+            )
 
     return success, errors
 
@@ -440,10 +443,10 @@ def cmd_add_books(ol, count=10, source="production"):
 
     success, errors = _import_books(ol, records)
 
-    print(f"\n  Done! {success} books imported, {errors} errors.")
+    print(f"\n  Done! {GREEN}{success} books imported{RESET}, {RED}{errors} errors{RESET}.")
     if success > 0:
-        print("  Tip: Books may not appear in search until Solr reindexes.")
-        print("  Use 'Manage Solr Index' or wait for solr-updater to catch up.")
+        print(f"  {DIM}Tip: Books may not appear in search until Solr reindexes.")
+        print(f"  Use 'Manage Solr Index' or wait for solr-updater to catch up.{RESET}")
     return success
 
 
@@ -716,7 +719,7 @@ def cmd_generate_lists(ol, count=1, username=None):
         except (OLError, requests.RequestException, json.JSONDecodeError) as e:
             print(f"  Error creating list '{pl['name']}': {e}")
 
-    print(f"\n  Done! {success}/{count} lists created.")
+    print(f"\n  Done! {GREEN}{success}/{count} lists created.{RESET}")
 
 
 # ---------------------------------------------------------------------------
@@ -785,7 +788,7 @@ def cmd_populate_subjects(ol):
             if errors <= 3:
                 print(f"  Error updating {work_key}: {e}")
 
-    print(f"\n  Done! {updated} works updated, {skipped} already had subjects.")
+    print(f"\n  Done! {GREEN}{updated} works updated{RESET}, {skipped} already had subjects.")
 
 
 # ---------------------------------------------------------------------------
@@ -1013,7 +1016,7 @@ def cmd_create_accounts(
             else:
                 print(f"  Error creating {username}: {e}")
 
-    print(f"\n  Done! {success}/{count} accounts ready.")
+    print(f"\n  Done! {GREEN}{success}/{count} accounts ready.{RESET}")
     print(f"  Login with: username='{prefix}_N', password='{password}'")
 
     if (
@@ -1087,7 +1090,7 @@ def cmd_seed_ratings(ol, count=10, username=None):
         except (OLError, requests.RequestException, json.JSONDecodeError) as e:
             print(f"  Error rating {work_key}: {e}")
 
-    print(f"\n  Done! {success}/{len(selected_works)} ratings added.")
+    print(f"\n  Done! {GREEN}{success}/{len(selected_works)} ratings added.{RESET}")
 
 
 # ---------------------------------------------------------------------------
@@ -1142,7 +1145,7 @@ def cmd_seed_reading_log(ol, count=20, username=None):
             print(f"  Progress: {done}/{available}")
 
     # Show distribution
-    print(f"\n  Done! {success} books added to reading log.")
+    print(f"\n  Done! {GREEN}{success} books added to reading log.{RESET}")
     print("  Distributed across: Want to Read, Currently Reading, Already Read")
 
 
@@ -1363,7 +1366,7 @@ def cmd_seed_series(ol, count=3):
             print(f"    {pos}. {title}")
         success += 1
 
-    print(f"\n  Done! {success}/{count} series created.")
+    print(f"\n  Done! {GREEN}{success}/{count} series created.{RESET}")
 
 
 # ---------------------------------------------------------------------------
@@ -1411,50 +1414,107 @@ def cmd_populate_all(ol):
 # ---------------------------------------------------------------------------
 
 
+def _infobase_keys_of_type(doc_type, limit=10000):
+    """Return all keys of a given type from infobase."""
+    try:
+        resp = requests.get(
+            f"{DEFAULT_INFOBASE_URL}/things",
+            params={"query": json.dumps({"type": doc_type, "limit": limit})},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json()
+    except (requests.RequestException, ValueError):
+        return []
+
+
+def _delete_keys(keys, comment):
+    """Mark documents as deleted via infobase (sets type to /type/delete)."""
+    if not keys:
+        return 0
+    docs = [{"key": k, "type": {"key": "/type/delete"}} for k in keys]
+    batch_size = 100
+    deleted = 0
+    for i in range(0, len(docs), batch_size):
+        batch = docs[i : i + batch_size]
+        try:
+            infobase_save(batch, comment=comment)
+            deleted += len(batch)
+        except requests.RequestException as e:
+            print(f"  {RED}Error deleting batch: {e}{RESET}")
+    return deleted
+
+
 def cmd_reset_state(ol):
-    """Clear books, lists, and test users from local database."""
+    """Clear shelfie-created data from local database."""
     print_header("Reset Local State")
-    print("  WARNING: This will delete data from your local dev database.")
+    print(f"  {YELLOW}WARNING: This will delete data from your local dev database.{RESET}")
     print("  This does NOT affect production.")
     print()
 
     options = [
-        "Delete all imported books (source_records starting with 'shelfie:')",
-        "Delete all test accounts (testuser_* pattern)",
+        "Delete shelfie-imported books (editions, works, authors)",
+        "Delete shelfie-created series",
+        "Delete shelfie-created lists",
+        "Delete everything shelfie created",
+        "Nuclear reset (rebuild Docker volumes)",
         "Cancel",
     ]
     choice = choose("What to reset?", options)
 
-    if choice == options[2]:
+    if choice == options[5]:  # Cancel
         print("  Cancelled.")
         return
 
-    if choice == options[0]:
-        if not confirm("  Really delete all shelfie-imported books?"):
-            return
-        # Find editions with shelfie source records
-        try:
-            editions = ol.query(
-                type="/type/edition",
-                source_records="shelfie:*",
-                limit=False,
-            )
-            edition_list = list(editions) if hasattr(editions, '__next__') else editions
-            if not edition_list:
-                print("  No shelfie-imported books found.")
-                return
-            print(f"  Found {len(edition_list)} editions to remove...")
-            # We can't truly delete in OL, but we can mark them
-            # For local dev, direct DB cleanup is more practical
-            print("  Note: Open Library doesn't support hard deletes.")
-            print("  For a clean reset, rebuild the Docker volumes:")
-            print("    docker compose down -v && docker compose up")
-        except OLError as e:
-            print(f"  Error: {e}")
+    if choice == options[4]:  # Nuclear
+        print()
+        print("  To fully reset, run:")
+        print(f"    {BOLD}docker compose down -v && docker compose up{RESET}")
+        return
 
-    elif choice == options[1]:
-        print("  Note: Account deletion is best done by rebuilding Docker volumes.")
-        print("    docker compose down -v && docker compose up")
+    targets = {}
+
+    if choice in (options[0], options[3]):  # Books or everything
+        editions = _infobase_keys_of_type("/type/edition")
+        works = _infobase_keys_of_type("/type/work")
+        authors = _infobase_keys_of_type("/type/author")
+        targets["editions"] = editions
+        targets["works"] = works
+        targets["authors"] = authors
+
+    if choice in (options[1], options[3]):  # Series or everything
+        series = _infobase_keys_of_type("/type/series")
+        targets["series"] = series
+
+    if choice in (options[2], options[3]):  # Lists or everything
+        lists = _infobase_keys_of_type("/type/list")
+        targets["lists"] = lists
+
+    total = sum(len(v) for v in targets.values())
+    if total == 0:
+        print("  Nothing to delete.")
+        return
+
+    print()
+    for label, keys in targets.items():
+        print(f"    {label}: {len(keys)}")
+    print()
+
+    if not confirm(f"  Delete {total} documents?"):
+        print("  Cancelled.")
+        return
+
+    # Delete in dependency order: editions before works, works before authors
+    delete_order = ["lists", "series", "editions", "works", "authors"]
+    total_deleted = 0
+    for label in delete_order:
+        keys = targets.get(label, [])
+        if keys:
+            deleted = _delete_keys(keys, comment=f"shelfie: reset {label}")
+            total_deleted += deleted
+            print(f"  Deleted {GREEN}{deleted}{RESET} {label}.")
+
+    print(f"\n  Done! {GREEN}{total_deleted} documents deleted.{RESET}")
 
 
 # ---------------------------------------------------------------------------
@@ -1481,6 +1541,9 @@ MENU_OPTIONS = [
 
 BOLD = "\033[1m"
 RESET = "\033[0m"
+GREEN = "\033[32m"
+RED = "\033[31m"
+YELLOW = "\033[33m"
 LOGO = f"""
 {BOLD}   ____  _          _  __ _
   / ___|| |__   ___| |/ _(_) ___
