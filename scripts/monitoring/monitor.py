@@ -10,6 +10,7 @@ import time
 
 import httpx
 
+from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
     GraphiteEvent,
@@ -170,6 +171,29 @@ async def monitor_empty_homepage():
             value=book_count,
             timestamp=ts,
         ).submit(GRAPHITE_URL)
+
+
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def monitor_fail2ban():
+    """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
+    failed, banned = get_fail2ban_counts("nginx-429")
+    ts = int(time.time())
+    GraphiteEvent.submit_many(
+        [
+            GraphiteEvent(
+                path="stats.ol.fail2ban.nginx-429.failed",
+                value=float(failed),
+                timestamp=ts,
+            ),
+            GraphiteEvent(
+                path="stats.ol.fail2ban.nginx-429.banned",
+                value=float(banned),
+                timestamp=ts,
+            ),
+        ],
+        GRAPHITE_URL,
+    )
 
 
 @limit_server(["ol-home0"], scheduler)
