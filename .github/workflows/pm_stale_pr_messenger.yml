@@ -14,7 +14,7 @@ jobs:
         with:
           only-pr-labels: "Needs: Submitter Input"
           days-before-issue-stale: -1 # disable issue stale
-          days-before-pr-close: 7
+          days-before-pr-close: -1 # For now, no closing just nudging
           days-before-pr-stale: 7
           stale-pr-message: >
             Hello! This pull request has been marked as stale because it has been
