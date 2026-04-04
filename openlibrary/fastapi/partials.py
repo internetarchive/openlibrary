@@ -42,14 +42,13 @@ async def search_facets_partial(
     - param: dict with search parameters (q, author_key, subject_facet, etc.)
     - path: str (e.g., '/search')
     - query: str (e.g., '?q=python')
-    # TODO: Make this fully async
     """
     try:
         parsed_data = json.loads(data)
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return SearchFacetsPartial(data=parsed_data, sfw=sfw == "yes").generate()
+    return await SearchFacetsPartial(data=parsed_data, sfw=sfw == "yes").generate_async()
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

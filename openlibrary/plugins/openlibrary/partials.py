@@ -12,7 +12,7 @@ from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
-from openlibrary.plugins.worksearch.code import do_search, work_search
+from openlibrary.plugins.worksearch.code import do_search_async, work_search
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
@@ -218,13 +218,16 @@ class SearchFacetsPartial(PartialDataHandler):
         )
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         path = self.data.get('path')
         query = self.data.get('query', '')
         parsed_qs = parse_qs(query.replace('?', ''))
         param = self.data.get('param', {})
 
         sort = None
-        search_response = do_search(
+        search_response = await do_search_async(
             param,
             sort,
             rows=0,
