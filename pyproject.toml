@@ -82,7 +82,6 @@ lint.ignore = [
     # openlibrary/plugins/upstream/utils.py - unclear but it's huge
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
-  "PLC0415", # import-outside-top-level we really need to turn this on but it's a decently big change
 ]
 line-length = 162
 lint.select = [
@@ -159,6 +158,8 @@ max-returns = 14
 max-statements = 70
 
 [tool.ruff.lint.per-file-ignores]
+# import-outside-top-level (PLC0415): enforce only under FastAPI code; elsewhere still ignored project-wide
+"!openlibrary/fastapi/**/*.py" = ["PLC0415"]
 "openlibrary/admin/stats.py" = ["BLE001"]
 "openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]
 "openlibrary/catalog/get_ia.py" = ["BLE001", "E722"]
