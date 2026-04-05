@@ -158,7 +158,9 @@ max-returns = 14
 max-statements = 70
 
 [tool.ruff.lint.per-file-ignores]
-# import-outside-top-level (PLC0415): enforce only under FastAPI code; elsewhere still ignored project-wide
+# import-outside-top-level (PLC0415): enforce only under openlibrary/fastapi/.
+# The leading "!" is ruff-supported negation — PLC0415 is ignored for every file
+# that does NOT match the glob, so only FastAPI code is checked.
 "!openlibrary/fastapi/**/*.py" = ["PLC0415"]
 "openlibrary/admin/stats.py" = ["BLE001"]
 "openlibrary/catalog/add_book/tests/test_add_book.py" = ["PT007"]
