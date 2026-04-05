@@ -82,7 +82,6 @@ lint.ignore = [
     # openlibrary/plugins/upstream/utils.py - unclear but it's huge
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
-  "PLC0415", # import-outside-top-level we really need to turn this on but it's a decently big change
 ]
 line-length = 162
 lint.select = [
@@ -206,6 +205,11 @@ max-statements = 70
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
+# The "!" prefix is official ruff syntax (see https://docs.astral.sh/ruff/settings/#lint_per-file-ignores).
+# It means: apply this rule to files that do NOT match this glob.
+# Effect: PLC0415 is enforced only inside openlibrary/fastapi/ and ignored everywhere else.
+"!openlibrary/fastapi/**/*.py" = ["PLC0415"]
+
 
 [tool.sqlfluff.core]
 dialect = "postgres"
