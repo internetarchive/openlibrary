@@ -5,7 +5,7 @@
 .linkButton {
   border-radius: 5px;
   background-color: var(--white);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   display: inline-block;
   font-family: var(--font-family-body);
   color: var(--grey);

@@ -54,7 +54,7 @@ a.toggle {
   text-decoration: none;
   color: var(--white) !important;
   background-color: var(--olive) !important;
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
   border-radius: 3px;
 }
 a.toggle:hover {

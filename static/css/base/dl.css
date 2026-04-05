@@ -9,7 +9,7 @@ dt {
   clear: both;
 }
 dl {
-  margin: 10px 0;
+  margin: var(--spacing-stack-sm) 0;
 }
 dl:after {
   content: "";
@@ -17,12 +17,12 @@ dl:after {
   clear: both;
 }
 dl dt {
-  padding: 0 15px 10px 0;
+  padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm) 0;
   width: 120px;
 }
 dd {
   max-width: 270px;
 }
 dd + dd {
-  padding-left: 8px;
+  padding-left: var(--spacing-inset-sm);
 }
