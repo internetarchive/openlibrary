@@ -206,8 +206,8 @@ max-statements = 70
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
 # The "!" prefix is official ruff syntax (see https://docs.astral.sh/ruff/settings/#lint_per-file-ignores).
-# It means: apply this rule to files that do NOT match this glob.
-# Effect: PLC0415 is enforced only inside openlibrary/fastapi/ and ignored everywhere else.
+# In per-file-ignores, it means: ignore this rule for files that do NOT match this glob.
+# Effect: PLC0415 is ignored outside openlibrary/fastapi/ and therefore enforced only inside it.
 "!openlibrary/fastapi/**/*.py" = ["PLC0415"]
 
 
