@@ -3,6 +3,7 @@
 import pytest
 import web
 
+from infogami import config
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
@@ -54,10 +55,6 @@ def setup_db_config():
     which is necessary for the context variable infrastructure being added. Without this, tests may fail due to
     missing or incorrect database parameters when initializing site.
     """
-    import web
-
-    from infogami import config
-
     # Set web.config.db_parameters for OLConnection
     web.config.db_parameters = {}
 
@@ -89,7 +86,7 @@ def request_context_fixture():
     Provides defaults and allows tests to override any subset of fields.
     Automatically cleans up after the test.
     """
-    from openlibrary.utils.request_context import RequestContextVars, req_context
+    from openlibrary.utils.request_context import RequestContextVars, req_context  # noqa: PLC0415
 
     tokens = []
 
@@ -149,12 +146,12 @@ def render_template(request):
 
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
-    from openlibrary.plugins import ol_infobase
+    from openlibrary.plugins import ol_infobase  # noqa: PLC0415
 
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    from openlibrary.plugins.openlibrary import code
+    from openlibrary.plugins.openlibrary import code  # noqa: PLC0415
 
     web.config.db_parameters = {}
     code.setup_template_globals()

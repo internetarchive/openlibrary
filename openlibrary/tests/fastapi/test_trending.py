@@ -1,8 +1,12 @@
 """Tests for the /trending/{period}.json FastAPI endpoint (internal API)."""
 
+from typing import get_args
 from unittest.mock import patch
 
 import pytest
+
+from openlibrary.fastapi.internal.api import TrendingPeriod
+from openlibrary.views.loanstats import SINCE_DAYS
 
 MOCK_WORKS = [
     {"key": "/works/OL1W", "title": "Popular Book 1", "author_name": ["Author A"]},
@@ -109,11 +113,6 @@ class TestTrendingBooksEndpoint:
         assert mock_get_trending_books.call_args.kwargs["limit"] == 100
 
     def test_trending_period_literal_matches_since_days(self):
-        from typing import get_args
-
-        from openlibrary.fastapi.internal.api import TrendingPeriod
-        from openlibrary.views.loanstats import SINCE_DAYS
-
         literal_keys = set(get_args(TrendingPeriod))
         since_days_keys = set(SINCE_DAYS.keys())
 
