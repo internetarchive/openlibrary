@@ -205,9 +205,6 @@ max-statements = 70
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
-# The "!" prefix is official ruff syntax (see https://docs.astral.sh/ruff/settings/#lint_per-file-ignores).
-# In per-file-ignores, it means: ignore this rule for files that do NOT match this glob.
-# Effect: PLC0415 is ignored outside openlibrary/fastapi/ and therefore enforced only inside it.
 
 # All these rules are about imports not at the top level of a file
 # TODO: Slowly move the imports to the top of the files and add noqa statements where we can't move them up
