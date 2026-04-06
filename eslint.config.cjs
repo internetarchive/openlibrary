@@ -9,6 +9,8 @@ module.exports = [
   {
     ignores: [
       ".*",
+      "*.config.js",
+      "*.config.mjs",
       "conf/",
       "config/",
       "docker/",
@@ -93,13 +95,6 @@ module.exports = [
     plugins: {
       "no-jquery": require("eslint-plugin-no-jquery"),
     },
-    ignores: [
-      "eslint.config.cjs",
-      "*.config.js",
-      "*.config.mjs",
-      "coverage/**",
-      "build/**",
-    ],
     languageOptions: {
       parserOptions: {
         sourceType: "module",
@@ -204,13 +199,6 @@ module.exports = [
   // JavaScript-specific configuration
   {
     files: ["**/*.js"],
-    ignores: [
-      "eslint.config.cjs",
-      "*.config.js",
-      "*.config.mjs",
-      "coverage/**",
-      "build/**",
-    ],
     languageOptions: {
       parser: babelParser,
       parserOptions: {
