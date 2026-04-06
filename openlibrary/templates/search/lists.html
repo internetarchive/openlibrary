@@ -35,7 +35,7 @@ $ layout = get_remembered_layout()
                 s_sort = search_request.sort
                 if isinstance(s_sort, tuple):
                   s_sort = s_sort[0] if s_sort else 'index'
-                    
+
             $:render_template("search/sort_options", s_sort, None, "index", "lists_seeds")
       </div>
 
