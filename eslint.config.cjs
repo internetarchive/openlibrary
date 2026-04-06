@@ -1,6 +1,5 @@
 const js = require("@eslint/js");
 const vuePlugin = require("eslint-plugin-vue");
-const noJqueryPlugin = require("eslint-plugin-no-jquery");
 const globals = require("globals");
 const babelParser = require("@babel/eslint-parser");
 
@@ -88,16 +87,6 @@ module.exports = [
   // Vue plugin configuration
   ...vuePlugin.configs["flat/recommended"],
 
-  // No jQuery plugin configuration (disabled variable-pattern check to maintain compatibility)
-  {
-    plugins: {
-      "no-jquery": noJqueryPlugin,
-    },
-    rules: {
-      "no-jquery/variable-pattern": "off",
-    },
-  },
-
   // Base configuration for all JS/Vue files (except config and build files)
   {
     files: ["**/*.js", "**/*.vue"],
@@ -118,7 +107,8 @@ module.exports = [
       },
       globals: {
         ...globals.browser,
-        ...globals.jquery,
+        $: "readonly",
+        jQuery: "readonly",
       },
     },
     rules: {
