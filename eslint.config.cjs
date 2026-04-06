@@ -29,13 +29,11 @@ module.exports = [
   },
 
   // Configuration for build and config files (CommonJS) - MUST come before js.configs.recommended
+  // Note: webpack.config.js, vue.config.js, etc. are ignored by global ignores (see line 12)
+  // Only non-*.config.js files are actually linted here
   {
     files: [
-      "webpack.config.js",
-      "webpack.config.css.js",
-      "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
-      "conf/svgo.config.js",
       "stories/.storybook/main.js",
     ],
     languageOptions: {
