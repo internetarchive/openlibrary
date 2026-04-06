@@ -230,7 +230,7 @@ div.floaterBody p {
 .ol-cover-form input[type="file"] {
   font-size: 1.125em;
   font-family: var(--font-family-body);
-  padding: var(--spacing-3xs);
+  padding: var(--spacing-inset-xs);
 }
 
 .floatform input::file-selector-button,
@@ -374,7 +374,7 @@ div.floaterAdd form.floatform textarea {
 }
 
 div.floaterAdd form.floatform textarea {
-  padding: var(--spacing-3xs);
+  padding: var(--spacing-inset-xs);
   resize: none;
 }
 

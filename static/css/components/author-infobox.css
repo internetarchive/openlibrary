@@ -23,7 +23,7 @@
 .infobox table {
   /* Without this page-user.css makes the table very compact */
   border-collapse: unset;
-  border-spacing: var(--spacing-3xs);
+  border-spacing: var(--spacing-inset-xs);
 }
 .infobox .profile-icon-container {
   display: flex;

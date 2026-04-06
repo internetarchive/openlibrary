@@ -46,7 +46,7 @@
 }
 
 .carousel__item {
-  padding: var(--spacing-3xs);
+  padding: var(--spacing-inset-xs);
   float: left;
   height: 100%;
   margin: 0 var(--spacing-inset-sm);
