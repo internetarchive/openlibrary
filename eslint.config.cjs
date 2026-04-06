@@ -190,7 +190,6 @@ module.exports = [
   {
     files: ["**/*.vue"],
     languageOptions: {
-      parser: vuePlugin.parser,
       parserOptions: {
         parser: babelParser,
         sourceType: "module",
