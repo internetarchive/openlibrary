@@ -154,13 +154,9 @@ module.exports = [
       "stories/.storybook/main.js",
     ],
     languageOptions: {
-      parser: babelParser,
       parserOptions: {
         sourceType: "commonjs",
         ecmaVersion: "latest",
-        babelOptions: {
-          configFile: "./.babelrc",
-        },
       },
       globals: {
         ...globals.node,
@@ -193,13 +189,9 @@ module.exports = [
   {
     files: ["stories/.storybook/preview.js"],
     languageOptions: {
-      parser: babelParser,
       parserOptions: {
         sourceType: "module",
         ecmaVersion: "latest",
-        babelOptions: {
-          configFile: "./.babelrc",
-        },
       },
       globals: {
         ...globals.node,
