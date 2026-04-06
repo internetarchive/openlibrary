@@ -1,11 +1,11 @@
-import js from "@eslint/js";
-import vuePlugin from "eslint-plugin-vue";
-import noJqueryPlugin from "eslint-plugin-no-jquery";
-import globals from "globals";
-import babelParser from "@babel/eslint-parser";
+const js = require("@eslint/js");
+const vuePlugin = require("eslint-plugin-vue");
+const noJqueryPlugin = require("eslint-plugin-no-jquery");
+const globals = require("globals");
+const babelParser = require("@babel/eslint-parser");
 
 /** @type {import('eslint').Linter.Config[]} */
-export default [
+module.exports = [
   // Ignore patterns from .eslintignore
   {
     ignores: [
@@ -23,6 +23,7 @@ export default [
       "vendor/",
       "tests/screenshots/",
       "venv/",
+      "eslint.config.cjs",
     ],
   },
 
@@ -46,7 +47,7 @@ export default [
   {
     files: ["**/*.js", "**/*.vue"],
     ignores: [
-      "eslint.config.mjs",
+      "eslint.config.cjs",
       "*.config.js",
       "*.config.mjs",
       "coverage/**",
@@ -124,7 +125,7 @@ export default [
   {
     files: ["**/*.js"],
     ignores: [
-      "eslint.config.mjs",
+      "eslint.config.cjs",
       "*.config.js",
       "*.config.mjs",
       "coverage/**",
