@@ -16,6 +16,7 @@ from openlibrary.mocks.mock_infobase import (
 from openlibrary.mocks.mock_memcache import (
     mock_memcache,  # noqa: F401 side effects may be needed
 )
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 @pytest.fixture(autouse=True)
@@ -86,7 +87,6 @@ def request_context_fixture():
     Provides defaults and allows tests to override any subset of fields.
     Automatically cleans up after the test.
     """
-    from openlibrary.utils.request_context import RequestContextVars, req_context  # noqa: PLC0415
 
     tokens = []
 

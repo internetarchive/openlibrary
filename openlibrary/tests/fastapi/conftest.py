@@ -6,6 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.plugins.worksearch.code import SearchResponse
 
 
 @pytest.fixture
@@ -126,7 +127,6 @@ def _default_search_response():
 
 def _default_subjects_response():
     """Default mock response for subjects search."""
-    from openlibrary.plugins.worksearch.code import SearchResponse  # noqa: PLC0415
 
     return SearchResponse(
         facet_counts=None,
