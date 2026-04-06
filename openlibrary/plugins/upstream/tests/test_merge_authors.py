@@ -1,6 +1,7 @@
 import web
 
 from infogami.infobase import client, common
+from openlibrary.plugins.upstream import models
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
@@ -16,10 +17,8 @@ from openlibrary.utils import dicthash
 def setup_module(mod):
     # delegate.fakeload()
 
-    # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
+    # Configure test database settings before calling models.setup().
     web.config.db_parameters = {"dbn": "sqlite", "db": ":memory:"}
-    from openlibrary.plugins.upstream import models
-
     models.setup()
 
 

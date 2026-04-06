@@ -6,13 +6,14 @@ import pytest
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.plugins.worksearch.code import SearchResponse
 
 
 @pytest.fixture
 def fastapi_client():
     """Create a test client for the FastAPI app."""
     with patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True):
-        from openlibrary.asgi_app import create_app
+        from openlibrary.asgi_app import create_app  # noqa: PLC0415
 
         app = create_app()
         client = TestClient(app)
@@ -126,7 +127,6 @@ def _default_search_response():
 
 def _default_subjects_response():
     """Default mock response for subjects search."""
-    from openlibrary.plugins.worksearch.code import SearchResponse
 
     return SearchResponse(
         facet_counts=None,
