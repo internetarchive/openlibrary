@@ -713,6 +713,19 @@ div.siteSearch input[type="text"] {
   margin-right: 20px;
 }
 
+/* openlibrary/templates/search/advancedsearch.html */
+@media only screen and (max-width: 768px) {
+  .siteSearch.olform[action="/search"] {
+    width: 100%;
+  }
+
+  .siteSearch input[type="text"][id^="qtop-"] {
+    width: 100%;
+    margin-right: 0;
+    box-sizing: border-box;
+  }
+}
+
 /* DIALOGS */
 
 /* openlibrary/macros/EditButtons.html */
