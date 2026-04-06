@@ -143,14 +143,12 @@ module.exports = [
     },
   },
 
-  // Configuration for build and config files (Node.js environment)
+  // Configuration for build and config files (CommonJS)
   {
     files: [
       "webpack.config.js",
       "webpack.config.css.js",
       "vue.config.js",
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
       "stories/.storybook/main.js",
@@ -164,6 +162,24 @@ module.exports = [
           configFile: "./.babelrc",
         },
       },
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  // Configuration for Vite config files (ES modules)
+  {
+    files: [
+      "openlibrary/components/vite.config.mjs",
+      "openlibrary/components/vite-lit.config.mjs",
+    ],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
       globals: {
         ...globals.node,
       },
