@@ -46,7 +46,7 @@ export default [
   {
     files: ["**/*.js", "**/*.vue"],
     ignores: [
-      "eslint.config.js",
+      "eslint.config.mjs",
       "*.config.js",
       "*.config.mjs",
       "coverage/**",
@@ -124,7 +124,7 @@ export default [
   {
     files: ["**/*.js"],
     ignores: [
-      "eslint.config.js",
+      "eslint.config.mjs",
       "*.config.js",
       "*.config.mjs",
       "coverage/**",

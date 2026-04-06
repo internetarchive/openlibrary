@@ -1,7 +1,6 @@
 {
   "name": "openlibrary",
   "version": "1.0.0",
-  "type": "module",
   "repository": "github:internetarchive/openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
