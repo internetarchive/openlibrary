@@ -27,6 +27,61 @@ module.exports = [
     ],
   },
 
+  // Configuration for build and config files (CommonJS) - MUST come before js.configs.recommended
+  {
+    files: [
+      "webpack.config.js",
+      "webpack.config.css.js",
+      "vue.config.js",
+      "openlibrary/components/dev/serve-component.js",
+      "conf/svgo.config.js",
+      "stories/.storybook/main.js",
+    ],
+    languageOptions: {
+      sourceType: "script",
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  // Configuration for Vite config files (ES modules) - MUST come before js.configs.recommended
+  {
+    files: [
+      "openlibrary/components/vite.config.mjs",
+      "openlibrary/components/vite-lit.config.mjs",
+    ],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
+  // Configuration for Storybook preview files (ES modules) - MUST come before js.configs.recommended
+  {
+    files: ["stories/.storybook/preview.js"],
+    languageOptions: {
+      sourceType: "module",
+      ecmaVersion: "latest",
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      "no-console": "off",
+    },
+  },
+
   // Base recommended config
   js.configs.recommended,
 
@@ -140,65 +195,6 @@ module.exports = [
           configFile: "./.babelrc",
         },
       },
-    },
-  },
-
-  // Configuration for build and config files (CommonJS)
-  {
-    files: [
-      "webpack.config.js",
-      "webpack.config.css.js",
-      "vue.config.js",
-      "openlibrary/components/dev/serve-component.js",
-      "conf/svgo.config.js",
-      "stories/.storybook/main.js",
-    ],
-    languageOptions: {
-      parserOptions: {
-        sourceType: "commonjs",
-        ecmaVersion: "latest",
-      },
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Vite config files (ES modules)
-  {
-    files: [
-      "openlibrary/components/vite.config.mjs",
-      "openlibrary/components/vite-lit.config.mjs",
-    ],
-    languageOptions: {
-      ecmaVersion: "latest",
-      sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Storybook preview files (ES modules)
-  {
-    files: ["stories/.storybook/preview.js"],
-    languageOptions: {
-      parserOptions: {
-        sourceType: "module",
-        ecmaVersion: "latest",
-      },
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
     },
   },
 
