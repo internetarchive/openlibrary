@@ -61,12 +61,19 @@
 }
 
 .pwa-install-prompt__close {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
   background: none;
   border: none;
   cursor: pointer;
   color: var(--accessible-grey);
-  padding: var(--spacing-2xs);
-  flex-shrink: 0;
+  font-size: 1rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pwa-install-prompt__actions {
