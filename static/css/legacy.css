@@ -714,7 +714,7 @@ div.siteSearch input[type="text"] {
 }
 
 /* openlibrary/templates/search/advancedsearch.html */
-@media only screen and (max-width: 768px) {
+@media screen and (max-width: 768px) {
   .siteSearch--advanced {
     width: 100%;
   }
