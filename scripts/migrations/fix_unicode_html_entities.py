@@ -1,13 +1,12 @@
 """
-One-time script to fix HTML entity encoding errors in author names,
-edition titles, and work titles.
+One-time script to fix HTML entity encoding errors in Open Library records.
 
 Example of the problem:
     &#1057;&#1077;&#1088;&#1075;&#1077;&#1081; -> Сергей
 
 Usage:
     Phase 1 - Scan dump and output affected keys:
-    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_authors_latest.txt.gz --type authors > author_keys.txt
+    python3 scripts/migrations/fix_unicode_html_entities.py --dump ol_dump_authors_latest.txt.gz > author_keys.txt
 
     Phase 2 - Fetch, fix, and save records:
     python3 scripts/migrations/fix_unicode_html_entities.py --keys author_keys.txt --config /path/to/openlibrary.yml
@@ -35,12 +34,6 @@ HTML_ENTITY_PATTERN = re.compile(
     r'&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});', re.IGNORECASE
 )
 
-FIELDS_BY_TYPE = {
-    'authors': ['name', 'personal_name'],
-    'editions': ['title', 'subtitle'],
-    'works': ['title', 'subtitle'],
-}
-
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
@@ -49,32 +42,24 @@ def has_entities(value: str) -> bool:
     return bool(HTML_ENTITY_PATTERN.search(value))
 
 
-def get_field_updates(record: dict, fields: list[str]) -> dict[str, str]:
+def get_field_updates(record: dict) -> dict[str, str]:
     """
-    Return only the fields that need updating.
-    Ensures we don't overwrite unchanged values.
+    Return only the string fields that contain HTML entities.
+    Checks all string fields rather than a fixed list.
     """
     updates = {}
-
-    for field in fields:
-        if field in record and isinstance(record[field], str):
-            original = record[field]
-
-            if has_entities(original):
-                fixed = html.unescape(original)
-
-                if fixed != original:
-                    updates[field] = fixed
-
+    for key, value in record.items():
+        if isinstance(value, str) and has_entities(value):
+            fixed = html.unescape(value)
+            if fixed != value:
+                updates[key] = fixed
     return updates
 
 
-def process_dump(dump_path: str, record_type: str) -> None:
+def process_dump(dump_path: str) -> None:
     """
     Scan dump file, output keys of records with HTML entity encoding errors.
     """
-    fields = FIELDS_BY_TYPE[record_type]
-
     with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
         for line in f:
             parts = line.strip().split('\t')
@@ -84,12 +69,15 @@ def process_dump(dump_path: str, record_type: str) -> None:
             key = parts[1]
             raw_json = parts[4]
 
+            if not has_entities(raw_json):
+                continue
+
             try:
                 record = json.loads(raw_json)
             except json.JSONDecodeError:
                 continue
 
-            updates = get_field_updates(record, fields)
+            updates = get_field_updates(record)
 
             if not updates:
                 continue
@@ -143,9 +131,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
             continue
 
         data = record.dict()
-        record_type = key.split('/')[1]
-        fields = FIELDS_BY_TYPE.get(record_type, [])
-        updates = get_field_updates(data, fields)
+        updates = get_field_updates(data)
 
         if updates and not dry_run:
             data.update(updates)
@@ -170,12 +156,6 @@ def main():
     parser.add_argument('--dump', help='Path to .txt.gz dump file (Phase 1)')
 
     parser.add_argument(
-        '--type',
-        choices=['authors', 'editions', 'works'],
-        help='Record type (required for Phase 1)',
-    )
-
-    parser.add_argument(
         '--keys', help='Path to keys file produced by Phase 1 (Phase 2)'
     )
 
@@ -192,9 +172,7 @@ def main():
     args = parser.parse_args()
 
     if args.dump:
-        if not args.type:
-            parser.error('--type is required when using --dump')
-        process_dump(args.dump, args.type)
+        process_dump(args.dump)
     elif args.keys:
         fix_records(args.keys, args.config, args.dry_run)
     else:
