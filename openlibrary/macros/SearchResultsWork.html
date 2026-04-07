@@ -175,10 +175,10 @@ $code:
             </ol-read-more>
 
         $if doc.get('ia') and len(doc.get('ia')) > 1:
-          $ blur_preview = "preview-covers--blur" if blur else ""
+          $ blur_preview = "search-result-item__preview-covers--blur" if blur else ""
 
-          <div class="preview-covers-container">
-            <span class="preview-covers $blur_preview">
+          <div class="search-result-item__preview-covers-container">
+            <span class="search-result-item__preview-covers $blur_preview">
               $for x, i in enumerate(doc.get('ia')[1:6]):
                 <a href="$(book_url)?edition=ia:$(urlquote(i))">
                   <img width="35" height="53" loading="lazy" src="//archive.org/services/img/$i" alt="$_('Cover of edition %(id)s', id=i)">

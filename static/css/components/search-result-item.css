@@ -123,18 +123,18 @@
   color: var(--black);
 }
 
-.searchResultItem .preview-covers {
+.search-result-item__preview-covers {
   display: flex;
   align-items: center;
 }
 
-.searchResultItem .preview-covers img {
+.search-result-item__preview-covers img {
   border-radius: var(--border-radius-thumbnail);
   border: 2px solid var(--grey-fafafa);
   opacity: 1;
 }
 
-.searchResultItem .preview-covers--blur img {
+.search-result-item__preview-covers--blur img {
   filter: blur(2px);
 }
 
@@ -189,7 +189,7 @@
   font-style: normal;
 }
 
-.searchResultItem .preview-covers-container {
+.search-result-item__preview-covers-container {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -197,33 +197,33 @@
   margin-bottom: 5px;
 }
 
-.searchResultItem .preview-covers a {
+.search-result-item__preview-covers > * {
   position: relative;
   display: inline-block;
   flex-shrink: 0;
 }
 
-.searchResultItem .preview-covers a:nth-child(n + 2) {
+.search-result-item__preview-covers :nth-child(n + 2) {
   margin-left: -8px;
 }
 
-.searchResultItem .preview-covers a:nth-child(1) {
+.search-result-item__preview-covers :nth-child(1) {
   z-index: var(--z-index-level-5);
 }
 
-.searchResultItem .preview-covers a:nth-child(2) {
+.search-result-item__preview-covers :nth-child(2) {
   z-index: var(--z-index-level-4);
 }
 
-.searchResultItem .preview-covers a:nth-child(3) {
+.search-result-item__preview-covers :nth-child(3) {
   z-index: var(--z-index-level-3);
 }
 
-.searchResultItem .preview-covers a:nth-child(4) {
+.search-result-item__preview-covers :nth-child(4) {
   z-index: var(--z-index-level-2);
 }
 
-.searchResultItem .preview-covers a:nth-child(5) {
+.search-result-item__preview-covers :nth-child(5) {
   z-index: var(--z-index-level-1);
 }
 
@@ -277,20 +277,20 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .searchResultItem .preview-covers a:hover {
+  .search-result-item__preview-covers :hover {
     z-index: var(--z-index-level-5);
   }
 
-  .searchResultItem .preview-covers a:hover img {
+  .search-result-item__preview-covers :hover :where(img) {
     border-color: var(--primary-blue);
   }
 }
 
-.searchResultItem .preview-covers a:active img {
+.search-result-item__preview-covers :active :where(img) {
   transform: scale(0.97);
 }
 
-.searchResultItem .preview-covers a:focus-visible {
+.search-result-item__preview-covers :focus-visible {
   z-index: var(--z-index-level-5);
   box-shadow: var(--box-shadow-focus);
   border-radius: var(--border-radius-thumbnail);
