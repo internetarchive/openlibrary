@@ -228,7 +228,9 @@ export default {
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
                     return await data.json()
                 }
-                catch (error) {}
+                catch (error) {
+                    // Silence errors - failing to match a book is expected
+                }
             }
             this.loadingMatchedBooks = true
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
