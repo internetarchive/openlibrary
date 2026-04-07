@@ -192,9 +192,9 @@
 .search-result-item__preview-covers-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 10px;
-  margin-bottom: 5px;
+  gap: var(--spacing-inline-md);
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 .search-result-item__preview-covers > * {
@@ -281,12 +281,12 @@
     z-index: var(--z-index-level-5);
   }
 
-  .search-result-item__preview-covers :hover :where(img) {
+  .search-result-item__preview-covers :hover img {
     border-color: var(--primary-blue);
   }
 }
 
-.search-result-item__preview-covers :active :where(img) {
+.search-result-item__preview-covers :active img {
   transform: scale(0.97);
 }
 
