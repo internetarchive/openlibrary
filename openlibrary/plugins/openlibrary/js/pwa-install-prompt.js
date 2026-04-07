@@ -27,7 +27,7 @@ function attachBorrowTrigger() {
     borrowBtn.addEventListener('click', () => {
         localStorage.setItem(TRIGGER_KEY, 'borrow');
         // Don't preventDefault - let the navigation happen normally
-    })
+    });
 }
 
 function incrementVisitCount() {

@@ -19,7 +19,7 @@ export default function initServiceWorker(){
         e.preventDefault();
         deferredInstallPrompt = e;
         // Notify any listeners that the prompt is ready
-        window.dispatchEvent (new CustomEvent('pwa-install-ready'));
+        window.dispatchEvent(new CustomEvent('pwa-install-ready'));
     });
     window.addEventListener('appinstalled', ()=>{
         deferredInstallPrompt = null;

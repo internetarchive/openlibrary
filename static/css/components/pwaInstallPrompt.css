@@ -7,7 +7,7 @@
   background: var(--white);
   border-top: 1px solid var(--lighter-grey);
   border-radius: var(--border-radius-overlay) var(--border-radius-overlay) 0 0;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 -4px 24px var(--boxshadow-black);
   padding: 0 var(--spacing-inset-md) var(--spacing-2xl);
   transform: translateY(100%);
   transition: transform 0.3s ease;
