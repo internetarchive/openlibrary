@@ -69,15 +69,17 @@ async function install(promptEl) {
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
         localStorage.setItem(INSTALLED_KEY, '1');
+        promptEl.remove();
+    } else {
+        dismiss(promptEl);
     }
-    promptEl.remove();
 }
+
 function createPrompt(isIOSDevice, onInstall, onDismiss) {
     const el = document.createElement('div');
     el.id = 'pwa-install-prompt';
     el.className = 'pwa-install-prompt';
-    el.setAttribute('role', 'dialog');
-    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('role', 'region');
     el.setAttribute('aria-label', 'Add Open Library to home screen');
 
     const descText = isIOSDevice
@@ -115,18 +117,27 @@ function createPrompt(isIOSDevice, onInstall, onDismiss) {
             .addEventListener('click', () => onInstall(el));
     }
 }
+
 export default function initPWAInstallPrompt() {
-    incrementVisitCount();
     attachBorrowTrigger();
 
-    if (!shouldShowPrompt()) return;
     if (!isMobileDevice()) return;
+
+    incrementVisitCount();
+
+    if (!shouldShowPrompt()) return;
 
     if (isIOS()) {
         createPrompt(true, null, dismiss);
     } else {
-        window.addEventListener('pwa-install-ready', () => {
-            createPrompt(false,  install, dismiss);
-        }, {once: true});
+        import('./service-worker-init.js').then(({ getDeferredInstallPrompt }) => {
+            if (getDeferredInstallPrompt()) {
+                createPrompt(false, install, dismiss);
+            } else {
+                window.addEventListener('pwa-install-ready', () => {
+                    createPrompt(false, install, dismiss);
+                }, {once: true});
+            }
+        });
     }
 }
