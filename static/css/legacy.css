@@ -715,14 +715,13 @@ div.siteSearch input[type="text"] {
 
 /* openlibrary/templates/search/advancedsearch.html */
 @media only screen and (max-width: 768px) {
-  .siteSearch.olform[action="/search"] {
+  .siteSearch--advanced {
     width: 100%;
   }
 
-  .siteSearch input[type="text"][id^="qtop-"] {
+  .siteSearch--advanced-input {
     width: 100%;
     margin-right: 0;
-    box-sizing: border-box;
   }
 }
 
