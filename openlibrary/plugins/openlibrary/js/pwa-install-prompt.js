@@ -1,6 +1,6 @@
 /* 4 layers
 1. Constants       → the localStorage key names + thresholds
-2. Helper functions → "should we show?", "are we on mobile?", "is this iOS?"
+2. Helper functions → mobile/iOS detection, visit counting, borrow trigger, show logic
 3. UI builder      → create the HTML element and inject it into <body>
 4. Main init fn    → ties everything together, exported as default
  */
@@ -62,8 +62,8 @@ function dismiss(promptEl) {
 }
 
 async function install(promptEl) {
-    const { getDefferedInstallPrompt } = await import('./service-worker-init.js');
-    const deferredPrompt = getDefferedInstallPrompt();
+    const { getDeferredInstallPrompt } = await import('./service-worker-init.js');
+    const deferredPrompt = getDeferredInstallPrompt();
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -88,6 +88,7 @@ function createPrompt(isIOSDevice, onInstall, onDismiss) {
         : '<button class="pwa-install-prompt__btn pwa-install-prompt__btn--install">Add to Home Screen</button>';
 
     el.innerHTML = `
+    <button class="pwa-install-prompt__close" aria-label="Dismiss">&#x2715;</button>
     <div class="pwa-install-prompt__handle" aria-hidden="true"></div>
     <div class="pwa-install-prompt__body">
         <img src="/static/images/openlibrary-192x192.png" alt=""
@@ -96,7 +97,6 @@ function createPrompt(isIOSDevice, onInstall, onDismiss) {
             <strong class="pwa-install-prompt__title">Take Open Library with you</strong>
             <p class="pwa-install-prompt__desc">${descText}</p>
         </div>
-        <button class="pwa-install-prompt__close" aria-label="Dismiss">&#x2715;</button>
     </div>
     <div class="pwa-install-prompt__actions">
         ${installBtn}
