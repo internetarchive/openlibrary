@@ -7,6 +7,7 @@ import initServiceWorker from './service-worker-init.js';
 import './experiments.js';
 import '../../../../static/css/js-all.css';
 import { queueAction } from './utils';
+import initPWAInstallPrompt from './pwa-install-prompt.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -39,6 +40,8 @@ initSentry();
 
 // Init the service worker first since it does caching
 initServiceWorker();
+
+initPWAInstallPrompt();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
