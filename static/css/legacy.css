@@ -713,6 +713,18 @@ div.siteSearch input[type="text"] {
   margin-right: 20px;
 }
 
+/* openlibrary/templates/search/advancedsearch.html */
+@media screen and (max-width: 768px) {
+  .siteSearch--advanced {
+    width: 100%;
+  }
+
+  .siteSearch--advanced-input {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
 /* DIALOGS */
 
 /* openlibrary/macros/EditButtons.html */
