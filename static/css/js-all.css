@@ -2,7 +2,7 @@
  * Styles here will load for all users, but only if JavaScript is enabled.
  * At time of writing, this stylesheet is not render blocking.
  */
-
+@import "components/pwaInstallPrompt.css";
 @import "components/header-bar--js.css";
 @import "components/cbox.css";
 @import "components/native-dialog.css";

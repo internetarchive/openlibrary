@@ -1,0 +1,95 @@
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-index-level-6);
+  background: var(--white);
+  border-top: 1px solid var(--lighter-grey);
+  border-radius: var(--border-radius-overlay) var(--border-radius-overlay) 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+  padding: 0 var(--spacing-inset-md) var(--spacing-2xl);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.pwa-install-prompt--visible {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-prompt {
+    transition: none;
+  }
+}
+
+.pwa-install-prompt__handle {
+  width: var(--spacing-4xl);
+  height: var(--spacing-3xs);
+  background: var(--lighter-grey);
+  border-radius: var(--border-radius-sm);
+  margin: var(--spacing-md) auto var(--spacing-inset-md);
+}
+
+.pwa-install-prompt__body {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-inline-lg);
+}
+
+.pwa-install-prompt__icon {
+  border-radius: var(--border-radius-card);
+  flex-shrink: 0;
+}
+
+.pwa-install-prompt__text {
+  flex: 1;
+}
+
+.pwa-install-prompt__title {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.pwa-install-prompt__desc {
+  font-size: 0.875rem;
+  color: var(--accessible-grey);
+  margin: 0;
+}
+
+.pwa-install-prompt__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accessible-grey);
+  padding: var(--spacing-2xs);
+  flex-shrink: 0;
+}
+
+.pwa-install-prompt__actions {
+  display: flex;
+  gap: var(--spacing-inline-lg);
+  margin-top: var(--spacing-inset-md);
+}
+
+.pwa-install-prompt__btn {
+  flex: 1;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-radius: var(--border-radius-pill);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: 1px solid var(--primary-blue);
+}
+
+.pwa-install-prompt__btn--install {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+.pwa-install-prompt__btn--dismiss {
+  background: transparent;
+  color: var(--primary-blue);
+}
