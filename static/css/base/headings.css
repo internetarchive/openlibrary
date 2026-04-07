@@ -107,7 +107,8 @@ h4.facetHead span.merge {
   font-size: var(--font-size-label-small);
   font-weight: normal !important;
   text-transform: none !important;
-  padding-left: var(--spacing-inline-xl);
+  /* Not tokenized: must exceed the 16px icon width to avoid text overlap */
+  padding-left: 22px;
   background: url(/images/icons/icon_merge-sm.png) no-repeat 0 0;
   min-height: 16px;
 }

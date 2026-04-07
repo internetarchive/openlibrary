@@ -272,12 +272,14 @@ a.cta-btn__badge {
 
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:not(:first-child):not(:last-child) {
-  margin-left: var(--spacing-inline-xs);
+  /* Not tokenized: 1px gap is intentional for connected button group appearance */
+  margin-left: 1px;
   border-radius: 2px;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:last-child:not(:first-child) {
-  margin-left: var(--spacing-inline-xs);
+  /* Not tokenized: 1px gap is intentional for connected button group appearance */
+  margin-left: 1px;
   border-radius: 2px 6px 6px 2px;
 }
