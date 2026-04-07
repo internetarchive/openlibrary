@@ -1,5 +1,5 @@
 let deferredInstallPrompt = null;
-export function getDefferedInstallPrompt() {
+export function getDeferredInstallPrompt() {
     return deferredInstallPrompt;
 }
 export default function initServiceWorker(){
