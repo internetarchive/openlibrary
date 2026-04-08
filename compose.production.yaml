@@ -358,6 +358,8 @@ services:
     volumes:
       # Needed to inspect other docker containers
       - /var/run/docker.sock:/var/run/docker.sock
+      # Needed to inspect fail2ban since it runs on the host
+      - /var/run/fail2ban:/var/run/fail2ban
     logging:
       options:
         max-size: "512m"

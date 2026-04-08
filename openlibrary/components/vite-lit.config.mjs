@@ -1,4 +1,3 @@
-/* eslint-env node, es6 */
 /**
  * Vite config for Lit web components. (for Vue components see vite.config.mjs)
  *
@@ -51,4 +50,3 @@ export default defineConfig({
         sourcemap: true
     }
 });
-

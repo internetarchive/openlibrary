@@ -70,6 +70,10 @@ $def with (title)
     </noscript>
  <script>
  $if not is_bot():
+   // Dimension 1 (visit-scoped): "Days Since Registration" — ID must match Matomo admin config (issue #12144)
+   var _paq = window._paq = window._paq || [];
+   _paq.push(['setCustomDimension', 1, $:dumps(get_days_registered(ctx.user))]);
+
    var _mtm = window._mtm = window._mtm || [];
    _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
    (function() {

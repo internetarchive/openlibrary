@@ -1298,7 +1298,13 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update(
+        {
+            'features': [],
+            'user': None,
+            'MAX_VISIBLE_BOOKS': 5,
+        }
+    )
 
 
 def setup():

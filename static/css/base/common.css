@@ -27,7 +27,7 @@ td {
   padding: 0;
 }
 h1 {
-  margin: 20px 0;
+  margin: var(--spacing-stack-lg) 0;
 }
 body,
 p,
@@ -81,8 +81,8 @@ h6 {
   font-weight: 600;
 }
 div.head {
-  margin-bottom: 10px;
-  margin-top: 20px;
+  margin-bottom: var(--spacing-stack-sm);
+  margin-top: var(--spacing-stack-lg);
 }
 div.head span {
   font-size: var(--font-size-label-medium);

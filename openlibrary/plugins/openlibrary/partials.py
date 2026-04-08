@@ -9,10 +9,13 @@ from infogami.utils.view import render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core.fulltext import fulltext_search
 from openlibrary.core.lending import compose_ia_url, get_available_async
+from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.lists import get_lists, get_user_lists
+from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search, work_search_async
+from openlibrary.plugins.worksearch.code import do_search_async, work_search
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
@@ -223,13 +226,16 @@ class SearchFacetsPartial(PartialDataHandler):
         )
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         path = self.data.get('path')
         query = self.data.get('query', '')
         parsed_qs = parse_qs(query.replace('?', ''))
         param = self.data.get('param', {})
 
         sort = None
-        search_response = do_search(
+        search_response = await do_search_async(
             param,
             sort,
             rows=0,
@@ -273,8 +279,11 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         self.has_error: bool = False
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         query = self.query
-        data = fulltext_search(query)
+        data = await fulltext_search_async(query)
         # Add caching headers only if there were no errors in the search results
         self.has_error = "error" in data
         hits = data.get('hits', [])
@@ -295,11 +304,14 @@ class BookPageListsPartial(PartialDataHandler):
         self.editionId = editionId
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         results: dict = {"partials": []}
         keys = [k for k in (self.workId, self.editionId) if k]
 
         # Do checks and render
-        lists = get_lists(keys)
+        lists = await get_lists_async(keys)
         results["hasLists"] = bool(lists)
 
         if not lists:

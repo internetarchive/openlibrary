@@ -1055,15 +1055,14 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
 
 
-@public
-def get_lists(keys: list[str]):
+async def get_lists_async(keys: list[str]):
     # Fetches and caches the lists through Solr, rather than through the DB.
     from openlibrary.core.lists.model import List
-    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.code import run_solr_query_async
     from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 
     or_query = " OR ".join(f'"{k}"' for k in keys)
-    response = run_solr_query(
+    response = await run_solr_query_async(
         param={"q": f"seed:({or_query})"},
         scheme=ListSearchScheme(),
         fields=["key"],

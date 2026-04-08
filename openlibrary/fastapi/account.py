@@ -4,6 +4,7 @@ FastAPI account endpoints for authentication.
 
 from __future__ import annotations
 
+import os
 from typing import Annotated
 from urllib.parse import unquote
 
@@ -22,6 +23,8 @@ from openlibrary.plugins.upstream.account import get_login_error
 
 router = APIRouter()
 
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+
 
 class AuthTestResponse(BaseModel):
     """Response model for the auth test endpoint."""
@@ -36,8 +39,7 @@ class AuthTestResponse(BaseModel):
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/test.json", response_model=AuthTestResponse)
+@router.get("/account/test.json", response_model=AuthTestResponse, tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def check_authentication(
     request: Request,
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
@@ -91,8 +93,7 @@ async def check_authentication(
     )
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/protected.json")
+@router.get("/account/protected.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def protected_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
@@ -114,8 +115,7 @@ async def protected_endpoint(
     }
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/optional.json")
+@router.get("/account/optional.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def optional_auth_endpoint(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> dict:

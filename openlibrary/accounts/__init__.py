@@ -1,3 +1,4 @@
+import datetime
 from typing import TYPE_CHECKING
 
 import web
@@ -59,6 +60,41 @@ def get_current_user() -> "User | None":
     Returns the currently logged in user. None if not logged in.
     """
     return site.get().get_user()
+
+
+@public
+def get_days_registered(user) -> str:
+    """Return a Matomo custom dimension value for patron account age.
+
+    Buckets for visit-scoped dimension 1 ("Days Since Registration"):
+      visitor  — not logged in
+      d0       — account created today (UTC)
+      d1+      — 1-6 days since registration
+      d7+      — 7-13 days
+      d14+     — 14-29 days
+      d30+     — 30-89 days
+      d90+     — 90+ days (also the safe fallback on any error)
+    """
+    if not user:
+        return 'visitor'
+    try:
+        reg_date = user.created.date()
+        days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
+    except (AttributeError, TypeError):
+        # If the date is incorrectly encoded, assume the patron
+        # registered a long time ago before we had this set up.
+        return 'd90+'
+    if days <= 0:
+        return 'd0'
+    elif days < 7:
+        return 'd1+'
+    elif days < 14:
+        return 'd7+'
+    elif days < 30:
+        return 'd14+'
+    elif days < 90:
+        return 'd30+'
+    return 'd90+'
 
 
 def find(
