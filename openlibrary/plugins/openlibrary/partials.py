@@ -1,12 +1,15 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from hashlib import md5
+from typing import TypedDict
 from urllib.parse import parse_qs
 
 import web
 from pydantic import BaseModel
 
-from infogami.utils.view import render_template
+from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
+from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
@@ -332,6 +335,7 @@ class LazyCarouselParams(BaseModel):
     url: str | None = None
     layout: str = "carousel"
     fallback: str | None = None
+    safe_mode: bool = True
 
 
 class LazyCarouselPartial(PartialDataHandler):
@@ -341,8 +345,14 @@ class LazyCarouselPartial(PartialDataHandler):
         self.params = params
 
     def generate(self) -> dict:
-        macro = web.template.Template.globals['macros'].CacheableMacro(
-            "RawQueryCarousel",
+        books = gather_lazy_carousel_data(
+            query=self.params.query,
+            sort=self.params.sort,
+            limit=self.params.limit,
+            has_fulltext_only=self.params.has_fulltext_only,
+            safe_mode=self.params.safe_mode,
+        )
+        macro = web.template.Template.globals['macros'].RawQueryCarousel(
             self.params.query,
             lazy=False,
             title=self.params.title,
@@ -354,8 +364,82 @@ class LazyCarouselPartial(PartialDataHandler):
             url=self.params.url,
             layout=self.params.layout,
             fallback=self.params.fallback,
+            safe_mode=self.params.safe_mode,
+            books_data=books['docs'],
         )
         return {"partials": str(macro)}
+
+
+_CAROUSEL_FIELDS = [
+    'key',
+    'title',
+    'subtitle',
+    'editions',
+    'author_name',
+    'availability',
+    'cover_i',
+    'ia',
+    'id_project_gutenberg',
+    'id_librivox',
+    'id_standard_ebooks',
+    'id_openstax',
+    'providers',
+]
+
+_SAFE_MODE_FILTER = '-subject:"content_warning:cover"'
+
+
+class CarouselData(TypedDict):
+    """Return type of gather_lazy_carousel_data."""
+
+    docs: list[dict]
+
+
+@public
+@cache.memoize(
+    engine="memcache",
+    key=lambda query, sort, limit, has_fulltext_only, safe_mode: (
+        "LazyCarouselData-"
+        + md5(
+            f"{query}-{sort}-{limit}-{has_fulltext_only}-{safe_mode}".encode()
+        ).hexdigest()
+    ),
+    expires=300,
+    cacheable=lambda key, value: "error" not in value,
+)
+def gather_lazy_carousel_data(
+    query: str,
+    sort: str,
+    limit: int,
+    has_fulltext_only: bool,
+    safe_mode: bool,
+) -> CarouselData:
+    """Fetch carousel book data from Solr and return a typed dict with the docs.
+
+    Extracted as a @public function so it can be called both from
+    LazyCarouselPartial.generate() in the Python layer and directly from
+    RawQueryCarousel.html when books_data is not pre-fetched.
+    """
+    if safe_mode and _SAFE_MODE_FILTER not in query:
+        effective_query = f'{query} {_SAFE_MODE_FILTER}'.strip()
+    else:
+        effective_query = query
+
+    search_params: dict = {'q': effective_query}
+    if has_fulltext_only:
+        search_params['has_fulltext'] = 'true'
+
+    results = work_search(
+        search_params,
+        sort=sort,
+        fields=",".join(_CAROUSEL_FIELDS),
+        limit=limit,
+        facet=False,
+        request_label='BOOK_CAROUSEL',
+    )
+    return {
+        'docs': results.get('docs', []),
+    }
 
 
 def setup():
