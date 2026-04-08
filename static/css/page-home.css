@@ -25,6 +25,7 @@
 @import "components/home.css";
 @import "components/footer.css";
 @import "components/language.css";
+@import "components/alert.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
 @import "components/header-bar--tablet.css" only screen and (min-width: 768px);

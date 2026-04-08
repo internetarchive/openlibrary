@@ -6,4 +6,10 @@ a.ghost-btn {
   text-align: center;
   /* Important is necessary to override default link color */
   color: var(--white) !important;
+  border: 1px solid var(--white);
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
