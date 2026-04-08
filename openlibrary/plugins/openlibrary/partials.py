@@ -14,6 +14,7 @@ from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
+from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import do_search_async, work_search
 from openlibrary.plugins.worksearch.subjects import (
@@ -352,9 +353,11 @@ class LazyCarouselPartial(PartialDataHandler):
             has_fulltext_only=self.params.has_fulltext_only,
             safe_mode=self.params.safe_mode,
         )
-        return books
-        macro = web.template.Template.globals['macros'].RawQueryCarousel(
-            self.params.query,
+        macro = render_macro(
+            "RawQueryCarousel",
+            (  # args as a tuple - will be unpacked to positional params
+                self.params.query,
+            ),
             lazy=False,
             title=self.params.title,
             sort=self.params.sort,
@@ -368,7 +371,7 @@ class LazyCarouselPartial(PartialDataHandler):
             safe_mode=self.params.safe_mode,
             books_data=books['docs'],
         )
-        return {"partials": str(macro)}
+        return {"partials": str(macro['__body__'])}
 
 
 _CAROUSEL_FIELDS = [
