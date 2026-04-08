@@ -536,8 +536,9 @@ def trim_value(value):
     [1, 2]
     >>> trim_value({'x': 'a', 'y': ''})
     {'x': 'a'}
-    >>> trim_value({'x': ['']}) is None
-    True
+    >>> trim_value({'x': ['']})
+    >>> print(trim_value({'x': ['']}))
+    None
     """
     if isinstance(value, str):
         value = value.strip()
