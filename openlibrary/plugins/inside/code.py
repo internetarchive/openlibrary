@@ -1,10 +1,9 @@
-import json
 from time import time
 
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template, safeint
+from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
 
 RESULTS_PER_PAGE = 20
@@ -31,15 +30,10 @@ class search_inside(delegate.page):
         )
 
 
-class search_inside_json(delegate.page):
-    path = "/search/inside"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(q='', page=1, limit=RESULTS_PER_PAGE)
-        limit = min(safeint(i.limit, RESULTS_PER_PAGE), RESULTS_PER_PAGE)
-        query = i.q
-        page = int(i.page)
-        results = fulltext_search(query, page=page, limit=limit, js=True, facets=True)
-        web.header('Content-Type', 'application/json')
-        return delegate.RawText(json.dumps(results, indent=4))
+def setup():
+    """
+    This is just here to make sure this file is imported.
+    Simply defining the class above as a subclass of delegate.page is enough
+    for it to be in effect.
+    """
+    pass

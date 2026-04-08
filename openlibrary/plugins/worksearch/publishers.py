@@ -35,20 +35,6 @@ class publishers(subjects.subjects):
         return "publishers" in web.ctx.features
 
 
-class publishers_json(subjects.subjects_json):
-    path = '(/publishers/[^/]+)'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "publishers" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
-
-
 class index(delegate.page):
     path = "/publishers"
 

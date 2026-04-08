@@ -11,6 +11,6 @@ def parse_data_table(filename):
     """
     with open(filename) as file:
         for line in file:
-            thing_id, revision, json_data = pgdecode(line).strip().split("\t")
+            _thing_id, _revision, json_data = pgdecode(line).strip().split("\t")
             d = json.loads(json_data)
             yield d['key'], d['type']['key'], str(d['revision']), json_data

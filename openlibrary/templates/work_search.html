@@ -15,7 +15,7 @@ $ layout = get_remembered_layout()
   $:macros.SearchNavigation()
   <div class="section">
 
-    <form method="get" action="/search" class="siteSearch olform">
+    <form method="get" action="/search" class="siteSearch search-row olform">
       <label for="q" class="hidden">$_('Keywords')</label>
       $:render_template("search/searchbox", q=q_param)
       <span class="mode-options">
@@ -107,7 +107,7 @@ $ layout = get_remembered_layout()
                 $ content_warning = len([s for s in subjects if s.startswith("content_warning:")]) != 0
                 $:macros.SearchResultsWork(work, show_librarian_extras=show_librarian_extras, include_dropper=True, blur=content_warning, highlighting=(search_response.highlighting or {}).get(work.key), seq_index=loop.index0)
           </ul>
-          $:macros.Pager(page, search_response.num_found, rows)
+          $:macros.OlPagination(page, ceil(search_response.num_found / rows))
         </div>
 <!-- /results -->
 

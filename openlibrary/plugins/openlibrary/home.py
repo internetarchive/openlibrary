@@ -11,9 +11,17 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.core import admin, cache, ia, lending
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.upstream.utils import get_blog_feeds
+from openlibrary.plugins.upstream.utils import (
+    convert_iso_to_marc,
+    get_blog_feeds,
+    get_populated_languages,
+)
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -64,11 +72,12 @@ def get_cached_homepage():
     mc = cache.memcache_memoize(
         get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
     )
-    page = mc(devmode=("dev" in web.ctx.features))
+    devmode = "dev" in web.ctx.features
+    page = mc(devmode)
 
     if not page:
-        mc.memcache_delete_by_args()
-        mc()
+        mc.memcache_delete_by_args(devmode)
+        mc(devmode)
 
     return page
 
@@ -82,7 +91,7 @@ def caching_prethread():
     from openlibrary.plugins.openlibrary.code import is_bot
 
     # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = web.ctx.lang
+    lang = req_context.get().lang
     host = web.ctx.host
     _is_bot = is_bot()
 
@@ -94,6 +103,7 @@ def caching_prethread():
         web.ctx.lang = lang
         web.ctx.is_bot = _is_bot
         web.ctx.host = host
+        set_context_from_legacy_web_py()
 
     return main
 
@@ -110,12 +120,19 @@ class home(delegate.page):
 
 
 @cache.memoize(
-    engine="memcache", key="home.random_book", expires=dateutil.HALF_HOUR_SECS
+    engine="memcache",
+    key=lambda count, language=None: f"home.random_book.{language or 'all'}",
+    expires=dateutil.HALF_HOUR_SECS,
 )
-def get_random_borrowable_ebook_keys(count: int) -> list[str]:
+def get_random_borrowable_ebook_keys(
+    count: int, language: str | None = None
+) -> list[str]:
     solr = search.get_solr()
+    query = 'type:edition AND ebook_access:[borrowable TO *]'
+    if language:
+        query += f' AND language:{language}'
     docs = solr.select(
-        'type:edition AND ebook_access:[borrowable TO *]',
+        query,
         fields=['key'],
         rows=count,
         sort=f'random_{random.random()} desc',
@@ -127,7 +144,16 @@ class random_book(delegate.page):
     path = "/random"
 
     def GET(self):
-        keys = get_random_borrowable_ebook_keys(1000)
+        # Get user's language preference
+        user_lang = None
+        web_lang = web.ctx.lang or 'en'
+        marc_lang = convert_iso_to_marc(web_lang)
+
+        # Only filter by language if it's a populated language
+        if marc_lang and marc_lang in get_populated_languages():
+            user_lang = marc_lang
+
+        keys = get_random_borrowable_ebook_keys(1000, language=user_lang)
         raise web.seeother(random.choice(keys))
 
 
@@ -266,6 +292,7 @@ def generic_carousel(
         get_ia_carousel_books,
         memcache_key,
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
+        prethread=caching_prethread(),
     )
     books = cached_ia_carousel_books(
         query=query,
@@ -298,7 +325,7 @@ def format_book_data(book, fetch_availability=True):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
-    d.authors = get_authors(work if work else book)
+    d.authors = get_authors(work or book)
     d.work_key = work.key if work else book.key
 
     if cover := book.get_cover():

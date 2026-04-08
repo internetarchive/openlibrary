@@ -185,6 +185,8 @@ class manage_covers(delegate.page):
         book._save('Update covers')
 
     def POST(self, key):
+        if not accounts.get_current_user():
+            raise web.unauthorized()
         book = web.ctx.site.get(key)
         if not book:
             raise web.notfound()

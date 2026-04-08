@@ -4,6 +4,11 @@ $ _x = ctx.setdefault('cssfile', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
 $ stats = get_admin_stats()
+
+$ i18n_strings = {
+$   "uniqueLoginsCopy": _('<span class="login-counts">0</span> patrons have logged in at least once over the past 30 days.')
+$ }
+
 <script type="text/json+graph" id="graph-json-editgraph">$:json_encode(counts.human_edits.get_counts(80, True))</script>
 <script type="text/json+graph" id="graph-json-membergraph">$:json_encode(counts.members.get_counts(80, True))</script>
 
@@ -248,5 +253,8 @@ $ stats = get_admin_stats()
   <img alt="$_('Borrows, last 2 years graph')" src="https://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
 
   <div class="contentSpacer"></div>
-
+  <h2>$_("Unique Logins")</h2>
+  <div class="monthly-login-counts" data-i18n="$json_encode(i18n_strings)">
+      $:macros.LoadingIndicator(_("Gathering login statistics..."), hidden=False)
+  </div>
 </div>

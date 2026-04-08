@@ -95,6 +95,21 @@ def get_secret_key():
     return config.infobase['secret_key']
 
 
+def generate_login_code_for_user(username: str) -> str:
+    """
+    Args:
+        username: The username to generate a login code for
+
+    Returns:
+        A string in the format: "/people/{username},{timestamp},{salt}${hash}"
+        that can be used as a session cookie value
+    """
+    user_key = "/people/" + username
+    t = datetime.datetime(*time.gmtime()[:6]).isoformat()
+    text = f"{user_key},{t}"
+    return text + "," + generate_hash(get_secret_key(), text)
+
+
 def generate_uuid() -> str:
     return str(uuid.uuid4()).replace("-", "")
 
@@ -251,10 +266,7 @@ class Account(web.storage):
 
     def generate_login_code(self) -> str:
         """Returns a string that can be set as login cookie to log in as this user."""
-        user_key = "/people/" + self.username
-        t = datetime.datetime(*time.gmtime()[:6]).isoformat()
-        text = f"{user_key},{t}"
-        return text + "," + generate_hash(get_secret_key(), text)
+        return generate_login_code_for_user(self.username)
 
     def _save(self) -> None:
         """Saves this account in store."""
@@ -507,7 +519,7 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_key(cls, key: str) -> 'OpenLibraryAccount | None':
-        username = key.split('/')[-1]
+        username = key.rsplit('/', maxsplit=1)[-1]
         return cls.get_by_username(username)
 
     @classmethod
@@ -963,6 +975,6 @@ def audit_accounts(
 
 @public
 def get_internet_archive_id(key: str) -> str | None:
-    username = key.split('/')[-1]
+    username = key.rsplit('/', maxsplit=1)[-1]
     ol_account = OpenLibraryAccount.get_by_username(username)
     return ol_account.itemname if ol_account else None

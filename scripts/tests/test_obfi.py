@@ -9,7 +9,7 @@ from types import MappingProxyType
 import pytest
 import requests
 
-os.environ['SEED_PATH'] = 'must be truthy for obfi/decode_ip scripts to run'
+os.environ["SEED_PATH"] = "must be truthy for obfi/decode_ip scripts to run"
 from ..obfi import hide, mktable, reveal, shownames
 
 
@@ -134,9 +134,7 @@ class TestMkTable:
         hash_ip = get_patched_mktable
         assert hash_ip.seed == b"1234"
 
-    def test_seed_changes_when_yday_changes(
-        self, monkeypatch, get_patched_mktable
-    ) -> None:
+    def test_seed_changes_when_yday_changes(self, monkeypatch, get_patched_mktable) -> None:
         """Ensure the seed changes each day."""
         hash_ip = get_patched_mktable
 
@@ -155,9 +153,7 @@ class TestMkTable:
         hash_ip.hide("127.0.0.1")
         assert hash_ip.seed != 70_000
 
-    def test_hidden_hosts_are_written_to_hide_ip_map(
-        self, get_patched_mktable, monkeypatch, capsys
-    ) -> None:
+    def test_hidden_hosts_are_written_to_hide_ip_map(self, get_patched_mktable, monkeypatch, capsys) -> None:
         """
         Add unique and duplicate IPs. Only the unique IPs should be echoed
         back to STDOUT; duplicated IPs are already in the DB.
@@ -165,9 +161,7 @@ class TestMkTable:
         hash_ip = get_patched_mktable
         # 127.0.0.1 is duplicated
         real_ips = "127.0.0.1\n207.241.224.2\n127.0.0.1\n8.8.8.8\n"
-        expected = (
-            "127.0.0.1 0.245.206.5\n207.241.224.2 0.128.68.105\n8.8.8.8 0.81.159.57\n"
-        )
+        expected = "127.0.0.1 0.245.206.5\n207.241.224.2 0.128.68.105\n8.8.8.8 0.81.159.57\n"
         monkeypatch.setattr(sys, "stdin", io.StringIO(real_ips))
 
         hash_ip.process_input()

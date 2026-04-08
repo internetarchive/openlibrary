@@ -9,18 +9,8 @@ import os
 import sys
 
 import infogami
-from infogami.utils import delegate, i18n, macro, template
-
-old_plugins = [
-    "openlibrary",
-    "worksearch",
-    "inside",
-    "books",
-    "admin",
-    "upstream",
-    "importapi",
-    "recaptcha",
-]
+from infogami.utils.app import pages
+from openlibrary.plugins.openlibrary import deprecated_handler
 
 
 def setup():
@@ -29,19 +19,31 @@ def setup():
     logger = logging.getLogger("openlibrary")
     logger.info("Application init")
 
-    for p in old_plugins:
-        logger.info("loading plugin %s", p)
-        modname = f"openlibrary.plugins.{p}.code"
-        path = "openlibrary/plugins/" + p
-        template.load_templates(path, lazy=True)
-        macro.load_macros(path, lazy=True)
-        i18n.load_strings(path)
-        __import__(modname, globals(), locals(), ['plugins'])
+    # In infogami, importing a module has the side effect of registering any endpoints
+    # defined in that module, so we just need to import all the modules that define
+    # endpoints to register them.
+    import openlibrary.plugins.openlibrary.code  # noqa: I001 registers endpoints
+    import openlibrary.plugins.worksearch.code
+    import openlibrary.plugins.inside.code
+    import openlibrary.plugins.books.code
+    import openlibrary.plugins.admin.code
+    import openlibrary.plugins.upstream.code
+    import openlibrary.plugins.importapi.code  # noqa: F401 registers endpoints
 
-    delegate.plugins += [
-        delegate._make_plugin_module('openlibrary.plugins.' + name)
-        for name in old_plugins
-    ]
+    # Register deprecated endpoint handlers AFTER all plugins have loaded
+    # This must be done here, after all plugins are imported, to ensure our handlers
+    # override the deprecated ones
+    # This is only temporary while we move to fastapi
+
+    for path in deprecated_handler.DEPRECATED_PATHS:
+        if path not in pages:
+            pages[path] = {}
+        old_handler = pages[path].get("json")
+        print(
+            f"DEBUG [openlibrary/code.py]: Registering deprecated handler for {path}, old handler was: {old_handler}",
+            file=sys.stderr,
+        )
+        pages[path]["json"] = deprecated_handler.DeprecatedEndpointHandler
 
     load_views()
 

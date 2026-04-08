@@ -1,0 +1,18 @@
+/* stylelint-disable selector-max-specificity */
+div#editTools,
+div.editButton,
+div#editHistory {
+  padding: var(--spacing-stack-xs) var(--spacing-inline-sm) 0
+    var(--spacing-inline-md);
+  margin-top: -5px;
+  float: right;
+}
+div#editInfo {
+  margin-top: var(--spacing-stack-xs);
+  float: right;
+}
+div#editTools {
+  display: flex;
+  margin-top: var(--spacing-stack-xs);
+  max-width: 280px;
+}

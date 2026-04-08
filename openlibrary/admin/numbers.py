@@ -126,7 +126,6 @@ def admin_range__covers(**kargs):
 
 admin_range__works = functools.partial(single_thing_skeleton, type="work")
 admin_range__editions = functools.partial(single_thing_skeleton, type="edition")
-admin_range__users = functools.partial(single_thing_skeleton, type="user")
 admin_range__authors = functools.partial(single_thing_skeleton, type="author")
 admin_range__lists = functools.partial(single_thing_skeleton, type="list")
 admin_range__members = functools.partial(single_thing_skeleton, type="user")

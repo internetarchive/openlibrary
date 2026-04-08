@@ -24,6 +24,8 @@ RUN apt-get -qq update && apt-get install -y \
     libffi-dev \
     curl \
     screen \
+# fail2ban used for monitoring nginx logs and banning abusive IPs
+    fail2ban \
 # Editors (for our convenience)
     vim \
     emacs \

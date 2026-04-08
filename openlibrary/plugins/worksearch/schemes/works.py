@@ -1,6 +1,5 @@
 import logging
 import re
-import sys
 from collections.abc import Callable
 from copy import deepcopy
 from datetime import datetime
@@ -8,9 +7,10 @@ from types import MappingProxyType
 from typing import Any, cast
 
 import luqum.tree
-import web
+from typing_extensions import deprecated
 
 import infogami
+from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc
 from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.solr.query_utils import (
@@ -35,6 +35,7 @@ from openlibrary.utils.lcc import (
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
 )
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r'(OL\d+A)')
@@ -50,6 +51,7 @@ class WorkSearchScheme(SearchScheme):
             "subtitle",
             "alternative_title",
             "alternative_subtitle",
+            "chapter",
             "cover_i",
             "ebook_access",
             "ebook_provider",
@@ -61,6 +63,7 @@ class WorkSearchScheme(SearchScheme):
             "lccn",
             "lexile",
             "ia",
+            "ia_collection",
             "oclc",
             "isbn",
             "contributor",
@@ -79,7 +82,6 @@ class WorkSearchScheme(SearchScheme):
             "publish_year",
             "language",
             "number_of_pages_median",
-            "ia_count",
             "publisher_facet",
             "author_facet",
             "first_publish_year",
@@ -88,6 +90,9 @@ class WorkSearchScheme(SearchScheme):
             "want_to_read_count",
             "currently_reading_count",
             "already_read_count",
+            "series_key",
+            "series_name",
+            "series_position",
             # Subjects
             "subject_key",
             "person_key",
@@ -139,10 +144,6 @@ class WorkSearchScheme(SearchScheme):
             'work_subtitle': 'subtitle',
             'work_title': 'title',
             'trending': 'trending_z_score',
-            # "Private" fields
-            # This is private because we'll change it to a multi-valued field instead of a
-            # plain string at the next opportunity, which will make it much more usable.
-            '_ia_collection': 'ia_collection_s',
         }
     )
     sorts = MappingProxyType(
@@ -164,7 +165,7 @@ class WorkSearchScheme(SearchScheme):
             'currently_reading': 'currently_reading_count desc',
             'already_read': 'already_read_count desc',
             'title': 'title_sort asc',
-            'scans': 'ia_count desc',
+            'scans': 'ebook_count_i desc',  # Legacy, used in some collections
             # Classifications
             'lcc_sort': 'lcc_sort asc',
             'lcc_sort asc': 'lcc_sort asc',
@@ -199,6 +200,9 @@ class WorkSearchScheme(SearchScheme):
             'author_key',
             'title',
             'subtitle',
+            'series_key',
+            'series_name',
+            'series_position',
             'edition_count',
             'ebook_access',
             'ia',
@@ -210,7 +214,7 @@ class WorkSearchScheme(SearchScheme):
             'lending_edition_s',
             'lending_identifier_s',
             'language',
-            'ia_collection_s',
+            'ia_collection',
             # FIXME: These should be fetched from book_providers, but can't cause circular
             # dep
             'id_project_gutenberg',
@@ -238,7 +242,8 @@ class WorkSearchScheme(SearchScheme):
             ): lambda: f'ebook_access:[* TO {get_fulltext_min()}]',
         }
     )
-    check_params = frozenset(
+    # These are extra public api params on top of facets, which are also public
+    public_api_params = frozenset(
         {
             'title',
             'publisher',
@@ -250,6 +255,8 @@ class WorkSearchScheme(SearchScheme):
             'person',
             'time',
             'author_key',
+            'author',
+            'isbn',
         }
     )
 
@@ -274,8 +281,6 @@ class WorkSearchScheme(SearchScheme):
                     lcc_transform(node)
                 if node.name in ('dcc', 'dcc_sort'):
                     ddc_transform(node)
-                if node.name == 'ia_collection_s':
-                    ia_collection_s_transform(node)
 
         if not has_search_fields:
             # If there are no search fields, maybe we want just an isbn?
@@ -287,27 +292,24 @@ class WorkSearchScheme(SearchScheme):
 
     def build_q_from_params(self, params: dict[str, Any]) -> str:
         q_list = []
-        if 'author' in params:
-            v = params['author'].strip()
-            m = re_author_key.search(v)
-            if m:
-                q_list.append(f"author_key:({m.group(1)})")
-            else:
-                v = fully_escape_query(v)
-                q_list.append(f"(author_name:({v}) OR author_alternative_name:({v}))")
-
-        # support web.input fields being either a list or string
-        # when default values used
-        q_list += [
-            f'{k}:({fully_escape_query(val)})'
-            for k in (self.check_params & set(params))
-            for val in (params[k] if isinstance(params[k], list) else [params[k]])
-        ]
-
-        if params.get('isbn'):
-            q_list.append(
-                'isbn:(%s)' % (normalize_isbn(params['isbn']) or params['isbn'])
-            )
+        for k in self.public_api_params & set(params):
+            values = params[k] if isinstance(params[k], list) else [params[k]]
+            for val in values:
+                if k == 'author':
+                    v = val.strip()
+                    m = re_author_key.search(v)
+                    if m:
+                        q_list.append(f"author_key:({m.group(1)})")
+                    else:
+                        v = fully_escape_query(v)
+                        q_list.append(
+                            f"(author_name:({v}) OR author_alternative_name:({v}))"
+                        )
+                elif k == 'isbn':
+                    normalized = normalize_isbn(val)
+                    q_list.append(f'isbn:({normalized or val})')
+                else:
+                    q_list.append(f'{k}:({fully_escape_query(val)})')
 
         return ' AND '.join(q_list)
 
@@ -317,6 +319,7 @@ class WorkSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
+        solr_internals_params: 'SolrInternalsParams | None' = None,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
@@ -347,28 +350,35 @@ class WorkSearchScheme(SearchScheme):
         # query, but much more flexible. We wouldn't be able to do our
         # complicated parent/child queries with defType!
 
-        full_work_query = '({{!edismax q.op="AND" qf="{qf}" pf="{pf}" bf="{bf}" v={v}}})'.format(
+        edismax_params = SolrInternalsParams(
+            solr_q_op='AND',
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            qf='text alternative_title^10 author_name^10',
+            solr_qf='text alternative_title^10 author_name^10 chapter^5',
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
-            pf='alternative_title^10 author_name^10',
+            solr_pf='alternative_title^10 author_name^10',
             # bf (boost factor): boost results based on the value of this
             # field. I.e. results with more editions get boosted, upto a
             # max of 100, after which we don't see it as good signal of
             # quality.
-            bf='min(100,edition_count) min(100,def(readinglog_count,0))',
+            solr_bf='min(100,edition_count) min(100,def(readinglog_count,0))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called userWorkQuery.
-            v='$userWorkQuery',
+            solr_v='$userWorkQuery',
         )
+        if solr_internals_params:
+            edismax_params = SolrInternalsParams.override(
+                edismax_params, solr_internals_params
+            )
+
+        full_work_query = edismax_params.to_solr_edismax_subquery()
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if has_solr_editions_enabled() and 'editions:[subquery]' in solr_fields:
+        if req_context.get().solr_editions and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',
@@ -389,6 +399,7 @@ class WorkSearchScheme(SearchScheme):
                 # Misc useful data
                 'format': 'format',
                 'language': 'language',
+                'chapter': 'chapter',
                 'publisher': 'publisher',
                 'publisher_facet': 'publisher_facet',
                 'publish_date': 'publish_date',
@@ -520,7 +531,7 @@ class WorkSearchScheme(SearchScheme):
 
             full_ed_query = '({{!edismax bq="{bq}" v={v} qf="{qf}"}})'.format(
                 # See qf in work_query
-                qf='text alternative_title^4 author_name^4',
+                qf='text alternative_title^4 author_name^4 chapter^4',
                 # Reading from the url parameter userEdQuery. This lets us avoid
                 # having to try to escape the query in order to fit inside this
                 # other query.
@@ -559,7 +570,7 @@ class WorkSearchScheme(SearchScheme):
             new_params.append(('q', full_work_query))
 
         if highlight:
-            highlight_fields = ('subject',)
+            highlight_fields = ('subject', 'chapter')
             try:
                 # This can throw the EmptyTreeError if nothing remains in the query
                 highlight_query = luqum_deepcopy(work_q_tree)
@@ -572,6 +583,8 @@ class WorkSearchScheme(SearchScheme):
                 new_params.append(('hl.fl', ','.join(highlight_fields)))
                 new_params.append(('hl.q', str(highlight_query)))
                 new_params.append(('hl.snippets', '10'))
+                # we can't trim e.g. chapter since it has a specific structure with the pipes
+                new_params.append(('hl.fragsize', '0'))
             except EmptyTreeError:
                 # nothing to highlight
                 pass
@@ -634,7 +647,7 @@ class WorkSearchScheme(SearchScheme):
                 for ed_doc in doc.get('editions', {}).get('docs', [])
             ]
 
-        things = cast(list[Work | Edition], web.ctx.site.get_many(keys))
+        things = cast(list[Work | Edition], site.get().get_many(keys))
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
         from openlibrary.book_providers import get_acquisitions
@@ -733,43 +746,15 @@ def isbn_transform(sf: luqum.tree.SearchField):
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
 
 
-def ia_collection_s_transform(sf: luqum.tree.SearchField):
-    """
-    Because this field is not a multi-valued field in solr, but a simple ;-separate
-    string, we have to do searches like this for now.
-    """
-    val = sf.children[0]
-    if isinstance(val, luqum.tree.Word):
-        if val.value.startswith('*'):
-            val.value = '*' + val.value
-        if val.value.endswith('*'):
-            val.value += '*'
-    else:
-        logger.warning(
-            f"Unexpected ia_collection_s SearchField value type: {type(val)}"
-        )
-
-
+@deprecated('remove once we fully switch search to fastapi')
 def has_solr_editions_enabled():
-    if 'pytest' in sys.modules:
-        return True
+    """Check if Solr editions is enabled for the current request.
 
-    def read_query_string():
-        return web.input(editions=None).get('editions')
-
-    def read_cookie():
-        if "SOLR_EDITIONS" in web.ctx.env.get("HTTP_COOKIE", ""):
-            return web.cookies().get('SOLR_EDITIONS')
-
-    if (qs_value := read_query_string()) is not None:
-        return qs_value == 'true'
-
-    if (cookie_value := read_cookie()) is not None:
-        return cookie_value == 'true'
-
-    return True
+    TODO: Remove once we fully switch search to fastapi, it's only used by templator right now.
+    """
+    return req_context.get().solr_editions
 
 
 def get_fulltext_min():
-    is_printdisabled = web.cookies().get('pd', False)
+    is_printdisabled = req_context.get().print_disabled
     return 'printdisabled' if is_printdisabled else 'borrowable'

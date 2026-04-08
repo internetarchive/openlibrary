@@ -1,6 +1,7 @@
 """Upstream customizations."""
 
 import datetime
+import functools
 import hashlib
 import json
 import os.path
@@ -47,7 +48,7 @@ logger = logging.getLogger('openlibrary.plugins.upstream.code')
 
 
 # Note: This is done in web_nginx.conf on production ; this endpoint is
-# only used in development/gitpod.
+# only used in development environments.
 class static(delegate.page):
     path = "/images/.*"
 
@@ -80,7 +81,7 @@ class edit(core.edit):
     def GET(self, key):
         page = web.ctx.site.get(key)
         editable_keys_re = web.re_compile(
-            r"/(authors|books|works|tags|(people/[^/]+/)?lists)/OL.*"
+            r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*"
         )
         if editable_keys_re.match(key):
             if page is None:
@@ -158,7 +159,7 @@ class merge_work(delegate.page):
         )
 
 
-@web.memoize
+@functools.cache
 @public
 def vendor_js():
     pardir = os.path.pardir
@@ -180,7 +181,7 @@ def vendor_js():
     return '/static/upstream/js/vendor.js?v=' + digest
 
 
-@web.memoize
+@functools.cache
 @public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""

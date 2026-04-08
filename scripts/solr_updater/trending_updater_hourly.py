@@ -78,7 +78,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -vF ' "-" ' \
                 | grep -vE '\\.(opds|json|rdf)' \
                 | obfi_match_range {start_ts} {end_ts} \
-                {extra_grep if extra_grep else ''} \
+                {extra_grep or ''} \
         """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

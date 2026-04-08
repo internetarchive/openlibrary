@@ -6,8 +6,10 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
       $ message = _("Already Read")
     $elif read_status == 2:
       $ message = _("Currently Reading")
-    $else:
+    $elif user_key:
       $ message = _("Want to Read")
+    $else:
+      $ message = _("Add to List")
 
     $ action_value = 'remove' if read_status else 'add'
     $ bookshelf_id_value = read_status or '1'

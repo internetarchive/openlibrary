@@ -1,6 +1,13 @@
-$def with (lst, new=False, action=None)
+$def with (lst, new=False, action=None, list_type='list')
 $putctx('cssfile', 'list-edit')
-$var title: $(_("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name))
+
+$code:
+    if list_type == 'series':
+        title = _("Create a series") if new else _("Editing series: %(list_name)s", list_name=lst.name)
+    else:
+        title = _("Create a list") if new else _("Editing list: %(list_name)s", list_name=lst.name)
+
+$var title: $title
 
 $putctx("robots", "noindex,nofollow")
 
@@ -9,7 +16,12 @@ $ can_save = True
 <div id="contentHead">
     $if not new:
         $:macros.databarEdit(lst)
-    <h1>$(_("Create a list") if new else _("Edit List"))</h1>
+    <h1>
+        $if list_type == 'series':
+            $(_("Create a series") if new else _("Edit Series"))
+        $else:
+            $(_("Create a list") if new else _("Edit List"))
+    </h1>
 </div>
 
 $# Render the ith seed input field
@@ -55,7 +67,27 @@ $jsdef render_seed_field(i, seed):
                     $key
             </div>
 
-            <textarea name="seeds--$i--notes" placeholder="$_('Notes (optional)')">$(seed['notes'] or '')</textarea>
+            $# Position only renders for series; but this jsdef method doesn't know whether we're on
+            $# a series page or not, so, rather awkwardly, the rendering of this is controlled by the
+            $# CSS class.
+            <div class="floating-label le__position">
+                <span class="floating-label__text">$_('Position (optional), e.g. 1, 2, 1-7')</span>
+                <input
+                    class="floating-label__input"
+                    name="seeds--$i--position"
+                    placeholder="$_('Position (optional), e.g. 1, 2, 1-7')"
+                    value="$(jsdef_get(seed, 'position') or '')"
+                >
+            </div>
+
+            <div class="floating-label le__notes">
+                <span class="floating-label__text">$_('Notes (optional)')</span>
+                <textarea
+                    class="floating-label__input"
+                    name="seeds--$i--notes"
+                    placeholder="$_('Notes (optional)')"
+                >$(jsdef_get(seed, 'notes') or '')</textarea>
+            </div>
         </main>
     </li>
 
@@ -96,7 +128,7 @@ $jsdef lazy_thing_preview(key, render_fn_name):
     <form
         method="post"
         id="list-edit"
-        class="olform"
+        class="olform list-edit--$list_type"
         $:cond(action, 'action="%s"' % action)
     >
         $if not new:
@@ -107,12 +139,16 @@ $jsdef lazy_thing_preview(key, render_fn_name):
                 value="$lst.key"
             />
 
-        <input
-            required
-            placeholder="$_('List Name')"
-            name="name"
-            value="$lst.name"
-        />
+        <div class="floating-label">
+            <span class="floating-label__text">$(_('List Name') if list_type == 'list' else _('Series Name'))</span>
+            <input
+                class="floating-label__input"
+                required
+                placeholder="$(_('List Name') if list_type == 'list' else _('Series Name'))"
+                name="name"
+                value="$lst.name"
+            />
+        </div>
 
         <div>
             <textarea
@@ -140,7 +176,9 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 
         <div class="formElement bottom">
             $if new:
-                <button type="submit" class="larger" $cond(not can_save, 'disabled')>$_('Create new list')</button>
+                <button type="submit" class="larger" $cond(not can_save, 'disabled')>
+                    $(_('Create new series') if list_type == 'series' else _('Create new list'))
+                </button>
                 <a href="javascript:;" class="cancel go-back-link">$_("Cancel")</a>
             $else:
                 $:macros.EditButtons(comment=lst.comment_)

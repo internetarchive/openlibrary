@@ -6,7 +6,6 @@ from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
-    Checkbox,
     Email,
     Form,
     Hidden,
@@ -29,8 +28,16 @@ def find_ia_account(email=None):
 
 
 Login = Form(
-    Textbox('username', description=_('Username'), klass='required'),
-    Password('password', description=_('Password'), klass='required'),
+    Textbox(
+        'username',
+        description=_('Username'),
+        klass='required',
+    ),
+    Password(
+        'password',
+        description=_('Password'),
+        klass='required',
+    ),
     Hidden('redirect'),
     Hidden('action'),
 )
@@ -91,6 +98,7 @@ class RegisterForm(Form):
                 email_not_disposable,
                 email_domain_not_blocked,
             ],
+            autocomplete="email",
         ),
         Textbox(
             'username',
@@ -102,6 +110,7 @@ class RegisterForm(Form):
             pattern=vlogin.rexp.pattern,
             title=vlogin.msg,
             required="true",
+            autocomplete="username",
         ),
         Password(
             'password',
@@ -111,21 +120,7 @@ class RegisterForm(Form):
             minlength="3",
             maxlength="20",
             required="true",
-        ),
-        Checkbox(
-            'ia_newsletter',
-            description=_(
-                'I want to receive news, announcements, and resources from the '
-                '<a href="https://archive.org/">Internet Archive</a>, the non-profit '
-                'that runs Open Library.'
-            ),
-        ),
-        Checkbox(
-            "pd_request",
-            description=_(
-                'I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">'
-                'special print disability access</a> through a qualifying program.'
-            ),
+            autocomplete="new-password",
         ),
     )
 
@@ -166,9 +161,15 @@ ForgotPassword = Form(
         'email',
         description=_("Your email address"),
         validators=[vemail, email_already_used],
+        autocomplete="email",
     )
 )
 
 ResetPassword = Form(
-    Password('password', description=_("Choose a password"), validators=[vpass])
+    Password(
+        'password',
+        description=_("Choose a password"),
+        validators=[vpass],
+        autocomplete="new-password",
+    )
 )

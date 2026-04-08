@@ -51,7 +51,7 @@ export function updateURLParameters(params) {
 
     // Iterate over the params object and update/add each parameter
     for (const key in params) {
-        if (params.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(params, key)) {
             url.searchParams.set(key, params[key]);
         }
     }
@@ -75,9 +75,7 @@ export function trimInputValues(param) {
 
 export function buildPartialsUrl(component, params = {}) {
     const curUrl = new URL(window.location.href);
-    const url = new URL(`${location.origin}/partials.json`);
-
-    url.searchParams.set('_component', component)
+    const url = new URL(`${location.origin}/partials/${component}.json`);
 
     if (curUrl.searchParams.has('lang')) {
         url.searchParams.set('lang', curUrl.searchParams.get('lang'));

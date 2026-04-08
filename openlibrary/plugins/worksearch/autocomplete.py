@@ -13,6 +13,7 @@ from openlibrary.utils import (
     find_olid_in_string,
     olid_to_key,
 )
+from openlibrary.utils.solr import Solr
 
 
 def to_json(d):
@@ -22,7 +23,7 @@ def to_json(d):
 
 class autocomplete(delegate.page):
     path = "/_autocomplete"
-    fq = ('-type:edition',)
+    fq: tuple[str, ...] = ('-type:edition',)
     fl = 'key,type,name,title,score'
     olid_suffix: str | None = None
     sort: str | None = None
@@ -43,6 +44,9 @@ class autocomplete(delegate.page):
         """Exclude certain documents"""
         return True
 
+    def olid_to_key(self, olid: str) -> str:
+        return olid_to_key(olid)
+
     def GET(self):
         return self.direct_get()
 
@@ -50,16 +54,14 @@ class autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        solr = get_solr()
-
         # look for ID in query string here
-        q = solr.escape(i.q).strip()
+        q = Solr.escape(i.q).strip()
         embedded_olid = None
         if self.olid_suffix:
             embedded_olid = find_olid_in_string(q, self.olid_suffix)
 
         if embedded_olid:
-            solr_q = f'key:"{olid_to_key(embedded_olid)}"'
+            solr_q = f'key:"{self.olid_to_key(embedded_olid)}"'
         else:
             solr_q = self.query.format(q=q)
 
@@ -73,12 +75,12 @@ class autocomplete(delegate.page):
             **({'sort': self.sort} if self.sort else {}),
         }
 
-        data = solr.select(solr_q, **params)
+        data = get_solr().select(solr_q, **params)
         docs = data['docs']
 
         if embedded_olid and not docs:
             # Grumble! Work not in solr yet. Create a dummy.
-            fake_doc = self.db_fetch(olid_to_key(embedded_olid))
+            fake_doc = self.db_fetch(self.olid_to_key(embedded_olid))
             if fake_doc:
                 docs = [fake_doc]
 
@@ -136,6 +138,22 @@ class authors_autocomplete(autocomplete):
         else:
             doc['works'] = []
         doc['subjects'] = doc.pop('top_subjects', [])
+
+
+class series_autocomplete(autocomplete):
+    path = "/series/_autocomplete"
+    fq = ('type:series',)
+    fl = 'key,name'
+    olid_suffix = 'L'
+    query = 'name:({q}*) OR name:"{q}"^2'
+
+    def olid_to_key(self, olid: str) -> str:
+        """
+        Series records live under /series/ but OLIDs ending with 'L'
+        normally map to /lists/ via olid_to_key. Override to use the
+        correct path.
+        """
+        return f"/series/{olid}"
 
 
 class subjects_autocomplete(autocomplete):

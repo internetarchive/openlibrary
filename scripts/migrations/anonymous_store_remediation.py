@@ -3,6 +3,7 @@
 Identifies and deletes any remaining `account-email` store entries that are associated
 with anonymized accounts.
 """
+
 import argparse
 from pathlib import Path
 

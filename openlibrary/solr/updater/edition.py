@@ -112,6 +112,14 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return self._edition['key']
 
     @property
+    def work_key(self) -> list[str]:
+        # This is formatted like 'OL123W' ; bit awkward, but consistent with `edition_key`
+        return [
+            work_ref['key'].split('/')[-1]
+            for work_ref in self._edition.get('works', [])
+        ]
+
+    @property
     def title(self) -> str | None:
         return self._edition.get('title')
 
@@ -132,6 +140,27 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         result.update(self._edition.get('work_titles', []))
         result.update(self._edition.get('other_titles', []))
 
+        return result
+
+    @property
+    def chapter(self) -> list[str]:
+        result = []
+        olid = self._edition.get('key', '').split('/', 2)[-1]
+        for chapter in self._edition.get('table_of_contents', []):
+            # Check if plain string first
+            if isinstance(chapter, str):
+                result.append(f'{olid} | {chapter}')
+                continue
+
+            title = chapter.get("title", "")
+            if chapter.get("subtitle"):
+                title += f": {chapter['subtitle']}"
+            if chapter.get("authors"):
+                title += f" ({', '.join(a['name'] for a in chapter['authors'])})"
+
+            result.append(
+                f'{olid} | {chapter.get("label", "")} | {title} | {chapter.get("pagenum", "")}'
+            )
         return result
 
     @property
@@ -187,6 +216,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         return self._edition.get('physical_format')
 
     @property
+    def edition_name(self) -> str | None:
+        return self._edition.get('edition_name')
+
+    @property
     def isbn(self) -> list[str]:
         """
         Get all ISBNs of the given edition. Calculates complementary ISBN13 for each
@@ -209,6 +242,10 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     @property
     def lccn(self) -> list[str]:
         return uniq(lccn.strip() for lccn in self._edition.get('lccn', []))
+
+    @property
+    def oclc(self) -> list[str]:
+        return uniq(oclc.strip() for oclc in self._edition.get('oclc_numbers', []))
 
     @property
     def publish_date(self) -> str | None:
@@ -305,11 +342,13 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             SolrDocument,
             {
                 'key': self.key,
+                'work_key': self.work_key,
                 'type': 'edition',
                 # Display data
                 'title': self.title,
                 'subtitle': self.subtitle,
                 'alternative_title': list(self.alternative_title),
+                'chapter': self.chapter,
                 'cover_i': self.cover_i,
                 'language': self.language,
                 # Duplicate the author data from the work
@@ -325,6 +364,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                     if self._solr_work
                     else {}
                 ),
+                'edition_name': ([self.edition_name] if self.edition_name else None),
                 # Misc useful data
                 'publisher': self.publisher,
                 'format': [self.format] if self.format else None,
@@ -333,6 +373,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 # Identifiers
                 'isbn': self.isbn,
                 'lccn': self.lccn,
+                'oclc': self.oclc,
                 **self.identifiers,
                 # IA
                 'ia': [self.ia] if self.ia else None,

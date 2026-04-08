@@ -1,60 +1,39 @@
 """Language pages"""
 
-import json
 import logging
 from dataclasses import dataclass
 from typing import Literal, override
 
 import web
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
-from infogami.utils.view import render_template, safeint
+from infogami.utils.view import render_template
 from openlibrary.core import cache
 from openlibrary.plugins.upstream.utils import get_language_name
+from openlibrary.utils.async_utils import async_bridge
 
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
 
 
-class languages(subjects.subjects):
-    path = '(/languages/[^_][^/]*)'
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-
-class languages_json(subjects.subjects_json):
-    path = '(/languages/[^_][^/]*)'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
-
-
-def get_top_languages(
+async def get_top_languages(
     limit: int,
+    user_lang: str,
     sort: Literal["count", "name", "ebook_edition_count"] = "count",
 ) -> list[web.storage]:
     available_edition_counts = dict(
-        get_all_language_counts('edition', ebook_access="borrowable")
+        await get_all_language_counts('edition', ebook_access="borrowable")
     )
     results = [
         web.storage(
-            name=get_language_name(lang_key),
+            name=get_language_name(lang_key, user_lang),
             key=lang_key,
             marc_code=lang_key.split('/')[-1],
             count=count,
             ebook_edition_count=available_edition_counts.get(lang_key, 0),
         )
-        for (lang_key, count) in get_all_language_counts('work')
+        for (lang_key, count) in await get_all_language_counts('work')
     ]
     results.sort(
         key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count")
@@ -63,7 +42,7 @@ def get_top_languages(
 
 
 @cache.memoize("memcache", key='get_all_language_counts', expires=60 * 60)
-def get_all_language_counts(
+async def get_all_language_counts(
     solr_type: Literal['work', 'edition'],
     ebook_access: str | None = None,
 ) -> list[tuple[str, int]]:
@@ -73,7 +52,7 @@ def get_all_language_counts(
     if ebook_access:
         ebook_access_query = f' AND ebook_access:[{ebook_access} TO *]'
 
-    result = search.get_solr().select(
+    result = await search.get_solr().select_async(
         f'type:{solr_type} {ebook_access_query}',
         rows=0,
         facets=['language'],
@@ -96,23 +75,13 @@ class index(delegate.page):
         if sort not in ("count", "name", "ebook_edition_count"):
             raise web.badrequest("Invalid sort parameter")
 
-        return render_template("languages/index", get_top_languages(500, sort=sort))
+        return render_template(
+            "languages/index",
+            async_bridge.run(get_top_languages(500, user_lang=web.ctx.lang, sort=sort)),
+        )
 
     def is_enabled(self):
         return True
-
-
-class index_json(delegate.page):
-    path = "/languages"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self):
-        i = web.input(limit=15, sort="count")
-        limit = safeint(i.limit, 15)
-        if i.sort not in ("count", "name", "ebook_edition_count"):
-            raise web.badrequest("Invalid sort parameter")
-        return json.dumps(get_top_languages(limit, sort=i.sort))
 
 
 class language_search(delegate.page):
