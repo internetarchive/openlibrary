@@ -48,6 +48,7 @@
 @import "components/page-history.css";
 @import "components/footer.css";
 @import "components/language.css";
+@import "components/alert.css";
 @import "components/editions.css";
 @import "components/donate.css";
 @import "components/metadata-form.css";
@@ -60,6 +61,7 @@
 @import "components/reading-goal.css";
 @import "components/work-title-and-author.css";
 @import "components/shareLinks.css";
+
 
 /* Mobile: Take into account the header bar + tab bar */
 html {

@@ -28,6 +28,7 @@
 @import "components/listLists.css";
 @import "components/footer.css";
 @import "components/language.css";
+@import "components/alert.css";
 @import "components/searchbox.css";
 
 /* Tablet: @width-breakpoint-tablet = 768px */
