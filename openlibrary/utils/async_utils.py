@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import threading
 from collections.abc import Callable, Coroutine
 from typing import Any, ParamSpec, TypeVar
@@ -29,6 +30,7 @@ class AsyncBridge:
     def wrap(self, func: Callable[P, Coroutine[Any, Any, T]]) -> Callable[P, T]:
         """Wrap an async function so it can be called from sync code, preserving type hints."""
 
+        @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             return self.run(func(*args, **kwargs))
 
