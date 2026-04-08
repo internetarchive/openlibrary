@@ -341,7 +341,7 @@ def is_feature_enabled(feature_name: str) -> bool:
     return features.is_enabled(feature_name)
 
 
-def unflatten(d: dict, separator: str = "--") -> dict:
+def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})

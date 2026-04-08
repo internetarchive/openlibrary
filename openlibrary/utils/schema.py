@@ -418,8 +418,6 @@ def _test():
 
 
 if __name__ == "__main__":
-    register_adapter('mock', MockAdapter)
-
     import doctest
 
     doctest.testmod()
