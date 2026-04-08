@@ -113,26 +113,13 @@ docker compose rm -v
 
 ## Fully Resetting Your Environment
 
-Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break. To do a full reset of your docker environment so that you have the latest of everything:
+Been away for a while? Are you getting strange errors you weren't getting before? Sometimes changes are made to the docker configs which could cause your local environment to break.
+To do a full reset, run the following script from the root of the repo:
+
+[`scripts/fully_reset_environment.sh`](https://github.com/internetarchive/openlibrary/blob/master/scripts/fully_reset_environment.sh)
 
 ```sh
-# Stop the site
-docker compose down
-
-# Build the latest oldev image, without cache, whilst also pulling the latest olbase image from docker hub.
-# This can take from a few minutes to more than 20 on older hardware.
-docker compose build --pull --no-cache
-
-# Remove any old containers/images
-# If you use docker for other things, and have containers/images you don't want to lose, be careful with this. But you likely don't :)
-docker container prune --filter label="com.docker.compose.project=openlibrary" --force
-docker image prune --filter label="com.docker.compose.project=openlibrary" --force
-
-# Remove volumes that might have outdated dependencies/code
-docker volume rm openlibrary_ol-build openlibrary_ol-nodemodules openlibrary_ol-postgres openlibrary_ol-vendor openlibrary_solr-data openlibrary_solr-updater-data
-
-# Bring it back up again
-docker compose up  # or docker compose up -d
+bash scripts/fully_reset_environment.sh
 ```
 
 ## Troubleshooting
