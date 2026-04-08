@@ -260,7 +260,6 @@ def s3_loan_api(s3_keys, ocaid=None, action='browse', **kwargs):
     return response
 
 
-@public
 async def get_available_async(
     limit=None,
     page=1,
