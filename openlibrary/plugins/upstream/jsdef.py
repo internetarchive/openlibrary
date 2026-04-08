@@ -59,6 +59,7 @@ import web
 from web.template import (
     DefNode,
     PythonTokenizer,
+    Template,  # noqa: F401 needed for doctests
     # INDENT,
 )
 
@@ -69,14 +70,16 @@ def extension(parser):
     r"""jsdef extension. Adds support for `jsdef` block to template parser.::
 
     >>> t = Template("$jsdef hello(name):\n    Hello $name!", extensions=[extension])
-    >>> print t() #doctest:+NORMALIZE_WHITESPACE
-    <script type="text/javascript">
+    >>> print(t())
+    <script type="text/javascript"><!--
     function hello(name){
         var self = [], loop;
         self.push("Hello "); self.push(websafe(name)); self.push("!\n");
         return self.join("");
     }
-    </script>
+    //--></script>
+    <BLANKLINE>
+
     """
     parser.statement_nodes['jsdef'] = JSDefNode
     return parser
@@ -254,9 +257,9 @@ def _test():
     >>> t("$ x = a and b")
     'var x = a && b;\n'
     >>> t("$if a or not b: $a")
-    u'if (a || ! b) {\n    self.push(websafe(a));\n}\n'
+    'if (a || ! b) {\n    self.push(websafe(a));\n}\n'
     >>> t("$for i in a and a.data or []: $i")
-    u'foreach(a && a.data || [], loop, function(loop, i) {\n    self.push(websafe(i));\n});\n'
+    'foreach(a && a.data || [], loop, function(loop, i) {\n    self.push(websafe(i));\n});\n'
     """
 
 

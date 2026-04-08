@@ -195,6 +195,7 @@ class SQLiteAdapter(AbstractAdapter):
 register_adapter('mysql', MySQLAdapter)
 register_adapter('postgres', PostgresAdapter)
 register_adapter('sqlite', SQLiteAdapter)
+register_adapter('mock', MockAdapter)
 
 
 def sqlrepr(s):
