@@ -22,7 +22,7 @@
 :root {
   --border-radius-button: var(--border-radius-md); /* buttons, tabs */
   --border-radius-input: var(--border-radius-md); /* inputs, textareas */
-  --border-radius-thumbnail: var(--border-radius-sm); /* small images */
+  --border-radius-thumbnail: var(--border-radius-md); /* small images */
   --border-radius-media: var(--border-radius-lg); /* large images, videos */
   --border-radius-card: var(--border-radius-lg); /* cards */
   --border-radius-overlay: var(--border-radius-xl); /* dialogs, modals */

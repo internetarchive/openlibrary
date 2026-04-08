@@ -325,7 +325,7 @@ export default class SelectionManager {
  */
 function clearTextSelection() {
     const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
-    if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
+    if (selection) selection.empty ? selection.empty() : selection.removeAllRanges();
 }
 
 /**

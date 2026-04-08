@@ -123,21 +123,23 @@
   color: var(--black);
 }
 
-.searchResultItem .preview-covers {
-  display: block;
-  height: 45px;
-  overflow: hidden;
-  margin-top: var(--spacing-stack-sm);
-  margin-bottom: var(--spacing-stack-xs);
+.search-result-item__preview-covers {
+  display: flex;
+  align-items: center;
 }
 
-.searchResultItem .preview-covers img {
+.search-result-item__preview-covers img {
   border-radius: var(--border-radius-thumbnail);
-  opacity: 0.7;
+  border: 2px solid var(--grey-fafafa);
+  opacity: 1;
 }
 
-.searchResultItem .preview-covers--blur img {
+.search-result-item__preview-covers--blur img {
   filter: blur(2px);
+}
+
+.searchResultItem .bookcover--blur img {
+  filter: blur(4px);
 }
 
 .searchResultItem .bookcover {
@@ -152,10 +154,6 @@
   max-width: 100%;
   max-height: 300px;
   width: 175px;
-}
-
-.searchResultItem .bookcover--blur img {
-  filter: blur(4px);
 }
 
 .searchResultItem .imageLg {
@@ -189,6 +187,44 @@
 .srw__subjects em {
   font-weight: bold;
   font-style: normal;
+}
+
+.search-result-item__preview-covers-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.search-result-item__preview-covers > * {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.search-result-item__preview-covers :nth-child(n + 2) {
+  margin-left: -8px;
+}
+
+.search-result-item__preview-covers :nth-child(1) {
+  z-index: var(--z-index-level-5);
+}
+
+.search-result-item__preview-covers :nth-child(2) {
+  z-index: var(--z-index-level-4);
+}
+
+.search-result-item__preview-covers :nth-child(3) {
+  z-index: var(--z-index-level-3);
+}
+
+.search-result-item__preview-covers :nth-child(4) {
+  z-index: var(--z-index-level-2);
+}
+
+.search-result-item__preview-covers :nth-child(5) {
+  z-index: var(--z-index-level-1);
 }
 
 .srw__chapters {
@@ -240,8 +276,25 @@
   color: var(--primary-blue);
 }
 
-.preview-covers img:hover {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .search-result-item__preview-covers :hover {
+    z-index: var(--z-index-level-5);
+  }
+
+  .search-result-item__preview-covers :hover img {
+    border-color: var(--primary-blue);
+  }
+}
+
+.search-result-item__preview-covers :active img {
+  transform: scale(0.97);
+}
+
+.search-result-item__preview-covers :focus-visible {
+  z-index: var(--z-index-level-5);
+  box-shadow: var(--box-shadow-focus);
+  border-radius: var(--border-radius-thumbnail);
+  outline: none;
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
