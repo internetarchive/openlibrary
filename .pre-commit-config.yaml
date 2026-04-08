@@ -49,7 +49,7 @@ repos:
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.9
     hooks:
       - id: ruff-check
         args: [ --fix ]
@@ -57,13 +57,13 @@ repos:
         files: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.1.0
+    rev: 26.3.1
     hooks:
       - id: black  # See pyproject.toml for args
         exclude: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
