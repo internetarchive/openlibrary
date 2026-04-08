@@ -601,6 +601,14 @@ msgstr ""
 msgid "Search collection"
 msgstr ""
 
+#: RawQueryCarousel.html
+msgid "Unable to load carousel:"
+msgstr ""
+
+#: RawQueryCarousel.html
+msgid "Query:"
+msgstr ""
+
 #: ReadButton.html
 msgid "Special Access"
 msgstr ""

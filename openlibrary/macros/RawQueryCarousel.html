@@ -54,14 +54,19 @@ $else:
     $code:
       # Don't need fields in the search UI url, since they don't do anything there
       url = url or "/search?" + urlencode({'q': query, 'sort': sort})
+      carousel_error = None
 
       if books_data is not None:
         # Data was pre-fetched by LazyCarouselPartial in Python — skip Solr.
         results = {'docs': books_data}
       else:
         # Fetch from Solr via the shared gather_lazy_carousel_data() helper.
-        data = gather_lazy_carousel_data(query, sort=sort, limit=limit, has_fulltext_only=has_fulltext_only, safe_mode=safe_mode)
-        results = {'docs': data['docs']}
+        try:
+          data = gather_lazy_carousel_data(query, sort=sort, limit=limit, has_fulltext_only=has_fulltext_only, safe_mode=safe_mode)
+          results = {'docs': data['docs']}
+        except Exception as e:
+          carousel_error = str(e)
+          results = {'docs': []}
 
     $code:
       books = [storage(b) for b in (results.get('docs', []))]
@@ -73,4 +78,10 @@ $else:
         "hasFulltextOnly": has_fulltext_only
       }
 
-    $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout)
+    $if carousel_error:
+      <div class="carousel-error">
+        <p>$_("Unable to load carousel:") $carousel_error</p>
+        <p class="carousel-error-debug">$_("Query:") $query</p>
+      </div>
+    $else:
+      $:render_template("books/custom_carousel", books=books, title=title, url=url, key=key, load_more=load_more, layout=layout)
