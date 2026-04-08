@@ -154,7 +154,7 @@ class TestLazyCarouselPartialUnit:
         mock_macro = web.Storage(RawQueryCarousel=lambda *a, **kw: "<div class='carousel'/>")
         with (
             patch(_MOCK_GATHER, return_value=_FAKE_GATHER_RESPONSE) as mock_gather,
-            patch.dict(web.template.Template.globals, {'macros': mock_macro}),
+            patch.dict(web.template.Template.globals, {"macros": mock_macro}),
         ):
             result = partial.generate()
         mock_gather.assert_called_once_with(
@@ -173,7 +173,7 @@ class TestLazyCarouselPartialUnit:
             captured = {}
 
             def capture_macro(*a, safe_mode=None, **kw):
-                captured['safe_mode'] = safe_mode
+                captured["safe_mode"] = safe_mode
                 return "<div/>"
 
             mock_macro = web.Storage(RawQueryCarousel=capture_macro)
@@ -181,17 +181,17 @@ class TestLazyCarouselPartialUnit:
             partial = LazyCarouselPartial(params=params)
             with (
                 patch(_MOCK_GATHER, return_value=_FAKE_GATHER_RESPONSE),
-                patch.dict(web.template.Template.globals, {'macros': mock_macro}),
+                patch.dict(web.template.Template.globals, {"macros": mock_macro}),
             ):
                 partial.generate()
-            assert captured.get('safe_mode') is safe_mode_val
+            assert captured.get("safe_mode") is safe_mode_val
 
     def test_generate_passes_sort_from_params_to_template(self):
         """generate() must pass the sort from LazyCarouselParams directly to the macro."""
         captured = {}
 
         def capture_macro(*a, sort=None, **kw):
-            captured['sort'] = sort
+            captured["sort"] = sort
             return "<div/>"
 
         mock_macro = web.Storage(RawQueryCarousel=capture_macro)
@@ -199,7 +199,7 @@ class TestLazyCarouselPartialUnit:
         partial = LazyCarouselPartial(params=params)
         with (
             patch(_MOCK_GATHER, return_value=_FAKE_GATHER_RESPONSE),
-            patch.dict(web.template.Template.globals, {'macros': mock_macro}),
+            patch.dict(web.template.Template.globals, {"macros": mock_macro}),
         ):
             partial.generate()
-        assert captured.get('sort') == "editions"
+        assert captured.get("sort") == "editions"
