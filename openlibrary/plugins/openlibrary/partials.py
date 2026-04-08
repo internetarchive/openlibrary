@@ -352,6 +352,7 @@ class LazyCarouselPartial(PartialDataHandler):
             has_fulltext_only=self.params.has_fulltext_only,
             safe_mode=self.params.safe_mode,
         )
+        return books
         macro = web.template.Template.globals['macros'].RawQueryCarousel(
             self.params.query,
             lazy=False,
