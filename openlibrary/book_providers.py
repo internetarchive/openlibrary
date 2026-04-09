@@ -77,10 +77,11 @@ class Acquisition:
     """
 
     access: AcquisitionAccessLiteral
-    format: Literal['web', 'pdf', 'epub', 'audio']
+    format: Literal['web', 'pdf', 'epub', 'audio', 'mobi', 'txt']
     price: str | None
     url: str
     provider_name: str | None = None
+    label: str | None = None
 
     @property
     def ebook_access(self) -> EbookAccess:
@@ -110,6 +111,7 @@ class Acquisition:
                 price=json.get('price'),
                 url=json['url'],
                 provider_name=json.get('provider_name'),
+                label=json.get('label'),
             )
         else:
             raise ValueError(f'Unknown ebook acquisition format: {json}')
@@ -121,13 +123,17 @@ class Acquisition:
         else:
             mimetype = json['type']
 
-        fmt: Literal['web', 'pdf', 'epub', 'audio'] = 'web'
+        fmt: Literal['web', 'pdf', 'epub', 'audio', 'mobi', 'txt'] = 'web'
         if mimetype.startswith('audio/'):
             fmt = 'audio'
         elif mimetype == 'application/pdf':
             fmt = 'pdf'
         elif mimetype == 'application/epub+zip':
             fmt = 'epub'
+        elif mimetype == 'application/x-mobipocket-ebook':
+            fmt = 'mobi'
+        elif mimetype == 'text/plain':
+            fmt = 'txt'
         elif mimetype == 'text/html':
             fmt = 'web'
         else:
@@ -145,6 +151,7 @@ class Acquisition:
             price=price,
             url=json['href'],
             provider_name=json.get('name'),
+            label=json.get('title'),
         )
 
 
@@ -253,9 +260,8 @@ class AbstractBookProvider[TProviderMetadata]:
         self, edition: Edition, extra_args: list | None = None
     ) -> TemplateResult:
         return render_template(
-            self.get_template_path('download_options'),
-            self.get_best_identifier(edition),
-            *(extra_args or []),
+            'book_providers/download_options',
+            self.get_acquisitions(edition),
         )
 
     def is_own_ocaid(self, ocaid: str) -> bool:
@@ -324,21 +330,17 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         if edition.is_access_restricted():
             return ''
 
-        formats = {
-            'pdf': edition.get_ia_download_link('.pdf'),
-            'epub': edition.get_ia_download_link('.epub'),
-            'mobi': edition.get_ia_download_link('.mobi'),
-            'txt': edition.get_ia_download_link('_djvu.txt'),
-        }
+        acquisitions = self.get_acquisitions(edition)
+        # Filter out "Read Online" as it is shown as the main CTA
+        download_acqs = [a for a in acquisitions if a.label != 'Read Online']
 
-        if any(formats.values()):
-            return render_template(
-                self.get_template_path('download_options'),
-                formats,
-                edition.url('/daisy'),
-            )
-        else:
+        if not download_acqs:
             return ''
+
+        return render_template(
+            'book_providers/download_options',
+            download_acqs,
+        )
 
     def get_access(
         self, edition: dict, metadata: IALiteMetadata | None = None
@@ -384,11 +386,73 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                 price=None,
                 url=f'https://archive.org/details/{identifier}?view=theater&wrapper=false',
                 provider_name=self.short_name,
-            ),
+                label='Read Online',
+            )
         ]
 
-        # Add direct download links for open-access books
-        if access == 'open-access':
+        edition = (
+            db_edition
+            if isinstance(db_edition, Edition)
+            else (ed_or_solr if isinstance(ed_or_solr, Edition) else None)
+        )
+
+        if edition:
+            if pdf := edition.get_ia_download_link('.pdf'):
+                acquisitions.append(
+                    Acquisition(
+                        access=access,
+                        format='pdf',
+                        price=None,
+                        url=pdf,
+                        provider_name=self.short_name,
+                        label='PDF',
+                    )
+                )
+            if epub := edition.get_ia_download_link('.epub'):
+                acquisitions.append(
+                    Acquisition(
+                        access=access,
+                        format='epub',
+                        price=None,
+                        url=epub,
+                        provider_name=self.short_name,
+                        label='ePub',
+                    )
+                )
+            if mobi := edition.get_ia_download_link('.mobi'):
+                acquisitions.append(
+                    Acquisition(
+                        access=access,
+                        format='mobi',
+                        price=None,
+                        url=mobi,
+                        provider_name=self.short_name,
+                        label='MOBI',
+                    )
+                )
+            if txt := edition.get_ia_download_link('_djvu.txt'):
+                acquisitions.append(
+                    Acquisition(
+                        access=access,
+                        format='txt',
+                        price=None,
+                        url=txt,
+                        provider_name=self.short_name,
+                        label='Plain text',
+                    )
+                )
+
+            acquisitions.append(
+                Acquisition(
+                    access=access,
+                    format='web',
+                    price=None,
+                    url=edition.url('/daisy'),
+                    provider_name=self.short_name,
+                    label='DAISY',
+                )
+            )
+        elif access == 'open-access':
             download_files = self._get_ia_download_files(identifier)
             for fmt, filename in download_files.items():
                 acquisitions.append(
@@ -398,6 +462,7 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
                         price=None,
                         url=f'https://archive.org/download/{identifier}/{filename}',
                         provider_name=self.short_name,
+                        label='PDF' if fmt == 'pdf' else 'ePub',
                     )
                 )
 
@@ -427,23 +492,44 @@ class LibriVoxProvider(AbstractBookProvider):
     long_name = 'LibriVox'
     identifier_key = 'librivox'
 
-    def render_download_options(self, edition: Edition, extra_args: list | None = None):
-        # The template also needs the ocaid, since some of the files are hosted on IA
-        return super().render_download_options(edition, [edition.get('ocaid')])
-
     def is_own_ocaid(self, ocaid: str) -> bool:
         return 'librivox' in ocaid
 
     def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
-        return [
+        librivox_id = self.get_best_identifier(ed_or_solr)
+        acqs = []
+        if ocaid := ed_or_solr.get('ocaid'):
+            acqs.append(
+                Acquisition(
+                    access='open-access',
+                    format='audio',
+                    price=None,
+                    url=f'http://www.archive.org/download/{ocaid}/{ocaid}_64kb_mp3.zip',
+                    provider_name=self.short_name,
+                    label='Whole Book MP3',
+                )
+            )
+        acqs.append(
             Acquisition(
                 access='open-access',
-                format='audio',
+                format='web',
                 price=None,
-                url=f'https://librivox.org/{self.get_best_identifier(ed_or_solr)}',
+                url=f'https://librivox.org/rss/{librivox_id}',
                 provider_name=self.short_name,
+                label='RSS Feed',
             )
-        ]
+        )
+        acqs.append(
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://librivox.org/{librivox_id}',
+                provider_name=self.short_name,
+                label='More at LibriVox',
+            )
+        )
+        return acqs
 
 
 class ProjectGutenbergProvider(AbstractBookProvider):
@@ -458,14 +544,48 @@ class ProjectGutenbergProvider(AbstractBookProvider):
         self,
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
+        url = f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(ed_or_solr)}'
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://www.gutenberg.org/ebooks/{self.get_best_identifier(ed_or_solr)}',
+                url=url,
                 provider_name=self.short_name,
-            )
+                label='HTML',
+            ),
+            Acquisition(
+                access='open-access',
+                format='txt',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='Plain text',
+            ),
+            Acquisition(
+                access='open-access',
+                format='epub',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='ePub',
+            ),
+            Acquisition(
+                access='open-access',
+                format='mobi',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='Kindle',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='More at Project Gutenberg',
+            ),
         ]
 
 
@@ -482,14 +602,56 @@ class ProjectRunebergProvider(AbstractBookProvider):
         self,
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
+        runeberg_id = self.get_best_identifier(ed_or_solr)
         return [
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://runeberg.org/{self.get_best_identifier(ed_or_solr)}/',
+                url=f'https://runeberg.org/{runeberg_id}.zip',
                 provider_name=self.short_name,
-            )
+                label='Scanned images',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/download.pl?mode=jpgzip&work={runeberg_id}',
+                provider_name=self.short_name,
+                label='Color images',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/download.pl?mode=html&work={runeberg_id}',
+                provider_name=self.short_name,
+                label='HTML',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/download.pl?mode=txtzip&work={runeberg_id}',
+                provider_name=self.short_name,
+                label='Text and index files',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/download.pl?mode=ocrtext&work={runeberg_id}',
+                provider_name=self.short_name,
+                label='OCR text',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://runeberg.org/download.pl?mode=work&work={runeberg_id}',
+                provider_name=self.short_name,
+                label='More at Project Runeberg',
+            ),
         ]
 
 
@@ -516,6 +678,7 @@ class StandardEbooksProvider(AbstractBookProvider):
                 price=None,
                 url=f'{base_url}/text/single-page',
                 provider_name=self.short_name,
+                label='HTML',
             ),
             Acquisition(
                 access='open-access',
@@ -523,6 +686,39 @@ class StandardEbooksProvider(AbstractBookProvider):
                 price=None,
                 url=f'{base_url}/downloads/{flat_id}.epub',
                 provider_name=self.short_name,
+                label='ePub',
+            ),
+            Acquisition(
+                access='open-access',
+                format='mobi',
+                price=None,
+                url=f'{base_url}/downloads/{flat_id}.azw3',
+                provider_name=self.short_name,
+                label='Kindle (azw3)',
+            ),
+            Acquisition(
+                access='open-access',
+                format='epub',
+                price=None,
+                url=f'{base_url}/downloads/{flat_id}.kepub.epub',
+                provider_name=self.short_name,
+                label='Kobo (kepub)',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=f'https://github.com/standardebooks/{flat_id}',
+                provider_name=self.short_name,
+                label='Source Code',
+            ),
+            Acquisition(
+                access='open-access',
+                format='web',
+                price=None,
+                url=base_url,
+                provider_name=self.short_name,
+                label='More at Standard Ebooks',
             ),
         ]
 
@@ -539,14 +735,26 @@ class OpenStaxProvider(AbstractBookProvider):
         self,
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
+        url = (
+            f'https://openstax.org/details/books/{self.get_best_identifier(ed_or_solr)}'
+        )
         return [
+            Acquisition(
+                access='open-access',
+                format='pdf',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='PDF',
+            ),
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://openstax.org/details/books/{self.get_best_identifier(ed_or_solr)}',
+                url=url,
                 provider_name=self.short_name,
-            )
+                label='More at OpenStax',
+            ),
         ]
 
 
@@ -562,14 +770,24 @@ class CitaPressProvider(AbstractBookProvider):
         self,
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
+        url = f'https://citapress.org/{self.get_best_identifier(ed_or_solr)}'
         return [
+            Acquisition(
+                access='open-access',
+                format='pdf',
+                price=None,
+                url=url,
+                provider_name=self.short_name,
+                label='PDF',
+            ),
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://citapress.org/{self.get_best_identifier(ed_or_solr)}',
+                url=url,
                 provider_name=self.short_name,
-            )
+                label='More at Cita Press',
+            ),
         ]
 
 
@@ -640,14 +858,59 @@ class WikisourceProvider(AbstractBookProvider):
 
     @override
     def get_acquisitions(self, ed_or_solr: Edition | dict) -> list[Acquisition]:
+        wikisource_id = self.get_best_identifier(ed_or_solr)
+
+        def is_langcode(string):
+            return all('a' <= char <= 'z' for char in string) and len(string) > 0
+
+        def split_id(string):
+            chunks = string.split(":")
+            if len(chunks) >= 2 and is_langcode(chunks[0]):
+                return chunks[0], ":".join(chunks[1:])
+            return 'en', string
+
+        langcode, title = split_id(wikisource_id)
+
+        def direct_url(type):
+            params = {"format": type, "lang": langcode, "page": title}
+            base_url = "https://ws-export.wmcloud.org/"
+            return "%s?%s" % (base_url, parse.urlencode(params))
+
+        outbound_url = 'https://wikisource.org/wiki/' + wikisource_id
+
         return [
+            Acquisition(
+                access='open-access',
+                format='pdf',
+                price=None,
+                url=direct_url('pdf'),
+                provider_name=self.short_name,
+                label='PDF',
+            ),
+            Acquisition(
+                access='open-access',
+                format='mobi',
+                price=None,
+                url=direct_url('mobi'),
+                provider_name=self.short_name,
+                label='MOBI (for Kindle)',
+            ),
+            Acquisition(
+                access='open-access',
+                format='epub',
+                price=None,
+                url=direct_url('epub'),
+                provider_name=self.short_name,
+                label='EPUB (for most other e-readers)',
+            ),
             Acquisition(
                 access='open-access',
                 format='web',
                 price=None,
-                url=f'https://wikisource.org/wiki/{self.get_best_identifier(ed_or_solr)}',
+                url=outbound_url,
                 provider_name=self.short_name,
-            )
+                label='Read at Wikisource',
+            ),
         ]
 
 
@@ -658,6 +921,9 @@ class BetterWorldBooksProvider(AbstractBookProvider):
 
     def is_own_ocaid(self, ocaid: str) -> bool:
         return False
+
+    def render_download_options(self, edition: Edition, extra_args: list | None = None):
+        return ""
 
     def get_identifiers(self, ed_or_solr: Edition | dict) -> list[str]:
         # basically just check if it has an isbn?
