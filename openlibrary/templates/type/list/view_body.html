@@ -172,10 +172,10 @@ $def seed_attrs(seed):
                 $if subjects:
                     <div class="section">
                         <h3 class="collapse black uppercase">$label</h3>
-                        <div class="sansserif">
+                        <ol-chip-group class="sansserif" gap="small">
                         $for subject in subjects:
-                            <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
-                        </div>
+                            <ol-chip size="small" href="$subject.url">$subject.title</ol-chip>
+                        </ol-chip-group>
                     </div>
 
             $ subjects = list.get_subjects()
