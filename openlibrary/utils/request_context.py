@@ -176,7 +176,7 @@ def set_context_from_legacy_web_py() -> None:
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
             user_agent=web.ctx.env.get("HTTP_USER_AGENT"),
-            lang=web.ctx.lang,
+            lang=web.ctx.get('lang') or 'en',
             solr_editions=solr_editions,
             print_disabled=print_disabled,
             sfw=sfw,
@@ -205,7 +205,7 @@ def set_context_from_fastapi(request: Request) -> None:
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),
             user_agent=request.headers.get("User-Agent"),
-            lang=request.state.lang,
+            lang=request.state.lang or 'en',
             solr_editions=solr_editions,
             print_disabled=bool(request.cookies.get('pd', False)),
             sfw=bool(request.cookies.get('sfw', '')),
