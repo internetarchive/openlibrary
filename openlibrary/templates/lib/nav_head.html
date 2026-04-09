@@ -184,7 +184,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
         trigger.setAttribute('aria-expanded', 'false');
       });
       drawer.addEventListener('click', function(e) {
-        if (e.target.closest('a[href], button[type="submit"]')) {
+        if (e.target.closest('a[href], button[type="submit"], button:not([type])')) {
           drawer.open = false;
         }
       });
