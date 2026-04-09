@@ -24,8 +24,10 @@ services:
       - LOCAL_DEV=true
       - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
     depends_on:
-      - db
-      - infobase
+      db:
+        condition: service_healthy
+      infobase:
+        condition: service_started
 
   fast_web:
     build:
@@ -56,7 +58,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8983/solr/openlibrary/admin/ping"]
       interval: 30s
-      start_interval: 2s
+      start_interval: 1s
       start_period: 20s
       timeout: 1s
       retries: 24
@@ -95,6 +97,13 @@ services:
       # if the db is empty (ie during first run).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
       - ol-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      start_interval: 1s
+      start_period: 20s
+      timeout: 1s
+      retries: 24
 
   covers:
     build:
@@ -121,7 +130,8 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   home:
     image: "${OLIMAGE:-oldev:latest}"
@@ -148,6 +158,8 @@ services:
       - solr-updater-data:/solr-updater-data
     depends_on:
       solr:
+        condition: service_healthy
+      db:
         condition: service_healthy
 
 volumes:
