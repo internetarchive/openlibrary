@@ -95,6 +95,11 @@ services:
       # if the db is empty (ie during first run).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
       - ol-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   covers:
     build:
@@ -148,6 +153,8 @@ services:
       - solr-updater-data:/solr-updater-data
     depends_on:
       solr:
+        condition: service_healthy
+      db:
         condition: service_healthy
 
 volumes:

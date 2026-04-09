@@ -5,8 +5,5 @@
 
 python --version
 
-echo "Waiting for postgres..."
-until pg_isready --host db; do sleep 5; done
-
 
 make reindex-solr
