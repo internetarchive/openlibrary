@@ -134,7 +134,12 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
 <ol-drawer id="hamburger-drawer" label="$_('Menu')">
   <ul class="drawer-menu hamburger-drawer-menu">
-    $ hamburgerLinks = [ { "subsection": _("My Open Library") } ] + loginLinks + [ { "subsection": _("Browse") } ] + browseLinks + [ { "subsection": _("Contribute") } ] + contributeLinks + [ { "subsection": _("Resources") } ] + resourceLinks
+    $ hamburgerLinks = (
+      [ { "subsection": _("My Open Library") } ] + loginLinks +
+      [ { "subsection": _("Browse") } ] + browseLinks +
+      [ { "subsection": _("Contribute") } ] + contributeLinks +
+      [ { "subsection": _("Resources") } ] + resourceLinks
+      )
     $for link in hamburgerLinks:
       $if 'subsection' in link:
         <li class="drawer-menu__subsection">
