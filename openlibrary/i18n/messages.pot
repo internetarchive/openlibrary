@@ -726,8 +726,9 @@ msgid "No edits. Yet."
 msgstr ""
 
 #: RelatedSubjects.html SearchNavigation.html SubjectTags.html
-#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
-#: subjects/notfound.html type/author/view.html type/list/view_body.html
+#: design/drawer.html lib/nav_foot.html lib/nav_head.html
+#: openlibrary/plugins/worksearch/code.py subjects/notfound.html
+#: type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr ""
 
@@ -1077,7 +1078,7 @@ msgstr ""
 msgid "Edit this template"
 msgstr ""
 
-#: databarWork.html lib/nav_head.html
+#: databarWork.html design/drawer.html lib/nav_head.html
 msgid "Browse"
 msgstr ""
 
@@ -1589,7 +1590,7 @@ msgid "Classic eBooks"
 msgstr ""
 
 #: account.html account/notifications.html account/privacy.html
-#: lib/nav_head.html type/user/view.html
+#: design/drawer.html lib/nav_head.html type/user/view.html
 msgid "Settings"
 msgstr ""
 
@@ -1813,6 +1814,10 @@ msgstr ""
 
 #: design.html
 msgid "Popover"
+msgstr ""
+
+#: design.html design/drawer.html
+msgid "Drawer"
 msgstr ""
 
 #: design.html type/edition/view.html type/work/view.html
@@ -2219,7 +2224,7 @@ msgstr ""
 msgid "Continue without waiting"
 msgstr ""
 
-#: lib/nav_head.html library_explorer.html
+#: design/drawer.html lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
 msgstr ""
 
@@ -3259,7 +3264,8 @@ msgstr ""
 msgid "My %(shelf_name)s Stats"
 msgstr ""
 
-#: account/readinglog_stats.html home/loans.html lib/nav_head.html
+#: account/readinglog_stats.html design/drawer.html home/loans.html
+#: lib/nav_head.html
 msgid "My Books"
 msgstr ""
 
@@ -5923,6 +5929,99 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/drawer.html
+msgid ""
+"The ol-drawer component slides in a panel from a viewport edge. It traps "
+"focus, locks body scroll, supports swipe-to-dismiss on touch, and "
+"respects prefers-reduced-motion."
+msgstr ""
+
+#: design/drawer.html
+msgid "Basic drawer (end)"
+msgstr ""
+
+#: design/drawer.html
+msgid ""
+"A drawer that slides in from the right edge. Click the backdrop or press "
+"Escape to close."
+msgstr ""
+
+#: design/drawer.html
+msgid "Open drawer (end)"
+msgstr ""
+
+#: design/drawer.html lib/header_dropdown.html lib/nav_head.html
+msgid "Menu"
+msgstr ""
+
+#: design/drawer.html lib/nav_head.html
+msgid "My Open Library"
+msgstr ""
+
+#: design/drawer.html lib/nav_head.html
+msgid "My Profile"
+msgstr ""
+
+#: design/drawer.html lib/nav_head.html search/sort_options.html
+msgid "Trending"
+msgstr ""
+
+#: design/drawer.html
+msgid "Start placement"
+msgstr ""
+
+#: design/drawer.html
+#, python-format
+msgid "Use %(placement)s to slide the drawer from the left edge."
+msgstr ""
+
+#: design/drawer.html
+msgid "Open drawer (start)"
+msgstr ""
+
+#: design/drawer.html
+msgid "Filters"
+msgstr ""
+
+#: design/drawer.html
+msgid "Available to borrow"
+msgstr ""
+
+#: design/drawer.html
+msgid "Has ebook"
+msgstr ""
+
+#: design/drawer.html
+msgid "English only"
+msgstr ""
+
+#: design/drawer.html
+msgid "Custom width"
+msgstr ""
+
+#: design/drawer.html
+#, python-format
+msgid "Use the %(size)s CSS custom property to control drawer width."
+msgstr ""
+
+#: design/drawer.html
+msgid "Open wide drawer"
+msgstr ""
+
+#: design/drawer.html
+msgid "Wide panel"
+msgstr ""
+
+#: design/drawer.html
+msgid "Wide Drawer"
+msgstr ""
+
+#: design/drawer.html
+msgid ""
+"This drawer uses a custom width of 420px via the --size CSS custom "
+"property."
+msgstr ""
+
 #: design/popover.html
 msgid "Popover component"
 msgstr ""
@@ -6268,23 +6367,6 @@ msgstr ""
 msgid "Get instructions at Wikipedia in a new window"
 msgstr ""
 
-#: lib/header_dropdown.html
-msgid "My account"
-msgstr ""
-
-#: lib/header_dropdown.html type/user/view.html
-#, python-format
-msgid "Joined %(date)s"
-msgstr ""
-
-#: lib/header_dropdown.html
-msgid "Menu"
-msgstr ""
-
-#: lib/header_dropdown.html
-msgid "New!"
-msgstr ""
-
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
@@ -6533,26 +6615,6 @@ msgid ""
 msgstr ""
 
 #: lib/nav_head.html
-msgid "Loans, Reading Log, Lists, Stats"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "My Profile"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Log out"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Pending Merge Requests"
-msgstr ""
-
-#: lib/nav_head.html search/sort_options.html
-msgid "Trending"
-msgstr ""
-
-#: lib/nav_head.html
 msgid "K-12 Student Library"
 msgstr ""
 
@@ -6562,30 +6624,6 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Random Book"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Recent Community Edits"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Help & Support"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Librarians Portal"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "My Open Library"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Contribute"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Resources"
 msgstr ""
 
 #: lib/nav_head.html
@@ -6606,6 +6644,47 @@ msgstr ""
 
 #: lib/nav_head.html
 msgid "Search by barcode"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "My account"
+msgstr ""
+
+#: lib/nav_head.html type/user/view.html
+#, python-format
+msgid "Joined %(date)s"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Loans, Reading Log, Lists, Stats"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Pending Merge Requests"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Log out"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Contribute"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Recent Community Edits"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Resources"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Help & Support"
+msgstr ""
+
+#: lib/nav_head.html
+msgid "Librarians Portal"
 msgstr ""
 
 #: lib/not_logged.html
