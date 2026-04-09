@@ -14,10 +14,12 @@ def get_fail2ban_counts(ipset_name: str) -> tuple[int, int]:
         f"sudo ipset list f2b-{ipset_name}",
         capture_output=True,
     )
-    banned = 0
-    for line in result.stdout.splitlines():
-        line = line.strip()
-        if line.startswith("Number of entries:"):
-            banned = int(line.split(":")[-1].strip())
-            break
+    banned = next(
+        (
+            int(line.split(":")[-1].strip())
+            for line in result.stdout.splitlines()
+            if line.strip().startswith("Number of entries:")
+        ),
+        0,
+    )
     return 0, banned

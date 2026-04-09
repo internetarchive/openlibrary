@@ -177,7 +177,7 @@ async def monitor_empty_homepage():
 @scheduler.scheduled_job('interval', seconds=60)
 def monitor_fail2ban():
     """Logs fail2ban HTTP429 ipset banned count."""
-    _failed, banned = get_fail2ban_counts("HTTP429")
+    _, banned = get_fail2ban_counts("HTTP429")
     ts = int(time.time())
     GraphiteEvent(
         path="stats.ol.fail2ban.HTTP429.banned",
