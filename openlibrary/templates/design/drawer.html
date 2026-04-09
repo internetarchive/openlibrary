@@ -28,6 +28,7 @@ $def with()
       <script>
         (function() {
           var drawer = document.getElementById('demo-drawer-end');
+          document.body.appendChild(drawer);
           var trigger = document.getElementById('demo-drawer-end-trigger');
           trigger.addEventListener('click', function() {
             drawer.open = true;
@@ -54,6 +55,7 @@ $def with()
       <script>
         (function() {
           var drawer = document.getElementById('demo-drawer-start');
+          document.body.appendChild(drawer);
           var trigger = document.getElementById('demo-drawer-start-trigger');
           trigger.addEventListener('click', function() {
             drawer.open = true;
@@ -78,6 +80,7 @@ $def with()
       <script>
         (function() {
           var drawer = document.getElementById('demo-drawer-wide');
+          document.body.appendChild(drawer);
           var trigger = document.getElementById('demo-drawer-wide-trigger');
           trigger.addEventListener('click', function() {
             drawer.open = true;
@@ -86,32 +89,4 @@ $def with()
       </script>
     </section>
 
-    <section class="example">
-      <h3 class="example__title">$_("Disable light dismiss")</h3>
-      <p>$:_("Set %(no_light_dismiss)s to prevent closing via backdrop click. The drawer can still be closed programmatically or with Escape.", no_light_dismiss='<code>light-dismiss="false"</code>')</p>
-      <code class="example__code">&lt;ol-drawer label="Persistent" light-dismiss="false"&gt;...&lt;/ol-drawer&gt;</code>
-      <div class="example__output">
-        <button id="demo-drawer-persist-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open persistent drawer")</button>
-        <ol-drawer id="demo-drawer-persist" label="$_('Persistent drawer')" light-dismiss="false">
-          <div style="padding: 16px;">
-            <h3 style="margin: 0 0 12px;">$_("Persistent Drawer")</h3>
-            <p style="margin: 0 0 16px;">$_("Clicking the backdrop will not close this drawer. Use the button below or press Escape.")</p>
-            <button id="demo-drawer-persist-close" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Close drawer")</button>
-          </div>
-        </ol-drawer>
-      </div>
-      <script>
-        (function() {
-          var drawer = document.getElementById('demo-drawer-persist');
-          var openBtn = document.getElementById('demo-drawer-persist-trigger');
-          var closeBtn = document.getElementById('demo-drawer-persist-close');
-          openBtn.addEventListener('click', function() {
-            drawer.open = true;
-          });
-          closeBtn.addEventListener('click', function() {
-            drawer.open = false;
-          });
-        })();
-      </script>
-    </section>
   </article>

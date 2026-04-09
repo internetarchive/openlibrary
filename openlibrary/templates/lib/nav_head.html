@@ -121,7 +121,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
     </ul>
 
   <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">
-    <button class="hamburger-trigger" aria-label="$_('Menu')">
+    <button class="hamburger-trigger" aria-label="$_('Menu')" aria-expanded="false">
       $if ctx.user:
         <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
         $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
@@ -177,6 +177,17 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
     if (trigger && drawer) {
       trigger.addEventListener('click', function() {
         drawer.open = !drawer.open;
+      });
+      drawer.addEventListener('ol-drawer-show', function() {
+        trigger.setAttribute('aria-expanded', 'true');
+      });
+      drawer.addEventListener('ol-drawer-after-hide', function() {
+        trigger.setAttribute('aria-expanded', 'false');
+      });
+      drawer.addEventListener('click', function(e) {
+        if (e.target.closest('a[href], button[type="submit"]')) {
+          drawer.open = false;
+        }
       });
     }
   })();

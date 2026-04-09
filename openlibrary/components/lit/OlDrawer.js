@@ -20,8 +20,6 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @prop {String} placement - Which edge the drawer slides from:
  *     `'start'` (left in LTR) or `'end'` (right in LTR). Default: `'end'`
  * @prop {String} label - Accessible label for the drawer dialog.
- * @prop {Boolean} lightDismiss - Whether backdrop click and Escape close
- *     the drawer. Escape always works for accessibility. Default: `true`
  *
  * @fires ol-drawer-show - Fired when the drawer begins opening.
  * @fires ol-drawer-after-show - Fired after the enter animation completes.
@@ -48,7 +46,6 @@ export class OlDrawer extends LitElement {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
         label: { type: String },
-        lightDismiss: { type: Boolean, attribute: 'light-dismiss' },
         _animState: { state: true },
     };
 
@@ -77,13 +74,13 @@ export class OlDrawer extends LitElement {
         }
 
         .backdrop[data-state="entering"] {
-            transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 400ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
             pointer-events: none;
-            transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         /* ── Drawer panel ── */
@@ -124,14 +121,18 @@ export class OlDrawer extends LitElement {
             pointer-events: auto;
         }
 
+        .drawer[data-state="open"] {
+            will-change: auto;
+        }
+
         .drawer[data-state="entering"] {
-            transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 400ms cubic-bezier(0.23, 1, 0.32, 1);
             will-change: transform;
         }
 
         .drawer[data-state="exiting"] {
             pointer-events: none;
-            transition: transform 240ms cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 300ms cubic-bezier(0.23, 1, 0.32, 1);
             will-change: transform;
         }
 
@@ -172,7 +173,6 @@ export class OlDrawer extends LitElement {
         this.open = false;
         this.placement = 'end';
         this.label = '';
-        this.lightDismiss = true;
         this._animState = 'closed';
         this._prevFocus = null;
         this._savedScrollY = 0;
@@ -357,9 +357,7 @@ export class OlDrawer extends LitElement {
     // ── Dismiss handlers ────────────────────────────────────────
 
     _onBackdropClick() {
-        if (this.lightDismiss) {
-            this._requestClose('backdrop');
-        }
+        this._requestClose('backdrop');
     }
 
     _onKeydownGlobal(e) {
@@ -420,7 +418,8 @@ export class OlDrawer extends LitElement {
 
         const backdrop = this.shadowRoot.querySelector('.backdrop');
         if (backdrop) {
-            const progress = Math.min(dragX / 300, 1);
+            const panelWidth = panel ? panel.offsetWidth : 300;
+            const progress = Math.min(dragX / panelWidth, 1);
             backdrop.style.opacity = String(1 - progress);
             backdrop.style.transition = 'none';
         }
