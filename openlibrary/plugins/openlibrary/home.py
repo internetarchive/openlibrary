@@ -112,11 +112,15 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
-        cached_homepage = get_cached_homepage()
+        if devmode := "dev" in web.ctx.features:
+            homepage_data = get_homepage(devmode)
+        else:
+            homepage_data = get_cached_homepage()
+
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
         web.template.Template.globals['ctx']['cssfile'] = 'home'
-        return web.template.TemplateResult(cached_homepage)
+        return web.template.TemplateResult(homepage_data)
 
 
 @cache.memoize(
