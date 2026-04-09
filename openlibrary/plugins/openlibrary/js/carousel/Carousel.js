@@ -2,7 +2,7 @@
 import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.css';
 import { buildPartialsUrl } from  '../utils.js';
-import { getGlobalPreferences, mapPreferencesToBackend } from '../../../../../../openlibrary/static/js/preferences.js'
+import { getGlobalPreferences, mapPreferencesToBackend } from '../../../../../static/js/preferences.js'
 
 /**
  * @typedef {Object} CarouselConfig
@@ -153,8 +153,16 @@ export class Carousel {
 
             // On initial load, fetch with global preferences
             const initialPrefs = getGlobalPreferences();
+            const defaultPrefs = {};
             const initialBackendParams = mapPreferencesToBackend(initialPrefs);
-            handleGlobalFilterChange(initialBackendParams);
+            const defaultBackendParams = mapPreferencesToBackend(defaultPrefs);
+            // Only reload if preferences differ from defaults or carousel is empty
+            if (
+                JSON.stringify(initialBackendParams) !== JSON.stringify(defaultBackendParams)
+                    || this.slick.$slides.length === 0
+            ) {
+                handleGlobalFilterChange(initialBackendParams);
+            }
         }
     }
 

@@ -15,17 +15,26 @@ document.addEventListener('DOMContentLoaded', () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...prefs, redirect: false })
-        }).then(res => res.json()).then(() => {
-            // 3. Trigger local UI update (carousel reload)
+        }).then(res => {
+            if (!res.ok) throw new Error('Failed to save preferences');
+            return res.json();
+        }).then(() => {
+            // 3, Trigger local UI update (carousel reload)
             updateAllCarousels();
+        }).catch(() => {
+            // Consider showing user feedback
         });
 
         // Close filter panel
         const filterPanel = document.getElementById('filter-panel');
         const filterTrigger = document.getElementById('filter-panel-trigger');
-        filterPanel.classList.remove('show');
-        filterPanel.classList.add('hidden');
-        filterTrigger.setAttribute('aria-expanded', 'false');
-        filterTrigger.focus();
+        if (filterPanel) {
+            filterPanel.classList.remove('show');
+            filterPanel.classList.add('hidden');
+        }
+        if (filterTrigger) {
+            filterTrigger.setAttribute('aria-expanded', 'false');
+            filterTrigger.focus();
+        }
     });
 });

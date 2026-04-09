@@ -861,7 +861,10 @@ class account_preferences(delegate.page):
             logger.info("Parsed preferences data: %s", d)
         except Exception as e:
             logger.error("Failed to process preferences update: %s", str(e))
-            return json.dumps({"error": "Failed to process request"})
+            return delegate.RawText(
+                json.dumps({"error": "Failed to process request"}),
+                content_type="application/json",
+            )
         prefs = {
             'mode': d.get('mode', 'all'),
             'language': d.get('language', 'en'),

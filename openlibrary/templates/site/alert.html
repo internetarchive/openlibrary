@@ -33,7 +33,7 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
 <div id="filter-panel" class="filter-panel hidden" role="region" aria-label="$_('Search Filters')">
   <div class="filter-header">
     <h2>$_('Filter')</h2>
-    <button id="close-filter-panel" class="close-btn" aria-label="$_('Close filter panel')">×</button>
+    <button id="close-filter-panel" class="close-btn" aria-label="$_('Close filter panel')">×</button> $# detect-missing-i18n-skip-line
   </div>
 
   <div class="preference-panel">
@@ -90,6 +90,16 @@ $ active_ui_lang = supported_languages.get(lang) or supported_languages.get('en'
       filterPanel.classList.remove('show');
       filterPanel.classList.add('hidden');
       filterTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Close panel when clicking Escape key
+  document.addEventListener('keydown', (e) => {
+    if (!filterPanel.classList.contains('hidden') && (e.key === 'Escape' || e.key === 'Esc')) {
+      filterPanel.classList.remove('show');
+      filterPanel.classList.add('hidden');
+      filterTrigger.setAttribute('aria-expanded', 'false');
+      filterTrigger.focus();
     }
   });
 </script>
