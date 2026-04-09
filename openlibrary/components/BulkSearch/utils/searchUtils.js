@@ -40,4 +40,3 @@ export function buildSearchUrl(extractedBook, matchOptions, json = true) {
     })}`;
     return url;
 }
-

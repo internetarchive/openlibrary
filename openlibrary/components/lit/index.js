@@ -11,4 +11,3 @@ export { OlPagination } from './OlPagination.js';
 export { OlPopover } from './OlPopover.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
-
