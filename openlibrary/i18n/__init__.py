@@ -319,7 +319,7 @@ def generate_po(args):
 
 
 @functools.cache
-def load_translations(lang):
+def load_translations(lang: str):
     mo_path = os.path.join(root, lang, "messages.mo")
 
     if os.path.exists(mo_path):
@@ -327,11 +327,11 @@ def load_translations(lang):
 
 
 @functools.cache
-def load_locale(lang):
+def load_locale(lang: str):
     try:
         return babel.Locale(lang)
     except babel.UnknownLocaleError:
-        pass
+        return None
 
 
 class GetText:

@@ -352,60 +352,149 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def public_scan_b(self) -> bool:
         return self.ebook_access == bp.EbookAccess.PUBLIC
 
+    def _get_description_text(self) -> str:
+        """Extract description text, handling both plain strings and text_block dicts."""
+        desc = self._edition.get('description')
+        if isinstance(desc, dict):
+            return desc.get('value', '')
+        return desc or ''
+
+    def _has_series(self) -> bool:
+        """Check if the edition or its parent work has series information."""
+        if self._edition.get('series'):
+            return True
+        if self._solr_work and self._solr_work.series_key:
+            return True
+        return False
+
+    def _get_work_links(self) -> list[dict]:
+        """Get links from the parent work, if available."""
+        if self._solr_work:
+            return self._solr_work._work.get('links', [])
+        return []
+
     def get_scorecard(self) -> EditionScorecard:
         scorecard = EditionScorecard()
+        acc = scorecard.access
         dsc = scorecard.discovery
-        esc = scorecard.evaluation
+        evl = scorecard.evaluation
 
-        if self.title:
-            dsc.passing_checks.add(dsc.has_title)
-            esc.passing_checks.add(esc.has_title)
-        if self.cover_i:
-            esc.passing_checks.add(esc.has_cover)
-        if len(self._edition.get('description') or '') > 50:
-            esc.passing_checks.add(esc.has_short_description)
-        if len(self._edition.get('description') or '') > 100:
-            esc.passing_checks.add(esc.has_long_description)
-        if self.language:
-            dsc.passing_checks.add(dsc.has_language)
-            esc.passing_checks.add(esc.has_language)
-        # if self._solr_work and self._solr_work.author_key:
-        #     msc.passing_checks.add(msc.has_author)
-        if self.publish_year:
-            esc.passing_checks.add(esc.has_publish_year)
-        if self.isbn or self.lccn or self.ia or self.identifiers:
-            dsc.passing_checks.add(dsc.has_identifiers)
-        if self.lexile:
-            dsc.passing_checks.add(dsc.has_lexile)
-        if self._edition.get('dewey_decimal_class'):
-            dsc.passing_checks.add(dsc.has_ddc)
-        if self._edition.get('lc_classifications'):
-            dsc.passing_checks.add(dsc.has_lcc)
-
-        asc = scorecard.access
+        # --- Access checks ---
         if self.ebook_access >= bp.EbookAccess.BORROWABLE:
-            asc.passing_checks.add(asc.is_readable)
-        if self.ebook_access >= bp.EbookAccess.PUBLIC:
-            asc.passing_checks.add(asc.is_fully_public)
+            acc.passing_checks.add(acc.read_access)
         if self.ebook_access >= bp.EbookAccess.PRINTDISABLED:
-            asc.passing_checks.add(asc.allows_search_inside)
+            acc.passing_checks.add(acc.search_inside_access)
+        if self.ebook_access == bp.EbookAccess.PUBLIC:
+            acc.passing_checks.add(acc.programatic_access)
+        if self.isbn:
+            acc.passing_checks.add(acc.purchase_options)
+        if self.isbn or self.oclc:
+            acc.passing_checks.add(acc.library_options)
+        if self._edition.get('first_sentence'):
+            acc.passing_checks.add(acc.first_sentence)
+
+        # Work-context access checks (links on the Work)
+        work_links = self._get_work_links()
+        if any('archiveofourown.org' in (link.get('url', '') if isinstance(link, dict) else '') for link in work_links):
+            acc.passing_checks.add(acc.fan_fiction)
+        if any('wikipedia.org' in (link.get('url', '') if isinstance(link, dict) else '') for link in work_links):
+            acc.passing_checks.add(acc.wikipedia)
+
+        # --- Discovery checks ---
+        if self.title:
+            dsc.passing_checks.add(dsc.title)
+        if self._edition.get('authors'):
+            dsc.passing_checks.add(dsc.author_name)
+        if self._edition.get('genres'):
+            dsc.passing_checks.add(dsc.genre_tags)
+        if self._has_series():
+            dsc.passing_checks.add(dsc.series)
+        if self.chapter:
+            dsc.passing_checks.add(dsc.table_of_contents)
+        if self._edition.get('dewey_decimal_class') or self._edition.get('lc_classifications'):
+            dsc.passing_checks.add(dsc.classifications)
+        if self.language:
+            dsc.passing_checks.add(dsc.language)
+        if self.isbn:
+            dsc.passing_checks.add(dsc.isbn)
+        if self.lexile:
+            dsc.passing_checks.add(dsc.lexile)
+        if self._edition.get('contributions'):
+            dsc.passing_checks.add(dsc.contributor_names)
+        if self._solr_work:
+            ratings = self._solr_work.build_ratings()
+            reading_log = self._solr_work.build_reading_log()
+
+            if ratings and ratings.get('ratings_count', 0) > 0:
+                dsc.passing_checks.add(dsc.star_ratings)
+            if reading_log and reading_log.get('readinglog_count', 0) > 0:
+                dsc.passing_checks.add(dsc.on_readinglogs)
+            # on_lists: skipped for now — no easy path to list counts from Solr builder
+
+        # --- Evaluation checks ---
+        desc_text = self._get_description_text()
+        if desc_text:
+            evl.passing_checks.add(evl.basic_description)
+        if self.cover_i:
+            evl.passing_checks.add(evl.cover)
+        if self.chapter:
+            evl.passing_checks.add(evl.table_of_contents)
+        if self._edition.get('genres'):
+            evl.passing_checks.add(evl.genre_tags)
+        if len(desc_text) > 50:
+            evl.passing_checks.add(evl.rich_description)
+        if self.number_of_pages:
+            evl.passing_checks.add(evl.page_count)
+        if self.publish_year:
+            evl.passing_checks.add(evl.publish_year)
+        if self.publisher and not all(is_sine_nomine(p) for p in self.publisher):
+            evl.passing_checks.add(evl.publisher)
+        if self._has_series():
+            evl.passing_checks.add(evl.series)
+
+        # Work-context evaluation checks
+        if self._solr_work:
+            if ratings and ratings.get('ratings_count', 0) > 0:
+                evl.passing_checks.add(evl.star_ratings)
+            if reading_log and reading_log.get('readinglog_count', 0) > 0:
+                evl.passing_checks.add(evl.readinglog_counts)
+            # list_count: skipped for now
+            if self._solr_work._authors and any(
+                a.get('photos') for a in self._solr_work._authors
+            ):
+                evl.passing_checks.add(evl.author_photo)
+            if self._solr_work.first_publish_year:
+                evl.passing_checks.add(evl.first_publish_year)
+            if self._solr_work._authors and any(
+                a.get('bio') or a.get('description') for a in self._solr_work._authors
+            ):
+                evl.passing_checks.add(evl.author_bio)
+            if self._solr_work._authors and any(
+                a.get('links') for a in self._solr_work._authors
+            ):
+                evl.passing_checks.add(evl.author_links)
 
         return scorecard
 
     @cached_property
-    def metadata_score(self) -> int:
-        return self.get_scorecard().score
+    def _scorecard(self) -> EditionScorecard:
+        return self.get_scorecard()
+
+    @cached_property
+    def access_score(self) -> int:
+        return self._scorecard.access.score
+
+    @cached_property
+    def discovery_score(self) -> int:
+        return self._scorecard.discovery.score
+
+    @cached_property
+    def evaluation_score(self) -> int:
+        return self._scorecard.evaluation.score
 
     @cached_property
     def usefulness_score(self) -> int:
-        score = self.metadata_score
-
-        if self.ebook_access >= bp.EbookAccess.BORROWABLE:
-            score += 100
-        if self.ebook_access == bp.EbookAccess.PRINTDISABLED:
-            score += 80
-
-        return score
+        return self.access_score + self.discovery_score + self.evaluation_score
 
     def build(self) -> SolrDocument:
         """
@@ -447,7 +536,9 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 "format": [self.format] if self.format else None,
                 "publish_date": [self.publish_date] if self.publish_date else None,
                 "publish_year": [self.publish_year] if self.publish_year else None,
-                "metadata_score": self.metadata_score,
+                "access_score": self.access_score,
+                "discovery_score": self.discovery_score,
+                "evaluation_score": self.evaluation_score,
                 "usefulness_score": self.usefulness_score,
                 # Identifiers
                 "isbn": self.isbn,

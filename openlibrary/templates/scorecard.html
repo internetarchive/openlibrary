@@ -150,10 +150,21 @@ $def get_color_var_for_score(pct):
     </div>
 
     $for i, section in enumerate(sections):
-        $ failing_checks = [check for check in section.get_checks() if check not in section.passing_checks]
-        $ passing_checks = [check for check in section.get_checks() if check in section.passing_checks]
+        $ bonus_checks = [check for check in section.get_checks() if check.score > 0]
+        $ penalty_checks = [check for check in section.get_checks() if check.score < 0]
+        $ failing_checks = [check for check in bonus_checks if check not in section.passing_checks]
+        $ passing_checks = [check for check in bonus_checks if check in section.passing_checks]
+        $ active_penalties = [check for check in penalty_checks if check in section.passing_checks]
+        $ inactive_penalties = [check for check in penalty_checks if check not in section.passing_checks]
 
         <div class="ol-scorecard-section-content ${'active' if i == 0 else ''}" id="section-$i">
+            $if active_penalties:
+                <details open>
+                    <summary>$_("Penalties (%d)", len(active_penalties))</summary>
+                    $for check in sorted(active_penalties, key=lambda c: c.score):
+                        $:render_scorecard_check(check, section)
+                </details>
+
             <details open>
                 <summary>$_("Failing Checks (%d)", len(failing_checks))</summary>
                 $for check in sorted(failing_checks, key=lambda c: c.score, reverse=True):
