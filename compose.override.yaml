@@ -146,6 +146,9 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
+    depends_on:
+      solr:
+        condition: service_healthy
 
 volumes:
   ol-vendor:
