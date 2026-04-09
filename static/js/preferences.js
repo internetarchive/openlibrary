@@ -3,7 +3,7 @@ const STORAGE_KEY = 'preferences';
 export function getGlobalPreferences() {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
-        const parsed = JSON.parse(stored) || {};
+        const parsed = (stored && JSON.parse(stored)) || {};
 
         if (!parsed.global) {
             const cookiePrefs = checkCookiesAndHydrate();
@@ -43,13 +43,15 @@ export function setGlobalPreferences(prefs) {
         const stored = localStorage.getItem(STORAGE_KEY);
         const parsed = stored ? JSON.parse(stored) : {};
         const [startYear, endYear] = prefs.date || [1900, 2025];
+        let sYear = Math.max(1900, Math.min(2025, isNaN(startYear) ? 1900 : startYear));
+        let eYear = Math.max(1900, Math.min(2025, isNaN(endYear) ? 1900 : endYear));
+        if (sYear > eYear) {
+            [sYear, eYear] = [eYear, sYear];
+        }
         parsed.global = {
             mode: prefs.mode || 'all',
             language: prefs.language,
-            date: [
-                Math.max(1800, Math.min(2025, isNaN(startYear) ? 1900 : startYear)),
-                Math.max(1800, Math.min(2025, isNaN(endYear) ? 2025 : endYear))
-            ]
+            date: [sYear, eYear]
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     } catch (e) {
