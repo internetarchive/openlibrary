@@ -88,110 +88,6 @@
 }
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
-.header-bar .app-drawer {
-  position: fixed;
-  width: 300px;
-  max-width: 100vw;
-  right: 0;
-  top: 0;
-  height: 100vh;
-  z-index: var(--z-index-level-2);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  background-color: var(--light-beige);
-  box-shadow: -10px 0 10px -6px rgb(0 0 0 / 25%);
-}
-
-.header-bar .app-drawer ul {
-  border: none;
-}
-
-.header-bar .app-drawer .app-drawer__badge {
-  color: var(--white);
-  background-color: var(--primary-blue);
-  font-size: 0.9em;
-  padding: 2px 6px 1px;
-  border-radius: 4px;
-  float: right;
-  text-transform: uppercase;
-}
-
-/* stylelint-disable max-nesting-depth, selector-max-specificity */
-.header-bar .app-drawer .subsection {
-  font-weight: bold;
-  border-bottom: 2px solid hsl(32.7, 14.7%, 70.6%);
-  padding: 16px 16px 3px;
-}
-
-.header-bar .app-drawer .subsection:hover {
-  background-color: transparent;
-}
-
-.header-bar .app-drawer li {
-  border-bottom: 1px solid hsla(33.6, 10%, 49.2%, 0.25);
-}
-
-.header-bar .app-drawer li:not(.subsection) {
-  margin: 0 8px;
-}
-
-.header-bar .app-drawer li a,
-.header-bar .app-drawer li button,
-.header-bar .app-drawer .login-links {
-  padding: 10px 8px;
-}
-
-.header-bar .app-drawer li button {
-  width: 100%;
-  font-family: var(--font-family-button);
-  text-align: left;
-  cursor: pointer;
-}
-
-.header-bar .app-drawer .subsection:first-child {
-  border-top: 1px solid var(--dark-beige);
-}
-
-.header-bar .app-drawer .login-links {
-  display: flex;
-  border-bottom: none;
-  justify-content: space-evenly;
-  column-gap: 16px;
-}
-
-.header-bar .app-drawer .login-links:hover {
-  background-color: transparent;
-}
-
-.header-bar .app-drawer .login-links a {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  padding: 6px;
-  transition: 0.3s;
-}
-
-.header-bar .app-drawer .login-links .login-links__primary {
-  background: var(--primary-blue);
-  color: var(--white);
-}
-
-.header-bar .app-drawer .login-links .login-links__primary:hover {
-  background-color: var(--link-blue);
-}
-
-.header-bar .app-drawer .login-links .login-links__secondary {
-  color: var(--primary-blue);
-  border: 2px solid var(--primary-blue);
-}
-
-.header-bar .app-drawer .login-links .login-links__secondary:hover {
-  background-color: var(--white);
-}
-/* stylelint-enable max-nesting-depth, selector-max-specificity */
-
 .header-bar .hamburger-component {
   -webkit-box-ordinal-group: 5;
   -ms-flex-order: 4;
@@ -199,89 +95,11 @@
   margin-right: 5px;
 }
 
-/* stylelint-disable max-nesting-depth, selector-max-specificity */
-.header-bar .hamburger-component details[open] .mask-menu {
-  visibility: visible;
-  opacity: 0.6;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.header-bar .hamburger-component details[open] summary ~ * {
-  animation: sweep 0.2s ease-in-out;
-}
-
-.header-bar .hamburger-component details[open] .hamburger__icon {
-  background-color: var(--account-icon-background);
-}
-
 .header-bar .hamburger-component .hamburger__icon {
   width: 22px;
   padding: 0 10px;
   border-radius: 3px;
   box-sizing: content-box;
-}
-/* stylelint-enable max-nesting-depth, selector-max-specificity */
-
-@keyframes sweep {
-  0% {
-    opacity: 0;
-    transform: translateX(50px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 0.6;
-  }
-}
-
-.header-bar .hamburger-component summary::marker {
-  content: "";
-  font-size: 0;
-}
-
-.header-bar .hamburger-component summary::-webkit-details-marker {
-  display: none;
-}
-
-.header-bar .hamburger-component label {
-  background: transparent;
-  border: none;
-}
-
-/*  Technical/design debt: For unknown historic reasons the hamburger button does not have an
-    arrow to the right of the icon, but the profile icon does. This is likely an accessibility
-    or UX problem.
-
-    There's an argument to be made that this should be visible for consistency with other dropdown
-    menus and to better meet user expectations which might expect the hamburger to load a menu
-    overlaying the screen as is consistent with other designs.
-
-    When OpenLibrary has a design lead, this should be understood and either reviewed or better
-    documented. */
-.header-bar .hamburger-component .down-arrow {
-  display: none;
-}
-
-.header-bar .mask-menu {
-  position: fixed;
-  top: 0;
-  /* stylelint-disable declaration-block-no-redundant-longhand-properties */
-  left: 0;
-  right: 0;
-  opacity: 0;
-  bottom: 0;
-  /* stylelint-enable declaration-block-no-redundant-longhand-properties */
-  background: rgba(0, 0, 0, 0.5);
-  z-index: var(--z-index-level-1);
-  visibility: hidden;
 }
 
 .header-bar .header-dropdown summary::before {
@@ -294,14 +112,16 @@
   height: 40px;
 }
 
-.header-bar .header-dropdown .account__icon {
+.header-bar .header-dropdown .account__icon,
+.header-bar .hamburger-component .account__icon {
   border: 2px solid var(--account-icon-border);
   border-radius: 4px;
   width: 30px;
   height: 30px;
 }
 
-.header-bar .header-dropdown .mr-notifications {
+.header-bar .header-dropdown .mr-notifications,
+.header-bar .hamburger-component .mr-notifications {
   position: absolute;
   background: var(--primary-blue);
   color: var(--white);
@@ -619,19 +439,15 @@ div.search-facet:focus-within {
   outline: 2px solid;
 }
 
-.hamburger-component summary {
+.hamburger-trigger {
   display: flex;
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
   cursor: pointer;
-}
-
-.hamburger-component summary .header-dropdown__icon {
+  background: none;
   border: none;
-  margin-right: 5px;
-  border-radius: 3px;
-  box-sizing: content-box;
+  padding: 0;
 }
 
 .navigation-component {
@@ -788,7 +604,7 @@ div.search-facet:focus-within {
     margin-right: 0;
   }
 
-  .header-bar .hamburger-component summary {
+  .header-bar .hamburger-trigger {
     margin-left: 10px;
   }
 }
@@ -903,4 +719,127 @@ div.search-facet:focus-within {
   .header-bar.mobile {
     padding: 10px 0;
   }
+}
+
+/**
+ * Drawer Menu
+ * Light-DOM styles for the hamburger menu content slotted into <ol-drawer>.
+ * These styles target the menu items, not the drawer shell (which is in Shadow DOM).
+ */
+
+.drawer-menu {
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-inset-sm);
+  border: none;
+}
+
+.drawer-menu__subsection {
+  font-family: var(--font-family-subheading);
+  font-size: var(--font-size-label-large);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--dark-grey);
+  border-top: 1px solid var(--dark-beige);
+  padding: var(--spacing-2xl) var(--spacing-inset-sm) var(--spacing-2xs);
+  list-style: none;
+}
+
+.drawer-menu__subsection:first-child {
+  border-top: none;
+  padding-top: var(--spacing-sm);
+}
+
+.drawer-menu__item {
+  margin: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.drawer-menu__item a,
+.drawer-menu__item a:link,
+.drawer-menu__item a:visited,
+.drawer-menu__item button {
+  text-decoration: none;
+  color: var(--dark-grey);
+  white-space: nowrap;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  padding: var(--spacing-sm) var(--spacing-inset-sm);
+  border-radius: var(--border-radius-button);
+  display: block;
+}
+
+.drawer-menu__item button {
+  width: 100%;
+  font-family: var(--font-family-button);
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.drawer-menu__item a:hover,
+.drawer-menu__item button:hover {
+  background-color: var(--white);
+}
+
+.drawer-menu__badge {
+  color: var(--white);
+  background-color: var(--primary-blue);
+  font-size: 0.9em;
+  padding: 2px 6px 1px;
+  border-radius: 4px;
+  float: right;
+  text-transform: uppercase;
+}
+
+.drawer-menu__subheading {
+  font-size: var(--font-size-label-medium);
+  font-weight: 400;
+  color: var(--accessible-grey);
+}
+
+.drawer-menu__login-links {
+  display: flex;
+  border-bottom: none;
+  justify-content: space-evenly;
+  column-gap: 16px;
+  padding: 10px 8px;
+  margin: 0 8px;
+  list-style: none;
+}
+
+.drawer-menu__login-links a {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  padding: 6px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.drawer-menu__login-primary,
+.drawer-menu__login-primary:link,
+.drawer-menu__login-primary:visited {
+  background: var(--primary-blue);
+  color: var(--white);
+}
+
+.drawer-menu__login-primary:hover {
+  background-color: var(--link-blue);
+}
+
+.drawer-menu__login-secondary,
+.drawer-menu__login-secondary:link,
+.drawer-menu__login-secondary:visited {
+  color: var(--primary-blue);
+  border: 2px solid var(--primary-blue);
+}
+
+.drawer-menu__login-secondary:hover {
+  background-color: var(--white);
 }

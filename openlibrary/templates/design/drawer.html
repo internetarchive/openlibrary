@@ -1,0 +1,117 @@
+$def with()
+
+<article class="design-pattern" id="drawer">
+    <h2 class="design-pattern__title">$_("Drawer")</h2>
+    <p>$_("The ol-drawer component slides in a panel from a viewport edge. It traps focus, locks body scroll, supports swipe-to-dismiss on touch, and respects prefers-reduced-motion.")</p>
+
+    <section class="example">
+      <h3 class="example__title">$_("Basic drawer (end)")</h3>
+      <p>$_("A drawer that slides in from the right edge. Click the backdrop or press Escape to close.")</p>
+      <code class="example__code">&lt;ol-drawer label="Menu" placement="end"&gt;...&lt;/ol-drawer&gt;</code>
+      <div class="example__output">
+        <button id="demo-drawer-end-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open drawer (end)")</button>
+        <ol-drawer id="demo-drawer-end" label="$_('Menu')">
+          <nav style="padding: 16px;">
+            <ul style="list-style: none; margin: 0; padding: 0;">
+              <li style="padding: 10px 0; font-weight: 600; border-bottom: 1px solid hsl(0,0%,90%);">$_("My Open Library")</li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("My Books")</a></li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("My Profile")</a></li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("Settings")</a></li>
+              <li style="padding: 10px 0; font-weight: 600; border-bottom: 1px solid hsl(0,0%,90%); margin-top: 8px;">$_("Browse")</li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("Subjects")</a></li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("Trending")</a></li>
+              <li><a href="#" style="display: block; padding: 10px 0; color: inherit; text-decoration: none;">$_("Library Explorer")</a></li>
+            </ul>
+          </nav>
+        </ol-drawer>
+      </div>
+      <script>
+        (function() {
+          var drawer = document.getElementById('demo-drawer-end');
+          var trigger = document.getElementById('demo-drawer-end-trigger');
+          trigger.addEventListener('click', function() {
+            drawer.open = true;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Start placement")</h3>
+      <p>$:_("Use %(placement)s to slide the drawer from the left edge.", placement='<code>placement="start"</code>')</p>
+      <code class="example__code">&lt;ol-drawer label="Filters" placement="start"&gt;...&lt;/ol-drawer&gt;</code>
+      <div class="example__output">
+        <button id="demo-drawer-start-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open drawer (start)")</button>
+        <ol-drawer id="demo-drawer-start" label="$_('Filters')" placement="start">
+          <div style="padding: 16px;">
+            <h3 style="margin: 0 0 16px;">$_("Filters")</h3>
+            <label style="display: block; padding: 8px 0; cursor: pointer;"><input type="checkbox"> $_("Available to borrow")</label>
+            <label style="display: block; padding: 8px 0; cursor: pointer;"><input type="checkbox"> $_("Has ebook")</label>
+            <label style="display: block; padding: 8px 0; cursor: pointer;"><input type="checkbox"> $_("English only")</label>
+          </div>
+        </ol-drawer>
+      </div>
+      <script>
+        (function() {
+          var drawer = document.getElementById('demo-drawer-start');
+          var trigger = document.getElementById('demo-drawer-start-trigger');
+          trigger.addEventListener('click', function() {
+            drawer.open = true;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Custom width")</h3>
+      <p>$:_("Use the %(size)s CSS custom property to control drawer width.", size="<code>--size</code>")</p>
+      <code class="example__code">&lt;ol-drawer label="Wide panel" style="--size: 420px"&gt;...&lt;/ol-drawer&gt;</code>
+      <div class="example__output">
+        <button id="demo-drawer-wide-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open wide drawer")</button>
+        <ol-drawer id="demo-drawer-wide" label="$_('Wide panel')" style="--size: 420px">
+          <div style="padding: 16px;">
+            <h3 style="margin: 0 0 12px;">$_("Wide Drawer")</h3>
+            <p>$_("This drawer uses a custom width of 420px via the --size CSS custom property.")</p>
+          </div>
+        </ol-drawer>
+      </div>
+      <script>
+        (function() {
+          var drawer = document.getElementById('demo-drawer-wide');
+          var trigger = document.getElementById('demo-drawer-wide-trigger');
+          trigger.addEventListener('click', function() {
+            drawer.open = true;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Disable light dismiss")</h3>
+      <p>$:_("Set %(no_light_dismiss)s to prevent closing via backdrop click. The drawer can still be closed programmatically or with Escape.", no_light_dismiss='<code>light-dismiss="false"</code>')</p>
+      <code class="example__code">&lt;ol-drawer label="Persistent" light-dismiss="false"&gt;...&lt;/ol-drawer&gt;</code>
+      <div class="example__output">
+        <button id="demo-drawer-persist-trigger" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Open persistent drawer")</button>
+        <ol-drawer id="demo-drawer-persist" label="$_('Persistent drawer')" light-dismiss="false">
+          <div style="padding: 16px;">
+            <h3 style="margin: 0 0 12px;">$_("Persistent Drawer")</h3>
+            <p style="margin: 0 0 16px;">$_("Clicking the backdrop will not close this drawer. Use the button below or press Escape.")</p>
+            <button id="demo-drawer-persist-close" style="padding: 8px 20px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font-size: 15px;">$_("Close drawer")</button>
+          </div>
+        </ol-drawer>
+      </div>
+      <script>
+        (function() {
+          var drawer = document.getElementById('demo-drawer-persist');
+          var openBtn = document.getElementById('demo-drawer-persist-trigger');
+          var closeBtn = document.getElementById('demo-drawer-persist-close');
+          openBtn.addEventListener('click', function() {
+            drawer.open = true;
+          });
+          closeBtn.addEventListener('click', function() {
+            drawer.open = false;
+          });
+        })();
+      </script>
+    </section>
+  </article>

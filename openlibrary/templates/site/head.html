@@ -50,6 +50,11 @@ $def with (title)
       ol-chip[size="small"]:not(:defined) {
         height: 24px;
       }
+
+      /* Hide ol-drawer content before component is defined to prevent flash */
+      ol-drawer:not(:defined) {
+        display: none;
+      }
     </style>
 
     <noscript>

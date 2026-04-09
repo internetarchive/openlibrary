@@ -10,6 +10,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
       <ul class="design-pattern-nav__list">
         <li><a href="#pagination">$_("Pagination")</a></li>
         <li><a href="#popover">$_("Popover")</a></li>
+        <li><a href="#drawer">$_("Drawer")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
       </ul>
@@ -98,6 +99,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
       </article>
 
       $:render_template("design/popover")
+
+      $:render_template("design/drawer")
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">$_("Read More")</h2>

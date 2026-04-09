@@ -1810,7 +1810,8 @@ div#subjectLists p {
     max-width: 310px;
   }
 
-  .header-bar .header-dropdown .account__icon {
+  .header-bar .header-dropdown .account__icon,
+  .header-bar .hamburger-component .account__icon {
     width: 45px;
     height: 45px;
   }
@@ -1922,16 +1923,8 @@ div#subjectLists p {
     order: 6;
   }
 
-  .header-bar .app-drawer {
-    top: 0;
-    height: 100%;
-  }
-
-  .header-bar .mask-menu {
-    top: 0;
-  }
-
-  .header-bar .header-dropdown .account__icon {
+  .header-bar .header-dropdown .account__icon,
+  .header-bar .hamburger-component .account__icon {
     width: 45px;
     height: 45px;
   }

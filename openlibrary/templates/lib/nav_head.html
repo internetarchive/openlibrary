@@ -39,17 +39,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
   $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
   $ ]
-  $ hamburgerProps = {
-  $  'name': 'hamburger',
-  $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
-  $     [ { "subsection": _("Browse") } ] + browseLinks +
-  $     [ { "subsection": _("Contribute") } ] + contributeLinks +
-  $     [ { "subsection": _("Resources") } ] + resourceLinks,
-  $  'image': '/static/images/hamburger-icon.svg',
-  $  'image-class': 'hamburger__icon',
-  $  'label': 'additional options menu',
-  $  'show_mask': True
-  $ }
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -131,9 +120,67 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
-  $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")
+  <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">
+    <button class="hamburger-trigger" aria-label="$_('Menu')">
+      $if ctx.user:
+        <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
+        $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
+          <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
+      <img class="hamburger__icon" src="/static/images/hamburger-icon.svg" alt=""/>
+    </button>
+  </div>
 
 </header>
+
+<ol-drawer id="hamburger-drawer" label="$_('Menu')">
+  <ul class="drawer-menu hamburger-drawer-menu">
+    $ hamburgerLinks = [ { "subsection": _("My Open Library") } ] + loginLinks + [ { "subsection": _("Browse") } ] + browseLinks + [ { "subsection": _("Contribute") } ] + contributeLinks + [ { "subsection": _("Resources") } ] + resourceLinks
+    $for link in hamburgerLinks:
+      $if 'subsection' in link:
+        <li class="drawer-menu__subsection">
+          $(link['subsection'])
+        </li>
+      $elif 'loginClass' in link:
+        <li class="drawer-menu__login-links">
+          <a class="drawer-menu__login-secondary" href="/account/login">$_('Log In')</a>
+          <a class="drawer-menu__login-primary" href="/account/create">$_('Sign Up')</a>
+        </li>
+      $else:
+        <li class="drawer-menu__item">
+        $if 'post' in link:
+          $ name = 'name=%s' % link['name'] if 'name' in link else ''
+          $ tracker = 'data-ol-link-track=Hamburger|%s' % link['track'] if link.get('track') else ''
+          <form $name action="$(link['post'])" method="post">
+            <button $(tracker)>$(link["text"])</button>
+          </form>
+        $else:
+          $ tracker = 'data-ol-link-track=Hamburger|%s' % link['track'] if link.get('track') else ''
+          $if is_privileged_user:
+            $if 'badge' in link and cached_get_counts_by_mode(mode='open') > 0:
+              <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
+          <a href="$(link['href'])" $(tracker)>
+            $if 'new' in link:
+              <span>$(link['text'])</span><span class="drawer-menu__badge">$_('New!')</span>
+            $else:
+              $(link['text'])
+              $if 'subheading' in link:
+                <br>
+                <span class="drawer-menu__subheading">$(link['subheading'])</span>
+          </a>
+        </li>
+  </ul>
+</ol-drawer>
+<script>
+  (function() {
+    var trigger = document.querySelector('.hamburger-trigger');
+    var drawer = document.getElementById('hamburger-drawer');
+    if (trigger && drawer) {
+      trigger.addEventListener('click', function() {
+        drawer.open = !drawer.open;
+      });
+    }
+  })();
+</script>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
