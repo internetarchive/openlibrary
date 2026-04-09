@@ -513,21 +513,40 @@ export class OlDrawer extends LitElement {
     // ── Body scroll lock ────────────────────────────────────────
 
     _lockBodyScroll() {
+        if (this._savedDocumentElementStyles) {
+            return;
+        }
+
+        const rootStyle = document.documentElement.style;
         this._savedScrollY = window.scrollY;
-        document.documentElement.style.position = 'fixed';
-        document.documentElement.style.top = `-${this._savedScrollY}px`;
-        document.documentElement.style.left = '0';
-        document.documentElement.style.right = '0';
-        document.documentElement.style.overflowY = 'scroll';
+        this._savedDocumentElementStyles = {
+            position: rootStyle.position,
+            top: rootStyle.top,
+            left: rootStyle.left,
+            right: rootStyle.right,
+            overflowY: rootStyle.overflowY,
+        };
+
+        rootStyle.position = 'fixed';
+        rootStyle.top = `-${this._savedScrollY}px`;
+        rootStyle.left = '0';
+        rootStyle.right = '0';
+        rootStyle.overflowY = 'scroll';
     }
 
     _unlockBodyScroll() {
-        document.documentElement.style.position = '';
-        document.documentElement.style.top = '';
-        document.documentElement.style.left = '';
-        document.documentElement.style.right = '';
-        document.documentElement.style.overflowY = '';
+        if (!this._savedDocumentElementStyles) {
+            return;
+        }
+
+        const rootStyle = document.documentElement.style;
+        rootStyle.position = this._savedDocumentElementStyles.position;
+        rootStyle.top = this._savedDocumentElementStyles.top;
+        rootStyle.left = this._savedDocumentElementStyles.left;
+        rootStyle.right = this._savedDocumentElementStyles.right;
+        rootStyle.overflowY = this._savedDocumentElementStyles.overflowY;
         window.scrollTo(0, this._savedScrollY);
+        this._savedDocumentElementStyles = null;
     }
 
     // ── Listener management ─────────────────────────────────────
