@@ -2,25 +2,26 @@ from unittest.mock import MagicMock, patch
 
 from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
 
-FAKE_FAIL2BAN_OUTPUT = """
-Status for the jail: nginx-429
-|- Filter
-|  |- Currently failed: 193
-|  |- Total failed:     56440304
-|  `- File list:        /1/var/log/nginx/error.log
-`- Actions
-   |- Currently banned: 141
-   |- Total banned:     661976
-   `- Banned IP list:   08.07.04.02 04.06.02.09
+FAKE_IPSET_OUTPUT = """
+Name: f2b-HTTP429
+Type: hash:ip
+Revision: 4
+Header: family inet hashsize 1024 maxelem 65536 timeout 0
+Size in memory: 49544
+References: 1
+Number of entries: 468
+Members:
+1.1.1.1 timeout 0
+2.2.2.2 timeout 0
 """
 
 
 def test_get_fail2ban_counts():
     mock_result = MagicMock()
-    mock_result.stdout = FAKE_FAIL2BAN_OUTPUT
+    mock_result.stdout = FAKE_IPSET_OUTPUT
 
     with patch("scripts.monitoring.fail2ban_monitor.bash_run", return_value=mock_result):
-        failed, banned = get_fail2ban_counts("nginx-429")
+        failed, banned = get_fail2ban_counts("HTTP429")
 
-    assert failed == 193
-    assert banned == 141
+    assert failed == 0
+    assert banned == 468

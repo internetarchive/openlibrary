@@ -176,24 +176,14 @@ async def monitor_empty_homepage():
 @limit_server(["ol-www0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
 def monitor_fail2ban():
-    """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
-    failed, banned = get_fail2ban_counts("nginx-429")
+    """Logs fail2ban HTTP429 ipset banned count."""
+    _failed, banned = get_fail2ban_counts("HTTP429")
     ts = int(time.time())
-    GraphiteEvent.submit_many(
-        [
-            GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.failed",
-                value=float(failed),
-                timestamp=ts,
-            ),
-            GraphiteEvent(
-                path="stats.ol.fail2ban.nginx-429.banned",
-                value=float(banned),
-                timestamp=ts,
-            ),
-        ],
-        GRAPHITE_URL,
-    )
+    GraphiteEvent(
+        path="stats.ol.fail2ban.HTTP429.banned",
+        value=float(banned),
+        timestamp=ts,
+    ).submit(GRAPHITE_URL)
 
 
 @limit_server(["ol-home0"], scheduler)
