@@ -263,8 +263,10 @@ export class OlDrawer extends LitElement {
             panel.addEventListener('touchmove', this._onTouchMove, { passive: false });
             panel.addEventListener('touchend', this._onTouchEnd, { passive: true });
 
-            // Focus the panel
-            panel.focus({ preventScroll: true });
+            // Focus the first focusable slotted element, or the panel as fallback
+            const focusable = this._getFocusableElements();
+            const target = focusable.length > 0 ? focusable[0] : panel;
+            target.focus({ preventScroll: true });
 
             if (reducedMotion) {
                 this.dispatchEvent(new CustomEvent('ol-drawer-after-show', {
