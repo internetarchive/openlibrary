@@ -199,6 +199,10 @@ async def main(
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
 
+    if not keys:
+        logger.warning("No keys provided to update. Exiting.")
+        return
+
     if keys[0].startswith('//'):
         keys = [k[1:] for k in keys]
 
