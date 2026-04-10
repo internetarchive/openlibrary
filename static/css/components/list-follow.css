@@ -1,0 +1,246 @@
+.list-follow-showcase {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: 8px 0;
+}
+
+.list-follow-showcase .list-follow-card {
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+
+.list-follow-showcase__see-all {
+  margin-right: 24px;
+  align-self: center;
+  width: auto;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.list-follow-card {
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--beige);
+
+  width: 215px;
+  height: 150px;
+
+  border: 1px solid hsla(0, 0%, 0%, 0.25);
+  border-radius: var(--border-radius-card);
+  box-shadow: 2px 2px 4px hsla(0, 0%, 0%, 0.15);
+}
+
+a.list-follow-card {
+  text-decoration: none;
+}
+
+.list-follow-card__header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
+  width: 100%;
+}
+
+a.list-follow-card__header {
+  text-decoration: none;
+}
+
+.list-follow-card__name-avatar {
+  display: flex;
+}
+
+.list-follow-card__bottom {
+  background: var(--grey-f4f4f4);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  gap: 0.5em;
+  width: 100%;
+  border-radius: 0 0 var(--border-radius-card) var(--border-radius-card);
+}
+
+.list-follow-card__user {
+  display: flex;
+  align-items: center;
+  font-size: var(--font-size-label-medium);
+  padding-left: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+.list-follow-card__user img {
+  border-radius: var(--border-radius-thumbnail);
+  width: 30px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: -10px;
+  position: relative;
+  z-index: var(--z-index-level-3);
+  border: 2px solid var(--white);
+  flex-shrink: 0;
+}
+
+.list-follow-card__username {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  padding-bottom: 5px;
+  flex: 1;
+  min-width: 0;
+}
+
+a.list-follow-card__username-link {
+  text-decoration: none;
+  color: var(--dark-grey-two);
+  padding-bottom: 5px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+  position: relative;
+  top: 0.2rem;
+}
+
+.list-follow-card__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-follow-card__follow-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 5px;
+  padding-bottom: 3px;
+}
+
+.list-follow-card__follow-button .cta-btn {
+  font-size: var(--font-size-label-medium); /* Override base size */
+  padding: 1px 10px; /* Less padding */
+  border-radius: 4px; /* Custom radius */
+  box-shadow: none; /* Remove default shadow if present */
+  margin: 0;
+}
+
+.list-follow-card__private-button {
+  background-color: var(--grey);
+  border: none;
+  cursor: not-allowed;
+  pointer-events: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: 1px;
+  border-radius: 4px;
+}
+
+.list-follow-card__private-button .pvt-text {
+  color: var(--white);
+  font-size: 12px; /* Override base size */
+  padding: 2px 4px; /* Less padding */
+  box-shadow: none; /* Remove default shadow if present */
+  margin: 0;
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
+.list-follow-card__private-button .pvt-icon {
+  color: var(--white);
+  font-size: 14px;
+}
+
+.list-follow-card__title {
+  font-weight: bold;
+  font-size: var(--font-size-label-large);
+  color: var(--black);
+  width: 100%;
+  max-height: 2.8em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4em;
+  white-space: normal;
+  word-break: break-word;
+  position: relative;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.list-follow-card__bottom-community {
+  background: var(--grey-f4f4f4);
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 5px;
+  padding-top: 5px;
+  margin-bottom: -3px;
+  border-radius: 0 0 3px 3px;
+}
+
+.list-follow-card__community-label {
+  font-weight: normal;
+  font-size: var(--font-size-label-large);
+  color: var(--black);
+
+  white-space: nowrap;
+  overflow: hidden;
+  padding-bottom: 2px;
+}
+
+.list-follow-card__num-books {
+  color: var(--grey-555);
+  font-size: var(--font-size-label-medium);
+}
+
+.list-follow-card__info {
+  flex: 1;
+  flex-direction: row;
+}
+
+.list-follow-card__covers {
+  flex: 1;
+  min-height: 1px; /* fallback */
+  overflow: clip;
+
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.list-follow-card__covers img {
+  width: 64px;
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 hsla(0, 0%, 0%, 0.25);
+}
+
+/* @overlap: 8.5px */
+.list-follow-card__covers img:nth-child(1) {
+  z-index: var(--z-index-level-3);
+  transform: translate(0, 20px);
+}
+
+.list-follow-card__covers img:nth-child(2) {
+  z-index: var(--z-index-level-2);
+  transform: translate(-8.5px, 20px);
+}
+
+.list-follow-card__covers img:nth-child(3) {
+  z-index: var(--z-index-level-1);
+  transform: translate(-17px, 20px);
+}
+
+.list-follow-card__covers:hover img {
+  scale: 1.05;
+}
+
+/* stylelint-disable-next-line no-descending-specificity */
+.list-follow-card img {
+  transition: scale 0.2s;
+}

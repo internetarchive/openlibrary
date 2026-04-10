@@ -376,15 +376,50 @@ class InternetArchiveProvider(AbstractBookProvider[IALiteMetadata]):
         if not access:
             return []
 
-        return [
+        identifier = self.get_best_identifier(db_edition or ed_or_solr)
+        acquisitions = [
             Acquisition(
                 access=access,
                 format='web',
                 price=None,
-                url=f'https://archive.org/details/{self.get_best_identifier(db_edition or ed_or_solr)}?view=theater&wrapper=false',
+                url=f'https://archive.org/details/{identifier}?view=theater&wrapper=false',
                 provider_name=self.short_name,
-            )
+            ),
         ]
+
+        # Add direct download links for open-access books
+        if access == 'open-access':
+            download_files = self._get_ia_download_files(identifier)
+            for fmt, filename in download_files.items():
+                acquisitions.append(
+                    Acquisition(
+                        access='open-access',
+                        format=fmt,
+                        price=None,
+                        url=f'https://archive.org/download/{identifier}/{filename}',
+                        provider_name=self.short_name,
+                    )
+                )
+
+        return acquisitions
+
+    def _get_ia_download_files(
+        self, identifier: str
+    ) -> dict[Literal['pdf', 'epub'], str]:
+        """
+        Get default download file names for IA items.
+
+        Assumes standard IA naming convention where files are named
+        {identifier}.pdf and {identifier}.epub. This avoids making
+        individual network requests for each item's metadata.
+
+        Returns a dict mapping format to filename, e.g.:
+        {'pdf': 'mybook.pdf', 'epub': 'mybook.epub'}
+        """
+        return {
+            'pdf': f'{identifier}.pdf',
+            'epub': f'{identifier}.epub',
+        }
 
 
 class LibriVoxProvider(AbstractBookProvider):

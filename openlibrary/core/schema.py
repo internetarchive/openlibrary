@@ -28,6 +28,8 @@ def get_schema():
 
     schema.add_seq('/type/edition', '/books/OL%dM')
     schema.add_seq('/type/author', '/authors/OL%dA')
+    # schema.add_seq('/type/list', '/lists/OL%dL')
+    # schema.add_seq('/type/series', '/series/OL%dS')
 
     schema.add_seq('/type/work', '/works/OL%dW')
     schema.add_seq('/type/publisher', '/publishers/OL%dP')

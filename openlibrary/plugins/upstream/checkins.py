@@ -3,6 +3,7 @@
 import json
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -57,6 +58,7 @@ def get_latest_read_date(work_olid: str) -> dict | None:
     return result
 
 
+@deprecated("migrated to fastapi")
 class patron_check_ins(delegate.page):
     path = r'/works/OL(\d+)W/check-ins'
     encoding = 'json'
@@ -144,6 +146,7 @@ class patron_check_ins(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class patron_check_in(delegate.page):
     path = r'/check-ins/(\d+)'
 

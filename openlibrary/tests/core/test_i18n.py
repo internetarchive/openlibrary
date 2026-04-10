@@ -40,7 +40,7 @@ class Test_ungettext:
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
         self._load_fake_context()
-        web.ctx.lang = 'en'
+        web.ctx.lang = "en"
         web.ctx.site = MockSite()
 
     def _load_fake_context(self):
@@ -59,10 +59,10 @@ class Test_ungettext:
 
         request_context_fixture(lang="fr")
         self.d.init(
-            'fr',
+            "fr",
             {
-                'book': 'libre',
-                'books': 'libres',
+                "book": "libre",
+                "books": "libres",
             },
         )
 
@@ -81,10 +81,10 @@ class Test_ungettext:
 
         request_context_fixture(lang="fr")
         self.d.init(
-            'fr',
+            "fr",
             {
-                'one book': 'un libre',
-                '%(n)d books': '%(n)d libres',
+                "one book": "un libre",
+                "%(n)d books": "%(n)d libres",
             },
         )
 

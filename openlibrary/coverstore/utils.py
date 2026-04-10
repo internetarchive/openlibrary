@@ -38,7 +38,7 @@ def get_ol_url():
     return web.rstrips(config.ol_url, "/")
 
 
-def ol_things(key, value):
+def ol_things(key: str, value: str) -> list[str]:
     if oldb.is_supported():
         return oldb.query(key, value)
     else:
@@ -59,7 +59,7 @@ def ol_things(key, value):
             return []
 
 
-def ol_get(olkey):
+def ol_get(olkey: str) -> dict | None:
     if oldb.is_supported():
         return oldb.get(olkey)
     else:

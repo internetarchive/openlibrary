@@ -28,3 +28,12 @@ class search_inside(delegate.page):
             page=page,
             results_per_page=RESULTS_PER_PAGE,
         )
+
+
+def setup():
+    """
+    This is just here to make sure this file is imported.
+    Simply defining the class above as a subclass of delegate.page is enough
+    for it to be in effect.
+    """
+    pass

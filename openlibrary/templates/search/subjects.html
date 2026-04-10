@@ -74,6 +74,6 @@ $if q and not response.error and response.num_found:
             <span class="count">&nbsp;&nbsp;<b>$ungettext('%(count)d book', '%(count)d books', doc['work_count'], count=doc['work_count'])</b>, $:render_type(doc['subject_type'])</span>
         </li>
     </ul>
-    $:macros.Pager(page, response.num_found, results_per_page)
+    $:macros.OlPagination(page, ceil(response.num_found / results_per_page))
 
 </div>

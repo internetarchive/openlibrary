@@ -37,6 +37,11 @@ $code:
          { 'sort': 'name', 'name': _("Language Name"), 'ga_key': 'LanguageName' },
          { 'sort': 'ebook_edition_count', 'name': _("Ebook Edition Count"), 'ga_key': 'EbookEditionCount' },
        ]
+     elif search_scheme == 'reading_log':
+       sort_options = [
+         { 'sort': 'desc', 'name': _('Date Added (newest)'), 'ga_key': 'DateAddedNewest' },
+         { 'sort': 'asc', 'name': _('Date Added (oldest)'), 'ga_key': 'DateAddedOldest' },
+       ]
      else:
        sort_options = [
          { 'sort': 'relevance', 'name': _("Relevance"), 'ga_key': 'Relevance' },

@@ -142,7 +142,8 @@ def version_iter(q, limit=500, offset=0):
 
 
 def withKey(key):
-    url = base_url() + key + '.json'
+    # ?_raw=true needed for lists/series
+    url = base_url() + key + '.json?_raw=true'
     for i in range(20):
         try:
             return jsonload(url)

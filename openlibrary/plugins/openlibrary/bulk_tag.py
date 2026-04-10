@@ -78,8 +78,12 @@ class bulk_tag_works(delegate.page):
 
         # Number of times the handler was hit:
         stats.increment('ol.tags.bulk_update')
-        stats.increment('ol.tags.bulk_update.add', n=docs_adding)
-        stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
+        if i.book_page_edit:
+            stats.increment('ol.tags.bulk_update.book_page.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.book_page.remove', n=docs_removing)
+        else:
+            stats.increment('ol.tags.bulk_update.add', n=docs_adding)
+            stats.increment('ol.tags.bulk_update.remove', n=docs_removing)
 
         return response('Tagged works successfully')
 

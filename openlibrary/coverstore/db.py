@@ -101,7 +101,30 @@ def query(category, olid, offset=0, limit=10):
     return result.list()
 
 
-def details(id):
+class CoverDbDetails(web.storage):
+    id: int
+    category_id: int
+    olid: str
+    filename: str
+    filename_s: str
+    filename_m: str
+    filename_l: str
+    author: str
+    ip: str
+    source_url: str
+    source: str
+    isbn: str
+    width: int
+    height: int
+    failed: bool
+    archived: bool
+    uploaded: bool
+    deleted: bool
+    created: datetime.datetime
+    last_modified: datetime.datetime
+
+
+def details(id: int) -> CoverDbDetails | None:
     try:
         return getdb().select('cover', what='*', where="id=$id", vars=locals())[0]
     except IndexError:

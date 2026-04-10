@@ -11,9 +11,9 @@ class Test_memcache_memoize:
     def test_encode_args(self):
         m = cache.memcache_memoize(None, key_prefix="foo")
 
-        assert m.encode_args([]) == ''
+        assert m.encode_args([]) == ""
         assert m.encode_args(["a"]) == '"a"'
-        assert m.encode_args([1]) == '1'
+        assert m.encode_args([1]) == "1"
         assert m.encode_args(["a", 1]) == '"a",1'
         assert m.encode_args([{"a": 1}]) == '{"a":1}'
         assert m.encode_args([["a", 1]]) == '["a",1]'
@@ -121,7 +121,7 @@ class Test_memoize:
         assert self.get("square-2") == 4
 
         # It should read from cache instead of computing if entry is present in the cache
-        self.set('square-42', 43)
+        self.set("square-42", 43)
         assert square(42) == 43
 
     def test_cache_with_tuple_keys(self):
@@ -181,7 +181,7 @@ class Test_memoize:
         assert call_count == 1  # Still 1
 
         # 3. Manual Injection (Simulate shared cache)
-        self.set('asquare-10', 1000)
+        self.set("asquare-10", 1000)
         result_3 = await asquare(10)
         assert result_3 == 1000  # Should get injected value, not 100
         assert call_count == 1  # Function wasn't called

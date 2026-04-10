@@ -3,6 +3,7 @@ Open Library Plugin.
 """
 
 import datetime
+import functools
 import gzip
 import json
 import logging
@@ -19,6 +20,7 @@ import web
 import yaml
 
 import infogami
+from infogami.utils import i18n, macro, template
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -115,6 +117,7 @@ models.register_types()
 import openlibrary.core.lists.model as list_models
 
 list_models.register_models()
+list_models.register_types()
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
@@ -479,7 +482,7 @@ class robotstxt(delegate.page):
         return web.ok(open(f'static/{robots_file}').read())
 
 
-@web.memoize
+@functools.cache
 def fetch_ia_js(filename: str) -> str:
     return requests.get(f'https://archive.org/includes/{filename}').text
 
@@ -1295,7 +1298,13 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update(
+        {
+            'features': [],
+            'user': None,
+            'MAX_VISIBLE_BOOKS': 5,
+        }
+    )
 
 
 def setup():
@@ -1312,6 +1321,10 @@ def setup():
         status,
         swagger,
     )
+
+    template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
+    macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
+    i18n.load_strings("openlibrary/plugins/openlibrary")
 
     sentry.setup()
     home.setup()
@@ -1331,11 +1344,6 @@ def setup():
     )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
-
-    if infogami.config.get('dev_instance') is True:
-        from openlibrary.plugins.openlibrary import dev_instance
-
-        dev_instance.setup()
 
     setup_context_defaults()
     setup_template_globals()

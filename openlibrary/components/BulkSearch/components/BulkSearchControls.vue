@@ -228,7 +228,9 @@ export default {
                     const data = await fetch(buildSearchUrl(book, matchOptions, true))
                     return await data.json()
                 }
-                catch (error) {}
+                catch (error) {
+                    // Silence errors - failing to match a book is expected
+                }
             }
             this.loadingMatchedBooks = true
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
@@ -242,7 +244,7 @@ export default {
 }
 </script>
 
-<style lang="less">
+<style>
 
 .bulk-search-controls{
     padding:20px;
@@ -287,57 +289,57 @@ textarea {
     flex-shrink:0;
     border: 1px solid transparent;
     border-bottom: 5px solid transparent;
+}
 
-    &.activeStep {
-        border-color: #0376B8;
-    }
-    .info{
-        display:flex;
-        flex-direction:column;
-        row-gap:10px;
-        .heading{
-            color:#0376B8;
-            h3{
-                margin:0px;
-            }
-            p{
-                margin:0px;
-            }
-        }
-        select{
-            width: 100%;
-        }
-        button{
-            background-color:#0376B8;
-            color:white;
-            border-radius:4px;
-            box-shadow: none;
-            border:none;
-            padding: 0.5rem;
-            transition:  background-color 0.2s;
-            min-width:140px;
-            align-self:center;
-            &:not([disabled]) {
-                cursor:pointer;
-                &:hover{
-                    background-color:#014c78;
-                }
-            }
-        }
-    }
-    .numeral{
-        border-radius: 50%;
-        height:48px;
-        width:48px;
-        background-color:white;
-        color:#0376B8;
-        font-weight:bold;
-        justify-content:center;
-        flex-shrink: 0;
-        display:flex;
-        align-items:center;
-        font-size:24px;
-    }
+.progressCard.activeStep {
+    border-color: #0376B8;
+}
+.progressCard .info{
+    display:flex;
+    flex-direction:column;
+    row-gap:10px;
+}
+.progressCard .info .heading{
+    color:#0376B8;
+}
+.progressCard .info .heading h3{
+    margin:0px;
+}
+.progressCard .info .heading p{
+    margin:0px;
+}
+.progressCard .info select{
+    width: 100%;
+}
+.progressCard .info button{
+    background-color:#0376B8;
+    color:white;
+    border-radius:4px;
+    box-shadow: none;
+    border:none;
+    padding: 0.5rem;
+    transition: background-color 0.2s;
+    min-width:140px;
+    align-self:center;
+}
+.progressCard .info button:not([disabled]) {
+    cursor:pointer;
+}
+.progressCard .info button:not([disabled]):hover{
+    background-color:#014c78;
+}
+.progressCard .numeral{
+    border-radius: 50%;
+    height:48px;
+    width:48px;
+    background-color:white;
+    color:#0376B8;
+    font-weight:bold;
+    justify-content:center;
+    flex-shrink: 0;
+    display:flex;
+    align-items:center;
+    font-size:24px;
 }
 
 .progressCardDisabled{

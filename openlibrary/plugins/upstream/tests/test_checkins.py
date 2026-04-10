@@ -12,7 +12,7 @@ class TestMakeDateString:
 
     def test_zero_padding(self):
         date_str = make_date_string(2000, 2, 2)
-        split_date = date_str.split('-')
+        split_date = date_str.split("-")
         assert len(split_date) == 3
         # Year has four characters:
         assert len(split_date[0]) == 4
@@ -46,30 +46,30 @@ class TestValidateData:
     def setup_method(self):
         self.checkins = patron_check_ins()
         self.valid_data = {
-            'edition_key': '/books/OL1234M',
-            'event_type': 3,
-            'year': 2000,
-            'month': 3,
-            'day': 7,
+            "edition_key": "/books/OL1234M",
+            "event_type": 3,
+            "year": 2000,
+            "month": 3,
+            "day": 7,
         }
         self.missing_event = {
-            'edition_key': '/books/OL1234M',
-            'year': 2000,
-            'month': 3,
-            'day': 7,
+            "edition_key": "/books/OL1234M",
+            "year": 2000,
+            "month": 3,
+            "day": 7,
         }
         self.invalid_date = {
-            'edition_key': '/books/OL1234M',
-            'event_type': 3,
-            'month': 3,
-            'day': 7,
+            "edition_key": "/books/OL1234M",
+            "event_type": 3,
+            "month": 3,
+            "day": 7,
         }
         self.unknown_event = {
-            'edition_key': '/books/OL1234M',
-            'event_type': 54321,
-            'year': 2000,
-            'month': 3,
-            'day': 7,
+            "edition_key": "/books/OL1234M",
+            "event_type": 54321,
+            "year": 2000,
+            "month": 3,
+            "day": 7,
         }
 
     def test_validate_data(self):

@@ -1,5 +1,5 @@
 import 'datatables.net-dt';
-import '../../../../../static/css/legacy-datatables.less';
+import '../../../../../static/css/legacy-datatables.css';
 
 const DEFAULT_LENGTH = 3;
 const LS_RESULTS_LENGTH_KEY = 'editions-table.resultsLength';

@@ -154,7 +154,7 @@ async function pasteImage() {
         }
         alert('No image found in clipboard');
     } catch (error) {
-
+    // Silence errors - user alert already shown
     }
 }
 

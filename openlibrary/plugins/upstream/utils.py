@@ -263,6 +263,8 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
+        if page.get('do_not_cache') == 'True':
+            mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
     except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
@@ -739,11 +741,13 @@ def word_prefix_match(prefix: str, text: str) -> bool:
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of the following:
-        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
-        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
+    Given, e.g., "English", this returns an iterator of the following,
+    sorted so that names starting with the prefix appear first (alphabetically),
+    followed by names that contain the prefix elsewhere (also alphabetically):
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
+        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
     """
 
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
@@ -763,15 +767,22 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         return strip_accents(s).lower()
 
     prefix = normalize_for_search(prefix)
+    matches = []
     for lang in get_languages().values():
         for lang_name in get_names_to_try(lang):
             if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
-                yield Storage(
-                    key=lang.key,
-                    code=lang.code,
-                    name=lang_name,
+                matches.append(
+                    Storage(
+                        key=lang.key,
+                        code=lang.code,
+                        name=lang_name,
+                    )
                 )
                 break
+    yield from sorted(
+        matches,
+        key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name),
+    )
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
@@ -1174,7 +1185,7 @@ def get_marc21_language(language: str) -> str | None:
 
 @public
 def get_language_name(
-    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+    lang_or_key: "Nothing | str | Thing", user_lang: str
 ) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
@@ -1214,7 +1225,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.
@@ -1438,7 +1449,7 @@ def _get_blog_feeds():
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=60 * 60 * 24
 )
 
 

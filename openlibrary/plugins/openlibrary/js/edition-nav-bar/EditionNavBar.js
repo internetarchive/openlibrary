@@ -103,7 +103,9 @@ export default class EdtionNavBar {
         if (navbarHeight > 0) {
             let i = this.navItems.length
             // 10 is for a little bit of padding
-            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) { }
+            while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) {
+                // Do nothing
+            }
             if (i !== this.selectedIndex) {
                 this.selectedIndex = i
                 this.selectElement(this.navItems[i])

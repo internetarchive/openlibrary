@@ -3,6 +3,7 @@
 import pytest
 import web
 
+from infogami import config
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
@@ -15,12 +16,13 @@ from openlibrary.mocks.mock_infobase import (
 from openlibrary.mocks.mock_memcache import (
     mock_memcache,  # noqa: F401 side effects may be needed
 )
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     def mock_request(*args, **kwargs):
-        raise Warning('Network requests are blocked in the testing environment')
+        raise Warning("Network requests are blocked in the testing environment")
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
@@ -28,7 +30,7 @@ def no_requests(monkeypatch):
 @pytest.fixture(autouse=True)
 def no_sleep(monkeypatch):
     def mock_sleep(*args, **kwargs):
-        raise Warning('''
+        raise Warning("""
             Sleeping is blocked in the testing environment.
             Use monkeytime instead; it stubs time.time() and time.sleep().
 
@@ -39,7 +41,7 @@ def no_sleep(monkeypatch):
                     assert time.time() == 2
 
             If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
-            ''')
+            """)
 
     monkeypatch.setattr("time.sleep", mock_sleep)
 
@@ -54,16 +56,12 @@ def setup_db_config():
     which is necessary for the context variable infrastructure being added. Without this, tests may fail due to
     missing or incorrect database parameters when initializing site.
     """
-    import web
-
-    from infogami import config
-
     # Set web.config.db_parameters for OLConnection
     web.config.db_parameters = {}
 
     # Set infobase_parameters to use local connection instead of OLConnection
     # This prevents the database configuration error when tests run
-    config.infobase_parameters = {'type': 'local'}
+    config.infobase_parameters = {"type": "local"}
 
 
 @pytest.fixture
@@ -89,7 +87,6 @@ def request_context_fixture():
     Provides defaults and allows tests to override any subset of fields.
     Automatically cleans up after the test.
     """
-    from openlibrary.utils.request_context import RequestContextVars, req_context
 
     tokens = []
 
@@ -149,12 +146,12 @@ def render_template(request):
 
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
-    from openlibrary.plugins import ol_infobase
+    from openlibrary.plugins import ol_infobase  # noqa: PLC0415
 
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    from openlibrary.plugins.openlibrary import code
+    from openlibrary.plugins.openlibrary import code  # noqa: PLC0415
 
     web.config.db_parameters = {}
     code.setup_template_globals()

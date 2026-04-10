@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 # TODO: Can we remove _init_path someday :(
-sys.modules['_init_path'] = MagicMock()
+sys.modules["_init_path"] = MagicMock()
 from openlibrary.mocks.mock_infobase import mock_site  # noqa: F401
 from scripts.affiliate_server import (
     PrioritizedIdentifier,
@@ -51,7 +51,7 @@ amz_books = {
         "isbn_13": [f"12345678901{i}"],
         "cover": [int(f"1234567{i}")],
         "title": f"Book {i}",
-        "authors": [{'name': f"Last_{i}a, First"}, {'name': f"Last_{i}b, First"}],
+        "authors": [{"name": f"Last_{i}a, First"}, {"name": f"Last_{i}b, First"}],
         "publishers": [f"Publisher {i}"],
         "publish_date": f"Aug 0{i}, 2023",
         "number_of_pages": int(f"{i}00"),
@@ -73,9 +73,7 @@ def test_get_editions_for_books(mock_site):  # noqa: F811
     assert len(mock_site.docs) - start == len(ol_editions)
     editions = get_editions_for_books(amz_books.values())
     assert len(editions) == len(ol_editions)
-    assert sorted(edition.key for edition in editions) == [
-        f"/books/OL{i}M" for i in range(8)
-    ]
+    assert sorted(edition.key for edition in editions) == [f"/books/OL{i}M" for i in range(8)]
 
 
 def test_get_pending_books(mock_site):  # noqa: F811
@@ -118,10 +116,10 @@ def test_get_isbns_from_books():
         },
     ]
     assert get_isbns_from_books(books) == [
-        '1234567890',
-        '1234567890123',
-        '1234567890124',
-        '1234567891',
+        "1234567890",
+        "1234567890123",
+        "1234567890124",
+        "1234567891",
     ]
 
 
@@ -147,9 +145,7 @@ def test_prioritized_identifier_serialize_to_json() -> None:
     `PrioritizedIdentifier` needs to be be serializable to JSON because it is sometimes
     called in, e.g. `json.dumps()`.
     """
-    p_identifier = PrioritizedIdentifier(
-        identifier="1111111111", priority=Priority.HIGH
-    )
+    p_identifier = PrioritizedIdentifier(identifier="1111111111", priority=Priority.HIGH)
     dumped_identifier = json.dumps(p_identifier.to_dict())
     dict_identifier = json.loads(dumped_identifier)
 
@@ -158,7 +154,7 @@ def test_prioritized_identifier_serialize_to_json() -> None:
 
 
 @pytest.mark.parametrize(
-    ('isbn_or_asin', 'expected_key'),
+    ("isbn_or_asin", "expected_key"),
     [
         ({"isbn_10": [], "isbn_13": ["9780747532699"]}, "9780747532699"),  # Use 13.
         (
@@ -231,7 +227,7 @@ expected_output_complete = {
 
 # Parametrized tests for different missing fields
 @pytest.mark.parametrize(
-    ('input_data', 'expected_output'),
+    ("input_data", "expected_output"),
     [
         (complete_book_data, expected_output_complete),
         # Missing ISBN_13
@@ -245,9 +241,7 @@ expected_output_complete = {
                             "title": "Бал моей мечты",
                             "authors": ["Светлана Лубенец"],
                             "publishedDate": "2009",
-                            "industryIdentifiers": [
-                                {"type": "ISBN_10", "identifier": "5699350136"}
-                            ],
+                            "industryIdentifiers": [{"type": "ISBN_10", "identifier": "5699350136"}],
                             "pageCount": 153,
                             "publisher": "Some Publisher",
                         }
@@ -309,9 +303,7 @@ expected_output_complete = {
                     {
                         "volumeInfo": {
                             "title": "Бал моей мечты",
-                            "industryIdentifiers": [
-                                {"type": "ISBN_13", "identifier": "9785699350131"}
-                            ],
+                            "industryIdentifiers": [{"type": "ISBN_13", "identifier": "9785699350131"}],
                         }
                     }
                 ],

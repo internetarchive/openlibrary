@@ -179,7 +179,7 @@ class TocEntry:
 T = TypeVar('T')
 
 
-def pad(seq: list[T], size: int, e: T) -> list[T]:
+def pad[T](seq: list[T], size: int, e: T) -> list[T]:
     """
     >>> pad([1, 2], 4, 0)
     [1, 2, 0, 0]
