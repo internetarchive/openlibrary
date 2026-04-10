@@ -78,7 +78,7 @@ class ListSearchScheme(SearchScheme):
             # qf specifies which fields to search and their boost weights.
             # Searching 'text' allows matching on subjects aggregated from the list's
             # books, while boosting 'name' ensures title matches rank highest.
-            ('qf', 'text name^10')
+            ('qf', 'text name^10'),
         ]
         # Default: exclude low-seed lists (issue #11905).
         # Lists with fewer than 2 seeds are likely spam. Series are exempt
