@@ -17,7 +17,7 @@ class TestCookieValidationProcessor:
         web.ctx = ctx
         web.webapi.ctx = web.ctx
         config.infobase = web.storage(secret_key="test-secret-key")
-        config.login_cookie_name = 'session'
+        config.login_cookie_name = "session"
         self.processor = CookieValidationProcessor()
 
     def _make_handler(self):
