@@ -1,0 +1,49 @@
+$def with (next_url='/')
+$var title: $_("Human Verification")
+
+<div id="contentHead">
+    <h1>$_("Human Verification")</h1>
+</div>
+
+<div id="contentBody">
+    <div class="verification-challenge">
+        <p class="verification-message">$_("Please verify you are human to continue.")</p>
+        <button id="verify-human-btn" class="cta-btn cta-btn--shell" type="button" data-next="$next_url">
+            $_("Verify you are human")
+        </button>
+        <p id="verify-error" class="verification-error" style="display:none">
+            $_("Verification failed. Please try again.")
+        </p>
+    </div>
+</div>
+
+<script>
+(function() {
+    const btn = document.getElementById('verify-human-btn');
+    const err = document.getElementById('verify-error');
+    const next = btn.dataset.next;
+    const verifyingText = $:json_encode(_("Verifying..."));
+    const origText = btn.textContent;
+
+    btn.addEventListener('click', function() {
+        btn.disabled = true;
+        btn.textContent = verifyingText;
+        err.style.display = 'none';
+
+        fetch('/verify_human', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(function(r) {
+            if (r.ok) { location.replace(next); }
+            else { throw new Error(); }
+        })
+        .catch(function() {
+            btn.disabled = false;
+            btn.textContent = origText;
+            err.style.display = 'block';
+        });
+    });
+})();
+</script>
