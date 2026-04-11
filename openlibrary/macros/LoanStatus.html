@@ -19,6 +19,9 @@ $ user = get_current_user()
 $ waiting_loan = check_loan_status and ocaid and user and user.get_user_waiting_loans(ocaid, use_cache=True)
 $ waiting_loan_total_time = time() - waiting_loan_start_time
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
+$ user = ctx.user if ctx.user else None
+$ loan_count = user.get_loan_count() if user else 0
+$ has_reached_loan_limit = loan_count >= 5
 
 $if not waiting_loan:
   $ book_provider = get_book_provider(doc)
@@ -77,7 +80,18 @@ $elif availability.get('is_lendable'):
   $if secondary_action:
     $:macros.BookPreview(ocaid, analytics_attr, show_only=False)
   $if availability.get("available_to_borrow") or availability.get("available_to_browse"):
-    $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen, edition_key=edition_key)
+    $if has_reached_loan_limit:
+      <div class="cta-button-group">
+        <button
+          class="cta-btn cta-btn--available:disabled"
+          disabled
+          title="$_('You have reached the maximum number of borrowed books.')"
+        >
+          $_("Loan Limit Reached")
+        </button>
+      </div>
+    $else:
+      $:macros.ReadButton(ocaid, analytics_attr, borrow=True, listen=listen, edition_key=edition_key)
   $elif availability.get('available_to_waitlist'):
     $if waiting_loan:
       $if secondary_action:
