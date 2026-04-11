@@ -109,36 +109,38 @@ th.toggle-all {
   width: 100%;
 }
 
+/* Goodreads Imports Page */
+.my-imports {
+  padding: var(--spacing-page-gutter);
+}
+
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
+  padding-bottom: var(--spacing-section-gap);
+}
+
 .import-table {
-  border: 2px;
+  border-collapse: collapse;
+  border: var(--border-table);
 }
-.import-table th {
-  padding: 5px 10px;
-}
+
+.import-table th,
 .import-table td {
-  padding: 5px 10px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  border-bottom: var(--border-table);
 }
+
 .import-table thead th {
-  position: sticky;
-  top: 0;
   background-color: var(--white);
 }
-.import-table tbody {
-  width: 100%;
-}
+
 .import-table tbody tr {
   background-color: var(--white);
 }
-.my-imports {
-  width: 100%;
-}
-.import-export {
-  display: flex;
-  flex-direction: column;
-}
-.import-export__section {
-  padding: 0 10px;
-}
+
+/* .import-export {}
+.import-export__section {} */
 
 #myProgress {
   margin-top: 5px;

@@ -858,7 +858,8 @@ class fetch_goodreads(delegate.page):
 
     @require_login
     def POST(self):
-        books, books_wo_isbns = process_goodreads_csv(web.input())
+        input_csv = web.input(csv={})
+        books, books_wo_isbns = process_goodreads_csv(input_csv)
         return render['account/import'](books, books_wo_isbns)
 
 
@@ -1379,8 +1380,17 @@ def as_admin(f):
 
 
 def process_goodreads_csv(i):
+    if hasattr(i.csv, 'file'):
+        i.csv.file.seek(0)
+        raw_bytes = i.csv.file.read()
+    else:
+        raw_bytes = i.csv
 
-    csv_payload = i.csv if isinstance(i.csv, str) else i.csv.decode()
+    csv_payload = (
+        raw_bytes
+        if isinstance(raw_bytes, str)
+        else raw_bytes.decode('utf-8', errors='replace')
+    )
     csv_file = csv.reader(csv_payload.splitlines(), delimiter=',', quotechar='"')
     header = next(csv_file)
     books = {}

@@ -41,10 +41,6 @@
       "maxSize": "137KB"
     },
     {
-      "path": "static/build/js/goodreads-import.*.js",
-      "maxSize": "2KB"
-    },
-    {
       "path": "static/build/js/admin.*.js",
       "maxSize": "1.3KB"
     },

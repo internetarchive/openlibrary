@@ -1,137 +1,520 @@
 $def with (books=None, books_wo_isbns=None)
 
-<div class="my-imports">
-
-  $if not books:
+<div>
+  $if not books and not books_wo_isbns:
     <div class="import-export">
+
       <div class="import-export__section">
         <h3>$_("Import from Goodreads")</h3>
         <p>$:_('For instructions on exporting data refer to: <a href="https://www.goodreads.com/review/import">Goodreads Import/Export</a>')</p>
         <form method="POST" action="/account/import/goodreads"
-            enctype="multipart/form-data" class="olform olform--decoration">
+              enctype="multipart/form-data"
+              class="olform olform--decoration mt-2">
+
           <div>
-            <input required type="file" name="csv" />
-            <br>$_("File size limit 10MB and .csv file type only")
+            <input required type="file" name="csv" class="file-input" />
+            <br>
+            <small class="input-helper">
+              $_("File size limit 10MB and .csv file type only")
+            </small>
           </div>
-          <div>
+
+          <div class="mt-2">
             <input class="cta-btn cta-btn--available cta-btn--small"
-                type="submit" value="$_('Load Books')" data-ol-link-track="PatronImports|Goodreads">
+                   type="submit"
+                   value="$_('Load Books')"
+                   data-ol-link-track="PatronImports|Goodreads">
           </div>
         </form>
       </div>
+
+      <hr class="divider">
+
       <div class="import-export__section">
         <h3>$_("Export your Reading Log")</h3>
-        <p>$_("Download a copy of your reading log.") <a href="/help/faq/reading-log.en#reading-log">$_("What is a reading log?")</a></p>
+        <p>
+          $_("Download a copy of your reading log.")
+          <a href="/help/faq/reading-log.en#reading-log">
+            $_("What is a reading log?")
+          </a>
+        </p>
         <form method="GET" action="/account/export"
-            enctype="multipart/form-data" class="olform olform--decoration patron-export-form">
+              enctype="multipart/form-data"
+              class="olform olform--decoration patron-export-form mt-2">
+
           <input type="hidden" name="type" value="reading_log">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ReadingLog">
+            <input type="submit"
+                   class="cta-btn cta-btn--available cta-btn--small"
+                   value="$_('Download (.csv format)')"
+                   data-ol-link-track="PatronExports|ReadingLog">
           </div>
         </form>
       </div>
+
       <div class="import-export__section">
         <h3>$_("Export your book notes")</h3>
-        <p>$_("Download a copy of your book notes.") <a href="/help/faq/book-notes">$_("What are book notes?")</a></p>
+        <p>
+          $_("Download a copy of your book notes.")
+          <a href="/help/faq/book-notes">
+            $_("What are book notes?")
+          </a>
+        </p>
         <form method="GET" action="/account/export"
-            enctype="multipart/form-data" class="olform olform--decoration patron-export-form">
+              enctype="multipart/form-data"
+              class="olform olform--decoration patron-export-form mt-2">
+
           <input type="hidden" name="type" value="book_notes">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|BookNotes">
+            <input type="submit"
+                   class="cta-btn cta-btn--available cta-btn--small"
+                   value="$_('Download (.csv format)')"
+                   data-ol-link-track="PatronExports|BookNotes">
           </div>
         </form>
       </div>
+
       <div class="import-export__section">
         <h3>$_("Export your reviews")</h3>
-        <p>$_("Download a copy of your review tags.") <a href="/help/faq/reviews#book-tags">$_("What are review tags?")</a></p>
+        <p>
+          $_("Download a copy of your review tags.")
+          <a href="/help/faq/reviews#book-tags">
+            $_("What are review tags?")
+          </a>
+        </p>
         <form method="GET" action="/account/export"
-            enctype="multipart/form-data" class="olform olform--decoration patron-export-form">
+              enctype="multipart/form-data"
+              class="olform olform--decoration patron-export-form mt-2">
+
           <input type="hidden" name="type" value="reviews">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ReviewTags">
+            <input type="submit"
+                   class="cta-btn cta-btn--available cta-btn--small"
+                   value="$_('Download (.csv format)')"
+                   data-ol-link-track="PatronExports|ReviewTags">
           </div>
         </form>
       </div>
+
       <div class="import-export__section">
         <h3>$_("Export your list overview")</h3>
-        <p>$_("Download a summary of your lists and their contents.") <a href="/help/faq/reading-log.en#lists">$_("What are lists?")</a></p>
+        <p>
+          $_("Download a summary of your lists and their contents.")
+          <a href="/help/faq/reading-log.en#lists">
+            $_("What are lists?")
+          </a>
+        </p>
         <form method="GET" action="/account/export"
-            enctype="multipart/form-data" class="olform olform--decoration patron-export-form">
+              enctype="multipart/form-data"
+              class="olform olform--decoration patron-export-form mt-2">
+
           <input type="hidden" name="type" value="lists">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|ListsSummary">
+            <input type="submit"
+                   class="cta-btn cta-btn--available cta-btn--small"
+                   value="$_('Download (.csv format)')"
+                   data-ol-link-track="PatronExports|ListsSummary">
           </div>
         </form>
       </div>
+
       <div class="import-export__section">
         <h3>$_("Export your star ratings")</h3>
-        <p>$_("Download a copy of your star ratings.") <a href="/help/faq/reviews#star-ratings">$_("What are star ratings?")</a></p>
+        <p>
+          $_("Download a copy of your star ratings.")
+          <a href="/help/faq/reviews#star-ratings">
+            $_("What are star ratings?")
+          </a>
+        </p>
         <form method="GET" action="/account/export"
-            enctype="multipart/form-data" class="olform olform--decoration patron-export-form">
+              enctype="multipart/form-data"
+              class="olform olform--decoration patron-export-form mt-2">
+
           <input type="hidden" name="type" value="ratings">
           <div>
-            <input type="submit" class="cta-btn cta-btn--available cta-btn--small" value="$_('Download (.csv format)')" data-ol-link-track="PatronExports|StarRatings">
+            <input type="submit"
+                   class="cta-btn cta-btn--available cta-btn--small"
+                   value="$_('Download (.csv format)')"
+                   data-ol-link-track="PatronExports|StarRatings">
           </div>
         </form>
       </div>
+
     </div>
 
   $else:
-    <div class="import-buttons">
-      <div id="myProgress" class="hidden">
-        <div id="myBar">$_("Importing...")</div>
-      </div>
-      <div>
-        <button class="hidden cta-btn cta-btn--available cta-btn--small cancel-button"
-          onclick="window.location.reload();" >Cancel</button>
-      </div>
+    <div class="my-imports">
+      $ keys = ['ISBN', 'ISBN13', 'Title', 'My Rating', 'Shelves', 'Date Read']
+
+      $if books:
+        <form method="POST"
+              action="/account/import/process/goodreads"
+              id="import-form">
+
+          <div class="import-buttons">
+            <div class="import-header-controls">
+              <button type="submit"
+                      class="import-submit cta-btn cta-btn--available"
+                      data-ol-link-track="PatronImports|Goodreads">
+                $_("Import Books")
+              </button>
+
+              <button type="button"
+                      class="hidden cta-btn cta-btn--unavailable cta-btn--small cancel-button"
+                      onclick="window.location.reload();">
+                $_("Cancel")
+              </button>
+
+              <a href="/account/books"
+                 id="go-to-log-btn"
+                 class="hidden cta-btn cta-btn--available cta-btn--small"
+                 data-ol-link-track="PatronImports|ViewLog">
+                $_("Go to My Books")
+              </a>
+            </div>
+          </div>
+
+
+          <div class="import-section">
+            <h3>$_("Books Ready to Import")</h3>
+
+            <p class="notice-box">
+              <strong>$_("Note:")</strong>
+              $_("Books from your 'Did Not Finish' shelf will be skipped during import as we do not currently support it. We plan to add support for this in the future.")
+            </p>
+
+            <div class="table-responsive">
+              <table class="import-table">
+                <thead>
+                  <tr>
+                    <th class="toggle-all">
+                      <input type="checkbox" checked aria-label="$_('Select all books ready to import')">
+                    </th>
+
+                    $for key in keys:
+                      <th>$key</th>
+
+                    <th class="import-status hidden">$_('Status')</th>
+                    <th class="status-reason hidden">$_('Reason')</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  $for isbn in books:
+                    $ shelves_raw = books[isbn].get('Bookshelves', '')
+                    $ parsed_shelves = [s.strip() for s in str(shelves_raw).split(",") if s.strip()]
+                    $ exclusive_shelf = str(books[isbn].get('Exclusive Shelf', '')).strip()
+                    $ exclusive_shelf and exclusive_shelf not in parsed_shelves and parsed_shelves.append(exclusive_shelf)
+                    $ joined_shelves = ", ".join(parsed_shelves)
+                    $ clean_isbn = str(books[isbn].get("ISBN"))
+                    $ clean_isbn13 = str(books[isbn].get("ISBN13"))
+                    $ rating = str(books[isbn].get('My Rating', ''))
+                    $ date_read = str(books[isbn].get('Date Read', ''))
+
+                    <tr class="table-row"
+                        data-rowid="$isbn"
+                        data-isbn="$clean_isbn"
+                        data-isbn13="$clean_isbn13"
+                        data-shelves="$joined_shelves"
+                        data-rating="$rating"
+                        data-date-read="$date_read">
+                      <td>
+                        <input type="checkbox"
+                               class="add-book"
+                               value="$isbn"
+                               checked>
+                      </td>
+
+                      $for key in keys:
+                        <td>
+                          $if key == 'My Rating':
+                            $('-' if str(books[isbn].get('My Rating', '')) == '0' else books[isbn].get('My Rating', ''))
+                          $elif key == 'Shelves':
+                            $joined_shelves
+                          $elif key in ('ISBN', 'ISBN13'):
+                            $(str(books[isbn].get(key, '')).replace('="', '').replace('"', ''))
+                          $else:
+                            $books[isbn].get(key, '')
+                        </td>
+
+                      <td class="import-status hidden"></td>
+                      <td class="status-reason hidden"></td>
+                    </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </form>
+
+      $else:
+        <p class="notice-box">
+          $_("No valid books with ISBNs found to import.")
+        </p>
+
+      $if books_wo_isbns:
+        <div class="import-section import-section--missing-isbns">
+          <h3>$_("Books Missing ISBNs")</h3>
+
+          <p class="notice-box">
+            <strong>$_("Note:")</strong>
+            $_("Unfortunately, these books do not have ISBN codes and currently we can't import these.")
+          </p>
+
+          <div class="table-responsive">
+            <table class="import-table table--disabled">
+              <thead>
+                <tr>
+                  $for key in keys:
+                    <th>$key</th>
+                  <th>$_("Action")</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                $for id in books_wo_isbns:
+                  <tr>
+                    $for key in keys:
+                      <td>
+                        $if key == 'My Rating':
+                          $('-' if str(books_wo_isbns[id].get('My Rating', '')) == '0' else books_wo_isbns[id].get('My Rating', ''))
+                        $elif key == 'Shelves':
+                          $ shelves_raw = books_wo_isbns[id].get('Bookshelves', '')
+                          $(", ".join([s.strip() for s in str(shelves_raw).split(",") if s.strip()]))
+                        $elif key in ('ISBN', 'ISBN13'):
+                          $(str(books_wo_isbns[id].get(key, '')).replace('="', '').replace('"', ''))
+                        $else:
+                          $books_wo_isbns[id].get(key, '-')
+                      </td>
+                    <td>
+                      <a href="/search?title=$urlquote(books_wo_isbns[id].get('Title', ''))&author=$urlquote(books_wo_isbns[id].get('Author', ''))" target="_blank" class="cta-btn cta-btn--small">
+                        $_("Search OL")
+                      </a>
+                    </td>
+                  </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
     </div>
 
-    <input type="submit" class="import-submit cta-btn cta-btn--unavailable" value="Import $len(books) Books">
-    $ keys = ['ISBN', 'Title', 'My Rating', 'Exclusive Shelf', 'Date Read']
-    <div class="div-class">
-      <table class="import-table">
-        <thead>
-          <tr>
-            <th scope="col" class="toggle-all">
-              <input type="checkbox" checked="checked">
-            </th>
-            $for key in keys:
-              <th scope="col">$key</th>
-            <th scope="col" class="import-status hidden">
-              $_("Status")
-            </th>
-            <th scope="col" class="status-reason hidden">
-              $_("Reason")
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          $for isbn in books:
-            <tr class="table-row" isbn="$isbn">
-              <td>
-              $ dict = {'ISBN':'', 'Title':'', 'My Rating':'', 'Exclusive Shelf':'', 'Date Read':''}
-              $ k = ['ISBN', 'My Rating', 'Exclusive Shelf', 'Date Read']
-              $for key in k:
-                  $ dict[key] = books[isbn].get(key)
-              <input class="add-book" value="$(dict)" type="checkbox" checked="checked">
-              </td>
-              $for key in keys:
-                <td>$books[isbn].get(key)</td>
-            </tr>
-          $for id in books_wo_isbns:
-            <tr>
-              <td>
-              </td>
-              $for key in keys:
-                <td>
-                  $if books_wo_isbns[id].get(key) != '=""':
-                    $books_wo_isbns[id].get(key)
-                </td>
-              <td class="books-wo-isbn hidden error-imported">$_("Error")</td>
-              <td class="books-wo-isbn hidden error-imported">$_("No ISBN")</td>
-            </tr>
-        </tbody>
-      </table>
-    </div>
 </div>
+
+<div id="js-i18n-strings" class="hidden" style="display: none;"
+     data-importing="$_('Importing, please wait...')"
+     data-imported="$_('Imported')"
+     data-error="$_('Error')"
+     data-unknown-error="$_('Unknown error')"
+     data-error-fallback="$_('Something went wrong. Try again.')"
+     data-import-single="$_('Import 1 Book')"
+     data-import-plural="$_('Import {count} Books')"
+     data-done-summary="$_('Done - {succeeded} imported, {errors} failed')">
+</div>
+
+<script>
+  const i18n = document.getElementById('js-i18n-strings').dataset;
+
+  function updateImportCount() {
+    const checkboxes = document.querySelectorAll('.add-book:not(:disabled)');
+    const count = Array.from(checkboxes).filter(cb => cb.checked).length;
+    const btn = document.querySelector('.import-submit');
+
+    if (btn && btn.dataset.state !== 'importing' && btn.dataset.state !== 'done') {
+      if (count === 1) {
+        btn.textContent = i18n.importSingle;
+      } else {
+        btn.textContent = i18n.importPlural.replace('{count}', count);
+      }
+      btn.disabled = count === 0;
+    }
+  }
+
+  document.addEventListener('change', function (e) {
+    const btn = document.querySelector('.import-submit');
+
+    if (btn && btn.dataset.state === 'done') {
+        btn.dataset.state = 'ready';
+    }
+
+    if (e.target.matches('th.toggle-all input')) {
+      const checked = e.target.checked;
+      document.querySelectorAll('.add-book').forEach(cb => {
+        if (!cb.disabled) {
+            cb.checked = checked;
+        }
+      });
+      updateImportCount();
+    }
+
+    if (e.target.matches('.add-book')) {
+      updateImportCount();
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', updateImportCount);
+
+  document.getElementById('import-form')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const btn = document.querySelector('.import-submit');
+    const masterToggle = document.querySelector('th.toggle-all input');
+
+    btn.dataset.state = 'importing';
+    btn.disabled = true;
+    if (masterToggle) masterToggle.disabled = true;
+    document.querySelectorAll('.add-book').forEach(cb => cb.disabled = true);
+
+    document.body.style.cursor = 'wait';
+    btn.style.cursor = 'wait';
+    btn.textContent = i18n.importing;
+
+    document.querySelectorAll('.add-book:checked').forEach(cb => {
+        const row = cb.closest('tr');
+        row.querySelector('.import-status').classList.remove('hidden');
+        row.querySelector('.status-reason').classList.remove('hidden');
+        row.style.backgroundColor = '';
+        row.style.opacity = '1';
+    });
+
+    document.querySelectorAll('th.import-status, th.status-reason').forEach(el => el.classList.remove('hidden'));
+
+    const booksToImport = [];
+    document.querySelectorAll('.add-book:checked').forEach(cb => {
+      const row = cb.closest('tr');
+      const rowid = row.dataset.rowid;
+
+      const shelvesStr = row.dataset.shelves || "";
+      const shelvesArray = shelvesStr.split(',').map(s => s.trim()).filter(Boolean);
+
+      booksToImport.push({
+        row_id: rowid,
+        isbn: row.dataset.isbn,
+        isbn13: row.dataset.isbn13,
+        shelves: shelvesArray,
+        rating: row.dataset.rating || "",
+        date_read: row.dataset.dateRead || ""
+      });
+    });
+
+    const chunkSize = 20;
+    let processed = 0;
+    let errors = 0;
+    let succeeded = 0;
+
+    for (let i = 0; i < booksToImport.length; i += chunkSize) {
+      const chunk = booksToImport.slice(i, i + chunkSize);
+      const payload = { books: chunk };
+
+      try {
+        if (booksToImport.length > chunkSize) {
+            btn.textContent = i18n.importing + " (" + processed + "/" + booksToImport.length + ")";
+        }
+
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            throw new Error("Server responded with status: " + res.status);
+        }
+
+        const data = await res.json();
+
+        data.results.forEach(result => {
+          const row = document.querySelector('tr[data-rowid="' + result.row_id + '"]');
+          if (!row) return;
+
+          const statusCell = row.querySelector('.import-status');
+          const reasonCell = row.querySelector('.status-reason');
+          const cb = row.querySelector('.add-book');
+
+          if (result.status === 'success') {
+            statusCell.textContent = i18n.imported;
+            statusCell.classList.add('success-imported');
+            statusCell.classList.remove('error-imported');
+            reasonCell.textContent = '';
+
+            if (cb) {
+                cb.checked = false;
+                cb.disabled = true;
+            }
+            row.style.opacity = '0.4';
+            row.style.backgroundColor = '';
+            succeeded++;
+          } else {
+            errors++;
+            statusCell.textContent = i18n.error;
+            statusCell.classList.add('error-imported');
+            reasonCell.textContent = result.reason || i18n.unknownError;
+
+            row.style.backgroundColor = 'var(--color-border-error)';
+            row.style.opacity = '0.15';
+          }
+        });
+
+      } catch (err) {
+        console.error("Chunk import failed:", err);
+        errors += chunk.length;
+
+        chunk.forEach(book => {
+          const row = document.querySelector('tr[data-rowid="' + book.row_id + '"]');
+          if (!row) return;
+          const statusCell = row.querySelector('.import-status');
+          const reasonCell = row.querySelector('.status-reason');
+
+          statusCell.textContent = i18n.error;
+          statusCell.classList.add('error-imported');
+          reasonCell.textContent = i18n.errorFallback;
+          row.style.backgroundColor = 'var(--color-border-error)';
+          row.style.opacity = '0.15';
+        });
+      }
+
+      processed += chunk.length;
+    }
+
+    document.body.style.cursor = 'default';
+    btn.style.cursor = 'pointer';
+    btn.dataset.state = 'done';
+
+    document.querySelectorAll('.add-book').forEach(cb => {
+        const row = cb.closest('tr');
+        if (!row.querySelector('.success-imported')) {
+            cb.disabled = false;
+        }
+    });
+
+    document.querySelectorAll('.error-imported').forEach(cell => {
+        const row = cell.closest('tr');
+        if (row) {
+            row.style.backgroundColor = 'var(--lighter-yellow)';
+            row.style.opacity = '1';
+        }
+    });
+
+    const remainingTotal = document.querySelectorAll('.add-book:not(:disabled)').length;
+    const remainingChecked = document.querySelectorAll('.add-book:checked:not(:disabled)').length;
+
+    if (remainingTotal > 0) {
+        if (masterToggle) masterToggle.disabled = false;
+        btn.disabled = (remainingChecked === 0);
+    } else {
+        if (masterToggle) masterToggle.disabled = true;
+        btn.disabled = true;
+    }
+
+    btn.textContent = i18n.doneSummary
+      .replace('{succeeded}', succeeded)
+      .replace('{errors}', errors);
+
+    if (succeeded > 0) {
+        document.getElementById('go-to-log-btn').classList.remove('hidden');
+    }
+  });
+</script>

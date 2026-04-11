@@ -1,7 +1,5 @@
 import os
-import sys
 
-import pytest
 import web
 
 from .. import account
@@ -143,15 +141,7 @@ class TestGoodReadsImport:
             }
         }
 
-    @pytest.mark.skipif(sys.version_info < (3, 0), reason="Python2's csv module doesn't support Unicode")
     def test_process_goodreads_csv_with_utf8(self):
         books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data.decode("utf-8")}))
-        assert books == self.expected_books
-        assert books_wo_isbns == self.expected_books_wo_isbns
-
-    def test_process_goodreads_csv_with_bytes(self):
-        # Note: In Python2, reading data as bytes returns a string, which should
-        # also be supported by account.process_goodreads_csv()
-        books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns

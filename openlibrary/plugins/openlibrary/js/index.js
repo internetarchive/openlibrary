@@ -186,11 +186,6 @@ jQuery(function () {
             });
     }
 
-    // conditionally loads Goodreads import based on class in the page
-    if (document.getElementsByClassName('import-table').length) {
-        import(/* webpackChunkName: "goodreads-import" */'./goodreads_import.js')
-            .then(module => module.initGoodreadsImport());
-    }
     // conditionally load list seed item deletion dialog functionality based on id on lists pages
     if (document.getElementById('listResults')) {
         import(/* webpackChunkName: "ListViewBody" */'./lists/ListViewBody.js');

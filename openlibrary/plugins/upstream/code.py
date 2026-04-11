@@ -29,6 +29,7 @@ from openlibrary.plugins.upstream import (
     borrow,  # noqa: F401 side effects may be needed
     checkins,
     covers,
+    data_import,
     edits,
     merge_authors,
     models,
@@ -386,6 +387,7 @@ def setup():
     edits.setup()
     checkins.setup()
     yearly_reading_goals.setup()
+    data_import.setup()
 
     from openlibrary.plugins.upstream import data, jsdef
 
