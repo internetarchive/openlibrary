@@ -1381,6 +1381,7 @@ class account_verify_human(delegate.page):
         # Only allow same-origin redirects
         if not next_url.startswith('/') or next_url.startswith('//'):
             next_url = '/'
+        stats.increment('ol.verify_human.challenged')
         return render_template('verify_human', next_url=next_url)
 
     def POST(self):
@@ -1396,7 +1397,7 @@ class account_verify_human(delegate.page):
             httponly=True,
         )
 
-        stats.increment('ol.stats.verify_human.verified')
+        stats.increment('ol.verify_human.verified')
 
         web.header('Content-Type', 'application/json')
         return json.dumps({'success': True})
