@@ -47,7 +47,7 @@ def test_post_follows_valid_publisher_succeeds():
         mock_web_input.side_effect = mock_web_input_func({"publisher": "existing_user", "redir_url": "/", "state": "0"})
         mock_get_current_user.return_value = FakeUser("test_user")
         mock_find.return_value = FakeUser("existing_user")
-        mock_seeother.side_effect = web.HTTPError("303 See Other")
+        mock_seeother.return_value = web.HTTPError("303 See Other")
 
         with pytest.raises(web.HTTPError):
             patrons_follows_json().POST("/people/test_user")
