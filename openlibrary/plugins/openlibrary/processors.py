@@ -11,7 +11,6 @@ from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )
-from openlibrary.plugins.openlibrary.code import is_recognized_bot
 
 urlsafe = h.urlsafe
 _safepath = h.urlsafe
@@ -147,6 +146,8 @@ class CookieValidationProcessor:
 
     def __call__(self, handler):
         # We don't want to bounce identified crawlers that index us
+        from openlibrary.plugins.openlibrary.code import is_recognized_bot
+
         if web.ctx.path not in self.EXEMPT_PATHS and not is_recognized_bot():
             from openlibrary.accounts.model import (
                 verify_session_cookie,
