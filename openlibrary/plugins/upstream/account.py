@@ -1365,6 +1365,44 @@ class account_anonymization_json(delegate.page):
             raise ValueError("Malformed Authorization Header")
 
 
+class account_verify_human(delegate.page):
+    """Endpoint for human verification challenge.
+
+    GET renders the challenge page; POST sets a signed cookie and returns JSON.
+    """
+
+    path = "/verify_human"
+
+    # Cookie expires in 30 days
+    VERIFICATION_COOKIE_EXPIRES_SECONDS = 30 * 24 * 60 * 60
+
+    def GET(self):
+        next_url = web.input(next='/').next
+        # Only allow same-origin redirects
+        if not next_url.startswith('/') or next_url.startswith('//'):
+            next_url = '/'
+        stats.increment('ol.verify_human.challenged')
+        return render_template('verify_human', next_url=next_url)
+
+    def POST(self):
+        from openlibrary.accounts.model import create_verification_cookie_value
+
+        cookie_value = create_verification_cookie_value()
+
+        web.setcookie(
+            'vf',
+            cookie_value,
+            expires=self.VERIFICATION_COOKIE_EXPIRES_SECONDS,
+            secure=True,
+            httponly=True,
+        )
+
+        stats.increment('ol.verify_human.verified')
+
+        web.header('Content-Type', 'application/json')
+        return json.dumps({'success': True})
+
+
 def as_admin(f):
     """Infobase allows some requests only from admin user. This decorator logs in as admin, executes the function and clears the admin credentials."""
 
