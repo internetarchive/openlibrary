@@ -1186,6 +1186,46 @@ def test_find_match_is_used_when_looking_for_edition_matches(mock_site) -> None:
     assert e["key"] == "/books/OL17M"
 
 
+def test_load_matches_existing_edition_on_asin_when_pool_is_empty(mock_site) -> None:
+    """
+    Regression test: importing a record whose only shared identifier with an existing
+    edition is a non-ISBN Amazon ASIN should match (not create a new edition), even
+    when build_pool() returns empty (no title / ISBN / OCAID / LCCN overlap).
+
+    See: https://github.com/internetarchive/openlibrary/issues/12356
+    """
+    existing_work = {
+        "key": "/works/OL18W",
+        "title": "I'm Done But My Heart Still Whispers Your Name",
+        "type": {"key": "/type/work"},
+    }
+    existing_edition = {
+        "key": "/books/OL18M",
+        "title": "I'm Done But My Heart Still Whispers Your Name",
+        "type": {"key": "/type/edition"},
+        "source_records": ["amazon:B0G8L18P9N"],
+        "identifiers": {"amazon": ["B0G8L18P9N"]},
+        "works": [{"key": "/works/OL18W"}],
+    }
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    # Incoming record has ONLY the same ASIN — completely different title so
+    # build_pool() will return empty and would previously bypass ASIN matching.
+    rec = {
+        "title": "A Completely Different Title With No Overlap",
+        "source_records": ["amazon:B0G8L18P9N"],
+        "identifiers": {"amazon": ["B0G8L18P9N"]},
+    }
+
+    # build_pool should indeed be empty (verifying the precondition)
+    assert build_pool(rec) == {}
+
+    reply = load(rec)
+    assert reply["edition"]["status"] == "matched"
+    assert reply["edition"]["key"] == "/books/OL18M"
+
+
 def test_preisbn_import_does_not_match_existing_undated_isbn_record(mock_site) -> None:
     author = {
         "type": {"key": "/type/author"},

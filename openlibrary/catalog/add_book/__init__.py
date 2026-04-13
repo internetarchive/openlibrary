@@ -1034,12 +1034,16 @@ def load(
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
-    edition_pool = build_pool(rec)
-    if not edition_pool:
-        # No match candidates found, add edition
-        return load_data(rec, account_key=account_key, save=save)
-
-    match = find_match(rec, edition_pool)
+    # Check for a quick match first (e.g. ASIN) before building the pool,
+    # since build_pool does not include identifiers like Amazon ASIN and would
+    # return empty for pure-ASIN imports, bypassing find_quick_match entirely.
+    match = find_quick_match(rec)
+    if not match:
+        edition_pool = build_pool(rec)
+        if not edition_pool:
+            # No match candidates found, add edition
+            return load_data(rec, account_key=account_key, save=save)
+        match = find_threshold_match(rec, edition_pool)
     if not match:
         # No match found, add edition
         return load_data(rec, account_key=account_key, save=save)
