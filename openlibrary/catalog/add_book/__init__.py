@@ -1034,19 +1034,15 @@ def load(
     normalize_import_record(rec)
 
     # Resolve an edition if possible, or create and return one if not.
+    # find_match tries find_quick_match first (covers ASIN, OCAID, source record,
+    # etc.) and only falls back to find_threshold_match if that returns None.
+    # find_threshold_match is a no-op when edition_pool is empty, so it is safe
+    # to call find_match unconditionally regardless of whether build_pool found
+    # any candidates.
     edition_pool = build_pool(rec)
-    if not edition_pool:
-        # build_pool only covers title/ISBN/OCAID/LCCN, so a record that matches
-        # solely on a non-ISBN ASIN (or another quick-match key) would be missed.
-        # Try find_quick_match before giving up and creating a new edition.
-        match = find_quick_match(rec)
-        if not match:
-            return load_data(rec, account_key=account_key, save=save)
-    else:
-        match = find_match(rec, edition_pool)
-        if not match:
-            # No match found, add edition
-            return load_data(rec, account_key=account_key, save=save)
+    match = find_match(rec, edition_pool)
+    if not match:
+        return load_data(rec, account_key=account_key, save=save)
 
     # We have an edition match at this point
     need_work_save = need_edition_save = False
