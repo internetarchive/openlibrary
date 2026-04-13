@@ -1049,7 +1049,9 @@ class User(Thing):
         return lists
 
     @classmethod
-    @cache.memoize(engine="memcache", key=lambda cls, username: f"user-avatar-{username}")
+    @cache.memoize(
+        engine="memcache", key=lambda cls, username: f"user-avatar-{username}"
+    )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
