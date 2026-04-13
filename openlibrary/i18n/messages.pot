@@ -6049,6 +6049,10 @@ msgstr ""
 msgid "Authors Alliance & MIT Press"
 msgstr ""
 
+#: home/index.html
+msgid "Books in Local Environment"
+msgstr ""
+
 #: home/loans.html
 #, python-format
 msgid ""
