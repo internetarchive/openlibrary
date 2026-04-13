@@ -4,6 +4,7 @@ import web
 
 from infogami import config
 from openlibrary.plugins.openlibrary.processors import CookieValidationProcessor
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 class TestCookieValidationProcessor:
@@ -18,7 +19,22 @@ class TestCookieValidationProcessor:
         web.webapi.ctx = web.ctx
         config.infobase = web.storage(secret_key="test-secret-key")
         config.login_cookie_name = "session"
+        self._req_context_token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent="pytest-agent",
+                lang="en",
+                solr_editions=True,
+                print_disabled=False,
+                sfw=False,
+                is_recognized_bot=False,
+                is_bot=False,
+            )
+        )
         self.processor = CookieValidationProcessor()
+
+    def teardown_method(self):
+        req_context.reset(self._req_context_token)
 
     def _make_handler(self):
         called = []
