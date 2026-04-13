@@ -14,7 +14,7 @@ export function initClampers(clampers) {
             */
 
             clamper.addEventListener('click', (event) => {
-                if (event.target instanceof HTMLAnchorElement) {
+                if (event.composedPath().some(el => el instanceof HTMLAnchorElement)) {
                     return;
                 }
 
