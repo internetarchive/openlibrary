@@ -1824,6 +1824,10 @@ msgid "Chip"
 msgstr ""
 
 #: design.html
+msgid "Chip Group"
+msgstr ""
+
+#: design.html
 msgid ""
 "The ol-pagination component provides support for both event-based and "
 "URL-based navigation."
@@ -2052,6 +2056,62 @@ msgstr ""
 
 #: design.html
 msgid "Toggle me too"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-chip-group component is a flex-wrap container that provides "
+"consistent spacing for groups of chips."
+msgstr ""
+
+#: design.html
+msgid "Default (medium gap)"
+msgstr ""
+
+#: design.html
+msgid "Chips are spaced with an 8px gap by default."
+msgstr ""
+
+#: design.html
+msgid "Small gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for tighter spacing (4px)."
+msgstr ""
+
+#: design.html
+msgid "Large gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for wider spacing (12px)."
+msgstr ""
+
+#: design.html
+msgid "Wrapping behavior"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chips automatically wrap to the next line when they exceed the container "
+"width."
+msgstr ""
+
+#: design.html
+msgid "Biography"
+msgstr ""
+
+#: design.html
+msgid "With mixed chip states"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chip groups work with any combination of chip sizes, states, and link "
+"chips."
 msgstr ""
 
 #: diff.html
