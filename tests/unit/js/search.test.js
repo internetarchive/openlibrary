@@ -15,7 +15,7 @@ function createSearchFacets(totalFacet = 2, visibleFacet = 2, minVisibleFacet = 
         <div class="facet test">
             <h4 class="facetHead">Facet Label</h4>
         </div>
-    `
+    `;
 
     const divTestFacet = divSearchFacets.querySelector('div.test');
     for (let i = 0; i < totalFacet; i++) {

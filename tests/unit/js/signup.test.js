@@ -26,7 +26,7 @@ beforeEach(() => {
 });
 
 describe('Email tests', () => {
-    let emailLabel, emailField
+    let emailLabel, emailField;
 
     beforeEach(() => {
         // call the function
@@ -35,7 +35,7 @@ describe('Email tests', () => {
         //declare the elements
         emailLabel = document.querySelector('label[for="emailAddr"]');
         emailField = document.getElementById('emailAddr');
-    })
+    });
 
     test('validateEmail should update elements correctly on success', () => {
         // set the email value
@@ -99,7 +99,7 @@ describe('Email tests', () => {
 });
 
 describe('Username tests', () => {
-    let usernameLabel, usernameField
+    let usernameLabel, usernameField;
 
     beforeEach(() => {
         // call the function
@@ -108,7 +108,7 @@ describe('Username tests', () => {
         //declare the elements
         usernameLabel = document.querySelector('label[for="username"]');
         usernameField = document.getElementById('username');
-    })
+    });
 
     test('validateUsername should update elements correctly on success', () => {
         // set the username value
@@ -161,7 +161,7 @@ describe('Username tests', () => {
 
 
 describe('Password tests', () => {
-    let passwordLabel, passwordField
+    let passwordLabel, passwordField;
 
     beforeEach(() => {
         // call the function
@@ -170,7 +170,7 @@ describe('Password tests', () => {
         //declare the elements
         passwordLabel = document.querySelector('label[for="password"]');
         passwordField = document.getElementById('password');
-    })
+    });
 
     test('validatePassword should update elements correctly on success', () => {
         // set the password value
@@ -228,16 +228,16 @@ describe('Print disability tests', () => {
         initSignupForm();
 
         checkbox = document.querySelector('#pd-request');
-        selector = document.querySelector('#pda-selector')
-    })
+        selector = document.querySelector('#pda-selector');
+    });
 
     test('Qualifying authority selector only visible when PD checkbox is checked', () => {
-        checkbox.checked = false
+        checkbox.checked = false;
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         expect(selector.classList.contains('hidden')).toBe(true);
 
-        checkbox.checked = true
+        checkbox.checked = true;
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         expect(selector.classList.contains('hidden')).toBe(false);
-    })
-})
+    });
+});

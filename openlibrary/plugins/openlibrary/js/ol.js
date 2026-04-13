@@ -45,7 +45,7 @@ export function initBorrowAndReadLinks() {
 }
 
 export function initWebsiteTranslationOptions() {
-    $('.locale-options li a').on('click', function (event) {
+    $('.locale-options li a').on('click', function(event) {
         event.preventDefault();
         const locale = $(this).data('lang-id');
         setValueInCookie('HTTP_LANG', locale);

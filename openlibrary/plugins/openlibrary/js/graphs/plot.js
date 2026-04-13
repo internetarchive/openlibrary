@@ -68,7 +68,7 @@ export function loadEditionsGraph() {
         }).appendTo('body').fadeIn(200);
     }
     previousPoint = null;
-    placeholder.bind('plothover', function (event, pos, item) {
+    placeholder.bind('plothover', function(event, pos, item) {
         var x, y;
         $('#x').text(pos.x.toFixed(0));
         $('#y').text(pos.y.toFixed(0));
@@ -93,21 +93,21 @@ export function loadEditionsGraph() {
         }
     });
 
-    placeholder.bind('plotclick', function (event, pos, item) {
+    placeholder.bind('plotclick', function(event, pos, item) {
 
         if (item) {
             plot.unhighlight();
             const yearFrom = item.datapoint[0].toFixed(0);
             applyDateFilter(yearFrom, yearFrom);
 
-            plot.highlight(item.series,item.datapoint);
+            plot.highlight(item.series, item.datapoint);
         }
         else {
             plot.unhighlight();
         }
     });
 
-    placeholder.bind('plotselected', function (event, ranges) {
+    placeholder.bind('plotselected', function(event, ranges) {
         plot = $.plot(placeholder, data,
             $.extend(true, {}, options, {
                 xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
@@ -220,7 +220,7 @@ export function plot_tooltip_graph(node, data, tooltip_message, color='#748d36')
             boxShadow: '1px 1px 1px #000'
         }).appendTo('body').fadeIn(200);
     }
-    node.bind('plothover', function (event, pos, item) {
+    node.bind('plothover', function(event, pos, item) {
         var date, milli, x, y;
         $('#x').text(pos.x);
         $('#y').text(pos.y.toFixed(0));

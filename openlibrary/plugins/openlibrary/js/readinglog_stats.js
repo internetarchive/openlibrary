@@ -178,7 +178,7 @@ export function init(config) {
                             bindings
                                 .filter(x => x[name])
                                 .map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
-                            x => x[name].value)
+                            x => x[name].value);
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {
