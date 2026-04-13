@@ -1043,7 +1043,7 @@ def load(
         if not edition_pool:
             # No match candidates found, add edition
             return load_data(rec, account_key=account_key, save=save)
-        match = find_threshold_match(rec, edition_pool)
+        match = find_match(rec, edition_pool)
     if not match:
         # No match found, add edition
         return load_data(rec, account_key=account_key, save=save)
