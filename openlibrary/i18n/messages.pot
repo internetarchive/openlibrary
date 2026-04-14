@@ -8396,8 +8396,8 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid ""
-"<a href=\"/search\">Search for book, subjects, or authors</a> to add to "
-"your list."
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search "
+"for book, subjects, or authors</a> to add to your list."
 msgstr ""
 
 #: type/list/view_body.html
