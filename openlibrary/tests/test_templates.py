@@ -30,3 +30,8 @@ def try_parse_template(template_text: str, filename: Path) -> tuple[bool, str | 
 def test_valid_template(filename: Path):
     parsed, err = try_parse_template(filename.read_text(encoding="utf-8"), filename)
     assert parsed, err
+
+
+def test_login_template_does_not_bind_password_value():
+    template = Path("openlibrary/templates/login.html").read_text(encoding="utf-8")
+    assert "$form.password.value" not in template
