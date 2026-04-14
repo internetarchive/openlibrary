@@ -424,7 +424,7 @@ jQuery(function() {
 
     $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
-    $('.header-dropdown').on('keydown', function (event) {
+    $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
             $('.header-dropdown > details[open]').removeAttr('open');
         }
