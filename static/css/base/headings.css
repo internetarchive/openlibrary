@@ -2,7 +2,7 @@ h1 {
   font-size: var(--font-size-headline-large);
 }
 h1.title {
-  font-size: var(--font-size-title-large); 
+  font-size: var(--font-size-title-large);
 }
 h1 span.subtitle {
   font-size: var(--font-size-title-small);
