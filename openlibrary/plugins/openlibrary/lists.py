@@ -340,10 +340,10 @@ class lists_edit(delegate.page):
                 web.ctx.fullpath,
                 f"Permission denied to edit {list_key}.",
             )
-        
+
         # Intercept the delete button before trying to save the form
         i = web.input(_delete=None)
-        if i._delete == 'true' and list_id:
+        if i._delete == "true" and list_id:
             doc = web.ctx.site.get(list_key)
             if doc:
                 lists_delete.process_delete(doc, list_key)

@@ -1046,6 +1046,23 @@ msgid "View"
 msgstr ""
 
 #: databarEdit.html
+msgid "Delete Series"
+msgstr ""
+
+#: databarEdit.html
+msgid "Delete List"
+msgstr ""
+
+#: account/observations.html admin/inspect/memcache.html databarEdit.html
+#: design/popover.html
+msgid "Delete"
+msgstr ""
+
+#: databarEdit.html
+msgid "items"
+msgstr ""
+
+#: databarEdit.html
 msgid "View this page (exit Edit mode)"
 msgstr ""
 
@@ -3116,10 +3133,6 @@ msgstr ""
 
 #: account/notifications.html
 msgid "Yes! Please!"
-msgstr ""
-
-#: account/observations.html admin/inspect/memcache.html design/popover.html
-msgid "Delete"
 msgstr ""
 
 #: account/observations.html
