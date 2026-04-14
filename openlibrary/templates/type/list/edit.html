@@ -190,13 +190,16 @@ $jsdef lazy_thing_preview(key, render_fn_name):
 (function () {
     document.addEventListener('ol-delete-btn-confirm', function () {
         var form = document.getElementById('delete-item');
+        var input;
         if (!form) return;
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = '_delete';
+        input = form.querySelector('input[name="_delete"]');
+        if (!input) {
+            input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_delete';
+            form.appendChild(input);
+        }
         input.value = 'true';
-        form.appendChild(input);
-        form.submit();
     });
 }());
 </script>
