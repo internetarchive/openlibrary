@@ -15,7 +15,7 @@ $ can_save = True
 
 <div id="contentHead">
     $if not new:
-        $:macros.databarEdit(lst)
+        $:macros.databarEdit(lst, list_type=list_type)
     <h1>
         $if list_type == 'series':
             $(_("Create a series") if new else _("Edit Series"))
@@ -185,3 +185,18 @@ $jsdef lazy_thing_preview(key, render_fn_name):
         </div>
     </form>
 </div>
+
+<script>
+(function () {
+    document.addEventListener('ol-delete-btn-confirm', function () {
+        var form = document.getElementById('delete-item');
+        if (!form) return;
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = '_delete';
+        input.value = 'true';
+        form.appendChild(input);
+        form.submit();
+    });
+}());
+</script>

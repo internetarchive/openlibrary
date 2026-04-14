@@ -340,6 +340,15 @@ class lists_edit(delegate.page):
                 web.ctx.fullpath,
                 f"Permission denied to edit {list_key}.",
             )
+        
+        # Intercept the delete button before trying to save the form
+        i = web.input(_delete=None)
+        if i._delete == 'true' and list_id:
+            doc = web.ctx.site.get(list_key)
+            if doc:
+                lists_delete.process_delete(doc, list_key)
+            # Redirect the user to the main lists page after deleting
+            return safe_seeother(f"{user_key}/lists" if user_key else "/lists")
 
         list_record = ListRecord.from_input()
         if not list_record.name:
@@ -456,7 +465,7 @@ class lists_add(delegate.page):
 
 
 class lists_delete(delegate.page):
-    path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
+    path = r"((?:/people/[^/]+)?/(lists|series)/OL\d+L)/delete"
     encoding = "json"
 
     def POST(self, key):
@@ -466,7 +475,7 @@ class lists_delete(delegate.page):
         if not user.is_admin() and (user.key and not key.startswith(user.key)):
             raise web.unauthorized()
         doc = web.ctx.site.get(key)
-        if doc is None or doc.type.key != "/type/list":
+        if doc is None or doc.type.key not in ("/type/list", "/type/series"):
             raise web.notfound()
 
         try:
@@ -481,12 +490,30 @@ class lists_delete(delegate.page):
 
     @staticmethod
     def process_delete(doc, key):
+        # If this is a series, remove the series edge from all linked works first
+        if doc.type.key == "/type/series":
+            linked_works = cast(
+                list[Work],
+                web.ctx.site.get_many([seed.key for seed in doc.get_seeds()]),
+            )
+            work_dicts = []
+            for work in linked_works:
+                work.remove_series_edge(key)
+                work_dicts.append(cast(dict, work.dict()))
+
+            if work_dicts:
+                web.ctx.site.save_many(
+                    work_dicts,
+                    action="lists",
+                    comment="Removed linked series before series deletion.",
+                )
+
         # Deletes list preview from memcache, if it exists
         cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
         cache.memcache_cache.delete(cache_key)
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
-        web.ctx.site.save(delete_doc, action="lists", comment="Deleted list.")
+        web.ctx.site.save(delete_doc, action="lists", comment="Deleted list/series.")
 
 
 class lists_json(delegate.page):

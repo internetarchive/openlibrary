@@ -1,7 +1,26 @@
-$def with (page)
+$def with (page, list_type=None)
 
+$code:
+    if list_type == 'series':
+        delete_label = _('Delete Series')
+    elif list_type == 'list':
+        delete_label = _('Delete List')
+    else:
+        delete_label = _('Delete')
+        linked_label = _('items')
 
-<div id="editTools" class="edit">
+<div id="editTools" class="edit" style="align-items: center;">
+    $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian()):
+        <div>
+            <form method="post" id="delete-item" name="delete">
+                <ol-delete-btn
+                    label="$delete_label"
+                    item-name="$(page.name)"
+                    item-count="$(len(page.get_seeds()))"
+                    linked-label="$('works')"
+                ></ol-delete-btn>
+            </form>
+        </div>
     <div id="editHistory">
         <a class="linkButton larger" href="$page.key?m=history" title="$_('View the editing history of this page')">$_("History")</a>
     </div>
