@@ -156,8 +156,6 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
-      # Persist the docs wiki clone across container restarts
-      - ./docs/wiki:/openlibrary/docs/wiki
     depends_on:
       solr:
         condition: service_healthy
