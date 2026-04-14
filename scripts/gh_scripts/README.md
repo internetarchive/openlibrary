@@ -19,6 +19,18 @@ The script does a case-insensitive search for a `closes #` statement in the newl
 The first https://github.com/internetarchive/openlibrary/labels/Priority%3A%200, https://github.com/internetarchive/openlibrary/labels/Priority%3A%201, or https://github.com/internetarchive/openlibrary/labels/Priority%3A%202 label that is found on the issue is added to the PR.
 If a lead is assigned to the issue, and the lead is not also the PR's author, the lead will be assigned to the PR.  Similar to the priority labels, only one lead can be assigned to a PR.
 
+## `pr_changes_requested_labeler.mjs`
+This script updates PR labels when a review requests changes.
+
+### Usage:
+<pre><b>node pr_changes_requested_labeler.mjs</b> repository pr_number review_state</pre>
+`repository` the repository owner and name (ex. `internetarchive/openlibrary`)
+`pr_number`  the pull request's identification number
+`review_state` the submitted GitHub review state
+
+### Details:
+When the review state is `changes_requested`, the script adds the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Submitter%20Input label to the PR and removes the https://github.com/internetarchive/openlibrary/labels/Needs%3A%20Response label if it is present.
+
 ## `issue_comment_bot.py`
 
 This script fetches issues that have new comments from contributors within the past number of hours, then posts a message to the team in our Slack channel.
