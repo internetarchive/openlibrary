@@ -7,6 +7,7 @@ import web
 import openlibrary.core.lists.model as list_model
 from infogami.infobase import client
 from openlibrary.mocks.mock_infobase import MockSite
+from openlibrary.core.cache import _get_cache
 
 from .. import models
 
@@ -99,6 +100,7 @@ class TestModels:
 class TestGetAvatarUrl:
     def setup_method(self, method):
         web.ctx.site = MockSite()
+        _get_cache('memcache').memcache.flush_all()
 
     def test_returns_correct_avatar_url(self):
         web.ctx.site.save(
