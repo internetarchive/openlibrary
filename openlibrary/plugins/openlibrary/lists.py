@@ -740,9 +740,10 @@ class list_seeds(delegate.page):
             "remove": data["remove"],
         }
 
-        return lst._save(comment="Updated list.", action="edit-list-seeds", data=changeset_data)
+        # Distinguish between list and series seed updates for logging/audit purposes.
+        action = "edit-series-seeds" if "/series/" in key else "edit-list-seeds"
 
-
+        return lst._save(comment="Updated list.", action=action, data=changeset_data)
 class list_seed_yaml(list_seeds):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
