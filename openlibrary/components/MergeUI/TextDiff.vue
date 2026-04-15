@@ -33,7 +33,7 @@ export default {
             return fn[this.resolution](this.left, this.right);
         }
     }
-}
+};
 </script>
 
 <style scoped>

@@ -1,10 +1,11 @@
 """web.py application processors for Open Library."""
 
 import re
-from typing import cast
+from typing import ClassVar, cast
 
 import web
 
+from infogami import config
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
@@ -119,6 +120,58 @@ class PreferenceProcessor:
             if username != user.get_username() and not user.is_admin():
                 # Can only view preferences if page owner or admin
                 raise web.Forbidden
+
+        return handler()
+
+
+class CookieValidationProcessor:
+    """Processor: enforce human verification based on nginx signals and cookie integrity.
+
+    Checks cookie integrity before allowing requests through. Skipped on the
+    verification endpoint itself. Trigger conditions (evaluated in order):
+    1. Valid vf cookie — pass through immediately.
+    2. Valid session cookie — pass through immediately.
+    3. Spoofed vf or session cookie — purge the cookie, return 403 + X-Abuse header.
+    4. nginx sets X-OL-Verify-Human — redirect to /verify_human with next= URL.
+    """
+
+    EXEMPT_PATHS: ClassVar[set[str]] = {'/verify_human'}
+
+    @staticmethod
+    def _reject_spoofed_cookie(name: str) -> None:
+        """Purge a forged cookie and raise 403 with an abuse signal header."""
+        web.setcookie(name, '', expires=-1, secure=True, httponly=True)
+        web.header('X-Abuse', 'spoofed-cookie')
+        raise web.HTTPError('403 Forbidden')
+
+    def __call__(self, handler):
+        # We don't want to bounce identified crawlers that index us
+        from openlibrary.plugins.openlibrary.code import is_recognized_bot
+
+        if web.ctx.path not in self.EXEMPT_PATHS and not is_recognized_bot():
+            from openlibrary.accounts.model import (
+                verify_session_cookie,
+                verify_verification_cookie,
+            )
+
+            if cookie_value := web.cookies().get('vf'):
+                if verify_verification_cookie(cookie_value):
+                    return handler()
+                self._reject_spoofed_cookie('vf')
+
+            session_cookie_name = config.get('login_cookie_name', 'session')
+            if session_value := web.cookies().get(session_cookie_name):
+                if verify_session_cookie(session_value):
+                    return handler()
+                self._reject_spoofed_cookie(session_cookie_name)
+
+            if web.ctx.env.get('HTTP_X_OL_VERIFY_HUMAN') == '1':
+                next_url = (
+                    web.ctx.env.get('REQUEST_URI')
+                    or web.ctx.env.get('HTTP_X_REQUEST_URI')
+                    or web.ctx.path
+                )
+                raise web.seeother('/verify_human?next=' + web.urlquote(next_url))
 
         return handler()
 

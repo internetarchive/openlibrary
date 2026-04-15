@@ -83,4 +83,4 @@ export const checkInForm = `
     </span>
   </form>
 </div>
-`
+`;
