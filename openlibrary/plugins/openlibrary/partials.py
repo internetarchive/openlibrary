@@ -21,6 +21,7 @@ from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
 )
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
 
@@ -346,7 +347,10 @@ class LazyCarouselPartial(PartialDataHandler):
         self.params = params
 
     def generate(self) -> dict:
-        books = gather_lazy_carousel_data(
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
+        books = await gather_lazy_carousel_data_async(
             query=self.params.query,
             sort=self.params.sort,
             limit=self.params.limit,
@@ -399,9 +403,9 @@ class CarouselData(TypedDict):
     docs: list[dict]
 
 
-@public
 @cache.memoize(
     engine="memcache",
+    # TODO: move this into the cache decorator so it supports hashing like memcache_memoize does
     key=lambda query, sort, limit, has_fulltext_only, safe_mode: (
         "LazyCarouselData-"
         + md5(
@@ -411,7 +415,7 @@ class CarouselData(TypedDict):
     expires=300,
     cacheable=lambda key, value: "error" not in value,
 )
-def gather_lazy_carousel_data(
+async def gather_lazy_carousel_data_async(
     query: str,
     sort: str,
     limit: int,
@@ -444,6 +448,12 @@ def gather_lazy_carousel_data(
     return {
         'docs': results.get('docs', []),
     }
+
+
+gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async)
+
+# Expose this publicly for the template
+public(gather_lazy_carousel_data)
 
 
 def setup():
