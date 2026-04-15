@@ -8,8 +8,8 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint
 from openlibrary.core.models import Thing
 from openlibrary.plugins.upstream import utils
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.code import work_search
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import (
     find_olid_in_string,
     olid_to_key,
@@ -50,7 +50,7 @@ class autocomplete(delegate.page):
 
     def GET(self):
         return self.direct_get()
-    
+
     def make_solr_request(self, q, embedded_olid, limit, fq):
         if embedded_olid:
             solr_q = f'key:"{olid_to_key(embedded_olid)}"'
@@ -131,14 +131,12 @@ class works_autocomplete(autocomplete):
     def make_solr_request(self, q, embedded_olid, limit, fq):
         if embedded_olid:
             return super().make_solr_request(q, embedded_olid, limit, fq)
-        
-        from openlibrary.plugins.worksearch.code import work_search
 
-        query_dict = {'q':q}
+        query_dict = {'q': q}
 
         search_results = work_search(
-            query=query_dict, 
-            limit=limit, 
+            query=query_dict,
+            limit=limit,
             fields=self.fl,
             facet=False,
             request_label='AUTOCOMPLETE_SEARCH',
