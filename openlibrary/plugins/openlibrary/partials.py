@@ -16,7 +16,11 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
-from openlibrary.plugins.worksearch.code import do_search_async, work_search
+from openlibrary.plugins.worksearch.code import (
+    do_search_async,
+    work_search,
+    work_search_async,
+)
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
@@ -437,7 +441,7 @@ async def gather_lazy_carousel_data_async(
     if has_fulltext_only:
         search_params['has_fulltext'] = 'true'
 
-    results = work_search(
+    results = await work_search_async(
         search_params,
         sort=sort,
         fields=",".join(_CAROUSEL_FIELDS),
