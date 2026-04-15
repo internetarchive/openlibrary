@@ -2,7 +2,7 @@ import 'jquery';
 import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
-import initServiceWorker from './service-worker-init.js'
+import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
@@ -24,7 +24,7 @@ initServiceWorker();
 initAnalytics();
 
 // Initialise some things
-jQuery(function () {
+jQuery(function() {
     // conditionally load polyfill for <details> tags (IE11)
     // See http://diveintohtml5.info/everything.html#details
     if (!('open' in document.createElement('details'))) {
@@ -157,7 +157,7 @@ jQuery(function () {
     }
 
     // conditionally load for type changing input
-    const typeChanger = document.getElementById('type.key')
+    const typeChanger = document.getElementById('type.key');
     if (typeChanger) {
         import(/* webpackChunkName: "type-changer" */ './type_changer.js')
             .then(module => module.initTypeChanger(typeChanger));
@@ -197,21 +197,21 @@ jQuery(function () {
     }
 
     // Enable any carousels in the page
-    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced')
+    const carouselElements = document.querySelectorAll('.carousel--progressively-enhanced');
     if (carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => {
-                module.initialzeCarousels(carouselElements)
-            })
+                module.initialzeCarousels(carouselElements);
+            });
     }
     if ($('script[type="text/json+graph"]').length > 0) {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
 
-    const readingLogCharts = document.querySelector('.readinglog-charts')
+    const readingLogCharts = document.querySelector('.readinglog-charts');
     if (readingLogCharts) {
-        const readingLogConfig = JSON.parse(readingLogCharts.dataset.config)
+        const readingLogConfig = JSON.parse(readingLogCharts.dataset.config);
         import(/* webpackChunkName: "readinglog-stats" */ './readinglog_stats')
             .then(module => module.init(readingLogConfig));
     }
@@ -230,7 +230,7 @@ jQuery(function () {
     }
 
     // Disable data export buttons on form submit
-    const patronImportForms = document.querySelectorAll('.patron-export-form')
+    const patronImportForms = document.querySelectorAll('.patron-export-form');
     if (patronImportForms.length) {
         import(/* webpackChunkName: "patron-exports" */ './patron_exports')
             .then(module => module.initPatronExportForms(patronImportForms));
@@ -253,7 +253,7 @@ jQuery(function () {
                     module.addNotesPageButtonListeners();
                 }
                 if ($shareModalLinks.length) {
-                    module.initShareModal($shareModalLinks)
+                    module.initShareModal($shareModalLinks);
                 }
             });
     }
@@ -288,13 +288,13 @@ jQuery(function () {
     }
 
     if (document.getElementById('autofill-dev-credentials')) {
-        document.getElementById('username').value = 'openlibrary@example.com'
-        document.getElementById('password').value = 'admin123'
-        document.getElementById('remember').checked = true
+        document.getElementById('username').value = 'openlibrary@example.com';
+        document.getElementById('password').value = 'admin123';
+        document.getElementById('remember').checked = true;
     }
-    const anonymizationButton = document.querySelector('.account-anonymization-button')
-    const adminLinks = document.getElementById('adminLinks')
-    const confirmButtons = document.querySelectorAll('.do-confirm')
+    const anonymizationButton = document.querySelector('.account-anonymization-button');
+    const adminLinks = document.getElementById('adminLinks');
+    const confirmButtons = document.querySelectorAll('.do-confirm');
     if (adminLinks || anonymizationButton || confirmButtons.length) {
         import(/* webpackChunkName: "admin" */ './admin')
             .then(module => {
@@ -315,7 +315,7 @@ jQuery(function () {
             .then((module) => module.initOfflineBanner());
     }
 
-    const searchFacets = document.getElementById('searchFacets')
+    const searchFacets = document.getElementById('searchFacets');
     if (searchFacets) {
         import(/* webpackChunkName: "search" */ './search')
             .then((module) => module.initSearchFacets(searchFacets));
@@ -330,20 +330,20 @@ jQuery(function () {
                 // Handle pencil clicks
                 document.querySelectorAll('.edit-subject-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        e.preventDefault()
-                        const workOlid = btn.dataset.workOlid
+                        e.preventDefault();
+                        const workOlid = btn.dataset.workOlid;
                         if (!window.ILE.selectionManager.selectedItems.work.includes(workOlid)) {
-                            window.ILE.selectionManager.addSelectedItem(workOlid)
-                            window.ILE.selectionManager.updateToolbar()
+                            window.ILE.selectionManager.addSelectedItem(workOlid);
+                            window.ILE.selectionManager.updateToolbar();
                         }
-                        window.ILE.updateAndShowBulkTagger([workOlid], true)
-                    })
-                })
-            })
+                        window.ILE.updateAndShowBulkTagger([workOlid], true);
+                    });
+                });
+            });
         // Import ile then the datatable to apply clickable classes to all listed editions
         if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
             import(/* webpackChunkName: "editions-table" */ './editions-table')
-                .then(module => module.initEditionsTable())
+                .then(module => module.initEditionsTable());
         }
     }
     // conditionally load functionality based on what's in the page
@@ -361,74 +361,74 @@ jQuery(function () {
         $('#cboxSlideshow').attr({'aria-label': 'Slideshow button', 'aria-hidden': 'true'});
     }
 
-    const droppers = document.querySelectorAll('.dropper')
-    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper')
+    const droppers = document.querySelectorAll('.dropper');
+    const genericDroppers = document.querySelectorAll('.generic-dropper-wrapper');
     if (droppers.length || genericDroppers.length) {
         import(/* webpackChunkName: "droppers" */ './dropper')
             .then((module) => {
-                module.initDroppers(droppers)
-                module.initGenericDroppers(genericDroppers)
-            })
+                module.initDroppers(droppers);
+                module.initGenericDroppers(genericDroppers);
+            });
     }
 
     // My Books Droppers (includes New List Form and Reading Check-Ins):
-    const myBooksDroppers = document.querySelectorAll('.my-books-dropper')
+    const myBooksDroppers = document.querySelectorAll('.my-books-dropper');
     if (myBooksDroppers.length) {
-        const actionableListShowcases = document.querySelectorAll('.actionable-item')
+        const actionableListShowcases = document.querySelectorAll('.actionable-item');
 
         import(/* webpackChunkName: "my-books" */ './my-books')
             .then((module) => {
-                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases)
-            })
+                module.initMyBooksAffordances(myBooksDroppers, actionableListShowcases);
+            });
     }
 
     // TODO: Make these selectors a consistent interface
     const $dialogs = $('.dialog--open,.dialog--close,#noMaster,#confirmMerge,#leave-waitinglist-dialog,#bookPreview');
     if ($dialogs.length) {
         import(/* webpackChunkName: "dialog" */ './dialog')
-            .then(module => module.initDialogs())
+            .then(module => module.initDialogs());
     }
 
     const nativeDialogs = document.querySelectorAll('.native-dialog');
     if (nativeDialogs.length) {
         import(/* webpackChunkName: "native-dialog" */ './native-dialog')
-            .then(module => module.initDialogs(nativeDialogs))
+            .then(module => module.initDialogs(nativeDialogs));
     }
 
     // Yearly reading goal functionality
-    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link')
-    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link')
-    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button')
-    const yearElements = document.querySelectorAll('.use-local-year')
+    const setGoalLinks = document.querySelectorAll('.set-reading-goal-link');
+    const goalEditLinks = document.querySelectorAll('.edit-reading-goal-link');
+    const goalSubmitButtons = document.querySelectorAll('.reading-goal-submit-button');
+    const yearElements = document.querySelectorAll('.use-local-year');
     if (setGoalLinks.length || goalEditLinks.length || goalSubmitButtons.length || yearElements.length) {
         import(/* webpackChunkName: "reading-goals" */ './reading-goals')
             .then((module) => {
                 if (setGoalLinks.length) {
-                    module.initYearlyGoalPrompt(setGoalLinks)
+                    module.initYearlyGoalPrompt(setGoalLinks);
                 }
                 if (goalEditLinks.length) {
-                    module.initGoalEditLinks(goalEditLinks)
+                    module.initGoalEditLinks(goalEditLinks);
                 }
                 if (goalSubmitButtons.length) {
-                    module.initGoalSubmitButtons(goalSubmitButtons)
+                    module.initGoalSubmitButtons(goalSubmitButtons);
                 }
                 if (yearElements.length) {
-                    module.displayLocalYear(yearElements)
+                    module.displayLocalYear(yearElements);
                 }
-            })
+            });
     }
 
-    $(document).on('click', '.slide-toggle', function () {
+    $(document).on('click', '.slide-toggle', function() {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
 
-    $('#wikiselect').on('focus', function(){$(this).trigger('select');})
+    $('#wikiselect').on('focus', function(){$(this).trigger('select');});
 
-    $('.hamburger-component .mask-menu').on('click', function () {
+    $('.hamburger-component .mask-menu').on('click', function() {
         $('details[open]').not(this).removeAttr('open');
     });
 
-    $('.header-dropdown').on('keydown', function (event) {
+    $('.header-dropdown').on('keydown', function(event) {
         if (event.key === 'Escape') {
             $('.header-dropdown > details[open]').removeAttr('open');
         }
@@ -441,7 +441,7 @@ jQuery(function () {
     });
 
     // Open one dropdown at a time.
-    $(document).on('click', function (event) {
+    $(document).on('click', function(event) {
         const $openMenus = $('.header-dropdown details[open]').parents('.header-dropdown');
         $openMenus
             .filter((_, menu) => !$(event.target).closest(menu).length)
@@ -450,67 +450,67 @@ jQuery(function () {
     });
 
     // Prevent default star rating behavior:
-    const ratingForms = document.querySelectorAll('.star-rating-form')
+    const ratingForms = document.querySelectorAll('.star-rating-form');
     if (ratingForms.length) {
         import(/* webpackChunkName: "star-ratings" */'./star-ratings')
             .then((module) => module.initRatingHandlers(ratingForms));
     }
 
     // Book page navbar initialization:
-    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper')
+    const navbarWrappers = document.querySelectorAll('.nav-bar-wrapper');
     if (navbarWrappers.length) {
         // Add JS for book page navbar:
         import(/* webpackChunkName: "nav-bar" */ './edition-nav-bar')
             .then((module) => {
-                module.initNavbars(navbarWrappers)
+                module.initNavbars(navbarWrappers);
             });
         // Add sticky title component animations to desktop views:
         import(/* webpackChunkName: "compact-title" */ './compact-title')
             .then((module) => {
-                const compactTitle = document.querySelector('.compact-title')
-                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'))
-                module.initCompactTitle(desktopNavbar, compactTitle)
-            })
+                const compactTitle = document.querySelector('.compact-title');
+                const desktopNavbar = [...navbarWrappers].find(elem => elem.classList.contains('desktop-only'));
+                module.initCompactTitle(desktopNavbar, compactTitle);
+            });
     }
 
     // Add functionality for librarian merge request table:
-    const librarianQueue = document.querySelector('.librarian-queue-wrapper')
+    const librarianQueue = document.querySelector('.librarian-queue-wrapper');
 
     if (librarianQueue) {
         import(/* webpackChunkName: "merge-request-table" */'./merge-request-table')
             .then(module => {
-                module.initLibrarianQueue(librarianQueue)
-            })
+                module.initLibrarianQueue(librarianQueue);
+            });
     }
 
     // Add functionality to the team page for filtering members:
-    const teamCards = document.querySelector('.teamCards_container')
+    const teamCards = document.querySelector('.teamCards_container');
     if (teamCards) {
         import(/* webpackChunkName "team" */ './team')
             .then(module => {
                 module.initTeamFilter();
-            })
+            });
     }
 
     // Add new providers in edit edition view:
-    const addProviderRowLink = document.querySelector('#add-new-provider-row')
+    const addProviderRowLink = document.querySelector('#add-new-provider-row');
     if (addProviderRowLink) {
         import(/* webpackChunkName "add-provider-link" */ './add_provider')
-            .then(module => module.initAddProviderRowLink(addProviderRowLink))
+            .then(module => module.initAddProviderRowLink(addProviderRowLink));
     }
 
 
     // Allow banner announcements to be dismissed by logged-in users:
-    const banners = document.querySelectorAll('.page-banner--dismissable')
+    const banners = document.querySelectorAll('.page-banner--dismissable');
     if (banners.length) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
-            .then(module => module.initDismissibleBanners(banners))
+            .then(module => module.initDismissibleBanners(banners));
     }
 
-    const returnForms = document.querySelectorAll('.return-form')
+    const returnForms = document.querySelectorAll('.return-form');
     if (returnForms.length) {
         import(/* webpackChunkName: "return-form" */ './return-form')
-            .then(module => module.initReturnForms(returnForms))
+            .then(module => module.initReturnForms(returnForms));
     }
 
     const crumbs = document.querySelectorAll('.crumb select');
@@ -538,59 +538,59 @@ jQuery(function () {
     }
 
     // Password visibility toggle:
-    const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle')
+    const passwordVisibilityToggle = document.querySelector('.password-visibility-toggle');
     if (passwordVisibilityToggle) {
         import(/* webpackChunkName: "password-visibility-toggle" */ './password-toggle')
-            .then(module => module.initPasswordToggling(passwordVisibilityToggle))
+            .then(module => module.initPasswordToggling(passwordVisibilityToggle));
     }
 
     // Affiliate links:
-    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section')
+    const affiliateLinksSection = document.querySelectorAll('.affiliate-links-section');
     if (affiliateLinksSection.length) {
         import(/* webpackChunkName: "affiliate-links" */ './affiliate-links')
-            .then(module => module.initAffiliateLinks(affiliateLinksSection))
+            .then(module => module.initAffiliateLinks(affiliateLinksSection));
     }
 
     // Fulltext search box:
-    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion')
+    const  fulltextSearchSuggestion = document.querySelector('#fulltext-search-suggestion');
     if (fulltextSearchSuggestion) {
         import(/* webpackChunkName: "fulltext-search-suggestion" */ './fulltext-search-suggestion')
-            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion))
+            .then(module => module.initFulltextSearchSuggestion(fulltextSearchSuggestion));
     }
 
     // Go back redirect:
-    const backLinks = document.querySelectorAll('.go-back-link')
+    const backLinks = document.querySelectorAll('.go-back-link');
     if (backLinks.length) {
         import (/* webpackChunkName: "go-back-links" */ './go-back-links')
-            .then(module => module.initGoBackLinks(backLinks))
+            .then(module => module.initGoBackLinks(backLinks));
     }
 
     // Lazy-load book page lists section
-    const listSection = document.querySelector('.lists-section')
+    const listSection = document.querySelector('.lists-section');
     if (listSection) {
         import(/* webpackChunkName: "book-page-lists" */ './book-page-lists')
-            .then(module => module.initListsSection(listSection))
+            .then(module => module.initListsSection(listSection));
     }
 
     // Initialize follow forms lazily
     const followForms = document.querySelectorAll('.follow-form');
     if (followForms.length) {
         import(/* webpackChunkName: "following" */ './following')
-            .then(module => module.initAsyncFollowing(followForms))
+            .then(module => module.initAsyncFollowing(followForms));
     }
 
     // Generalized carousel lazy-loading
-    const lazyCarousels = document.querySelectorAll('.lazy-carousel')
+    const lazyCarousels = document.querySelectorAll('.lazy-carousel');
     if (lazyCarousels.length) {
         import(/* webpackChunkName: "lazy-carousels" */ './lazy-carousel')
-            .then(module => module.initLazyCarousel(lazyCarousels))
+            .then(module => module.initLazyCarousel(lazyCarousels));
     }
 
     // Librarian Dashboard
-    const librarianDashboard = document.querySelector('.librarian-dashboard')
+    const librarianDashboard = document.querySelector('.librarian-dashboard');
     if (librarianDashboard) {
         import(/* webpackChunkName: "librarian-dashboard" */ './librarian-dashboard')
-            .then(module => module.initLibrarianDashboard(librarianDashboard))
+            .then(module => module.initLibrarianDashboard(librarianDashboard));
     }
 
     // List books
@@ -600,9 +600,9 @@ jQuery(function () {
     }
 
     // Stats page login counts
-    const monthlyLoginStats = document.querySelector('.monthly-login-counts')
+    const monthlyLoginStats = document.querySelector('.monthly-login-counts');
     if (monthlyLoginStats) {
         import(/* webpackChunkName: "stats" */ './stats')
-            .then(module => module.initUniqueLoginCounts(monthlyLoginStats))
+            .then(module => module.initUniqueLoginCounts(monthlyLoginStats));
     }
 });

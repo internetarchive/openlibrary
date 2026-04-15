@@ -38,7 +38,7 @@ export function removeChildren(...elements) {
     for (const elem of elements) {
         if (elem) {
             while (elem.firstChild) {
-                elem.removeChild(elem.firstChild)
+                elem.removeChild(elem.firstChild);
             }
         }
     }

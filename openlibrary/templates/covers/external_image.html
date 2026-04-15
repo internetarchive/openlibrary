@@ -9,7 +9,7 @@ $if set(image_urls) - existing_urls:
             $for url in image_urls:
                 $if url and url not in existing_urls:
                     <div class="input">
-                        <a href="$url" target="_blank">
+                        <a href="$url" target="_blank" rel="noopener noreferrer">
                             <img class="ol-cover-form--external_image" src="$url" style="height: 200px" alt="" />
                         </a>
                         <button type="submit" class="cta-btn cta-btn--vanilla" name="url" value="$url">$_("Upload Image")</button>

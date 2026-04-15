@@ -27,33 +27,33 @@ export default class TableHeader {
          *
          * @param {NodeList<HTMLElement>}
          */
-        this.dropMenuButtons = tableHeader.querySelectorAll('.mr-dropdown')
+        this.dropMenuButtons = tableHeader.querySelectorAll('.mr-dropdown');
         /**
          * References each drop-down filter option menu.
          *
          * @param {NodeList<HTMLElement>}
          */
-        this.dropMenus = tableHeader.querySelectorAll('.mr-dropdown-menu')
+        this.dropMenus = tableHeader.querySelectorAll('.mr-dropdown-menu');
         /**
          * References each drop-down menu "X" affordance, which closes
          * the appropriate drop-down menu.
          *
          * @param{NodeList<HTMLElement>}
          */
-        this.closeButtons = tableHeader.querySelectorAll('.dropdown-close')
+        this.closeButtons = tableHeader.querySelectorAll('.dropdown-close');
         /**
          * References each text input filter.
          *
          * @param{NodeList<HTMLElement>}
          */
-        this.searchInputs = tableHeader.querySelectorAll('.filter')
+        this.searchInputs = tableHeader.querySelectorAll('.filter');
     }
 
     /**
      * Hydrates the table header affordances.
      */
     initialize() {
-        this.initFilters()
+        this.initFilters();
     }
 
     /**
@@ -66,8 +66,8 @@ export default class TableHeader {
         // prevent closing of menu on bubbling unless click menuButton itself
         if (event.target.id === menuButtonId) {
             // close other open menus, then toggle selected menu
-            this.closeOtherMenus(menuButtonId)
-            event.target.firstElementChild.classList.toggle('hidden')
+            this.closeOtherMenus(menuButtonId);
+            event.target.firstElementChild.classList.toggle('hidden');
         }
     }
 
@@ -79,9 +79,9 @@ export default class TableHeader {
     closeOtherMenus(menuButtonId) {
         this.dropMenuButtons.forEach((menuButton) => {
             if (menuButton.id !== menuButtonId) {
-                menuButton.firstElementChild.classList.add('hidden')
+                menuButton.firstElementChild.classList.add('hidden');
             }
-        })
+        });
     }
 
     /**
@@ -90,13 +90,13 @@ export default class TableHeader {
      * @param {Event} event
      */
     filterMenuItems(event) {
-        const input = document.getElementById(event.target.id)
-        const filter = input.value.toUpperCase()
-        const menu = input.closest('.mr-dropdown-menu')
-        const items = menu.getElementsByClassName('dropdown-item')
+        const input = document.getElementById(event.target.id);
+        const filter = input.value.toUpperCase();
+        const menu = input.closest('.mr-dropdown-menu');
+        const items = menu.getElementsByClassName('dropdown-item');
         // skip first item in menu
         for (let i=1; i < items.length; i++) {
-            const text = items[i].textContent
+            const text = items[i].textContent;
             items[i].classList.toggle('hidden', text.toUpperCase().indexOf(filter) === -1);
         }
     }
@@ -109,11 +109,11 @@ export default class TableHeader {
      */
     closeMenusIfClickOutside(event) {
         const menusClicked = Array.from(this.dropMenuButtons).filter((menuButton) => {
-            return menuButton.contains(event.target)
-        })
+            return menuButton.contains(event.target);
+        });
         // want to preserve clicking in a menu, i.e. when filtering for users
         if (!menusClicked.length) {
-            this.dropMenus.forEach((menu) => menu.classList.add('hidden'))
+            this.dropMenus.forEach((menu) => menu.classList.add('hidden'));
         }
     }
 
@@ -124,16 +124,16 @@ export default class TableHeader {
     initFilters() {
         this.dropMenuButtons.forEach((menuButton) => {
             menuButton.addEventListener('click', (event) => {
-                this.toggleAMenuWhileClosingOthers(event, menuButton.id)
-            })
-        })
+                this.toggleAMenuWhileClosingOthers(event, menuButton.id);
+            });
+        });
         this.closeButtons.forEach((button) => {
             button.addEventListener('click', (event) => {
-                event.target.closest('.mr-dropdown-menu').classList.toggle('hidden')
-            })
-        })
+                event.target.closest('.mr-dropdown-menu').classList.toggle('hidden');
+            });
+        });
         this.searchInputs.forEach((input) => {
-            input.addEventListener('keyup', (event) => this.filterMenuItems(event))
-        })
+            input.addEventListener('keyup', (event) => this.filterMenuItems(event));
+        });
     }
 }

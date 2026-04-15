@@ -35,7 +35,7 @@ export class Dropper {
          *
          * @member {HTMLElement}
          */
-        this.dropper = dropper
+        this.dropper = dropper;
 
         /**
          * jQuery object containing the root element of the dropper.
@@ -46,7 +46,7 @@ export class Dropper {
          *
          * @member {JQuery<HTMLElement>}
          */
-        this.$dropper = $(dropper)
+        this.$dropper = $(dropper);
 
         /**
          * Reference to the affordance that, when clicked, toggles
@@ -54,14 +54,14 @@ export class Dropper {
          *
          * @member {HTMLElement}
          */
-        this.dropClick = dropper.querySelector('.generic-dropper__dropclick')
+        this.dropClick = dropper.querySelector('.generic-dropper__dropclick');
 
         /**
          * Tracks the current "Open" state of this dropper.
          *
          * @member {boolean}
          */
-        this.isDropperOpen = dropper.classList.contains('generic-dropper-wrapper--active')
+        this.isDropperOpen = dropper.classList.contains('generic-dropper-wrapper--active');
 
         /**
          * Tracks whether this dropper is disabled.
@@ -70,7 +70,7 @@ export class Dropper {
          *
          * @member {boolean}
          */
-        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled')
+        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled');
     }
 
     /**
@@ -78,8 +78,8 @@ export class Dropper {
      */
     initialize() {
         this.dropClick.addEventListener('click', () => {
-            this.toggleDropper()
-        })
+            this.toggleDropper();
+        });
     }
 
     /**
@@ -120,14 +120,14 @@ export class Dropper {
             this.onDisabledClick();
         } else {
             this.$dropper.find('.generic-dropper__dropdown').slideToggle(25);
-            this.$dropper.find('.arrow').toggleClass('up')
-            this.$dropper.toggleClass('generic-dropper-wrapper--active')
-            this.isDropperOpen = !this.isDropperOpen
+            this.$dropper.find('.arrow').toggleClass('up');
+            this.$dropper.toggleClass('generic-dropper-wrapper--active');
+            this.isDropperOpen = !this.isDropperOpen;
 
             if (this.isDropperOpen) {
-                this.onOpen()
+                this.onOpen();
             } else {
-                this.onClose()
+                this.onClose();
             }
         }
     }
@@ -144,12 +144,12 @@ export class Dropper {
         if (this.isDropperDisabled) {
             this.onDisabledClick();
         } else {
-            this.$dropper.find('.generic-dropper__dropdown').slideUp(25)
+            this.$dropper.find('.generic-dropper__dropdown').slideUp(25);
             this.$dropper.find('.arrow').removeClass('up');
-            this.$dropper.removeClass('generic-dropper-wrapper--active')
-            this.isDropperOpen = false
+            this.$dropper.removeClass('generic-dropper-wrapper--active');
+            this.isDropperOpen = false;
 
-            this.onClose()
+            this.onClose();
         }
     }
 }
