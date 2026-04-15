@@ -97,15 +97,14 @@ class TestModels:
         user.save_preferences({"safe_mode": "yes"})
         assert user.get_safe_mode() == "yes"
 
+
 class TestGetAvatarUrl:
     def setup_method(self, method):
         web.ctx.site = MockSite()
         _get_cache('memcache').memcache.flush_all()
 
     def test_returns_correct_avatar_url(self):
-        web.ctx.site.save(
-            {"key": "/people/testuser", "type": {"key": "/type/user"}}
-        )
+        web.ctx.site.save({"key": "/people/testuser", "type": {"key": "/type/user"}})
         web.ctx.site.store["account/testuser"] = {
             "internetarchive_itemname": "@testuser-archive",
         }
@@ -113,9 +112,7 @@ class TestGetAvatarUrl:
         assert url == "https://archive.org/services/img/@testuser-archive"
 
     def test_caches_result_for_same_username(self, monkeypatch):
-        web.ctx.site.save(
-            {"key": "/people/cachetest_user", "type": {"key": "/type/user"}}
-        )
+        web.ctx.site.save({"key": "/people/cachetest_user", "type": {"key": "/type/user"}})
         web.ctx.site.store["account/cachetest_user"] = {
             "internetarchive_itemname": "@cachetest_user-archive",
         }
@@ -134,9 +131,7 @@ class TestGetAvatarUrl:
 
     def test_caches_independently_per_username(self):
         for username in ("alice", "bob"):
-            web.ctx.site.save(
-                {"key": f"/people/{username}", "type": {"key": "/type/user"}}
-            )
+            web.ctx.site.save({"key": f"/people/{username}", "type": {"key": "/type/user"}})
             web.ctx.site.store[f"account/{username}"] = {
                 "internetarchive_itemname": f"@{username}-archive",
             }
