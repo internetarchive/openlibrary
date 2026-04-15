@@ -13,39 +13,39 @@ export default class EdtionNavBar {
          * Reference to the parent element of the navbar.
          * @type {HTMLElement}
          */
-        this.navbarWrapper = navbarWrapper
+        this.navbarWrapper = navbarWrapper;
         /**
          * The navbar
          * @type {HTMLElement}
          */
-        this.navbarElem = navbarWrapper.querySelector('.work-menu')
+        this.navbarElem = navbarWrapper.querySelector('.work-menu');
         /**
          * The mobile-only navigation arrow. Not guaranteed to exist.
          * @type {HTMLElement|null}
          */
-        this.navArrowLeft = navbarWrapper.querySelector('.nav-arrow-left')
+        this.navArrowLeft = navbarWrapper.querySelector('.nav-arrow-left');
         /**
          * The mobile-only navigation arrow. Not guaranteed to exist.
          * @type {HTMLElement|null}
          */
-        this.navArrowRight = navbarWrapper.querySelector('.nav-arrow-right')
+        this.navArrowRight = navbarWrapper.querySelector('.nav-arrow-right');
         /**
          * References each nav item in this navbar.
          * @type {Array<HTMLLIElement>}
          */
-        this.navItems = Array.from(this.navbarElem.querySelectorAll('li'))
+        this.navItems = Array.from(this.navbarElem.querySelectorAll('li'));
         /**
          * Index of the currently selected nav item.
          * @type {number}
          */
-        this.selectedIndex = 0
+        this.selectedIndex = 0;
         /**
          * The nav items' target anchor elements.
          * @type {HTMLAnchorElement}
          */
-        this.targetAnchors = []
+        this.targetAnchors = [];
 
-        this.initialize()
+        this.initialize();
     }
 
     /**
@@ -55,16 +55,16 @@ export default class EdtionNavBar {
         // Add click listeners to navbar items:
         for (let i = 0; i < this.navItems.length; ++i) {
             this.navItems[i].addEventListener('click', () => {
-                this.selectedIndex = i
-                this.selectElement(this.navItems[i])
-            })
+                this.selectedIndex = i;
+                this.selectElement(this.navItems[i]);
+            });
 
             // Add this nav item's target anchor to array:
-            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.substring(1)))
+            this.targetAnchors.push(document.getElementById(this.navItems[i].children[0].hash.substring(1)));
 
             // Set selectedIndex to the correct value:
             if (this.navItems[i].classList.contains('selected')) {
-                this.selectedIndex = i
+                this.selectedIndex = i;
             }
         }
 
@@ -72,26 +72,26 @@ export default class EdtionNavBar {
         if (this.navArrowLeft) {
             this.navArrowLeft.addEventListener('click', () => {
                 if (this.selectedIndex > 0) {
-                    --this.selectedIndex
-                    this.navItems[this.selectedIndex].children[0].click()
+                    --this.selectedIndex;
+                    this.navItems[this.selectedIndex].children[0].click();
                 }
-            })
+            });
         }
 
         if (this.navArrowRight) {
             this.navArrowRight.addEventListener('click', () => {
                 if (this.selectedIndex < this.navItems.length - 1) {
                     // Simulate click on the next nav item:
-                    ++this.selectedIndex
-                    this.navItems[this.selectedIndex].children[0].click()
+                    ++this.selectedIndex;
+                    this.navItems[this.selectedIndex].children[0].click();
                 }
-            })
+            });
         }
 
         // Add scroll listener for position-aware nav item selection
         document.addEventListener('scroll', () => {
-            this.updateSelected()
-        })
+            this.updateSelected();
+        });
     }
 
     /**
@@ -99,16 +99,16 @@ export default class EdtionNavBar {
      * nav item.
      */
     updateSelected() {
-        const navbarHeight = this.navbarWrapper.getBoundingClientRect().height
+        const navbarHeight = this.navbarWrapper.getBoundingClientRect().height;
         if (navbarHeight > 0) {
-            let i = this.navItems.length
+            let i = this.navItems.length;
             // 10 is for a little bit of padding
             while (--i > 0 && this.navbarWrapper.offsetTop + navbarHeight < (this.targetAnchors[i].offsetTop - 10)) {
                 // Do nothing
             }
             if (i !== this.selectedIndex) {
-                this.selectedIndex = i
-                this.selectElement(this.navItems[i])
+                this.selectedIndex = i;
+                this.selectElement(this.navItems[i]);
             }
         }
     }
@@ -126,7 +126,7 @@ export default class EdtionNavBar {
         this.navbarElem.scrollTo({
             left: selectedItem.offsetLeft - (this.navbarElem.clientWidth - selectedItem.offsetWidth) / 2,
             behavior: 'instant'
-        })
+        });
     }
 
     /**
@@ -139,9 +139,9 @@ export default class EdtionNavBar {
      */
     selectElement(selectedElem) {
         for (const li of this.navItems) {
-            li.classList.remove('selected')
+            li.classList.remove('selected');
         }
-        selectedElem.classList.add('selected')
-        this.scrollNavbar(selectedElem)
+        selectedElem.classList.add('selected');
+        this.scrollNavbar(selectedElem);
     }
 }

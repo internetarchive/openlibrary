@@ -1,6 +1,6 @@
 function createListFormMarkup(isFilled) {
-    const listName = isFilled ? 'My New List' : ''
-    const listDescription = isFilled ? 'A list for all of my books' : ''
+    const listName = isFilled ? 'My New List' : '';
+    const listDescription = isFilled ? 'A list for all of my books' : '';
 
     return `
       <form method="post" class="floatform" name="new-list" id="new-list">
@@ -28,15 +28,15 @@ function createListFormMarkup(isFilled) {
           </div>
       </div>
       </form>
-    `
+    `;
 }
 
-export const listCreationForm = createListFormMarkup(false)
-export const filledListCreationForm = createListFormMarkup(true)
+export const listCreationForm = createListFormMarkup(false);
+export const filledListCreationForm = createListFormMarkup(true);
 
-export const showcaseI18nInput = '<input type="hidden" name="list-i18n-strings" value="{&quot;cover_of&quot;: &quot;Cover of: &quot;, &quot;see_this_list&quot;: &quot;See this list&quot;, &quot;remove_from_list&quot;: &quot;Remove from your list?&quot;, &quot;from&quot;: &quot;from&quot;, &quot;you&quot;: &quot;You&quot;}"></input>'
+export const showcaseI18nInput = '<input type="hidden" name="list-i18n-strings" value="{&quot;cover_of&quot;: &quot;Cover of: &quot;, &quot;see_this_list&quot;: &quot;See this list&quot;, &quot;remove_from_list&quot;: &quot;Remove from your list?&quot;, &quot;from&quot;: &quot;from&quot;, &quot;you&quot;: &quot;You&quot;}"></input>';
 
-const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
+const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png';
 
 /**
  * @typedef {Object} ShowcaseDetails
@@ -52,10 +52,10 @@ const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
  * @param {Array<ShowcaseDetails>} showcaseData
  */
 function createShowcaseMarkup(isActiveShowcase, showcaseData) {
-    const listId = isActiveShowcase ? 'already-lists' : 'list-lists'
-    const listClasses = 'listLists'.concat(isActiveShowcase ? ' already-lists' : '')
+    const listId = isActiveShowcase ? 'already-lists' : 'list-lists';
+    const listClasses = 'listLists'.concat(isActiveShowcase ? ' already-lists' : '');
 
-    let showcaseMarkup = ''
+    let showcaseMarkup = '';
 
     for (const data of showcaseData) {
         showcaseMarkup += `<li class="actionable-item">
@@ -74,13 +74,13 @@ function createShowcaseMarkup(isActiveShowcase, showcaseData) {
                 <span class="owner">from <a href="${data.listOwner}">You</a></span>
             </span>
         </li>
-        `
+        `;
     }
 
     return `<ul id="${listId}" class="${listClasses}">
             ${showcaseMarkup}
         </ul>
-        `
+        `;
 }
 
 export const showcaseDetailsData = [
@@ -119,14 +119,12 @@ export const showcaseDetailsData = [
         listOwner: '/people/openlibrary',
         seedType: 'subject'
     },
-]
+];
 
-export const multipleShowcasesOnPage = createShowcaseMarkup(true, [showcaseDetailsData[0], showcaseDetailsData[2]]) + createShowcaseMarkup(false, [showcaseDetailsData[0], showcaseDetailsData[1]])
-export const activeListShowcase = createShowcaseMarkup(true, [showcaseDetailsData[0]])
-export const listsSectionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]])
-export const subjectShowcase = createShowcaseMarkup(false, [showcaseDetailsData[4]])
-export const authorShowcase = createShowcaseMarkup(false, [showcaseDetailsData[3]])
-export const workShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]])
-export const editionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[1]])
-
-
+export const multipleShowcasesOnPage = createShowcaseMarkup(true, [showcaseDetailsData[0], showcaseDetailsData[2]]) + createShowcaseMarkup(false, [showcaseDetailsData[0], showcaseDetailsData[1]]);
+export const activeListShowcase = createShowcaseMarkup(true, [showcaseDetailsData[0]]);
+export const listsSectionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]]);
+export const subjectShowcase = createShowcaseMarkup(false, [showcaseDetailsData[4]]);
+export const authorShowcase = createShowcaseMarkup(false, [showcaseDetailsData[3]]);
+export const workShowcase = createShowcaseMarkup(false, [showcaseDetailsData[0]]);
+export const editionShowcase = createShowcaseMarkup(false, [showcaseDetailsData[1]]);

@@ -244,5 +244,3 @@ export class BulkSearchState{
             .filter(key => key)}`;
     }
 }
-
-
