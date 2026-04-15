@@ -16,19 +16,16 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
-from openlibrary.plugins.worksearch.code import do_search_async, work_search_async
 from openlibrary.plugins.worksearch.code import (
     do_search_async,
-    work_search,
     work_search_async,
 )
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject_async,
 )
-from openlibrary.views.loanstats import get_trending_books_async
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.views.loanstats import get_trending_books
+from openlibrary.views.loanstats import get_trending_books_async
 
 
 class PartialDataHandler(ABC):
