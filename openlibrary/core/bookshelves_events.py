@@ -15,7 +15,7 @@ class BookshelfEvent(IntEnum):
 
 
 class BookshelvesEvents(db.CommonExtras):
-    TABLENAME = 'bookshelves_events'
+    TABLENAME = "bookshelves_events"
     NULL_EDITION_ID = -1
 
     # Create methods:
@@ -44,23 +44,23 @@ class BookshelvesEvents(db.CommonExtras):
     def select_by_id(cls, pid):
         oldb = db.get_db()
 
-        return list(oldb.select(cls.TABLENAME, where='id=$id', vars={'id': pid}))
+        return list(oldb.select(cls.TABLENAME, where="id=$id", vars={"id": pid}))
 
     @classmethod
     def get_latest_event_date(cls, username, work_id, event_type):
         oldb = db.get_db()
 
         data = {
-            'username': username,
-            'work_id': work_id,
-            'event_type': event_type,
+            "username": username,
+            "work_id": work_id,
+            "event_type": event_type,
         }
 
         query = (
-            f'SELECT id, event_date FROM {cls.TABLENAME}'
-            ' WHERE username=$username AND work_id=$work_id'
-            ' AND event_type=$event_type'
-            ' ORDER BY event_date DESC LIMIT 1'
+            f"SELECT id, event_date FROM {cls.TABLENAME}"
+            " WHERE username=$username AND work_id=$work_id"
+            " AND event_type=$event_type"
+            " ORDER BY event_date DESC LIMIT 1"
         )
 
         results = list(oldb.query(query, vars=data))
@@ -80,8 +80,8 @@ class BookshelvesEvents(db.CommonExtras):
                 ORDER BY year DESC
             """,
             vars={
-                'username': username,
-                'event_type': BookshelfEvent.FINISH,
+                "username": username,
+                "event_type": BookshelfEvent.FINISH,
             },
         )
 
@@ -92,10 +92,10 @@ class BookshelvesEvents(db.CommonExtras):
         oldb = db.get_db()
 
         data = {
-            'username': username,
-            'work_id': work_id,
-            'edition_id': edition_id,
-            'event_type': event_type,
+            "username": username,
+            "work_id": work_id,
+            "edition_id": edition_id,
+            "event_type": event_type,
         }
 
         where = """
@@ -112,9 +112,9 @@ class BookshelvesEvents(db.CommonExtras):
         oldb = db.get_db()
 
         data = {
-            'username': username,
-            'event_type': event_type,
-            'event_date': f'{year}%',
+            "username": username,
+            "event_type": event_type,
+            "event_date": f"{year}%",
         }
 
         where = """
@@ -133,9 +133,9 @@ class BookshelvesEvents(db.CommonExtras):
         oldb = db.get_db()
 
         data = {
-            'username': username,
-            'event_type': event_type,
-            'event_date': f'{year}%',
+            "username": username,
+            "event_type": event_type,
+            "event_date": f"{year}%",
         }
         query = (
             f"select distinct on (work_id) work_id, * from {cls.TABLENAME} "
@@ -152,16 +152,16 @@ class BookshelvesEvents(db.CommonExtras):
         oldb = db.get_db()
         updates = {}
         if event_date:
-            updates['event_date'] = event_date
+            updates["event_date"] = event_date
         if data:
-            updates['data'] = data
+            updates["data"] = data
         if edition_id:
-            updates['edition_id'] = edition_id
+            updates["edition_id"] = edition_id
         if updates:
             return oldb.update(
                 cls.TABLENAME,
-                where='id=$id',
-                vars={'id': pid},
+                where="id=$id",
+                vars={"id": pid},
                 updated=datetime.now(),
                 **updates,
             )
@@ -171,8 +171,8 @@ class BookshelvesEvents(db.CommonExtras):
     def update_event_date(cls, pid, event_date):
         oldb = db.get_db()
 
-        where_clause = 'id=$id'
-        where_vars = {'id': pid}
+        where_clause = "id=$id"
+        where_vars = {"id": pid}
         update_time = datetime.now()
 
         return oldb.update(
@@ -186,8 +186,8 @@ class BookshelvesEvents(db.CommonExtras):
     def update_event_data(cls, pid, data):
         oldb = db.get_db()
 
-        where_clause = 'id=$id'
-        where_vars = {'id': pid}
+        where_clause = "id=$id"
+        where_vars = {"id": pid}
         update_time = datetime.now()
 
         return oldb.update(
@@ -203,8 +203,8 @@ class BookshelvesEvents(db.CommonExtras):
     def delete_by_id(cls, pid):
         oldb = db.get_db()
 
-        where_clause = 'id=$id'
-        where_vars = {'id': pid}
+        where_clause = "id=$id"
+        where_vars = {"id": pid}
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=where_vars)
 
@@ -212,8 +212,8 @@ class BookshelvesEvents(db.CommonExtras):
     def delete_by_username(cls, username):
         oldb = db.get_db()
 
-        where_clause = 'username=$username'
-        where_vars = {'username': username}
+        where_clause = "username=$username"
+        where_vars = {"username": username}
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=where_vars)
 
@@ -221,10 +221,10 @@ class BookshelvesEvents(db.CommonExtras):
     def delete_by_username_and_work(cls, username, work_id):
         oldb = db.get_db()
 
-        where_clause = 'username=$username AND work_id=$work_id'
+        where_clause = "username=$username AND work_id=$work_id"
         data = {
-            'username': username,
-            'work_id': work_id,
+            "username": username,
+            "work_id": work_id,
         }
 
         return oldb.delete(cls.TABLENAME, where=where_clause, vars=data)

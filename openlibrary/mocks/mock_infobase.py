@@ -17,9 +17,9 @@ from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.utils.request_context import site as site_context
 
 key_patterns = {
-    'work': '/works/OL%dW',
-    'edition': '/books/OL%dM',
-    'author': '/authors/OL%dA',
+    "work": "/works/OL%dW",
+    "edition": "/books/OL%dM",
+    "author": "/authors/OL%dA",
 }
 
 
@@ -29,11 +29,11 @@ class MockSite:
 
     def reset(self):
         self.store = MockStore()
-        if config.get('infobase') is None:
+        if config.get("infobase") is None:
             config.infobase = {}
 
         infobase_config.secret_key = "foobar"
-        config.infobase['secret_key'] = "foobar"
+        config.infobase["secret_key"] = "foobar"
 
         self.account_manager = self.create_account_manager()
 
@@ -42,7 +42,7 @@ class MockSite:
         self.docs_historical = {}
         self.changesets = []
         self.index = []
-        self.keys = {'work': 0, 'author': 0, 'edition': 0}
+        self.keys = {"work": 0, "author": 0, "edition": 0}
 
     def create_account_manager(self):
         # Hack to use the accounts stuff from Infogami
@@ -50,36 +50,34 @@ class MockSite:
 
         store = web.storage(store=self.store)
         site = web.storage(store=store, save_many=self.save_many)
-        return account.AccountManager(site, config.infobase['secret_key'])
+        return account.AccountManager(site, config.infobase["secret_key"])
 
     def _save_doc(self, query, timestamp):
-        key = query['key']
+        key = query["key"]
 
         if key in self.docs:
-            rev = self.docs[key]['revision'] + 1
+            rev = self.docs[key]["revision"] + 1
         else:
             rev = 1
 
         doc = dict(query)
-        doc['revision'] = rev
-        doc['latest_revision'] = rev
-        doc['last_modified'] = {
+        doc["revision"] = rev
+        doc["latest_revision"] = rev
+        doc["last_modified"] = {
             "type": "/type/datetime",
             "value": timestamp.isoformat(),
         }
         if rev == 1:
-            doc['created'] = doc['last_modified']
+            doc["created"] = doc["last_modified"]
         else:
-            doc['created'] = self.docs[key]['created']
+            doc["created"] = self.docs[key]["created"]
 
         self.docs[key] = doc
         self.docs_historical[(key, rev)] = doc
 
         return doc
 
-    def save(
-        self, query, comment=None, action=None, data=None, timestamp=None, author=None
-    ):
+    def save(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
         timestamp = timestamp or datetime.now()
 
         if author:
@@ -87,7 +85,7 @@ class MockSite:
 
         doc = self._save_doc(query, timestamp)
 
-        changes = [web.storage({"key": doc['key'], "revision": doc['revision']})]
+        changes = [web.storage({"key": doc["key"], "revision": doc["revision"]})]
         changeset = self._make_changeset(
             timestamp=timestamp,
             kind=action,
@@ -100,19 +98,14 @@ class MockSite:
 
         self.reindex(doc)
 
-    def save_many(
-        self, query, comment=None, action=None, data=None, timestamp=None, author=None
-    ):
+    def save_many(self, query, comment=None, action=None, data=None, timestamp=None, author=None):
         timestamp = timestamp or datetime.now()
         docs = [self._save_doc(doc, timestamp) for doc in query]
 
         if author:
             author = {"key": author.key}
 
-        changes = [
-            web.storage({"key": doc['key'], "revision": doc['revision']})
-            for doc in docs
-        ]
+        changes = [web.storage({"key": doc["key"], "revision": doc["revision"]}) for doc in docs]
         changeset = self._make_changeset(
             timestamp=timestamp,
             kind=action,
@@ -163,17 +156,11 @@ class MockSite:
         author = query.pop("author", None)
 
         if not author:
-            raise NotImplementedError(
-                "MockSite.recentchanges without author not implemented"
-            )
+            raise NotImplementedError("MockSite.recentchanges without author not implemented")
 
         result = list(
             itertools.islice(
-                (
-                    Changeset(self, c)
-                    for c in reversed(self.changesets)
-                    if safeget(lambda: c['author']['key']) == author
-                ),
+                (Changeset(self, c) for c in reversed(self.changesets) if safeget(lambda: c["author"]["key"]) == author),
                 offset,
                 offset + limit,
             )
@@ -197,7 +184,7 @@ class MockSite:
             d = {}
             for k, v in value.items():
                 d[k] = self._process(v)
-            return client.create_thing(self, d.get('key'), d)
+            return client.create_thing(self, d.get("key"), d)
         elif isinstance(value, common.Reference):
             return client.create_thing(self, str(value), None)
         else:
@@ -213,8 +200,8 @@ class MockSite:
         return [self.get(k) for k in keys if k in self.docs]
 
     def things(self, query):
-        limit = query.pop('limit', 100)
-        offset = query.pop('offset', 0)
+        limit = query.pop("limit", 100)
+        offset = query.pop("offset", 0)
 
         keys = set(self.docs)
 
@@ -224,7 +211,7 @@ class MockSite:
                 # this corrects any nested keys that have been included
                 # in values.
                 flat = common.flatten_dict(v)[0]
-                k = web.rstrips(k + '.' + flat[0], '.key')
+                k = web.rstrips(k + "." + flat[0], ".key")
                 v = flat[1]
             keys = {k for k in self.filter_index(self.index, k, v) if k in keys}
 
@@ -239,8 +226,7 @@ class MockSite:
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, str)
-            and self.regex_ilike(value, i.value),
+            "~": lambda i, value: isinstance(i.value, str) and self.regex_ilike(value, i.value),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
@@ -257,8 +243,8 @@ class MockSite:
 
         f = operations[op]
 
-        if name == 'isbn_':
-            names = ['isbn_10', 'isbn_13']
+        if name == "isbn_":
+            names = ["isbn_10", "isbn_13"]
         else:
             names = [name]
 
@@ -274,7 +260,7 @@ class MockSite:
                         yield i.key
 
     def compute_index(self, doc):
-        key = doc['key']
+        key = doc["key"]
         index = common.flatten_dict(doc)
 
         for k, v in index:
@@ -283,16 +269,14 @@ class MockSite:
                 k = web.rstrips(k, ".value")
 
             if k.endswith(".key"):
-                yield web.storage(
-                    key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v
-                )
+                yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
             elif isinstance(v, str):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
                 yield web.storage(key=key, datatype="int", name=k, value=v)
 
     def reindex(self, doc):
-        self.index = [i for i in self.index if i.key != doc['key']]
+        self.index = [i for i in self.index if i.key != doc["key"]]
         self.index.extend(self.compute_index(doc))
 
     def find_user_by_email(self, email):
@@ -317,7 +301,7 @@ class MockSite:
         return client.create_thing(self, key, data)
 
     def new_key(self, type):
-        assert type.startswith('/type/')
+        assert type.startswith("/type/")
         t = type[6:]
         self.keys[t] += 1
         return key_patterns[t] % self.keys[t]
@@ -350,9 +334,7 @@ class MockSite:
             self.account_manager.set_auth_token("/people/" + username)
         else:
             d = {"code": status}
-            raise client.ClientException(
-                "bad_data", msg="Login failed", json=json.dumps(d)
-            )
+            raise client.ClientException("bad_data", msg="Login failed", json=json.dumps(d))
 
     def find_account(self, username=None, email=None):
         if username is not None:
@@ -366,7 +348,7 @@ class MockSite:
     def get_user(self):
         if auth_token := web.ctx.get("infobase_auth_token", ""):
             try:
-                user_key, login_time, digest = auth_token.split(',')
+                user_key, login_time, digest = auth_token.split(",")
             except ValueError:
                 return
 
@@ -385,13 +367,13 @@ class MockConnection:
 
 class MockStore(dict):
     def __setitem__(self, key, doc):
-        doc['_key'] = key
+        doc["_key"] = key
         dict.__setitem__(self, key, doc)
 
     put = __setitem__
 
     def put_many(self, docs):
-        self.update((doc['_key'], doc) for doc in docs)
+        self.update((doc["_key"], doc) for doc in docs)
 
     def _query(self, type=None, name=None, value=None, limit=100, offset=0):
         for doc in dict.values(self):
@@ -403,7 +385,7 @@ class MockStore(dict):
             yield doc
 
     def keys(self, **kw):
-        return [doc['_key'] for doc in self._query(**kw)]
+        return [doc["_key"] for doc in self._query(**kw)]
 
     def values(self, **kw):
         return list(self._query(**kw))
@@ -423,7 +405,7 @@ def mock_site(request):
         for path in glob.glob("openlibrary/plugins/openlibrary/types/*.type"):
             with open(path) as file:
                 text = file.read()
-            doc = eval(text, {'true': True, 'false': False})
+            doc = eval(text, {"true": True, "false": False})
             if isinstance(doc, list):
                 yield from doc
             else:

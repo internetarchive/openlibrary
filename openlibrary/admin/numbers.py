@@ -33,7 +33,7 @@ class NoStats(TypeError):
 def query_single_thing(db, typ, start, end):
     "Query the counts a single type from the things table"
     q1 = "SELECT id as id from thing where key=$typ"
-    typ = f'/type/{typ}'
+    typ = f"/type/{typ}"
     result = db.query(q1, vars=locals())
     try:
         kid = result[0].id
@@ -41,7 +41,7 @@ def query_single_thing(db, typ, start, end):
         raise InvalidType(f"No id for type '/type/{typ} in the database")
 
     q2 = "SELECT count(*) as count FROM thing WHERE type=$type_id AND created >= $start_date AND created < $end_date"
-    result = db.query(q2, vars={'type_id': kid, 'start_date': start, 'end_date': end})
+    result = db.query(q2, vars={"type_id": kid, "start_date": start, "end_date": end})
 
     count = result[0].count
     return count
@@ -53,10 +53,10 @@ def single_thing_skeleton(**kargs):
     `type` is partially applied for admin__[work, edition, user, author, list].
     """
     try:
-        typ = kargs['type']
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        typ = kargs["type"]
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__{typ}")
     return query_single_thing(db, typ, start, end)
@@ -86,7 +86,7 @@ def get_bot_accounts(thingdb=None) -> list[int]:
         )
     """
     oldb = thingdb
-    return [item.get('id') for item in list(oldb.query(bot_query))]
+    return [item.get("id") for item in list(oldb.query(bot_query))]
 
 
 def _get_cached_bot_accounts(thingdb=None) -> list[int]:
@@ -110,18 +110,14 @@ def admin_range__human_edits(**kargs):
     between the given `start` and `end` dates. `thingdb` is the database.
     """
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__human_edits")
-    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
-    q1 = (
-        "SELECT count(t.id) AS count FROM transaction t WHERE "
-        "t.created >= $start and t.created < $end AND "
-        "t.author_id NOT IN $bot_ids"
-    )
-    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
+    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.author_id NOT IN $bot_ids"
+    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end})
     count = result[0].count
     return count
 
@@ -131,18 +127,14 @@ def admin_range__bot_edits(**kargs):
     the `start` and `end` dates. `thingdb` is the database.
     """
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['thingdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__bot_edits")
-    bot_ids = _get_cached_bot_accounts(thingdb=kargs['thingdb'])
-    q1 = (
-        "SELECT count(t.id) AS count FROM transaction t WHERE "
-        "t.created >= $start and t.created < $end AND "
-        "t.author_id IN $bot_ids"
-    )
-    result = db.query(q1, vars={'bot_ids': bot_ids, 'start': start, 'end': end})
+    bot_ids = _get_cached_bot_accounts(thingdb=kargs["thingdb"])
+    q1 = "SELECT count(t.id) AS count FROM transaction t WHERE t.created >= $start and t.created < $end AND t.author_id IN $bot_ids"
+    result = db.query(q1, vars={"bot_ids": bot_ids, "start": start, "end": end})
     count = result[0].count
     return count
 
@@ -150,9 +142,9 @@ def admin_range__bot_edits(**kargs):
 def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
     try:
-        start = kargs['start'].strftime("%Y-%m-%d")
-        end = kargs['end'].strftime("%Y-%m-%d %H:%M:%S")
-        db = kargs['coverdb']
+        start = kargs["start"].strftime("%Y-%m-%d")
+        end = kargs["end"].strftime("%Y-%m-%d %H:%M:%S")
+        db = kargs["coverdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_range__covers")
     q1 = f"SELECT count(*) as count from cover where created>= '{start}' and created < '{end}'"
@@ -176,29 +168,26 @@ def admin_range__loans(**kargs):
     table.
     """
     try:
-        db = kargs['thingdb']
-        start = kargs['start']
-        end = kargs['end']
+        db = kargs["thingdb"]
+        start = kargs["start"]
+        end = kargs["end"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_total__ebooks")
     result = db.query(
-        "SELECT count(*) as count FROM stats"
-        " WHERE type='loan'"
-        "   AND created >= $start"
-        "   AND created < $end",
+        "SELECT count(*) as count FROM stats WHERE type='loan'   AND created >= $start   AND created < $end",
         vars=locals(),
     )
     return result[0].count
 
 
 def admin_total__authors(**kargs):
-    db = kargs['thingdb']
+    db = kargs["thingdb"]
     return _count_things(db, "/type/author")
 
 
 def admin_total__lists(**kargs):
     try:
-        db = kargs['thingdb']
+        db = kargs["thingdb"]
     except KeyError as k:
         raise TypeError(f"{k} is a required argument for admin_total__lists")
     # Computing total number of lists
@@ -215,41 +204,37 @@ def admin_total__lists(**kargs):
 
 
 def admin_total__covers(**kargs):
-    db = kargs['coverdb']
+    db = kargs["coverdb"]
     return db.query("SELECT count(*) as count FROM cover")[0].count
 
 
 def admin_total__works(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/work')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/work")
 
 
 def admin_total__editions(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/edition')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/edition")
 
 
 def _count_things(db, type):
     type_id = db.where("thing", key=type)[0].id
-    result = db.query(
-        "SELECT count(*) as count FROM thing WHERE type=$type_id", vars=locals()
-    )
+    result = db.query("SELECT count(*) as count FROM thing WHERE type=$type_id", vars=locals())
     return result[0].count
 
 
 def _query_count(db, table, type, property, distinct=False):
     type_id = db.where("thing", key=type)[0].id
-    key_id = db.where('property', type=type_id, name=property)[0].id
+    key_id = db.where("property", type=type_id, name=property)[0].id
     if distinct:
-        what = 'count(distinct(thing_id)) as count'
+        what = "count(distinct(thing_id)) as count"
     else:
-        what = 'count(thing_id) as count'
-    result = db.select(
-        table, what=what, where='key_id=$key_id', vars={"key_id": key_id}
-    )
+        what = "count(thing_id) as count"
+    result = db.select(table, what=what, where="key_id=$key_id", vars={"key_id": key_id})
     return result[0].count
 
 
 def admin_total__members(**kargs):
-    db = kargs['thingdb']
-    return _count_things(db, '/type/user')
+    db = kargs["thingdb"]
+    return _count_things(db, "/type/user")

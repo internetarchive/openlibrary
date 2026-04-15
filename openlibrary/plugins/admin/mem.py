@@ -84,9 +84,7 @@ class _memory:
 
         counts = [c for c in memory.get_counts() if c.type.startswith(i.prefix)]
         counts.sort(key=lambda c: c[i.sort], reverse=True)
-        return render_template(
-            "admin/memory/index", counts[begin:end], page, sort=i.sort
-        )
+        return render_template("admin/memory/index", counts[begin:end], page, sort=i.sort)
 
     def POST(self):
         memory.mark()

@@ -52,14 +52,12 @@ class CommonExtras:
                 rows_changed,
                 rows_deleted,
                 failed_deletes,
-            ) = cls.update_work_ids_individually(
-                current_work_id, new_work_id, _test=_test
-            )
+            ) = cls.update_work_ids_individually(current_work_id, new_work_id, _test=_test)
         t.rollback() if _test else t.commit()
         return {
-            'rows_changed': rows_changed,
-            'rows_deleted': rows_deleted,
-            'failed_deletes': failed_deletes,
+            "rows_changed": rows_changed,
+            "rows_deleted": rows_deleted,
+            "failed_deletes": failed_deletes,
         }
 
     @classmethod
@@ -79,15 +77,11 @@ class CommonExtras:
             )
         )
         for row in rows:
-            where = " AND ".join(
-                [f"{k}='{v}'" for k, v in row.items() if k in cls.PRIMARY_KEY]
-            )
+            where = " AND ".join([f"{k}='{v}'" for k, v in row.items() if k in cls.PRIMARY_KEY])
             try:
                 # try to update the row to new_work_id
                 t_update = oldb.transaction()
-                oldb.query(
-                    f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}"
-                )
+                oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
                 rows_changed += 1
                 t_update.rollback() if _test else t_update.commit()
             except (UniqueViolation, IntegrityError):
@@ -108,11 +102,7 @@ class CommonExtras:
     @classmethod
     def select_all_by_username(cls, username, _test=False):
         oldb = get_db()
-        return list(
-            oldb.select(
-                cls.TABLENAME, where="username=$username", vars={"username": username}
-            )
-        )
+        return list(oldb.select(cls.TABLENAME, where="username=$username", vars={"username": username}))
 
     @classmethod
     def update_username(cls, username, new_username, _test=False):
@@ -140,9 +130,7 @@ class CommonExtras:
         t = oldb.transaction()
 
         try:
-            rows_deleted = oldb.delete(
-                cls.TABLENAME, where="username=$username", vars={"username": username}
-            )
+            rows_deleted = oldb.delete(cls.TABLENAME, where="username=$username", vars={"username": username})
         except (UniqueViolation, IntegrityError):
             pass
 

@@ -34,12 +34,12 @@ class LogLine:
     page_key: str
 
     @staticmethod
-    def from_line(line: str) -> 'LogLine':
-        parts = line.split(' ')
+    def from_line(line: str) -> "LogLine":
+        parts = line.split(" ")
         return LogLine(
             ip=parts[0],
             url=parts[6],
-            page_key='/'.join(parts[6].split('/', 3)[0:3]),
+            page_key="/".join(parts[6].split("/", 3)[0:3]),
         )
 
 
@@ -57,7 +57,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
     end_ts = start_ts + 3600 * 1000 - 1
 
     if extra_grep:
-        extra_grep = f'| {extra_grep}'
+        extra_grep = f"| {extra_grep}"
 
     # Note we use pretty aggressive filters to try to limit to non-automated traffic. Notably:
     # - Exclude out known bots as defined in scripts/obfi.sh
@@ -78,13 +78,13 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                 | grep -vF ' "-" ' \
                 | grep -vE '\\.(opds|json|rdf)' \
                 | obfi_match_range {start_ts} {end_ts} \
-                {extra_grep or ''} \
+                {extra_grep or ""} \
         """,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
         text=True,
-        executable='/bin/bash',
+        executable="/bin/bash",
     ) as proc:
         assert proc.stdout
 
@@ -95,9 +95,7 @@ def get_logs_for_hour(dt: datetime.datetime, extra_grep: str | None = None):
                     print(err_line, file=sys.stderr, flush=True)
 
         if proc.stderr:
-            threading.Thread(
-                target=print_stderr, args=(proc.stderr,), daemon=True
-            ).start()
+            threading.Thread(target=print_stderr, args=(proc.stderr,), daemon=True).start()
         for line in proc.stdout:
             line = line.strip()
             if not line:
@@ -123,10 +121,7 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     """
 
     # We will need to fetch the work keys for these
-    book_keys = {
-        line.strip().split(' ')[1]
-        for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')
-    }
+    book_keys = {line.strip().split(" ")[1] for line in get_logs_for_hour(dt, 'grep -oE "GET /books/OL[0-9]+M"')}
     print(f"Found {len(book_keys)} /book pageviews in the hour")
 
     book_key_to_work_key: dict[str, str] = {}
@@ -135,32 +130,32 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     batch_count = len(book_keys) // batch_size + 1
     print(f"Fetching corresponding work keys in {batch_count} batches: ")
     session = requests.Session()
-    session.headers.update({'User-Agent': 'OpenLibrary Trending Updater'})
+    session.headers.update({"User-Agent": "OpenLibrary Trending Updater"})
     # The API doesn't support POST requests, so need to use smaller batches
     # to avoid hitting the URL length limit.
     for i, batch in enumerate(itertools.batched(book_keys, batch_size)):
-        print(f"\rBatch {i + 1}/{batch_count} ...", end='', flush=True)
+        print(f"\rBatch {i + 1}/{batch_count} ...", end="", flush=True)
         resp = session.get(
-            'https://openlibrary.org/query.json',
+            "https://openlibrary.org/query.json",
             params={
-                'query': json.dumps(
+                "query": json.dumps(
                     {
-                        'type': '/type/edition',
-                        'key': batch,
-                        'works': None,
-                        'limit': batch_size,
+                        "type": "/type/edition",
+                        "key": batch,
+                        "works": None,
+                        "limit": batch_size,
                     }
                 ),
             },
         )
         resp.raise_for_status()
         data = resp.json()
-        print(f"\rBatch {i + 1}/{batch_count} ... ✓ ", end='', flush=True)
+        print(f"\rBatch {i + 1}/{batch_count} ... ✓ ", end="", flush=True)
         for edition in data:
-            if not edition.get('works'):
+            if not edition.get("works"):
                 print(f"WARN: Edition {edition['key']} has no works, skipping")
                 continue
-            book_key_to_work_key[edition['key']] = edition['works'][0]['key']
+            book_key_to_work_key[edition["key"]] = edition["works"][0]["key"]
     print()
 
     # Will want to dedupe by IP and work key, so we can count unique pageviews per work.
@@ -170,8 +165,8 @@ def fetch_work_hour_pageviews(dt: datetime.datetime) -> Counter[str]:
     for line in get_logs_for_hour(dt):
         line = LogLine.from_line(line)
         page_key = line.page_key
-        if page_key.startswith('/books/'):
-            work_key = book_key_to_work_key.get(page_key, '')
+        if page_key.startswith("/books/"):
+            work_key = book_key_to_work_key.get(page_key, "")
             if not work_key:
                 print(f"WARN: Could not find work key for {page_key}, skipping")
                 continue
@@ -194,9 +189,7 @@ def fetch_work_hour_book_events(dt: datetime.datetime) -> dict[str, int]:
         WHERE updated >= '{start.isoformat()}' AND updated < '{end_ts.isoformat()}'
         GROUP BY work_id
     """
-    result = {
-        f'/works/OL{storage.work_id}W': storage.count for storage in ol_db.query(query)
-    }
+    result = {f"/works/OL{storage.work_id}W": storage.count for storage in ol_db.query(query)}
     print(f"{len(result)} works with bookshelf books in the given hour")
     return result
 
@@ -206,16 +199,16 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     solr_fields = (
         "key",
         "trending_score_hourly_sum",
-        f'trending_score_hourly_{hour_slot}',
+        f"trending_score_hourly_{hour_slot}",
         "trending_score_daily_*",
     )
 
     # Docs with outdated values in the hour slot:
     print(f"Fetching works with existing trending data for hour slot {hour_slot}")
     resp = execute_solr_query(
-        '/export',
+        "/export",
         {
-            "q": f'trending_score_hourly_{hour_slot}:[1 TO *]',
+            "q": f"trending_score_hourly_{hour_slot}:[1 TO *]",
             "fl": ",".join(solr_fields),
             "sort": "key asc",
         },
@@ -229,9 +222,9 @@ def fetch_solr_trending_data(hour_slot: int, work_keys: set[str]) -> list[dict]:
     if keys_to_fetch := work_keys - old_work_keys:
         print(f"Fetching {len(keys_to_fetch)} works without existing trending data")
         resp = execute_solr_query(
-            '/export',
+            "/export",
             {
-                "q": ' OR '.join(f'key:"{key}"' for key in keys_to_fetch),
+                "q": " OR ".join(f'key:"{key}"' for key in keys_to_fetch),
                 "fl": ",".join(solr_fields),
                 "sort": "key asc",
             },
@@ -277,19 +270,15 @@ def form_inplace_trending_update(
     hour_slot: int,
     hour_value: int,
 ):
-    new_hourly_sum = (
-        solr_doc["trending_score_hourly_sum"]
-        - solr_doc[f'trending_score_hourly_{hour_slot}']
-        + hour_value
-    )
+    new_hourly_sum = solr_doc["trending_score_hourly_sum"] - solr_doc[f"trending_score_hourly_{hour_slot}"] + hour_value
     new_z_score = compute_trending_z_score(
         new_hourly_sum,
-        [solr_doc.get(f'trending_score_daily_{i}', 0) for i in range(7)],
+        [solr_doc.get(f"trending_score_daily_{i}", 0) for i in range(7)],
     )
 
     request_body = {
         "key": solr_doc["key"],
-        f'trending_score_hourly_{hour_slot}': {"set": hour_value},
+        f"trending_score_hourly_{hour_slot}": {"set": hour_value},
         "trending_score_hourly_sum": {"set": new_hourly_sum},
         "trending_z_score": {"set": new_z_score},
     }

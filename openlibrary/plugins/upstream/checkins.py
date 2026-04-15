@@ -14,11 +14,11 @@ def make_date_string(year: int, month: int | None, day: int | None) -> str:
     "YYYY-MM"
     "YYYY-MM-DD"
     """
-    result = f'{year}'
+    result = f"{year}"
     if month:
-        result += f'-{month:02}'
+        result += f"-{month:02}"
         if day:
-            result += f'-{day:02}'
+            result += f"-{day:02}"
     return result
 
 
@@ -42,13 +42,11 @@ def get_latest_read_date(work_olid: str) -> dict | None:
     if not user:
         return None
 
-    username = user['key'].split('/')[-1]
+    username = user["key"].split("/")[-1]
 
     work_id = extract_numeric_id_from_olid(work_olid)
 
-    result = BookshelvesEvents.get_latest_event_date(
-        username, work_id, BookshelfEvent.FINISH
-    )
+    result = BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH)
     return result
 
 

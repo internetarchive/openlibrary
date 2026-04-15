@@ -24,21 +24,10 @@ class ProfileProcessor:
         if i._profile.lower() == "true":
             out, result = web.profile(handler)()
             if isinstance(out, web.template.TemplateResult):
-                out.__body__ = (
-                    out.get('__body__', '')
-                    + '<pre class="profile">'
-                    + web.websafe(result)
-                    + '</pre>'
-                )
+                out.__body__ = out.get("__body__", "") + '<pre class="profile">' + web.websafe(result) + "</pre>"
                 return out
             elif isinstance(out, str):
-                return (
-                    out
-                    + '<br/>'
-                    + '<pre class="profile">'
-                    + web.websafe(result)
-                    + '</pre>'
-                )
+                return out + "<br/>" + '<pre class="profile">' + web.websafe(result) + "</pre>"
             else:
                 # don't know how to handle this.
                 return out
@@ -75,10 +64,7 @@ class CORSProcessor:
             self.cors_everything
             or path.endswith(".json")
             or path in self.cors_paths
-            or any(
-                web.ctx.path.startswith(path_segment)
-                for path_segment in self.cors_prefixes
-            )
+            or any(web.ctx.path.startswith(path_segment) for path_segment in self.cors_prefixes)
         )
 
     def add_cors_headers(self):
@@ -89,12 +75,9 @@ class CORSProcessor:
             if web.ctx.path.startswith(p):
                 allowed = "OPTIONS"
 
-        if (
-            web.ctx.path == "/account/login.json"
-            and web.input(auth_provider="").auth_provider == "archive"
-        ):
+        if web.ctx.path == "/account/login.json" and web.input(auth_provider="").auth_provider == "archive":
             allowed += ", POST"
-            web.header('Access-Control-Allow-Credentials', 'true')
+            web.header("Access-Control-Allow-Credentials", "true")
             web.header("Access-Control-Allow-Origin", "https://archive.org")
         else:
             web.header("Access-Control-Allow-Origin", "*")
@@ -107,7 +90,7 @@ class PreferenceProcessor:
     """Processor to handle unauthorized patron preference reads"""
 
     def __init__(self):
-        self.pref_pattern = re.compile(r'^\/people\/([^/]+)\/preferences(.json|.yml)?$')
+        self.pref_pattern = re.compile(r"^\/people\/([^/]+)\/preferences(.json|.yml)?$")
 
     def __call__(self, handler):
         if self.pref_pattern.match(web.ctx.path):
@@ -116,7 +99,7 @@ class PreferenceProcessor:
                 # Must be logged in to see preferences
                 raise web.Unauthorized
 
-            username = web.ctx.path.split('/')[2]
+            username = web.ctx.path.split("/")[2]
             if username != user.get_username() and not user.is_admin():
                 # Can only view preferences if page owner or admin
                 raise web.Forbidden
@@ -135,14 +118,14 @@ class CookieValidationProcessor:
     4. nginx sets X-OL-Verify-Human — redirect to /verify_human with next= URL.
     """
 
-    EXEMPT_PATHS: ClassVar[set[str]] = {'/verify_human'}
+    EXEMPT_PATHS: ClassVar[set[str]] = {"/verify_human"}
 
     @staticmethod
     def _reject_spoofed_cookie(name: str) -> None:
         """Purge a forged cookie and raise 403 with an abuse signal header."""
-        web.setcookie(name, '', expires=-1, secure=True, httponly=True)
-        web.header('X-Abuse', 'spoofed-cookie')
-        raise web.HTTPError('403 Forbidden')
+        web.setcookie(name, "", expires=-1, secure=True, httponly=True)
+        web.header("X-Abuse", "spoofed-cookie")
+        raise web.HTTPError("403 Forbidden")
 
     def __call__(self, handler):
         # We don't want to bounce identified crawlers that index us
@@ -154,24 +137,20 @@ class CookieValidationProcessor:
                 verify_verification_cookie,
             )
 
-            if cookie_value := web.cookies().get('vf'):
+            if cookie_value := web.cookies().get("vf"):
                 if verify_verification_cookie(cookie_value):
                     return handler()
-                self._reject_spoofed_cookie('vf')
+                self._reject_spoofed_cookie("vf")
 
-            session_cookie_name = config.get('login_cookie_name', 'session')
+            session_cookie_name = config.get("login_cookie_name", "session")
             if session_value := web.cookies().get(session_cookie_name):
                 if verify_session_cookie(session_value):
                     return handler()
                 self._reject_spoofed_cookie(session_cookie_name)
 
-            if web.ctx.env.get('HTTP_X_OL_VERIFY_HUMAN') == '1':
-                next_url = (
-                    web.ctx.env.get('REQUEST_URI')
-                    or web.ctx.env.get('HTTP_X_REQUEST_URI')
-                    or web.ctx.path
-                )
-                raise web.seeother('/verify_human?next=' + web.urlquote(next_url))
+            if web.ctx.env.get("HTTP_X_OL_VERIFY_HUMAN") == "1":
+                next_url = web.ctx.env.get("REQUEST_URI") or web.ctx.env.get("HTTP_X_REQUEST_URI") or web.ctx.path
+                raise web.seeother("/verify_human?next=" + web.urlquote(next_url))
 
         return handler()
 
