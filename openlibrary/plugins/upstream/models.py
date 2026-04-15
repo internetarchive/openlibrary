@@ -1,6 +1,7 @@
 import logging
 import re
 import sys
+import typing
 from collections import defaultdict
 from functools import cached_property
 from typing import cast
@@ -27,6 +28,9 @@ from openlibrary.utils.isbn import (
 )
 from openlibrary.utils.lccn import normalize_lccn
 
+if typing.TYPE_CHECKING:
+    from openlibrary.solr.updater.edition import EditionSolrBuilder
+
 
 def follow_redirect(doc):
     if isinstance(doc, str) and doc.startswith("/a/"):
@@ -42,6 +46,20 @@ def follow_redirect(doc):
 
 
 class Edition(models.Edition):
+    @cached_property
+    def edition_solr_builder(self) -> "EditionSolrBuilder":
+        from openlibrary.solr.updater.edition import EditionSolrBuilder
+
+        return EditionSolrBuilder(
+            self.dict(),
+            # FIXME: Slow, we should give it the ebook access in solr?
+            ia_metadata=self.get_ia_meta_fields(),
+        )
+
+    @cached_property
+    def metadata_scorecard(self):
+        return self.edition_solr_builder.get_scorecard()
+
     def get_title(self):
         if self['title_prefix']:
             return self['title_prefix'] + ' ' + self['title']
