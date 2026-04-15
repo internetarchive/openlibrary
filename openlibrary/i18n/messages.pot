@@ -4884,7 +4884,7 @@ msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"$_()\">CC0</a>. Yippee!"
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"$_()\">CC0</a>."
 msgstr ""
 
 #: books/add.html
