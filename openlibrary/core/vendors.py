@@ -635,7 +635,7 @@ def _get_betterworldbooks_metadata(
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
-    response = requests.get(url)
+    response = requests.get(url, timeout=3)
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
     text = response.text
