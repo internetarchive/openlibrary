@@ -18,7 +18,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
-        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc)$
+        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
       - id: mixed-line-ending
         args:
           - --fix=lf
