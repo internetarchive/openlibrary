@@ -26,30 +26,30 @@ from openlibrary.coverstore.utils import (
 from openlibrary.plugins.openlibrary.processors import CORSProcessor
 from openlibrary.plugins.upstream.utils import setup_requests
 
-if coverstore_config := os.getenv('COVERSTORE_CONFIG'):
+if coverstore_config := os.getenv("COVERSTORE_CONFIG"):
     load_config(coverstore_config)
 
 logger = logging.getLogger("coverstore")
 
 urls = (
-    '/',
-    'index',
-    '/([^ /]*)/upload',
-    'upload',
-    '/([^ /]*)/upload2',
-    'upload2',
-    '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg',
-    'cover',
-    '/([^ /]*)/([a-zA-Z]*)/(.*)().jpg',
-    'cover',
-    '/([^ /]*)/([a-zA-Z]*)/(.*).json',
-    'cover_details',
-    '/([^ /]*)/query',
-    'query',
-    '/([^ /]*)/touch',
-    'touch',
-    '/([^ /]*)/delete',
-    'delete',
+    "/",
+    "index",
+    "/([^ /]*)/upload",
+    "upload",
+    "/([^ /]*)/upload2",
+    "upload2",
+    "/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg",
+    "cover",
+    "/([^ /]*)/([a-zA-Z]*)/(.*)().jpg",
+    "cover",
+    "/([^ /]*)/([a-zA-Z]*)/(.*).json",
+    "cover_details",
+    "/([^ /]*)/query",
+    "query",
+    "/([^ /]*)/touch",
+    "touch",
+    "/([^ /]*)/delete",
+    "delete",
 )
 app = web.application(urls, locals())
 
@@ -72,8 +72,8 @@ def get_cover_id(olkeys: list[str]) -> int | None:
         doc = ol_get(olkey)
         if not doc:
             continue
-        is_author = doc['key'].startswith("/authors")
-        covers = doc.get('photos' if is_author else 'covers', [])
+        is_author = doc["key"].startswith("/authors")
+        covers = doc.get("photos" if is_author else "covers", [])
         # Sometimes covers is stored as [None] or [-1] to indicate no covers.
         # If so, consider there are no covers.
         if covers and (covers[0] or -1) >= 0:
@@ -82,17 +82,17 @@ def get_cover_id(olkeys: list[str]) -> int | None:
 
 
 def _query(category: str, key: str, value: str) -> int | None:
-    if key == 'olid':
+    if key == "olid":
         prefixes = {"a": "/authors/", "b": "/books/", "w": "/works/"}
         if category in prefixes:
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
-    elif category == 'b':
-        if key == 'isbn':
+    elif category == "b":
+        if key == "isbn":
             value = value.replace("-", "").strip()
             key = "isbn_"
-        if key == 'oclc':
-            key = 'oclc_numbers'
+        if key == "oclc":
+            key = "oclc_numbers"
         olkeys = ol_things(key, value)
         return get_cover_id(olkeys)
     return None
@@ -106,9 +106,9 @@ ERROR_BAD_IMAGE = 3, "Invalid Image"
 class index:
     def GET(self):
         return (
-            '<h1>Open Library Book Covers Repository</h1><div>See <a '
+            "<h1>Open Library Book Covers Repository</h1><div>See <a "
             'href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers '
-            'API</a> for details.</div>'
+            "API</a> for details.</div>"
         )
 
 
@@ -121,7 +121,7 @@ def _cleanup():
 class upload:
     def POST(self, category):
         i = web.input(
-            'olid',
+            "olid",
             author=None,
             file={},
             source_url=None,
@@ -129,8 +129,8 @@ class upload:
             failure_url=None,
         )
 
-        success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
-        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
+        success_url = i.success_url or web.ctx.get("HTTP_REFERRER") or "/"
+        failure_url = i.failure_url or web.ctx.get("HTTP_REFERRER") or "/"
 
         def error(code__msg):
             code, msg = code__msg
@@ -172,9 +172,7 @@ class upload2:
     """openlibrary.org POSTs here via openlibrary/plugins/upstream/covers.py upload"""
 
     def POST(self, category):
-        i = web.input(
-            olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False
-        )
+        i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)
 
         web.ctx.pop("_fieldstorage", None)
         web.ctx.pop("_data", None)
@@ -249,11 +247,7 @@ class cover:
             return url.startswith(("http://", "https://"))
 
         def notfound():
-            if (
-                config.default_image
-                and i.default.lower() != "false"
-                and not is_valid_url(i.default)
-            ):
+            if config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 return web.seeother(i.default)
@@ -261,15 +255,15 @@ class cover:
                 return web.notfound("")
 
         cover_id: int | None = None
-        if key == 'isbn':
+        if key == "isbn":
             normalized_isbn = value.replace("-", "").strip()  # strip hyphens from ISBN
             cover_id = self.query(category, key, normalized_isbn)
-        elif key == 'ia':
+        elif key == "ia":
             if url := self.get_ia_cover_url(value, size):
                 return web.found(url)
             else:
                 cover_id = None  # notfound or redirect to default. handled later.
-        elif key != 'id':
+        elif key != "id":
             cover_id = self.query(category, key, value)
         else:
             cover_id = safeint(value)
@@ -287,29 +281,25 @@ class cover:
             return notfound()
 
         # set cache-for-ever headers only when requested with ID
-        if key == 'id':
+        if key == "id":
             etag = f"{d.id}-{size.lower()}"
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 return web.notmodified()
 
-            web.header('Cache-Control', 'public')
+            web.header("Cache-Control", "public")
             # this image is not going to expire in next 100 years.
             web.expires(100 * 365 * 24 * 3600)
         else:
-            web.header('Cache-Control', 'public')
+            web.header("Cache-Control", "public")
             # Allow the client to cache the image for 10 mins to avoid further requests
             web.expires(10 * 60)
 
-        web.header('Content-Type', 'image/jpeg')
+        web.header("Content-Type", "image/jpeg")
         try:
             from openlibrary.coverstore import archive
 
             if d.id >= 8_000_000 and d.uploaded:
-                return web.found(
-                    archive.Cover.get_cover_url(
-                        d.id, size=size, protocol=web.ctx.protocol
-                    )
-                )
+                return web.found(archive.Cover.get_cover_url(d.id, size=size, protocol=web.ctx.protocol))
             return read_image(d, size)
         except OSError:
             return web.notfound()
@@ -322,11 +312,7 @@ class cover:
             return
 
         # Not a text item or no images or scan is not complete yet
-        if (
-            d.get("mediatype") != "texts"
-            or d.get("repub_state", "4") not in ("4", "6")
-            or "imagecount" not in d
-        ):
+        if d.get("mediatype") != "texts" or d.get("repub_state", "4") not in ("4", "6") or "imagecount" not in d:
             return
 
         w, h = config.image_sizes[size.upper()]
@@ -336,9 +322,7 @@ class cover:
             h,
         )
 
-    def get_details(
-        self, coverid: int, size=""
-    ) -> PartialCoverDetails | db.CoverDbDetails | None:
+    def get_details(self, coverid: int, size="") -> PartialCoverDetails | db.CoverDbDetails | None:
         # Use tar index if available to avoid db query. We have 0-6M images in tar balls.
         if coverid < 6_000_000 and size in "sml":
             path = self.get_tar_filename(coverid, size)
@@ -410,13 +394,13 @@ def get_tarindex_path(index, size):
 
     itemname = f"{prefix}_{name[:4]}"
     filename = f"{prefix}_{name[:4]}_{name[4:6]}.index"
-    return os.path.join('items', itemname, filename)
+    return os.path.join("items", itemname, filename)
 
 
 def parse_tarindex(file: io.TextIOBase):
     """Takes tarindex file as file objects and returns array of offsets and array of sizes. The size of the returned arrays will be 10000."""
-    array_offset = array.array('L', [0 for i in range(10000)])
-    array_size = array.array('L', [0 for i in range(10000)])
+    array_offset = array.array("L", [0 for i in range(10000)])
+    array_size = array.array("L", [0 for i in range(10000)])
 
     for line in file:
         line = line.strip()
@@ -433,13 +417,13 @@ class cover_details:
     def GET(self, category, key, value):
         d = _query(category, key, value)
 
-        if key == 'id':
-            web.header('Content-Type', 'application/json')
+        if key == "id":
+            web.header("Content-Type", "application/json")
             d = db.details(value)
             if d:
-                if isinstance(d['created'], datetime.datetime):
-                    d['created'] = d['created'].isoformat()
-                    d['last_modified'] = d['last_modified'].isoformat()
+                if isinstance(d["created"], datetime.datetime):
+                    d["created"] = d["created"].isoformat()
+                    d["last_modified"] = d["last_modified"].isoformat()
                 return json.dumps(d)
             else:
                 raise web.notfound("")
@@ -453,17 +437,15 @@ class cover_details:
 
 class query:
     def GET(self, category):
-        i = web.input(
-            olid=None, offset=0, limit=10, callback=None, details="false", cmd=None
-        )
+        i = web.input(olid=None, offset=0, limit=10, callback=None, details="false", cmd=None)
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
 
         limit = min(limit, 100)
 
-        if i.olid and ',' in i.olid:
-            i.olid = i.olid.split(',')
+        if i.olid and "," in i.olid:
+            i.olid = i.olid.split(",")
         result = db.query(category, i.olid, offset=offset, limit=limit)
 
         if i.cmd == "ids":
@@ -474,19 +456,19 @@ class query:
 
             def process(r):
                 return {
-                    'id': r.id,
-                    'olid': r.olid,
-                    'created': r.created.isoformat(),
-                    'last_modified': r.last_modified.isoformat(),
-                    'source_url': r.source_url,
-                    'width': r.width,
-                    'height': r.height,
+                    "id": r.id,
+                    "olid": r.olid,
+                    "created": r.created.isoformat(),
+                    "last_modified": r.last_modified.isoformat(),
+                    "source_url": r.source_url,
+                    "width": r.width,
+                    "height": r.height,
                 }
 
             result = [process(r) for r in result]
 
         json_data = json.dumps(result)
-        web.header('Content-Type', 'text/javascript')
+        web.header("Content-Type", "text/javascript")
         if i.callback:
             return f"{i.callback}({json_data});"
         else:
@@ -496,14 +478,14 @@ class query:
 class touch:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
-        redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
+        redirect_url = i.redirect_url or web.ctx.get("HTTP_REFERRER")
 
         id = i.id and safeint(i.id, None)
         if id:
             db.touch(id)
             raise web.seeother(redirect_url)
         else:
-            return f'no such id: {id}'
+            return f"no such id: {id}"
 
 
 class delete:
@@ -517,9 +499,9 @@ class delete:
             if redirect_url:
                 raise web.seeother(redirect_url)
             else:
-                return 'cover has been deleted successfully.'
+                return "cover has been deleted successfully."
         else:
-            return f'no such id: {id}'
+            return f"no such id: {id}"
 
 
 def render_list_preview_image(lst_key: str):
@@ -529,17 +511,11 @@ def render_list_preview_image(lst_key: str):
 
     lst = cast(List, web.ctx.site.get(lst_key))
     five_covers = itertools.islice(
-        (
-            cover
-            for seed in lst.get_seeds()
-            if seed._type != "subject" and (cover := seed.get_cover())
-        ),
+        (cover for seed in lst.get_seeds() if seed._type != "subject" and (cover := seed.get_cover())),
         0,
         5,
     )
-    background = Image.open(
-        "/openlibrary/static/images/Twitter_Social_Card_Background.png"
-    )
+    background = Image.open("/openlibrary/static/images/Twitter_Social_Card_Background.png")
 
     logo = Image.open("/openlibrary/static/images/Open_Library_logo.png")
 
@@ -569,14 +545,10 @@ def render_list_preview_image(lst_key: str):
     background.paste(logo, (880, 14), logo)
 
     draw = ImageDraw.Draw(background)
-    font_author = ImageFont.truetype(
-        "/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22
-    )
-    font_title = ImageFont.truetype(
-        "/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28
-    )
+    font_author = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-LightItalic.ttf", 22)
+    font_title = ImageFont.truetype("/openlibrary/static/fonts/NotoSans-SemiBold.ttf", 28)
 
-    para = textwrap.wrap(lst.name or 'Untitled List', width=45)
+    para = textwrap.wrap(lst.name or "Untitled List", width=45)
     current_h = 42
 
     author_text = "A list on Open Library"
@@ -595,7 +567,7 @@ def render_list_preview_image(lst_key: str):
         current_h += h
 
     with io.BytesIO() as buf:
-        background.save(buf, format='PNG')
+        background.save(buf, format="PNG")
         return buf.getvalue()
 
 

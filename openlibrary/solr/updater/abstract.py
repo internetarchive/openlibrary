@@ -35,7 +35,7 @@ class AbstractSolrBuilder:
         # Allow @property and @cached_property though!
         doc: dict = {}
         for field in dir(self):
-            if field.startswith('_'):
+            if field.startswith("_"):
                 continue
             val = getattr(self, field)
 
@@ -51,6 +51,6 @@ class AbstractSolrBuilder:
             elif isinstance(val, (str, int, float, bool, list)):
                 doc[field] = val
             else:
-                raise ValueError(f'Unknown type for {field}: {type(val)}')
+                raise ValueError(f"Unknown type for {field}: {type(val)}")
 
         return cast(SolrDocument, doc)

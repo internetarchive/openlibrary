@@ -16,7 +16,7 @@ from apscheduler.util import undefined
 
 class OlAsyncIOScheduler(AsyncIOScheduler):
     def __init__(self, print_prefix: str, sentry_monitoring: bool = False):
-        super().__init__({'apscheduler.timezone': 'UTC'})
+        super().__init__({"apscheduler.timezone": "UTC"})
         self.print_prefix = print_prefix
         self.sentry = sentry_monitoring
         self.add_listener(
@@ -46,7 +46,7 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
             from sentry_sdk._types import MonitorConfig
 
         monitor_config: MonitorConfig = {
-            'checkin_margin': 60,
+            "checkin_margin": 60,
         }
 
         if self.sentry:
@@ -77,19 +77,16 @@ class OlAsyncIOScheduler(AsyncIOScheduler):
 
         if self.sentry:
             if isinstance(job.trigger, CronTrigger):
-                monitor_config['schedule'] = {
-                    'type': 'crontab',
-                    'value': cron_trigger_to_crontab(job.trigger),
+                monitor_config["schedule"] = {
+                    "type": "crontab",
+                    "value": cron_trigger_to_crontab(job.trigger),
                 }
                 print(
                     f"[{self.print_prefix}] Monitoring job {job.id} with crontab: {monitor_config['schedule']['value']}",
                     flush=True,
                 )
             else:
-                raise ValueError(
-                    f"Unsupported trigger type: {type(job.trigger).__name__}. "
-                    "Only CronTrigger is supported for Sentry monitoring."
-                )
+                raise ValueError(f"Unsupported trigger type: {type(job.trigger).__name__}. Only CronTrigger is supported for Sentry monitoring.")
 
         return job
 
@@ -131,6 +128,6 @@ def cron_trigger_to_crontab(cron_trigger: CronTrigger) -> str:
     Only the fields minute, hour, day, month, and day_of_week are included, as per crontab format.
     """
     # Map field names to crontab order
-    crontab_fields = ['minute', 'hour', 'day', 'month', 'day_of_week']
+    crontab_fields = ["minute", "hour", "day", "month", "day_of_week"]
     field_map = {f.name: str(f) for f in cron_trigger.fields}
-    return ' '.join(field_map.get(name, '*') for name in crontab_fields)
+    return " ".join(field_map.get(name, "*") for name in crontab_fields)

@@ -10,18 +10,18 @@ RESULTS_PER_PAGE = 20
 
 
 class search_inside(delegate.page):
-    path = '/search/inside'
+    path = "/search/inside"
 
     def GET(self):
         search_start = time()  # should probably use a @timeit decorator
-        i = web.input(q='', page=1)
+        i = web.input(q="", page=1)
         query = i.q
         page = int(i.page)
         results = fulltext_search(query, page=page, limit=RESULTS_PER_PAGE)
         search_time = time() - search_start
 
         return render_template(
-            'search/inside.tmpl',
+            "search/inside.tmpl",
             query,
             results,
             search_time,

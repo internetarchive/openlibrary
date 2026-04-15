@@ -56,9 +56,7 @@ def get_objects():
     """Returns a list of live objects."""
     objects = gc.get_objects()
     dicts = {id(o.__dict__) for o in objects if hasattr(o, "__dict__")}
-    return (
-        obj for obj in gc.get_objects() if obj is not _mark and id(obj) not in dicts
-    )
+    return (obj for obj in gc.get_objects() if obj is not _mark and id(obj) not in dicts)
 
 
 def get_objects_by_type(type):

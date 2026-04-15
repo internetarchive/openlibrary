@@ -12,10 +12,10 @@ from infogami import config
 from infogami.utils import stats
 from openlibrary.core import cache
 
-logger = logging.getLogger('openlibrary.ia')
+logger = logging.getLogger("openlibrary.ia")
 
-IA_BASE_URL = 'https://archive.org'
-VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
+IA_BASE_URL = "https://archive.org"
+VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 session = httpx.Client()
 
@@ -24,7 +24,7 @@ def setup(config):
     """Initializes this module from openlibrary config."""
     global IA_BASE_URL
 
-    IA_BASE_URL = config.get('ia_base_url', 'https://archive.org')
+    IA_BASE_URL = config.get("ia_base_url", "https://archive.org")
 
 
 def get_api_response(url: str, params: dict | None = None) -> dict:
@@ -34,22 +34,20 @@ def get_api_response(url: str, params: dict | None = None) -> dict:
     :param dict params: url parameters
     """
     api_response = {}
-    stats.begin('archive.org', url=url)
+    stats.begin("archive.org", url=url)
     try:
         r = session.get(url, params=params, timeout=3)
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:
-            logger.info(f'{r.status_code} response received from {url}')
+            logger.info(f"{r.status_code} response received from {url}")
     except Exception:
-        logger.exception(f'Exception occurred accessing {url}.')
+        logger.exception(f"Exception occurred accessing {url}.")
     stats.end()
     return api_response
 
 
-def save_page_now(
-    url: str, access_key: str | None = None, secret_key: str | None = None
-) -> str:
+def save_page_now(url: str, access_key: str | None = None, secret_key: str | None = None) -> str:
     """Archive a URL using the Internet Archive Save Page Now API.
 
     Returns job_id on success, or an error string like "NO_CREDENTIALS",
@@ -68,15 +66,13 @@ def save_page_now(
     data = {"url": url}
 
     try:
-        r = session.post(
-            "https://web.archive.org/save", headers=headers, data=data, timeout=30
-        )
+        r = session.post("https://web.archive.org/save", headers=headers, data=data, timeout=30)
         if r.status_code == 200:
             try:
                 result = r.json()
             except ValueError:
                 return f"ERROR_NO_JOB_ID_{r.status_code}"
-            return result.get('job_id', f"ERROR_NO_JOB_ID_{r.status_code}")
+            return result.get("job_id", f"ERROR_NO_JOB_ID_{r.status_code}")
         else:
             return f"ERROR_HTTP_{r.status_code}"
     except (httpx.RequestException, ValueError) as e:
@@ -89,37 +85,33 @@ def get_ia_s3_keys() -> tuple[str | None, str | None]:
     return spn_config.get("s3_key"), spn_config.get("s3_secret")
 
 
-def get_metadata_direct(
-    itemid: str, only_metadata: bool = True, cache: bool = True
-) -> dict:
+def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict:
     """
     Fetches metadata by querying the archive.org metadata API, without local caching.
     :param bool cache: if false, requests uncached metadata from archive.org
     :param bool only_metadata: whether to get the metadata without any processing
     """
-    url = f'{IA_BASE_URL}/metadata/{web.safestr(itemid.strip())}'
+    url = f"{IA_BASE_URL}/metadata/{web.safestr(itemid.strip())}"
     params = {}
     if cache is False:
-        params['dontcache'] = 1
+        params["dontcache"] = 1
     full_json = get_api_response(url, params)
     return extract_item_metadata(full_json) if only_metadata else full_json
 
 
-get_metadata: Callable[[str], dict] = cache.memcache_memoize(
-    get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS
-)
+get_metadata: Callable[[str], dict] = cache.memcache_memoize(get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS)
 
 
 def extract_item_metadata(item_json: dict) -> dict:
-    metadata = process_metadata_dict(item_json.get('metadata', {}))
+    metadata = process_metadata_dict(item_json.get("metadata", {}))
     if metadata:
         # if any of the files is access restricted, consider it as
         # an access-restricted item.
-        files = item_json.get('files', [])
-        metadata['access-restricted'] = any(f.get('private') == 'true' for f in files)
+        files = item_json.get("files", [])
+        metadata["access-restricted"] = any(f.get("private") == "true" for f in files)
 
         # remember the filenames to construct download links
-        metadata['_filenames'] = [f['name'] for f in files]
+        metadata["_filenames"] = [f["name"] for f in files]
     return metadata
 
 
@@ -132,7 +124,7 @@ def process_metadata_dict(metadata: dict) -> dict[str, str | list[str] | bool]:
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    multivalued = {'collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'}
+    multivalued = {"collection", "external-identifier", "isbn", "subject", "oclc-id"}
 
     def process_item(k, v):
         if k in multivalued and not isinstance(v, list):
@@ -147,10 +139,10 @@ def process_metadata_dict(metadata: dict) -> dict[str, str | list[str] | bool]:
 def locate_item(itemid: str) -> tuple[str | None, str | None]:
     """Returns (hostname, path) for the item."""
     d = get_metadata_direct(itemid, only_metadata=False)
-    return d.get('server'), d.get('dir')
+    return d.get("server"), d.get("dir")
 
 
-def edition_from_item_metadata(itemid: str, metadata: dict) -> 'ItemEdition | None':
+def edition_from_item_metadata(itemid: str, metadata: dict) -> "ItemEdition | None":
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 
@@ -166,34 +158,32 @@ def edition_from_item_metadata(itemid: str, metadata: dict) -> 'ItemEdition | No
 
 def get_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's cover page."""
-    base_url = f'{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/'
-    cover_response = session.head(base_url + 'default.jpg', follow_redirects=True)
+    base_url = f"{IA_BASE_URL}/services/img/{item_id}/full/pct:600/0/"
+    cover_response = session.head(base_url + "default.jpg", follow_redirects=True)
     if cover_response.status_code == 404:
         return get_fallback_cover_url(item_id)
-    return base_url + 'default.jpg'
+    return base_url + "default.jpg"
 
 
 def get_fallback_cover_url(item_id: str) -> str:
     """Gets the URL of the archive.org item's title (or cover) page."""
-    base_url = f'{IA_BASE_URL}/download/{item_id}/page/'
-    title_response = session.head(base_url + 'title.jpg', follow_redirects=True)
+    base_url = f"{IA_BASE_URL}/download/{item_id}/page/"
+    title_response = session.head(base_url + "title.jpg", follow_redirects=True)
     if title_response.status_code == 404:
-        return base_url + 'cover.jpg'
-    return base_url + 'title.jpg'
+        return base_url + "cover.jpg"
+    return base_url + "title.jpg"
 
 
 def get_item_manifest(item_id: str, item_server: str, item_path: str) -> dict:
-    url = f'https://{item_server}/BookReader/BookReaderJSON.php'
-    url += f'?itemPath={item_path}&itemId={item_id}&server={item_server}'
+    url = f"https://{item_server}/BookReader/BookReaderJSON.php"
+    url += f"?itemPath={item_path}&itemId={item_id}&server={item_server}"
     return get_api_response(url)
 
 
 def get_item_status(itemid: str, metadata: dict, **server) -> str:
-    item_server = server.pop('item_server', None)
-    item_path = server.pop('item_path', None)
-    return ItemEdition.get_item_status(
-        itemid, metadata, item_server=item_server, item_path=item_path
-    )
+    item_server = server.pop("item_server", None)
+    item_path = server.pop("item_path", None)
+    return ItemEdition.get_item_status(itemid, metadata, item_server=item_server, item_path=item_path)
 
 
 class ItemEdition(dict):
@@ -250,7 +240,7 @@ class ItemEdition(dict):
                 return "no-imagecount"
             else:
                 manifest = get_item_manifest(itemid, item_server, item_path)
-                if not manifest.get('numPages'):
+                if not manifest.get("numPages"):
                     return "no-imagecount"
 
         # items start with these prefixes are not books
@@ -267,15 +257,11 @@ class ItemEdition(dict):
         collections = metadata.get("collection", [])
         if not isinstance(collections, list):
             collections = [collections]
-        if (
-            metadata.get("noindex") == "true"
-            and "printdisabled" not in collections
-            and "inlibrary" not in collections
-        ):
+        if metadata.get("noindex") == "true" and "printdisabled" not in collections and "inlibrary" not in collections:
             return "noindex-true"
         # Gio - April 2016
         # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import", '').lower() == 'true':
+        if metadata.get("no_ol_import", "").lower() == "true":
             return "no-ol-import"
         return "ok"
 
@@ -287,22 +273,22 @@ class ItemEdition(dict):
         Items that are not book scans, darked or with noindex=true etc. are
         not eligible to be shown in Open Library.
         """
-        return cls.get_item_status(itemid, metadata) == 'ok'
+        return cls.get_item_status(itemid, metadata) == "ok"
 
     def add_metadata(self, metadata: dict) -> None:
         self.metadata = metadata
-        self.add('title')
-        self.add('description', 'description')
-        self.add_list('publisher', 'publishers')
-        self.add_list('creator', 'author_names')
-        self.add('date', 'publish_date')
+        self.add("title")
+        self.add("description", "description")
+        self.add_list("publisher", "publishers")
+        self.add_list("creator", "author_names")
+        self.add("date", "publish_date")
         self.add_isbns()
 
     def add(self, key: str, key2: str | None = None) -> None:
         metadata = self.metadata
 
         key2 = key2 or key
-        if value := metadata.get('key'):
+        if value := metadata.get("key"):
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
                 if value:
@@ -320,7 +306,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        if value := metadata.get('key'):
+        if value := metadata.get("key"):
             if not isinstance(value, list):
                 value = [value]
             self[key2] = value
@@ -328,7 +314,7 @@ class ItemEdition(dict):
     def add_isbns(self) -> None:
         isbn_10 = []
         isbn_13 = []
-        if isbns := self.metadata.get('isbn'):
+        if isbns := self.metadata.get("isbn"):
             for isbn in isbns:
                 isbn = isbn.replace("-", "").strip()
                 if len(isbn) == 13:
@@ -346,45 +332,43 @@ def get_candidates_url(
     marcs: bool = True,
 ) -> str:
     DAY = datetime.timedelta(days=1)
-    hard_requirements = ' AND '.join(
+    hard_requirements = " AND ".join(
         [
             "mediatype:texts",
-            f'indexdate:{day}*',
-            '!collection:litigationworks',
-            '!is_dark:true',
+            f"indexdate:{day}*",
+            "!collection:litigationworks",
+            "!is_dark:true",
             # Fetch back to items added before the day of interest, since items
             # sometimes take a few days to process into the collection.
-            f'addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]',
+            f"addeddate:[{day - 60 * DAY} TO {day + 1 * DAY}]",
         ]
     )
-    repub_states = ' OR '.join(
-        f'repub_state:{state}' for state in VALID_READY_REPUB_STATES
-    )
-    soft_requirements = ' AND '.join(
+    repub_states = " OR ".join(f"repub_state:{state}" for state in VALID_READY_REPUB_STATES)
+    soft_requirements = " AND ".join(
         [
-            f'({repub_states})',
-            'scanningcenter:*',
-            'scanner:*',
-            'scandate:*',
-            'format:pdf',
+            f"({repub_states})",
+            "scanningcenter:*",
+            "scanner:*",
+            "scandate:*",
+            "format:pdf",
             # TODO: format:marc seems to be getting more records than expected
-            *(['format:marc'] if marcs else []),
-            '!collection:opensource',
-            '!collection:additional_collections',
-            '!noindex:true',
+            *(["format:marc"] if marcs else []),
+            "!collection:opensource",
+            "!collection:additional_collections",
+            "!noindex:true",
         ]
     )
-    exempt_collections = ' OR '.join(EXEMPT_COLLECTIONS)
+    exempt_collections = " OR ".join(EXEMPT_COLLECTIONS)
 
     params = {
-        'q': f'({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))',
-        'fl': 'identifier,format',
-        'service': 'metadata__unlimited',
-        'rows': '100000',  # This is the max, I believe
-        'output': 'json',
+        "q": f"({hard_requirements}) AND (({soft_requirements}) OR ({exempt_collections}))",
+        "fl": "identifier,format",
+        "service": "metadata__unlimited",
+        "rows": "100000",  # This is the max, I believe
+        "output": "json",
     }
 
-    return f'{IA_BASE_URL}/advancedsearch.php?' + urlencode(params)
+    return f"{IA_BASE_URL}/advancedsearch.php?" + urlencode(params)
 
 
 def get_candidate_ocaids(
@@ -399,13 +383,13 @@ def get_candidate_ocaids(
     :param marcs: require MARCs present?
     """
     url = get_candidates_url(day, marcs=marcs)
-    results = session.get(url).json()['response']['docs']
-    assert len(results) < 100_000, f'100,000 results returned for {day}'
+    results = session.get(url).json()["response"]["docs"]
+    assert len(results) < 100_000, f"100,000 results returned for {day}"
 
     for row in results:
         if marcs:
             # Exclude MARC Source since this doesn't contain the actual MARC data
-            formats = {fmt.lower() for fmt in row.get('format', [])}
-            if not formats & {'marc', 'marc binary'}:
+            formats = {fmt.lower() for fmt in row.get("format", [])}
+            if not formats & {"marc", "marc binary"}:
                 continue
-        yield row['identifier']
+        yield row["identifier"]

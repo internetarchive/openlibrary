@@ -17,34 +17,34 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("openlibrary.solr")
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
-re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
-re_year = re.compile(r'\b(\d{4})\b')
-re_solr_field = re.compile(r'^[-\w]+$', re.UNICODE)
-re_not_az = re.compile('[^a-zA-Z]')
+re_lang_key = re.compile(r"^/(?:l|languages)/([a-z]{3})$")
+re_year = re.compile(r"\b(\d{4})\b")
+re_solr_field = re.compile(r"^[-\w]+$", re.UNICODE)
+re_not_az = re.compile("[^a-zA-Z]")
 
 
 class EditionSolrUpdater(AbstractSolrUpdater):
-    key_prefix = '/books/'
-    thing_type = '/type/edition'
+    key_prefix = "/books/"
+    thing_type = "/type/edition"
 
     async def update_key(self, thing: dict) -> tuple[SolrUpdateRequest, list[str]]:
         update = SolrUpdateRequest()
         new_keys: list[str] = []
-        if thing['type']['key'] == self.thing_type:
+        if thing["type"]["key"] == self.thing_type:
             if thing.get("works"):
-                new_keys.append(thing["works"][0]['key'])
+                new_keys.append(thing["works"][0]["key"])
                 # Make sure we remove any fake works created from orphaned editions
-                update.deletes.append(thing['key'].replace('/books/', '/works/'))
+                update.deletes.append(thing["key"].replace("/books/", "/works/"))
             else:
                 # index the edition as it does not belong to any work
-                new_keys.append(thing['key'].replace('/books/', '/works/'))
+                new_keys.append(thing["key"].replace("/books/", "/works/"))
         else:
             logger.info(
                 "%r is a document of type %r. Checking if any work has it as edition in solr...",
-                thing['key'],
-                thing['type']['key'],
+                thing["key"],
+                thing["type"]["key"],
             )
-            work_key = solr_select_work(thing['key'])
+            work_key = solr_select_work(thing["key"])
             if work_key:
                 logger.info("found %r, updating it...", work_key)
                 new_keys.append(work_key)
@@ -67,16 +67,16 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
     reply = requests.get(
-        f'{get_solr_base_url()}/select',
+        f"{get_solr_base_url()}/select",
         params={
-            'wt': 'json',
-            'q': f'edition_key:{edition_key}',
-            'rows': 1,
-            'fl': 'key',
+            "wt": "json",
+            "q": f"edition_key:{edition_key}",
+            "rows": 1,
+            "fl": "key",
         },
     ).json()
-    if docs := reply['response'].get('docs', []):
-        return docs[0]['key']  # /works/ prefix is in solr
+    if docs := reply["response"].get("docs", []):
+        return docs[0]["key"]  # /works/ prefix is in solr
 
 
 def solr_escape(query):
@@ -86,19 +86,19 @@ def solr_escape(query):
     :param str query:
     :rtype: str
     """
-    return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
+    return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r"\\\1", query)
 
 
 def is_sine_nomine(pub: str) -> bool:
     """Check if the publisher is 'sn' (excluding non-letter characters)."""
-    return re_not_az.sub('', pub).lower() == 'sn'
+    return re_not_az.sub("", pub).lower() == "sn"
 
 
 class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
         edition: dict,
-        solr_work: 'WorkSolrBuilder | None' = None,
+        solr_work: "WorkSolrBuilder | None" = None,
         ia_metadata: bp.IALiteMetadata | None = None,
     ):
         self._edition = edition
@@ -109,47 +109,44 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def key(self):
-        return self._edition['key']
+        return self._edition["key"]
 
     @property
     def work_key(self) -> list[str]:
         # This is formatted like 'OL123W' ; bit awkward, but consistent with `edition_key`
-        return [
-            work_ref['key'].split('/')[-1]
-            for work_ref in self._edition.get('works', [])
-        ]
+        return [work_ref["key"].split("/")[-1] for work_ref in self._edition.get("works", [])]
 
     @property
     def title(self) -> str | None:
-        return self._edition.get('title')
+        return self._edition.get("title")
 
     @property
     def subtitle(self) -> str | None:
-        return self._edition.get('subtitle')
+        return self._edition.get("subtitle")
 
     @property
     def alternative_title(self) -> set[str]:
         """Get titles from the editions as alternative titles."""
         result: set[str] = set()
-        full_title = self._edition.get('title')
+        full_title = self._edition.get("title")
         if not full_title:
             return result
-        if self._edition.get('subtitle'):
-            full_title += ': ' + cast(str, self._edition['subtitle'])
+        if self._edition.get("subtitle"):
+            full_title += ": " + cast(str, self._edition["subtitle"])
         result.add(full_title)
-        result.update(self._edition.get('work_titles', []))
-        result.update(self._edition.get('other_titles', []))
+        result.update(self._edition.get("work_titles", []))
+        result.update(self._edition.get("other_titles", []))
 
         return result
 
     @property
     def chapter(self) -> list[str]:
         result = []
-        olid = self._edition.get('key', '').split('/', 2)[-1]
-        for chapter in self._edition.get('table_of_contents', []):
+        olid = self._edition.get("key", "").split("/", 2)[-1]
+        for chapter in self._edition.get("table_of_contents", []):
             # Check if plain string first
             if isinstance(chapter, str):
-                result.append(f'{olid} | {chapter}')
+                result.append(f"{olid} | {chapter}")
                 continue
 
             title = chapter.get("title", "")
@@ -158,25 +155,19 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             if chapter.get("authors"):
                 title += f" ({', '.join(a['name'] for a in chapter['authors'])})"
 
-            result.append(
-                f'{olid} | {chapter.get("label", "")} | {title} | {chapter.get("pagenum", "")}'
-            )
+            result.append(f"{olid} | {chapter.get('label', '')} | {title} | {chapter.get('pagenum', '')}")
         return result
 
     @property
     def cover_i(self) -> int | None:
         return next(
-            (
-                cover_id
-                for cover_id in self._edition.get('covers', [])
-                if cover_id != -1
-            ),
+            (cover_id for cover_id in self._edition.get("covers", []) if cover_id != -1),
             None,
         )
 
     @property
     def lexile(self) -> int | None:
-        lexile_str = self._edition.get('lexile')
+        lexile_str = self._edition.get("lexile")
         try:
             return int(lexile_str) if lexile_str else None
         except (TypeError, ValueError):
@@ -186,22 +177,19 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     def language(self) -> list[str]:
         """Gets the 3 letter language codes (eg ['ger', 'fre'])"""
         result: list[str] = []
-        for lang in self._edition.get('languages', []):
-            m = re_lang_key.match(lang['key'] if isinstance(lang, dict) else lang)
+        for lang in self._edition.get("languages", []):
+            m = re_lang_key.match(lang["key"] if isinstance(lang, dict) else lang)
             if m:
                 result.append(m.group(1))
         return uniq(result)
 
     @property
     def publisher(self) -> list[str]:
-        return uniq(
-            publisher if not is_sine_nomine(publisher) else 'Sine nomine'
-            for publisher in self._edition.get('publishers', [])
-        )
+        return uniq(publisher if not is_sine_nomine(publisher) else "Sine nomine" for publisher in self._edition.get("publishers", []))
 
     @property
     def number_of_pages(self) -> int | None:
-        number_of_pages_str = self._edition.get('number_of_pages')
+        number_of_pages_str = self._edition.get("number_of_pages")
         try:
             return int(number_of_pages_str) if number_of_pages_str else None
         except (TypeError, ValueError):
@@ -213,11 +201,11 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def format(self) -> str | None:
-        return self._edition.get('physical_format')
+        return self._edition.get("physical_format")
 
     @property
     def edition_name(self) -> str | None:
-        return self._edition.get('edition_name')
+        return self._edition.get("edition_name")
 
     @property
     def isbn(self) -> list[str]:
@@ -227,12 +215,8 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         """
         isbns = []
 
-        isbns += [
-            isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_13", [])
-        ]
-        isbns += [
-            isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_10", [])
-        ]
+        isbns += [isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_13", [])]
+        isbns += [isbn.replace("_", "").strip() for isbn in self._edition.get("isbn_10", [])]
 
         # Get the isbn13 when isbn10 is present and vice-versa.
         isbns += [opposite_isbn(v) for v in isbns]
@@ -241,15 +225,15 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def lccn(self) -> list[str]:
-        return uniq(lccn.strip() for lccn in self._edition.get('lccn', []))
+        return uniq(lccn.strip() for lccn in self._edition.get("lccn", []))
 
     @property
     def oclc(self) -> list[str]:
-        return uniq(oclc.strip() for oclc in self._edition.get('oclc_numbers', []))
+        return uniq(oclc.strip() for oclc in self._edition.get("oclc_numbers", []))
 
     @property
     def publish_date(self) -> str | None:
-        return self._edition.get('publish_date')
+        return self._edition.get("publish_date")
 
     @property
     def publish_year(self) -> int | None:
@@ -261,52 +245,41 @@ class EditionSolrBuilder(AbstractSolrBuilder):
 
     @property
     def ia(self) -> str | None:
-        ocaid = self._edition.get('ocaid')
+        ocaid = self._edition.get("ocaid")
         return ocaid.strip() if ocaid else None
 
     @property
     def ia_collection(self) -> list[str]:
-        collections = self._ia_metadata['collection'] if self._ia_metadata else set()
+        collections = self._ia_metadata["collection"] if self._ia_metadata else set()
         # Exclude fav-* collections because they're not useful to us.
-        return [c for c in collections if not c.startswith('fav-')]
+        return [c for c in collections if not c.startswith("fav-")]
 
     @property
     def ia_box_id(self) -> list[str]:
         boxids = []
-        if 'ia_box_id' in self._edition:
-            if isinstance(self._edition['ia_box_id'], str):
-                boxids = [self._edition['ia_box_id']]
-            elif isinstance(self._edition['ia_box_id'], list):
-                boxids = self._edition['ia_box_id']
+        if "ia_box_id" in self._edition:
+            if isinstance(self._edition["ia_box_id"], str):
+                boxids = [self._edition["ia_box_id"]]
+            elif isinstance(self._edition["ia_box_id"], list):
+                boxids = self._edition["ia_box_id"]
             else:
-                logger.warning(
-                    f'Bad ia_box_id on {self.key}: "{self._edition["ia_box_id"]}"'
-                )
+                logger.warning(f'Bad ia_box_id on {self.key}: "{self._edition["ia_box_id"]}"')
         if self._ia_metadata:
-            boxids += list(self._ia_metadata.get('boxid') or [])
+            boxids += list(self._ia_metadata.get("boxid") or [])
 
         return uniq(boxids, key=lambda x: x.lower())
 
     @property
     def identifiers(self) -> dict:
         identifiers = {}
-        for key, id_list in self._edition.get('identifiers', {}).items():
-            solr_key = (
-                key.replace('.', '_')
-                .replace(',', '_')
-                .replace('(', '')
-                .replace(')', '')
-                .replace(':', '_')
-                .replace('/', '')
-                .replace('#', '')
-                .lower()
-            )
+        for key, id_list in self._edition.get("identifiers", {}).items():
+            solr_key = key.replace(".", "_").replace(",", "_").replace("(", "").replace(")", "").replace(":", "_").replace("/", "").replace("#", "").lower()
             m = re_solr_field.match(solr_key)
             if not m:
                 logger.warning(f'Bad identifier on {self.key}: "{key}"')
                 continue
 
-            identifiers[f'id_{solr_key}'] = uniq(v.strip() for v in id_list)
+            identifiers[f"id_{solr_key}"] = uniq(v.strip() for v in id_list)
         return identifiers
 
     @cached_property
@@ -341,49 +314,47 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         solr_doc: SolrDocument = cast(
             SolrDocument,
             {
-                'key': self.key,
-                'work_key': self.work_key,
-                'type': 'edition',
+                "key": self.key,
+                "work_key": self.work_key,
+                "type": "edition",
                 # Display data
-                'title': self.title,
-                'subtitle': self.subtitle,
-                'alternative_title': list(self.alternative_title),
-                'chapter': self.chapter,
-                'cover_i': self.cover_i,
-                'language': self.language,
+                "title": self.title,
+                "subtitle": self.subtitle,
+                "alternative_title": list(self.alternative_title),
+                "chapter": self.chapter,
+                "cover_i": self.cover_i,
+                "language": self.language,
                 # Duplicate the author data from the work
                 **(
                     {
-                        'author_name': self._solr_work.author_name,
-                        'author_key': self._solr_work.author_key,
-                        'author_alternative_name': list(
-                            self._solr_work.author_alternative_name
-                        ),
-                        'author_facet': self._solr_work.author_facet,
+                        "author_name": self._solr_work.author_name,
+                        "author_key": self._solr_work.author_key,
+                        "author_alternative_name": list(self._solr_work.author_alternative_name),
+                        "author_facet": self._solr_work.author_facet,
                     }
                     if self._solr_work
                     else {}
                 ),
-                'edition_name': ([self.edition_name] if self.edition_name else None),
+                "edition_name": ([self.edition_name] if self.edition_name else None),
                 # Misc useful data
-                'publisher': self.publisher,
-                'format': [self.format] if self.format else None,
-                'publish_date': [self.publish_date] if self.publish_date else None,
-                'publish_year': [self.publish_year] if self.publish_year else None,
+                "publisher": self.publisher,
+                "format": [self.format] if self.format else None,
+                "publish_date": [self.publish_date] if self.publish_date else None,
+                "publish_year": [self.publish_year] if self.publish_year else None,
                 # Identifiers
-                'isbn': self.isbn,
-                'lccn': self.lccn,
-                'oclc': self.oclc,
+                "isbn": self.isbn,
+                "lccn": self.lccn,
+                "oclc": self.oclc,
                 **self.identifiers,
                 # IA
-                'ia': [self.ia] if self.ia else None,
-                'ia_collection': self.ia_collection,
-                'ia_box_id': self.ia_box_id,
+                "ia": [self.ia] if self.ia else None,
+                "ia_collection": self.ia_collection,
+                "ia_box_id": self.ia_box_id,
                 # Ebook access
-                'ebook_access': self.ebook_access.to_solr_str(),
-                'ebook_provider': self.ebook_provider,
-                'has_fulltext': self.has_fulltext,
-                'public_scan_b': self.public_scan_b,
+                "ebook_access": self.ebook_access.to_solr_str(),
+                "ebook_provider": self.ebook_provider,
+                "has_fulltext": self.has_fulltext,
+                "public_scan_b": self.public_scan_b,
             },
         )
 
@@ -392,6 +363,6 @@ class EditionSolrBuilder(AbstractSolrBuilder):
             {
                 key: solr_doc[key]  # type: ignore
                 for key in solr_doc
-                if solr_doc[key] not in (None, [], '')  # type: ignore
+                if solr_doc[key] not in (None, [], "")  # type: ignore
             },
         )

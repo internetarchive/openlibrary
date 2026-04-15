@@ -11,7 +11,7 @@ from openlibrary.core.models import ThingReferenceDict
 
 @dataclass
 class TableOfContents:
-    entries: list['TocEntry']
+    entries: list["TocEntry"]
 
     @cached_property
     def min_level(self) -> int:
@@ -23,40 +23,25 @@ class TableOfContents:
     @staticmethod
     def from_db(
         db_table_of_contents: list[dict] | list[str] | list[str | dict],
-    ) -> 'TableOfContents':
-        def row(r: dict | str) -> 'TocEntry':
+    ) -> "TableOfContents":
+        def row(r: dict | str) -> "TocEntry":
             if isinstance(r, str):
                 # Legacy, can be just a plain string
                 return TocEntry(level=0, title=r)
             else:
                 return TocEntry.from_dict(r)
 
-        return TableOfContents(
-            [
-                toc_entry
-                for r in db_table_of_contents
-                if not (toc_entry := row(r)).is_empty()
-            ]
-        )
+        return TableOfContents([toc_entry for r in db_table_of_contents if not (toc_entry := row(r)).is_empty()])
 
     def to_db(self) -> list[dict]:
         return [r.to_dict() for r in self.entries]
 
     @staticmethod
-    def from_markdown(text: str) -> 'TableOfContents':
-        return TableOfContents(
-            [
-                TocEntry.from_markdown(line)
-                for line in text.splitlines()
-                if line.strip(" |")
-            ]
-        )
+    def from_markdown(text: str) -> "TableOfContents":
+        return TableOfContents([TocEntry.from_markdown(line) for line in text.splitlines() if line.strip(" |")])
 
     def to_markdown(self) -> str:
-        return "\n".join(
-            ('    ' * (r.level - self.min_level)) + r.to_markdown()
-            for r in self.entries
-        )
+        return "\n".join(("    " * (r.level - self.min_level)) + r.to_markdown() for r in self.entries)
 
 
 class AuthorRecord(TypedDict, total=False):
@@ -81,31 +66,27 @@ class TocEntry:
 
     @cached_property
     def extra_fields(self) -> dict:
-        required_fields = ('level', 'label', 'title', 'pagenum')
+        required_fields = ("level", "label", "title", "pagenum")
         extra_fields = type(self).__annotations__.keys() - required_fields
-        return {
-            field: getattr(self, field)
-            for field in extra_fields
-            if getattr(self, field) is not None
-        }
+        return {field: getattr(self, field) for field in extra_fields if getattr(self, field) is not None}
 
     @staticmethod
-    def from_dict(d: dict) -> 'TocEntry':
+    def from_dict(d: dict) -> "TocEntry":
         return TocEntry(
-            level=d.get('level', 0),
-            label=d.get('label'),
-            title=d.get('title'),
-            pagenum=d.get('pagenum'),
-            authors=d.get('authors'),
-            subtitle=d.get('subtitle'),
-            description=d.get('description'),
+            level=d.get("level", 0),
+            label=d.get("label"),
+            title=d.get("title"),
+            pagenum=d.get("pagenum"),
+            authors=d.get("authors"),
+            subtitle=d.get("subtitle"),
+            description=d.get("description"),
         )
 
     def to_dict(self) -> dict:
         return {key: value for key, value in self.__dict__.items() if value is not None}
 
     @staticmethod
-    def from_markdown(line: str) -> 'TocEntry':
+    def from_markdown(line: str) -> "TocEntry":
         """
         Parse one row of table of contents.
 
@@ -130,13 +111,13 @@ class TocEntry:
 
         if "|" in text:
             tokens = text.split("|", 3)
-            label, title, page, extra_fields = pad(tokens, 4, '')
+            label, title, page, extra_fields = pad(tokens, 4, "")
         else:
             title = text
             label = page = ""
-            extra_fields = ''
+            extra_fields = ""
         try:
-            extra_fields = json.loads(extra_fields or '{}')
+            extra_fields = json.loads(extra_fields or "{}")
         except json.JSONDecodeError as e:
             raise TocParseError(f"Invalid JSON: {e}")
 
@@ -152,31 +133,25 @@ class TocEntry:
         )
 
     def to_markdown(self) -> str:
-        result = ' | '.join(
+        result = " | ".join(
             (
-                '*' * self.level
-                + (' ' if self.label and self.level else '')
-                + (self.label or ''),
-                self.title or '',
-                self.pagenum or '',
+                "*" * self.level + (" " if self.label and self.level else "") + (self.label or ""),
+                self.title or "",
+                self.pagenum or "",
             )
         )
 
         if self.extra_fields:
             # We might have `Thing` objects instead of plain dicts...
-            result += ' | ' + json.dumps(self.extra_fields, cls=InfogamiThingEncoder)
+            result += " | " + json.dumps(self.extra_fields, cls=InfogamiThingEncoder)
 
         return result
 
     def is_empty(self) -> bool:
-        return all(
-            getattr(self, field) is None
-            for field in type(self).__annotations__
-            if field != 'level'
-        )
+        return all(getattr(self, field) is None for field in type(self).__annotations__ if field != "level")
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def pad[T](seq: list[T], size: int, e: T) -> list[T]:

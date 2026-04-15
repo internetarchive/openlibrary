@@ -89,10 +89,7 @@ def generate_docs(dir):
     for path in paths:
         dirname = os.path.dirname(path)
         if path.endswith("__init__.py"):
-            submodules = [
-                web.lstrips(docpath(s), docpath(dirname) + "/")
-                for s in submodule_dict[dirname]
-            ]
+            submodules = [web.lstrips(docpath(s), docpath(dirname) + "/") for s in submodule_dict[dirname]]
         else:
             submodules = []
         submodules.sort()
