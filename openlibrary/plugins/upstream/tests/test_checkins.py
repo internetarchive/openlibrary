@@ -1,7 +1,6 @@
 from openlibrary.plugins.upstream.checkins import (
     is_valid_date,
     make_date_string,
-    patron_check_ins,
 )
 
 
@@ -40,40 +39,3 @@ class TestIsValidDate:
         assert is_valid_date(None, 1, 21) is False
         # Must have a month if there is a day:
         assert is_valid_date(1999, None, 22) is False
-
-
-class TestValidateData:
-    def setup_method(self):
-        self.checkins = patron_check_ins()
-        self.valid_data = {
-            "edition_key": "/books/OL1234M",
-            "event_type": 3,
-            "year": 2000,
-            "month": 3,
-            "day": 7,
-        }
-        self.missing_event = {
-            "edition_key": "/books/OL1234M",
-            "year": 2000,
-            "month": 3,
-            "day": 7,
-        }
-        self.invalid_date = {
-            "edition_key": "/books/OL1234M",
-            "event_type": 3,
-            "month": 3,
-            "day": 7,
-        }
-        self.unknown_event = {
-            "edition_key": "/books/OL1234M",
-            "event_type": 54321,
-            "year": 2000,
-            "month": 3,
-            "day": 7,
-        }
-
-    def test_validate_data(self):
-        assert self.checkins.validate_data(self.valid_data) is True
-        assert self.checkins.validate_data(self.missing_event) is False
-        assert self.checkins.validate_data(self.invalid_date) is False
-        assert self.checkins.validate_data(self.unknown_event) is False

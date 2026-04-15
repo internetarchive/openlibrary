@@ -1,15 +1,13 @@
-import json
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
-from typing_extensions import deprecated
 from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
-from infogami.utils.view import public, render, safeint
+from infogami.utils.view import public, render
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
@@ -319,84 +317,6 @@ class mybooks_readinglog(delegate.page):
             ratings=ratings,
             checkin_year=year,
         )
-
-
-@deprecated("migrated to fastapi")
-class public_my_books_json(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
-    encoding = "json"
-
-    def GET(self, username, key='want-to-read'):
-        i = web.input(page=1, limit=100, q="", mode='everything')
-        key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
-        if len(i.q) < 3:
-            i.q = ""
-        page = safeint(i.page, 1)
-        limit = safeint(i.limit, 100)
-        # check if user's reading log is public
-        user = web.ctx.site.get('/people/%s' % username)
-        if not user:
-            return delegate.RawText(
-                json.dumps({'error': 'User %s not found' % username}),
-                content_type="application/json",
-            )
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
-        logged_in_user = accounts.get_current_user()
-        if is_public or (
-            logged_in_user and logged_in_user.key.split('/')[-1] == username
-        ):
-            # Construct fq parameter for ebooks filtering
-            fq = None
-            if i.mode == 'ebooks':
-                fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
-
-            readlog = ReadingLog(user=user)
-            books = readlog.get_works(key, page, limit, q=i.q, fq=fq).docs
-            records_json = [
-                {
-                    'work': {
-                        'title': w.get('title'),
-                        'key': w.key,
-                        'author_keys': [
-                            '/authors/' + key for key in w.get('author_key', [])
-                        ],
-                        'author_names': w.get('author_name', []),
-                        'first_publish_year': w.get('first_publish_year') or None,
-                        'lending_edition_s': (w.get('lending_edition_s') or None),
-                        'edition_key': (w.get('edition_key') or None),
-                        'cover_id': (w.get('cover_i') or None),
-                        'cover_edition_key': (w.get('cover_edition_key') or None),
-                    },
-                    'logged_edition': w.get('logged_edition') or None,
-                    'logged_date': (
-                        w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
-                        if w.get('logged_date')
-                        else None
-                    ),
-                }
-                for w in books
-            ]
-
-            if page == 1 and len(records_json) < limit:
-                num_found = len(records_json)
-            else:
-                num_found = readlog.count_shelf(key)
-
-            return delegate.RawText(
-                json.dumps(
-                    {
-                        'page': page,
-                        'numFound': num_found,
-                        'reading_log_entries': records_json,
-                    }
-                ),
-                content_type="application/json",
-            )
-        else:
-            return delegate.RawText(
-                json.dumps({'error': 'Shelf %s not found or not accessible' % key}),
-                content_type="application/json",
-            )
 
 
 @public
