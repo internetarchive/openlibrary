@@ -20,11 +20,11 @@ __version__ = "0.2"
 
 
 def find(server, prefix):
-    q = {'key~': prefix, 'limit': 1000}
+    q = {"key~": prefix, "limit": 1000}
 
     # until all properties and backreferences are deleted on production server
-    if prefix == '/type':
-        q['type'] = '/type/type'
+    if prefix == "/type":
+        q["type"] = "/type/type"
 
     return [str(x) for x in server.query(q)]
 
@@ -52,9 +52,7 @@ class Disk:
 
         return {k: f(k) for k in keys}
 
-    def save_many(
-        self, docs: list[dict | web.storage], comment: str | None = None
-    ) -> None:
+    def save_many(self, docs: list[dict | web.storage], comment: str | None = None) -> None:
         """
 
         :param typing.List[dict or web.storage] docs:
@@ -67,7 +65,7 @@ class Disk:
                 os.makedirs(dir)
 
             if isinstance(text, dict):
-                text = text['value']
+                text = text["value"]
 
             try:
                 print("writing", path)
@@ -77,13 +75,13 @@ class Disk:
                 print("failed", path)
 
         for doc in marshal(docs):
-            path = os.path.join(self.root, doc['key'][1:])
-            if doc['type']['key'] == '/type/template':
+            path = os.path.join(self.root, doc["key"][1:])
+            if doc["type"]["key"] == "/type/template":
                 path = path.replace(".tmpl", ".html")
-                write(path, doc['body'])
-            elif doc['type']['key'] == '/type/macro':
+                write(path, doc["body"])
+            elif doc["type"]["key"] == "/type/macro":
                 path = path + ".html"
-                write(path, doc['macro'])
+                write(path, doc["macro"])
             else:
                 path = path + ".json"
                 write(path, json.dumps(doc, indent=2))
@@ -101,7 +99,7 @@ def expand(server: Disk | OpenLibrary, keys: Iterator):
         yield from keys
     else:
         for key in keys:
-            if key.endswith('*'):
+            if key.endswith("*"):
                 yield from find(server, key)
             else:
                 yield key
@@ -122,15 +120,15 @@ def get_references(doc, result=None):
         for v in doc:
             get_references(v, result)
     elif isinstance(doc, dict):
-        if 'key' in doc and len(doc) == 1:
-            result.append(doc['key'])
+        if "key" in doc and len(doc) == 1:
+            result.append(doc["key"])
 
         for v in doc.values():
             get_references(v, result)
     return result
 
 
-class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
+class KeyVersionPair(namedtuple("KeyVersionPair", "key version")):
     """Helper class to store uri's like /works/OL1W?v=2"""
 
     __slots__ = ()
@@ -141,8 +139,8 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         :param str uri: either something like /works/OL1W, /books/OL1M?v=3, etc.
         """
 
-        if '?v=' in uri:
-            key, version = uri.split('?v=')
+        if "?v=" in uri:
+            key, version = uri.split("?v=")
         else:
             key, version = uri, None
         return KeyVersionPair._make([key, version])
@@ -151,7 +149,7 @@ class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
         """ """
         uri = self.key
         if self.version:
-            uri += '?v=' + self.version
+            uri += "?v=" + self.version
         return uri
 
     def __str__(self):
@@ -186,11 +184,11 @@ def copy(
         # work records may contain excerpts, which reference the author of the excerpt.
         # Deleting them to prevent loading the users.
         for doc in docs:
-            doc.pop('excerpts', None)
+            doc.pop("excerpts", None)
 
             # Authors are now with works. We don't need authors at editions.
-            if doc['type']['key'] == '/type/edition':
-                doc.pop('authors', None)
+            if doc["type"]["key"] == "/type/edition":
+                doc.pop("authors", None)
 
         return docs
 
@@ -207,7 +205,7 @@ def copy(
         if unversioned_keys:
             print("fetching", unversioned_keys)
             docs2 = get_many(unversioned_keys)
-            cache.update((doc['key'], doc) for doc in docs2)
+            cache.update((doc["key"], doc) for doc in docs2)
             docs.extend(docs2)
         # Do versioned second so they can overwrite if necessary
         if versioned_to_get:
@@ -215,11 +213,9 @@ def copy(
             # src is type Disk | OpenLibrary, and here must be OpenLibrary for the get()
             # method, But using isinstance(src, OpenLibrary) causes pytest to fail
             # because TestServer is type scripts.tests.test_copydocs.FakeServer.
-            assert isinstance(
-                src, (OpenLibrary, scripts.tests.test_copydocs.FakeServer)
-            ), "fetching editions only works with OL src"
+            assert isinstance(src, (OpenLibrary, scripts.tests.test_copydocs.FakeServer)), "fetching editions only works with OL src"
             docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
-            cache.update((doc['key'], doc) for doc in docs2)
+            cache.update((doc["key"], doc) for doc in docs2)
             docs.extend(docs2)
 
         return docs
@@ -228,24 +224,22 @@ def copy(
         k
         for k in keys
         # Ignore /scan_record and /scanning_center ; they can cause infinite loops?
-        if k not in saved and not k.startswith('/scan')
+        if k not in saved and not k.startswith("/scan")
     ]
     docs = fetch(keys)
 
     if editions:
-        work_keys = [key for key in keys if key.startswith('/works/')]
+        work_keys = [key for key in keys if key.startswith("/works/")]
 
         assert isinstance(src, OpenLibrary), "fetching editions only works with OL src"
         if work_keys:
             # eg https://openlibrary.org/search.json?q=key:/works/OL102584W
             resp = src.search(
-                'key:' + ' OR '.join(work_keys),
+                "key:" + " OR ".join(work_keys),
                 limit=len(work_keys),
-                fields=['edition_key'],
+                fields=["edition_key"],
             )
-            edition_keys = [
-                f"/books/{olid}" for doc in resp['docs'] for olid in doc['edition_key']
-            ]
+            edition_keys = [f"/books/{olid}" for doc in resp["docs"] for olid in doc["edition_key"]]
             if edition_keys:
                 print("copying edition keys")
                 copy(
@@ -265,9 +259,9 @@ def copy(
             print("found references", refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
 
-    docs = [doc for doc in docs if doc['key'] not in saved]
+    docs = [doc for doc in docs if doc["key"] not in saved]
 
-    keys = [doc['key'] for doc in docs]
+    keys = [doc["key"] for doc in docs]
     print("saving", keys)
     # Sometimes saves in-explicably error ; check infobase logs
     # group things up to avoid a bad apple failing the batch
@@ -293,18 +287,18 @@ def copy_list(src, dest, list_key, comment):
 
     def query(**q):
         print("query", q)
-        return [x['key'] for x in marshal(src.query(q))]
+        return [x["key"] for x in marshal(src.query(q))]
 
     def get_list_seeds(list_key):
         d = jsonget(list_key + "/seeds.json")
-        return d['entries']  # [x['url'] for x in d['entries']]
+        return d["entries"]  # [x['url'] for x in d['entries']]
 
     def add_seed(seed):
-        if seed['type'] in ('edition', 'work'):
-            keys.add(seed['url'])
-        elif seed['type'] == 'subject':
-            doc = jsonget(seed['url'] + '.json')
-            keys.update(w['key'] for w in doc['works'])
+        if seed["type"] in ("edition", "work"):
+            keys.add(seed["url"])
+        elif seed["type"] == "subject":
+            doc = jsonget(seed["url"] + ".json")
+            keys.update(w["key"] for w in doc["works"])
 
     seeds = get_list_seeds(list_key)
     for seed in seeds:
@@ -314,7 +308,7 @@ def copy_list(src, dest, list_key, comment):
     work_keys = {k for k in keys if k.startswith("/works/")}
 
     for w in work_keys:
-        edition_keys.update(query(type='/type/edition', works=w, limit=500))
+        edition_keys.update(query(type="/type/edition", works=w, limit=500))
 
     keys = list(edition_keys) + list(work_keys)
     copy(src, dest, keys, comment=comment, recursive=True)
@@ -355,12 +349,8 @@ def main(
 
     # Mypy doesn't handle union-ing types across if statements -_-
     # https://github.com/python/mypy/issues/6233
-    src_ol: Disk | OpenLibrary = (
-        OpenLibrary(src) if src.startswith("http://") else Disk(src)
-    )
-    dest_ol: Disk | OpenLibrary = (
-        OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
-    )
+    src_ol: Disk | OpenLibrary = OpenLibrary(src) if src.startswith("http://") else Disk(src)
+    dest_ol: Disk | OpenLibrary = OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
 
     if isinstance(dest_ol, OpenLibrary):
         section = "[%s]" % web.lstrips(dest, "http://").strip("/")
@@ -374,15 +364,12 @@ def main(
 
     if search:
         assert isinstance(src_ol, OpenLibrary), "Search only works with OL src"
-        keys += [
-            doc['key']
-            for doc in src_ol.search(search, limit=search_limit, fields=['key'])['docs']
-        ]
+        keys += [doc["key"] for doc in src_ol.search(search, limit=search_limit, fields=["key"])["docs"]]
 
-    keys = list(expand(src_ol, ('/' + k.lstrip('/') for k in keys)))
+    keys = list(expand(src_ol, ("/" + k.lstrip("/") for k in keys)))
 
     copy(src_ol, dest_ol, keys, comment=comment, recursive=recursive, editions=editions)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

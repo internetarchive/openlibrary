@@ -201,8 +201,8 @@ msgstr ""
 
 #: DonateModal.html
 msgid ""
-"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
-"\">high-fidelity digitization</a>"
+"Beautiful <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
 msgstr ""
 
 #: DonateModal.html
@@ -238,8 +238,8 @@ msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a>. Yippee!"
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to "
+"Creative Commons will open in a new window\">CC0</a>. Yippee!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
@@ -2622,7 +2622,9 @@ msgstr ""
 
 #: widget.html
 #, python-format
-msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
+msgid ""
+"on <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
 #: work_search.html
@@ -2789,8 +2791,8 @@ msgstr ""
 #: account/create.html
 msgid ""
 "I want to apply* for <a href=\"https://help.archive.org/help/program-"
-"overview/\" target=\"_blank\">special print disability access</a> through"
-" a qualifying program."
+"overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print "
+"disability access</a> through a qualifying program."
 msgstr ""
 
 #: account/create.html
@@ -2810,8 +2812,8 @@ msgstr ""
 #: account/create.html
 msgid ""
 "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
-"form__link\" href=\"//archive.org/about/terms.php\" "
-"target=\"_blank\">Terms of Service</a>."
+"form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" "
+"rel=\"noopener noreferrer\">Terms of Service</a>."
 msgstr ""
 
 #: account/create.html
@@ -5127,8 +5129,8 @@ msgstr ""
 #: books/edit.html
 msgid ""
 "You can search by author name (like <em>j k rowling</em>) or by Open "
-"Library ID (like <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
+"Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
+"rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 msgstr ""
 
 #: books/edit.html
@@ -5487,7 +5489,8 @@ msgstr ""
 #: books/edit/edition.html
 msgid ""
 "You can search by title or by Open Library ID (like <a "
-"href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
+"href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
 
 #: books/edit/edition.html
@@ -8410,8 +8413,8 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid ""
-"<a href=\"/search\" target=\"_blank\">Search for book, subjects, or "
-"authors</a> to add to your list."
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search "
+"for book, subjects, or authors</a> to add to your list."
 msgstr ""
 
 #: type/list/view_body.html

@@ -8,9 +8,9 @@ from babel.messages.catalog import (
 
 
 def validate(message: Message, catalog: Catalog) -> list[str]:
-    errors = [f'    {err}' for err in message.check(catalog)]
+    errors = [f"    {err}" for err in message.check(catalog)]
     if message.python_format and not message.pluralizable and message.string:
-        errors.extend(_validate_cfmt(str(message.id or ''), str(message.string or '')))
+        errors.extend(_validate_cfmt(str(message.id or ""), str(message.string or "")))
 
     return errors
 
@@ -19,7 +19,7 @@ def _validate_cfmt(msgid: str, msgstr: str) -> list[str]:
     errors = []
 
     if _cfmt_fingerprint(msgid) != _cfmt_fingerprint(msgstr):
-        errors.append('    Failed custom string format validation')
+        errors.append("    Failed custom string format validation")
 
     return errors
 
@@ -56,7 +56,7 @@ def _parse_cfmt(string: str):
     >>> _parse_cfmt('Hello World')
     []
     """
-    cfmt_re = r'''
+    cfmt_re = r"""
         (
             %(?:
                 (?:\([a-zA-Z_][a-zA-Z0-9_]*?\))?   # e.g. %(blah)s
@@ -69,6 +69,6 @@ def _parse_cfmt(string: str):
         )
         |                                # OR
         %%                               # literal "%%"
-    '''
+    """
 
     return [m.group(0) for m in re.finditer(cfmt_re, string, flags=re.VERBOSE)]

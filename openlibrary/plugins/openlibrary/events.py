@@ -21,7 +21,7 @@ class EditHook(client.hook):
         """Fires page.edit event using msg broker."""
         # The argument passes by Infobase is not a thing object.
         # Create a thing object to pass to event listeners.
-        page = web.ctx.site.get(page['key'])
+        page = web.ctx.site.get(page["key"])
         eventer.trigger("page.edit", page)
 
 

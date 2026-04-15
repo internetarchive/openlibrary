@@ -16,13 +16,13 @@ from openlibrary.core import db
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
-PREFERENCE_TYPE = 'preferences'
+PREFERENCE_TYPE = "preferences"
 
 
 def setup(config_path):
     init_signal_handler()
     if not Path(config_path).exists():
-        raise FileNotFoundError(f'no config file at {config_path}')
+        raise FileNotFoundError(f"no config file at {config_path}")
     load_config(config_path)
     infogami._setup()
 
@@ -35,12 +35,12 @@ def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:
         try:
             if verbose:
                 print(f"Writing {key} to store...")
-            username = key.split('/')[-2]
+            username = key.split("/")[-2]
             ol_acct = OpenLibraryAccount.get_by_username(username)
             prefs = (ol_acct and ol_acct.get_user().preferences()) or {}
-            if ol_acct and prefs.get('type', '') != PREFERENCE_TYPE:
-                prefs['type'] = PREFERENCE_TYPE
-                prefs['_rev'] = None
+            if ol_acct and prefs.get("type", "") != PREFERENCE_TYPE:
+                prefs["type"] = PREFERENCE_TYPE
+                prefs["_rev"] = None
 
                 with RunAs(username):
                     ol_acct.get_user().save_preferences(prefs)
@@ -85,7 +85,7 @@ def _fetch_preference_keys() -> list[str]:
         oldb.query(tmp_tbl_query)
 
         missing_store_entries = oldb.query(preference_key_join_query)
-        keys = [entry.get('key', '') for entry in list(missing_store_entries)]
+        keys = [entry.get("key", "") for entry in list(missing_store_entries)]
     except DatabaseError as e:
         print(f"An error occurred while fetching preference keys: {e}")
         t.rollback()
@@ -118,7 +118,7 @@ def _fetch_legacy_preference_keys() -> list[str]:
     keys = []
     try:
         legacy_preference_entries = oldb.query(legacy_key_query)
-        keys = [entry.get('key', '') for entry in list(legacy_preference_entries)]
+        keys = [entry.get("key", "") for entry in list(legacy_preference_entries)]
     except DatabaseError as e:
         print(f"An error occurred while fetching preference keys: {e}")
 
@@ -130,9 +130,7 @@ def main(args):
     setup(args.config)
 
     print("Fetching affected preferences...")
-    affected_pref_keys = (
-        _fetch_legacy_preference_keys() if args.legacy else _fetch_preference_keys()
-    )
+    affected_pref_keys = _fetch_legacy_preference_keys() if args.legacy else _fetch_preference_keys()
 
     print(f"Found {len(affected_pref_keys)} affected preferences")
     if args.dry_run:
@@ -141,9 +139,7 @@ def main(args):
 
     print("Copying preferences to store...")
     while affected_pref_keys and not was_shutdown_requested():
-        print(
-            f"Begin writing batch of {len(affected_pref_keys)} preferences to store..."
-        )
+        print(f"Begin writing batch of {len(affected_pref_keys)} preferences to store...")
         cur_batch = affected_pref_keys[:1000]
         affected_pref_keys = affected_pref_keys[1000:]
         retries = copy_preferences_to_store(cur_batch, verbose=args.verbose)
@@ -186,7 +182,7 @@ def _parse_args():
     return p.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _args = _parse_args()
     _args.func(_args)
     print("\nScript execution complete. So long and take care!")

@@ -182,7 +182,7 @@ class manage_covers(delegate.page):
 
     def save_images(self, book, covers):
         book.covers = covers
-        book._save('Update covers')
+        book._save('Update covers', action="update-book-covers")
 
     def POST(self, key):
         if not accounts.get_current_user():
@@ -216,4 +216,4 @@ class manage_photos(manage_covers):
 
     def save_images(self, author, photos):
         author.photos = photos
-        author._save('Update photos')
+        author._save('Update photos', action="update-author-photos")

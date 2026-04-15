@@ -18,7 +18,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
-        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc)$
+        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
       - id: mixed-line-ending
         args:
           - --fix=lf
@@ -52,15 +52,105 @@ repos:
     rev: v0.15.9
     hooks:
       - id: ruff-check
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
-        files: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
+        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
+        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
+        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
+        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
+        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
+        # so the leading | on each line works correctly as an alternation operator.
+        exclude: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/lists/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/bulk_tag\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/openlibrary/partials\.py
+            |openlibrary/plugins/openlibrary/status\.py
+            |openlibrary/plugins/upstream/addbook\.py
+            |openlibrary/plugins/upstream/addtag\.py
+            |openlibrary/plugins/upstream/code\.py
+            |openlibrary/plugins/upstream/covers\.py
+            |openlibrary/plugins/upstream/jsdef\.py
+            |openlibrary/plugins/upstream/tests/test_addbook\.py
+            |openlibrary/plugins/upstream/tests/test_models\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/__init__\.py
+            |openlibrary/plugins/worksearch/schemes/authors\.py
+            |openlibrary/plugins/worksearch/schemes/lists\.py
+            |openlibrary/plugins/worksearch/schemes/subjects\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+            |openlibrary/tests/core/lists/test_model\.py
+            |openlibrary/tests/fastapi/test_partials\.py
+            |openlibrary/tests/test_templates\.py
+            |openlibrary/utils/form\.py
+            |openlibrary/utils/request_context\.py
+            |openlibrary/utils/schema\.py
+            |scripts/conftest\.py
+            |scripts/find_duplicate_author\.py
+            |scripts/monitoring/fail2ban_monitor\.py
+            |scripts/monitoring/monitor\.py
+            |scripts/monitoring/tests/test_fail2ban_monitor\.py
+            |scripts/update_stale_ocaid_references\.py
+          )$
 
   - repo: https://github.com/psf/black-pre-commit-mirror
     rev: 26.3.1
     hooks:
       - id: black  # See pyproject.toml for args
-        exclude: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
+        # Complement to ruff-format above: black runs ONLY on files in active open PRs
+        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
+        files: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/lists/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/bulk_tag\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/openlibrary/partials\.py
+            |openlibrary/plugins/openlibrary/status\.py
+            |openlibrary/plugins/upstream/addbook\.py
+            |openlibrary/plugins/upstream/addtag\.py
+            |openlibrary/plugins/upstream/code\.py
+            |openlibrary/plugins/upstream/covers\.py
+            |openlibrary/plugins/upstream/jsdef\.py
+            |openlibrary/plugins/upstream/tests/test_addbook\.py
+            |openlibrary/plugins/upstream/tests/test_models\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/__init__\.py
+            |openlibrary/plugins/worksearch/schemes/authors\.py
+            |openlibrary/plugins/worksearch/schemes/lists\.py
+            |openlibrary/plugins/worksearch/schemes/subjects\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+            |openlibrary/tests/core/lists/test_model\.py
+            |openlibrary/tests/fastapi/test_partials\.py
+            |openlibrary/tests/test_templates\.py
+            |openlibrary/utils/form\.py
+            |openlibrary/utils/request_context\.py
+            |openlibrary/utils/schema\.py
+            |scripts/conftest\.py
+            |scripts/find_duplicate_author\.py
+            |scripts/monitoring/fail2ban_monitor\.py
+            |scripts/monitoring/monitor\.py
+            |scripts/monitoring/tests/test_fail2ban_monitor\.py
+            |scripts/update_stale_ocaid_references\.py
+          )$
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2
@@ -69,6 +159,7 @@ repos:
         additional_dependencies:
           - tomli
         args: ["--skip", "*.mjs"]
+        exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.19.0

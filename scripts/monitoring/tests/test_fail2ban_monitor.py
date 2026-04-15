@@ -19,7 +19,9 @@ def test_get_fail2ban_counts():
     mock_result = MagicMock()
     mock_result.stdout = FAKE_FAIL2BAN_OUTPUT
 
-    with patch("scripts.monitoring.fail2ban_monitor.bash_run", return_value=mock_result):
+    with patch(
+        "scripts.monitoring.fail2ban_monitor.bash_run", return_value=mock_result
+    ):
         failed, banned = get_fail2ban_counts("nginx-429")
 
     assert failed == 193

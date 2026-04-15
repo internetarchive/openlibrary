@@ -138,7 +138,7 @@ async def lazy_carousel_partial(
     """
     Get lazily-loaded carousel HTML.
     """
-    return LazyCarouselPartial(params=params).generate()
+    return await LazyCarouselPartial(params=params).generate_async()
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
