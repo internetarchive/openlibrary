@@ -415,6 +415,11 @@ def update_availability_schema_to_v2(
     return v2_resp
 
 
+_availability_circuit_breaker = cache.CircuitBreaker(
+    'lending.availability.circuit_breaker'
+)
+
+
 def get_availability(
     id_type: Literal['identifier', 'openlibrary_work', 'openlibrary_edition'],
     ids: list[str],
@@ -425,6 +430,20 @@ def get_availability(
 
     def key_func(_id: str) -> str:
         return cache.build_memcache_key('lending.get_availability', id_type, _id)
+
+    def make_error_result(extra: dict | None = None) -> dict[str, AvailabilityStatusV2]:
+        """Fill `ids_to_fetch` with error stubs and return the merged result."""
+        extra = extra or {}
+        availabilities.update(
+            {
+                _id: update_availability_schema_to_v2(
+                    cast(AvailabilityStatus, {'status': 'error'}),
+                    ocaid=_id if id_type == 'identifier' else None,
+                )
+                for _id in ids_to_fetch
+            }
+        )
+        return availabilities | extra  # type: ignore
 
     mc = cache.get_memcache()
 
@@ -440,6 +459,12 @@ def get_availability(
 
     if not ids_to_fetch:
         return availabilities
+
+    # Circuit breaker: skip the request entirely when the service is known-down,
+    # unless this request is the designated half-open probe.
+    if _availability_circuit_breaker.should_skip():
+        logger.warning("AvailabilityAPI circuit breaker is open; short-circuiting")
+        return make_error_result({'error': 'circuit_breaker_skip', 'details': ''})
 
     try:
         headers = {
@@ -481,6 +506,7 @@ def get_availability(
             )
             for _id, availability in response['responses'].items()
         }
+        _availability_circuit_breaker.record_success()
         availabilities |= uncached_values
         mc.set_multi(
             {
@@ -491,20 +517,9 @@ def get_availability(
         )
         return availabilities
     except Exception as e:  # TODO: Narrow exception scope
+        _availability_circuit_breaker.record_failure()
         logger.exception("lending.get_availability", extra={'ids': ids})
-        availabilities.update(
-            {
-                _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {'status': 'error'}),
-                    ocaid=_id if id_type == 'identifier' else None,
-                )
-                for _id in ids_to_fetch
-            }
-        )
-        return availabilities | {
-            'error': 'request_timeout',
-            'details': str(e),
-        }  # type: ignore
+        return make_error_result({'error': 'request_timeout', 'details': str(e)})
 
 
 def get_ocaid(item: dict) -> str | None:

@@ -7,6 +7,86 @@ from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache
 
 
+class Test_CircuitBreaker:
+    """
+    Uses MemoryCache as a stand-in for memcache so tests are fast and
+    self-contained.  The circuit breaker is eventually-consistent by design
+    (non-atomic counters) so we only verify the happy-path behaviour.
+    """
+
+    def make_cb(self, **kwargs):
+        defaults = {
+            "key_prefix": "test_cb",
+            # Fresh MemoryCache so tests don't share state
+            "engine": cache.MemoryCache(),
+            "failure_threshold": 3,
+            "cooldown_secs": 60,
+        }
+        return cache.CircuitBreaker(**defaults | kwargs)  # type: ignore
+
+    def test_initially_closed(self):
+        cb = self.make_cb()
+        assert cb.should_skip() is False
+
+    def test_failures_below_threshold_stay_closed(self):
+        cb = self.make_cb(failure_threshold=3)
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.should_skip() is False
+
+    def test_failures_at_threshold_open_circuit(self):
+        cb = self.make_cb(failure_threshold=3)
+        cb.record_failure()
+        cb.record_failure()
+        cb.record_failure()
+        assert cb.should_skip() is True
+
+    def test_success_when_closed_resets_failures(self):
+        """Two failures then a success should remove the failure count so the
+        circuit does not trip on the next single failure."""
+        cb = self.make_cb(failure_threshold=3)
+        cb.record_failure()
+        cb.record_failure()
+        cb.record_success()
+        cb.record_failure()  # only 1 failure after reset
+        assert cb.should_skip() is False
+
+    def test_success_when_open_closes_circuit(self):
+        cb = self.make_cb(failure_threshold=3)
+        for _ in range(3):
+            cb.record_failure()
+        assert cb.should_skip() is True
+
+        cb.record_success()
+        assert cb.should_skip() is False
+
+    def test_success_when_open_lowers_effective_threshold(self):
+        """After recovering from an open circuit the failure counter is seeded
+        at threshold-5, so fewer additional failures will re-open it."""
+        cb = self.make_cb(failure_threshold=10)
+        for _ in range(10):
+            cb.record_failure()
+        assert cb.should_skip() is True
+
+        cb.record_success()
+        assert cb.should_skip() is False
+
+        # threshold-5 = 5 failures already on the books; 5 more hits threshold
+        for _ in range(5):
+            cb.record_failure()
+        assert cb.should_skip() is True
+
+    def test_circuit_reopens_after_cooldown(self, monkeytime):
+        """should_skip() must return False once the cooldown window has elapsed."""
+        cb = self.make_cb(failure_threshold=3, cooldown_secs=10)
+        for _ in range(3):
+            cb.record_failure()
+        assert cb.should_skip() is True
+
+        time.sleep(10)
+        assert cb.should_skip() is False
+
+
 class Test_memcache_memoize:
     def test_encode_args(self):
         m = cache.memcache_memoize(None, key_prefix="foo")

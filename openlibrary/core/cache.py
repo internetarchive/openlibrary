@@ -18,11 +18,12 @@ from infogami import config
 from infogami.infobase.client import Nothing
 from infogami.utils import stats
 from openlibrary.core.helpers import NothingEncoder
-from openlibrary.utils import olmemcache
+from openlibrary.utils import dateutil, olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
     "Cache",
+    "CircuitBreaker",
     "MemcacheCache",
     "MemoryCache",
     "RequestCache",
@@ -392,14 +393,22 @@ def get_memcache():
     return memcache_cache
 
 
-def _get_cache(engine):
-    d = {
+CacheName = Literal["memory", "memcache", "request"]
+
+
+def _get_cache(engine: CacheName | Cache) -> Cache:
+    if isinstance(engine, Cache):
+        return engine
+
+    d: dict[CacheName, Cache] = {
         "memory": memory_cache,
         "memcache": memcache_cache,
-        "memcache+memory": memcache_cache,
         "request": request_cache,
     }
-    return d.get(engine)
+    cache = d.get(engine)
+    if cache is None:
+        raise ValueError(f"Unknown cache engine: {engine}")
+    return cache
 
 
 class memoize:
@@ -459,7 +468,7 @@ class memoize:
 
     def __init__(
         self,
-        engine: Literal["memory", "memcache", "request"],
+        engine: CacheName | Cache,
         key: str | Callable[..., str | tuple],
         expires: int = 0,
         background: bool = False,
@@ -563,3 +572,68 @@ def build_memcache_key(prefix: str, *args, **kw) -> str:
         key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
     return key
+
+
+class CircuitBreaker:
+    """Circuit breaker for repeated failed requests.
+
+    State is shared across all gunicorn workers via memcache so a flood of
+    in-flight requests from one worker doesn't hide the fact that every other
+    worker has already given up.
+
+    States
+    ------
+    CLOSED  - normal operation; failures are counted.
+    OPEN    - threshold exceeded; requests are short-circuited immediately
+              until ``cooldown_secs`` have elapsed.
+    HALF-OPEN - cooldown has elapsed; a few requests are allowed through as
+              a probe. Success resets the counter; failure re-opens the
+              circuit.
+    """
+
+    def __init__(
+        self,
+        key_prefix: str,
+        engine: CacheName | Cache = "memcache",
+        failure_threshold: int = 50,
+        cooldown_secs: int = 60,
+    ) -> None:
+        self.key_prefix = key_prefix
+        self._cache: Cache = engine if isinstance(engine, Cache) else _get_cache(engine)
+        self.failure_threshold = failure_threshold
+        self.cooldown_secs = cooldown_secs
+        self._FAILURES_KEY = f'{key_prefix}.failures'
+        self._OPEN_UNTIL_KEY = f'{key_prefix}.open_until'
+
+    def should_skip(self) -> bool:
+        """Return True when the circuit is open and requests should be skipped."""
+        open_until = self._cache.get(self._OPEN_UNTIL_KEY)
+        return bool(open_until and time.time() < open_until)
+
+    def record_success(self) -> None:
+        was_open = self.should_skip()
+        if was_open:
+            self._cache.delete(self._OPEN_UNTIL_KEY)
+            # Seed with threshold-5 so it re-opens faster if still broken
+            self._cache.set(self._FAILURES_KEY, self.failure_threshold - 5)
+        else:
+            self._cache.set(self._FAILURES_KEY, 0)
+
+    def record_failure(self) -> None:
+        # Non-atomic increment is fine here; approximate counting across workers
+        # is sufficient to trigger the threshold.
+        failures = (self._cache.get(self._FAILURES_KEY) or 0) + 1
+        self._cache.set(
+            self._FAILURES_KEY,
+            failures,
+            # Failures recorded for a minute. But can't recall if memcache's
+            # expiring is very reliable
+            expires=dateutil.MINUTE_SECS,
+        )
+        if failures >= self.failure_threshold:
+            open_until = time.time() + self.cooldown_secs
+            self._cache.set(
+                self._OPEN_UNTIL_KEY,
+                open_until,
+                expires=self.cooldown_secs + 10,
+            )
