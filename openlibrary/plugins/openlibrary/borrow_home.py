@@ -15,11 +15,11 @@ from openlibrary.utils.dateutil import utcisoformat
 def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.fromtimestamp(loan['loaned_at'], UTC)
+    t_start = datetime.fromtimestamp(loan["loaned_at"], UTC)
     d = {
-        "book": loan['book'],
-        "identifier": loan['ocaid'],
-        "resource_type": loan['resource_type'],
+        "book": loan["book"],
+        "identifier": loan["ocaid"],
+        "resource_type": loan["resource_type"],
         "t_start": utcisoformat(t_start),
         "status": "active",
     }
@@ -31,8 +31,8 @@ def on_loan_created_statsdb(loan):
 def on_loan_completed_statsdb(loan):
     """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.fromtimestamp(loan['loaned_at'], UTC)
-    t_end = datetime.fromtimestamp(loan['returned_at'], UTC)
+    t_start = datetime.fromtimestamp(loan["loaned_at"], UTC)
+    t_end = datetime.fromtimestamp(loan["returned_at"], UTC)
     d = {
         "book": loan["book"],
         "identifier": loan["ocaid"],

@@ -219,7 +219,7 @@ class CommunityEditsQueue:
                 cls.TABLENAME,
                 where="id=$rid",
                 reviewer=reviewer,
-                status=cls.STATUS['PENDING'],
+                status=cls.STATUS["PENDING"],
                 updated=datetime.datetime.now(UTC),
                 vars={"rid": rid},
             )

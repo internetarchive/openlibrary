@@ -20,7 +20,7 @@ def hook(object):
     """
     site = object._site
     timestamp = datetime.datetime.now(UTC)
-    if object.type.key == '/type/edition':
+    if object.type.key == "/type/edition":
         d = object._get_data(expand=True)
         # save some space by not expanding type
         d["type"] = {"key": "/type/edition"}
