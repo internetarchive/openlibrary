@@ -50,3 +50,6 @@ android.keystore
 # Ignore checksum file if it’s generated during build
 manifest-checksum.txt
 .beads
+
+# Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
+docs/wiki/

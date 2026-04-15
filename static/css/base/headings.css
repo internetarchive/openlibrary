@@ -39,7 +39,7 @@ h2.publisher {
   background-color: var(--lightest-grey);
 }
 h2.edition-title {
-  margin: 7px 0 0;
+  margin: var(--spacing-stack-sm) 0 0;
   color: var(--grey);
   font-family: var(--font-family-title);
   font-weight: normal;
@@ -73,8 +73,8 @@ h3.Question {
   font-size: 1.2em;
   font-weight: normal;
   color: var(--brown);
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: var(--spacing-stack-sm);
+  padding-top: var(--spacing-inset-sm);
   border-top: 1px dotted var(--lighter-grey);
 }
 
@@ -96,7 +96,7 @@ h4.facetHead {
   padding: 0;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-inline-sm);
 }
 h4.facetHead .facet-icon {
   flex-shrink: 0;
@@ -107,6 +107,7 @@ h4.facetHead span.merge {
   font-size: var(--font-size-label-small);
   font-weight: normal !important;
   text-transform: none !important;
+  /* Not tokenized: must exceed the 16px icon width to avoid text overlap */
   padding-left: 22px;
   background: url(/images/icons/icon_merge-sm.png) no-repeat 0 0;
   min-height: 16px;

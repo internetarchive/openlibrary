@@ -105,6 +105,7 @@ class MultiDict(MutableMapping):
     >>> list(d.multi_items())
     [('x', [1, 2]), ('y', [3])]
     >>> d1 = MultiDict(items=(('a', 1), ('b', 2)), a=('x', 10, 11, 12))
+    >>> list(d1.multi_items())
     [('a', [1, ('x', 10, 11, 12)]), ('b', [2])]
     """
 
@@ -340,13 +341,13 @@ def is_feature_enabled(feature_name: str) -> bool:
     return features.is_enabled(feature_name)
 
 
-def unflatten(d: dict, separator: str = "--") -> dict:
+def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
-    {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
+    <Storage {'a': 1, 'b': <Storage {'x': 2, 'y': 3}>, 'c': [4, 5]}>
     >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
-    {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
+    <Storage {'a': [<Storage {'x': 1, 'y': 2}>, <Storage {'x': 3, 'y': 4}>]}>
 
     """
 

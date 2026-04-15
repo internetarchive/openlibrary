@@ -195,6 +195,7 @@ class SQLiteAdapter(AbstractAdapter):
 register_adapter('mysql', MySQLAdapter)
 register_adapter('postgres', PostgresAdapter)
 register_adapter('sqlite', SQLiteAdapter)
+register_adapter('mock', MockAdapter)
 
 
 def sqlrepr(s):
@@ -417,8 +418,6 @@ def _test():
 
 
 if __name__ == "__main__":
-    register_adapter('mock', MockAdapter)
-
     import doctest
 
     doctest.testmod()

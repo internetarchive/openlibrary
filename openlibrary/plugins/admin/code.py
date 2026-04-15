@@ -71,6 +71,12 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
         added_records: list[list[dict]] = [
             c.changes for c in changes if c.kind == 'add-book'
         ]
+        # Also delete lists `created` by this user
+        added_records.extend(
+            [r for r in c.changes if r.get('revision') == 1]  # created, not just edited
+            for c in changes
+            if c.kind == 'lists'
+        )
         flattened_records: list[dict] = [
             record for lst in added_records for record in lst
         ]
