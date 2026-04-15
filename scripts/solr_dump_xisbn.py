@@ -44,13 +44,13 @@ async def fetch_docs(
 ) -> list[dict]:
     """Stream results from a Solr query. Uses cursors."""
     params = params.copy()
-    params['rows'] = page_size
+    params["rows"] = page_size
 
     async with httpx.AsyncClient() as client:
         for attempt in range(5):
             try:
                 response = await client.get(
-                    f'{solr_base}/select',
+                    f"{solr_base}/select",
                     params=params,
                     timeout=60,
                 )
@@ -61,7 +61,7 @@ async def fetch_docs(
                     raise
                 await asyncio.sleep(2)
         data = response.json()
-        return data['response']['docs']
+        return data["response"]["docs"]
 
 
 async def stream_bounds(
@@ -71,8 +71,8 @@ async def stream_bounds(
 ) -> AsyncGenerator[tuple[str, str], None]:
     """Stream bounds from a Solr query. Uses cursors."""
     params = params.copy()
-    params['rows'] = page_size
-    params['cursorMark'] = '*'
+    params["rows"] = page_size
+    params["cursorMark"] = "*"
     numFound = None
     seen = 0
 
@@ -80,14 +80,14 @@ async def stream_bounds(
     transport = httpx.AsyncHTTPTransport()
     async with httpx.AsyncClient(transport=transport) as client:
         while True:
-            print(f'FETCH {params["cursorMark"]}', file=sys.stderr)
+            print(f"FETCH {params['cursorMark']}", file=sys.stderr)
             if numFound:
-                print(f'{seen/numFound=}', file=sys.stderr)
+                print(f"{seen/numFound=}", file=sys.stderr)
 
             for attempt in range(5):
                 try:
                     response = await client.get(
-                        f'{solr_base}/select',
+                        f"{solr_base}/select",
                         params=params,
                         timeout=60,
                     )
@@ -98,26 +98,26 @@ async def stream_bounds(
                         raise
                     await asyncio.sleep(2)
             data = response.json()
-            numFound = data['response']['numFound']
+            numFound = data["response"]["numFound"]
 
-            docs = data['response']['docs']
+            docs = data["response"]["docs"]
             if docs:
                 seen += len(docs)
-                yield docs[0]['key'], docs[-1]['key']
+                yield docs[0]["key"], docs[-1]["key"]
             else:
                 break
 
-            if params['cursorMark'] == data['nextCursorMark']:
+            if params["cursorMark"] == data["nextCursorMark"]:
                 break
             else:
-                params['cursorMark'] = data['nextCursorMark']
+                params["cursorMark"] = data["nextCursorMark"]
 
 
 async def main(
-    solr_base='http://localhost:8984/solr/openlibrary',
+    solr_base="http://localhost:8984/solr/openlibrary",
     workers=10,
     page_size=100,
-    id_field: Literal['isbn', 'lccn'] = 'isbn',
+    id_field: Literal["isbn", "lccn"] = "isbn",
 ) -> None:
     """
     :param solr_base: Base URL of Solr instance
@@ -125,19 +125,19 @@ async def main(
     :param page_size: Number of results to fetch per query
     :param id_field: Which identifier to use for matching
     """
-    id_filter = f'{id_field}:*'
-    work_exclusions = 'subject:textbook'
+    id_filter = f"{id_field}:*"
+    work_exclusions = "subject:textbook"
     galloping_params = {
         # Find works that have at least one edition with an IA box id
-        'q': f"""
+        "q": f"""
             {id_filter}
             AND NOT ({work_exclusions})
             AND _query_:({{!parent which=type:work v="language:eng AND ia_box_id:*" filters="type:edition"}})
         """,
-        'fq': 'type:work',
-        'sort': 'key asc',
-        'fl': 'key',
-        'wt': 'json',
+        "fq": "type:work",
+        "sort": "key asc",
+        "fl": "key",
+        "wt": "json",
     }
 
     # This is a performance hack
@@ -146,32 +146,27 @@ async def main(
 
     # Now create an async worker pool to fetch the actual data
     async def fetch_bounds(bounds):
-        print(f'[ ] FETCH {bounds=}', file=sys.stderr)
+        print(f"[ ] FETCH {bounds=}", file=sys.stderr)
         start, end = bounds
-        result = ''
+        result = ""
         for doc in await fetch_docs(
             {
-                'q': f'key:["{start}" TO "{end}"] AND {galloping_params["q"]}',
-                'fq': 'type:work',
-                'fl': 'key,editions:[subquery]',
-                'editions.q': f'({{!terms f=_root_ v=$row.key}}) AND language:eng AND {id_filter}',
-                'editions.fq': 'type:edition',
-                'editions.fl': f'key,{id_field}',
-                'editions.rows': 1_000_000,
-                'wt': 'json',
+                "q": f'key:["{start}" TO "{end}"] AND {galloping_params["q"]}',
+                "fq": "type:work",
+                "fl": "key,editions:[subquery]",
+                "editions.q": f"({{!terms f=_root_ v=$row.key}}) AND language:eng AND {id_filter}",
+                "editions.fq": "type:edition",
+                "editions.fl": f"key,{id_field}",
+                "editions.rows": 1_000_000,
+                "wt": "json",
             },
             solr_base,
             page_size=page_size * 2,
         ):
-            identifiers = {
-                identifier
-                for ed in doc['editions']['docs']
-                for identifier in ed[id_field]
-                if (len(identifier) == 13 if id_field == 'isbn' else True)
-            }
+            identifiers = {identifier for ed in doc["editions"]["docs"] for identifier in ed[id_field] if (len(identifier) == 13 if id_field == "isbn" else True)}
             if len(identifiers) > 1:
-                result += ' '.join(identifiers) + '\n'
-        print(f'[x] FETCH {bounds=}', file=sys.stderr)
+                result += " ".join(identifiers) + "\n"
+        print(f"[x] FETCH {bounds=}", file=sys.stderr)
         if result:
             print(result, flush=True)
 
@@ -179,9 +174,7 @@ async def main(
     running: set[asyncio.Task] = set()
     async for bounds in stream_bounds(galloping_params, solr_base, page_size=page_size):
         if len(running) >= workers:
-            done, running = await asyncio.wait(
-                running, return_when=asyncio.FIRST_COMPLETED
-            )
+            done, running = await asyncio.wait(running, return_when=asyncio.FIRST_COMPLETED)
             for task in done:
                 task.result()
         running.add(asyncio.create_task(fetch_bounds(bounds)))
@@ -190,7 +183,7 @@ async def main(
     await asyncio.wait(running)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
     FnToCLI(main).run()

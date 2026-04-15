@@ -29,9 +29,7 @@ class BasicRedirectEngine:
         # find the references of each duplicate and convert them
         references = self.find_all_references(duplicates)
         docs = get_many(references)
-        docs_to_save.extend(
-            self.update_references(doc, master, duplicates) for doc in docs
-        )
+        docs_to_save.extend(self.update_references(doc, master, duplicates) for doc in docs)
         return docs_to_save
 
     def find_references(self, key):
@@ -52,13 +50,10 @@ class BasicRedirectEngine:
         Converts references to any of the duplicates in the given doc to the master.
         """
         if isinstance(doc, dict):
-            if list(doc) == ['key']:
-                return {"key": master} if doc['key'] in duplicates else doc
+            if list(doc) == ["key"]:
+                return {"key": master} if doc["key"] in duplicates else doc
             else:
-                return {
-                    k: self.update_references(v, master, duplicates)
-                    for k, v in doc.items()
-                }
+                return {k: self.update_references(v, master, duplicates) for k, v in doc.items()}
         elif isinstance(doc, list):
             values = [self.update_references(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)
@@ -132,7 +127,7 @@ class AuthorRedirectEngine(BasicRedirectEngine):
         q = {"type": "/type/edition", "authors": key, "limit": 10000}
         edition_keys = web.ctx.site.things(q)
         editions = get_many(edition_keys)
-        work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
+        work_keys_1 = [w["key"] for e in editions for w in e.get("works", [])]
 
         q = {"type": "/type/work", "authors": {"author": {"key": key}}, "limit": 10000}
         work_keys_2 = web.ctx.site.things(q)
@@ -142,30 +137,28 @@ class AuthorRedirectEngine(BasicRedirectEngine):
 class AuthorMergeEngine(BasicMergeEngine):
     def merge_docs(self, master, dup):
         # avoid merging other types.
-        if dup['type']['key'] == '/type/author':
+        if dup["type"]["key"] == "/type/author":
             master = BasicMergeEngine.merge_docs(self, master, dup)
-            if dup.get('name') and not name_eq(dup['name'], master.get('name') or ''):
-                master.setdefault('alternate_names', []).append(dup['name'])
-            if 'alternate_names' in master:
-                master['alternate_names'] = uniq(
-                    master['alternate_names'], key=space_squash_and_strip
-                )
+            if dup.get("name") and not name_eq(dup["name"], master.get("name") or ""):
+                master.setdefault("alternate_names", []).append(dup["name"])
+            if "alternate_names" in master:
+                master["alternate_names"] = uniq(master["alternate_names"], key=space_squash_and_strip)
         return master
 
     def save(self, docs, master, duplicates):
         return web.ctx.site.save_many(
             docs,
-            comment='merge authors',
+            comment="merge authors",
             action="merge-authors",
             data={"master": master, "duplicates": list(duplicates)},
         )
 
 
-re_whitespace = re.compile(r'\s+')
+re_whitespace = re.compile(r"\s+")
 
 
 def space_squash_and_strip(s):
-    return re_whitespace.sub(' ', s).strip()
+    return re_whitespace.sub(" ", s).strip()
 
 
 def name_eq(n1, n2):
@@ -183,16 +176,16 @@ def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
             label = ""
             title = web.safeunicode(r)
             pagenum = ""
-        elif 'value' in r:
+        elif "value" in r:
             level = 0
             label = ""
-            title = web.safeunicode(r['value'])
+            title = web.safeunicode(r["value"])
             pagenum = ""
         else:
-            level = safeint(r.get('level', '0'), 0)
-            label = r.get('label', '')
-            title = r.get('title', '')
-            pagenum = r.get('pagenum', '')
+            level = safeint(r.get("level", "0"), 0)
+            label = r.get("label", "")
+            title = r.get("title", "")
+            pagenum = r.get("pagenum", "")
 
         r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
         return r
@@ -203,8 +196,8 @@ def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
 def get_many(keys: list[str]) -> list[dict]:
     def process(doc):
         # some books have bad table_of_contents. Fix them to avoid failure on save.
-        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
-            doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+        if doc["type"]["key"] == "/type/edition" and "table_of_contents" in doc:
+            doc["table_of_contents"] = fix_table_of_contents(doc["table_of_contents"])
         return doc
 
     return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
@@ -215,7 +208,7 @@ def make_redirect_doc(key, redirect):
 
 
 class merge_authors(delegate.page):
-    path = '/authors/merge'
+    path = "/authors/merge"
 
     def is_enabled(self):
         user = web.ctx.site.get_user()
@@ -224,19 +217,19 @@ class merge_authors(delegate.page):
     def filter_authors(self, keys):
         docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
         d = {doc.key: doc.type.key for doc in docs}
-        return [k for k in keys if d.get("/authors/" + k) == '/type/author']
+        return [k for k in keys if d.get("/authors/" + k) == "/type/author"]
 
     def GET(self):
-        i = web.input(key=[], mrid=None, records='')
+        i = web.input(key=[], mrid=None, records="")
 
         # key is deprecated in favor of records but we will support both
         if deprecated_keys := uniq(i.key):
-            redir_url = f'/authors/merge/?records={",".join(deprecated_keys)}'
+            redir_url = f"/authors/merge/?records={','.join(deprecated_keys)}"
             if i.mrid:
-                redir_url = f'{redir_url}&mrid={i.mrid}'
+                redir_url = f"{redir_url}&mrid={i.mrid}"
             raise web.redirect(redir_url)
 
-        keys = uniq(i.records.strip(',').split(','))
+        keys = uniq(i.records.strip(",").split(","))
 
         # filter bad keys
         keys = self.filter_authors(keys)
@@ -247,7 +240,7 @@ class merge_authors(delegate.page):
         user = get_current_user()
         can_merge = user and (user.is_admin() or user.is_super_librarian())
         return render_template(
-            'merge/authors',
+            "merge/authors",
             keys,
             top_books_from_author=top_books_from_author,
             mrid=i.mrid,
@@ -284,33 +277,31 @@ class merge_authors(delegate.page):
             # Create merge author request:
             selected.insert(0, i.master)
             data = {
-                'mr_type': 2,
-                'action': 'create-pending',
-                'olids': ','.join(selected),
+                "mr_type": 2,
+                "action": "create-pending",
+                "olids": ",".join(selected),
             }
 
             if i.comment:
-                data['comment'] = i.comment
+                data["comment"] = i.comment
 
-            result = process_merge_request('create-request', data)
-            mrid = result.get('id', None)
+            result = process_merge_request("create-request", data)
+            mrid = result.get("id", None)
 
-            username = user.get('key').split('/')[-1]
+            username = user.get("key").split("/")[-1]
 
-            redir_url = f'/merges?submitter={username}'
+            redir_url = f"/merges?submitter={username}"
             if mrid:
-                redir_url = f'{redir_url}#mrid-{mrid}'
+                redir_url = f"{redir_url}#mrid-{mrid}"
 
             raise web.seeother(redir_url)
         else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
-            redir_url = (
-                f'/authors/{i.master}/-/?merge=true&duplicates={",".join(selected)}'
-            )
+            redir_url = f"/authors/{i.master}/-/?merge=true&duplicates={','.join(selected)}"
             if i.mrid:
-                redir_url = f'{redir_url}&mrid={i.mrid}'
+                redir_url = f"{redir_url}&mrid={i.mrid}"
             if i.comment:
-                redir_url = f'{redir_url}&comment={i.comment}'
+                redir_url = f"{redir_url}&comment={i.comment}"
             raise web.seeother(redir_url)
 
 
@@ -329,11 +320,11 @@ class merge_authors_json(delegate.page):
 
     def POST(self):
         data = json.loads(web.data())
-        master = data['master']
-        duplicates = data['duplicates']
-        mrid = data.get('mrid', None)
-        comment = data.get('comment', None)
-        olids = data.get('olids', '')
+        master = data["master"]
+        duplicates = data["duplicates"]
+        mrid = data.get("mrid", None)
+        comment = data.get("comment", None)
+        olids = data.get("olids", "")
 
         def merge_records() -> Any:
             try:
@@ -346,14 +337,14 @@ class merge_authors_json(delegate.page):
             data = {}
             if mrid:
                 # Update the request
-                rtype = 'update-request'
-                data = {'action': 'approve', 'mrid': mrid}
+                rtype = "update-request"
+                data = {"action": "approve", "mrid": mrid}
             else:
                 # Create new request
-                rtype = 'create-request'
-                data = {'mr_type': 2, 'olids': olids, 'action': 'create-merged'}
+                rtype = "create-request"
+                data = {"mr_type": 2, "olids": olids, "action": "create-merged"}
             if comment:
-                data['comment'] = comment
+                data["comment"] = comment
             process_merge_request(rtype, data)
 
         # actually perform merge and save affected records to db
@@ -367,9 +358,7 @@ class merge_authors_json(delegate.page):
             )(update_request)
         except MaxRetriesExceeded as e:
             raise web.badrequest(str(e.last_exception))
-        return delegate.RawText(
-            json.dumps(merge_result), content_type="application/json"
-        )
+        return delegate.RawText(json.dumps(merge_result), content_type="application/json")
 
 
 def setup():

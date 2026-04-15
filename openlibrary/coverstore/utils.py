@@ -43,18 +43,17 @@ def ol_things(key: str, value: str) -> list[str]:
         return oldb.query(key, value)
     else:
         query = {
-            'type': '/type/edition',
+            "type": "/type/edition",
             key: value,
-            'sort': 'last_modified',
-            'limit': 10,
+            "sort": "last_modified",
+            "limit": 10,
         }
         try:
             d = {"query": json.dumps(query)}
-            result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
+            result = download(get_ol_url() + "/api/things?" + real_urlencode(d))
             result = json.loads(result)
-            return result['result']
+            return result["result"]
         except OSError:
-
             traceback.print_exc()
             return []
 
@@ -69,13 +68,11 @@ def ol_get(olkey: str) -> dict | None:
             return None
 
 
-USER_AGENT = (
-    "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
-)
+USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 
 
 def download(url):
-    return requests.get(url, headers={'User-Agent': USER_AGENT}).content
+    return requests.get(url, headers={"User-Agent": USER_AGENT}).content
 
 
 def urldecode(url: str) -> tuple[str, dict[str, str]]:
@@ -88,7 +85,7 @@ def urldecode(url: str) -> tuple[str, dict[str, str]]:
     split_url = urlsplit(url)
     items = parse_qsl(split_url.query)
     d = {unquote(k): unquote_plus(v) for (k, v) in items}
-    base = urlunsplit(split_url._replace(query=''))
+    base = urlunsplit(split_url._replace(query=""))
     return base, d
 
 
@@ -99,7 +96,7 @@ def changequery(url, **kw):
     """
     base, params = urldecode(url)
     params.update(kw)
-    return base + '?' + real_urlencode(params)
+    return base + "?" + real_urlencode(params)
 
 
 def read_file(path, offset, size, chunk=50 * 1024):
@@ -144,37 +141,35 @@ def urlencode(data):
             break
 
     if not multipart:
-        return 'application/x-www-form-urlencoded', real_urlencode(data)
+        return "application/x-www-form-urlencoded", real_urlencode(data)
     else:
         # adopted from http://code.activestate.com/recipes/146306/
         def get_content_type(filename):
-            return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+            return mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
         def encode(key, value, out):
             if isinstance(value, file):
-                out.append('--' + BOUNDARY)
-                out.append(
-                    f'Content-Disposition: form-data; name="{key}"; filename="{value.name}"'
-                )
-                out.append(f'Content-Type: {get_content_type(value.name)}')
-                out.append('')
+                out.append("--" + BOUNDARY)
+                out.append(f'Content-Disposition: form-data; name="{key}"; filename="{value.name}"')
+                out.append(f"Content-Type: {get_content_type(value.name)}")
+                out.append("")
                 out.append(value.read())
             elif isinstance(value, list):
                 for v in value:
                     encode(key, v)
             else:
-                out.append('--' + BOUNDARY)
+                out.append("--" + BOUNDARY)
                 out.append(f'Content-Disposition: form-data; name="{key}"')
-                out.append('')
+                out.append("")
                 out.append(value)
 
         BOUNDARY = "----------ThIs_Is_tHe_bouNdaRY_$"
-        CRLF = '\r\n'
+        CRLF = "\r\n"
         out = []
         for k, v in data.items():
             encode(k, v, out)
         body = CRLF.join(out)
-        content_type = f'multipart/form-data; boundary={BOUNDARY}'
+        content_type = f"multipart/form-data; boundary={BOUNDARY}"
         return content_type, body
 
 

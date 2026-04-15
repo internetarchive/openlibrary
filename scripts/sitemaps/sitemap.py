@@ -88,18 +88,16 @@ def urlsafe(name: str) -> str:
     reserved = ";/?:@&=+$,"
     delims = '<>#%"'
     unwise = "{}|\\^[]`"
-    space = ' \n\r'
+    space = " \n\r"
 
     unsafe = reserved + delims + unwise + space
     pattern = f"[{''.join(re.escape(c) for c in unsafe)}]+"
     safepath_re = re.compile(pattern)
-    return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
+    return safepath_re.sub("_", name).replace(" ", "-").strip("_")[:100]
 
 
 @elapsed_time("process_dump")
-def process_dump(
-    dumpfile: str, *, verbose: bool = False
-) -> Iterator[tuple[str, str, str]]:
+def process_dump(dumpfile: str, *, verbose: bool = False) -> Iterator[tuple[str, str, str]]:
     """Generates a summary file used to generate sitemaps.
 
     The summary file contains: sort-key, path and last_modified columns.
@@ -107,12 +105,12 @@ def process_dump(
     rows = (line.decode().strip().split("\t") for line in xopen(dumpfile))
     yield_count = 0
     for i, (type, key, revision, last_modified, jsontext) in enumerate(rows, 1):
-        if type not in ('/type/work', '/type/author'):
+        if type not in ("/type/work", "/type/author"):
             continue
 
         doc = json.loads(jsontext)
-        name_or_title = 'name' if type == '/type/author' else 'title'
-        title = doc.get(name_or_title, '')
+        name_or_title = "name" if type == "/type/author" else "title"
+        title = doc.get(name_or_title, "")
 
         path = f"{key}/{urlsafe(title.strip())}"
 
@@ -122,10 +120,7 @@ def process_dump(
             yield_count += 1
         if verbose and yield_count % 500_000 == 0:
             log(f"{i:,} records with {yield_count:,} yielded ({yield_count / i:.2f}%)")
-    log(
-        "process_dump complete: "
-        f"{i:,} records with {yield_count:,} yielded ({yield_count / i:.2f}%)"
-    )
+    log(f"process_dump complete: {i:,} records with {yield_count:,} yielded ({yield_count / i:.2f}%)")
 
 
 re_key = re.compile(r"^/(authors|works)/OL\d+[AMW]$")
@@ -154,7 +149,7 @@ def generate_sitemaps(filename: str) -> None:
             for segment in _chunk:
                 sortkey = segment.pop(0)
                 last_modified = segment.pop(-1)
-                path = ''.join(segment)
+                path = "".join(segment)
                 things.append(web.storage(path=path, last_modified=last_modified))
 
             if things:
@@ -166,7 +161,7 @@ def generate_siteindex() -> None:
     filenames = sorted(os.listdir("sitemaps"))
     if "siteindex.xml.gz" in filenames:
         filenames.remove("siteindex.xml.gz")
-    timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+    timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     index = siteindex(filenames, timestamp)
     write("sitemaps/siteindex.xml.gz", index)
 
@@ -174,11 +169,11 @@ def generate_siteindex() -> None:
 def write(path: str, text: str) -> None:
     try:
         text = web.safestr(text)
-        log('writing', path, text.count('\n'))
-        with gzip.open(path, 'w') as f:
+        log("writing", path, text.count("\n"))
+        with gzip.open(path, "w") as f:
             f.write(text.encode())
     except Exception as e:
-        log(f'write fail {e}')
+        log(f"write fail {e}")
     # os.system("gzip " + path)
 
 
@@ -226,5 +221,4 @@ def main(dumpfile: str) -> None:
 
 
 if __name__ == "__main__":
-
     main(sys.argv[1])

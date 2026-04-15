@@ -33,8 +33,8 @@ __all__ = [
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class memcache_memoize[**P, T]:
@@ -81,9 +81,7 @@ class memcache_memoize[**P, T]:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug(
-                    "Could not find memcache_servers in the configuration. Used dummy memcache."
-                )
+                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
                 from pymemcache.test.utils import MockMemcacheClient
 
                 self._memcache = MockMemcacheClient()
@@ -185,9 +183,7 @@ class memcache_memoize[**P, T]:
     def compute_key(self, args: tuple, kw: dict) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "$" + self.encode_args(args, kw)
-        return key.replace(
-            " ", "_"
-        )  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value: Any) -> str:
         """json.dumps without extra spaces.
@@ -305,9 +301,7 @@ class MemcacheCache(Cache):
         if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
-            web.debug(
-                "Could not find memcache_servers in the configuration. Used dummy memcache."
-            )
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
             from pymemcache.test.utils import MockMemcacheClient
 
             return MockMemcacheClient()
@@ -466,9 +460,7 @@ class memoize:
         cacheable: Callable | None = None,
     ):
         self.cache = _get_cache(engine)
-        self.keyfunc = (
-            key if callable(key) else functools.partial(build_memcache_key, key)
-        )
+        self.keyfunc = key if callable(key) else functools.partial(build_memcache_key, key)
         self.cacheable = cacheable
         self.expires = expires
 

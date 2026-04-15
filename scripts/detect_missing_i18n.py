@@ -19,7 +19,7 @@ EXCLUDE_LIST = {
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
 }
 
-default_directories = ('openlibrary/templates/', 'openlibrary/macros/')
+default_directories = ("openlibrary/templates/", "openlibrary/macros/")
 
 
 class ErrorLevel(StrEnum):
@@ -87,15 +87,7 @@ ignore_single_quote = rf"""
         | (?:{punctuation} | {variables} | {urls_domains})*'
     )
 """
-i18n_attr_missing_regex = (
-    opening_tag_open
-    + attr_syntax
-    + r"(?:"
-    + ignore_double_quote
-    + r"|"
-    + ignore_single_quote
-    + r")[^>]*?>"
-)
+i18n_attr_missing_regex = opening_tag_open + attr_syntax + r"(?:" + ignore_double_quote + r"|" + ignore_single_quote + r")[^>]*?>"
 i18n_attr_warn_regex = opening_tag_open + attr_syntax + r"\"\$\(\'"
 
 
@@ -139,7 +131,7 @@ def check_html(html: str) -> list[tuple[ErrorLevel, int, int, str]]:
         regex_match = line[char_index:]
 
         # Don't proceed if the line is likely commented out or part of a $: function.
-        if re.search(r'<!--|\$:|\$#|\$ | _\(', preceding_text):
+        if re.search(r"<!--|\$:|\$#|\$ | _\(", preceding_text):
             continue
 
         # Don't proceed if skip directive is included inline.
@@ -147,9 +139,7 @@ def check_html(html: str) -> list[tuple[ErrorLevel, int, int, str]]:
             continue
 
         # Don't proceed if the previous line is a skip directive.
-        if line_number > 1 and re.match(
-            regex_skip_previous_line, lines[line_number - 2]
-        ):
+        if line_number > 1 and re.match(regex_skip_previous_line, lines[line_number - 2]):
             continue
 
         results.append((errtype, line_number, char_index + 1, regex_match))
@@ -165,17 +155,9 @@ def print_analysis(
     line_number: int = 0,
     line_position: int = 0,
 ):
-    linestr = (
-        f":{line_number}:{line_position}"
-        if line_number > 0 and line_position > 0
-        else ""
-    )
-    filestring = f'{filename}{linestr}'
-    print(
-        '\t'.join(
-            [errtype, terminal_underline(filestring).ljust(spacing_base + 12), details]
-        )
-    )
+    linestr = f":{line_number}:{line_position}" if line_number > 0 and line_position > 0 else ""
+    filestring = f"{filename}{linestr}"
+    print("\t".join([errtype, terminal_underline(filestring).ljust(spacing_base + 12), details]))
 
 
 def main(files: list[Path], skip_excluded: bool = True):
@@ -185,15 +167,11 @@ def main(files: list[Path], skip_excluded: bool = True):
     """
 
     if not files:
-        files = [
-            file_path
-            for ddir in default_directories
-            for file_path in Path(ddir).rglob('*.html')
-        ]
+        files = [file_path for ddir in default_directories for file_path in Path(ddir).rglob("*.html")]
 
     # Figure out how much padding to put between the filename and the error output
     longest_filename_length = max(len(str(f)) for f in files)
-    spacing_base = longest_filename_length + len(':XXX:XXX')
+    spacing_base = longest_filename_length + len(":XXX:XXX")
 
     errcount: int = 0
     warnings: int = 0
@@ -205,7 +183,7 @@ def main(files: list[Path], skip_excluded: bool = True):
 
         # Need to specify encoding to avoid Windows-specific errors when we
         # have emoji in our HTML
-        contents = file.read_text(encoding='utf-8')
+        contents = file.read_text(encoding="utf-8")
 
         for errtype, line_number, print_position, regex_match in check_html(contents):
             print_analysis(
@@ -222,9 +200,7 @@ def main(files: list[Path], skip_excluded: bool = True):
             elif errtype == ErrorLevel.ERR:
                 errcount += 1
 
-    print(
-        f"{len(files)} file{'s' if len(files) != 1 else ''} scanned. {errcount} error{'s' if errcount != 1 else ''} found."
-    )
+    print(f"{len(files)} file{'s' if len(files) != 1 else ''} scanned. {errcount} error{'s' if errcount != 1 else ''} found.")
     if errcount > 0 or warnings > 0:
         print(
             "Learn how to fix these errors by reading our i18n documentation: https://docs.openlibrary.org/everyone/internationalization.html#internationalization-i18n-developer-s-guide"
