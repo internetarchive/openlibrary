@@ -55,7 +55,8 @@ class autocomplete(delegate.page):
         if embedded_olid:
             solr_q = f'key:"{olid_to_key(embedded_olid)}"'
         else:
-            solr_q = self.query.format(q=q)
+            escaped_q = Solr.escape(q)
+            solr_q = self.query.format(q=escaped_q)
 
         fq = fq or self.fq
         params = {
@@ -130,18 +131,18 @@ class works_autocomplete(autocomplete):
     def make_solr_request(self, q, embedded_olid, limit, fq):
         if embedded_olid:
             return super().make_solr_request(q, embedded_olid, limit, fq)
+        
+        from openlibrary.plugins.worksearch.code import work_search
 
         query_dict = {'q':q}
-
-        if fq:
-            query_dict['fq'] = fq if isinstance(fq, list) else list(fq)
 
         search_results = work_search(
             query=query_dict, 
             limit=limit, 
             fields=self.fl,
             facet=False,
-            request_label='AUTOCOMPLETE_SEARCH'
+            request_label='AUTOCOMPLETE_SEARCH',
+            spellcheck_count=0,
         )
 
         return search_results.get('docs', [])

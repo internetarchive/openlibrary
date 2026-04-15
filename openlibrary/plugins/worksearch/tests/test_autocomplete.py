@@ -12,7 +12,7 @@ def test_autocomplete():
     with (
         patch("web.input") as mock_web_input,
         patch("web.header"),
-        patch("openlibrary.utils.solr.Solr.select") as mock_solr_select,
+        patch('openlibrary.plugins.worksearch.code.work_search') as mock_solr_select,
         patch("openlibrary.plugins.worksearch.autocomplete.get_solr") as mock_get_solr,
     ):
         mock_get_solr.return_value = Solr("http://foohost:8983/solr")
