@@ -21,6 +21,7 @@ from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
+from openlibrary.fastapi.internal.timings import monitor_as_server_timing
 from openlibrary.utils import dateutil, uniq
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
@@ -623,6 +624,7 @@ def get_betterworldbooks_metadata(
         return betterworldbooks_fmt(isbn)
 
 
+@monitor_as_server_timing('bwb_api')
 def _get_betterworldbooks_metadata(
     isbn: str,
 ) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError:

@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.fastapi.internal.timings import server_timing_middleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -196,6 +197,8 @@ def create_app() -> FastAPI | None:
         set_context_from_fastapi(request)
         response = await call_next(request)
         return response
+
+    app.middleware("http")(server_timing_middleware)
 
     # setup_i18n is below set_context so that it can use the request.state.lang in set_context
     # because the handlers are called in reverse order
