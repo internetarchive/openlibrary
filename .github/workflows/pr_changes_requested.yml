@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
+      issues: write # PRs are in the issues API so we need this too
 
     steps:
       - name: 'Add "Needs: Submitter Input" label'
