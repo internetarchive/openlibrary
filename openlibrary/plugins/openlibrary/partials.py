@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from hashlib import md5
-from typing import TypedDict
+from typing import NotRequired, TypedDict
 from urllib.parse import parse_qs
 
 import web
@@ -405,6 +405,7 @@ class CarouselData(TypedDict):
     """Return type of gather_lazy_carousel_data."""
 
     docs: list[dict]
+    error: NotRequired[bool]
 
 
 @cache.memoize(
@@ -449,9 +450,13 @@ async def gather_lazy_carousel_data_async(
         facet=False,
         request_label='BOOK_CAROUSEL',
     )
-    return {
+    return_dict: CarouselData = {
         'docs': results.get('docs', []),
     }
+    # Add error to make sure we don't cache
+    if 'error' in results:
+        return_dict['error'] = results['error']
+    return return_dict
 
 
 gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async)
