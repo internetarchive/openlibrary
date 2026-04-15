@@ -323,8 +323,13 @@ def get_available(
         return {'error': 'request_timeout'}
 
 
+AvailabilityStatusLiteral = Literal[
+    "borrow_available", "borrow_unavailable", "open", "private", "error"
+]
+
+
 class AvailabilityStatus(TypedDict):
-    status: Literal["borrow_available", "borrow_unavailable", "open", "error"]
+    status: AvailabilityStatusLiteral
     error_message: str | None
     available_to_browse: bool | None
     available_to_borrow: bool | None
@@ -367,11 +372,14 @@ def get_ebook_access_availability(
 ) -> AvailabilityStatusV2:
     from openlibrary.book_providers import EbookAccess
 
-    status: Literal["borrow_available", "borrow_unavailable", "open", "error"] = "error"
+    status: AvailabilityStatusLiteral = "error"
     if ebook_access == EbookAccess.BORROWABLE:
         status = "borrow_available"
     elif ebook_access == EbookAccess.PUBLIC:
         status = "open"
+    elif ebook_access == EbookAccess.PRINTDISABLED:
+        status = "private"
+
     return {
         'status': status,
         'error_message': None,
@@ -495,7 +503,13 @@ def get_availability(
         availabilities.update(
             {
                 _id: update_availability_schema_to_v2(
-                    cast(AvailabilityStatus, {'status': 'error'}),
+                    cast(
+                        AvailabilityStatus,
+                        {
+                            'status': 'error',
+                            'error': 'request_timeout',
+                        },
+                    ),
                     ocaid=_id if id_type == 'identifier' else None,
                 )
                 for _id in ids_to_fetch

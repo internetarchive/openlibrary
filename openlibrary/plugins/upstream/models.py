@@ -739,13 +739,51 @@ class Work(models.Work):
             key=lambda ed: ed.get_publish_year() or -sys.maxsize, reverse=True
         )
 
-        # 2022-03 Once we know the availability-type of editions (e.g. open)
-        # via editions-search, we can sidestep get_availability to only
-        # check availability for borrowable editions
-        ocaids = [ed.ocaid for ed in editions if ed.ocaid]
-        availability = lending.get_availability('identifier', ocaids)
-        for ed in editions:
-            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+        if editions_with_ocaids := [ed for ed in editions if ed.ocaid]:
+            from openlibrary.book_providers import EbookAccess
+
+            # First fetch from solr
+            solr = get_solr()
+            key_to_ebook_access: dict[str, EbookAccess] = {}
+            try:
+                solr_data = solr.get_many(
+                    [ed.key for ed in editions_with_ocaids],
+                    fields=['key', 'ebook_access'],
+                )
+                key_to_ebook_access = {
+                    doc['key']: EbookAccess.from_solr_str(doc['ebook_access'])
+                    for doc in solr_data
+                }
+            except Exception:
+                logging.getLogger("openlibrary").exception(
+                    "Failed to get editions ebook_access from solr"
+                )
+
+            borrowable_editions = [
+                ed
+                for ed in editions_with_ocaids
+                if key_to_ebook_access.get(ed.key) == EbookAccess.BORROWABLE
+            ]
+
+            # If any are borrowable, fetch availability from IA
+            ia_availabilities: dict[str, lending.AvailabilityStatusV2] = {}
+            if borrowable_editions:
+                ia_availabilities = lending.get_availability(
+                    'identifier', [ed.ocaid for ed in borrowable_editions]
+                )
+
+            # Save to the editions
+            for ed in editions:
+                if (
+                    availability := ia_availabilities.get(ed.ocaid)
+                ) and availability.get('error') != 'request_timeout':
+                    ed.availability = availability
+                elif ebook_access := key_to_ebook_access.get(ed.key):
+                    ed.availability = lending.get_ebook_access_availability(
+                        ed.ocaid, ebook_access
+                    )
+                else:
+                    ed.availability = {"status": "error"}
 
         return editions
 
