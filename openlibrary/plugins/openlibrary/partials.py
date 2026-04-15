@@ -371,7 +371,7 @@ class LazyCarouselPartial(PartialDataHandler):
             safe_mode=self.params.safe_mode,
             books_data=books['docs'],
         )
-        return {"partials": str(macro['__body__'])}
+        return {"partials": str(macro['__body__']), "books_data": books}
 
 
 _CAROUSEL_FIELDS = [
