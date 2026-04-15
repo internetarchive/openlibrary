@@ -86,7 +86,7 @@ $jsdef render_work_autocomplete_item(item):
 
         <div class="formElement">
             <div class="label"><label for="edition-subtitle">$_("Subtitle")</label>
-                <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
+                <span class="tip">$_("Usually distinguished by different or smaller type.") $:_("For example: <i>envisioning the next 50 years</i>")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
@@ -109,7 +109,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publish_places">$_("Where was the book published?")</label>
-                        <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
+                        <span class="tip">$_("City, Country please.") $:_("For example: <i>New York, USA; Sydney, Australia</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
@@ -142,7 +142,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-edition_name">$_("Edition Name (if applicable):")</label>
-                        <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+                        <span class="tip">$:_("For example: <i>Centennial edition</i>; <i>First edition</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
@@ -152,7 +152,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-series">$_("Series Name (if applicable)")</label>
-                        <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+                        <span class="tip">$_("The name of the publisher's series.") $:_("For example: <i>The Story of Civilization, Part III</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
@@ -263,8 +263,9 @@ $jsdef render_work_autocomplete_item(item):
                     <span class="tip"></span>
                 </div>
                 $if book.languages:
+                    $ user_lang = get_lang() or 'en'
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang, get_language_name(lang))
+                        $:render_language_field(i, lang, get_language_name(lang, user_lang))
                 $else:
                     $:render_language_field(0, storage(name="", key=""), None)
                 <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
@@ -307,8 +308,9 @@ $jsdef render_work_autocomplete_item(item):
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
+                        $ user_lang = get_lang() or 'en'
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang, user_lang))
                     $else:
                         $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
@@ -360,7 +362,7 @@ $jsdef render_work_autocomplete_item(item):
         <div class="formElement">
             <div class="label">
                 <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+            <span class="tip">$_("Anything about the book that may be of interest.") $:_("For example: <i>A Plume Book</i>")</span>
             </div>
             <div class="input">
                 <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
@@ -387,7 +389,7 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
                     $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).')
+                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank" rel="noopener noreferrer"><em>OL262757W</em></a>).')
                     <br/>
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
@@ -532,7 +534,7 @@ $ })
             <div class="formElement">
                 <div class="label">
                     <label for="edition--pagination">$_("Pagination?")</label>
-                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank" rel="noopener noreferrer">$_("Help")</a></span>
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>

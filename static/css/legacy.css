@@ -713,6 +713,18 @@ div.siteSearch input[type="text"] {
   margin-right: 20px;
 }
 
+/* openlibrary/templates/search/advancedsearch.html */
+@media screen and (max-width: 768px) {
+  .siteSearch--advanced {
+    width: 100%;
+  }
+
+  .siteSearch--advanced-input {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
 /* DIALOGS */
 
 /* openlibrary/macros/EditButtons.html */
@@ -862,7 +874,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: 0;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* openlibrary/templates/books/check.html */

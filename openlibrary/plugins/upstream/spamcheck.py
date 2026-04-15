@@ -40,7 +40,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
         if user.is_read_only():
             return True
         # Prevent deleted users from making edits:
-        if user.type.key == '/type/delete':
+        if user.type.key == "/type/delete":
             return True
 
     email = (user and user.get_email()) or ""
@@ -50,7 +50,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
     # For some odd reason, blocked accounts are still allowed to make edits.
     # Hack to stop that.
     account = user and user.get_account()
-    if account and account.get('status') != 'active':
+    if account and account.get("status") != "active":
         return True
 
     spamwords = get_spam_words()

@@ -1,11 +1,11 @@
 .generic-dropper-wrapper {
   position: relative;
-  z-index: var(--z-index-level-3);
+  isolation: isolate;
   min-height: 50px;
 }
 
 .generic-dropper-wrapper--active {
-  z-index: var(--z-index-level-4);
+  z-index: var(--z-index-level-1);
 }
 
 .generic-dropper {
@@ -65,7 +65,7 @@
 .generic-dropper__actions .generic-dropper__dropclick .arrow {
   width: 23px;
   height: 23px;
-  background-image: url(/images/icons/icon_dropit.png);
+  background-image: url(/static/images/icons/icon_dropit.png);
   background-repeat: no-repeat;
   filter: grayscale(100%);
   background-position: 0 0;
@@ -90,6 +90,11 @@
 .book-progress-btn {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.generic-dropper__primary .book-progress-btn:disabled {
+  cursor: default;
+  opacity: 1; /* For the disabled state to avoid flickering. */
 }
 
 /* Unified Read Button Styling */

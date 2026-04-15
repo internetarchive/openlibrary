@@ -27,9 +27,9 @@ def header_name_from_env(env_name: str) -> str:
     'content-length'
     """
     header_name = env_name
-    if env_name.startswith('HTTP_'):
+    if env_name.startswith("HTTP_"):
         header_name = env_name[5:]
-    return header_name.lower().replace('_', '-')
+    return header_name.lower().replace("_", "-")
 
 
 def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
@@ -43,9 +43,9 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
         env = {}
         for k, v in web.ctx.env.items():
             # Don't forward cookies to Sentry
-            if k == 'HTTP_COOKIE':
+            if k == "HTTP_COOKIE":
                 continue
-            if k.startswith('HTTP_') or k in ('CONTENT_LENGTH', 'CONTENT_TYPE'):
+            if k.startswith("HTTP_") or k in ("CONTENT_LENGTH", "CONTENT_TYPE"):
                 headers[header_name_from_env(k)] = v
             else:
                 env[k] = v
@@ -60,18 +60,18 @@ def add_web_ctx_to_event(event: dict, hint: dict) -> dict:
 class Sentry:
     def __init__(self, config: dict) -> None:
         self.config = config
-        self.enabled = bool(config.get('enabled'))
+        self.enabled = bool(config.get("enabled"))
         self.logger = logging.getLogger("sentry")
         self.logger.info(f"Setting up sentry (enabled={self.enabled})")
 
     def init(self):
         sentry_sdk.init(
-            dsn=self.config['dsn'],
-            environment=getenv('OL_SENTRY_ENVIRONMENT', self.config['environment']),
-            traces_sample_rate=self.config.get('traces_sample_rate', 0.0),
-            profiles_sample_rate=self.config.get('profiles_sample_rate', 0.0),
+            dsn=self.config["dsn"],
+            environment=getenv("OL_SENTRY_ENVIRONMENT", self.config["environment"]),
+            traces_sample_rate=self.config.get("traces_sample_rate", 0.0),
+            profiles_sample_rate=self.config.get("profiles_sample_rate", 0.0),
             release=get_software_version(),
-            enable_logs=self.config.get('enable_logs', True),
+            enable_logs=self.config.get("enable_logs", True),
         )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
@@ -105,15 +105,11 @@ class Sentry:
 @dataclass
 class InfogamiRoute:
     route: str
-    mode: str = 'view'
+    mode: str = "view"
     encoding: str | None = None
 
     def to_sentry_name(self) -> str:
-        return (
-            self.route
-            + (f'.{self.encoding}' if self.encoding else '')
-            + (f'?m={self.mode}' if self.mode != 'view' else '')
-        )
+        return self.route + (f".{self.encoding}" if self.encoding else "") + (f"?m={self.mode}" if self.mode != "view" else "")
 
 
 class WebPySentryProcessor:
@@ -122,8 +118,8 @@ class WebPySentryProcessor:
 
     def find_route_name(self) -> str:
         handler, groups = self.app._match(self.app.mapping, web.ctx.path)
-        web.debug('ROUTE HANDLER', handler, groups)
-        return handler or '<other>'
+        web.debug("ROUTE HANDLER", handler, groups)
+        return handler or "<other>"
 
     def __call__(self, handler):
         route_name = self.find_route_name()
@@ -135,7 +131,7 @@ class WebPySentryProcessor:
 
             environ = dict(web.ctx.env)
             # Don't forward cookies to Sentry
-            environ.pop('HTTP_COOKIE', None)
+            environ.pop("HTTP_COOKIE", None)
 
             transaction = Transaction.continue_from_environ(
                 environ,
@@ -159,30 +155,26 @@ class InfogamiSentryProcessor(WebPySentryProcessor):
     def find_route_name(self) -> str:
         def find_type() -> tuple[str, str] | None:
             return next(
-                (
-                    (pattern, typename)
-                    for pattern, typename in type_patterns.items()
-                    if re.search(pattern, web.ctx.path)
-                ),
+                ((pattern, typename) for pattern, typename in type_patterns.items() if re.search(pattern, web.ctx.path)),
                 None,
             )
 
         def find_route() -> InfogamiRoute:
-            result = InfogamiRoute('<other>')
+            result = InfogamiRoute("<other>")
 
             cls, _args = find_page()
             if cls:
-                if hasattr(cls, 'path'):
+                if hasattr(cls, "path"):
                     result.route = cls.path
                 else:
                     result.route = web.ctx.path
             elif type_page := find_type():
                 result.route = type_page[0]
 
-            if web.ctx.get('encoding'):
+            if web.ctx.get("encoding"):
                 result.encoding = web.ctx.encoding
 
-            requested_mode = web.input(_method='GET').get('m', 'view')
+            requested_mode = web.input(_method="GET").get("m", "view")
             if requested_mode in modes:
                 result.mode = requested_mode
 
@@ -198,11 +190,8 @@ def init_sentry(config_dict: dict) -> Sentry:
     global _sentry
 
     if _sentry is not None:
-        if config_dict.get('dsn') != _sentry.config.get('dsn'):
-            raise ValueError(
-                f"Sentry initialized with different DSNs: "
-                f"{_sentry.config.get('dsn')} != {config_dict.get('dsn')}."
-            )
+        if config_dict.get("dsn") != _sentry.config.get("dsn"):
+            raise ValueError(f"Sentry initialized with different DSNs: {_sentry.config.get('dsn')} != {config_dict.get('dsn')}.")
         return _sentry
 
     _sentry = Sentry(config_dict)

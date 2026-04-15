@@ -9,7 +9,7 @@ from datetime import UTC
 from infogami.infobase import config
 from infogami.infobase.logger import Logger
 
-root = getattr(config, 'booklogroot', 'booklog')
+root = getattr(config, "booklogroot", "booklog")
 
 _logger = Logger(root)
 
@@ -23,7 +23,7 @@ def hook(object):
     if object.type.key == '/type/edition':
         d = object._get_data(expand=True)
         # save some space by not expanding type
-        d['type'] = {'key': '/type/edition'}
-        _logger.write('book', site.name, timestamp, d)
+        d["type"] = {"key": "/type/edition"}
+        _logger.write("book", site.name, timestamp, d)
 
     # TODO: take care of author modifications

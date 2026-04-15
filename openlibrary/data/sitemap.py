@@ -74,7 +74,7 @@ $for path, title in docs:
 
 
 def gzwrite(path, data):
-    with gzopen(path, 'w') as file:
+    with gzopen(path, "w") as file:
         file.write(data)
 
 

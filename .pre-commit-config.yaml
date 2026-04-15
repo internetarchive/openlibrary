@@ -18,7 +18,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
-        types_or: [python]
+        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
       - id: mixed-line-ending
         args:
           - --fix=lf
@@ -33,41 +33,133 @@ repos:
       - id: auto-walrus
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.0.4
+    rev: 4.1.0
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]
         files: \.sql$
         # Rule exclusions and their rationale are documented in pyproject.toml
         # under [tool.sqlfluff.core].
-        # patron_data.sql is a dev-instance fixture with synthetic test data.
-        # import-partial.sql and prod-partial-dump.sql are auto-generated
-        # partial-dump scripts that use psql meta-commands (\copy, \set)
-        # which sqlfluff cannot parse.
-        # See: https://github.com/sqlfluff/sqlfluff/issues/7512
-        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/(import-partial|prod-partial-dump)\.sql)$
+        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
+        # values and \N nulls which sqlfluff cannot parse.
+        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
+        # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
+
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.9
     hooks:
       - id: ruff-check
-        args: [ --fix ]
+        args: [--fix]
       - id: ruff-format
-        files: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
+        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
+        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
+        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
+        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
+        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
+        # so the leading | on each line works correctly as an alternation operator.
+        exclude: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/lists/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/bulk_tag\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/openlibrary/partials\.py
+            |openlibrary/plugins/openlibrary/status\.py
+            |openlibrary/plugins/upstream/addbook\.py
+            |openlibrary/plugins/upstream/addtag\.py
+            |openlibrary/plugins/upstream/code\.py
+            |openlibrary/plugins/upstream/covers\.py
+            |openlibrary/plugins/upstream/jsdef\.py
+            |openlibrary/plugins/upstream/tests/test_addbook\.py
+            |openlibrary/plugins/upstream/tests/test_models\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/__init__\.py
+            |openlibrary/plugins/worksearch/schemes/authors\.py
+            |openlibrary/plugins/worksearch/schemes/lists\.py
+            |openlibrary/plugins/worksearch/schemes/subjects\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+            |openlibrary/tests/core/lists/test_model\.py
+            |openlibrary/tests/fastapi/test_partials\.py
+            |openlibrary/tests/test_templates\.py
+            |openlibrary/utils/form\.py
+            |openlibrary/utils/request_context\.py
+            |openlibrary/utils/schema\.py
+            |scripts/conftest\.py
+            |scripts/find_duplicate_author\.py
+            |scripts/monitoring/fail2ban_monitor\.py
+            |scripts/monitoring/monitor\.py
+            |scripts/monitoring/tests/test_fail2ban_monitor\.py
+            |scripts/update_stale_ocaid_references\.py
+          )$
 
   - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.1.0
+    rev: 26.3.1
     hooks:
       - id: black  # See pyproject.toml for args
-        exclude: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
+        # Complement to ruff-format above: black runs ONLY on files in active open PRs
+        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
+        files: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/lists/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/bulk_tag\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/openlibrary/partials\.py
+            |openlibrary/plugins/openlibrary/status\.py
+            |openlibrary/plugins/upstream/addbook\.py
+            |openlibrary/plugins/upstream/addtag\.py
+            |openlibrary/plugins/upstream/code\.py
+            |openlibrary/plugins/upstream/covers\.py
+            |openlibrary/plugins/upstream/jsdef\.py
+            |openlibrary/plugins/upstream/tests/test_addbook\.py
+            |openlibrary/plugins/upstream/tests/test_models\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/__init__\.py
+            |openlibrary/plugins/worksearch/schemes/authors\.py
+            |openlibrary/plugins/worksearch/schemes/lists\.py
+            |openlibrary/plugins/worksearch/schemes/subjects\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+            |openlibrary/tests/core/lists/test_model\.py
+            |openlibrary/tests/fastapi/test_partials\.py
+            |openlibrary/tests/test_templates\.py
+            |openlibrary/utils/form\.py
+            |openlibrary/utils/request_context\.py
+            |openlibrary/utils/schema\.py
+            |scripts/conftest\.py
+            |scripts/find_duplicate_author\.py
+            |scripts/monitoring/fail2ban_monitor\.py
+            |scripts/monitoring/monitor\.py
+            |scripts/monitoring/tests/test_fail2ban_monitor\.py
+            |scripts/update_stale_ocaid_references\.py
+          )$
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
           - tomli
         args: ["--skip", "*.mjs"]
+        exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.19.0
@@ -92,18 +184,20 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v10.0.2
+    rev: v9.9.1
     hooks:
       - id: eslint
         types: [file]
         types_or: [javascript, vue]
         additional_dependencies:
-          - eslint@8.49.0
-          - eslint-plugin-no-jquery@2.7.0
+          - eslint@9.39.4
+          - "@eslint/js@9.39.4"
+          - eslint-plugin-no-jquery@3.1.1
           - eslint-plugin-vue@9.32.0
-          - "@babel/eslint-parser@7.28.0"
-          - "@babel/plugin-syntax-dynamic-import@7.8.3"
-          - "@babel/preset-env@7.29.0"
+          - globals@15.14.0
+          - "@babel/eslint-parser@7.24.7"
+          - "@babel/core@7.24.7"
+          - "@babel/preset-env@7.24.7"
         args: [--fix]
 
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
@@ -113,7 +207,7 @@ repos:
       files: \.css$
       additional_dependencies:
         - stylelint@16.22.0
-        - stylelint-declaration-strict-value@1.10.11
+        - stylelint-declaration-strict-value@1.11.1
         - stylelint-prettier@5.0.3
       args: [--fix]
 

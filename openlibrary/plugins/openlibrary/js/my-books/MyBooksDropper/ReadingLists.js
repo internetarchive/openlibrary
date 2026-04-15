@@ -3,13 +3,13 @@
  * @module my-books/MyBooksDropper/ReadingLists
  */
 import 'jquery-colorbox';
-import myBooksStore from '../store'
+import myBooksStore from '../store';
 
-import { addItem, removeItem } from '../../lists/ListService'
-import { attachNewActiveShowcaseItem, toggleActiveShowcaseItems } from '../../lists/ShowcaseItem'
-import { FadingToast } from '../../Toast'
+import { addItem, removeItem } from '../../lists/ListService';
+import { attachNewActiveShowcaseItem, toggleActiveShowcaseItems } from '../../lists/ShowcaseItem';
+import { FadingToast } from '../../Toast';
 
-const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png'
+const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png';
 
 /**
  * Represents a single My Books dropper's list affordances, and defines their
@@ -28,17 +28,17 @@ export class ReadingLists {
          *
          * @member {HTMLElement}
          */
-        this.dropper = dropper
+        this.dropper = dropper;
 
         /**
          * Reference to the "Use work" checkbox.
          *
          * @member {HTMLElement|null}
          */
-        this.workCheckBox = dropper.querySelector('.work-checkbox')
+        this.workCheckBox = dropper.querySelector('.work-checkbox');
         if (this.workCheckBox) {
             // Uncheck "Use work" checkbox on page refresh
-            this.workCheckBox.checked = false
+            this.workCheckBox.checked = false;
         }
 
         /**
@@ -46,14 +46,14 @@ export class ReadingLists {
          *
          * @member {HTMLElement}
          */
-        this.dropperListsElement = dropper.querySelector('.my-lists')
+        this.dropperListsElement = dropper.querySelector('.my-lists');
 
         /**
          * Key of the document that will be added to or removed from a list.
          *
          * @member {string}
          */
-        this.seedKey = this.dropperListsElement.dataset.seedKey
+        this.seedKey = this.dropperListsElement.dataset.seedKey;
 
         /**
          * Key of the work associated with this dropper. Will be an empty
@@ -61,14 +61,14 @@ export class ReadingLists {
          *
          * @member {string}
          */
-        this.workKey = this.dropperListsElement.dataset.workKey
+        this.workKey = this.dropperListsElement.dataset.workKey;
 
         /**
          * The patron's user key.
          *
          * @member {string}
          */
-        this.userKey = this.dropperListsElement.dataset.userKey
+        this.userKey = this.dropperListsElement.dataset.userKey;
 
         /**
          * Stores information about a single list.
@@ -86,26 +86,26 @@ export class ReadingLists {
          *
          * @member {Record<string, ActiveListData>}
          */
-        this.patronLists = {}
+        this.patronLists = {};
     }
 
     /**
      * Adds functionality to all of the dropper's list affordances.
      */
     initialize() {
-        this.initModifyListAffordances(this.dropper.querySelectorAll('.modify-list'))
+        this.initModifyListAffordances(this.dropper.querySelectorAll('.modify-list'));
 
-        const openListModalButton = this.dropper.querySelector('.create-new-list')
+        const openListModalButton = this.dropper.querySelector('.create-new-list');
 
         if (openListModalButton) {
-            this.addOpenListModalClickListener(openListModalButton)
+            this.addOpenListModalClickListener(openListModalButton);
         }
 
         if (this.workCheckBox) {
             this.workCheckBox.addEventListener('click', () => {
-                this.updateListDisplays()
-                toggleActiveShowcaseItems(this.workCheckBox.checked)
-            })
+                this.updateListDisplays();
+                toggleActiveShowcaseItems(this.workCheckBox.checked);
+            });
         }
     }
 
@@ -113,14 +113,14 @@ export class ReadingLists {
      * Updates dropdown list affordances when an update occurs.
      */
     updateListDisplays() {
-        const isWorkSelected = this.workCheckBox && this.workCheckBox.checked
+        const isWorkSelected = this.workCheckBox && this.workCheckBox.checked;
         for (const key of Object.keys(this.patronLists)) {
-            const listData = this.patronLists[key]
+            const listData = this.patronLists[key];
 
             if (isWorkSelected) {
-                this.toggleDisplayedType(listData.workOnList, key)
+                this.toggleDisplayedType(listData.workOnList, key);
             } else {
-                this.toggleDisplayedType(listData.itemOnList, key)
+                this.toggleDisplayedType(listData.itemOnList, key);
             }
         }
     }
@@ -136,12 +136,12 @@ export class ReadingLists {
      * @param {string} listKey Unique identifier for a list
      */
     toggleDisplayedType(isListMember, listKey) {
-        const listData = this.patronLists[listKey]
+        const listData = this.patronLists[listKey];
 
         if (isListMember) {
-            listData.dropperListAffordance.classList.add('list--active')
+            listData.dropperListAffordance.classList.add('list--active');
         } else {
-            listData.dropperListAffordance.classList.remove('list--active')
+            listData.dropperListAffordance.classList.remove('list--active');
         }
     }
 
@@ -155,45 +155,45 @@ export class ReadingLists {
      */
     initModifyListAffordances(modifyListElements) {
         for (const elem of modifyListElements) {
-            const listItemKeys = elem.dataset.listItems
-            const listKey = elem.dataset.listKey
-            const itemOnList = listItemKeys.includes(this.seedKey)
-            const elemParent = elem.parentElement
+            const listItemKeys = elem.dataset.listItems;
+            const listKey = elem.dataset.listKey;
+            const itemOnList = listItemKeys.includes(this.seedKey);
+            const elemParent = elem.parentElement;
 
             this.patronLists[listKey] = {
                 title: elem.innerText,
                 coverUrl: elem.dataset.listCoverUrl,
                 itemOnList: itemOnList,
                 dropperListAffordance: elemParent,  // The .list element
-            }
+            };
             if (!this.patronLists[listKey].coverUrl) {
-                this.patronLists[listKey].coverUrl = DEFAULT_COVER_URL
+                this.patronLists[listKey].coverUrl = DEFAULT_COVER_URL;
             }
             if (this.workCheckBox) {
                 // Check for work key membership:
-                const workOnList = listItemKeys.includes(this.workKey)
-                this.patronLists[listKey].workOnList = workOnList
+                const workOnList = listItemKeys.includes(this.workKey);
+                this.patronLists[listKey].workOnList = workOnList;
 
                 if (this.workCheckBox.checked) {
                     if (workOnList) {
-                        elemParent.classList.add('list--active')
+                        elemParent.classList.add('list--active');
                     }
                 } else {
                     if (itemOnList) {
-                        elemParent.classList.add('list--active')
+                        elemParent.classList.add('list--active');
                     }
                 }
             } else {
                 if (itemOnList) {
-                    elemParent.classList.add('list--active')
+                    elemParent.classList.add('list--active');
                 }
             }
 
             elem.addEventListener('click', (event) => {
-                event.preventDefault()
-                const isAddingItem = !this.patronLists[listKey].dropperListAffordance.classList.contains('list--active')
-                this.modifyList(listKey, isAddingItem)
-            })
+                event.preventDefault();
+                const isAddingItem = !this.patronLists[listKey].dropperListAffordance.classList.contains('list--active');
+                this.modifyList(listKey, isAddingItem);
+            });
         }
     }
 
@@ -205,56 +205,56 @@ export class ReadingLists {
      * @param {boolean} isAddingItem `true` if an item is being added to a list
      */
     async modifyList(listKey, isAddingItem) {
-        let seed
-        const isWork = this.workCheckBox && this.workCheckBox.checked
+        let seed;
+        const isWork = this.workCheckBox && this.workCheckBox.checked;
 
         // Seed will be a string if its type is 'subject'
-        const isSubjectSeed = this.seedKey[0] !== '/'
+        const isSubjectSeed = this.seedKey[0] !== '/';
 
         if (isWork) {
-            seed = { key: this.workKey }
+            seed = { key: this.workKey };
         } else if (isSubjectSeed) {
-            seed = this.seedKey
+            seed = this.seedKey;
         } else {
-            seed = { key: this.seedKey }
+            seed = { key: this.seedKey };
         }
 
-        const makeChange = isAddingItem ? addItem : removeItem
-        this.patronLists[listKey].dropperListAffordance.classList.remove('list--active')
-        this.patronLists[listKey].dropperListAffordance.classList.add('list--pending')
+        const makeChange = isAddingItem ? addItem : removeItem;
+        this.patronLists[listKey].dropperListAffordance.classList.remove('list--active');
+        this.patronLists[listKey].dropperListAffordance.classList.add('list--pending');
 
         await makeChange(listKey, seed)
             .then((response) => {
                 if (response.status >= 400) {
-                    throw new Error('List update failed')
+                    throw new Error('List update failed');
                 }
-                response.json()
+                response.json();
             })
             .then(() => {
-                this.updateViewAfterModifyingList(listKey, isWork, isAddingItem)
+                this.updateViewAfterModifyingList(listKey, isWork, isAddingItem);
 
-                const seedKey = isWork ? this.workKey : this.seedKey
+                const seedKey = isWork ? this.workKey : this.seedKey;
                 if (isAddingItem) {
                     // make new active showcase item
-                    const listTitle = this.patronLists[listKey].title
-                    attachNewActiveShowcaseItem(listKey, seedKey, listTitle, this.patronLists[listKey].coverUrl)
+                    const listTitle = this.patronLists[listKey].title;
+                    attachNewActiveShowcaseItem(listKey, seedKey, listTitle, this.patronLists[listKey].coverUrl);
                 } else {
                     // remove existing showcase items
-                    const showcases = myBooksStore.getShowcases()
-                    const matchingShowcases = showcases.filter((item) => item.listKey === listKey && item.seedKey === seedKey)
+                    const showcases = myBooksStore.getShowcases();
+                    const matchingShowcases = showcases.filter((item) => item.listKey === listKey && item.seedKey === seedKey);
                     for (const item of matchingShowcases) {
-                        item.removeSelf()
+                        item.removeSelf();
                     }
                 }
             })
             .catch(() => {
                 if (!isAddingItem) {
                     // Replace check mark if patron was removing an item from a list
-                    this.patronLists[listKey].dropperListAffordance.classList.add('list--active')
+                    this.patronLists[listKey].dropperListAffordance.classList.add('list--active');
                 }
-                new FadingToast('Could not update list.  Please try again later.').show()
+                new FadingToast('Could not update list.  Please try again later.').show();
             })
-            .finally(() => this.patronLists[listKey].dropperListAffordance.classList.remove('list--pending'))
+            .finally(() => this.patronLists[listKey].dropperListAffordance.classList.remove('list--pending'));
     }
 
     /**
@@ -267,12 +267,12 @@ export class ReadingLists {
      */
     updateViewAfterModifyingList(listKey, isWork, wasItemAdded) {
         if (isWork) {
-            this.patronLists[listKey].workOnList = wasItemAdded
+            this.patronLists[listKey].workOnList = wasItemAdded;
         } else {
-            this.patronLists[listKey].itemOnList = wasItemAdded
+            this.patronLists[listKey].itemOnList = wasItemAdded;
         }
 
-        this.updateListDisplays()
+        this.updateListDisplays();
     }
 
     /**
@@ -285,14 +285,14 @@ export class ReadingLists {
      */
     addOpenListModalClickListener(openListModalButton) {
         openListModalButton.addEventListener('click', (event) => {
-            event.preventDefault()
+            event.preventDefault();
 
             $.colorbox({
                 inline: true,
                 opacity: '0.5',
                 href: '#addList'
-            })
-        })
+            });
+        });
     }
 
     /**
@@ -306,21 +306,21 @@ export class ReadingLists {
      * @param {string} coverUrl URL for the list's cover image
      */
     onListCreationSuccess(listKey, listTitle, isActive, coverUrl) {
-        const dropperListAffordance = this.createDropdownListAffordance(listKey, listTitle, isActive)
+        const dropperListAffordance = this.createDropdownListAffordance(listKey, listTitle, isActive);
 
         this.patronLists[listKey] = {
             title: listTitle,
             coverUrl: coverUrl,
             dropperListAffordance: dropperListAffordance
-        }
+        };
 
         if (isActive) {
             if (this.workCheckBox && this.workCheckBox.checked) {
-                this.patronLists[listKey].itemOnList = false
-                this.patronLists[listKey].workOnList = true
+                this.patronLists[listKey].itemOnList = false;
+                this.patronLists[listKey].workOnList = true;
             } else {
-                this.patronLists[listKey].itemOnList = true
-                this.patronLists[listKey].workOnList = false
+                this.patronLists[listKey].itemOnList = true;
+                this.patronLists[listKey].workOnList = false;
             }
         }
     }
@@ -336,23 +336,23 @@ export class ReadingLists {
     createDropdownListAffordance(listKey, listTitle, isActive) {
         const itemMarkUp = `<span class="list__status-indicator"></span>
         <a href="${listKey}" class="modify-list dropper__close" data-list-cover-url="${listKey}" data-list-key="${listKey}">${listTitle}</a>
-        `
-        const p = document.createElement('p')
-        p.classList.add('list')
+        `;
+        const p = document.createElement('p');
+        p.classList.add('list');
         if (isActive) {
-            p.classList.add('list--active')
+            p.classList.add('list--active');
         }
-        p.innerHTML = itemMarkUp
-        this.dropperListsElement.appendChild(p)
-        const listAffordance = p.querySelector('.modify-list')
+        p.innerHTML = itemMarkUp;
+        this.dropperListsElement.appendChild(p);
+        const listAffordance = p.querySelector('.modify-list');
 
         listAffordance.addEventListener('click', (event) => {
-            event.preventDefault()
-            const isAddingItem = !this.patronLists[listKey].dropperListAffordance.classList.contains('list--active')
-            this.modifyList(listKey, isAddingItem)
-        })
+            event.preventDefault();
+            const isAddingItem = !this.patronLists[listKey].dropperListAffordance.classList.contains('list--active');
+            this.modifyList(listKey, isAddingItem);
+        });
 
-        return p
+        return p;
     }
 
     /**
@@ -363,9 +363,9 @@ export class ReadingLists {
     getSeed() {
         if (this.workCheckBox && this.workCheckBox.checked) {
             // seed is the work key:
-            return this.workKey
+            return this.workKey;
         }
 
-        return this.seedKey
+        return this.seedKey;
     }
 }

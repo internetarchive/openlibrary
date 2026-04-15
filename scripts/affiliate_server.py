@@ -79,20 +79,18 @@ API_MAX_ITEMS_PER_CALL = 10
 API_MAX_WAIT_SECONDS = 0.9
 # TODO: make a map for Google Books.
 AZ_OL_MAP = {
-    'cover': 'covers',
-    'title': 'title',
-    'authors': 'authors',
-    'publishers': 'publishers',
-    'publish_date': 'publish_date',
-    'number_of_pages': 'number_of_pages',
+    "cover": "covers",
+    "title": "title",
+    "authors": "authors",
+    "publishers": "publishers",
+    "publish_date": "publish_date",
+    "number_of_pages": "number_of_pages",
 }
 RETRIES: Final = 5
 
 batch: Batch | None = None
 
-web.amazon_queue = (
-    queue.PriorityQueue()
-)  # a thread-safe multi-producer, multi-consumer queue
+web.amazon_queue = queue.PriorityQueue()  # a thread-safe multi-producer, multi-consumer queue
 web.amazon_lookup_thread = None
 
 
@@ -205,13 +203,9 @@ class AmazonLookupWorker(BaseLookupWorker):
         while True:
             start_time = time.time()
             asins: set[PrioritizedIdentifier] = set()  # no duplicates in the batch
-            while len(asins) < API_MAX_ITEMS_PER_CALL and self._seconds_remaining(
-                start_time
-            ):
+            while len(asins) < API_MAX_ITEMS_PER_CALL and self._seconds_remaining(start_time):
                 try:  # queue.get() will block (sleep) until successful or it times out
-                    asins.add(
-                        self.queue.get(timeout=self._seconds_remaining(start_time))
-                    )
+                    asins.add(self.queue.get(timeout=self._seconds_remaining(start_time)))
                 except queue.Empty:
                     pass
 
@@ -292,11 +286,7 @@ def process_google_book(google_book_data: dict[str, Any]) -> dict[str, Any] | No
 
     result["title"] = book.get("title", "")
     result["subtitle"] = book.get("subtitle")
-    result["authors"] = (
-        [{"name": author} for author in book.get("authors", [])]
-        if book.get("authors")
-        else []
-    )
+    result["authors"] = [{"name": author} for author in book.get("authors", [])] if book.get("authors") else []
     # result["identifiers"] = {
     #     "google": [isbn_13]
     # }  # Assuming so far is there is always an ISBN 13.
@@ -325,9 +315,9 @@ def stage_from_google_books(isbn: str) -> bool:
             get_current_batch("google").add_items(
                 [
                     {
-                        'ia_id': google_book['source_records'][0],
-                        'status': 'staged',
-                        'data': google_book,
+                        "ia_id": google_book["source_records"][0],
+                        "status": "staged",
+                        "data": google_book,
                     }
                 ]
             )
@@ -353,7 +343,7 @@ def get_current_batch(name: str) -> Batch:
 
 
 def get_isbns_from_book(book: dict) -> list[str]:  # Singular: book
-    return [str(isbn) for isbn in book.get('isbn_10', []) + book.get('isbn_13', [])]
+    return [str(isbn) for isbn in book.get("isbn_10", []) + book.get("isbn_13", [])]
 
 
 def get_isbns_from_books(books: list[dict]) -> list[str]:  # Plural: books
@@ -392,9 +382,7 @@ def get_editions_for_books(books: list[dict]) -> list[dict]:
     :return: list of OL editions dicts
     """
     isbns = get_isbns_from_books(books)
-    unique_edition_ids = set(
-        web.ctx.site.things({'type': '/type/edition', 'isbn_': isbns})
-    )
+    unique_edition_ids = set(web.ctx.site.things({"type": "/type/edition", "isbn_": isbns}))
     return web.ctx.site.get_many(list(unique_edition_ids))
 
 
@@ -404,12 +392,7 @@ def get_pending_books(books):
     # For each amz book, check that we need its data
     for book in books:
         ed = next(
-            (
-                ed
-                for ed in editions
-                if set(book.get('isbn_13')).intersection(set(ed.isbn_13))
-                or set(book.get('isbn_10')).intersection(set(ed.isbn_10))
-            ),
+            (ed for ed in editions if set(book.get("isbn_13")).intersection(set(ed.isbn_13)) or set(book.get("isbn_10")).intersection(set(ed.isbn_10))),
             {},
         )
 
@@ -427,16 +410,10 @@ def make_cache_key(product: dict[str, Any]) -> str:
     if (isbn_13s := product.get("isbn_13")) and len(isbn_13s):
         return isbn_13s[0]
 
-    if product.get("isbn_10") and (
-        cache_key := isbn_10_to_isbn_13(product.get("isbn_10", [])[0])
-    ):
+    if product.get("isbn_10") and (cache_key := isbn_10_to_isbn_13(product.get("isbn_10", [])[0])):
         return cache_key
 
-    if (source_records := product.get("source_records")) and (
-        amazon_record := next(
-            (record for record in source_records if record.startswith("amazon:")), ""
-        )
-    ):
+    if (source_records := product.get("source_records")) and (amazon_record := next((record for record in source_records if record.startswith("amazon:")), "")):
         return amazon_record.split(":")[1]
 
     return ""
@@ -449,9 +426,7 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
     """
     logger.info(f"process_amazon_batch(): {len(asins)} items")
     try:
-        identifiers = [
-            prioritized_identifier.identifier for prioritized_identifier in asins
-        ]
+        identifiers = [prioritized_identifier.identifier for prioritized_identifier in asins]
         products = web.amazon_api.get_products(identifiers, serialize=True)
         # stats_ol_affiliate_amazon_imports - Open Library - Dashboards - Grafana
         # http://graphite.us.archive.org Metrics.stats.ol...
@@ -466,36 +441,25 @@ def process_amazon_batch(asins: Collection[PrioritizedIdentifier]) -> None:
     for product in products:
         cache_key = make_cache_key(product)  # isbn_13 or non-ISBN-10 ASIN.
         cache.memcache_cache.set(  # Add each product to memcache
-            f'amazon_product_{cache_key}', product, expires=WEEK_SECS
+            f"amazon_product_{cache_key}", product, expires=WEEK_SECS
         )
 
     # Only proceed if config finds infobase db creds
-    if not config.infobase.get('db_parameters'):  # type: ignore[attr-defined]
+    if not config.infobase.get("db_parameters"):  # type: ignore[attr-defined]
         logger.debug("DB parameters missing from affiliate-server infobase")
         return
 
     # Skip staging no_import_identifiers for for import by checking AMZ source record.
-    no_import_identifiers = {
-        identifier.identifier for identifier in asins if not identifier.stage_import
-    }
+    no_import_identifiers = {identifier.identifier for identifier in asins if not identifier.stage_import}
 
-    books = [
-        clean_amazon_metadata_for_load(product)
-        for product in products
-        if product.get("source_records")[0].split(":")[1] not in no_import_identifiers
-    ]
+    books = [clean_amazon_metadata_for_load(product) for product in products if product.get("source_records")[0].split(":")[1] not in no_import_identifiers]
 
     if books:
         stats.increment(
             "ol.affiliate.amazon.total_items_batched_for_import",
             n=len(books),
         )
-        get_current_batch(name="amz").add_items(
-            [
-                {'ia_id': b['source_records'][0], 'status': 'staged', 'data': b}
-                for b in books
-            ]
-        )
+        get_current_batch(name="amz").add_items([{"ia_id": b["source_records"][0], "status": "staged", "data": b} for b in books])
 
 
 def seconds_remaining(start_time: float) -> float:
@@ -546,9 +510,7 @@ class Status:
     def GET(self) -> str:
         return json.dumps(
             {
-                "thread_is_alive": bool(
-                    web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
-                ),
+                "thread_is_alive": bool(web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()),
                 "queue_size": web.amazon_queue.qsize(),
                 "queue": [isbn.to_dict() for isbn in web.amazon_queue.queue],
             }
@@ -604,9 +566,7 @@ class Submit:
 
         # Handle URL query parameters.
         input = web.input(high_priority=False, stage_import=True)
-        priority = (
-            Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
-        )
+        priority = Priority.HIGH if input.get("high_priority") == "true" else Priority.LOW
         stage_import = input.get("stage_import") != "false"
 
         b_asin, isbn_10, isbn_13 = normalize_identifier(identifier)
@@ -614,18 +574,14 @@ class Submit:
 
         # For ISBN 13, conditionally go straight to Google Books.
         if not key and isbn_13 and priority == Priority.HIGH and stage_import:
-            return (
-                json.dumps({"status": "success"})
-                if stage_from_google_books(isbn=isbn_13)
-                else json.dumps({"status": "not found"})
-            )
+            return json.dumps({"status": "success"}) if stage_from_google_books(isbn=isbn_13) else json.dumps({"status": "not found"})
 
         if not (key := isbn_10 or b_asin):
             return json.dumps({"error": "rejected_isbn", "identifier": identifier})
 
         # Cache lookup by isbn_13 or b_asin. If there's a hit return the product to
         # the caller.
-        if product := cache.memcache_cache.get(f'amazon_product_{isbn_13 or b_asin}'):
+        if product := cache.memcache_cache.get(f"amazon_product_{isbn_13 or b_asin}"):
             return json.dumps(
                 {
                     "status": "success",
@@ -636,9 +592,7 @@ class Submit:
         # Cache misses will be submitted to Amazon as ASINs (isbn10 if possible, or
         # a 'true' ASIN otherwise) and the response will be `staged` for import.
         if key not in web.amazon_queue.queue:
-            key_queue_item = PrioritizedIdentifier(
-                identifier=key, priority=priority, stage_import=stage_import
-            )
+            key_queue_item = PrioritizedIdentifier(identifier=key, priority=priority, stage_import=stage_import)
             web.amazon_queue.put_nowait(key_queue_item)
 
         # Give us a snapshot over time of how many new isbns are currently queued
@@ -653,24 +607,16 @@ class Submit:
         if priority == Priority.HIGH:
             for _ in range(RETRIES):
                 time.sleep(1)
-                if product := cache.memcache_cache.get(
-                    f'amazon_product_{isbn_13 or b_asin}'
-                ):
+                if product := cache.memcache_cache.get(f"amazon_product_{isbn_13 or b_asin}"):
                     # If not importing, return whatever data AMZ returns, even if it's unimportable.
                     cleaned_metadata = clean_amazon_metadata_for_load(product)
                     if not stage_import:
-                        return json.dumps(
-                            {"status": "success", "hit": cleaned_metadata}
-                        )
+                        return json.dumps({"status": "success", "hit": cleaned_metadata})
 
                     # When importing, return a result only if the item can be imported.
-                    source, pid = cleaned_metadata['source_records'][0].split(":")
-                    if ImportItem.find_staged_or_pending(
-                        identifiers=[pid], sources=[source]
-                    ):
-                        return json.dumps(
-                            {"status": "success", "hit": cleaned_metadata}
-                        )
+                    source, pid = cleaned_metadata["source_records"][0].split(":")
+                    if ImportItem.find_staged_or_pending(identifiers=[pid], sources=[source]):
+                        return json.dumps({"status": "success", "hit": cleaned_metadata})
 
             stats.increment("ol.affiliate.amazon.total_items_not_found")
 
@@ -682,23 +628,21 @@ class Submit:
             return json.dumps({"status": "not found"})
 
         else:
-            return json.dumps(
-                {"status": "submitted", "queue": web.amazon_queue.qsize()}
-            )
+            return json.dumps({"status": "submitted", "queue": web.amazon_queue.qsize()})
 
 
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
-    http_proxy_url = config.get('http_proxy')
+    http_proxy_url = config.get("http_proxy")
 
     stats.client = stats.create_stats_client(cfg=config)
 
     web.amazon_api = None
     args = [
-        config.amazon_api.get('key'),
-        config.amazon_api.get('secret'),
-        config.amazon_api.get('id'),
+        config.amazon_api.get("key"),
+        config.amazon_api.get("secret"),
+        config.amazon_api.get("id"),
     ]
     if all(args):
         web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=http_proxy_url)
@@ -709,10 +653,10 @@ def load_config(configfile):
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ["PYTHON_EGG_CACHE"] = "/tmp/.python-eggs"
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ["REAL_SCRIPT_NAME"] = ""
 
 
 def start_server():
@@ -730,9 +674,7 @@ def start_server():
 
     if "pytest" not in sys.modules:
         web.amazon_lookup_thread = make_amazon_lookup_thread()
-        thread_is_alive = bool(
-            web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive()
-        )
+        thread_is_alive = bool(web.amazon_lookup_thread and web.amazon_lookup_thread.is_alive())
         logger.critical(f"web.amazon_lookup_thread.is_alive() is {thread_is_alive}")
     else:
         logger.critical("Not starting amazon_lookup_thread in pytest")
@@ -772,14 +714,14 @@ def https_middleware(app):
     """
 
     def wrapper(environ, start_response):
-        if environ.get('HTTP_X_SCHEME') == 'https':
-            environ['wsgi.url_scheme'] = 'https'
+        if environ.get("HTTP_X_SCHEME") == "https":
+            environ["wsgi.url_scheme"] = "https"
         return app(environ, start_response)
 
     return wrapper
 
 
-def runfcgi(func, addr=('localhost', 8000)):
+def runfcgi(func, addr=("localhost", 8000)):
     """Runs a WSGI function as a FastCGI pre-fork server."""
     config = dict(web.config.get("fastcgi", {}))
 

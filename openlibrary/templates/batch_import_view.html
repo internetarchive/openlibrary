@@ -55,5 +55,5 @@ $var title: $_("Batch Import Status")
         </tbody>
     </table>
 
-    $:macros.Pager(page, total_rows, limit)
+    $:macros.OlPagination(page, ceil(total_rows / limit))
 </div>

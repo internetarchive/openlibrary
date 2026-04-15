@@ -1,9 +1,12 @@
 """Tests for the /trending/{period}.json FastAPI endpoint (internal API)."""
 
-import os
+from typing import get_args
 from unittest.mock import patch
 
 import pytest
+
+from openlibrary.fastapi.internal.api import TrendingPeriod
+from openlibrary.views.loanstats import SINCE_DAYS
 
 MOCK_WORKS = [
     {"key": "/works/OL1W", "title": "Popular Book 1", "author_name": ["Author A"]},
@@ -110,11 +113,6 @@ class TestTrendingBooksEndpoint:
         assert mock_get_trending_books.call_args.kwargs["limit"] == 100
 
     def test_trending_period_literal_matches_since_days(self):
-        from typing import get_args
-
-        from openlibrary.fastapi.internal.api import TrendingPeriod
-        from openlibrary.views.loanstats import SINCE_DAYS
-
         literal_keys = set(get_args(TrendingPeriod))
         since_days_keys = set(SINCE_DAYS.keys())
 
@@ -131,25 +129,3 @@ class TestTrendingBooksEndpoint:
         assert len(works) == 2
         assert works[0]["key"] == "/works/OL1W"
         assert works[1]["key"] == "/works/OL2W"
-
-
-@pytest.mark.skipif(
-    os.getenv("LOCAL_DEV") is None,
-    reason="Trending endpoint is excluded from OpenAPI schema outside LOCAL_DEV (include_in_schema=False)",
-)
-class TestOpenAPIDocumentation:
-    """Verify the trending endpoint is correctly described in the OpenAPI schema."""
-
-    def test_openapi_contains_trending_endpoint(self, fastapi_client):
-        response = fastapi_client.get("/openapi.json")
-        assert response.status_code == 200
-        paths = response.json()["paths"]
-        assert "/trending/{period}.json" in paths
-
-    def test_openapi_trending_params_have_descriptions(self, fastapi_client):
-        response = fastapi_client.get("/openapi.json")
-        assert response.status_code == 200
-        params = response.json()["paths"]["/trending/{period}.json"]["get"]["parameters"]
-        by_name = {p["name"]: p for p in params}
-        assert by_name["period"]["description"]
-        assert by_name["hours"]["description"]

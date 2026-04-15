@@ -27,14 +27,14 @@ logger = logging.getLogger("openlibrary." + __file__)
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable
-    os.environ['PYTHON_EGG_CACHE'] = "/tmp/.python-eggs"
+    os.environ["PYTHON_EGG_CACHE"] = "/tmp/.python-eggs"
 
     # required when run as fastcgi
-    os.environ['REAL_SCRIPT_NAME'] = ""
+    os.environ["REAL_SCRIPT_NAME"] = ""
 
 
 def main(args):
-    if len(args) < 1 or args[0] in ['-h', '--help']:
+    if len(args) < 1 or args[0] in ["-h", "--help"]:
         print("USAGE: %s configfile [port]" % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
@@ -46,7 +46,7 @@ def start(config_file, *args):
 
     server.load_config(config_file)
 
-    sentry = init_sentry(getattr(server.config, 'sentry', {}))
+    sentry = init_sentry(getattr(server.config, "sentry", {}))
     if sentry.enabled:
         sentry.bind_to_webpy_app(server.app)
 
@@ -56,8 +56,8 @@ def start(config_file, *args):
     # The web.py runfcgi is using multiplexed=True option for fastcgi server
     # and that seem to cause some memory leaks. Using a variant of runfcgi
     # that sets multiplexed=False.
-    if 'fastcgi' in sys.argv:
-        sys.argv.remove('fastcgi')
+    if "fastcgi" in sys.argv:
+        sys.argv.remove("fastcgi")
         args = sys.argv[1:]
 
         wsgifunc = server.app.wsgifunc()
@@ -71,16 +71,14 @@ def start(config_file, *args):
         server.run()
 
 
-def runfcgi(func, addr=('localhost', 8000)):
+def runfcgi(func, addr=("localhost", 8000)):
     """Runs a WSGI function as a FastCGI server."""
     import flup.server.fcgi as flups
 
     # Start fcgi server with multiplexed=False
     # Noticed memory leaks when running with multiplexed=True.
     logger.info(f"flups.WSGIServer({func}, bindAddress={addr})")
-    return flups.WSGIServer(
-        func, multiplexed=False, bindAddress=addr, debug=False
-    ).run()
+    return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
 
 
 def start_gunicorn_server():
