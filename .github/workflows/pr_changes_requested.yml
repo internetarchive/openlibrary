@@ -1,0 +1,46 @@
+name: Label PR When Changes Requested
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  label-changes-requested:
+    if: >
+      github.repository_owner == 'internetarchive' &&
+      github.event.review.state == 'changes_requested' &&
+      github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write # PRs are in the issues API so we need this too
+
+    steps:
+      - name: 'Add "Needs: Submitter Input" label'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            // Add "Needs: Submitter Input"
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: ['Needs: Submitter Input'],
+            });
+
+            // Remove "Needs: Response" if present
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number,
+                name: 'Needs: Response',
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
