@@ -47,7 +47,7 @@ def get_field_updates(record: dict) -> dict:
     Handles fields that can be a plain string, an object with a value
     property, or a list of such objects.
     """
-    updates = {}
+    updates: dict[str, str | dict | list] = {}
     for key, value in record.items():
         if isinstance(value, str) and has_entities(value):
             fixed = html.unescape(value)
