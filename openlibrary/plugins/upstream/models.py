@@ -121,9 +121,8 @@ class Edition(models.Edition):
     def get_isbnmask(self):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get("isbn_13", []) + self.get("isbn_10", [None])
-        if isbn := normalize_isbn(isbns[0]):
-            if is_isbn10(isbn) or is_isbn13(isbn):
-                isbn = mask(isbn)
+        if (isbn := normalize_isbn(isbns[0])) and (is_isbn10(isbn) or is_isbn13(isbn)):
+            isbn = mask(isbn)
         return isbn
 
     def get_identifiers(self):

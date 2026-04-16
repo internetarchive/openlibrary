@@ -67,7 +67,10 @@ def wrap_jsonp(request: Request, data: dict | list | str) -> Response:
     json_string = data if isinstance(data, str) else json.dumps(data)
     if callback := request.query_params.get("callback"):
         if not JS_CALLBACK_RE.match(callback):
-            raise ValueError("Invalid callback parameter: must be a valid JavaScript identifier (only letters, numbers, underscore, $, and . allowed)")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid callback parameter: must be a valid JavaScript identifier (only letters, numbers, underscore, $, and . allowed)",
+            )
         return Response(content=f"{callback}({json_string});", media_type="application/javascript")
     return Response(content=json_string, media_type="application/json")
 
