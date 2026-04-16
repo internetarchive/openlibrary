@@ -2,8 +2,7 @@
 Tests for scripts/migrations/fix_unicode_html_entities.py
 """
 
-import pytest
-from scripts.migrations.fix_unicode_html_entities import has_entities, get_field_updates
+from scripts.migrations.fix_unicode_html_entities import get_field_updates, has_entities
 
 
 class TestHasEntities:
