@@ -317,8 +317,30 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
         <section class="example">
           <h3 class="example__title">$_("Form submission")</h3>
-          <p>$:_("Set %(type)s and place the button inside a %(form)s. The component calls %(request_submit)s on the closest form, which triggers native validation and the form's submit event.", type='<code>type="submit"</code>', form="<code>&lt;form&gt;</code>", request_submit="<code>form.requestSubmit()</code>")</p>
-          <code class="example__code">&lt;form&gt; … &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt; &lt;/form&gt;</code>
+          <p>$:_("Set %(type)s and place the button inside a %(form)s. The component renders a real %(native_submit)s, so native validation, the form's %(submit_event)s event, and Enter-to-submit from input fields all work without any extra wiring.", type='<code>type="submit"</code>', form="<code>&lt;form&gt;</code>", native_submit='<code>&lt;button type="submit"&gt;</code>', submit_event="<code>submit</code>")</p>
+          <code class="example__code">&lt;form&gt; &lt;input required&gt; &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt; &lt;/form&gt;</code>
+          <div class="example__output">
+            <form id="demo-button-form" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <label for="demo-button-form-input">$_("Your name"):</label>
+              <input id="demo-button-form-input" name="name" required>
+              <ol-button type="submit">$_("Submit")</ol-button>
+              <ol-button type="reset" variant="secondary">$_("Reset")</ol-button>
+            </form>
+            <p>$_("Last submitted:") <strong id="demo-button-form-output">—</strong></p>
+          </div>
+          <script>
+            (function () {
+              var form = document.getElementById('demo-button-form');
+              var out = document.getElementById('demo-button-form-output');
+              form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                out.textContent = new FormData(form).get('name') || '—';
+              });
+              form.addEventListener('reset', function () {
+                out.textContent = '—';
+              });
+            })();
+          </script>
         </section>
 
         <section class="example">

@@ -63,35 +63,32 @@ export class OLButton extends LitElement {
             }
         }
         super.connectedCallback();
+        // Flush the first render synchronously within the upgrade task so the
+        // inner <button> exists before any paint. Paired with the `hydrated`
+        // attribute in firstUpdated(), this avoids a flash where the host has
+        // collapsed to a transparent wrapper but the inner button hasn't
+        // rendered yet.
+        this.performUpdate();
     }
 
-    _handleClick(e) {
-        if (this.loading || this.disabled) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            return;
-        }
-        if (this.type === 'submit') {
-            const form = this.closest('form');
-            if (!form) return;
-            if (typeof form.requestSubmit === 'function') {
-                form.requestSubmit();
-            } else {
-                form.submit();
-            }
-        } else if (this.type === 'reset') {
-            this.closest('form')?.reset();
-        }
+    firstUpdated() {
+        // Signals to CSS that the inner <button> is now in the DOM, so the
+        // host can collapse from "pre-upgrade styled" to transparent wrapper.
+        this.setAttribute('hydrated', '');
     }
 
     render() {
+        // The label and spinner are both always in the DOM so we can crossfade
+        // between them via CSS. The spinner has its own element (rather than a
+        // ::before on the button) because the scale-in transition and the
+        // rotation animation both need `transform` — splitting them across the
+        // wrapper span and its ::before keeps them from stepping on each other.
         return html`
             <button
-                type="button"
+                type=${this.type}
                 ?disabled=${this.loading || this.disabled}
                 aria-busy=${this.loading ? 'true' : 'false'}
-                @click=${this._handleClick}
-            >${this._label}</button>
+            >${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span></button>
         `;
     }
 }
