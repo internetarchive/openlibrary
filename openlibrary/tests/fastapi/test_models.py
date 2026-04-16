@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 from openlibrary.fastapi.models import SolrInternalsParams, parse_comma_separated_list, wrap_jsonp
 
@@ -50,8 +50,10 @@ class TestWrapJsonp:
             mock_request = MagicMock(spec=Request)
             type(mock_request.query_params).get = MagicMock(return_value=callback)
 
-            with pytest.raises(ValueError, match="Invalid callback parameter"):
+            with pytest.raises(HTTPException) as exc_info:
                 wrap_jsonp(mock_request, {"test": 1})
+            assert exc_info.value.status_code == 400
+            assert "Invalid callback parameter" in exc_info.value.detail
 
     def test_accepts_string_json(self):
         """Should accept pre-serialized JSON string in addition to dict."""
