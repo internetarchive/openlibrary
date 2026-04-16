@@ -134,11 +134,11 @@ $code:
         $if highlighting:
           $if highlighting.get('subject'):
             <br />
-            <span class="srw__subjects">
+            <ol-chip-group class="srw__subjects" gap="small">
               $for subj in highlighting['subject']:
                 $# detect-missing-i18n-skip-line
-                <a href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</a>
-            </span>
+                <ol-chip size="small" href="$subject_name_to_key(subj.replace('<em>', '').replace('</em>', ''))">$:subj</ol-chip>
+            </ol-chip-group>
 
           $if highlighting.get('chapter'):
             <br />

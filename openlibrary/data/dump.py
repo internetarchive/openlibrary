@@ -48,9 +48,7 @@ def print_dump(json_records, filter=None):
         key = web.safestr(d["key"])
 
         # skip user pages
-        if key.startswith("/people/") and not re.match(
-            r"^/people/[^/]+/lists/OL\d+L$", key
-        ):
+        if key.startswith("/people/") and not re.match(r"^/people/[^/]+/lists/OL\d+L$", key):
             continue
 
         # skip admin pages
@@ -169,9 +167,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
 
     for fname in filenames:
         log("sort_dump", fname)
-        status = os.system(
-            "gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals()
-        )
+        status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
         if status != 0:
             raise Exception("sort failed with status %d" % status)
     minutes = (datetime.now() - start_time).seconds // 60
@@ -229,7 +225,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/list",
     )
     files = {}
-    files['other'] = xopen(format % 'other', 'wt')
+    files["other"] = xopen(format % "other", "wt")
 
     for t in types:
         tname = t.split("/")[-1] + "s"
@@ -245,7 +241,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         if type in files:
             files[type].write(line)
         else:
-            files['other'].write(line)
+            files["other"].write(line)
 
     for f in files.values():
         f.close()

@@ -110,7 +110,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     delete_payload = [
         {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
     ]
-    web.ctx.site.save_many(delete_payload, 'Delete spam')
+    web.ctx.site.save_many(delete_payload, 'Delete spam', action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -522,7 +522,7 @@ class stats:
     def POST(self, today):
         """Update stats for today."""
         doc = self.get_stats(today)
-        doc._save()
+        doc._save(action="create-stats")
         raise web.seeother(web.ctx.path)
 
     def get_stats(self, today):
@@ -558,7 +558,7 @@ class block:
             "/admin/block", {"key": "/admin/block", "type": "/type/object"}
         )
         page.ips = [{'ip': ip} for ip in ips]
-        page._save("updated blocked IPs")
+        page._save("updated blocked IPs", action="edit-blocked-ips")
 
 
 def get_blocked_ips():
@@ -752,7 +752,9 @@ class permissions:
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
         web.ctx.site.save_many(
-            [root, works, books, authors], comment="Updated edit policy."
+            [root, works, books, authors],
+            comment="Updated edit policy.",
+            action="bulk-edit-permissions",
         )
 
         add_flash_message("info", "Edit policy has been updated!")

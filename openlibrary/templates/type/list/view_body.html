@@ -111,8 +111,8 @@ $def seed_attrs(seed):
         $if not seeds:
             <p>$_("There are no items on this list.")</p>
             <p>
-                $:_('<a href="/search" target="_blank">Search for book, subjects, or authors</a> to add to your list.')
-                <a href="/help/faq/reading-log#lists" target="_blank">$_('Learn more.')</a>
+                $:_('<a href="/search" target="_blank" rel="noopener noreferrer">Search for book, subjects, or authors</a> to add to your list.')
+                <a href="/help/faq/reading-log#lists" target="_blank" rel="noopener noreferrer">$_('Learn more.')</a>
             </p>
 
         $ solr_works = get_solr_works({s.key for s in seeds if s.type == 'work'}, editions=True)
@@ -172,10 +172,10 @@ $def seed_attrs(seed):
                 $if subjects:
                     <div class="section">
                         <h3 class="collapse black uppercase">$label</h3>
-                        <div class="sansserif">
+                        <ol-chip-group class="sansserif" gap="small">
                         $for subject in subjects:
-                            <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
-                        </div>
+                            <ol-chip size="small" href="$subject.url">$subject.title</ol-chip>
+                        </ol-chip-group>
                     </div>
 
             $ subjects = list.get_subjects()

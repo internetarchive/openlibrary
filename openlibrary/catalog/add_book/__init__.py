@@ -746,7 +746,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         comment = (
             "overwrite existing edition" if existing_edition else "import new book"
         )
-        web.ctx.site.save_many(edits, comment=comment, action='add-book')
+        action = "edit-book" if existing_edition else "add-book"
+        web.ctx.site.save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:
