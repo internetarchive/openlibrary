@@ -144,32 +144,4 @@
   background-color: var(--link-blue);
 }
 
-.api-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 12px;
-  font-size: var(--font-size-body-medium);
-}
-
-.api-table th,
-.api-table td {
-  padding: 8px 10px;
-  text-align: left;
-  vertical-align: top;
-  border-bottom: var(--border-divider);
-}
-
-.api-table th {
-  color: var(--dark-grey);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.api-table code {
-  background-color: var(--lightest-grey);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-family: var(--font-family-code);
-}
-
 @import "legacy.css";

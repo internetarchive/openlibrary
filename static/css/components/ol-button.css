@@ -133,13 +133,6 @@ ol-button[variant="destructive"] > button {
   }
 }
 
-/* Disabled — scoped away from [loading] so the loading state keeps
-   full-strength colors while still being non-interactive. */
-ol-button:not([loading]) > button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 /* Focus ring */
 ol-button > button:focus-visible {
   outline: 2px solid var(--color-focus-ring);
@@ -150,6 +143,13 @@ ol-button > button:focus-visible {
    the button width stays stable and we can animate between states. */
 ol-button[loading] > button {
   cursor: progress;
+}
+
+/* Disabled — scoped away from [loading] so the loading state keeps
+   full-strength colors while still being non-interactive. */
+ol-button:not([loading]) > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 /* Label: visible by default; shrinks, blurs, and fades out on loading. */
