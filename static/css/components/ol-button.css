@@ -1,13 +1,34 @@
 /**
  * ol-button — shared styles for the <ol-button> custom element.
  *
- * Loaded render-blocking so the button appears styled before the
- * custom element is upgraded. Pre-upgrade (or pre-hydration) the host
- * is styled directly; once the component sets the `hydrated` attribute
- * from firstUpdated(), the host collapses to a transparent wrapper and
- * the inner <button> carries the styles. Keying off `hydrated` instead
- * of `:defined` ensures the collapse only happens after the inner
- * button is actually in the DOM, avoiding a flash of empty host.
+ * There are two phases in this element's life, and the CSS has to
+ * handle both cleanly so the user never sees an unstyled or empty
+ * button.
+ *
+ * Phase 1 — before the JS runs:
+ *   The browser sees <ol-button>foo</ol-button> in the HTML but has no
+ *   idea what it is yet (the class definition hasn't executed). So we
+ *   style the <ol-button> tag *itself* to look like a button. That way
+ *   it's immediately correct, even if JS is slow or blocked.
+ *
+ * Phase 2 — after the JS runs:
+ *   The component wakes up and renders a real <button> element inside
+ *   the <ol-button> wrapper. Now we want the *inner* <button> to carry
+ *   the visual styles, and the outer <ol-button> to become a plain
+ *   invisible wrapper.
+ *
+ * We switch between the two phases using a `hydrated` attribute that
+ * the component sets on itself after it inserts the inner <button>.
+ * Every style rule below either targets:
+ *   - `ol-button:not([hydrated])` (phase 1 — style the outer tag), or
+ *   - `ol-button > button`        (phase 2 — style the inner button).
+ *
+ * We use a custom `hydrated` attribute instead of the built-in
+ * `:defined` pseudo-class because `:defined` flips the moment the JS
+ * class is registered, which is *before* the inner <button> has
+ * actually been rendered. That would give you a brief frame where the
+ * outer wrapper has collapsed but the inner button isn't painted yet —
+ * a flash of nothing.
  */
 
 ol-button {
