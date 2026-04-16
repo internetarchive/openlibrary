@@ -148,24 +148,4 @@ describe('CheckInForm class', () => {
         expect(monthSelect.id).toBe(expectedMonthId);
         expect(daySelect.id).toBe(expectedDayId);
     });
-
-    it('setEventId retains event ID even if input value is reset by DOM changes', () => {
-        const form = new CheckInForm(formElem, workOlid, editionKey);
-        form.initialize();
-
-        expect(form.getEventId()).toBe('');
-
-        form.setEventId(1234);
-        expect(form.getEventId()).toBe('1234');
-
-        // Simulate modal DOM changes clearing the input's live value property.
-        form.eventIdInput.value = '';
-        expect(form.getEventId()).toBe('1234');
-
-        form.setEventId('');
-        expect(form.getEventId()).toBe('');
-
-        form.setEventId(null);
-        expect(form.getEventId()).toBe('');
-    });
 });

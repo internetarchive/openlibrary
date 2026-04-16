@@ -99,12 +99,6 @@ export class CheckInComponents {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
                     }
-                    return resp.json();
-                })
-                .then((data) => {
-                    if (data && data.id) {
-                        this.checkInForm.setEventId(data.id);
-                    }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
@@ -157,12 +151,6 @@ export class CheckInComponents {
                 .then((resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
-                    }
-                    return resp.json();
-                })
-                .then((data) => {
-                    if (data && data.id) {
-                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
@@ -752,7 +740,7 @@ export class CheckInForm {
      * @returns {string}
      */
     getEventId() {
-        return this.eventIdInput.value || this.eventId || '';
+        return this.eventIdInput.value;
     }
 
     /**
@@ -761,11 +749,7 @@ export class CheckInForm {
      * @param value
      */
     setEventId(value) {
-        const normalizedValue = value === null || value === undefined || value === ''
-            ? ''
-            : String(value);
-        this.eventId = normalizedValue;
-        this.eventIdInput.value = normalizedValue;
+        this.eventIdInput.value = value;
     }
 
     /**
