@@ -36,15 +36,15 @@ class TestWrapJsonp:
         mock_request = MagicMock(spec=Request)
         type(mock_request.query_params).get = MagicMock(return_value=None)
 
-        assert wrap_jsonp(mock_request, []).body == b'[]'
-        assert wrap_jsonp(mock_request, [1, 2, 3]).body == b'[1, 2, 3]'
+        assert wrap_jsonp(mock_request, []).body == b"[]"
+        assert wrap_jsonp(mock_request, [1, 2, 3]).body == b"[1, 2, 3]"
 
     def test_list_data_with_callback(self):
         """List payloads should also be wrapped correctly when a JSONP callback is present."""
         mock_request = MagicMock(spec=Request)
         type(mock_request.query_params).get = MagicMock(return_value="cb")
 
-        assert wrap_jsonp(mock_request, []).body == b'cb([]);'
+        assert wrap_jsonp(mock_request, []).body == b"cb([]);"
 
     def test_valid_callback_names(self):
         """Valid JavaScript identifier callbacks should be accepted."""
