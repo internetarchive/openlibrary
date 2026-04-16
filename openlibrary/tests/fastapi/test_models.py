@@ -31,6 +31,21 @@ class TestWrapJsonp:
         assert response.media_type == "application/javascript"
         assert response.body == b'myCallback({"key": "value"});'
 
+    def test_list_data_serialized(self):
+        """List payloads should be JSON-serialized, not passed raw (regression for OL-WEB-20PZ)."""
+        mock_request = MagicMock(spec=Request)
+        type(mock_request.query_params).get = MagicMock(return_value=None)
+
+        assert wrap_jsonp(mock_request, []).body == b'[]'
+        assert wrap_jsonp(mock_request, [1, 2, 3]).body == b'[1, 2, 3]'
+
+    def test_list_data_with_callback(self):
+        """List payloads should also be wrapped correctly when a JSONP callback is present."""
+        mock_request = MagicMock(spec=Request)
+        type(mock_request.query_params).get = MagicMock(return_value="cb")
+
+        assert wrap_jsonp(mock_request, []).body == b'cb([]);'
+
     def test_valid_callback_names(self):
         """Valid JavaScript identifier callbacks should be accepted."""
         valid_callbacks = ["jQuery123", "foo_bar", "_private", "callback", "foo.bar", "$", "a"]
