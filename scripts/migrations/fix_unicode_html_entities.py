@@ -20,11 +20,11 @@ import re
 import sys
 from pathlib import Path
 
-import web
+# import web
 
-import infogami
-from openlibrary.config import load_config
-from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
+# import infogami
+# from openlibrary.config import load_config
+# from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 # Matches:
 #   &#1234;
@@ -42,10 +42,12 @@ def has_entities(value: str) -> bool:
     return bool(HTML_ENTITY_PATTERN.search(value))
 
 
-def get_field_updates(record: dict) -> dict[str, str]:
+def get_field_updates(record: dict) -> dict:
     """
-    Return only the string fields that contain HTML entities.
+    Return only the fields that contain HTML entities, with entities fixed.
     Checks all string fields rather than a fixed list.
+    Handles fields that can be a plain string, an object with a value
+    property, or a list of such objects.
     """
     updates = {}
     for key, value in record.items():
@@ -53,6 +55,23 @@ def get_field_updates(record: dict) -> dict[str, str]:
             fixed = html.unescape(value)
             if fixed != value:
                 updates[key] = fixed
+        elif isinstance(value, dict) and has_entities(value.get('value', '')):
+            fixed = html.unescape(value['value'])
+            if fixed != value['value']:
+                updates[key] = {**value, 'value': fixed}
+        elif isinstance(value, list):
+            fixed_list = []
+            changed = False
+            for item in value:
+                if isinstance(item, dict) and has_entities(item.get('value', '')):
+                    fixed_item = html.unescape(item['value'])
+                    if fixed_item != item['value']:
+                        fixed_list.append({**item, 'value': fixed_item})
+                        changed = True
+                        continue
+                fixed_list.append(item)
+            if changed:
+                updates[key] = fixed_list
     return updates
 
 
