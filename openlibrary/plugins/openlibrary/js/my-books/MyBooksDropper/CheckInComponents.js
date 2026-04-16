@@ -752,7 +752,7 @@ export class CheckInForm {
      * @returns {string}
      */
     getEventId() {
-        return this.eventIdInput.value;
+        return this.eventIdInput.value || this.eventId || '';
     }
 
     /**
@@ -764,12 +764,8 @@ export class CheckInForm {
         const normalizedValue = value === null || value === undefined || value === ''
             ? ''
             : String(value);
+        this.eventId = normalizedValue;
         this.eventIdInput.value = normalizedValue;
-        if (normalizedValue) {
-            this.eventIdInput.setAttribute('value', normalizedValue);
-        } else {
-            this.eventIdInput.removeAttribute('value');
-        }
     }
 
     /**

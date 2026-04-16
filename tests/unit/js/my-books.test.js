@@ -149,27 +149,23 @@ describe('CheckInForm class', () => {
         expect(daySelect.id).toBe(expectedDayId);
     });
 
-    it('setEventId updates both the input value property and the HTML attribute', () => {
+    it('setEventId retains event ID even if input value is reset by DOM changes', () => {
         const form = new CheckInForm(formElem, workOlid, editionKey);
         form.initialize();
 
-        // Initially empty
-        expect(form.eventIdInput.value).toBe('');
-        expect(form.eventIdInput.getAttribute('value')).toBe('');
+        expect(form.getEventId()).toBe('');
 
-        // Set to a number
         form.setEventId(1234);
-        expect(form.eventIdInput.value).toBe('1234');
-        expect(form.eventIdInput.getAttribute('value')).toBe('1234');
+        expect(form.getEventId()).toBe('1234');
 
-        // Set to empty string
+        // Simulate modal DOM changes clearing the input's live value property.
+        form.eventIdInput.value = '';
+        expect(form.getEventId()).toBe('1234');
+
         form.setEventId('');
-        expect(form.eventIdInput.value).toBe('');
-        expect(form.eventIdInput.getAttribute('value')).toBeNull();
+        expect(form.getEventId()).toBe('');
 
-        // Set to null
         form.setEventId(null);
-        expect(form.eventIdInput.value).toBe('');
-        expect(form.eventIdInput.getAttribute('value')).toBeNull();
+        expect(form.getEventId()).toBe('');
     });
 });
