@@ -233,7 +233,7 @@ msgid ""
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
 
-#: EditButtons.html books/add.html type/tag/form.html
+#: EditButtons.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -4877,6 +4877,20 @@ msgstr ""
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
+msgstr ""
+
+#: books/add.html
+#, python-format
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+
+#: books/add.html
+msgid "This link to Creative Commons will open in a new window"
 msgstr ""
 
 #: books/add.html
