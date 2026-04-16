@@ -99,6 +99,12 @@ export class CheckInComponents {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
                     }
+                    return resp.json();
+                })
+                .then((data) => {
+                    if (data && data.id) {
+                        this.checkInForm.setEventId(data.id);
+                    }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
@@ -151,6 +157,12 @@ export class CheckInComponents {
                 .then((resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
+                    }
+                    return resp.json();
+                })
+                .then((data) => {
+                    if (data && data.id) {
+                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
@@ -750,6 +762,11 @@ export class CheckInForm {
      */
     setEventId(value) {
         this.eventIdInput.value = value;
+        if (value) {
+            this.eventIdInput.setAttribute('value', value);
+        } else {
+            this.eventIdInput.removeAttribute('value');
+        }
     }
 
     /**
