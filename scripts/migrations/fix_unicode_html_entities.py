@@ -77,7 +77,11 @@ def get_field_updates(record: dict) -> dict:
 
 def process_dump(dump_path: str) -> None:
     """
-    Scan dump file, output keys of records with HTML entity encoding errors.
+    Scan a gzipped OL dump file and print keys of records that contain
+    HTML entity encoding errors, one key per line.
+
+    Args:
+        dump_path: Path to a gzipped tab-separated OL dump file (.txt.gz).
     """
     with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
         for line in f:
@@ -105,7 +109,17 @@ def process_dump(dump_path: str) -> None:
 
 
 def setup(config_path: str) -> None:
-    """Set up the OL/Infogami connection."""
+    """
+    Initialize the Infogami/OL environment required for database access.
+    Loads config, sets up the web.ctx.site connection, and registers
+    a graceful shutdown signal handler.
+
+    Args:
+        config_path: Path to the openlibrary.yml config file.
+
+    Raises:
+        FileNotFoundError: If the config file does not exist.
+    """
     init_signal_handler()
     if not Path(config_path).exists():
         raise FileNotFoundError(f'No config file found at {config_path}')
@@ -115,8 +129,16 @@ def setup(config_path: str) -> None:
 
 def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None:
     """
-    Read keys from file, fetch each record from OL, fix HTML entities, and save.
-    Resumes from last saved progress if interrupted.
+    Read record keys from a file, fetch each from the OL database, fix
+    any HTML entity encoding errors, and save the updated record.
+
+    Supports resuming from the last saved position if interrupted. Progress
+    is tracked in a .progress file alongside the keys file.
+
+    Args:
+        keys_path: Path to a file containing one OL key per line.
+        config_path: Path to the openlibrary.yml config file.
+        dry_run: If True, detect and log changes without saving.
     """
     setup(config_path)
 
