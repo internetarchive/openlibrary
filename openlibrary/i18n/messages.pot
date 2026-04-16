@@ -2173,71 +2173,6 @@ msgstr ""
 msgid "Last submitted:"
 msgstr ""
 
-#: design.html type/type/view.html
-msgid "Properties"
-msgstr ""
-
-#: design.html
-msgid "Attribute"
-msgstr ""
-
-#: admin/inspect/store.html design.html
-msgid "Type"
-msgstr ""
-
-#: design.html
-msgid "Default"
-msgstr ""
-
-#: design.html type/tag/view.html type/user/edit.html
-msgid "Description"
-msgstr ""
-
-#: design.html
-msgid "Visual style. One of \"primary\", \"secondary\", \"destructive\"."
-msgstr ""
-
-#: design.html
-msgid "Button height and padding. One of \"small\", \"medium\", \"large\"."
-msgstr ""
-
-#: design.html
-msgid ""
-"Native button behavior. One of \"button\", \"submit\", \"reset\". "
-"Submit/reset act on the closest ancestor form."
-msgstr ""
-
-#: design.html
-msgid ""
-"Shows a spinner in place of the label and disables interaction. aria-busy"
-" is set to true."
-msgstr ""
-
-#: design.html
-msgid "Disables interaction and dims the button."
-msgstr ""
-
-#: design.html
-msgid "Button expands to fill its container's width."
-msgstr ""
-
-#: design.html
-msgid "Slots"
-msgstr ""
-
-#: admin/inspect/store.html admin/people/index.html design.html status.html
-#: type/author/edit.html type/language/view.html
-msgid "Name"
-msgstr ""
-
-#: design.html
-msgid "(default)"
-msgstr ""
-
-#: design.html
-msgid "The button label. Any inline content — text, icons, or both."
-msgstr ""
-
 #: design.html
 msgid "Events"
 msgstr ""
@@ -2719,6 +2654,11 @@ msgstr ""
 
 #: status.html
 msgid "Show changed files"
+msgstr ""
+
+#: admin/inspect/store.html admin/people/index.html status.html
+#: type/author/edit.html type/language/view.html
+msgid "Name"
 msgstr ""
 
 #: status.html
@@ -4425,6 +4365,10 @@ msgstr ""
 
 #: admin/inspect/store.html
 msgid "Query"
+msgstr ""
+
+#: admin/inspect/store.html
+msgid "Type"
 msgstr ""
 
 #: admin/inspect/store.html
@@ -8753,6 +8697,10 @@ msgstr ""
 msgid "<strong>Type:</strong> %(tag_type)s"
 msgstr ""
 
+#: type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
 #: type/tag/view.html
 msgid "Tag Body"
 msgstr ""
@@ -8780,6 +8728,10 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Kind"
+msgstr ""
+
+#: type/type/view.html
+msgid "Properties"
 msgstr ""
 
 #: type/type/view.html
