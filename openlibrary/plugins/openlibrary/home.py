@@ -335,5 +335,51 @@ def format_book_data(book, fetch_availability=True):
     return d
 
 
+def get_book_talks(limit: int = 20) -> list[dict]:
+    """Fetch book talks from Internet Archive's booktalks collection.
+
+    Returns a list of dicts with identifier, title, date, cover_url, and video_url.
+    """
+    params = {
+        'q': 'collection:booktalks',
+        'fl[]': ['identifier', 'title', 'date'],
+        'sort[]': 'date desc',
+        'rows': limit,
+        'page': 1,
+        'output': 'json',
+    }
+
+    data = ia.get_api_response(f'{ia.IA_BASE_URL}/advancedsearch.php', params=params)
+    docs = data.get('response', {}).get('docs', [])
+    book_talks = []
+
+    for doc in docs:
+        identifier = doc.get('identifier')
+        if not identifier:
+            continue
+
+        book_talk = {
+            'identifier': identifier,
+            'title': doc.get('title', 'Untitled'),
+            'date': doc.get('date', ''),
+            'cover_url': f'{ia.IA_BASE_URL}/services/img/{identifier}',
+            'video_url': f'{ia.IA_BASE_URL}/details/{identifier}',
+        }
+        book_talks.append(book_talk)
+
+    return book_talks
+
+
+@public
+def get_cached_book_talks(limit: int = 20):
+    """Get book talks with 1-day caching."""
+    return cache.memcache_memoize(
+        get_book_talks,
+        "home.book_talks",
+        timeout=dateutil.DAY_SECS,
+        prethread=caching_prethread(),
+    )(limit)
+
+
 def setup():
     pass

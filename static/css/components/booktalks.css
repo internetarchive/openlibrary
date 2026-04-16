@@ -1,0 +1,76 @@
+.booktalks-card__cover {
+  align-items: center;
+  background: var(--black);
+  border: 1px solid var(--grey);
+  border-radius: 4px;
+  display: flex;
+  height: 200px;
+  justify-content: center;
+  margin: 0 auto;
+  overflow: hidden;
+  width: 100%;
+}
+
+.booktalks-card__cover .book-talk-link--cover {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.booktalks-card__cover .bookcover {
+  max-width: 100%;
+  min-height: 180px;
+  object-fit: contain;
+  width: auto;
+}
+
+.booktalks-card__title {
+  font-size: 0.85em;
+  margin: 5px 0 2px;
+  text-align: center;
+}
+
+.booktalks-card__title a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+.booktalks-card__title a:hover {
+  text-decoration: underline;
+}
+
+.booktalks-card__date {
+  color: var(--dark-grey);
+  font-size: 0.75em;
+  margin: 2px 0 5px;
+  text-align: center;
+}
+
+.booktalks-card__date .date-text {
+  display: block;
+}
+
+.booktalks-card .cta-button-group {
+  width: 100%;
+}
+
+.booktalks-card .cta-btn--watch {
+  background-color: var(--link-blue);
+  box-sizing: border-box;
+  color: var(--white);
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
+.booktalks-card .cta-btn--watch:hover {
+  background-color: hsl(202deg 96% 18%);
+}
+
+.book-talk-player__iframe {
+  border: 0;
+  height: 515px;
+  width: 100%;
+}

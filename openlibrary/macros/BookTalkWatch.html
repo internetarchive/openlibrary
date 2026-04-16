@@ -1,0 +1,28 @@
+$def with (identifier, title='', analytics_attr=None, details_url=None)
+$# :param str identifier: The archive.org item identifier for the Book Talk video
+$# :param str title: The title of the Book Talk video
+$# :param callable analytics_attr: Optional callable that returns analytics attribute string
+$# :param str details_url: Optional archive.org details URL for progressive enhancement
+
+$ analytics = analytics_attr('Watch') if analytics_attr else 'data-ol-link-track="CTAClick|Watch"'
+$ details_url = details_url or ("https://archive.org/details/" + identifier)
+$ embed_url = details_url.replace("/details/", "/embed/", 1) + "?autoplay=1"
+
+<div class="cta-button-group booktalks-card__cta">
+  <a class="cta-btn cta-btn--available cta-btn--watch" data-iframe-src="$embed_url" data-title="$title" $:analytics href="$details_url">$_('Watch')</a>
+</div>
+
+$if render_once('book-talk-player-floater'):
+    <div class="hidden">
+      <div id="bookTalkPlayer">
+        <div class="book-talk-player">
+          <div class="floaterHead">
+            <h2 class="book-talk-modal-title" data-default-title="$_('Watch Book Talk')">$_('Watch Book Talk')</h2>
+            <a class="dialog--close" data-key="book_talk_player">&times;<span class="shift">$_("Close")</span></a>
+          </div>
+          <div>
+            <iframe class="book-talk-player__iframe" allowfullscreen></iframe>
+          </div>
+        </div>
+      </div>
+    </div>

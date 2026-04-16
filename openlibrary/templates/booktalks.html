@@ -1,0 +1,11 @@
+$def with(book_talks=None)
+$ _x = ctx.setdefault('cssfile', 'booktalks')
+$var title: $_('Book Talks')
+
+<div id="contentHead">
+    <h1>$_('Book Talks')</h1>
+</div>
+
+<div id="contentBody" class="booktalks-page">
+    $:render_template("booktalks/carousel", book_talks=book_talks)
+</div>

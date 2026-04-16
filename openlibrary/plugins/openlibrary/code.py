@@ -268,6 +268,15 @@ class team(delegate.page):
         return render_template("about/index.html")
 
 
+class booktalks(delegate.page):
+    path = '/book-talks'
+
+    def GET(self):
+        from openlibrary.plugins.openlibrary.home import get_cached_book_talks
+
+        return render_template("booktalks", book_talks=get_cached_book_talks())
+
+
 class addbook(delegate.page):
     path = '/addbook'
 

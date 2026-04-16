@@ -76,6 +76,38 @@ export function initPreviewDialogs() {
     });
 }
 
+export function initBookTalkDialogs() {
+    const selector = '.cta-btn--watch[data-iframe-src], .book-talk-link[data-iframe-src]';
+
+    // Use delegated events so Book Talks continue working if cards are
+    // inserted later by carousel behavior or partial page updates.
+    $(document).off('click.bookTalk').on('click.bookTalk', selector, function (e) {
+        e.preventDefault();
+
+        const $button = $(this);
+        const $title = $('#bookTalkPlayer .book-talk-modal-title');
+        const defaultTitle = $title.data('defaultTitle') || $title.text();
+
+        $.colorbox({
+            width: '100%',
+            maxWidth: '800px',
+            inline: true,
+            opacity: '0.5',
+            href: '#bookTalkPlayer',
+            onOpen() {
+                const $iframe = $('#bookTalkPlayer iframe');
+                $iframe.prop('src', $button.data('iframe-src'));
+                const title = $button.data('title');
+                $title.text(title || defaultTitle);
+            },
+            onCleanup() {
+                $('#bookTalkPlayer iframe').prop('src', '');
+                $title.text(defaultTitle);
+            },
+        });
+    });
+}
+
 /**
  * Wires up dialog close buttons
  * If an element has the class dialog--open it will trigger the
@@ -93,6 +125,7 @@ export function initDialogs() {
 
     initConfirmationDialogs();
     initPreviewDialogs();
+    initBookTalkDialogs();
 
     // This will close the dialog in the current page.
     $('.dialog--close').attr('href', 'javascript:;').on('click', () => $.fn.colorbox.close());
