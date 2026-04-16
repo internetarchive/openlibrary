@@ -30,9 +30,7 @@ from pathlib import Path
 #   &#1234;
 #   &#x1A;
 #   &alpha;
-HTML_ENTITY_PATTERN = re.compile(
-    r'&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});', re.IGNORECASE
-)
+HTML_ENTITY_PATTERN = re.compile(r"&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-fA-F]{1,6});", re.IGNORECASE)
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
@@ -55,18 +53,18 @@ def get_field_updates(record: dict) -> dict:
             fixed = html.unescape(value)
             if fixed != value:
                 updates[key] = fixed
-        elif isinstance(value, dict) and has_entities(value.get('value', '')):
-            fixed = html.unescape(value['value'])
-            if fixed != value['value']:
-                updates[key] = {**value, 'value': fixed}
+        elif isinstance(value, dict) and has_entities(value.get("value", "")):
+            fixed = html.unescape(value["value"])
+            if fixed != value["value"]:
+                updates[key] = {**value, "value": fixed}
         elif isinstance(value, list):
             fixed_list = []
             changed = False
             for item in value:
-                if isinstance(item, dict) and has_entities(item.get('value', '')):
-                    fixed_item = html.unescape(item['value'])
-                    if fixed_item != item['value']:
-                        fixed_list.append({**item, 'value': fixed_item})
+                if isinstance(item, dict) and has_entities(item.get("value", "")):
+                    fixed_item = html.unescape(item["value"])
+                    if fixed_item != item["value"]:
+                        fixed_list.append({**item, "value": fixed_item})
                         changed = True
                         continue
                 fixed_list.append(item)
@@ -83,9 +81,9 @@ def process_dump(dump_path: str) -> None:
     Args:
         dump_path: Path to a gzipped tab-separated OL dump file (.txt.gz).
     """
-    with gzip.open(dump_path, 'rt', encoding='utf-8') as f:
+    with gzip.open(dump_path, "rt", encoding="utf-8") as f:
         for line in f:
-            parts = line.strip().split('\t')
+            parts = line.strip().split("\t")
             if len(parts) < 5:
                 continue
 
@@ -122,7 +120,7 @@ def setup(config_path: str) -> None:
     """
     init_signal_handler()
     if not Path(config_path).exists():
-        raise FileNotFoundError(f'No config file found at {config_path}')
+        raise FileNotFoundError(f"No config file found at {config_path}")
     load_config(config_path)
     infogami._setup()
 
@@ -147,7 +145,7 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
         all_keys = [line.strip() for line in f if line.strip()]
 
     # Check for existing progress
-    progress_file = Path(keys_path).with_suffix('.progress')
+    progress_file = Path(keys_path).with_suffix(".progress")
     offset = 0
     if progress_file.exists():
         with open(progress_file) as f:
@@ -176,39 +174,31 @@ def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None
 
         if updates and not dry_run:
             data.update(updates)
-            web.ctx.site.save(
-                data, comment='Fix HTML entity encoding in Unicode fields'
-            )
+            web.ctx.site.save(data, comment="Fix HTML entity encoding in Unicode fields")
 
         records_processed += 1
 
         # Save progress
-        with open(progress_file, 'w') as f:
+        with open(progress_file, "w") as f:
             f.write(str(records_processed))
 
     print(f"Done. Processed {records_processed} records.", file=sys.stderr)
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Detect and fix HTML-escaped Unicode in OL dumps"
-    )
+    parser = argparse.ArgumentParser(description="Detect and fix HTML-escaped Unicode in OL dumps")
 
-    parser.add_argument('--dump', help='Path to .txt.gz dump file (Phase 1)')
+    parser.add_argument("--dump", help="Path to .txt.gz dump file (Phase 1)")
 
-    parser.add_argument(
-        '--keys', help='Path to keys file produced by Phase 1 (Phase 2)'
-    )
+    parser.add_argument("--keys", help="Path to keys file produced by Phase 1 (Phase 2)")
 
     parser.add_argument(
-        '--config',
+        "--config",
         default=DEFAULT_CONFIG_PATH,
-        help='Path to openlibrary.yml config file (Phase 2)',
+        help="Path to openlibrary.yml config file (Phase 2)",
     )
 
-    parser.add_argument(
-        '--dry-run', action='store_true', help='Preview changes without saving'
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Preview changes without saving")
 
     args = parser.parse_args()
 
@@ -217,8 +207,8 @@ def main():
     elif args.keys:
         fix_records(args.keys, args.config, args.dry_run)
     else:
-        parser.error('Either --dump or --keys is required')
+        parser.error("Either --dump or --keys is required")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
