@@ -276,7 +276,7 @@ class SubjectEngine:
             works=add_availability([self.work_wrapper(d) for d in result.docs]),
         )
 
-        if details:
+        if details and result.facet_counts:
             result.facet_counts = {
                 facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()

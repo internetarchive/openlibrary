@@ -6,7 +6,7 @@ from functools import cached_property
 from typing import cast
 
 import web
-from isbnlib import NotValidISBNError, canonical, mask
+from isbnlib import canonical, is_isbn10, is_isbn13, mask
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client
@@ -122,10 +122,8 @@ class Edition(models.Edition):
         """Returns a masked (hyphenated) ISBN if possible."""
         isbns = self.get("isbn_13", []) + self.get("isbn_10", [None])
         if isbn := normalize_isbn(isbns[0]):
-            try:
-                isbn = mask(isbns[0])
-            except NotValidISBNError:
-                return isbn
+            if is_isbn10(isbn) or is_isbn13(isbn):
+                isbn = mask(isbn)
         return isbn
 
     def get_identifiers(self):
