@@ -20,11 +20,11 @@ import re
 import sys
 from pathlib import Path
 
-# import web
+import web
 
-# import infogami
-# from openlibrary.config import load_config
-# from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
+import infogami
+from openlibrary.config import load_config
+from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 # Matches:
 #   &#1234;
