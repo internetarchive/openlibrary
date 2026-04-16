@@ -16,6 +16,7 @@ from openlibrary.plugins.openlibrary.partials import (
     BookPageListsPartial,
     CarouselCardPartial,
     CarouselLoadMoreParams,
+    ContinueReadingPartial,
     FullTextSuggestionsPartial,
     LazyCarouselParams,
     LazyCarouselPartial,
@@ -113,6 +114,16 @@ async def reading_goal_progress_partial(
     """
     # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
     return ReadingGoalProgressPartial(year=year or datetime.now().year).generate()
+
+
+@router.get("/partials/ContinueReading.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
+async def continue_reading_partial(
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    """
+    Get Continue Reading carousel HTML for the current user.
+    """
+    return ContinueReadingPartial().generate()
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

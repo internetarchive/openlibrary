@@ -11,7 +11,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.core.lending import compose_ia_url, get_available, get_loans_of_user
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.utils import render_macro
@@ -467,3 +467,159 @@ public(gather_lazy_carousel_data)
 
 def setup():
     pass
+
+
+class ContinueReadingPartial(PartialDataHandler):
+    """Handler for the Continue Reading carousel on the homepage.
+
+    Displays the patron's current loans followed by up to 20 of their
+    most recently returned loans (from loan history).
+    """
+
+    HISTORY_LIMIT = 20
+
+    def __init__(self):
+        self.i = web.input()
+
+    def generate(self) -> dict:
+        from openlibrary import accounts
+
+        # Only render for authenticated patrons
+        user = accounts.get_current_user()
+        if not user:
+            return {"partials": ""}
+
+        user_key = user.key
+        username = user_key.split('/')[-1]
+
+        # 1. Fetch active loans
+        loans = get_loans_of_user(user_key)
+
+        # 2. Convert active loans to book format
+        books = []
+        seen_keys: set[str] = set()
+        for loan in loans:
+            book_key = loan.get('book')
+            if book_key:
+                book = web.ctx.site.get(book_key)
+                if book:
+                    books.append(self._format_book(book, loan))
+                    seen_keys.add(book_key)
+
+        # 3. Fetch loan history (up to 20 recently returned)
+        history_books = self._get_history_books(username, seen_keys)
+        books.extend(history_books)
+
+        if not books:
+            return {"partials": ""}
+
+        # Render the carousel using existing template
+        carousel_html = render_template(
+            "books/custom_carousel",
+            books=books,
+            title=_("Continue Reading"),
+            url="/account/loans",
+            key="continue_reading",
+            load_more=None,
+            compact_mode=False,
+        )
+
+        return {"partials": str(carousel_html)}
+
+    def _get_history_books(
+        self, username: str, seen_keys: set[str]
+    ) -> list[web.storage]:
+        """Fetch up to HISTORY_LIMIT books from loan history, excluding duplicates."""
+        from openlibrary.accounts import OpenLibraryAccount
+        from openlibrary.plugins.upstream.account import (
+            get_loan_history_data,
+        )
+        from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
+
+        try:
+            account = OpenLibraryAccount.get_by_username(username)
+            if not account:
+                return []
+
+            mb = MyBooksTemplate(username, key='loan_history')
+            history_data = get_loan_history_data(page=1, mb=mb)
+            history_docs = history_data.get('docs', [])
+        except Exception:  # noqa: BLE001
+            return []
+
+        history_books: list[web.storage] = []
+        for doc in history_docs:
+            if len(history_books) >= self.HISTORY_LIMIT:
+                break
+
+            # Skip IA-only items (no OL edition available)
+            if isinstance(doc, dict) and doc.get('ia_only'):
+                continue
+
+            # Deduplicate against active loans
+            doc_key = (
+                doc.get('key', '') if isinstance(doc, dict) else getattr(doc, 'key', '')
+            )
+            if doc_key and doc_key in seen_keys:
+                continue
+
+            formatted = self._format_history_doc(doc)
+            if formatted:
+                history_books.append(formatted)
+                if doc_key:
+                    seen_keys.add(doc_key)
+
+        return history_books
+
+    def _format_book(self, book, loan=None):
+        """Convert a book document to the format expected by carousel."""
+        authors = []
+        for a in book.get_authors():
+            if a and hasattr(a, 'name'):
+                authors.append(
+                    web.storage(
+                        {'name': a.name or 'Unknown', 'key': getattr(a, 'key', '')}
+                    )
+                )
+
+        cover_id = book.get_cover_id() if hasattr(book, 'get_cover_id') else None
+
+        return web.storage(
+            {
+                'key': book.key,
+                'title': book.title or 'Untitled',
+                'authors': authors,
+                'cover_i': cover_id,
+                'ia': [loan.get('ocaid')] if loan and loan.get('ocaid') else [],
+                'availability': loan.get('availability') if loan else {},
+            }
+        )
+
+    def _format_history_doc(self, doc) -> web.storage | None:
+        """Format a loan history document (edition or dict) for the carousel."""
+        if isinstance(doc, dict):
+            # Edition-like dict from get_loan_history_data
+            authors = []
+            for a in doc.get('authors', []):
+                name = (
+                    a.get('name', '') if isinstance(a, dict) else getattr(a, 'name', '')
+                )
+                if name:
+                    authors.append(web.storage({'name': name, 'key': ''}))
+
+            cover_id = doc.get('cover_i') or doc.get('cover_id')
+            ocaid = doc.get('ocaid', '')
+
+            return web.storage(
+                {
+                    'key': doc.get('key', ''),
+                    'title': doc.get('title', 'Untitled'),
+                    'authors': authors,
+                    'cover_i': cover_id,
+                    'ia': [ocaid] if ocaid else [],
+                    'availability': doc.get('availability', {}),
+                }
+            )
+        else:
+            # It's an Edition object
+            return self._format_book(doc)
