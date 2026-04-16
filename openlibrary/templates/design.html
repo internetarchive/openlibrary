@@ -12,6 +12,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#popover">$_("Popover")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
+        <li><a href="#button">$_("Button")</a></li>
       </ul>
     </nav>
 
@@ -242,6 +243,162 @@ $ _x = ctx.setdefault('cssfile', 'design')
               });
             });
           </script>
+        </section>
+      </article>
+
+      <article class="design-pattern" id="button">
+        <h2 class="design-pattern__title">$_("Button")</h2>
+        <p class="design-pattern__description">$:_("The %(component)s component is a presentation-only button primitive. It renders a real %(button)s into the light DOM, so styles apply pre-hydration without a flash. It carries no application logic — variants, sizes, and a loading state only.", component="<code>ol-button</code>", button="<code>&lt;button&gt;</code>")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Variants")</h3>
+          <code class="example__code">&lt;ol-button&gt;Primary&lt;/ol-button&gt; &lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt; &lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code>
+          <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <ol-button>$_("Primary")</ol-button>
+            <ol-button variant="secondary">$_("Secondary")</ol-button>
+            <ol-button variant="destructive">$_("Destructive")</ol-button>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Sizes")</h3>
+          <code class="example__code">&lt;ol-button size="small"&gt;Small&lt;/ol-button&gt; &lt;ol-button&gt;Medium&lt;/ol-button&gt; &lt;ol-button size="large"&gt;Large&lt;/ol-button&gt;</code>
+          <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <ol-button size="small">$_("Small")</ol-button>
+            <ol-button>$_("Medium")</ol-button>
+            <ol-button size="large">$_("Large")</ol-button>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Disabled")</h3>
+          <code class="example__code">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code>
+          <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <ol-button disabled>$_("Primary")</ol-button>
+            <ol-button variant="secondary" disabled>$_("Secondary")</ol-button>
+            <ol-button variant="destructive" disabled>$_("Destructive")</ol-button>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Loading")</h3>
+          <p>$:_("Toggle the %(loading)s attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.", loading="<code>loading</code>")</p>
+          <code class="example__code">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code>
+          <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <ol-button loading>$_("Save")</ol-button>
+            <ol-button variant="secondary" loading>$_("Cancel")</ol-button>
+            <ol-button variant="destructive" loading>$_("Delete")</ol-button>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Interactive loading demo")</h3>
+          <p>$_("Click the button to trigger a 1.5s fake request. The button disables itself while loading.")</p>
+          <div class="example__output">
+            <ol-button id="demo-button-loading">$_("Save")</ol-button>
+          </div>
+          <script>
+            document.getElementById('demo-button-loading').addEventListener('click', function(e) {
+              var btn = e.currentTarget;
+              if (btn.loading) return;
+              btn.loading = true;
+              setTimeout(function() { btn.loading = false; }, 1500);
+            });
+          </script>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Full width")</h3>
+          <code class="example__code">&lt;ol-button full-width&gt;Continue&lt;/ol-button&gt;</code>
+          <div class="example__output" style="max-width: 360px;">
+            <ol-button full-width>$_("Continue")</ol-button>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Form submission")</h3>
+          <p>$:_("Set %(type)s and place the button inside a %(form)s. The component calls %(request_submit)s on the closest form, which triggers native validation and the form's submit event.", type='<code>type="submit"</code>', form="<code>&lt;form&gt;</code>", request_submit="<code>form.requestSubmit()</code>")</p>
+          <code class="example__code">&lt;form&gt; … &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt; &lt;/form&gt;</code>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Properties")</h3>
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>$_("Attribute")</th>
+                <th>$_("Type")</th>
+                <th>$_("Default")</th>
+                <th>$_("Description")</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>variant</code></td>
+                <td>String</td>
+                <td><code>"primary"</code></td>
+                <td>$_("Visual style. One of \"primary\", \"secondary\", \"destructive\".")</td>
+              </tr>
+              <tr>
+                <td><code>size</code></td>
+                <td>String</td>
+                <td><code>"medium"</code></td>
+                <td>$_("Button height and padding. One of \"small\", \"medium\", \"large\".")</td>
+              </tr>
+              <tr>
+                <td><code>type</code></td>
+                <td>String</td>
+                <td><code>"button"</code></td>
+                <td>$_("Native button behavior. One of \"button\", \"submit\", \"reset\". Submit/reset act on the closest ancestor form.")</td>
+              </tr>
+              <tr>
+                <td><code>loading</code></td>
+                <td>Boolean</td>
+                <td><code>false</code></td>
+                <td>$_("Shows a spinner in place of the label and disables interaction. aria-busy is set to true.")</td>
+              </tr>
+              <tr>
+                <td><code>disabled</code></td>
+                <td>Boolean</td>
+                <td><code>false</code></td>
+                <td>$_("Disables interaction and dims the button.")</td>
+              </tr>
+              <tr>
+                <td><code>full-width</code></td>
+                <td>Boolean</td>
+                <td><code>false</code></td>
+                <td>$_("Button expands to fill its container's width.")</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Slots")</h3>
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th>$_("Name")</th>
+                <th>$_("Description")</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><em>$_("(default)")</em></td>
+                <td>$_("The button label. Any inline content — text, icons, or both.")</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Events")</h3>
+          <p>$:_("No custom events. Use the native %(click)s event; it bubbles from the inner %(button)s.", click="<code>click</code>", button="<code>&lt;button&gt;</code>")</p>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Rendering notes")</h3>
+          <p>$_("The component uses light DOM — there is no shadow root. Styles live in a plain stylesheet (components/ol-button.css) that is loaded render-blocking by every page entry point that uses the button. Pre-upgrade the host element is styled via attribute selectors so the button is visible immediately; once upgraded, the component inserts a real <button> child and the host collapses to a transparent wrapper.")</p>
         </section>
       </article>
     </main>

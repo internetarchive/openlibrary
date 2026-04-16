@@ -1,0 +1,169 @@
+/**
+ * ol-button — shared styles for the <ol-button> custom element.
+ *
+ * Loaded render-blocking so the button appears styled before the
+ * custom element is upgraded. Pre-upgrade the host is styled directly;
+ * post-upgrade the component renders an inner <button> which carries
+ * the styles instead, and the host collapses to a transparent wrapper.
+ */
+
+ol-button {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+ol-button[full-width] {
+  display: block;
+  width: 100%;
+}
+
+/* Once defined, the host is just a wrapper — the inner <button> paints. */
+ol-button:defined {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+/* Disable pointer events on the host when disabled/loading so :hover
+   rules on the inner button don't fire. */
+ol-button[disabled],
+ol-button[loading] {
+  pointer-events: none;
+}
+
+/* Shared appearance: host pre-upgrade, inner button post-upgrade. */
+ol-button:not(:defined),
+ol-button > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 38px;
+  padding: 0 18px;
+  font-family: var(--font-family-button);
+  font-size: var(--font-size-body-medium);
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  border-radius: var(--border-radius-chip, 6px);
+  background-color: var(--primary-blue);
+  color: var(--white);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+ol-button[full-width]:not(:defined),
+ol-button[full-width] > button {
+  width: 100%;
+}
+
+/* Sizes */
+ol-button[size="small"]:not(:defined),
+ol-button[size="small"] > button {
+  height: 30px;
+  padding: 0 12px;
+  font-size: var(--font-size-body-small);
+}
+
+ol-button[size="large"]:not(:defined),
+ol-button[size="large"] > button {
+  height: 46px;
+  padding: 0 24px;
+  font-size: var(--font-size-body-large);
+}
+
+/* Primary is the default (already set above). Explicit selector for clarity. */
+ol-button[variant="primary"]:not(:defined),
+ol-button[variant="primary"] > button {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+  color: var(--white);
+}
+
+/* Secondary */
+ol-button[variant="secondary"]:not(:defined),
+ol-button[variant="secondary"] > button {
+  background-color: var(--white);
+  border-color: var(--color-border-subtle);
+  color: var(--dark-grey);
+}
+
+/* Destructive */
+ol-button[variant="destructive"]:not(:defined),
+ol-button[variant="destructive"] > button {
+  background-color: transparent;
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Hover (only fires post-upgrade because pointer-events is none on
+   disabled/loading hosts, and pre-upgrade the inner <button> doesn't exist). */
+@media (hover: hover) and (pointer: fine) {
+  ol-button:not([variant]) > button:hover,
+  ol-button[variant="primary"] > button:hover {
+    background-color: var(--link-blue);
+    border-color: var(--link-blue);
+  }
+
+  ol-button[variant="secondary"] > button:hover {
+    background-color: var(--lightest-grey);
+  }
+
+  ol-button[variant="destructive"] > button:hover {
+    background-color: var(--red);
+    color: var(--white);
+  }
+}
+
+/* Disabled */
+ol-button > button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Focus ring */
+ol-button > button:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Loading: show a spinner, hide the label (keeps width stable). */
+ol-button[loading] > button {
+  position: relative;
+  cursor: progress;
+}
+
+ol-button[loading] > button > * {
+  visibility: hidden;
+}
+
+ol-button[loading] > button::after {
+  content: "";
+  position: absolute;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: ol-button-spin 0.7s linear infinite;
+}
+
+@keyframes ol-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ol-button[loading] > button::after {
+    animation-duration: 2s;
+  }
+}
