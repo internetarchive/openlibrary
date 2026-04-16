@@ -148,4 +148,28 @@ describe('CheckInForm class', () => {
         expect(monthSelect.id).toBe(expectedMonthId);
         expect(daySelect.id).toBe(expectedDayId);
     });
+
+    it('setEventId updates both the input value property and the HTML attribute', () => {
+        const form = new CheckInForm(formElem, workOlid, editionKey);
+        form.initialize();
+
+        // Initially empty
+        expect(form.eventIdInput.value).toBe('');
+        expect(form.eventIdInput.getAttribute('value')).toBe('');
+
+        // Set to a number
+        form.setEventId(1234);
+        expect(form.eventIdInput.value).toBe('1234');
+        expect(form.eventIdInput.getAttribute('value')).toBe('1234');
+
+        // Set to empty string
+        form.setEventId('');
+        expect(form.eventIdInput.value).toBe('');
+        expect(form.eventIdInput.getAttribute('value')).toBeNull();
+
+        // Set to null
+        form.setEventId(null);
+        expect(form.eventIdInput.value).toBe('');
+        expect(form.eventIdInput.getAttribute('value')).toBeNull();
+    });
 });

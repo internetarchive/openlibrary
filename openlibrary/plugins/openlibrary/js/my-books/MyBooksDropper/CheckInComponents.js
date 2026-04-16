@@ -761,9 +761,12 @@ export class CheckInForm {
      * @param value
      */
     setEventId(value) {
-        this.eventIdInput.value = value;
-        if (value) {
-            this.eventIdInput.setAttribute('value', value);
+        const normalizedValue = value === null || value === undefined || value === ''
+            ? ''
+            : String(value);
+        this.eventIdInput.value = normalizedValue;
+        if (normalizedValue) {
+            this.eventIdInput.setAttribute('value', normalizedValue);
         } else {
             this.eventIdInput.removeAttribute('value');
         }
