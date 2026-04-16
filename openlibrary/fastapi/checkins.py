@@ -51,7 +51,7 @@ class CheckInResponse(BaseModel):
     id: int
 
 
-@router.post("/works/OL{work_id}W/check-ins")
+@router.post("/works/OL{work_id}W/check-ins.json")
 async def create_or_update_patron_check_in(
     work_id: int,
     data: CheckInRequest,
