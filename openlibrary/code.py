@@ -25,7 +25,6 @@ def setup():
     import openlibrary.plugins.openlibrary.code  # noqa: I001 registers endpoints
     import openlibrary.plugins.worksearch.code
     import openlibrary.plugins.inside.code
-    import openlibrary.plugins.books.code
     import openlibrary.plugins.admin.code
     import openlibrary.plugins.upstream.code
     import openlibrary.plugins.importapi.code  # noqa: F401 registers endpoints
