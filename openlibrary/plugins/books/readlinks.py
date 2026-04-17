@@ -299,7 +299,7 @@ async def readlinks(req: str, options: dict):
         if options.get("stats"):
             result["stats"] = {
                 "summary": stats.stats_summary(),
-                "details": web.ctx.get("stats", []),
+                "stats": web.ctx.get("stats", []),
             }
     except:
         print("Error in processing Read API", file=sys.stderr)
