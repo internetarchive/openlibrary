@@ -7,6 +7,7 @@ $ ratings_count = rating_stats.get('num_ratings', None)
 $ want_to_read_count = stats_by_bookshelf.get('want-to-read') and "{:,}".format(stats_by_bookshelf['want-to-read'])
 $ currently_reading_count = stats_by_bookshelf.get('currently-reading') and "{:,}".format(stats_by_bookshelf['currently-reading'])
 $ already_read_count = stats_by_bookshelf.get('already-read') and "{:,}".format(stats_by_bookshelf['already-read'])
+$ stopped_reading_count = stats_by_bookshelf.get('stopped-reading') and "{:,}".format(stats_by_bookshelf['stopped-reading'])
 $ review_count_class = 'readers-stats__review-count--none' if ratings_count == None else ''
 $ id = '--mobile' if mobile else ''
 
@@ -25,4 +26,6 @@ $ id = '--mobile' if mobile else ''
     <li class="reading-log-stat"><span class="readers-stats__stat">$currently_reading_count</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
   $if already_read_count:
     <li class="reading-log-stat"><span class="readers-stats__stat">$already_read_count</span> <span class="readers-stats__label">$_("Have read")</span></li>
+  $if stopped_reading_count:
+    <li class="reading-log-stat"><span class="readers-stats__stat">$stopped_reading_count</span> <span class="readers-stats__label">$_("Stopped reading")</span></li>
 </ul>

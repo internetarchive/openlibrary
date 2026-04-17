@@ -15,7 +15,8 @@
 export const ReadingLogShelves = {
     WANT_TO_READ: '1',
     CURRENTLY_READING: '2',
-    ALREADY_READ: '3'
+    ALREADY_READ: '3',
+    STOPPED_READING: '4'
 }
 
 /**

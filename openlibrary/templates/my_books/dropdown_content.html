@@ -2,7 +2,7 @@ $def with(user_lists, seed_key, work_key, edition_key, users_work_read_status, a
 
 $def reading_log_selections(work_key, edition_key, users_work_read_status):
   $ remove_btn_visibility = 'hidden' if not users_work_read_status else ''
-  $ btn_visibilities = [remove_btn_visibility, '', '', '']
+  $ btn_visibilities = [remove_btn_visibility, '', '', '', '']
 
   $ read_status = users_work_read_status or 1
   $ btn_visibilities[int(read_status)] = 'hidden'
@@ -40,6 +40,14 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       <button class="nostyle-btn $(btn_visibilities[3])" type="submit">$_('Already Read')</button>
+    </form>
+
+    <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
+      <input type="hidden" name="action" value="add"/>
+      <input type="hidden" name="bookshelf_id" value="4"/>
+      $if edition_key:
+        <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      <button class="nostyle-btn $(btn_visibilities[4])" type="submit">$_('Stopped Reading')</button>
     </form>
   </div>
 
