@@ -662,10 +662,12 @@ class ActivityFeed:
 
         logged_books = Bookshelves.get_recently_logged_books(
             shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
-                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
-                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
-                ], limit=10)
+                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+            ],
+            limit=10,
+        )
         Bookshelves.add_solr_works(logged_books)
 
         feed = []
