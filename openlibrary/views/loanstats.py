@@ -57,9 +57,22 @@ async def get_trending_books(
     fields: Iterable[str] | None = None,
 ):
     logged_books = (
-        Bookshelves.get_recently_logged_books(limit=limit, page=page)
+        Bookshelves.get_recently_logged_books(
+            shelf_ids=[
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+                ],
+            limit=limit,
+            page=page
+        )
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
+            shelf_ids=[
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+            ],
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
@@ -75,7 +88,7 @@ async def get_trending_books(
 @cache.memoize("memcache", "stats.trending", expires=dateutil.HOUR_SECS)
 def cached_get_most_logged_books(
     shelf_ids: list[int] | None = None,
-    since_days: int = 1,
+    since_days: int | None = 1,
     limit: int = 20,
     page: int = 1,
 ):

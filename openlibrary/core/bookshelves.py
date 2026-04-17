@@ -586,7 +586,7 @@ class Bookshelves(db.CommonExtras):
             "offset": limit * (page - 1),
         }
         where = "WHERE bookshelf_id IN $shelf_ids" if shelf_ids else ""
-        query = f"SELECT * FROM bookshelves_books {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        query = f"SELECT * FROM bookshelves_books {where} ORDER BY updated DESC LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 
     @classmethod
