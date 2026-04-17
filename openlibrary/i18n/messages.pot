@@ -5845,7 +5845,7 @@ msgid ""
 "remorse."
 msgstr ""
 
-#: bulk_search/bulk_search.html
+#: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr ""
 
