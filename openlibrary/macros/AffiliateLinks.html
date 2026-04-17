@@ -37,7 +37,7 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         'analytics_key': 'Amazon',
         'name': _('Amazon'),
         'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
-        'price': bwb.get('market_price') or amz_metadata and amz_metadata.get('price')
+        'price': (bwb_metadata and bwb_metadata.get('market_price')) or (amz_metadata and amz_metadata.get('price'))
       } if (asin or isbn) else None
 
       bookshop = {
