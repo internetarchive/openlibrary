@@ -73,15 +73,12 @@ repos:
             |openlibrary/plugins/openlibrary/bulk_tag\.py
             |openlibrary/plugins/openlibrary/code\.py
             |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/openlibrary/partials\.py
             |openlibrary/plugins/openlibrary/status\.py
             |openlibrary/plugins/upstream/addbook\.py
             |openlibrary/plugins/upstream/addtag\.py
             |openlibrary/plugins/upstream/code\.py
             |openlibrary/plugins/upstream/covers\.py
             |openlibrary/plugins/upstream/jsdef\.py
-            |openlibrary/plugins/upstream/tests/test_addbook\.py
-            |openlibrary/plugins/upstream/tests/test_models\.py
             |openlibrary/plugins/upstream/utils\.py
             |openlibrary/plugins/worksearch/code\.py
             |openlibrary/plugins/worksearch/schemes/__init__\.py
@@ -89,17 +86,12 @@ repos:
             |openlibrary/plugins/worksearch/schemes/lists\.py
             |openlibrary/plugins/worksearch/schemes/subjects\.py
             |openlibrary/plugins/worksearch/schemes/works\.py
-            |openlibrary/tests/core/lists/test_model\.py
-            |openlibrary/tests/fastapi/test_partials\.py
-            |openlibrary/tests/test_templates\.py
             |openlibrary/utils/form\.py
             |openlibrary/utils/request_context\.py
             |openlibrary/utils/schema\.py
-            |scripts/conftest\.py
             |scripts/find_duplicate_author\.py
             |scripts/monitoring/fail2ban_monitor\.py
             |scripts/monitoring/monitor\.py
-            |scripts/monitoring/tests/test_fail2ban_monitor\.py
             |scripts/update_stale_ocaid_references\.py
           )$
 
@@ -122,15 +114,12 @@ repos:
             |openlibrary/plugins/openlibrary/bulk_tag\.py
             |openlibrary/plugins/openlibrary/code\.py
             |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/openlibrary/partials\.py
             |openlibrary/plugins/openlibrary/status\.py
             |openlibrary/plugins/upstream/addbook\.py
             |openlibrary/plugins/upstream/addtag\.py
             |openlibrary/plugins/upstream/code\.py
             |openlibrary/plugins/upstream/covers\.py
             |openlibrary/plugins/upstream/jsdef\.py
-            |openlibrary/plugins/upstream/tests/test_addbook\.py
-            |openlibrary/plugins/upstream/tests/test_models\.py
             |openlibrary/plugins/upstream/utils\.py
             |openlibrary/plugins/worksearch/code\.py
             |openlibrary/plugins/worksearch/schemes/__init__\.py
@@ -138,17 +127,12 @@ repos:
             |openlibrary/plugins/worksearch/schemes/lists\.py
             |openlibrary/plugins/worksearch/schemes/subjects\.py
             |openlibrary/plugins/worksearch/schemes/works\.py
-            |openlibrary/tests/core/lists/test_model\.py
-            |openlibrary/tests/fastapi/test_partials\.py
-            |openlibrary/tests/test_templates\.py
             |openlibrary/utils/form\.py
             |openlibrary/utils/request_context\.py
             |openlibrary/utils/schema\.py
-            |scripts/conftest\.py
             |scripts/find_duplicate_author\.py
             |scripts/monitoring/fail2ban_monitor\.py
             |scripts/monitoring/monitor\.py
-            |scripts/monitoring/tests/test_fail2ban_monitor\.py
             |scripts/update_stale_ocaid_references\.py
           )$
 
