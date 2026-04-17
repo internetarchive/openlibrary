@@ -88,6 +88,7 @@ class WorkReadingLogSolrSummary(TypedDict):
     want_to_read_count: int
     currently_reading_count: int
     already_read_count: int
+    stopped_reading_count: int
 
 
 class DataProvider:

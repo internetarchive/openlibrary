@@ -25,6 +25,7 @@ class WorkReadingLogSummary(TypedDict):
     want_to_read: int
     currently_reading: int
     already_read: int
+    stopped_reading: int
 
 
 class Bookshelves(db.CommonExtras):
@@ -35,6 +36,7 @@ class Bookshelves(db.CommonExtras):
             "Want to Read": 1,
             "Currently Reading": 2,
             "Already Read": 3,
+            "Stopped Reading": 4
         }
     )
     ALLOW_DELETE_ON_CONFLICT = True
@@ -44,6 +46,7 @@ class Bookshelves(db.CommonExtras):
             "want_to_read": 1,
             "currently_reading": 2,
             "already_read": 3,
+            "stopped_reading": 4
         }
     )
 
@@ -603,7 +606,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
-        or (3) already read. Each of these states is mutually
+        (3) already read, or (4) stopped reading. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one
         exists.
         """
@@ -715,7 +718,7 @@ class Bookshelves(db.CommonExtras):
         Which super patrons have the most books logged?
 
         SELECT username, count(*) AS counted from bookshelves_books
-          WHERE bookshelf_id=ANY('{1,3,2}'::int[]) GROUP BY username
+          WHERE bookshelf_id=ANY('{1,2,3,4}'::int[]) GROUP BY username
             ORDER BY counted DESC, username LIMIT 10
         """
         oldb = db.get_db()

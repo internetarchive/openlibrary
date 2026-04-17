@@ -69,6 +69,7 @@ class mybooks_home(delegate.page):
             "want-to-read": [],
             "currently-reading": [],
             "already-read": [],
+            "stopped-reading": []
         }
 
         if mb.me:
@@ -86,7 +87,8 @@ class mybooks_home(delegate.page):
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)
             currently_reading = mb.readlog.get_works("currently-reading", limit=6)
             already_read = mb.readlog.get_works("already-read", limit=6)
-            works = want_to_read.docs + currently_reading.docs + already_read.docs
+            stopped_reading = mb.readlog.get_works("stopped-reading", limit=6)
+            works = want_to_read.docs + currently_reading.docs + already_read.docs + stopped_reading.docs
 
             def get_edition(solr_doc: web.Storage | dict) -> dict | None:
                 editions_raw = cast(dict | list[dict], solr_doc.get("editions"))
@@ -103,6 +105,7 @@ class mybooks_home(delegate.page):
                 "want-to-read": want_to_read,
                 "currently-reading": currently_reading,
                 "already-read": already_read,
+                "stopped-reading": stopped_reading
             }
 
         return render["account/mybooks"](
@@ -165,7 +168,7 @@ class mybooks_feed(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)(/year/\\d{4})?/stats"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)(/year/\\d{4})?/stats"
 
     def GET(self, username, key="want-to-read", year=None):
         user = web.ctx.site.get("/people/%s" % username)
@@ -237,7 +240,7 @@ class readinglog_yearly(delegate.page):
 
 
 class mybooks_readinglog(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)"
 
     def GET(self, username, key="want-to-read"):
         mb = MyBooksTemplate(username, key)
@@ -249,6 +252,7 @@ class mybooks_readinglog(delegate.page):
                 ),
                 "want-to-read": _("Want to Read (%(count)d)", count=mb.counts["want-to-read"]),
                 "already-read": _("Already Read (%(count)d)", count=mb.counts["already-read"]),
+                "stopped-reading": _("Stopped Reading (%(count)d)", count=mb.counts["stopped-reading"]),
             }
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
@@ -313,7 +317,7 @@ class mybooks_readinglog(delegate.page):
 
 @deprecated("migrated to fastapi")
 class public_my_books_json(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)"
     encoding = "json"
 
     def GET(self, username, key="want-to-read"):
@@ -398,6 +402,7 @@ class MyBooksTemplate:
             "currently-reading",
             "want-to-read",
             "already-read",
+            "stopped-reading",
         }
     )
 
@@ -470,13 +475,14 @@ class ReadingLog:
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
     # Constants
-    PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
-    READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
+    PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading", "Stopped Reading"]
+    READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading", "stopped-reading"]
     READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = MappingProxyType(
         {
             "want-to-read": "Want to Read",
             "already-read": "Already Read",
             "currently-reading": "Currently Reading",
+            "stopped-reading": "Stopped Reading",
         }
     )
 
@@ -504,6 +510,7 @@ class ReadingLog:
             "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
             "already-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Already Read"], 0),
+            "stopped-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
     def count_shelf(self, key: READING_LOG_KEYS) -> int:
@@ -524,7 +531,7 @@ class ReadingLog:
         fq: list[str] | None = None,
     ) -> "LoggedBooksData":
         """
-        Get works for want-to-read, currently-reading, and already-read as
+        Get works for want-to-read, currently-reading, already-read, and stopped-reading as
         determined by {key}.
 
         See LoggedBooksData for specifics on what's returned.
