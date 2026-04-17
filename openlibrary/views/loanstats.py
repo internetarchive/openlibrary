@@ -148,23 +148,23 @@ class activity_stream(app.view):
         if mode == "now":
             logged_books = Bookshelves.get_recently_logged_books(
                 shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
-                    Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
-                    Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
                 ],
                 limit=limit,
-                page=page
+                page=page,
             )
         else:
             logged_books = cached_get_most_logged_books(
                 shelf_ids=[
-                    Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
-                    Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
-                    Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
                 ],
                 since_days=SINCE_DAYS[mode],
                 limit=limit,
-                page=page
+                page=page,
             )
         Bookshelves.add_solr_works(logged_books)
         return app.render_template("trending", logged_books=logged_books, mode=mode)

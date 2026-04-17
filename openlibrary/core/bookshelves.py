@@ -31,24 +31,10 @@ class WorkReadingLogSummary(TypedDict):
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
     PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
-    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
-        {
-            "Want to Read": 1,
-            "Currently Reading": 2,
-            "Already Read": 3,
-            "Stopped Reading": 4
-        }
-    )
+    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType({"Want to Read": 1, "Currently Reading": 2, "Already Read": 3, "Stopped Reading": 4})
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
-        {
-            "want_to_read": 1,
-            "currently_reading": 2,
-            "already_read": 3,
-            "stopped_reading": 4
-        }
-    )
+    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType({"want_to_read": 1, "currently_reading": 2, "already_read": 3, "stopped_reading": 4})
 
     @classmethod
     def summary(cls):
@@ -141,7 +127,7 @@ class Bookshelves(db.CommonExtras):
             SELECT work_id, count(*) AS cnt
             FROM bookshelves_books
             WHERE
-                { "bookshelf_id IN $shelf_ids" if shelf_ids else "bookshelf_id IS NOT NULL" }
+                {"bookshelf_id IN $shelf_ids" if shelf_ids else "bookshelf_id IS NOT NULL"}
                 {"AND created >= $since" if since else ""}
             GROUP BY work_id {"HAVING COUNT(*) > $minimum" if minimum else ""}
             {"ORDER BY cnt DESC" if sort_by_count else ""}

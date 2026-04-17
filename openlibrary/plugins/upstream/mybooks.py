@@ -64,13 +64,7 @@ class mybooks_home(delegate.page):
     def render_template(self, mb: "MyBooksTemplate") -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
-        docs: dict[str, Any] = {
-            "loans": [],
-            "want-to-read": [],
-            "currently-reading": [],
-            "already-read": [],
-            "stopped-reading": []
-        }
+        docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
@@ -101,12 +95,7 @@ class mybooks_home(delegate.page):
 
             add_availability([get_edition(doc) or doc for doc in works if doc.get("title")])
 
-            docs |= {
-                "want-to-read": want_to_read,
-                "currently-reading": currently_reading,
-                "already-read": already_read,
-                "stopped-reading": stopped_reading
-            }
+            docs |= {"want-to-read": want_to_read, "currently-reading": currently_reading, "already-read": already_read, "stopped-reading": stopped_reading}
 
         return render["account/mybooks"](
             mb.user,
