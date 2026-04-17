@@ -221,7 +221,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         if not is_bot() and opts.get('prices') and isbn:
             bwb_metadata = get_betterworldbooks_metadata(isbn)
             if not (bwb_metadata and bwb_metadata.get('market_price')):
-                amz_metadata = get_amazon_metadata(isbn)
+                amz_metadata = get_amazon_metadata(isbn, resources='prices')
 
         macro = web.template.Template.globals['macros'].AffiliateLinks(
             title,
