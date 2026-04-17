@@ -68,8 +68,6 @@ def proxy_to_fastapi():
 class DeprecatedEndpointHandler(delegate.page):
     """Catches all deprecated endpoints and redirects them."""
 
-    encoding = "json"
-
     def GET(self, *args):
         return handle_deprecated_request()
 
@@ -80,18 +78,25 @@ class DeprecatedEndpointHandler(delegate.page):
         return handle_deprecated_request()
 
 
-# List of deprecated paths (all json)
-DEPRECATED_PATHS = [
-    "/search",
-    "/search/lists",
-    "/search/subjects",
-    "/search/authors",
-    "/search/inside",
-    "/languages",
-    "/reading-goal",
-    r"(/subjects/[^/]+)",
-    r"(/publishers/[^/]+)",
-    r"(/partials/[^/]+)",
-    r"/api/books.*",
-    r"/api/volumes.*",
+class DeprecatedJSONEndpointHandler(DeprecatedEndpointHandler):
+    encoding = "json"
+
+
+# List of deprecated paths and encodings
+DEPRECATED_PATHS: list[tuple[str, str | None]] = [
+    (r"/search", "json"),
+    (r"/search/lists", "json"),
+    (r"/search/subjects", "json"),
+    (r"/search/authors", "json"),
+    (r"/search/inside", "json"),
+    (r"/languages", "json"),
+    (r"/reading-goal", "json"),
+    (r"(/subjects/[^/]+)", "json"),
+    (r"(/publishers/[^/]+)", "json"),
+    (r"(/partials/[^/]+)", "json"),
+    (r"/api/books", "json"),
+    (r"/api/books", None),
+    # Simplified regex
+    (r"/api/volumes/(.+)", "json"),
+    (r"/api/volumes/(.+)", None),
 ]
