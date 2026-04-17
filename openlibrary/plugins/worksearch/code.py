@@ -23,6 +23,7 @@ from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Edition
+from openlibrary.fastapi.internal.timings import monitor_as_server_timing
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.processors import urlsafe
@@ -162,6 +163,7 @@ def process_facet_counts(
         yield field, list(process_facet(field, web.group(facets, 2)))
 
 
+@monitor_as_server_timing('solr_query')
 async def execute_solr_query_async(
     solr_path: str,
     params: dict | list[tuple[str, Any]],
