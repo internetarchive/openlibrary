@@ -1,4 +1,4 @@
-$def with (title, opts, async_load=False)
+$def with (title, opts, async_load=False, bwb_metadata=None)
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
@@ -47,10 +47,10 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
 
       # Fetch price data
       if not is_bot() and prices and isbn:
-        bwb['price'] = opts.get('bwb_price')
+        bwb['price'] = bwb_metadata and bwb_metadata.get('price')
         if amazon:
-          amazon['price'] = opts.get('bwb_market_price')
-        if amazon and not amazon.get('price'):
+          amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
+        if amazon and not amazon['price']:
           amz_metadata = get_amazon_metadata(isbn, resources='prices')
           amazon['price'] = amz_metadata and amz_metadata.get('price')
 

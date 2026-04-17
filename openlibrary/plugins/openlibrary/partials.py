@@ -216,13 +216,13 @@ class AffiliateLinksPartial(PartialDataHandler):
         title, opts = args[0], args[1]
         isbn = opts.get('isbn', '')
 
+        bwb_metadata = None
         if not is_bot() and opts.get('prices') and isbn:
             bwb_metadata = get_betterworldbooks_metadata(isbn)
-            if isinstance(bwb_metadata, dict):
-                opts['bwb_price'] = bwb_metadata.get('price')
-                opts['bwb_market_price'] = bwb_metadata.get('market_price')
 
-        macro = web.template.Template.globals['macros'].AffiliateLinks(title, opts)
+        macro = web.template.Template.globals['macros'].AffiliateLinks(
+            title, opts, async_load=False, bwb_metadata=bwb_metadata
+        )
         return {"partials": str(macro)}
 
 
