@@ -89,7 +89,9 @@ DEPRECATED_PATHS = [
     "/search/inside",
     "/languages",
     "/reading-goal",
-    "(/subjects/[^/]+)",
-    "(/publishers/[^/]+)",
-    "(/partials/[^/]+)",
+    r"(/subjects/[^/]+)",
+    r"(/publishers/[^/]+)",
+    r"(/partials/[^/]+)",
+    r"/api/books.*",
+    r"/api/volumes.*",
 ]

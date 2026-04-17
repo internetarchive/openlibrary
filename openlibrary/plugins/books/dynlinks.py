@@ -216,7 +216,7 @@ class DataProcessor:
 
     def process(self, result: dict[str, OpenLibraryEditionWithPreview]) -> dict:
         work_keys = [w["key"] for doc in result.values() for w in doc.get("works", [])]
-        self.works = cast(dict[str, dict], get_many_as_dict(work_keys))
+        self.works = get_many_as_dict(work_keys)
 
         author_keys = [a["author"]["key"] for w in self.works.values() for a in w.get("authors", [])]
         self.authors = get_many_as_dict(author_keys)
@@ -408,7 +408,7 @@ def get_authors(docs):
 SolrEbookAccess = Literal["no_ebook", "unclassified", "printdisabled", "borrowable", "public"]
 
 
-def add_availability(
+async def add_availability(
     editions_map: dict[str, OpenLibraryEdition],
 ) -> dict[str, OpenLibraryEditionWithPreview]:
     availability_to_preview: dict[SolrEbookAccess, DynlinksPreview] = {
@@ -423,7 +423,7 @@ def add_availability(
 
     solr_docs = cast(
         list[SolrDocument],
-        get_solr().get_many(
+        await get_solr().get_many_async(
             (ed["key"] for ed in editions),
             fields=["key", "ebook_access"],
         ),
@@ -549,7 +549,7 @@ def get_isbn_editiondict_map(isbns: Iterable[str], high_priority: bool = False) 
     return {isbn: edition.dict() for isbn, edition in isbn_edition_map.items() if edition}
 
 
-def dynlinks(bib_keys: Iterable[str], options: DynlinksOptions) -> str:
+async def dynlinks(bib_keys: Iterable[str], options: DynlinksOptions) -> str:
     """
     Return a JSONified dictionary of bib_keys (e.g. ISBN, LCCN) and select URLs
     associated with the corresponding edition, if any.
@@ -579,7 +579,7 @@ def dynlinks(bib_keys: Iterable[str], options: DynlinksOptions) -> str:
             new_editions = get_isbn_editiondict_map(isbns=missed_isbns, high_priority=high_priority)
             edition_dicts.update(new_editions)
 
-        edition_dicts = process_result(add_availability(edition_dicts), options.get("jscmd"))
+        edition_dicts = process_result(await add_availability(edition_dicts), options.get("jscmd"))
     except:
         print("Error in processing Books API", file=sys.stderr)
         register_exception()
