@@ -152,7 +152,7 @@ class activity_stream(app.view):
                     Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
                     Bookshelves.PRESET_BOOKSHELVES['Already Read'],
                 ],
-                limit=limit, 
+                limit=limit,
                 page=page
             )
         else:
@@ -162,14 +162,10 @@ class activity_stream(app.view):
                     Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
                     Bookshelves.PRESET_BOOKSHELVES['Already Read'],
                 ],
-                since_days=SINCE_DAYS[mode], 
-                limit=limit, 
+                since_days=SINCE_DAYS[mode],
+                limit=limit,
                 page=page
             )
-
-
-        print("="*500)
-        print(logged_books)
         Bookshelves.add_solr_works(logged_books)
         return app.render_template("trending", logged_books=logged_books, mode=mode)
 
