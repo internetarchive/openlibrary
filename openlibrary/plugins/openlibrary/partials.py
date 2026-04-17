@@ -221,7 +221,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         bwb_metadata = None
         amz_metadata = None
         if not is_bot() and opts.get("prices") and isbn:
-            bwb_metadata = get_betterworldbooks_metadata_async(isbn)
+            bwb_metadata = await get_betterworldbooks_metadata_async(isbn)
             if not (bwb_metadata and bwb_metadata.get("market_price")):
                 amz_metadata = get_amazon_metadata(isbn, resources="prices")
 
