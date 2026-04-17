@@ -121,7 +121,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def most_logged_books(
         cls,
-        shelf_id: int | None = None,
+        shelf_ids: list[int] | None = None,
         limit: int = 10,
         since: date | None = None,
         page: int = 1,
@@ -130,8 +130,8 @@ class Bookshelves(db.CommonExtras):
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
-        users. This query is limited to a specific shelf_id (e.g. 1
-        for "Want to Read").
+        users. This query can be limited to specific shelf_ids (e.g. [1, 2]
+        for "Want to Read" and "Currently Reading").
         """
         page = int(page or 1)
         offset = (page - 1) * limit
@@ -141,7 +141,7 @@ class Bookshelves(db.CommonExtras):
             SELECT work_id, count(*) AS cnt
             FROM bookshelves_books
             WHERE
-                bookshelf_id {"=$shelf_id" if shelf_id else "IS NOT NULL"}
+                { "bookshelf_id IN $shelf_ids" if shelf_ids else "bookshelf_id IS NOT NULL" }
                 {"AND created >= $since" if since else ""}
             GROUP BY work_id {"HAVING COUNT(*) > $minimum" if minimum else ""}
             {"ORDER BY cnt DESC" if sort_by_count else ""}
@@ -149,7 +149,7 @@ class Bookshelves(db.CommonExtras):
             OFFSET $offset
         """
         data = {
-            "shelf_id": shelf_id,
+            "shelf_ids": shelf_ids,
             "limit": limit,
             "offset": offset,
             "since": since,
@@ -157,9 +157,9 @@ class Bookshelves(db.CommonExtras):
         }
 
         return list(oldb.query(query, vars=data))
-
-    @staticmethod
-    async def add_solr_works_async(readinglog_items, fields: Iterable[str] | None = None) -> None:
+    
+    @classmethod
+    def add_solr_works(cls, readinglog_items, fields: Iterable[str] | None = None) -> None:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability. This will add a 'work' key
@@ -588,19 +588,19 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_recently_logged_books(
         cls,
-        bookshelf_id: str | None = None,
+        shelf_ids: list[int] | None = None,
         limit: int = 50,
         page: int = 1,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
         data = {
-            "bookshelf_id": bookshelf_id,
+            "shelf_ids": shelf_ids,
             "limit": limit,
             "offset": limit * (page - 1),
         }
-        where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
-        query = f"SELECT * from bookshelves_books {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        where = "WHERE bookshelf_id IN $shelf_ids" if shelf_ids else ""
+        query = f"SELECT * FROM bookshelves_books {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 
     @classmethod
