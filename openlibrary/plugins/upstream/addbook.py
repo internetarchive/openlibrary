@@ -82,7 +82,7 @@ def make_work(doc: dict[str, str | list]) -> web.Storage:
         for key, name in zip(doc.get('author_key', []), doc.get('author_name', []))
     ]
 
-    w.cover_url = "/images/icons/avatar_book-sm.png"
+    w.cover_url = "/static/images/icons/avatar_book-sm.png"
     w.setdefault('ia', [])
     w.setdefault('first_publish_year', None)
     return w

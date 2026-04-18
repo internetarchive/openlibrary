@@ -124,7 +124,7 @@ $def seed_attrs(seed):
                 $ av = availabilities.get(work_key_to_solr_edition[seed.key]['key']) if seed.key in work_key_to_solr_edition else availabilities.get(seed.key)
                 $:macros.SearchResultsWork(doc, attrs=seed_attrs(seed), availability=av, decorations=remove_item_link(), extra=seed_meta_line(seed), include_dropper=True, footer=seed.notes and sanitize(format(seed.notes)), seq_index=loop.index0)
             $else:
-                $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
+                $ default_image = "https://openlibrary.org/static/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
                 $if cover:
                     $ cover_url = item_image(cover.url("M"), default=default_image)

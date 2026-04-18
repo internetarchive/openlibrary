@@ -666,7 +666,7 @@ class PatronBooknotes:
         return {
             'cover_url': (
                 work.get_cover_url('S')
-                or 'https://openlibrary.org/images/icons/avatar_book-sm.png'
+                or 'https://openlibrary.org/static/images/icons/avatar_book-sm.png'
             ),
             'title': work.get('title'),
             'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
