@@ -6,6 +6,7 @@ from requests.models import Response
 
 from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount, RunAs, model
 from openlibrary.mocks.mock_infobase import MockConnection, MockSite
+from openlibrary.plugins.upstream import models
 from openlibrary.utils.request_context import site as site_context
 
 
@@ -108,7 +109,6 @@ class TestRunAs:
 
     def setup_method(self):
         """Set up mock site and context for each test."""
-        from openlibrary.plugins.upstream import models
 
         self.mock_site = MockSite()
         models.setup()
