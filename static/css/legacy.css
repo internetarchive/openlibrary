@@ -533,8 +533,8 @@ div.note {
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
   margin-top: 10px;
-  background: var(--light-yellow) url(/static/images/icons/icon_info.png) no-repeat
-    10px 50%;
+  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
+    no-repeat 10px 50%;
   padding: 10px 10px 10px 44px;
 }
 
@@ -542,21 +542,24 @@ div#noLogin {
 div#preMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/static/images/icons/icon_merge.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#postMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/static/images/icons/icon_check.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_check.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#errorMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/static/images/icons/icon_alert.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
+    10px 10px;
 }
 
 /* FORMS */
