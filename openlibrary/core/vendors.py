@@ -6,6 +6,7 @@ import time
 from types import MappingProxyType
 from typing import Any, Literal, TypedDict
 
+import httpx
 import requests
 from dateutil import parser as isoparser
 from paapi5_python_sdk.api.default_api import DefaultApi
@@ -22,6 +23,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -30,6 +32,7 @@ from openlibrary.utils.isbn import (
 
 logger = logging.getLogger("openlibrary.vendors")
 session = requests.Session()
+async_session = httpx.AsyncClient()
 
 BETTERWORLDBOOKS_API_URL = (
     'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
@@ -603,8 +606,7 @@ class BetterWorldBooksMetadataError(TypedDict):
     code: int
 
 
-@public
-def get_betterworldbooks_metadata(
+async def get_betterworldbooks_metadata_async(
     isbn: str,
 ) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None:
     """
@@ -618,13 +620,16 @@ def get_betterworldbooks_metadata(
         return None
 
     try:
-        return _get_betterworldbooks_metadata(isbn)
+        return await _get_betterworldbooks_metadata(isbn)
     except Exception:
         logger.exception(f"_get_betterworldbooks_metadata({isbn})")
         return betterworldbooks_fmt(isbn)
 
 
-def _get_betterworldbooks_metadata(
+get_betterworldbooks_metadata = async_bridge.wrap(get_betterworldbooks_metadata_async)
+
+
+async def _get_betterworldbooks_metadata(
     isbn: str,
 ) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError:
     """Returns price and other metadata (currently minimal)
@@ -636,7 +641,7 @@ def _get_betterworldbooks_metadata(
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
-    response = session.get(url, timeout=3)
+    response = await async_session.get(url, timeout=3)
     if response.status_code != requests.codes.ok:
         return {'error': response.text, 'code': response.status_code}
     text = response.text
