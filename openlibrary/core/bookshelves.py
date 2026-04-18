@@ -31,40 +31,38 @@ class Bookshelves(db.CommonExtras):
     PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
     PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
         {
-            'Want to Read': 1,
-            'Currently Reading': 2,
-            'Already Read': 3,
+            "Want to Read": 1,
+            "Currently Reading": 2,
+            "Already Read": 3,
         }
     )
     ALLOW_DELETE_ON_CONFLICT = True
 
     PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
         {
-            'want_to_read': 1,
-            'currently_reading': 2,
-            'already_read': 3,
+            "want_to_read": 1,
+            "currently_reading": 2,
+            "already_read": 3,
         }
     )
 
     @classmethod
     def summary(cls):
         return {
-            'total_books_logged': {
-                'total': Bookshelves.total_books_logged(),
-                'month': Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
-                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO),
+            "total_books_logged": {
+                "total": Bookshelves.total_books_logged(),
+                "month": Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
+                "week": Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO),
             },
-            'total_users_logged': {
-                'total': Bookshelves.total_unique_users(),
-                'month': Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO),
+            "total_users_logged": {
+                "total": Bookshelves.total_unique_users(),
+                "month": Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                "week": Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO),
             },
         }
 
     @classmethod
-    def total_books_logged(
-        cls, shelf_ids: list[str] | None = None, since: date | None = None
-    ) -> int:
+    def total_books_logged(cls, shelf_ids: list[str] | None = None, since: date | None = None) -> int:
         """Returns (int) number of books logged across all Reading Log shelves (e.g. those
         specified in PRESET_BOOKSHELVES). One may alternatively specify a
         `list` of `shelf_ids` to isolate or span multiple
@@ -87,7 +85,7 @@ class Bookshelves(db.CommonExtras):
             query += " WHERE created >= $since"
         results = cast(
             tuple[int],
-            oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids}),
+            oldb.query(query, vars={"since": since, "shelf_ids": shelf_ids}),
         )
         return results[0]
 
@@ -101,21 +99,19 @@ class Bookshelves(db.CommonExtras):
         query = "select count(DISTINCT username) from bookshelves_books"
         if since:
             query += " WHERE created >= $since"
-        results = cast(tuple[int], oldb.query(query, vars={'since': since}))
+        results = cast(tuple[int], oldb.query(query, vars={"since": since}))
         return results[0]
 
     @classmethod
     def patrons_who_also_read(cls, work_id: str, limit: int = 15):
         oldb = db.get_db()
         query = "select DISTINCT username from bookshelves_books where work_id=$work_id AND bookshelf_id=3 limit $limit"
-        results = oldb.query(query, vars={'work_id': work_id, 'limit': limit})
+        results = oldb.query(query, vars={"work_id": work_id, "limit": limit})
         # get all patrons with public reading logs
         return [
             p
-            for p in web.ctx.site.get_many(
-                [f'/people/{r.username}/preferences' for r in results]
-            )
-            if p.dict().get('notifications', {}).get('public_readlog') == 'yes'
+            for p in web.ctx.site.get_many([f"/people/{r.username}/preferences" for r in results])
+            if p.dict().get("notifications", {}).get("public_readlog") == "yes"
         ]
 
     @classmethod
@@ -141,27 +137,25 @@ class Bookshelves(db.CommonExtras):
             SELECT work_id, count(*) AS cnt
             FROM bookshelves_books
             WHERE
-                bookshelf_id {'=$shelf_id' if shelf_id else 'IS NOT NULL'}
-                {'AND created >= $since' if since else ''}
-            GROUP BY work_id {'HAVING COUNT(*) > $minimum' if minimum else ''}
-            {'ORDER BY cnt DESC' if sort_by_count else ''}
+                bookshelf_id {"=$shelf_id" if shelf_id else "IS NOT NULL"}
+                {"AND created >= $since" if since else ""}
+            GROUP BY work_id {"HAVING COUNT(*) > $minimum" if minimum else ""}
+            {"ORDER BY cnt DESC" if sort_by_count else ""}
             LIMIT $limit
             OFFSET $offset
         """
         data = {
-            'shelf_id': shelf_id,
-            'limit': limit,
-            'offset': offset,
-            'since': since,
-            'minimum': minimum,
+            "shelf_id": shelf_id,
+            "limit": limit,
+            "offset": offset,
+            "since": since,
+            "minimum": minimum,
         }
 
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def add_solr_works(
-        cls, readinglog_items, fields: Iterable[str] | None = None
-    ) -> None:
+    def add_solr_works(cls, readinglog_items, fields: Iterable[str] | None = None) -> None:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability. This will add a 'work' key
@@ -178,33 +172,22 @@ class Bookshelves(db.CommonExtras):
             editions=True,
         )
 
-        add_availability(
-            [
-                ((w.get('editions') or {}).get('docs') or [None])[0] or w
-                for w in work_index.values()
-            ]
-        )
+        add_availability([((w.get("editions") or {}).get("docs") or [None])[0] or w for w in work_index.values()])
 
         # Attach items from the work_index in the order
         # they are represented by the trending logged books
         for i, item in enumerate(readinglog_items):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
-                readinglog_items[i]['work'] = work_index[key]
+                readinglog_items[i]["work"] = work_index[key]
 
     @classmethod
-    def count_total_books_logged_by_user(
-        cls, username: str, bookshelf_ids: list[str] | None = None
-    ) -> int:
+    def count_total_books_logged_by_user(cls, username: str, bookshelf_ids: list[str] | None = None) -> int:
         """Counts the (int) total number of books logged by this `username`,
         with the option of limiting the count to specific bookshelves
         by `bookshelf_id`
         """
-        return sum(
-            cls.count_total_books_logged_by_user_per_shelf(
-                username, bookshelf_ids=bookshelf_ids
-            ).values()
-        )
+        return sum(cls.count_total_books_logged_by_user_per_shelf(username, bookshelf_ids=bookshelf_ids).values())
 
     @classmethod
     def count_user_books_on_shelf(
@@ -218,16 +201,14 @@ class Bookshelves(db.CommonExtras):
             WHERE bookshelf_id=$bookshelf_id AND username=$username
             """,
             vars={
-                'bookshelf_id': bookshelf_id,
-                'username': username,
+                "bookshelf_id": bookshelf_id,
+                "username": username,
             },
         )
         return result[0].count if result else 0
 
     @classmethod
-    def count_total_books_logged_by_user_per_shelf(
-        cls, username: str, bookshelf_ids: list[str] | None = None
-    ) -> dict[int, int]:
+    def count_total_books_logged_by_user_per_shelf(cls, username: str, bookshelf_ids: list[str] | None = None) -> dict[int, int]:
         """Returns a dict mapping the specified user's bookshelves_ids to the
         number of number of books logged per each shelf, i.e. {bookshelf_id:
         count}. By default, we limit bookshelf_ids to those in PRESET_BOOKSHELVES
@@ -238,17 +219,15 @@ class Bookshelves(db.CommonExtras):
         count_total_books_logged_by_user
         """
         oldb = db.get_db()
-        data = {'username': username}
-        _bookshelf_ids = ','.join(
-            [str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()]
-        )
+        data = {"username": username}
+        _bookshelf_ids = ",".join([str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()])
         query = (
             "SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
             "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
             "AND username=$username GROUP BY bookshelf_id"
         )
         result = oldb.query(query, vars=data)
-        return {i['bookshelf_id']: i['count'] for i in result} if result else {}
+        return {i["bookshelf_id"]: i["count"] for i in result} if result else {}
 
     # Iterates through a list of solr docs, and for all items with a 'logged edition'
     # it will remove an item with the matching edition key from the list, and add it to
@@ -277,9 +256,7 @@ class Bookshelves(db.CommonExtras):
         return linked_docs
 
     @classmethod
-    def add_storage_items_for_redirects(
-        cls, reading_log_keys, solr_docs: list[web.Storage]
-    ):
+    def add_storage_items_for_redirects(cls, reading_log_keys, solr_docs: list[web.Storage]):
         """
         Use reading_log_keys to fill in missing redirected items in the
         the solr_docs query results.
@@ -301,12 +278,8 @@ class Bookshelves(db.CommonExtras):
         for the correctly pulled work later on, as well as to correctly update the post-redirect version back to the pre_redirect key.
         Without this step, processes may error due to the 'post-redirect key' not actually existing within a user's reading log.
         """
-        work_to_edition_keys = {
-            work: edition for (work, edition) in reading_log_keys if edition
-        }
-        edition_to_work_keys = {
-            edition: work for (work, edition) in reading_log_keys if edition
-        }
+        work_to_edition_keys = {work: edition for (work, edition) in reading_log_keys if edition}
+        edition_to_work_keys = {edition: work for (work, edition) in reading_log_keys if edition}
 
         # Here, we add in dummied works for situations in which there is no edition key present, yet the work key accesses a redirect.
         # Ideally, this will be rare, as there's no way to access the relevant information through Solr.
@@ -315,21 +288,16 @@ class Bookshelves(db.CommonExtras):
                 missing_keys.remove(key)
                 solr_docs.append(web.storage({"key": key}))
 
-        edition_keys_to_query = [
-            work_to_edition_keys[key].split("/")[2] for key in missing_keys
-        ]
-        fq = f'edition_key:({" OR ".join(edition_keys_to_query)})'
+        edition_keys_to_query = [work_to_edition_keys[key].split("/")[2] for key in missing_keys]
+        fq = f"edition_key:({' OR '.join(edition_keys_to_query)})"
         if not edition_keys_to_query:
             return
 
         solr_resp = run_solr_query(
             scheme=WorkSearchScheme(),
-            param={'q': '*:*'},
+            param={"q": "*:*"},
             rows=len(edition_keys_to_query),
-            fields=list(
-                WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'}
-            ),
+            fields=list(WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"}),
             facet=False,
             extra_params=[("fq", fq)],
         )
@@ -340,30 +308,26 @@ class Bookshelves(db.CommonExtras):
         """
         for doc in solr_resp.docs:
             for edition_key in doc["edition_key"]:
-                if pre_redirect_key := edition_to_work_keys.get(
-                    '/books/%s' % edition_key
-                ):
+                if pre_redirect_key := edition_to_work_keys.get("/books/%s" % edition_key):
                     doc["key"] = pre_redirect_key
                     doc["logged_edition"] = work_to_edition_keys.get(pre_redirect_key)
                     solr_docs.append(web.storage(doc))
                     break
 
     @classmethod
-    def add_storage_items_for_deletes(
-        cls, reading_log_keys, solr_docs: list[web.Storage]
-    ):
-        missing = {w for w, e in reading_log_keys} - {doc['key'] for doc in solr_docs}
+    def add_storage_items_for_deletes(cls, reading_log_keys, solr_docs: list[web.Storage]):
+        missing = {w for w, e in reading_log_keys} - {doc["key"] for doc in solr_docs}
         # Get them from the DB
         missing_docs = web.ctx.site.get_many(list(missing))
 
         # Push some dummy books
         for doc in missing_docs:
-            if doc.type.key == '/type/delete':
+            if doc.type.key == "/type/delete":
                 solr_docs.append(
                     web.storage(
                         {
-                            'key': doc.key,
-                            'title': _('[Record deleted]'),
+                            "key": doc.key,
+                            "title": _("[Record deleted]"),
                         }
                     )
                 )
@@ -373,8 +337,8 @@ class Bookshelves(db.CommonExtras):
                 solr_docs.append(
                     web.storage(
                         {
-                            'key': doc.key,
-                            'title': doc.key,
+                            "key": doc.key,
+                            "title": doc.key,
                         }
                     )
                 )
@@ -386,7 +350,7 @@ class Bookshelves(db.CommonExtras):
         bookshelf_id: int = 0,
         limit: int = 100,
         page: int = 1,  # Not zero-based counting!
-        sort: Literal['created asc', 'created desc'] = 'created desc',
+        sort: Literal["created asc", "created desc"] = "created desc",
         checkin_year: int | None = None,
         q: str = "",
         fq: list[str] | None = None,
@@ -411,11 +375,11 @@ class Bookshelves(db.CommonExtras):
         oldb = db.get_db()
         page = int(page or 1)
         query_params: dict[str, str | int | None] = {
-            'username': username,
-            'limit': limit,
-            'offset': limit * (page - 1),
-            'bookshelf_id': bookshelf_id,
-            'checkin_year': checkin_year,
+            "username": username,
+            "limit": limit,
+            "offset": limit * (page - 1),
+            "bookshelf_id": bookshelf_id,
+            "checkin_year": checkin_year,
         }
 
         @dataclass
@@ -425,9 +389,7 @@ class Bookshelves(db.CommonExtras):
             logged_date: datetime
             edition_id: str
 
-        def add_reading_log_data(
-            reading_log_books: list[web.storage], solr_docs: list[web.storage]
-        ):
+        def add_reading_log_data(reading_log_books: list[web.storage], solr_docs: list[web.storage]):
             """
             Adds data from ReadingLogItem to the Solr responses so they have the logged
             date and edition ID.
@@ -436,11 +398,7 @@ class Bookshelves(db.CommonExtras):
             reading_log_store: dict[str, ReadingLogItem] = {
                 f"/works/OL{book.work_id}W": ReadingLogItem(
                     logged_date=book.created,
-                    edition_id=(
-                        f"/books/OL{book.edition_id}M"
-                        if book.edition_id is not None
-                        else ""
-                    ),
+                    edition_id=(f"/books/OL{book.edition_id}M" if book.edition_id is not None else ""),
                 )
                 for book in reading_log_books
             }
@@ -475,47 +433,35 @@ class Bookshelves(db.CommonExtras):
             # to query Solr, which searches for matches related to those work IDs.
             query_params["limit"] = filter_book_limit
 
-            query = (
-                "SELECT work_id, created, edition_id from bookshelves_books WHERE "
-                "bookshelf_id=$bookshelf_id AND username=$username "
-                "LIMIT $limit"
-            )
+            query = "SELECT work_id, created, edition_id from bookshelves_books WHERE bookshelf_id=$bookshelf_id AND username=$username LIMIT $limit"
 
-            reading_log_books: list[web.storage] = list(
-                oldb.query(query, vars=query_params)
-            )
+            reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
 
             assert len(reading_log_books) <= filter_book_limit
 
-            work_to_edition_keys = {
-                '/works/OL%sW' % i['work_id']: '/books/OL%sM' % i['edition_id']
-                for i in reading_log_books
-            }
+            work_to_edition_keys = {"/works/OL%sW" % i["work_id"]: "/books/OL%sM" % i["edition_id"] for i in reading_log_books}
 
             # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
-            filter_query = 'key:(%s)' % " OR ".join(
-                '"%s"' % key for key in work_to_edition_keys
-            )
+            filter_query = "key:(%s)" % " OR ".join('"%s"' % key for key in work_to_edition_keys)
 
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
-                param={'q': q or '*:*'},
+                param={"q": q or "*:*"},
                 offset=query_params["offset"],
                 rows=limit,
                 facet=False,
                 extra_params=[
                     # Putting these in fq allows them to avoid user-query processing, which
                     # can be (surprisingly) slow if we have ~20k OR clauses.
-                    ('fq', filter_query),
-                    *[('fq', f) for f in (fq or [])],
+                    ("fq", filter_query),
+                    *[("fq", f) for f in (fq or [])],
                 ],
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
             edition_data = get_solr().get_many(
                 [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
-                fields=WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'},
+                fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
 
             solr_docs.extend(edition_data)
@@ -536,7 +482,7 @@ class Bookshelves(db.CommonExtras):
 
         def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
-            sort: Literal['created asc', 'created desc'],
+            sort: Literal["created asc", "created desc"],
             checkin_year: int | None,
         ):
             """
@@ -570,24 +516,17 @@ class Bookshelves(db.CommonExtras):
                 query = "SELECT * from bookshelves_books WHERE username=$username"
                 # XXX Removing limit, offset, etc from data looks like a bug
                 # unrelated / not fixing in this PR.
-                query_params = {'username': username}
-            reading_log_books: list[web.storage] = list(
-                oldb.query(query, vars=query_params)
-            )
+                query_params = {"username": username}
+            reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
 
             reading_log_keys = [
-                (
-                    ['/works/OL%sW' % i['work_id'], '/books/OL%sM' % i['edition_id']]
-                    if i['edition_id']
-                    else ['/works/OL%sW' % i['work_id'], ""]
-                )
+                (["/works/OL%sW" % i["work_id"], "/books/OL%sM" % i["edition_id"]] if i["edition_id"] else ["/works/OL%sW" % i["work_id"], ""])
                 for i in reading_log_books
             ]
 
             solr_docs = get_solr().get_many(
                 [key for key in flatten(reading_log_keys) if key],
-                fields=WorkSearchScheme.default_fetched_fields
-                | {'subject', 'person', 'place', 'time', 'edition_key'},
+                fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
 
             cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
@@ -616,9 +555,7 @@ class Bookshelves(db.CommonExtras):
                 fq=fq,
             )
         else:
-            return get_sorted_reading_log_books(
-                query_params=query_params, sort=sort, checkin_year=checkin_year
-            )
+            return get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
@@ -635,10 +572,7 @@ class Bookshelves(db.CommonExtras):
 
         def get_a_block_of_books() -> list:
             data = {"username": username, "limit": LIMIT, "offset": LIMIT * block}
-            query = (
-                "SELECT * from bookshelves_books WHERE username=$username "
-                "ORDER BY created DESC LIMIT $limit OFFSET $offset"
-            )
+            query = "SELECT * from bookshelves_books WHERE username=$username ORDER BY created DESC LIMIT $limit OFFSET $offset"
             return list(oldb.query(query, vars=data))
 
         while books := get_a_block_of_books():
@@ -655,15 +589,12 @@ class Bookshelves(db.CommonExtras):
         oldb = db.get_db()
         page = int(page or 1)
         data = {
-            'bookshelf_id': bookshelf_id,
-            'limit': limit,
-            'offset': limit * (page - 1),
+            "bookshelf_id": bookshelf_id,
+            "limit": limit,
+            "offset": limit * (page - 1),
         }
         where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
-        query = (
-            f"SELECT * from bookshelves_books {where} "
-            "ORDER BY created DESC LIMIT $limit OFFSET $offset"
-        )
+        query = f"SELECT * from bookshelves_books {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 
     @classmethod
@@ -674,47 +605,37 @@ class Bookshelves(db.CommonExtras):
         exists.
         """
         oldb = db.get_db()
-        data = {'username': username, 'work_id': int(work_id)}
-        bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
-        query = (
-            "SELECT bookshelf_id from bookshelves_books WHERE "
-            "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
-            "AND username=$username AND work_id=$work_id"
-        )
+        data = {"username": username, "work_id": int(work_id)}
+        bookshelf_ids = ",".join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        query = "SELECT bookshelf_id from bookshelves_books WHERE bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) AND username=$username AND work_id=$work_id"
         result = list(oldb.query(query, vars=data))
         return result[0].bookshelf_id if result else None
 
     @classmethod
     def user_has_read_work(cls, username: str, work_id: str) -> bool:
         user_read_status = cls.get_users_read_status_of_work(username, work_id)
-        return user_read_status == cls.PRESET_BOOKSHELVES['Already Read']
+        return user_read_status == cls.PRESET_BOOKSHELVES["Already Read"]
 
     @classmethod
     def get_users_read_status_of_works(cls, username: str, work_ids: list[str]) -> list:
         oldb = db.get_db()
         data = {
-            'username': username,
-            'work_ids': work_ids,
+            "username": username,
+            "work_ids": work_ids,
         }
-        query = (
-            "SELECT work_id, bookshelf_id from bookshelves_books WHERE "
-            "username=$username AND "
-            "work_id IN $work_ids"
-        )
+        query = "SELECT work_id, bookshelf_id from bookshelves_books WHERE username=$username AND work_id IN $work_ids"
         return list(oldb.query(query, vars=data))
 
     @classmethod
-    def add(
-        cls, username: str, bookshelf_id: str, work_id: str, edition_id=None
-    ) -> None:
+    def add(cls, username: str, bookshelf_id: str, work_id: str, edition_id=None) -> None:
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
         oldb = db.get_db()
         work_id = int(work_id)  # type: ignore
         bookshelf_id = int(bookshelf_id)  # type: ignore
         data = {
-            'work_id': work_id,
-            'username': username,
+            "work_id": work_id,
+            "username": username,
         }
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
@@ -739,14 +660,14 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def remove(cls, username: str, work_id: str, bookshelf_id: str | None = None):
         oldb = db.get_db()
-        where = {'username': username, 'work_id': int(work_id)}
+        where = {"username": username, "work_id": int(work_id)}
         if bookshelf_id:
-            where['bookshelf_id'] = int(bookshelf_id)
+            where["bookshelf_id"] = int(bookshelf_id)
 
         try:
             return oldb.delete(
                 cls.TABLENAME,
-                where=('work_id=$work_id AND username=$username'),
+                where=("work_id=$work_id AND username=$username"),
                 vars=where,
             )
         except Exception:  # we want to catch no entry exists
@@ -758,7 +679,7 @@ class Bookshelves(db.CommonExtras):
         oldb = db.get_db()
         query = f"SELECT * from {cls.TABLENAME} where work_id=$work_id"
         try:
-            result = oldb.query(query, vars={'work_id': work_id})
+            result = oldb.query(query, vars={"work_id": work_id})
             return result if lazy else list(result)
         except Exception:
             return None
@@ -770,14 +691,9 @@ class Bookshelves(db.CommonExtras):
         i.e. {bookshelf_id: count}.
         """
         oldb = db.get_db()
-        query = (
-            "SELECT bookshelf_id, count(DISTINCT username) as user_count "
-            "from bookshelves_books where"
-            " work_id=$work_id"
-            " GROUP BY bookshelf_id"
-        )
-        result = oldb.query(query, vars={'work_id': int(work_id)})
-        return {i['bookshelf_id']: i['user_count'] for i in result} if result else {}
+        query = "SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where work_id=$work_id GROUP BY bookshelf_id"
+        result = oldb.query(query, vars={"work_id": int(work_id)})
+        return {i["bookshelf_id"]: i["user_count"] for i in result} if result else {}
 
     @classmethod
     def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
@@ -800,7 +716,7 @@ class Bookshelves(db.CommonExtras):
             ORDER BY counted DESC, username LIMIT 10
         """
         oldb = db.get_db()
-        _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        _bookshelf_ids = ",".join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
         query = (
             "SELECT username, count(*) AS counted "
             "FROM bookshelves_books WHERE "

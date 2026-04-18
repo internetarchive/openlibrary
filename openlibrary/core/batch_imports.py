@@ -45,9 +45,7 @@ class BatchImportError:
     error_message: str
 
     @classmethod
-    def from_pydantic_error(
-        cls, line_number: int, error: ErrorDetails
-    ) -> "BatchImportError":
+    def from_pydantic_error(cls, line_number: int, error: ErrorDetails) -> "BatchImportError":
         """Create a BatchImportError object from Pydantic's ErrorDetails."""
         if loc := error.get("loc"):
             loc_str = ", ".join(map(str, loc))
@@ -113,14 +111,7 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
             errors.append(BatchImportError(line_number=index + 1, error_message=str(e)))
 
         except ValidationError as e:
-            errors.extend(
-                [
-                    BatchImportError.from_pydantic_error(
-                        line_number=index + 1, error=error
-                    )
-                    for error in e.errors()
-                ]
-            )
+            errors.extend([BatchImportError.from_pydantic_error(line_number=index + 1, error=error) for error in e.errors()])
 
     if errors:
         return BatchResult(errors=errors)
@@ -128,10 +119,10 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     # Format data for queueing via batch import.
     batch_data = [
         {
-            'ia_id': item['source_records'][0],
-            'data': item,
-            'submitter': username,
-            'status': import_status,
+            "ia_id": item["source_records"][0],
+            "data": item,
+            "submitter": username,
+            "status": import_status,
         }
         for item in raw_import_records
     ]

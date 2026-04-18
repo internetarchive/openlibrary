@@ -161,8 +161,10 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $if subjects:
                 <div class="section link-box link-box--with-header">
                     <h3 class="collapse black uppercase">$label</h3>
+                    <ol-chip-group gap="small">
                     $for _, subject, count in subjects:
-                        <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                        <ol-chip size="small" itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</ol-chip>
+                    </ol-chip-group>
                 </div>
 
         <!-- SUBJECTS DISPLAY -->

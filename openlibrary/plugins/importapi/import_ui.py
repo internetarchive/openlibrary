@@ -24,15 +24,11 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and (
-            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
-        )
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
-        req = ImportPreviewRequest.from_input(
-            web.input(provider='amazon', identifier='')
-        )
+        req = ImportPreviewRequest.from_input(web.input(provider="amazon", identifier=""))
         # GET requests should not save the import
         req.save = False
         return render_template("import_preview.html", metadata_provider_factory, req)
@@ -42,9 +38,7 @@ class import_preview(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and (
-            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
-        )
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
@@ -58,7 +52,7 @@ class import_preview(delegate.page):
 
         if req.save:
             add_flash_message("success", "Import successful")
-            return web.seeother(result['edition']['key'])
+            return web.seeother(result["edition"]["key"])
         else:
             return render_template(
                 "import_preview.html",
@@ -78,16 +72,14 @@ class import_preview_json(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and (
-            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
-        )
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
         try:
             req = ImportPreviewRequest.from_input(web.input())
         except ValueError as e:
-            return {'success': False, 'error': str(e)}
+            return {"success": False, "error": str(e)}
 
         # GET requests should not save the import
         req.save = False
@@ -100,55 +92,51 @@ class import_preview_json(delegate.page):
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and (
-            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
-        )
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
         try:
             req = ImportPreviewRequest.from_input(web.input())
         except ValueError as e:
-            return {'success': False, 'error': str(e)}
+            return {"success": False, "error": str(e)}
 
         return json.dumps(req.metadata_provider.do_import(req.identifier, req.save))
 
 
 @dataclass
 class ImportPreviewRequest:
-    metadata_provider: 'AbstractMetadataProvider'
+    metadata_provider: "AbstractMetadataProvider"
     identifier: str
     save: bool
 
     @staticmethod
-    def from_input(i: dict) -> 'ImportPreviewRequest':
-        source = cast(str | None, i.get('source'))
-        provider = cast(str | None, i.get('provider'))
+    def from_input(i: dict) -> "ImportPreviewRequest":
+        source = cast(str | None, i.get("source"))
+        provider = cast(str | None, i.get("provider"))
 
         if not source and not provider:
             raise ValueError("No provider specified")
 
         identifier: str | None = None
         if source:
-            if ':' not in source:
+            if ":" not in source:
                 raise ValueError("Invalid source provided")
 
-            provider_prefix, identifier = source.split(':', 1)
+            provider_prefix, identifier = source.split(":", 1)
         elif provider:
             provider_prefix = provider
-            identifier = cast(str | None, i.get('identifier'))
+            identifier = cast(str | None, i.get("identifier"))
 
-        metadata_provider = metadata_provider_factory.get_metadata_provider(
-            provider_prefix
-        )
+        metadata_provider = metadata_provider_factory.get_metadata_provider(provider_prefix)
 
         if not metadata_provider:
             raise ValueError("Invalid source provided")
 
         return ImportPreviewRequest(
             metadata_provider=metadata_provider,
-            identifier=identifier or '',
-            save=i.get('save', 'false') == 'true',
+            identifier=identifier or "",
+            save=i.get("save", "false") == "true",
         )
 
 
@@ -158,32 +146,28 @@ class AbstractMetadataProvider:
 
     def do_import(self, identifier: str, save: bool):
         """Import metadata from the source."""
-        raise NotImplementedError(
-            f"do_import method not implemented for {self.__class__.__name__}"
-        )
+        raise NotImplementedError(f"do_import method not implemented for {self.__class__.__name__}")
 
 
 class AmazonMetadataProvider(AbstractMetadataProvider):
     full_name = "Amazon"
-    id_name = 'amazon'
+    id_name = "amazon"
 
     @override
     def do_import(self, identifier: str, save: bool):
         id_type = "isbn" if identifier[0].isdigit() else "asin"
-        import_record = get_amazon_metadata(
-            id_=identifier, id_type=id_type, high_priority=True, stage_import=False
-        )
+        import_record = get_amazon_metadata(id_=identifier, id_type=id_type, high_priority=True, stage_import=False)
         assert import_record, "No metadata found for the given identifier"
         return add_book.load(
             import_record,
-            account_key='account/ImportBot',
+            account_key="account/ImportBot",
             save=save,
         )
 
 
 class IaMetadataProvider(AbstractMetadataProvider):
     full_name = "Internet Archive"
-    id_name = 'ia'
+    id_name = "ia"
 
     @override
     def do_import(self, identifier: str, save: bool):
@@ -199,7 +183,7 @@ class IaMetadataProvider(AbstractMetadataProvider):
         assert import_record, "No metadata found for the given identifier"
         return add_book.load(
             import_record,
-            account_key='account/ImportBot',
+            account_key="account/ImportBot",
             from_marc_record=from_marc_record,
             save=save,
         )
@@ -207,20 +191,18 @@ class IaMetadataProvider(AbstractMetadataProvider):
 
 class RawMarcMetadataProvider(AbstractMetadataProvider):
     full_name = "Raw MARC"
-    id_name = 'marc'
+    id_name = "marc"
 
     @override
     def do_import(self, identifier: str, save: bool):
         # The "ID" is a url, with a byte offset for the start of the MARC record.
         # Example: "https://archive.org/download/harvard_bibliographic_metadata/20220215_007.bib.mrc:35217689"
-        url, offset = identifier.rsplit(':', 1)
+        url, offset = identifier.rsplit(":", 1)
 
-        headers = {'Range': f'bytes={offset}-'}
+        headers = {"Range": f"bytes={offset}-"}
         response = requests.get(url, headers=headers, stream=True)
         if response.status_code != 206:
-            raise ValueError(
-                f"Failed to fetch MARC record from {url}: {response.status_code}"
-            )
+            raise ValueError(f"Failed to fetch MARC record from {url}: {response.status_code}")
 
         # The first 5 bytes are the length of the MARC record.
         marc_data = response.raw.read(5)
@@ -231,12 +213,12 @@ class RawMarcMetadataProvider(AbstractMetadataProvider):
         marc_record = MarcBinary(marc_data)
         import_record = read_edition(marc_record)
 
-        if 'source_records' not in import_record:
-            import_record['source_records'] = [f'marc:{url}:{offset}:{length}']
+        if "source_records" not in import_record:
+            import_record["source_records"] = [f"marc:{url}:{offset}:{length}"]
 
         return add_book.load(
             import_record,
-            account_key='account/ImportBot',
+            account_key="account/ImportBot",
             from_marc_record=True,
             save=save,
         )
@@ -251,9 +233,7 @@ class MetadataProviderFactory:
         ]
         self.metadata_providers = {provider.id_name: provider for provider in providers}
 
-    def get_metadata_provider(
-        self, provider_name: str
-    ) -> AbstractMetadataProvider | None:
+    def get_metadata_provider(self, provider_name: str) -> AbstractMetadataProvider | None:
         if provider_name not in self.metadata_providers:
             return None
         return self.metadata_providers[provider_name]

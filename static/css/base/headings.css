@@ -1,17 +1,17 @@
 h1 {
-  font-size: 1.875em;
+  font-size: var(--font-size-headline-large);
 }
 h1.title {
-  font-size: 1.25em;
+  font-size: var(--font-size-title-large);
 }
 h1 span.subtitle {
-  font-size: 0.65em;
+  font-size: var(--font-size-title-small);
   font-weight: normal;
 }
 /* TODO: Check if this class is still used. */
 h1.publisher {
   color: var(--brown);
-  font-size: 1.375em;
+  font-size: var(--font-size-headline-medium);
   font-family: var(--font-family-serif) !important;
   font-weight: normal !important;
   margin: 0;
@@ -21,16 +21,16 @@ h1 span.count {
 }
 
 h2 {
-  font-size: var(--font-size-title-large);
+  font-size: var(--font-size-headline-small);
 }
 h2.author {
   color: var(--brown);
-  font-size: 1.125em;
+  font-size: var(--font-size-title-medium);
   font-weight: normal;
 }
 h2.authorEdition {
   color: var(--brown);
-  font-size: 1em;
+  font-size: var(--font-size-title-small);
   font-weight: normal;
   margin: 0;
   padding: 0;
@@ -43,7 +43,7 @@ h2.edition-title {
   color: var(--grey);
   font-family: var(--font-family-title);
   font-weight: normal;
-  font-size: 1.1em;
+  font-size: var(--font-size-title-medium);
 }
 h2 a {
   color: var(--link-blue);
@@ -58,19 +58,19 @@ h1.edition,
 h2.edition {
   color: var(--black);
   font-family: var(--font-family-body);
-  font-size: 1.125em;
+  font-size: var(--font-size-title-medium);
   margin: 0;
   padding: 0;
   font-weight: normal;
 }
 
 h3 {
-  font-size: var(--font-size-label-medium);
+  font-size: var(--font-size-title-large);
 }
 /* TODO: Check if this class is still used. */
 h3.Question {
   font-family: var(--font-family-serif);
-  font-size: 1.2em;
+  font-size: var(--font-size-title-large);
   font-weight: normal;
   color: var(--brown);
   margin-top: var(--spacing-stack-sm);
@@ -79,7 +79,7 @@ h3.Question {
 }
 
 h4 {
-  font-size: 0.8125em;
+  font-size: var(--font-size-title-medium);
 }
 h4.publisher,
 h4.observer-count {
@@ -88,7 +88,7 @@ h4.observer-count {
 }
 h4.facetHead {
   font-family: var(--font-family-body);
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-medium);
   font-weight: 700;
   color: var(--black);
   text-transform: uppercase;
@@ -114,13 +114,13 @@ h4.facetHead span.merge {
 }
 
 h5 {
-  font-size: 0.875em;
+  font-size: var(--font-size-title-small);
   font-family: var(--font-family-serif) !important;
   font-weight: normal !important;
 }
 
 h6 {
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-medium);
 }
 
 .head h2 a {

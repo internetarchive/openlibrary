@@ -20,7 +20,6 @@ import web
 import yaml
 
 import infogami
-from infogami.utils import i18n, macro, template
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -40,7 +39,7 @@ if not hasattr(infogami.config, 'features'):
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
-from infogami.utils import delegate, features
+from infogami.utils import delegate, features, i18n, macro, template
 from infogami.utils.app import metapage
 from infogami.utils.view import (
     add_flash_message,
@@ -239,7 +238,7 @@ def sampleload(filename='sampledump.txt.gz'):
     with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries))
+    print(web.ctx.site.save_many(queries, action="infogami-sampleload-action"))
 
 
 class routes(delegate.page):
@@ -351,6 +350,7 @@ class addauthor(delegate.page):
         web.ctx.site.save(
             {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
+            action="create-author",
         )
         raise web.HTTPError('200 OK', {}, key)
 
@@ -943,7 +943,7 @@ class _yaml_edit(_yaml):
             d = self.load(i.body)
             p = web.ctx.site.new(key, d)
             try:
-                p._save(i._comment)
+                p._save(i._comment, action="edit-yaml")
             except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
@@ -1235,6 +1235,12 @@ def is_bot():
     return req_context.get().is_bot
 
 
+def is_recognized_bot():
+    # Reads from the request-scoped ContextVar set by set_context_from_legacy_web_py()
+    # (web.py) or set_context_from_fastapi() — the web.py equivalent of web.ctx.
+    return req_context.get().is_recognized_bot
+
+
 def setup_template_globals():
     # must be imported here, otherwise silently messes up infogami's import execution
     # order, resulting in random errors like the the /account/login.json endpoint
@@ -1344,6 +1350,7 @@ def setup():
     )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
+    delegate.app.add_processor(processors.CookieValidationProcessor())
 
     setup_context_defaults()
     setup_template_globals()

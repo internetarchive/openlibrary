@@ -18,21 +18,21 @@ export function initCoversChange() {
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
     $('.coverPop')
-        .on('click', function () {
+        .on('click', function() {
             // clear the content of #imagesAdd and #imagesManage before adding new
             $('.imagesAdd').html('');
             $('.imagesManage').html('');
             if (doc_type_key === '/type/work') {
                 $('.imagesAdd').prepend('<div class="throbber"><h3>$_("Searching for covers")</h3></div>');
             }
-            setTimeout(function () {
+            setTimeout(function() {
                 // add iframe to add images
                 add_iframe('.imagesAdd', add_url);
                 // add iframe to manage images
                 add_iframe('.imagesManage', manage_url);
             }, 0);
         })
-        .on('cbox_cleanup', function () {
+        .on('cbox_cleanup', function() {
             $('.imagesAdd').html('');
             $('.imagesManage').html('');
         });
@@ -131,9 +131,9 @@ async function pasteImage() {
             const blob = await item.getType(mimeType);
             const image = document.createElement('img');
             image.src = URL.createObjectURL(blob);
-            image.alt = ''
-            const imageContainer = document.querySelector('.image-container')
-            imageContainer.replaceChildren(image)
+            image.alt = '';
+            const imageContainer = document.querySelector('.image-container');
+            imageContainer.replaceChildren(image);
 
             // Update the global formData with the new image blob
             formData = new FormData();
@@ -148,7 +148,7 @@ async function pasteImage() {
 
             // Show the upload button
             const uploadButton = document.getElementById('uploadButtonPaste');
-            uploadButton.classList.remove('hidden')
+            uploadButton.classList.remove('hidden');
 
             return formData;
         }
@@ -162,9 +162,9 @@ export function initPasteForm(coverForm) {
     const pasteButton = coverForm.querySelector('#pasteButton');
     let formData = null;
 
-    pasteButton.addEventListener('click', async () => {
+    pasteButton.addEventListener('click', async() => {
         formData = await pasteImage(coverForm);
-        pasteButton.textContent = 'Change Image'
+        pasteButton.textContent = 'Change Image';
     });
 
     coverForm.addEventListener('submit', (event) => {

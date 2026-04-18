@@ -58,7 +58,7 @@ $ layout = get_remembered_layout()
           <h3>$_("Solr Debugging:")</h3>
           $search_response.error['msg']
           <hr>
-          $_("Full URL:") <a href="$search_response.solr_select" target="_blank">$search_response.solr_select</a>
+          $_("Full URL:") <a href="$search_response.solr_select" target="_blank" rel="noopener noreferrer">$search_response.solr_select</a>
         </div>
 
     $if param and not search_response.docs:
@@ -123,7 +123,7 @@ $if not search_response.error and param and len(search_response.docs):
         <a
           class="adminOnly"
           href="$search_response.solr_select"
-          target="_blank"
+          target="_blank" rel="noopener noreferrer"
         >$_('Searching solr took %(count)s seconds', count="%.2f" % search_response.time)</a>
       </div>
   </div>

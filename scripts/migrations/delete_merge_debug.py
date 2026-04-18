@@ -22,7 +22,7 @@ RECORD_TYPE = "merge-authors-debug"
 def setup(config_path):
     init_signal_handler()
     if not Path(config_path).exists():
-        raise FileNotFoundError(f'no config file at {config_path}')
+        raise FileNotFoundError(f"no config file at {config_path}")
     load_config(config_path)
     infogami._setup()
 
@@ -38,16 +38,12 @@ def delete_records(batches):
     :param batches: The number of records to delete.
     :return:
     """
-    while (
-        not was_shutdown_requested()
-        and (batches != 0)
-        and (keys := web.ctx.site.store.keys(type=RECORD_TYPE))
-    ):
+    while not was_shutdown_requested() and (batches != 0) and (keys := web.ctx.site.store.keys(type=RECORD_TYPE)):
         for key in keys:
             try:
                 web.ctx.site.store.delete(key)
             except ClientException:
-                print(f'Failed to delete record with key {key}\nContinuing...')
+                print(f"Failed to delete record with key {key}\nContinuing...")
                 continue
         batches -= 1
 
@@ -76,6 +72,6 @@ def _parse_args():
     return _parser.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _args = _parse_args()
     _args.func(_args)

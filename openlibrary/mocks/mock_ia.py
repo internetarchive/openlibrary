@@ -27,6 +27,6 @@ def mock_ia(request, monkeypatch):
             return metadata.get(itemid, {})
 
     mock_ia = IA()
-    monkeypatch.setattr(ia, 'get_metadata', ia.get_metadata)
+    monkeypatch.setattr(ia, "get_metadata", ia.get_metadata)
 
     return mock_ia

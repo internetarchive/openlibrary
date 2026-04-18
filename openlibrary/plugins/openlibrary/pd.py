@@ -42,7 +42,7 @@ def get_pd_org(identifier: str) -> dict:
         "title": "Vermont Mutual Aid Society",
     }
     for org in orgs:
-        if org['identifier'] == identifier:
+        if org["identifier"] == identifier:
             return org
 
     return vtmas
@@ -78,26 +78,22 @@ def cached_pd_org_query() -> list:
 def get_pd_dashboard_data() -> dict:
     def calc_totals(_request_data):
         results = {
-            'requested': 0,
-            'emailed': 0,
-            'fulfilled': 0,
-            'total': 0,
+            "requested": 0,
+            "emailed": 0,
+            "fulfilled": 0,
+            "total": 0,
         }
         for row in _request_data:
-            results['requested'] += row['requested']
-            results['emailed'] += row['emailed']
-            results['fulfilled'] += row['fulfilled']
-            results['total'] += row['requested'] + row['emailed'] + row['fulfilled']
+            results["requested"] += row["requested"]
+            results["emailed"] += row["emailed"]
+            results["fulfilled"] += row["fulfilled"]
+            results["total"] += row["requested"] + row["emailed"] + row["fulfilled"]
         return results
 
     def enrich_data(_request_data):
         for d in _request_data:
-            pda = d['qualifying_org']
-            d['display_name'] = (
-                "No Qualifying Authority Selected"
-                if pda == "unqualified"
-                else get_pd_org(pda)['title']
-            )
+            pda = d["qualifying_org"]
+            d["display_name"] = "No Qualifying Authority Selected" if pda == "unqualified" else get_pd_org(pda)["title"]
 
     request_data = make_pd_request_query()
     totals = calc_totals(request_data)

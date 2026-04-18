@@ -19,7 +19,7 @@ def get_category_id(category):
     global _categories
     if _categories is None:
         _categories = {}
-        for c in getdb().select('category'):
+        for c in getdb().select("category"):
             _categories[c.name] = c.id
     return _categories.get(category)
 
@@ -45,7 +45,7 @@ def new(
     t = db.transaction()
     try:
         cover_id = db.insert(
-            'cover',
+            "cover",
             category_id=category_id,
             filename=filename,
             filename_s=filename_s,
@@ -80,21 +80,19 @@ def query(category, olid, offset=0, limit=10):
         if len(olid) == 0:
             olid = [-1]
         where = web.reparam(
-            'deleted=$deleted AND category_id = $category_id AND olid IN $olid',
+            "deleted=$deleted AND category_id = $category_id AND olid IN $olid",
             locals(),
         )
     elif olid is None:
-        where = web.reparam('deleted=$deleted AND category_id=$category_id', locals())
+        where = web.reparam("deleted=$deleted AND category_id=$category_id", locals())
     else:
-        where = web.reparam(
-            'deleted=$deleted AND category_id=$category_id AND olid=$olid', locals()
-        )
+        where = web.reparam("deleted=$deleted AND category_id=$category_id AND olid=$olid", locals())
 
     result = getdb().select(
-        'cover',
-        what='*',
+        "cover",
+        what="*",
         where=where,
-        order='last_modified desc',
+        order="last_modified desc",
         offset=offset,
         limit=limit,
     )
@@ -126,7 +124,7 @@ class CoverDbDetails(web.storage):
 
 def details(id: int) -> CoverDbDetails | None:
     try:
-        return getdb().select('cover', what='*', where="id=$id", vars=locals())[0]
+        return getdb().select("cover", what="*", where="id=$id", vars=locals())[0]
     except IndexError:
         return None
 
@@ -156,7 +154,7 @@ def delete(id):
     t = db.transaction()
     try:
         db.query(
-            'UPDATE cover set deleted=$true AND last_modified=$now WHERE id=$id',
+            "UPDATE cover set deleted=$true AND last_modified=$now WHERE id=$id",
             vars=locals(),
         )
         db.insert("log", action="delete", timestamp=now, cover_id=id)
@@ -168,5 +166,5 @@ def delete(id):
 
 
 def get_filename(id):
-    d = getdb().select('cover', what='filename', where='id=$id', vars=locals())
+    d = getdb().select("cover", what="filename", where="id=$id", vars=locals())
     return (d and d[0].filename) or None

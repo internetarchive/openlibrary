@@ -76,11 +76,11 @@ class Textbox(Input):
 
     >>> t = Textbox("name", description='Name', value='joe')
     >>> t.render()
-    '<input type="text" id="name" value="joe" name="name" />'
+    '<input id="name" type="text" name="name" value="joe" />'
 
     >>> t = Textbox("name", description='Name', value='joe', id='name', klass='input', size=10)
     >>> t.render()
-    '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
+    '<input size="10" class="input" id="name" type="text" name="name" value="joe" />'
     """
 
     def get_type(self):
@@ -91,7 +91,7 @@ class Password(Input):
     """Password input.
 
     >>> Password("password", description='Password', value='secret').render()
-    '<input type="password" id="password" value="secret" name="password" />'
+    '<input id="password" type="password" name="password" value="secret" />'
     """
 
     def get_type(self):
@@ -102,7 +102,7 @@ class Email(Input):
     """Email input.
 
     >>> Email("email", value='joe@archive.org').render()
-    '<input type="email" id="email" value="joe@archive.org" name="email" />'
+    '<input id="email" type="email" name="email" value="joe@archive.org" />'
     """
 
     def get_type(self):

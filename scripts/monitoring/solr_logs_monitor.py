@@ -41,8 +41,8 @@ class RequestLogEntry(SolrLogEntry):
 
     def parse_params(self) -> dict[str, str | list[str]]:
         params: dict[str, str | list[str]] = {}
-        for kvp in self.params[1:-1].split('&'):
-            parts = kvp.split('=', 1)
+        for kvp in self.params[1:-1].split("&"):
+            parts = kvp.split("=", 1)
             if len(parts) != 2:
                 print(f"Warning: unexpected params format: {self.params}")
                 continue
@@ -60,63 +60,54 @@ class RequestLogEntry(SolrLogEntry):
 
     def get_request_label(self) -> str:
         params = self.parse_params()
-        label = params.get('ol.label')
-        if not label or label == 'UNLABELLED':
+        label = params.get("ol.label")
+        if not label or label == "UNLABELLED":
             return {
-                '/select': 'UNLABELLED_SELECT',
-                '/update': 'UNLABELLED_UPDATE',
-                '/get': 'UNLABELLED_GET',
-                '/query': 'UNLABELLED_QUERY',
-            }.get(self.path, 'UNLABELLED')
+                "/select": "UNLABELLED_SELECT",
+                "/update": "UNLABELLED_UPDATE",
+                "/get": "UNLABELLED_GET",
+                "/query": "UNLABELLED_QUERY",
+            }.get(self.path, "UNLABELLED")
 
         assert isinstance(label, str)
         return label
 
     @staticmethod
-    def parse_log_entry(match: re.Match) -> 'RequestLogEntry':
-        fields = {
-            kvp.split('=', 1)[0]: kvp.split('=', 1)[1]
-            for kvp in match.group('message').split(' ')
-        }
+    def parse_log_entry(match: re.Match) -> "RequestLogEntry":
+        fields = {kvp.split("=", 1)[0]: kvp.split("=", 1)[1] for kvp in match.group("message").split(" ")}
         return RequestLogEntry(
-            timestamp=match.group('timestamp'),
-            log_level=match.group('log_level'),
-            thread_info=match.group('thread_info'),
-            context=match.group('context'),
-            class_handler=match.group('class_handler'),
-            message=match.group('message'),
-            webapp=fields['webapp'],
-            path=fields['path'],
-            params=fields['params'],
-            status=int(fields['status']),
-            qtime=int(fields['QTime']),
-            other_fields={
-                k: v
-                for k, v in fields.items()
-                if k not in {'webapp', 'path', 'params', 'status', 'QTime'}
-            },
+            timestamp=match.group("timestamp"),
+            log_level=match.group("log_level"),
+            thread_info=match.group("thread_info"),
+            context=match.group("context"),
+            class_handler=match.group("class_handler"),
+            message=match.group("message"),
+            webapp=fields["webapp"],
+            path=fields["path"],
+            params=fields["params"],
+            status=int(fields["status"]),
+            qtime=int(fields["QTime"]),
+            other_fields={k: v for k, v in fields.items() if k not in {"webapp", "path", "params", "status", "QTime"}},
         )
 
 
-def parse_log_entry(log_line: str) -> 'SolrLogEntry':
-    log_pattern = re.compile(
-        r'^(?P<timestamp>\S+ \S+) (?P<log_level>\S+) +\((?P<thread_info>.*?)\) \[(?P<context>.*?)\] (?P<class_handler>\S+) (?P<message>.*)$'
-    )
+def parse_log_entry(log_line: str) -> "SolrLogEntry":
+    log_pattern = re.compile(r"^(?P<timestamp>\S+ \S+) (?P<log_level>\S+) +\((?P<thread_info>.*?)\) \[(?P<context>.*?)\] (?P<class_handler>\S+) (?P<message>.*)$")
 
     match = log_pattern.match(log_line)
     if not match:
         raise ValueError(f"Failed to parse log line: {log_line}")
 
-    if match.group('class_handler') == 'o.a.s.c.S.Request':
+    if match.group("class_handler") == "o.a.s.c.S.Request":
         return RequestLogEntry.parse_log_entry(match)
     else:
         return SolrLogEntry(
-            timestamp=match.group('timestamp'),
-            log_level=match.group('log_level'),
-            thread_info=match.group('thread_info'),
-            context=match.group('context'),
-            class_handler=match.group('class_handler'),
-            message=match.group('message'),
+            timestamp=match.group("timestamp"),
+            log_level=match.group("log_level"),
+            thread_info=match.group("thread_info"),
+            context=match.group("context"),
+            class_handler=match.group("class_handler"),
+            message=match.group("message"),
         )
 
 
@@ -177,15 +168,15 @@ def groupby_buffered[T, U](
 
 def stream_docker_logs(container_name: str) -> Generator[str, None, None]:
     process = subprocess.Popen(
-        ['docker', 'logs', '--tail=0', '-f', container_name],
+        ["docker", "logs", "--tail=0", "-f", container_name],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
     assert process.stdout
     assert process.stderr
     try:
-        for line in iter(process.stdout.readline, b''):
-            yield line.decode('utf-8').strip()
+        for line in iter(process.stdout.readline, b""):
+            yield line.decode("utf-8").strip()
     except KeyboardInterrupt:
         process.terminate()
     finally:
@@ -217,46 +208,36 @@ def standard_duration_blocks(ms: int) -> str:
 
 
 def graphite_normalize(name: str) -> str:
-    return re.sub(r'[^a-zA-Z0-9_-]', '_', name)
+    return re.sub(r"[^a-zA-Z0-9_-]", "_", name)
 
 
 def main(
-    solr_container='openlibrary-solr-1',
-    graphite_prefix='stats.ol.solr0',
-    graphite_address='graphite.us.archive.org:2004',
+    solr_container="openlibrary-solr-1",
+    graphite_prefix="stats.ol.solr0",
+    graphite_address="graphite.us.archive.org:2004",
     dry_run=False,
-    interval: Literal['minute', 'second'] = 'minute',
+    interval: Literal["minute", "second"] = "minute",
     buffer=25,
 ):
     # Only set SIGPIPE handler on platforms that support it (i.e., not Windows)
     if SIGPIPE := getattr(signal, "SIGPIPE", None):
         signal.signal(SIGPIPE, signal.SIG_DFL)
 
-    interval_offset = 16 if interval == 'minute' else 19
+    interval_offset = 16 if interval == "minute" else 19
     try:
         for minute_log_lines in groupby_buffered(
-            (
-                entry
-                for line in stream_docker_logs(solr_container)
-                if (entry := safe_parse_log_entry(line)) is not None
-            ),
+            (entry for line in stream_docker_logs(solr_container) if (entry := safe_parse_log_entry(line)) is not None),
             key_func=lambda x: x.timestamp[:interval_offset],
             buffer_size=buffer,
         ):
             # eg '2025-01-14 20:50:33.796'
             timestamp_str = minute_log_lines[0].timestamp
             # parse the string and convert to an int
-            timestamp_int = int(
-                datetime.datetime.strptime(
-                    timestamp_str, '%Y-%m-%d %H:%M:%S.%f'
-                ).timestamp()
-            )
+            timestamp_int = int(datetime.datetime.strptime(timestamp_str, "%Y-%m-%d %H:%M:%S.%f").timestamp())
 
             events: list[GraphiteEvent] = []
 
-            total_count = sum(
-                1 for entry in minute_log_lines if isinstance(entry, RequestLogEntry)
-            )
+            total_count = sum(1 for entry in minute_log_lines if isinstance(entry, RequestLogEntry))
             events.append(
                 GraphiteEvent(
                     path=f"{graphite_prefix}.requests.total",
@@ -264,11 +245,7 @@ def main(
                     timestamp=timestamp_int,
                 )
             )
-            count_by_path = Counter(
-                graphite_normalize(entry.path.lstrip('/'))
-                for entry in minute_log_lines
-                if isinstance(entry, RequestLogEntry)
-            )
+            count_by_path = Counter(graphite_normalize(entry.path.lstrip("/")) for entry in minute_log_lines if isinstance(entry, RequestLogEntry))
             for path, count in count_by_path.items():
                 events.append(
                     GraphiteEvent(
@@ -277,11 +254,7 @@ def main(
                         timestamp=timestamp_int,
                     )
                 )
-            count_by_time = Counter(
-                standard_duration_blocks(entry.qtime)
-                for entry in minute_log_lines
-                if isinstance(entry, RequestLogEntry)
-            )
+            count_by_time = Counter(standard_duration_blocks(entry.qtime) for entry in minute_log_lines if isinstance(entry, RequestLogEntry))
             for duration, count in count_by_time.items():
                 events.append(
                     GraphiteEvent(

@@ -126,6 +126,7 @@
 .search-result-item__preview-covers {
   display: flex;
   align-items: center;
+  isolation: isolate;
 }
 
 .search-result-item__preview-covers img {
