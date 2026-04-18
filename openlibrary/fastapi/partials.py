@@ -42,14 +42,13 @@ async def search_facets_partial(
     - param: dict with search parameters (q, author_key, subject_facet, etc.)
     - path: str (e.g., '/search')
     - query: str (e.g., '?q=python')
-    # TODO: Make this fully async
     """
     try:
         parsed_data = json.loads(data)
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return SearchFacetsPartial(data=parsed_data, sfw=sfw == "yes").generate()
+    return await SearchFacetsPartial(data=parsed_data, sfw=sfw == "yes").generate_async()
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -80,7 +79,7 @@ async def book_page_lists_partial(
 
     At least one of workId or editionId must be provided.
     """
-    return BookPageListsPartial(workId=workId, editionId=editionId).generate()
+    return await BookPageListsPartial(workId=workId, editionId=editionId).generate_async()
 
 
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -94,7 +93,7 @@ async def fulltext_search_suggestion_partial(
     The data parameter is the raw search query string.
     """
     partial = FullTextSuggestionsPartial(query=data)
-    result = partial.generate()
+    result = await partial.generate_async()
 
     if not partial.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"
@@ -139,7 +138,7 @@ async def lazy_carousel_partial(
     """
     Get lazily-loaded carousel HTML.
     """
-    return LazyCarouselPartial(params=params).generate()
+    return await LazyCarouselPartial(params=params).generate_async()
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

@@ -61,10 +61,10 @@ export class OLReadMore extends LitElement {
             font-weight: 500;
             text-align: center;
             width: 100%;
-            padding: 24px 12px 12px 12px;
+            padding: var(--spacing-inset-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
             background: linear-gradient(
                 var(--ol-readmore-gradient-color-transparent) 0,
-                var(--ol-readmore-gradient-color) 12px
+                var(--ol-readmore-gradient-color) var(--spacing-md)
             );
             border: none;
             border-radius: 0 0 4px 4px;
@@ -72,7 +72,7 @@ export class OLReadMore extends LitElement {
         }
 
         .toggle-btn.more {
-            margin-top: -12px;
+            margin-top: calc(-1 * var(--spacing-md));
         }
 
         .toggle-btn:hover {
@@ -108,8 +108,8 @@ export class OLReadMore extends LitElement {
 
         .toggle-btn.small {
             font-size: 12px;
-            padding-top: 16px;
-            padding-bottom: 8px;
+            padding-top: var(--spacing-inset-md);
+            padding-bottom: var(--spacing-inset-sm);
         }
     `;
 

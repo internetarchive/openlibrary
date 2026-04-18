@@ -3,8 +3,7 @@ from datetime import datetime
 
 import httpx
 
-from scripts.monitoring.haproxy_monitor import GraphiteEvent
-from scripts.monitoring.utils import bash_run
+from scripts.monitoring.utils import GraphiteEvent, bash_run
 
 
 async def get_solr_updater_lag_event(solr_next=False) -> GraphiteEvent:
@@ -23,11 +22,9 @@ async def get_solr_updater_lag_event(solr_next=False) -> GraphiteEvent:
     ).stdout.strip()
 
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f'http://localhost:7000/openlibrary.org/log/{solr_offset}?limit=1'
-        )
+        response = await client.get(f"http://localhost:7000/openlibrary.org/log/{solr_offset}?limit=1")
         data = response.json()
-        last_processed_timestamp_str = data['data'][0]['timestamp']
+        last_processed_timestamp_str = data["data"][0]["timestamp"]
 
         # Parse ISO format timestamp
         dt = datetime.fromisoformat(last_processed_timestamp_str)

@@ -75,12 +75,7 @@ $ rev = page.latest_revision or page.revision
 
         </form>
 
-        <div class="sansserif">
-        $ page = safeint(query_param("page", "0"))
-        $if page != 0:
-            <a href="$changequery(page=page - 1)" rel="nofollow">&larr; $_("Back")</a>
-        $if len(h) == 20:
-            <a href="$changequery(page=page + 1)" rel="nofollow">$_("Next") &rarr;</a>
-        </div>
+        $ page_num = safeint(query_param("page", "0"))
+        $:macros.OlPaginationArrows(page_num + 1, len(h) == 20)
 
 </div>

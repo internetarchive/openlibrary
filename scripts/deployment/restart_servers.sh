@@ -12,9 +12,8 @@ set -e
 # https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 
 PRODUCTION="compose.yaml:compose.production.yaml"
-# zsh uses HOST (although we're in a bash context, so maybe not needed?)
-HOSTNAME="${HOSTNAME:-$HOST}"
 OLIMAGE="${OLIMAGE:-}"
+DOCKER_COMPOSE_COMMAND=${DOCKER_COMPOSE_COMMAND:-"up --no-deps -d"}
 
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
 # Note the order matters; we generally want ol-www0 done before the web heads,
@@ -30,6 +29,6 @@ for SERVER in $SERVERS; do
         set -e
         HOSTNAME=\$(host $SERVER | cut -d ' ' -f 1)
         cd /opt/openlibrary
-        COMPOSE_FILE=$PRODUCTION HOSTNAME=\$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') up --no-deps -d
+        COMPOSE_FILE=$PRODUCTION HOSTNAME=\$HOSTNAME OLIMAGE=$OLIMAGE docker compose --profile $(echo $SERVER | cut -f1 -d '.') $DOCKER_COMPOSE_COMMAND
     "
 done

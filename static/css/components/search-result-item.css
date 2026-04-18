@@ -29,7 +29,7 @@
   width: 22px;
   height: 18px;
   display: inline-block;
-  margin-right: 6px;
+  margin-right: var(--spacing-inline-sm);
   position: relative;
   top: 2px;
 
@@ -61,8 +61,8 @@
   list-style-type: none;
   background-color: var(--grey-fafafa);
   border-radius: var(--border-radius-card);
-  padding: 10px;
-  margin-bottom: 3px;
+  padding: var(--spacing-inset-sm);
+  margin-bottom: var(--spacing-stack-xs);
   border-bottom: 1px solid var(--light-beige);
 }
 
@@ -90,7 +90,7 @@
   overflow: auto;
   display: inline;
   width: 100%;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   margin: 0;
   line-height: var(--line-height-meta);
 }
@@ -98,7 +98,7 @@
 .searchResultItem .resultStats {
   font-size: 0.75em;
   color: var(--grey);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   display: block;
 }
 
@@ -123,26 +123,30 @@
   color: var(--black);
 }
 
-.searchResultItem .preview-covers {
-  display: block;
-  height: 45px;
-  overflow: hidden;
-  margin-top: 10px;
-  margin-bottom: 5px;
+.search-result-item__preview-covers {
+  display: flex;
+  align-items: center;
+  isolation: isolate;
 }
 
-.searchResultItem .preview-covers img {
+.search-result-item__preview-covers img {
   border-radius: var(--border-radius-thumbnail);
-  opacity: 0.7;
+  border: 2px solid var(--grey-fafafa);
+  opacity: 1;
 }
 
-.searchResultItem .preview-covers--blur img {
+.search-result-item__preview-covers--blur img {
   filter: blur(2px);
+}
+
+.searchResultItem .bookcover--blur img {
+  filter: blur(4px);
 }
 
 .searchResultItem .bookcover {
   width: 100%;
-  margin: 10px 10px 0 5px;
+  margin: var(--spacing-inline-sm) var(--spacing-inline-md) 0
+    var(--spacing-inline-sm);
   text-align: center;
 }
 
@@ -153,14 +157,11 @@
   width: 175px;
 }
 
-.searchResultItem .bookcover--blur img {
-  filter: blur(4px);
-}
-
 .searchResultItem .imageLg {
   text-align: center;
   width: 100%;
-  margin: 10px 10px 0 5px;
+  margin: var(--spacing-stack-sm) var(--spacing-inline-md) 0
+    var(--spacing-inline-sm);
 }
 
 .searchResultItem .imageLg img {
@@ -176,7 +177,7 @@
   text-decoration: none;
   font-size: var(--font-size-label-medium);
   line-height: var(--font-size-label-medium);
-  padding: 4px;
+  padding: var(--spacing-inset-xs);
   border-radius: var(--border-radius-badge);
   max-width: 100%;
   white-space: nowrap;
@@ -189,26 +190,64 @@
   font-style: normal;
 }
 
+.search-result-item__preview-covers-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-xs);
+}
+
+.search-result-item__preview-covers > * {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.search-result-item__preview-covers :nth-child(n + 2) {
+  margin-left: -8px;
+}
+
+.search-result-item__preview-covers :nth-child(1) {
+  z-index: var(--z-index-level-5);
+}
+
+.search-result-item__preview-covers :nth-child(2) {
+  z-index: var(--z-index-level-4);
+}
+
+.search-result-item__preview-covers :nth-child(3) {
+  z-index: var(--z-index-level-3);
+}
+
+.search-result-item__preview-covers :nth-child(4) {
+  z-index: var(--z-index-level-2);
+}
+
+.search-result-item__preview-covers :nth-child(5) {
+  z-index: var(--z-index-level-1);
+}
+
 .srw__chapters {
   background: rgba(0, 124, 255, 0.2);
   border-radius: 4px;
   color: var(--black);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
   font-size: var(--font-size-label-medium);
 }
 
 @media only screen and (min-width: 800px) {
   .srw__chapters::part(toggle-btn) {
-    padding-left: 8px;
+    padding-left: var(--spacing-inset-sm);
     text-align: left;
   }
 }
 
 .srw__chapters .srw__chapter {
   border-radius: inherit;
-  padding: 6px 8px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   display: flex;
-  gap: 4px;
+  gap: var(--spacing-inline-sm);
   line-height: 1.2em;
   transition: background-color 0.2s;
 }
@@ -225,10 +264,10 @@
 .searchResultItem__librarian-extras {
   font-size: 0.7em;
   border-top: 1px dashed currentColor;
-  margin-top: 8px;
-  margin-bottom: -5px;
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: calc(-1 * var(--spacing-stack-xs));
   color: var(--grey);
-  padding: 7px 0;
+  padding: var(--spacing-inset-sm) 0;
   line-height: var(--line-height-meta);
   transition: color 0.2s;
   text-decoration: dotted underline;
@@ -238,8 +277,25 @@
   color: var(--primary-blue);
 }
 
-.preview-covers img:hover {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .search-result-item__preview-covers :hover {
+    z-index: var(--z-index-level-5);
+  }
+
+  .search-result-item__preview-covers :hover img {
+    border-color: var(--primary-blue);
+  }
+}
+
+.search-result-item__preview-covers :active img {
+  transform: scale(0.97);
+}
+
+.search-result-item__preview-covers :focus-visible {
+  z-index: var(--z-index-level-5);
+  box-shadow: var(--box-shadow-focus);
+  border-radius: var(--border-radius-thumbnail);
+  outline: none;
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
@@ -248,11 +304,11 @@
   max-width: 150px;
   line-height: 28px;
   display: flex;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 .listDelete a span {
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
   background-image: url(/images/back_list-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
@@ -271,12 +327,12 @@
   display: inline-block;
   background-color: hsla(81, 39%, 35%, 0.12);
   border-radius: var(--border-radius-pill);
-  padding: 0 13px;
+  padding: 0 var(--spacing-inset-md);
 }
 
 .trending-badge .trending-badge__chart {
   display: inline-block;
-  margin-left: 4px;
+  margin-left: var(--spacing-inline-sm);
   letter-spacing: -2px;
 }
 

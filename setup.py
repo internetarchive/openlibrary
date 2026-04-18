@@ -6,8 +6,6 @@ from setuptools import find_packages, setup
 
 setup(
     # Used to make solrbuilder faster
-    packages=find_packages(include=['openlibrary', 'openlibrary.*']),
-    ext_modules=cythonize(
-        "openlibrary/solr/update.py", compiler_directives={'language_level': "3"}
-    ),
+    packages=find_packages(include=["openlibrary", "openlibrary.*"]),
+    ext_modules=cythonize("openlibrary/solr/update.py", compiler_directives={"language_level": "3"}),
 )

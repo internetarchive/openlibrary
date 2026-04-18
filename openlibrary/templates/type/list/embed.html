@@ -98,6 +98,5 @@ $def render_seed_count(seed_count):
     </ul></div>
 
     <div class="clearfix"></div>
-    $:macros.Pager(page+1, len(list.seeds), page_size)
+    $:macros.OlPagination(page+1, ceil(len(list.seeds) / page_size))
 </div>
-

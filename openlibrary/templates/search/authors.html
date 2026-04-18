@@ -77,7 +77,7 @@ $ sort = query_param('sort', None)
             </li>
         </ul>
 
-        $:macros.Pager(page, results.num_found, results_per_page)
+        $:macros.OlPagination(page, ceil(results.num_found / results_per_page))
   </div>
 
 </div>

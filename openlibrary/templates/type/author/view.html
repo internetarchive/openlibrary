@@ -141,7 +141,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                         <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
+                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
 
                 <div id="searchResults">
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
@@ -150,7 +150,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     </ul>
                 </div>
 
-                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books_count)
+                $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
         </div>
     </div>
     <div class="contentOnethird">
@@ -161,8 +161,10 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
             $if subjects:
                 <div class="section link-box link-box--with-header">
                     <h3 class="collapse black uppercase">$label</h3>
+                    <ol-chip-group gap="small">
                     $for _, subject, count in subjects:
-                        <a itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</a>$cond(not loop.last, ",", "")
+                        <ol-chip size="small" itemprop="knowsAbout" href="/subjects/$prefix$subject.lower().replace(' ', '_')">$subject</ol-chip>
+                    </ol-chip-group>
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
@@ -218,9 +220,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                             <li itemprop="alternateName">$alternate_name</li>
                     </ul>
                 </div>
-
     </div>
-
-    $:render_template("lib/history", page)
+    $:render_template("lib/exports", page)
+    <div class="clearfix"></div>
 </div>
-

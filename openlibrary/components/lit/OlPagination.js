@@ -5,11 +5,16 @@ import { LitElement, html, css } from 'lit';
  *
  * @element ol-pagination
  *
- * @prop {Number} totalPages - Total number of pages
+ * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
+ *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {Number} totalPages - Total number of pages (required for "full" mode)
  * @prop {Number} currentPage - Currently selected page (1-indexed)
- * @prop {String} baseUrl - Optional base URL for generating page links. When provided,
- *                          renders anchor tags for SEO-friendly navigation. When omitted,
- *                          renders buttons and emits events.
+ * @prop {Boolean} hasNextPage - Whether a next page exists. Only used in "arrows" mode.
+ *                               In "full" mode, this is derived from totalPages.
+ * @prop {String} baseUrl - Optional base URL for generating page links. When omitted,
+ *                          falls back to the current page URL, preserving all existing
+ *                          query parameters (similar to changequery). Always renders
+ *                          anchor tags for SEO-friendly navigation.
  * @prop {String} labelPreviousPage - Aria label for "previous page" button (default: "Go to previous page")
  * @prop {String} labelNextPage - Aria label for "next page" button (default: "Go to next page")
  * @prop {String} labelGoToPage - Aria label template for page buttons, use {page} as placeholder
@@ -21,12 +26,22 @@ import { LitElement, html, css } from 'lit';
  * @fires ol-pagination-change - Fired when a page is selected. detail: { page: Number }
  *
  * @example
- * <!-- Event-based -->
+ * <!-- Full mode (default): page numbers with arrows -->
  * <ol-pagination total-pages="50" current-page="1"></ol-pagination>
  *
  * @example
- * <!-- URL-based -->
+ * <!-- Arrows mode: only prev/next, no total needed -->
+ * <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
+ *
+ * @example
+ * <!-- Explicit base URL -->
  * <ol-pagination total-pages="50" current-page="1" base-url="/search?q=hello"></ol-pagination>
+ *
+ * @example
+ * <!-- Intercept navigation with event -->
+ * <ol-pagination total-pages="50" current-page="1"
+ *     @ol-pagination-change=${(e) => { e.preventDefault(); handlePage(e.detail.page); }}
+ * ></ol-pagination>
  *
  * @example
  * <!-- With translated labels -->
@@ -42,8 +57,10 @@ import { LitElement, html, css } from 'lit';
  */
 export class OlPagination extends LitElement {
     static properties = {
+        mode: { type: String },
         totalPages: { type: Number, attribute: 'total-pages' },
         currentPage: { type: Number, attribute: 'current-page' },
+        hasNextPage: { type: Boolean, attribute: 'has-next-page' },
         baseUrl: { type: String, attribute: 'base-url' },
         labelPreviousPage: { type: String, attribute: 'label-previous-page' },
         labelNextPage: { type: String, attribute: 'label-next-page' },
@@ -56,30 +73,37 @@ export class OlPagination extends LitElement {
     static styles = css`
         :host {
             display: block;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: var(--font-family-body);
         }
 
         .pagination {
             display: flex;
             font-size: 14px;
-            gap: 2px;
+            gap: var(--spacing-inline-xs);
         }
 
         .pagination-item {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.2em 0.6em;
+            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             border: 1px solid transparent;
-            border-radius: 4px;
+            border-radius: var(--border-radius-button);
             background: transparent;
-            color: #444;
+            color: var(--darker-grey, #444);
             cursor: pointer;
             text-decoration: none;
+            font-variant-numeric: tabular-nums;
         }
 
-        .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-            background: rgba(0, 0, 0, 0.1);
+        @media (hover: hover) and (pointer: fine) {
+            .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
+                background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+            }
+        }
+
+        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
+            transform: scale(0.92);
         }
 
         .pagination-item:focus {
@@ -87,30 +111,31 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:focus-visible {
-            outline: 2px solid #5B8DD9;
+            outline: var(--focus-width) solid var(--color-focus-ring, #5B8DD9);
             outline-offset: 2px;
         }
 
         .pagination-item[aria-current="page"] {
-            border-color: #ddd;
+            border-color: var(--lighter-grey, #ddd);
+            background-color: var(--lightest-grey, #eee);
             cursor: default;
             user-select: none;
         }
 
         .pagination-item[aria-disabled="true"] {
-            color: #ddd;
+            color: var(--lighter-grey, #ddd);
             cursor: not-allowed;
         }
 
         .pagination-arrow {
-            padding: 0 0.15em;
+            padding: 0 var(--spacing-inline-xs);
         }
 
         .ellipsis {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #aaa;
+            color: var(--mid-grey, #aaa);
             cursor: default;
             user-select: none;
         }
@@ -124,8 +149,10 @@ export class OlPagination extends LitElement {
 
     constructor() {
         super();
+        this.mode = 'full';
         this.totalPages = 1;
         this.currentPage = 1;
+        this.hasNextPage = false;
         this.baseUrl = '';
         this._focusedIndex = -1;
 
@@ -149,15 +176,15 @@ export class OlPagination extends LitElement {
 
     /**
      * Build URL for a specific page number.
-     * Returns null if baseUrl is not set.
+     * Uses baseUrl if provided, otherwise falls back to the current window location.
+     * This preserves all existing query parameters (like changequery() does).
      * @param {Number} page - The page number
-     * @returns {String|null} The URL for the page, or null if baseUrl not set
+     * @returns {String|null} The URL for the page
      */
     _getPageUrl(page) {
-        if (!this.baseUrl) return null;
-
         try {
-            const url = new URL(this.baseUrl, window.location.origin);
+            const base = this.baseUrl || window.location.href;
+            const url = new URL(base, window.location.origin);
             if (page === 1) {
                 url.searchParams.delete('page');
             } else {
@@ -235,7 +262,8 @@ export class OlPagination extends LitElement {
      * @param {Number} page - The page number to navigate to
      */
     _goToPage(page) {
-        if (page < 1 || page > this.totalPages || page === this.currentPage) {
+        const maxPage = this.mode === 'arrows' ? Infinity : this.totalPages;
+        if (page < 1 || page > maxPage || page === this.currentPage) {
             return;
         }
 
@@ -254,6 +282,7 @@ export class OlPagination extends LitElement {
     /**
      * Handle click on anchor-based page links.
      * Dispatches the ol-pagination-change event to allow interception.
+     * If the event is cancelled via preventDefault(), anchor navigation is also prevented.
      * @param {Event} e - Click event
      * @param {Number} page - The page number
      */
@@ -265,6 +294,10 @@ export class OlPagination extends LitElement {
             cancelable: true,
         });
         this.dispatchEvent(event);
+        if (event.defaultPrevented) {
+            e.preventDefault();
+            this.currentPage = page;
+        }
     }
 
     /**
@@ -330,9 +363,21 @@ export class OlPagination extends LitElement {
         const isPrev = direction === 'prev';
         const isDisabled = isPrev
             ? this.currentPage === 1
-            : this.currentPage === this.totalPages;
+            : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
 
-        if (isDisabled) return html``;
+        if (isDisabled && this.mode !== 'arrows') return html``;
+
+        if (isDisabled) {
+            const label = isPrev ? this.labelPreviousPage : this.labelNextPage;
+            const icon = isPrev ? OlPagination._leftArrowIcon : OlPagination._rightArrowIcon;
+            return html`
+                <span
+                    class="pagination-item pagination-arrow"
+                    aria-disabled="true"
+                    aria-label=${label}
+                >${icon}</span>
+            `;
+        }
 
         const page = isPrev ? this.currentPage - 1 : this.currentPage + 1;
         const label = isPrev ? this.labelPreviousPage : this.labelNextPage;
@@ -347,7 +392,8 @@ export class OlPagination extends LitElement {
     }
 
     render() {
-        const visiblePages = this._getVisiblePages();
+        const isArrows = this.mode === 'arrows';
+        const visiblePages = isArrows ? [] : this._getVisiblePages();
 
         return html`
             <nav

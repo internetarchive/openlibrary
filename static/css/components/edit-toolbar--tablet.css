@@ -2,16 +2,17 @@
 div#editTools,
 div.editButton,
 div#editHistory {
-  padding: 2px 5px 0 10px;
+  padding: var(--spacing-stack-xs) var(--spacing-inline-sm) 0
+    var(--spacing-inline-md);
   margin-top: -5px;
   float: right;
 }
 div#editInfo {
-  margin-top: 3px;
+  margin-top: var(--spacing-stack-xs);
   float: right;
 }
 div#editTools {
   display: flex;
-  margin-top: 1px;
+  margin-top: var(--spacing-stack-xs);
   max-width: 280px;
 }

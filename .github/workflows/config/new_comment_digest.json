@@ -26,11 +26,6 @@
       "slackId": "<@U01ARTHG9EV>"
     },
     {
-      "githubUsername": "hornc",
-      "leadLabel": "Lead: @hornc",
-      "slackId": "<@U0EUS8DV0>"
-    },
-    {
       "githubUsername": "mheiman",
       "leadLabel": "Lead: @mheiman",
       "slackId": "<@U01MQBRDN5D>"
@@ -44,6 +39,11 @@
       "githubUsername": "rebecca-shoptaw",
       "leadLabel": "Lead: @rebecca-shoptaw",
       "slackId": "<@U06D09YC69L>"
+    },
+    {
+      "githubUsername": "lokesh",
+      "leadLabel": "Lead: @lokesh",
+      "slackId": "<@U09NTCSNVNG>"
     }
   ]
 }

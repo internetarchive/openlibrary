@@ -19,7 +19,6 @@
  * and imported directly in one of the entry points that are prefixed
  * with `page-` or `js-`
  */
-@import "legacy-header.css";
 @import "legacy-tools.css";
 @import "legacy-wmd.css";
 
@@ -78,7 +77,7 @@ table.code pre {
 /* openlibrary/templates/history.html */
 table#pageHistory {
   width: 100%;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   margin: 10px 0 20px;
 }
 
@@ -111,7 +110,7 @@ table.changeHistory td {
 
 table.changeHistory {
   width: 100%;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   margin: 0;
 }
 
@@ -137,7 +136,7 @@ table.help {
 
 table.help th {
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   border-bottom: 1px solid var(--grey-e7e7e7);
   padding: 5px;
@@ -147,7 +146,7 @@ table.help th {
 
 table.help td {
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   border-bottom: 1px solid var(--grey-e7e7e7);
   padding: 5px;
@@ -238,7 +237,7 @@ em {
 
 pre,
 code {
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   font-size: 0.875em;
   font-weight: normal;
   white-space: pre-wrap;
@@ -272,7 +271,7 @@ q:after {
 /* openlibrary/templates/showia.html */
 /* openlibrary/templates/showmarc.html */
 .breadcrumbs {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   font-size: var(--font-size-label-small);
   padding-bottom: 10px;
@@ -293,7 +292,7 @@ div.unordered {
 
 div.superNav {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   margin-bottom: 5px;
 }
@@ -304,7 +303,7 @@ span.link {
   font-size: var(--font-size-label-medium);
   color: var(--darker-grey);
   font-weight: normal !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   white-space: nowrap;
 }
 
@@ -312,7 +311,7 @@ span.tools {
   font-size: var(--font-size-label-medium);
   color: var(--dark-grey);
   font-weight: normal !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 span.tools.sorter {
@@ -340,7 +339,7 @@ span.tag {
 span.count {
   font-size: var(--font-size-label-medium) !important;
   font-weight: normal !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   padding: 5px 5px 0;
 }
@@ -351,13 +350,13 @@ span.merge {
 }
 
 span.resultTitle {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
 }
 
 span.resultTitle span.resultType {
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
 }
 
@@ -365,7 +364,7 @@ span.resultTitle .bookauthor,
 span.resultTitle .resultPublisher {
   font-size: 0.75em;
   color: var(--grey);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: normal;
 }
 
@@ -418,7 +417,7 @@ p.thanks {
 input[type="text"],
 select,
 textarea {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--darker-grey);
   font-size: 0.875em;
 }
@@ -523,7 +522,7 @@ div#contentHead h1 {
 /* openlibrary/templates/merge/authors.html */
 div.note {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   background-color: var(--light-yellow);
   margin: 0 auto;
   padding: 10px;
@@ -605,14 +604,14 @@ fieldset.minor {
 
 fieldset.major legend {
   padding: 5px 0;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
   font-size: 1.375em;
 }
 
 fieldset.minor legend {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
   font-size: 1.125em;
@@ -644,7 +643,7 @@ div.invalid,
 div.valid {
   float: left;
   font-size: 1em !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding-top: 5px;
 }
 
@@ -658,6 +657,10 @@ div.valid {
 /* openlibrary/templates/search/publishers.html */
 /* openlibrary/templates/work_search.html */
 /* openlibrary/templates/search/subjects.html */
+.search-row {
+  margin-bottom: 8px;
+}
+
 div.siteSearch {
   overflow: visible;
   border-radius: 5px;
@@ -694,13 +697,13 @@ div.siteSearch input[type="text"] {
 /* openlibrary/templates/search/publishers.html */
 /* openlibrary/templates/search/subjects.html */
 .siteSearch .formElement {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 1.1em;
 }
 
 /* openlibrary/templates/search/advancedsearch.html */
 .searchPlus {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
   color: var(--dark-grey);
   padding: 15px 0;
@@ -710,11 +713,23 @@ div.siteSearch input[type="text"] {
   margin-right: 20px;
 }
 
+/* openlibrary/templates/search/advancedsearch.html */
+@media screen and (max-width: 768px) {
+  .siteSearch--advanced {
+    width: 100%;
+  }
+
+  .siteSearch--advanced-input {
+    width: 100%;
+    margin-right: 0;
+  }
+}
+
 /* DIALOGS */
 
 /* openlibrary/macros/EditButtons.html */
 div.cclicense {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
   min-height: 20px;
   padding: 3px 0 0 30px;
@@ -754,7 +769,7 @@ div.verify span {
 
 div.alert,
 div.verify {
-  font: 1.25em var(--body-family);
+  font: 1.25em var(--font-family-body);
 }
 
 /* openlibrary/templates/account/verify/failed.html */
@@ -768,7 +783,7 @@ div.verify span {
 
 /* openlibrary/templates/account/email/forgot-ia.html */
 .defaultstyling {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .defaultstyling .padtop {
@@ -789,7 +804,7 @@ div.verify span {
 }
 
 .forgot-email-form label {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--dark-grey);
   font-weight: 600;
 }
@@ -859,7 +874,7 @@ div#searchResults .list-books {
   min-width: 0;
   flex: 1;
   margin-left: 0;
-  margin-bottom: 0;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -904,7 +919,7 @@ div#searchResults .SRPCoverBlank a {
 /* openlibrary/templates/type/author/view.html */
 .mode-options {
   font-size: 0.7em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .mode-options input {
@@ -915,7 +930,7 @@ div#searchResults .SRPCoverBlank a {
 
 /* openlibrary/macros/AvailabilityButton.html */
 .waitlist-msg {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.7em;
   margin-bottom: -1.5em;
   color: var(--grey);
@@ -963,11 +978,17 @@ div#searchFacets {
 /* openlibrary/templates/work_search.html */
 div.facet {
   margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+div.facet .facetHead {
+  flex-basis: 100%;
 }
 
 div.facetEntry {
   font-family: var(--body-family);
-  margin-bottom: 5px;
 }
 
 div.facetEntry a {
@@ -976,8 +997,11 @@ div.facetEntry a {
 }
 
 div.facetMoreLess {
+  flex-basis: 100%;
   font-family: var(--body-family);
-  margin-bottom: 5px;
+  position: relative;
+  top: -4px;
+  padding-left: 8px;
 }
 
 div.facetMoreLess a {
@@ -1017,19 +1041,19 @@ div.list h5 {
 }
 
 div.list h5 span {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 80%;
 }
 
 div.list .tags {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   color: var(--grey);
   margin-bottom: 5px;
 }
 
 div.list .owner {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   color: var(--grey);
   text-align: right;
@@ -1051,12 +1075,12 @@ div.list .owner {
 /* openlibrary/templates/books/author-autocomplete.html */
 /* openlibrary/templates/type/work/view.html */
 div.work {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 div.work span.work,
 div.work span.author {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   font-size: 1.125em;
 }
@@ -1066,7 +1090,7 @@ div.work span.work {
 }
 
 div.work span.editions {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   font-size: 1.125em;
 }
@@ -1177,7 +1201,7 @@ div.excerpt .text {
 
 div.excerpt .attribution {
   padding-left: 15px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
 }
 
@@ -1305,7 +1329,7 @@ span.actions a {
   display: block;
   float: left;
   min-width: 35px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 10px;
   margin-left: 10px;
   font-weight: 700;
@@ -1402,7 +1426,7 @@ ul.list-books > li {
 ul.list-books .resultTitle {
   display: block;
   margin: 0 !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
 }
 
@@ -1415,7 +1439,7 @@ ul.list-books .resultTitle .bookauthor,
 ul.list-books span.resultPublisher {
   font-size: 0.75em;
   color: var(--grey);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 /* openlibrary/templates/books/check.html */
@@ -1510,7 +1534,7 @@ div.popAlert {
   height: 200px;
   padding: 10px;
   margin: 10px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
   overflow: auto;
   outline: none;
@@ -1522,7 +1546,7 @@ div.popAlert {
 #wikicode p {
   margin: 10px 10px 0;
   padding: 0;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.75em;
 }
 
@@ -1602,7 +1626,7 @@ div.postSubmit {
 #listTools ul {
   font-size: 0.75em;
   color: var(--grey);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   margin: 0 0 20px !important;
 }
 
@@ -1652,7 +1676,7 @@ div#subjectLists ul.listLists li {
   list-style-type: none;
   float: left;
   width: 282px;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding-bottom: 10px;
   padding-top: 0;
   display: flex;
@@ -1677,7 +1701,7 @@ div#subjectLists ul.listLists li .data {
 
 div#subjectLists p {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   padding-left: 42px;
   margin-bottom: 5px !important;
 }

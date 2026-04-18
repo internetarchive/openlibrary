@@ -10,7 +10,7 @@
   div.chartDisplay {
     width: 430px;
     height: 50px;
-    padding: 10px 3px 0;
+    padding: var(--spacing-inset-sm) var(--spacing-inset-xs) 0;
     border-bottom: 1px solid var(--black);
     background-color: var(--lightest-grey);
   }

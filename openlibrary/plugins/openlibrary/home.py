@@ -26,15 +26,14 @@ from openlibrary.utils.request_context import (
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
-    'preset:comics': (
+    "preset:comics": (
         '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") '
         'OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR '
         'creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson")'
         'OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))'
     ),
-    'preset:authorsalliance_mitpress': (
-        '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR '
-        'publisher:(MIT Press) OR openlibrary_subject:(mitpress))'
+    "preset:authorsalliance_mitpress": (
+        "(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress))"
     ),
 }
 
@@ -60,18 +59,16 @@ def get_cached_homepage():
 
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
-    key = f'home.homepage.{lang}'
+    key = f"home.homepage.{lang}"
     cookies = web.cookies()
-    if cookies.get('pd', False):
-        key += '.pd'
-    if cookies.get('sfw', ''):
-        key += '.sfw'
+    if cookies.get("pd", False):
+        key += ".pd"
+    if cookies.get("sfw", ""):
+        key += ".sfw"
     if is_bot():
-        key += '.bot'
+        key += ".bot"
 
-    mc = cache.memcache_memoize(
-        get_homepage, key, timeout=five_minutes, prethread=caching_prethread()
-    )
+    mc = cache.memcache_memoize(get_homepage, key, timeout=five_minutes, prethread=caching_prethread())
     devmode = "dev" in web.ctx.features
     page = mc(devmode)
 
@@ -112,11 +109,15 @@ class home(delegate.page):
     path = "/"
 
     def GET(self):
-        cached_homepage = get_cached_homepage()
+        if devmode := "dev" in web.ctx.features:
+            homepage_data = get_homepage(devmode)
+        else:
+            homepage_data = get_cached_homepage()
+
         # when homepage is cached, home/index.html template
         # doesn't run ctx.setdefault to set the cssfile so we must do so here:
-        web.template.Template.globals['ctx']['cssfile'] = 'home'
-        return web.template.TemplateResult(cached_homepage)
+        web.template.Template.globals["ctx"]["cssfile"] = "home"
+        return web.template.TemplateResult(homepage_data)
 
 
 @cache.memoize(
@@ -124,20 +125,18 @@ class home(delegate.page):
     key=lambda count, language=None: f"home.random_book.{language or 'all'}",
     expires=dateutil.HALF_HOUR_SECS,
 )
-def get_random_borrowable_ebook_keys(
-    count: int, language: str | None = None
-) -> list[str]:
+def get_random_borrowable_ebook_keys(count: int, language: str | None = None) -> list[str]:
     solr = search.get_solr()
-    query = 'type:edition AND ebook_access:[borrowable TO *]'
+    query = "type:edition AND ebook_access:[borrowable TO *]"
     if language:
-        query += f' AND language:{language}'
+        query += f" AND language:{language}"
     docs = solr.select(
         query,
-        fields=['key'],
+        fields=["key"],
         rows=count,
-        sort=f'random_{random.random()} desc',
-    )['docs']
-    return [doc['key'] for doc in docs]
+        sort=f"random_{random.random()} desc",
+    )["docs"]
+    return [doc["key"] for doc in docs]
 
 
 class random_book(delegate.page):
@@ -146,7 +145,7 @@ class random_book(delegate.page):
     def GET(self):
         # Get user's language preference
         user_lang = None
-        web_lang = web.ctx.lang or 'en'
+        web_lang = web.ctx.lang or "en"
         marc_lang = convert_iso_to_marc(web_lang)
 
         # Only filter by language if it's a populated language
@@ -157,10 +156,8 @@ class random_book(delegate.page):
         raise web.seeother(random.choice(keys))
 
 
-def get_ia_carousel_books(
-    query=None, subject=None, sorts=None, limit=None, safe_mode=True
-):
-    if 'env' not in web.ctx:
+def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None, safe_mode=True):
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     elif query in CAROUSELS_PRESETS:
@@ -174,98 +171,93 @@ def get_ia_carousel_books(
         query=query,
         safe_mode=safe_mode,
     )
-    formatted_books = [
-        format_book_data(book, False) for book in books if book != 'error'
-    ]
+    formatted_books = [format_book_data(book, False) for book in books if book != "error"]
     return formatted_books
 
 
 def get_featured_subjects():
     # web.ctx must be initialized as it won't be available to the background thread.
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     FEATURED_SUBJECTS = [
         {
-            'key': '/subjects/art',
-            'presentable_name': _('Art'),
-            'emoji': '🎨',
+            "key": "/subjects/art",
+            "presentable_name": _("Art"),
+            "emoji": "🎨",
         },
         {
-            'key': '/subjects/science_fiction',
-            'presentable_name': _('Science Fiction'),
-            'emoji': '👽',
+            "key": "/subjects/science_fiction",
+            "presentable_name": _("Science Fiction"),
+            "emoji": "👽",
         },
         {
-            'key': '/subjects/fantasy',
-            'presentable_name': _('Fantasy'),
-            'emoji': '🧙‍♂️',
+            "key": "/subjects/fantasy",
+            "presentable_name": _("Fantasy"),
+            "emoji": "🧙‍♂️",
         },
         {
-            'key': '/subjects/biographies',
-            'presentable_name': _('Biographies'),
-            'emoji': '📖',
+            "key": "/subjects/biographies",
+            "presentable_name": _("Biographies"),
+            "emoji": "📖",
         },
         {
-            'key': '/subjects/recipes',
-            'presentable_name': _('Recipes'),
-            'emoji': '🍳',
+            "key": "/subjects/recipes",
+            "presentable_name": _("Recipes"),
+            "emoji": "🍳",
         },
         {
-            'key': '/subjects/romance',
-            'presentable_name': _('Romance'),
-            'emoji': '❤️',
+            "key": "/subjects/romance",
+            "presentable_name": _("Romance"),
+            "emoji": "❤️",
         },
         {
-            'key': '/subjects/textbooks',
-            'presentable_name': _('Textbooks'),
-            'emoji': '📚',
+            "key": "/subjects/textbooks",
+            "presentable_name": _("Textbooks"),
+            "emoji": "📚",
         },
         {
-            'key': '/subjects/children',
-            'presentable_name': _('Children'),
-            'emoji': '👶',
+            "key": "/subjects/children",
+            "presentable_name": _("Children"),
+            "emoji": "👶",
         },
         {
-            'key': '/subjects/history',
-            'presentable_name': _('History'),
-            'emoji': '📜',
+            "key": "/subjects/history",
+            "presentable_name": _("History"),
+            "emoji": "📜",
         },
         {
-            'key': '/subjects/medicine',
-            'presentable_name': _('Medicine'),
-            'emoji': '💊',
+            "key": "/subjects/medicine",
+            "presentable_name": _("Medicine"),
+            "emoji": "💊",
         },
         {
-            'key': '/subjects/religion',
-            'presentable_name': _('Religion'),
-            'emoji': '✝️',
+            "key": "/subjects/religion",
+            "presentable_name": _("Religion"),
+            "emoji": "✝️",
         },
         {
-            'key': '/subjects/mystery_and_detective_stories',
-            'presentable_name': _('Mystery and Detective Stories'),
-            'emoji': '🕵️‍♂️',
+            "key": "/subjects/mystery_and_detective_stories",
+            "presentable_name": _("Mystery and Detective Stories"),
+            "emoji": "🕵️‍♂️",
         },
         {
-            'key': '/subjects/plays',
-            'presentable_name': _('Plays'),
-            'emoji': '🎭',
+            "key": "/subjects/plays",
+            "presentable_name": _("Plays"),
+            "emoji": "🎭",
         },
         {
-            'key': '/subjects/music',
-            'presentable_name': _('Music'),
-            'emoji': '🎶',
+            "key": "/subjects/music",
+            "presentable_name": _("Music"),
+            "emoji": "🎶",
         },
         {
-            'key': '/subjects/science',
-            'presentable_name': _('Science'),
-            'emoji': '🔬',
+            "key": "/subjects/science",
+            "presentable_name": _("Science"),
+            "emoji": "🔬",
         },
     ]
-    return [
-        {**subject, **(subjects.get_subject(subject['key'], limit=0) or {})}
-        for subject in FEATURED_SUBJECTS
-    ]
+    return [{**subject, **(subjects.get_subject(subject["key"], limit=0) or {})} for subject in FEATURED_SUBJECTS]
 
 
 @public
@@ -287,7 +279,7 @@ def generic_carousel(
     timeout=None,
     safe_mode=True,
 ):
-    memcache_key = 'home.ia_carousel_books'
+    memcache_key = "home.ia_carousel_books"
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books,
         memcache_key,
@@ -314,12 +306,12 @@ def generic_carousel(
 
 def format_book_data(book, fetch_availability=True):
     d = web.storage()
-    d.key = book.get('key')
+    d.key = book.get("key")
     d.url = book.url()
     d.title = book.title or None
     d.ocaid = book.get("ocaid")
     d.eligibility = book.get("eligibility", {})
-    d.availability = book.get('availability', {})
+    d.availability = book.get("availability", {})
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
@@ -331,12 +323,12 @@ def format_book_data(book, fetch_availability=True):
     if cover := book.get_cover():
         d.cover_url = cover.url("M")
     elif d.ocaid:
-        d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
+        d.cover_url = "https://archive.org/services/img/%s" % d.ocaid
 
     if fetch_availability and d.ocaid:
-        collections = ia.get_metadata(d.ocaid).get('collection', [])
+        collections = ia.get_metadata(d.ocaid).get("collection", [])
 
-        if 'inlibrary' in collections:
+        if "inlibrary" in collections:
             d.borrow_url = book.url("/borrow")
         else:
             d.read_url = book.url("/borrow")

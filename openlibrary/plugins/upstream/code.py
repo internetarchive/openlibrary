@@ -1,6 +1,7 @@
 """Upstream customizations."""
 
 import datetime
+import functools
 import hashlib
 import json
 import os.path
@@ -158,7 +159,7 @@ class merge_work(delegate.page):
         )
 
 
-@web.memoize
+@functools.cache
 @public
 def vendor_js():
     pardir = os.path.pardir
@@ -180,7 +181,7 @@ def vendor_js():
     return '/static/upstream/js/vendor.js?v=' + digest
 
 
-@web.memoize
+@functools.cache
 @public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
@@ -333,7 +334,9 @@ class revert(delegate.mode):
                 if prev.type.key in ["/type/delete", "/type/redirect"]:
                     return revert(prev)
                 else:
-                    prev._save("revert to revision %d" % prev.revision)
+                    prev._save(
+                        "revert to revision %d" % prev.revision, action="revert-version"
+                    )
                     return prev
             elif thing.type.key == "/type/redirect":
                 redirect = web.ctx.site.get(thing.location)
@@ -369,7 +372,7 @@ class revert(delegate.mode):
             thing[k] = process(thing[k])
 
         comment = i._comment or "reverted to revision %d" % v
-        thing._save(comment)
+        thing._save(comment, action="revert-version")
         raise web.seeother(key)
 
 

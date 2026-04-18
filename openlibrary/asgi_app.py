@@ -211,6 +211,7 @@ def create_app() -> FastAPI | None:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
     from openlibrary.fastapi.internal.api import router as internal_router
@@ -227,6 +228,7 @@ def create_app() -> FastAPI | None:
 
     # Include routers
     app.include_router(account_router)
+    app.include_router(books_router)
     app.include_router(cdn_router)
     app.include_router(checkins_router)
     app.include_router(internal_router)

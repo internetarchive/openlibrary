@@ -10,7 +10,7 @@ from openlibrary.coverstore import archive, code, config
 from openlibrary.utils.sentry import init_sentry
 
 
-def runfcgi(func, addr=('localhost', 8000)):
+def runfcgi(func, addr=("localhost", 8000)):
     """Runs a WSGI function as a FastCGI pre-fork server."""
     config = dict(web.config.get("fastcgi", {}))
 
@@ -32,14 +32,14 @@ def load_config(configfile):
     for k, v in d.items():
         setattr(config, k, v)
 
-    if 'fastcgi' in d:
-        web.config.fastcgi = d['fastcgi']
+    if "fastcgi" in d:
+        web.config.fastcgi = d["fastcgi"]
 
 
 def setup(configfile: str) -> None:
     load_config(configfile)
 
-    sentry = init_sentry(getattr(config, 'sentry', {}))
+    sentry = init_sentry(getattr(config, "sentry", {}))
     if sentry.enabled:
         sentry.bind_to_webpy_app(code.app)
 
@@ -47,7 +47,7 @@ def setup(configfile: str) -> None:
 def main(configfile, *args):
     setup(configfile)
 
-    if '--archive' in args:
+    if "--archive" in args:
         archive.archive()
     else:
         sys.argv = [sys.argv[0]] + list(args)

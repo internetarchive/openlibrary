@@ -10,11 +10,11 @@ import time
 
 import httpx
 
-from scripts.monitoring.haproxy_monitor import GraphiteEvent
+from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
+    GraphiteEvent,
     bash_run,
-    get_service_ip,
     limit_server,
 )
 from scripts.utils.scheduler import OlAsyncIOScheduler
@@ -59,26 +59,6 @@ def monitor_nginx_logs():
     bash_run(
         f"log_top_ip_counts stats.{bucket}.top_ips",
         sources=["../obfi.sh", "utils.sh"],
-    )
-
-
-@limit_server(["ol-www0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
-async def monitor_haproxy():
-    # Note this is a long-running job that does its own scheduling.
-    # But by having it on a 60s interval, we ensure it restarts if it fails.
-    from scripts.monitoring.haproxy_monitor import main
-
-    web_haproxy_ip = get_service_ip("web_haproxy")
-
-    await main(
-        haproxy_url=f'http://{web_haproxy_ip}:7072/admin?stats',
-        graphite_address=GRAPHITE_URL,
-        prefix='stats.ol.haproxy',
-        dry_run=False,
-        fetch_freq=10,
-        commit_freq=30,
-        agg=None,  # No aggregation
     )
 
 
@@ -127,19 +107,45 @@ async def monitor_partner_useragents():
         return agent_counts
 
     known_names = extract_agent_counts("""
-    177 Whefi/1.0 (contact@whefi.com)
-     85 Bookhives/1.0 (paulpleela@gmail.com)
-     85 AliyunSecBot/Aliyun (AliyunSecBot@service.alibaba.com)
-     62 BookHub/1.0 (contact@ybookshub.com)
-     58 Bookscovery/1.0 (https://bookscovery.com; info@bookscovery.com)
-     45 BookstoreApp/1.0 (contact@thounkai.com)
-     20 Gleeph/1.0 (contact-openlibrary@gleeph.net)
-      2 Tomeki/1.0 (ankit@yopmail.com , gzip)
-      2 Snipd/1.0 (https://www.snipd.com) contact: company@snipd.com
-      2 OnTrack/1.0 (ashkan.haghighifashi@gmail.com)
-      2 Leaders.org (leaders.org) janakan@leaders.org
-      2 AwarioSmartBot/1.0 (+https://awario.com/bots.html; bots@awario.com)
-      1 ISBNdb (support@isbndb.com)
+    309 BookshopLT/1.0 (***@gmail.com)
+    230 BookReadingTime/2.0 (https://bookreadingtime.com; ***@bookreadingtime.com)
+    180 CourseworkBot/1.0 (coursework@local)
+    180 BookScraper/1.0 (data collection project; contact@example.com)
+    177 Whefi/1.0 (***@whefi.com)
+    160 BookEnricher/1.0 (your@email.com)
+    102 AwarioSmartBot/1.0 (+https://awario.com/bots.html; ***@awario.com)
+     85 Bookhives/1.0 (***@gmail.com)
+     85 AliyunSecBot/Aliyun (***@service.alibaba.com)
+     63 knihobot.cz (***@knihobot.cz)
+     62 BookHub/1.0 (***@ybookshub.com)
+     58 Bookscovery/1.0 (https://bookscovery.com; ***@bookscovery.com)
+     52 VisionBooksAdminBot/1.0 (https://visionbooks.app/; ***@gmail.com) Node.js
+     45 BookstoreApp/1.0 (***@thounkai.com)
+     45 MonsoonFire-Portal/1.0 (+https://portal.monsoonfire.com; contact ***@monsoonfire.com)
+     45 PrecodeZeoos/1.0 (***@precode.com.br)
+     44 ReRoll/1.0 (rating-backfill; ***@gmail.com)
+     39 ReRoll/1.0 (metadata-backfill; ***@gmail.com)
+     36 OrelhaDoLivro/1.0 (***@orelhadelivro.com.br; openlibrary-summary)
+     35 LikesnuBatch/1.0 (Contact: ***@likesnu.kr)
+     28 EmberNovels/1.0 (***@embernovels.com)
+     23 RAGAMUFFIN (***@gmail.com)
+     22 booklist4u/1.0 (https://booklist4u.com; ***@gmail.com)
+     21 TurkicMT-BookPipeline/1.0 (research; ***@example.com)
+     20 Gleeph/1.0 (***@gleeph.net)
+     18 LitCore/1.0 (https://litcore.io; ***@litcore.io) httpx/0.27
+     12 ISBN.nu Book Price Comparison (***@isbn.nu)
+      9 ISBNdb (***@isbndb.com)
+      9 AsayaApp/1.0 (***@asaya.app)
+      8 Sqwabl/1.0 (***@sqwabl.com)
+      5 1000BooksBeforeKindergarten (***@1000booksfoundation.org)
+      4 citesure/1.0 (***@citesure.com)
+      4 Bibliogram (***@bibliogram.it)
+      2 PERRLA/1.0 (***@perrla.com)
+      2 Tomeki/1.0 (***@yopmail.com , gzip)
+      2 Snipd/1.0 (https://www.snipd.com) contact: ***@snipd.com
+      2 OnTrack/1.0 (***@gmail.com)
+      2 Leaders.org (leaders.org) ***@leaders.org
+      1 inventaire/5.0.0 (https://inventaire.io; ***@inventaire.io)
     """)
 
     recent_uas = bash_run(
@@ -172,6 +178,29 @@ async def monitor_empty_homepage():
             value=book_count,
             timestamp=ts,
         ).submit(GRAPHITE_URL)
+
+
+@limit_server(["ol-www0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def monitor_fail2ban():
+    """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
+    failed, banned = get_fail2ban_counts("nginx-429")
+    ts = int(time.time())
+    GraphiteEvent.submit_many(
+        [
+            GraphiteEvent(
+                path="stats.ol.fail2ban.nginx-429.failed",
+                value=float(failed),
+                timestamp=ts,
+            ),
+            GraphiteEvent(
+                path="stats.ol.fail2ban.nginx-429.banned",
+                value=float(banned),
+                timestamp=ts,
+            ),
+        ],
+        GRAPHITE_URL,
+    )
 
 
 @limit_server(["ol-home0"], scheduler)

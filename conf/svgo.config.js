@@ -1,4 +1,3 @@
-/* eslint-env node, es6 */
 const {extendDefaultPlugins} = require('svgo');
 module.exports = {
     plugins: extendDefaultPlugins([

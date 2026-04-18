@@ -1,17 +1,17 @@
 h1 {
-  font-size: 1.875em;
+  font-size: var(--font-size-headline-large);
 }
 h1.title {
-  font-size: 1.25em;
+  font-size: var(--font-size-title-large);
 }
 h1 span.subtitle {
-  font-size: 0.65em;
+  font-size: var(--font-size-title-small);
   font-weight: normal;
 }
 /* TODO: Check if this class is still used. */
 h1.publisher {
   color: var(--brown);
-  font-size: 1.375em;
+  font-size: var(--font-size-headline-medium);
   font-family: var(--font-family-serif) !important;
   font-weight: normal !important;
   margin: 0;
@@ -21,16 +21,16 @@ h1 span.count {
 }
 
 h2 {
-  font-size: var(--font-size-title-large);
+  font-size: var(--font-size-headline-small);
 }
 h2.author {
   color: var(--brown);
-  font-size: 1.125em;
+  font-size: var(--font-size-title-medium);
   font-weight: normal;
 }
 h2.authorEdition {
   color: var(--brown);
-  font-size: 1em;
+  font-size: var(--font-size-title-small);
   font-weight: normal;
   margin: 0;
   padding: 0;
@@ -39,11 +39,11 @@ h2.publisher {
   background-color: var(--lightest-grey);
 }
 h2.edition-title {
-  margin: 7px 0 0;
+  margin: var(--spacing-stack-sm) 0 0;
   color: var(--grey);
   font-family: var(--font-family-title);
   font-weight: normal;
-  font-size: 1.1em;
+  font-size: var(--font-size-title-medium);
 }
 h2 a {
   color: var(--link-blue);
@@ -57,62 +57,70 @@ h2 a:hover {
 h1.edition,
 h2.edition {
   color: var(--black);
-  font-family: var(--body-family);
-  font-size: 1.125em;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-title-medium);
   margin: 0;
   padding: 0;
   font-weight: normal;
 }
 
 h3 {
-  font-size: var(--font-size-label-medium);
+  font-size: var(--font-size-title-large);
 }
 /* TODO: Check if this class is still used. */
 h3.Question {
   font-family: var(--font-family-serif);
-  font-size: 1.2em;
+  font-size: var(--font-size-title-large);
   font-weight: normal;
   color: var(--brown);
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: var(--spacing-stack-sm);
+  padding-top: var(--spacing-inset-sm);
   border-top: 1px dotted var(--lighter-grey);
 }
 
 h4 {
-  font-size: 0.8125em;
+  font-size: var(--font-size-title-medium);
 }
 h4.publisher,
 h4.observer-count {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: normal;
 }
 h4.facetHead {
-  font-family: var(--body-family);
-  font-size: 0.6875em;
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-label-medium);
   font-weight: 700;
   color: var(--black);
   text-transform: uppercase;
-  margin: 0 0 5px;
+  margin: 0;
   padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+}
+h4.facetHead .facet-icon {
+  flex-shrink: 0;
+  color: var(--mid-grey);
 }
 h4.facetHead span.merge {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: normal !important;
   text-transform: none !important;
+  /* Not tokenized: must exceed the 16px icon width to avoid text overlap */
   padding-left: 22px;
   background: url(/images/icons/icon_merge-sm.png) no-repeat 0 0;
   min-height: 16px;
 }
 
 h5 {
-  font-size: 0.875em;
+  font-size: var(--font-size-title-small);
   font-family: var(--font-family-serif) !important;
   font-weight: normal !important;
 }
 
 h6 {
-  font-size: 0.6875em;
+  font-size: var(--font-size-label-medium);
 }
 
 .head h2 a {
@@ -141,14 +149,14 @@ span.title,
 h6.title {
   font-size: var(--font-size-label-medium);
   font-weight: normal !important;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   margin: 0;
   padding: 0;
 }
 
 .titleSmall {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: var(--font-size-label-small);
   font-weight: 600;
 }

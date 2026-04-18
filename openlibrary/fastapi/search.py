@@ -18,7 +18,12 @@ from pydantic import (
 )
 
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.fastapi.models import Pagination, PaginationLimit20
+from openlibrary.fastapi.models import (
+    Pagination,
+    PaginationLimit20,
+    SolrInternalsParams,
+    parse_comma_separated_list,
+)
 from openlibrary.plugins.worksearch.code import (
     default_spellcheck_count,
     run_solr_query_async,
@@ -55,21 +60,31 @@ class PublicQueryOptions(BaseModel):
     public_scan_b: list[Literal["true", "false"]] = []
 
     # List fields (facets)
-    author_key: list[str] = Field([], description="Filter by author key.", examples=["OL1394244A"])
-    subject_facet: list[str] = Field([], description="Filter by subject.", examples=["Fiction", "City planning"])
+    author_key: list[str] = Field(
+        [], description="Filter by author key.", examples=["OL1394244A"]
+    )
+    subject_facet: list[str] = Field(
+        [], description="Filter by subject.", examples=["Fiction", "City planning"]
+    )
     person_facet: list[str] = Field(
         [],
         description="Filter by person. Not the author but the person who is the subject of the work.",
         examples=["Jane Jacobs (1916-2006)", "Cory Doctorow"],
     )
-    place_facet: list[str] = Field([], description="Filter by place.", examples=["New York", "Xiamen Shi"])
+    place_facet: list[str] = Field(
+        [], description="Filter by place.", examples=["New York", "Xiamen Shi"]
+    )
     time_facet: list[str] = Field(
         [],
         description="Filter by time. It can be formatted many ways.",
         examples=["20th century", "To 70 A.D."],
     )
-    first_publish_year: list[str] = Field([], description="Filter by first publish year.", examples=["2020"])
-    publisher_facet: list[str] = Field([], description="Filter by publisher.", examples=["Urban Land Institute"])
+    first_publish_year: list[str] = Field(
+        [], description="Filter by first publish year.", examples=["2020"]
+    )
+    publisher_facet: list[str] = Field(
+        [], description="Filter by publisher.", examples=["Urban Land Institute"]
+    )
     language: list[str] = Field(
         [],
         description="Filter by language using three-letter language codes.",
@@ -93,7 +108,7 @@ class PublicQueryOptions(BaseModel):
 
 
 class SearchRequestParams(PublicQueryOptions, Pagination):
-    fields: Annotated[list[str], BeforeValidator(parse_fields_string)] = Field(
+    fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
         sorted(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
@@ -105,12 +120,6 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
     )
-
-    @staticmethod
-    def parse_fields_string(v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            v = [v]
-        return [f.strip() for item in v for f in str(item).split(",") if f.strip()]
 
     @staticmethod
     def parse_query_json(v: str) -> dict[str, Any]:
@@ -157,10 +166,14 @@ class SearchResponse(BaseModel):
 async def search_json(
     request: Request,
     params: Annotated[SearchRequestParams, Query()],
+    solr_internals_params: Annotated[
+        SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)
+    ],
 ) -> Any:
     """
     Performs a search for documents based on the provided query.
     """
+
     raw_response = await work_search_async(
         params.selected_query,
         sort=params.sort,
@@ -174,6 +187,7 @@ async def search_json(
         spellcheck_count=params.spellcheck_count,
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
+        solr_internals_params=solr_internals_params,
     )
 
     raw_response["q"] = params.q
@@ -247,7 +261,8 @@ def create_sort_option_type(sorts_map: Mapping):
         WithJsonSchema(
             {
                 "type": "string",
-                "enum": list(sorts_map.keys()) + [""],  # Include empty string for default
+                "enum": list(sorts_map.keys())
+                + [""],  # Include empty string for default
             }
         ),
     ]
@@ -260,7 +275,9 @@ class ListSearchRequestParams(PaginationLimit20):
     q: str = Field("", description="The search query")
     fields: str = Field("", description="Fields to return")
     sort: ListSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
-    api: Literal["next", ""] = Field("", description="API version: 'next' for new format, empty for old format")
+    api: Literal["next", ""] = Field(
+        "", description="API version: 'next' for new format, empty for old format"
+    )
 
     @model_validator(mode="after")
     def handle_legacy_logic(self) -> Self:

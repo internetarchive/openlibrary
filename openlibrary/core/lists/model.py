@@ -2,6 +2,7 @@
 
 import contextlib
 import logging
+import re
 import typing
 from collections.abc import Iterable
 from functools import cached_property
@@ -21,10 +22,17 @@ from openlibrary.core.models import (
     Thing,
     ThingKey,
     ThingReferenceDict,
+    WorkSeriesEdgeDB,
     does_seed_have_metadata,
     update_list_seed_metadata,
 )
-from openlibrary.plugins.upstream.models import Author, Changeset, Edition, User, Work
+from openlibrary.plugins.upstream.models import (
+    Author,
+    Changeset,
+    Edition,
+    User,
+    Work,
+)
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.utils.solr import Solr
@@ -656,7 +664,27 @@ class SeriesDict(ListDict):
     pass
 
 
+def get_work_sort_key(
+    tpl: tuple[Work, WorkSeriesEdgeDB],
+) -> tuple[str, int, float, str]:
+    work, edge = tpl
+    position = edge.get('position')
+    pos_str = str(position or "").strip()
+
+    with contextlib.suppress(ValueError):
+        return ("A: Numeric", 1, float(pos_str), work.key)
+
+    if match := re.fullmatch(r'(\d+)\s*-\s*(\d+)', pos_str):
+        lower = int(match.group(1))
+        upper = int(match.group(2))
+        return ("C: Range", upper - lower, float(lower), work.key)
+
+    return ("B: Non-numeric", 0, 0.0, work.key)
+
+
 class Series(List):
+    SEED_LIMIT = 100
+
     @cached_property
     @typing.override
     def seeds(  # type: ignore[override]
@@ -671,22 +699,15 @@ class Series(List):
             {
                 'type': '/type/work',
                 'series': {'series': {'key': self.key}},
-            }
+                'limit': self.SEED_LIMIT,
+            },
         )
         works = cast(list[Work], web.ctx.site.get_many(work_keys))
         series_edges = [
             (work, edge) for work in works if (edge := work.find_series_edge(self.key))
         ]
 
-        def get_work_position(position: str | None) -> float:
-            position_float = 9999.0
-            with contextlib.suppress(ValueError):
-                position_float = float(position or 9999)
-            return position_float
-
-        sorted_edges = sorted(
-            series_edges, key=lambda tpl: get_work_position(tpl[1].get('position'))
-        )
+        sorted_edges = sorted(series_edges, key=get_work_sort_key)
 
         seeds: list[Seed] = []
         for work, edge in sorted_edges:

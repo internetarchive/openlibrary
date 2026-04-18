@@ -6,7 +6,6 @@
  * -  https://openlibrary.org/books/OL7521653M/Holes/daisy
  */
 
-div#header,
 footer,
 div#bottom,
 .siteSearch {
@@ -53,7 +52,7 @@ div.nav {
 }
 
 .borrow-table table th.expires {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--brown);
   font-weight: 600;
   font-size: 0.6875em;
@@ -62,7 +61,7 @@ div.nav {
 }
 
 .borrow-table table th.titles {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
   font-size: 1.125em;

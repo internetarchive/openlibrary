@@ -12,12 +12,12 @@ a.cta-btn {
   display: block;
   border: 0;
   border-radius: 5px;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   box-sizing: border-box;
   cursor: pointer;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   text-align: center;
-  padding: 7px;
+  padding: var(--spacing-inset-sm);
   white-space: nowrap;
   background-color: var(--grey);
   line-height: 1.5em;
@@ -45,7 +45,7 @@ a.cta-btn .btn-icon.read-aloud {
 
 .cta-btn .btn-label,
 a.cta-btn .btn-label {
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
   padding-right: 0;
 }
 
@@ -146,7 +146,7 @@ a.cta-btn--sponsor {
 a.cta-btn--vanilla,
 a.cta-btn--vanilla:visited,
 a.cta-btn--vanilla:link {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border: 2px solid var(--light-grey);
   background: var(--white);
   color: var(--grey);
@@ -159,7 +159,7 @@ a.cta-btn--vanilla:link {
 a.cta-btn--unstyled,
 a.cta-btn--unstyled:visited,
 a.cta-btn--unstyled:link {
-  padding: 7px;
+  padding: var(--spacing-inset-sm);
   background: var(--white);
   color: var(--grey);
   border-radius: 6px;
@@ -190,7 +190,7 @@ a.cta-btn--cancel:hover {
 a.cta-btn.cta-btn--w-icon {
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 var(--spacing-inset-sm);
 }
 
 .cta-btn--sponsor:link,
@@ -210,7 +210,7 @@ a.cta-btn--sponsor:hover {
 .cta-btn__badge,
 a.cta-btn__badge {
   background-color: hsl(19, 95%, 20%);
-  padding: 4px 7px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border-radius: 5px;
   font-size: 0.7em;
 }
@@ -224,18 +224,18 @@ a.cta-btn__badge {
 }
 
 .carousel-section .cta-btn.cta-btn--external {
-  padding-right: 25px;
+  padding-right: var(--spacing-inset-lg);
 }
 
 /* Top margin to button coming after another button */
 .cta-btn + form input.cta-btn,
 .cta-btn + .cta-btn {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 .cta-btn--small {
   font-size: var(--font-size-label-medium);
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 
 .cta-btn--search {
@@ -257,7 +257,7 @@ a.cta-btn__badge {
 }
 
 .cta-button-group .cta-btn {
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
   margin: 0;
 
   /* Avoid text wrapping */
@@ -272,12 +272,14 @@ a.cta-btn__badge {
 
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:not(:first-child):not(:last-child) {
+  /* Not tokenized: 1px gap is intentional for connected button group appearance */
   margin-left: 1px;
   border-radius: 2px;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 .cta-button-group > .cta-btn:last-child:not(:first-child) {
+  /* Not tokenized: 1px gap is intentional for connected button group appearance */
   margin-left: 1px;
   border-radius: 2px 6px 6px 2px;
 }
