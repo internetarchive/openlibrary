@@ -12,7 +12,10 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
-from openlibrary.core.vendors import get_amazon_metadata, get_betterworldbooks_metadata
+from openlibrary.core.vendors import (
+    get_amazon_metadata,
+    get_betterworldbooks_metadata_async,
+)
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
@@ -204,6 +207,9 @@ class AffiliateLinksPartial(PartialDataHandler):
         self.data = data
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         args = self.data.get("args", [])
 
         if len(args) < 2:
@@ -215,7 +221,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         bwb_metadata = None
         amz_metadata = None
         if not is_bot() and opts.get("prices") and isbn:
-            bwb_metadata = get_betterworldbooks_metadata(isbn)
+            bwb_metadata = await get_betterworldbooks_metadata_async(isbn)
             if not (bwb_metadata and bwb_metadata.get("market_price")):
                 amz_metadata = get_amazon_metadata(isbn, resources="prices")
 
