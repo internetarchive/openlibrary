@@ -42,9 +42,9 @@ describe('SearchBar', () => {
         });
 
         test('Remove title prefix from q param', () => {
-            sb.initFromUrlParams({q: 'title:"Harry Potter"', facet: 'title'});
+            sb.initFromUrlParams({q: 'title:(Harry Potter)', facet: 'title'});
             expect(sb.$input.val()).toBe('Harry Potter');
-            sb.initFromUrlParams({q: 'title: "Harry"', facet: 'title'});
+            sb.initFromUrlParams({q: 'title: (Harry)', facet: 'title'});
             expect(sb.$input.val()).toBe('Harry');
         });
 
@@ -112,7 +112,7 @@ describe('SearchBar', () => {
         });
 
         test('Adds title prefix to plain strings', () => {
-            expect(fn('Harry Potter')).toBe('title: "Harry Potter"');
+            expect(fn('Harry Potter')).toBe('title:(Harry Potter)');
         });
 
         test('Does not add title prefix to lucene-style queries', () => {
