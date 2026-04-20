@@ -186,10 +186,11 @@ export class SearchBar {
         if (urlParams.q && this.getCurUrl().pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
             if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
-                const parts = q.split('"');
-                if (parts.length === 3) {
-                    q = parts[1];
+                 q = q.replace('title:', '').trim();
+                if (q.startsWith('(') && q.endsWith(')')){
+                    q = q.substring(1, q.length -1);
                 }
+
             }
             this.$input.val(q);
         }
@@ -312,7 +313,7 @@ export class SearchBar {
      */
     static marshalBookSearchQuery(q) {
         if (q && q.indexOf(':') === -1 && q.indexOf('"') === -1) {
-            q = `title: "${q}"`;
+            q = `title:(${q})`;
         }
         return q;
     }
