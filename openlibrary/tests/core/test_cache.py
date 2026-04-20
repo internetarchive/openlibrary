@@ -9,14 +9,14 @@ from openlibrary.mocks import mock_memcache
 
 class Test_memcache_memoize:
     def test_encode_args(self):
-        m = cache.memcache_memoize(None, key_prefix="foo")
+        m = cache.memcache_memoize(lambda: None, key_prefix="foo", hash_args=False)
 
-        assert m.encode_args([]) == ""
-        assert m.encode_args(["a"]) == '"a"'
-        assert m.encode_args([1]) == "1"
-        assert m.encode_args(["a", 1]) == '"a",1'
-        assert m.encode_args([{"a": 1}]) == '{"a":1}'
-        assert m.encode_args([["a", 1]]) == '["a",1]'
+        assert m.encode_args(()) == ""
+        assert m.encode_args(("a",)) == '"a"'
+        assert m.encode_args((1,)) == "1"
+        assert m.encode_args(("a", 1)) == '"a",1'
+        assert m.encode_args(({"a": 1},)) == '{"a":1}'
+        assert m.encode_args((["a", 1],)) == '["a",1]'
 
     def test_generate_key_prefix(self):
         def foo():
@@ -26,7 +26,7 @@ class Test_memcache_memoize:
         assert m.key_prefix[:4] == "foo_"
 
     def test_random_string(self):
-        m = cache.memcache_memoize(None, "foo")
+        m = cache.memcache_memoize(lambda: None, "foo")
         assert m._random_string(0) == ""
 
         s1 = m._random_string(1)
@@ -38,7 +38,7 @@ class Test_memcache_memoize:
         assert len(s10) == 10
 
     def square_memoize(self):
-        def square(x):
+        def square(x: int):
             return x * x
 
         m = cache.memcache_memoize(square, key_prefix="square")
@@ -58,10 +58,12 @@ class Test_memcache_memoize:
     def test_update_async(self):
         m = self.square_memoize()
 
-        m.update_async(20)
+        m.update_async(None, 20)
         m.join_threads()
 
-        assert m.memcache_get([20], {})[0] == 400
+        result = m.memcache_get(20)
+        assert result is not None
+        assert result[0] == 400
 
     def test_timeout(self, monkeytime):
         m = self.square_memoize()
@@ -104,7 +106,7 @@ class Test_memoize:
         cache.memory_cache.set(key, value)
 
     def test_signatures(self):
-        def square(x):
+        def square(x: int):
             """Returns square x."""
             return x * x
 
@@ -114,7 +116,7 @@ class Test_memoize:
 
     def test_cache(self):
         @cache.memoize(engine="memory", key="square")
-        def square(x):
+        def square(x: int):
             return x * x
 
         assert square(2) == 4
@@ -126,11 +128,11 @@ class Test_memoize:
 
     def test_cache_with_tuple_keys(self):
         @cache.memoize(engine="memory", key=lambda x: (str(x), "square"))
-        def square(x):
+        def square(x: int):
             return x * x
 
         @cache.memoize(engine="memory", key=lambda x: (str(x), "double"))
-        def double(x):
+        def double(x: int):
             return x + x
 
         assert self.get("3") is None
@@ -145,7 +147,7 @@ class Test_memoize:
     async def test_async_signatures(self):
         """Ensure metadata is preserved for async functions."""
 
-        async def asquare(x):
+        async def asquare(x: int):
             """Returns async square x."""
             return x * x
 
@@ -191,7 +193,7 @@ class Test_memoize:
         """Ensure async works with complex tuple keys."""
 
         @cache.memoize(engine="memory", key=lambda x: (str(x), "async_val"))
-        async def get_val(x):
+        async def get_val(x: int):
             return x + 1
 
         await get_val(5)
@@ -210,11 +212,11 @@ class Test_memoize:
         """
 
         @cache.memoize(engine="memory", key="parity_check")
-        def sync_f(x):
+        def sync_f(x: int):
             return x + 1
 
         @cache.memoize(engine="memory", key="parity_check")
-        async def async_f(x):
+        async def async_f(x: int):
             return x + 1
 
         # 1. Run Sync, populate cache

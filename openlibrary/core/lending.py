@@ -658,7 +658,8 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
     if account and account.itemname:
         loans += _get_ia_loans_of_user(account.itemname)
     # Set patron's loans in cache w/ now timestamp
-    get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
+    cache_key = get_cached_loans_of_user.compute_key(user_key)
+    get_cached_loans_of_user.memcache_set(cache_key, loans or [], time.time())  # rehydrate cache
     return loans
 
 
@@ -682,9 +683,13 @@ def get_user_waiting_loans(user_key: str) -> list[WaitingLoan]:
     try:
         account = OpenLibraryAccount.get_by_key(user_key)
         itemname = account.itemname if account else None
-        result = WaitingLoan.query(userid=itemname)
-        get_cached_user_waiting_loans.memcache_set((user_key,), {}, result or [], time.time())  # rehydrate cache
-        return result or []
+        result = WaitingLoan.query(userid=itemname) or []
+
+        # rehydrate cache
+        cache_key = get_cached_user_waiting_loans.compute_key(user_key)
+        get_cached_user_waiting_loans.memcache_set(cache_key, result, time.time())
+
+        return result
     except JSONDecodeError:
         return []
 

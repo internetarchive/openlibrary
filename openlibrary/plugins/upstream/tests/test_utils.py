@@ -365,10 +365,6 @@ def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
             "openlibrary.plugins.openlibrary.code.is_bot",
             return_value=False,
         ),
-        patch(
-            "openlibrary.plugins.openlibrary.home.caching_prethread",
-            return_value=None,
-        ),
     ):
         utils.render_cached_macro("RawQueryCarousel", ("subject:fantasy",))
 
