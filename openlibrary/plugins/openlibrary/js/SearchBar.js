@@ -186,7 +186,7 @@ export class SearchBar {
         if (urlParams.q && this.getCurUrl().pathname.match(/^\/search/)) {
             let q = urlParams.q.replace(/\+/g, ' ');
             if (this.facet.read() === 'title' && q.indexOf('title:') !== -1) {
-                 q = q.replace('title:', '').trim();
+                q = q.replace('title:', '').trim();
                 if (q.startsWith('(') && q.endsWith(')')){
                     q = q.substring(1, q.length -1);
                 }
