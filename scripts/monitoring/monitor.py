@@ -33,7 +33,14 @@ scheduler = OlAsyncIOScheduler("OL-MONITOR")
 @scheduler.scheduled_job('interval', seconds=60)
 def log_workers_cur_fn():
     """Logs the state of the gunicorn workers."""
-    bash_run(f"log_workers_cur_fn stats.{SERVER}.workers.cur_fn", sources=["utils.sh"])
+    bash_run(
+        f"log_workers_cur_fn webpy stats.{SERVER}.workers.webpy.cur_fn",
+        sources=["olspy.sh"],
+    )
+    bash_run(
+        f"log_workers_cur_fn fastapi stats.{SERVER}.workers.fastapi.cur_fn",
+        sources=["olspy.sh"],
+    )
 
 
 @limit_server(["ol-www0", "ol-covers0"], scheduler)
