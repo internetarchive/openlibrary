@@ -7,7 +7,7 @@ import socket
 import sys
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -18,35 +18,51 @@ from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
-from openlibrary.core import stats
+from openlibrary.core import cache, stats
 from openlibrary.utils import get_software_version
 
 status_info: dict[str, Any] = {}
-feature_flagso: dict[str, Any] = {}
+feature_flags: dict[str, Any] = {}
 
 TESTING_STATE_FILE = Path('./_testing-prs.json')
 _GITHUB_API_BASE = "https://api.github.com/repos/internetarchive/openlibrary"
 _JENKINS_URL = "https://jenkins.openlibrary.org/job/testing-deploy/buildWithParameters"
+_JENKINS_JOB_URL = "https://jenkins.openlibrary.org/job/ol-dev1-deploy%20(internal)/"
+_DRIFT_CACHE_KEY = 'status.github_pr_drift'
+_DRIFT_CACHE_TTL = 5 * 60  # 5 minutes
 
 
 class status(delegate.page):
     def GET(self):
-        testing_prs = _load_testing_state()  # None if state file doesn't exist
+        testing_state = _load_testing_state()
         is_maintainer_user = _is_maintainer()
         drift_info = {}
-        if testing_prs:
-            # NOTE: makes 1-2 GitHub API calls per PR; acceptable for small testing sets
-            drift_info = {p.pr: _get_pr_drift(p) for p in testing_prs}
-        show_testing = testing_prs is not None or is_maintainer_user
+        if testing_state:
+            drift_info, _ = _get_drift_info(testing_state)
+        show_testing = testing_state is not None or is_maintainer_user
+        last_deploy = testing_state.last_deploy_at if testing_state else ''
+        has_pending = bool(testing_state) and any(
+            p.pull_latest_sha
+            or p.pending_active is not None
+            or drift_info.get(p.pr, {}).get('merged', False)
+            or not last_deploy
+            or p.added_at > last_deploy
+            for p in testing_state.prs
+        )
+        i = web.input(deploy_triggered=None, drift_refreshed=None)
         return render_template(
             "status",
             status_info,
             feature_flags,
             dev_merged_status=get_dev_merged_status(),
-            testing_prs=testing_prs or [],
+            testing_state=testing_state,
             drift_info=drift_info,
             is_maintainer=is_maintainer_user,
             show_testing=show_testing,
+            deploy_triggered=bool(i.deploy_triggered),
+            drift_refreshed=bool(i.drift_refreshed),
+            jenkins_job_url=_JENKINS_JOB_URL,
+            has_pending=has_pending,
         )
 
 
@@ -65,13 +81,15 @@ class status_add(delegate.page):
                     pr_numbers.append(_parse_pr_number(val))
         if not pr_numbers:
             raise web.badrequest()
-        prs = _load_testing_state() or []
-        existing = {p.pr for p in prs}
+        state = _load_testing_state() or TestingState(last_deploy_at='', prs=[])
+        existing = {p.pr for p in state.prs}
         user = get_current_user()
         for pr_number in pr_numbers:
             if pr_number not in existing:
                 info = _get_pr_info(pr_number)
-                prs.append(
+                if not info['head_sha']:
+                    continue  # GitHub API unavailable or invalid PR
+                state.prs.append(
                     TestingPR(
                         pr=pr_number,
                         commit=info['head_sha'],
@@ -79,11 +97,15 @@ class status_add(delegate.page):
                         title=info['title'],
                         added_at=datetime.datetime.now(datetime.UTC).isoformat(),
                         added_by=user.key.split('/')[-1] if user else '',
+                        author=info['author'],
+                        author_avatar=info['author_avatar'],
+                        assignee=info['assignee'],
+                        assignee_avatar=info['assignee_avatar'],
                     )
                 )
                 existing.add(pr_number)
-        _save_testing_state(prs)
-        _trigger_rebuild()
+        _save_testing_state(state)
+        _evict_drift_cache()
         raise web.seeother('/status')
 
 
@@ -95,27 +117,45 @@ class status_remove(delegate.page):
             raise web.unauthorized()
         i = web.input(prs=[])
         to_remove = {int(p) for p in i.prs}
-        _save_testing_state(
-            [p for p in (_load_testing_state() or []) if p.pr not in to_remove]
-        )
-        _trigger_rebuild()
+        if state := _load_testing_state():
+            state.prs = [p for p in state.prs if p.pr not in to_remove]
+            _save_testing_state(state)
         raise web.seeother('/status')
 
 
-class status_toggle(delegate.page):
-    path = '/status/toggle'
+class status_enable(delegate.page):
+    path = '/status/enable'
 
     def POST(self):
         if not _is_maintainer():
             raise web.unauthorized()
         i = web.input(prs=[])
-        to_toggle = {int(p) for p in i.prs}
-        prs = _load_testing_state() or []
-        for p in prs:
-            if p.pr in to_toggle:
-                p.active = not p.active
-        _save_testing_state(prs)
-        _trigger_rebuild()
+        to_enable = {int(p) for p in i.prs}
+        state = _load_testing_state()
+        if not state or not to_enable:
+            raise web.seeother('/status')
+        for p in state.prs:
+            if p.pr in to_enable:
+                p.pending_active = True
+        _save_testing_state(state)
+        raise web.seeother('/status')
+
+
+class status_disable(delegate.page):
+    path = '/status/disable'
+
+    def POST(self):
+        if not _is_maintainer():
+            raise web.unauthorized()
+        i = web.input(prs=[])
+        to_disable = {int(p) for p in i.prs}
+        state = _load_testing_state()
+        if not state or not to_disable:
+            raise web.seeother('/status')
+        for p in state.prs:
+            if p.pr in to_disable:
+                p.pending_active = False
+        _save_testing_state(state)
         raise web.seeother('/status')
 
 
@@ -127,25 +167,55 @@ class status_pull_latest(delegate.page):
             raise web.unauthorized()
         i = web.input(prs=[])
         to_update = {int(p) for p in i.prs}
-        prs = _load_testing_state() or []
-        for p in prs:
+        state = _load_testing_state()
+        if not state or not to_update:
+            raise web.seeother('/status')
+        for p in state.prs:
             if p.pr in to_update:
                 info = _get_pr_info(p.pr)
-                if info['head_sha']:
-                    p.commit = info['head_sha']
-        _save_testing_state(prs)
-        _trigger_rebuild()
+                if info['head_sha'] and info['head_sha'] != p.commit:
+                    p.pull_latest_sha = info['head_sha']
+        _save_testing_state(state)
         raise web.seeother('/status')
 
 
-class status_rebuild(delegate.page):
-    path = '/status/rebuild'
+class status_deploy(delegate.page):
+    path = '/status/deploy'
 
     def POST(self):
         if not _is_maintainer():
             raise web.unauthorized()
-        _trigger_rebuild()
-        raise web.seeother('/status')
+        state = _load_testing_state()
+        if not state:
+            raise web.seeother('/status')
+        # Apply all pending changes before deploying
+        for p in state.prs:
+            if p.pull_latest_sha:
+                p.commit = p.pull_latest_sha
+                p.pull_latest_sha = ''
+            if p.pending_active is not None:
+                p.active = p.pending_active
+                p.pending_active = None
+        # Remove PRs that have already been merged into master
+        drift_info, _ = _get_drift_info(state)
+        state.prs = [
+            p for p in state.prs if not drift_info.get(p.pr, {}).get('merged', False)
+        ]
+        state.last_deploy_at = datetime.datetime.now(datetime.UTC).isoformat()
+        _save_testing_state(state)
+        _evict_drift_cache()
+        triggered = _trigger_rebuild()
+        raise web.seeother('/status?deploy_triggered=1' if triggered else '/status')
+
+
+class status_refresh(delegate.page):
+    path = '/status/refresh'
+
+    def POST(self):
+        if not _is_maintainer():
+            raise web.unauthorized()
+        _evict_drift_cache()
+        raise web.seeother('/status?drift_refreshed=1')
 
 
 @functools.cache
@@ -227,17 +297,27 @@ class TestingPR:
     title: str
     added_at: str  # ISO timestamp
     added_by: str  # OL username
+    pull_latest_sha: str = ''  # pending SHA from "Fetch Latest"; applied on deploy
+    pending_active: bool | None = None  # pending enable/disable; applied on deploy
+    author: str = ''  # GitHub login of PR author
+    author_avatar: str = ''  # GitHub avatar URL (append &s=N for sizing)
+    assignee: str = ''  # GitHub login of assignee, empty if unassigned
+    assignee_avatar: str = ''  # GitHub avatar URL for assignee
 
     @property
     def short_commit(self) -> str:
         return self.commit[:7]
 
     @property
+    def short_pull_latest(self) -> str:
+        return self.pull_latest_sha[:7] if self.pull_latest_sha else ''
+
+    @property
     def added_date(self) -> str:
         return self.added_at[:10] if self.added_at else ''
 
     def to_dict(self) -> dict:
-        return {
+        d = {
             'pr': self.pr,
             'commit': self.commit,
             'active': self.active,
@@ -245,6 +325,19 @@ class TestingPR:
             'added_at': self.added_at,
             'added_by': self.added_by,
         }
+        if self.pull_latest_sha:
+            d['pull_latest_sha'] = self.pull_latest_sha
+        if self.pending_active is not None:
+            d['pending_active'] = self.pending_active
+        if self.author:
+            d['author'] = self.author
+        if self.author_avatar:
+            d['author_avatar'] = self.author_avatar
+        if self.assignee:
+            d['assignee'] = self.assignee
+        if self.assignee_avatar:
+            d['assignee_avatar'] = self.assignee_avatar
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> 'TestingPR':
@@ -255,20 +348,50 @@ class TestingPR:
             title=d.get('title', f"PR #{d['pr']}"),
             added_at=d.get('added_at', ''),
             added_by=d.get('added_by', ''),
+            pull_latest_sha=d.get('pull_latest_sha', ''),
+            pending_active=d.get('pending_active'),
+            author=d.get('author', ''),
+            author_avatar=d.get('author_avatar', ''),
+            assignee=d.get('assignee', ''),
+            assignee_avatar=d.get('assignee_avatar', ''),
         )
 
 
-def _load_testing_state() -> 'list[TestingPR] | None':
-    """Returns list of TestingPRs if state file exists, None otherwise."""
+@dataclass
+class TestingState:
+    last_deploy_at: str  # ISO timestamp, empty if never deployed
+    prs: list[TestingPR] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            'last_deploy_at': self.last_deploy_at,
+            'prs': [p.to_dict() for p in self.prs],
+        }
+
+    @classmethod
+    def from_dict(cls, d: dict) -> 'TestingState':
+        return cls(
+            last_deploy_at=d.get('last_deploy_at', ''),
+            prs=[TestingPR.from_dict(p) for p in d.get('prs', [])],
+        )
+
+
+def _load_testing_state() -> 'TestingState | None':
+    """Returns TestingState if state file exists, None otherwise."""
     if TESTING_STATE_FILE.exists():
-        return [
-            TestingPR.from_dict(d) for d in json.loads(TESTING_STATE_FILE.read_text())
-        ]
+        data = json.loads(TESTING_STATE_FILE.read_text())
+        if isinstance(data, list):
+            # Backward compat: old format was a bare array
+            return TestingState(
+                last_deploy_at='',
+                prs=[TestingPR.from_dict(d) for d in data],
+            )
+        return TestingState.from_dict(data)
     return None
 
 
-def _save_testing_state(prs: list[TestingPR]) -> None:
-    TESTING_STATE_FILE.write_text(json.dumps([p.to_dict() for p in prs], indent=2))
+def _save_testing_state(state: TestingState) -> None:
+    TESTING_STATE_FILE.write_text(json.dumps(state.to_dict(), indent=2))
     get_dev_merged_status.cache_clear()
 
 
@@ -281,44 +404,122 @@ def _is_maintainer() -> bool:
 
 def _github_get(path: str) -> dict:
     url = f"{_GITHUB_API_BASE}/{path}"
-    req = urllib.request.Request(url, headers={'Accept': 'application/vnd.github+json'})
+    headers = {
+        'Accept': 'application/vnd.github+json',
+        'User-Agent': 'openlibrary-status',
+    }
+    if token := getattr(config, 'github_api_token', None):
+        headers['Authorization'] = f'Bearer {token}'
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=5) as resp:
         return json.loads(resp.read())
 
 
+def _get_drift_info(state: TestingState) -> 'tuple[dict, bool]':
+    """Return (drift_dict, from_cache). Checks memcache first; fetches GitHub on miss.
+
+    Keys are int PR numbers. JSON round-trip via memcache stringifies keys, so we
+    re-cast on read.
+
+    On a cache miss, also refreshes title/author/assignee on each TestingPR in-place
+    and saves the state file if anything changed.
+    """
+    mc = cache.get_memcache()
+    if (cached := mc.get(_DRIFT_CACHE_KEY)) is not None:
+        return {int(k): v for k, v in cached.items()}, True
+    drift = {}
+    state_changed = False
+    for p in state.prs:
+        info = _get_pr_drift(p)
+        drift[p.pr] = {k: info[k] for k in ('head_sha', 'drift', 'merged')}
+        for attr in ('title', 'author', 'author_avatar', 'assignee', 'assignee_avatar'):
+            new_val = info.get(attr, '')
+            if new_val and getattr(p, attr) != new_val:
+                setattr(p, attr, new_val)
+                state_changed = True
+    if state_changed:
+        _save_testing_state(state)
+    mc.set(_DRIFT_CACHE_KEY, drift, expires=_DRIFT_CACHE_TTL)
+    return drift, False
+
+
+def _evict_drift_cache() -> None:
+    cache.get_memcache().delete(_DRIFT_CACHE_KEY)
+
+
 def _get_pr_info(pr_number: int) -> dict:
-    """Fetch title and current HEAD SHA for a PR from GitHub."""
+    """Fetch title, HEAD SHA, author, and assignee for a PR from GitHub."""
     try:
         pr = _github_get(f"pulls/{pr_number}")
+        user = pr.get('user') or {}
+        assignee = pr.get('assignee') or {}
         return {
             'title': pr.get('title', f'PR #{pr_number}'),
             'head_sha': pr['head']['sha'],
+            'author': user.get('login', ''),
+            'author_avatar': user.get('avatar_url', ''),
+            'assignee': assignee.get('login', ''),
+            'assignee_avatar': assignee.get('avatar_url', ''),
         }
     except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
-        return {'title': f'PR #{pr_number}', 'head_sha': ''}
+        return {
+            'title': f'PR #{pr_number}',
+            'head_sha': '',
+            'author': '',
+            'author_avatar': '',
+            'assignee': '',
+            'assignee_avatar': '',
+        }
 
 
 def _get_pr_drift(pr: TestingPR) -> dict:
-    """Fetch live drift info for a PR in the testing state."""
+    """Fetch live drift info + metadata for a PR from GitHub.
+
+    Returns head_sha, drift, merged plus title/author/assignee so callers can
+    refresh state without a second API call.
+    """
     try:
         gh = _github_get(f"pulls/{pr.pr}")
         head_sha = gh['head']['sha']
-        merged = gh.get('merged') or gh.get('state') == 'closed'
-        if head_sha.startswith(pr.commit) or pr.commit.startswith(head_sha[:7]):
+        merged = bool(gh.get('merged') or gh.get('merged_at'))
+        stored = pr.commit.strip()
+        if head_sha == stored or (len(stored) < 40 and head_sha.startswith(stored)):
             drift = 0
         else:
             try:
-                cmp = _github_get(f"compare/{pr.short_commit}...{head_sha[:7]}")
+                cmp = _github_get(f"compare/{stored}...{head_sha}")
                 drift = cmp.get('ahead_by', -1)
             except (urllib.error.URLError, ValueError, json.JSONDecodeError):
                 drift = -1
-        return {'head_sha': head_sha[:7], 'drift': drift, 'merged': merged}
+        user = gh.get('user') or {}
+        assignee = gh.get('assignee') or {}
+        return {
+            'head_sha': head_sha[:7],
+            'drift': drift,
+            'merged': merged,
+            'title': gh.get('title', f'PR #{pr.pr}'),
+            'author': user.get('login', ''),
+            'author_avatar': user.get('avatar_url', ''),
+            'assignee': assignee.get('login', ''),
+            'assignee_avatar': assignee.get('avatar_url', ''),
+        }
     except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
-        return {'head_sha': '', 'drift': -1, 'merged': False}
+        return {
+            'head_sha': '',
+            'drift': -1,
+            'merged': False,
+            'title': '',
+            'author': '',
+            'author_avatar': '',
+            'assignee': '',
+            'assignee_avatar': '',
+        }
 
 
 def _parse_pr_number(value: str) -> int:
     value = value.strip()
+    if '/issues/' in value:
+        raise ValueError(f"Not a PR URL (looks like an issue): {value!r}")
     if m := re.search(r'/pull/(\d+)', value):
         return int(m.group(1))
     return int(value.lstrip('#'))
@@ -329,7 +530,8 @@ def _trigger_rebuild() -> bool:
     token = getattr(config, 'jenkins_token', None)
     if not token:
         return False
-    prs = _load_testing_state() or []
+    state = _load_testing_state()
+    prs = state.prs if state else []
     lines = '\n'.join(f"origin pull/{p.pr}/head  # {p.title}" for p in prs if p.active)
     url = f"{_JENKINS_URL}?{urlencode({'token': token, 'GH_REPO_AND_BRANCH': lines})}"
     try:

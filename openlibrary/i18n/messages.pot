@@ -1503,7 +1503,7 @@ msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1529,7 +1529,7 @@ msgstr ""
 msgid "Settings & Privacy"
 msgstr ""
 
-#: account.html
+#: account.html status.html
 msgid "or"
 msgstr ""
 
@@ -2441,11 +2441,23 @@ msgid "Testing Environment"
 msgstr ""
 
 #: status.html
-msgid "PR number or GitHub PR URL"
+msgid "Deploy triggered!"
 msgstr ""
 
 #: status.html
-msgid "Add PR"
+msgid "View Jenkins progress"
+msgstr ""
+
+#: status.html
+msgid "GitHub status refreshed."
+msgstr ""
+
+#: status.html
+msgid "PR numbers or URLs, space/comma separated"
+msgstr ""
+
+#: status.html
+msgid "Add PR(s)"
 msgstr ""
 
 #: status.html
@@ -2456,6 +2468,10 @@ msgstr ""
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
+msgstr ""
+
+#: status.html
+msgid "Assignee"
 msgstr ""
 
 #: status.html
@@ -2471,15 +2487,36 @@ msgid "Drift"
 msgstr ""
 
 #: status.html
-msgid "Active"
+msgid "Enabled"
 msgstr ""
 
 #: status.html
-msgid "Pull to Latest"
+msgid "up to date"
 msgstr ""
 
 #: status.html
-msgid "Toggle Active"
+msgid "unknown"
+msgstr ""
+
+#: status.html
+msgid "1 commit behind"
+msgstr ""
+
+#: status.html
+#, python-format
+msgid "%(count)s commits behind"
+msgstr ""
+
+#: admin/solr.html status.html
+msgid "Update"
+msgstr ""
+
+#: status.html
+msgid "Enable"
+msgstr ""
+
+#: status.html
+msgid "Disable"
 msgstr ""
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
@@ -2487,7 +2524,15 @@ msgid "Remove"
 msgstr ""
 
 #: status.html
-msgid "Force Rebuild"
+msgid "Selected PRs"
+msgstr ""
+
+#: status.html
+msgid "Refresh"
+msgstr ""
+
+#: status.html
+msgid "Deploy"
 msgstr ""
 
 #: status.html
@@ -2495,7 +2540,7 @@ msgid "No PRs in testing set."
 msgstr ""
 
 #: status.html
-msgid "Staged"
+msgid "Last Build Result"
 msgstr ""
 
 #: status.html
@@ -4088,10 +4133,6 @@ msgstr ""
 
 #: admin/solr.html
 msgid "Write one entry per line"
-msgstr ""
-
-#: admin/solr.html
-msgid "Update"
 msgstr ""
 
 #: admin/spamwords.html
