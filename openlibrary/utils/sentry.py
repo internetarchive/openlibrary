@@ -5,6 +5,7 @@ from os import getenv
 
 import sentry_sdk
 import web
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.tracing import Transaction, TransactionSource
 from sentry_sdk.utils import capture_internal_exceptions
 
@@ -72,6 +73,7 @@ class Sentry:
             profiles_sample_rate=self.config.get("profiles_sample_rate", 0.0),
             release=get_software_version(),
             enable_logs=self.config.get("enable_logs", True),
+            integrations=[AsyncioIntegration()],
         )
 
     def bind_to_webpy_app(self, app: web.application) -> None:
