@@ -35,7 +35,7 @@ session = requests.Session()
 async_session = httpx.AsyncClient()
 
 BETTERWORLDBOOKS_API_URL = (
-    'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
+    'https://products.bwbcontent.com/service.aspx?IncludeAmazon=True&ItemId='
 )
 affiliate_server_url = None
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(
