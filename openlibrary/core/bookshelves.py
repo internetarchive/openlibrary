@@ -115,9 +115,7 @@ class Bookshelves(db.CommonExtras):
         ]
 
     @classmethod
-    def get_public_readlog_status_for_users(
-        cls, usernames: list[str]
-    ) -> dict[str, bool]:
+    def get_public_readlog_status_for_users(cls, usernames: list[str]) -> dict[str, bool]:
         """
         Returns a dict mapping usernames to their public_readlog status.
         True = reading log is public, False = private or not found.
@@ -131,11 +129,11 @@ class Bookshelves(db.CommonExtras):
 
         result: dict[str, bool] = {}
         for username in unique_usernames:
-            key = f'/people/{username}/preferences'
+            key = f"/people/{username}/preferences"
             # Preferences are stored in web.ctx.site.store (not the thing table)
             pref = web.ctx.site.store.get(key)
             if pref:
-                is_public = pref.get('public_readlog', 'no') == 'yes'
+                is_public = pref.get("public_readlog", "no") == "yes"
                 result[username] = is_public
             else:
                 result[username] = False

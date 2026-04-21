@@ -165,9 +165,7 @@ class activity_stream(app.view):
         from openlibrary import accounts
 
         # Extract unique usernames
-        usernames = [
-            entry.get('username') for entry in logged_books if entry.get('username')
-        ]
+        usernames = [entry.get("username") for entry in logged_books if entry.get("username")]
 
         if not usernames:
             return
@@ -177,26 +175,24 @@ class activity_stream(app.view):
 
         # Get current user for following status
         current_user = accounts.get_current_user()
-        current_username = current_user.key.split('/')[-1] if current_user else None
+        current_username = current_user.key.split("/")[-1] if current_user else None
 
         # Add patron info to each entry
         for entry in logged_books:
-            username = entry.get('username')
+            username = entry.get("username")
             if username:
                 is_public = privacy_status.get(username, False)
-                entry['patron_public'] = is_public
+                entry["patron_public"] = is_public
 
                 # Determine follow status
                 if not current_user:
-                    entry['is_following'] = 0  # Not logged in
+                    entry["is_following"] = 0  # Not logged in
                 elif current_username == username:
-                    entry['is_following'] = -1  # Own entry
+                    entry["is_following"] = -1  # Own entry
                 elif is_public:
-                    entry['is_following'] = (
-                        1 if PubSub.is_subscribed(current_username, username) else 0
-                    )
+                    entry["is_following"] = 1 if PubSub.is_subscribed(current_username, username) else 0
                 else:
-                    entry['is_following'] = 0  # Private user
+                    entry["is_following"] = 0  # Private user
 
 
 class readinglog_stats(app.view):
