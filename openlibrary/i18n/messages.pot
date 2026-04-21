@@ -115,11 +115,10 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/exports.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -158,73 +157,6 @@ msgstr ""
 msgid ""
 "Templates in the website are disabled now. Editing them will not have any"
 " effect on the live website."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet "
-"Archive</a> library."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Hooray! You've discovered a title that's missing from our <a "
-"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
-"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"If you own this book, you can<a "
-"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
-"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
-"address below."
-msgstr ""
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"When you donate a physical book to the Internet Archive, your book will "
-"enjoy:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Beautiful <a target=\"_blank\" rel=\"noopener noreferrer\" "
-"href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
-"books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
-" library access</a> by the <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
-"disabled</a> public"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Open Library is a project of the <a "
-"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
-"profit"
 msgstr ""
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
