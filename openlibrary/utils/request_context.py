@@ -213,9 +213,6 @@ def set_context_from_fastapi(request: Request) -> None:
         hhcl=request.headers.get("X-HHCL"),
     )
 
-    # When called from web.py, web.ctx._parsed_cookies is already set.
-    # When called from FastAPI, we need to set it.
-    # create_site() automatically uses the cookie to set the auth token
     s = create_site()
     cookie_name = config.get("login_cookie_name", "session")
     if cookie_value := request.cookies.get(cookie_name):
