@@ -7,7 +7,7 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import public
 
-from .. import app
+from .. import accounts, app
 from ..core import cache
 from ..core.booknotes import Booknotes
 from ..core.bookshelves import Bookshelves
@@ -162,8 +162,6 @@ class activity_stream(app.view):
 
     def _add_patron_info(self, logged_books):
         """Add patron privacy status and follow status to logged books."""
-        from openlibrary import accounts
-
         # Extract unique usernames
         usernames = [entry.get("username") for entry in logged_books if entry.get("username")]
 
