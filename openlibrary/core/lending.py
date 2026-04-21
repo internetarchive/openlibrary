@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Literal, TypedDict, cast
 import eventer
 import httpx
 import requests
+import sentry_sdk
 import web
 from simplejson.errors import JSONDecodeError
 
@@ -296,6 +297,8 @@ def get_available(
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
+            "sentry-trace": sentry_sdk.get_traceparent(),
+            "baggage": sentry_sdk.get_baggage(),
         }
         response = ia.session.get(url, headers=headers, timeout=config_http_request_timeout)
         items = response.json().get("response", {}).get("docs", [])
@@ -427,6 +430,8 @@ def get_availability(
             "x-preferred-client-useragent": req_context.get().user_agent or "",
             "x-application-id": "openlibrary",
             "user-agent": "Open Library Site",
+            "sentry-trace": sentry_sdk.get_traceparent(),
+            "baggage": sentry_sdk.get_baggage(),
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
@@ -591,7 +596,10 @@ def is_loaned_out_on_ia(identifier: str) -> bool | None:
     """Returns True if the item is checked out on Internet Archive."""
     url = f"https://archive.org/services/borrow/{identifier}?action=status"
     try:
-        response = ia.session.get(url, timeout=config_http_request_timeout).json()
+        sentry_trace = sentry_sdk.get_traceparent()
+        baggage = sentry_sdk.get_baggage()
+        headers = {"sentry-trace": sentry_trace, "baggage": baggage} if (sentry_trace and baggage) else {}
+        response = ia.session.get(url, headers=headers, timeout=config_http_request_timeout).json()
         return response and response.get("checkedout")
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"is_loaned_out_on_ia({identifier})")
