@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from os import getenv
 
 import sentry_sdk
+import web
 from sentry_sdk.integrations.asyncio import AsyncioIntegration
 from sentry_sdk.tracing import Transaction, TransactionSource
 from sentry_sdk.utils import capture_internal_exceptions
-import web
 
 from infogami.utils.app import (
     find_page,
