@@ -109,5 +109,5 @@ something_else (totally/custom.py:1)
         )
         == """memcache._recv_value
 ol.render_list_preview_image
-other"""
+other.other"""
     )
