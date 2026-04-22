@@ -1,4 +1,4 @@
-$def with (page, h)
+$def with (page, h, has_next=False)
 
 $putctx("robots", "noindex,nofollow")
 
@@ -75,7 +75,7 @@ $ rev = page.latest_revision or page.revision
 
         </form>
 
-        $ page_num = safeint(query_param("page", "0"))
-        $:macros.OlPaginationArrows(page_num + 1, len(h) == 20)
+        $ page_num = max(1, safeint(query_param("page", "1")))
+        $:macros.OlPaginationArrows(page_num, has_next)
 
 </div>
