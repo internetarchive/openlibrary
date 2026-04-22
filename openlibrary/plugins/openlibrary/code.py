@@ -1235,6 +1235,7 @@ def is_bot():
     return req_context.get().is_bot
 
 
+@public
 def is_recognized_bot():
     # Reads from the request-scoped ContextVar set by set_context_from_legacy_web_py()
     # (web.py) or set_context_from_fastapi() — the web.py equivalent of web.ctx.

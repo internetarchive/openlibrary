@@ -62,9 +62,14 @@ def wrap_jsonp(request: Request, data: dict | list | str) -> Response:
     """Wrap data in JSONP callback if callback param is present.
 
     Always returns a Response object.
-    Accepts a dict/list (which will be JSON-serialized) or a pre-serialized JSON string.
+    Accepts a dict or list (which will be JSON-serialized), or a pre-serialized JSON string.
     """
-    json_string = data if isinstance(data, str) else json.dumps(data)
+    if isinstance(data, str):
+        json_string = data
+    elif isinstance(data, (dict, list)):
+        json_string = json.dumps(data)
+    else:
+        raise TypeError(f"Unexpected type for JSON response: {type(data)}")
     if callback := request.query_params.get("callback"):
         if not JS_CALLBACK_RE.match(callback):
             raise HTTPException(

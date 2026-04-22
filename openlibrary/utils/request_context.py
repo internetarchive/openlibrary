@@ -40,21 +40,6 @@ req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 site: ContextVar[Site] = ContextVar("site")
 
 
-def setup_site(request: Request | None = None):
-    """
-    When called from web.py, web.ctx._parsed_cookies is already set.
-    When called from FastAPI, we need to set it.
-    create_site() automatically uses the cookie to set the auth token
-    """
-    s = create_site()
-    if request:
-        cookie_name = config.get("login_cookie_name", "session")
-        if cookie_value := request.cookies.get(cookie_name):
-            s._conn.set_auth_token(unquote(cookie_value))
-
-    site.set(s)
-
-
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
 # cdrini to DRY obfi.sh side.
 USER_AGENT_BOTS = [
@@ -198,7 +183,7 @@ def set_context_from_legacy_web_py() -> None:
         hhcl=web.ctx.env.get("HTTP_X_HHCL"),
     )
 
-    setup_site()
+    site.set(web.ctx.site)
     req_context.set(
         RequestContextVars(
             x_forwarded_for=web.ctx.env.get("HTTP_X_FORWARDED_FOR"),
@@ -228,7 +213,12 @@ def set_context_from_fastapi(request: Request) -> None:
         hhcl=request.headers.get("X-HHCL"),
     )
 
-    setup_site(request)
+    s = create_site()
+    cookie_name = config.get("login_cookie_name", "session")
+    if cookie_value := request.cookies.get(cookie_name):
+        s._conn.set_auth_token(unquote(cookie_value))
+
+    site.set(s)
     req_context.set(
         RequestContextVars(
             x_forwarded_for=request.headers.get("X-Forwarded-For"),

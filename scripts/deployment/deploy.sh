@@ -218,6 +218,10 @@ deploy_olsystem() {
     check_server_access
     check_crons
 
+    while ! check_server_storage; do
+        read -p "Press Enter to retry..."
+    done
+
     cd $DEPLOY_DIR
 
     CLEANUP=${CLEANUP:-1}

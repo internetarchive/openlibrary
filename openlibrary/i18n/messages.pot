@@ -115,11 +115,10 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/exports.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -160,80 +159,13 @@ msgid ""
 " effect on the live website."
 msgstr ""
 
-#: DonateModal.html
-msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet "
-"Archive</a> library."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Hooray! You've discovered a title that's missing from our <a "
-"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
-"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"If you own this book, you can<a "
-"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
-"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
-"address below."
-msgstr ""
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"When you donate a physical book to the Internet Archive, your book will "
-"enjoy:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Beautiful <a target=\"_blank\" rel=\"noopener noreferrer\" "
-"href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
-"books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
-" library access</a> by the <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
-"disabled</a> public"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Open Library is a project of the <a "
-"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
-"profit"
-msgstr ""
-
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
 
-#: EditButtons.html books/add.html type/tag/form.html
+#: EditButtons.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -1824,6 +1756,10 @@ msgid "Chip"
 msgstr ""
 
 #: design.html
+msgid "Chip Group"
+msgstr ""
+
+#: design.html
 msgid ""
 "The ol-pagination component provides support for both event-based and "
 "URL-based navigation."
@@ -2052,6 +1988,62 @@ msgstr ""
 
 #: design.html
 msgid "Toggle me too"
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-chip-group component is a flex-wrap container that provides "
+"consistent spacing for groups of chips."
+msgstr ""
+
+#: design.html
+msgid "Default (medium gap)"
+msgstr ""
+
+#: design.html
+msgid "Chips are spaced with an 8px gap by default."
+msgstr ""
+
+#: design.html
+msgid "Small gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for tighter spacing (4px)."
+msgstr ""
+
+#: design.html
+msgid "Large gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for wider spacing (12px)."
+msgstr ""
+
+#: design.html
+msgid "Wrapping behavior"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chips automatically wrap to the next line when they exceed the container "
+"width."
+msgstr ""
+
+#: design.html
+msgid "Biography"
+msgstr ""
+
+#: design.html
+msgid "With mixed chip states"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chip groups work with any combination of chip sizes, states, and link "
+"chips."
 msgstr ""
 
 #: diff.html
@@ -4880,6 +4872,20 @@ msgid "Only fill this out if this is a web book"
 msgstr ""
 
 #: books/add.html
+#, python-format
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+
+#: books/add.html
+msgid "This link to Creative Commons will open in a new window"
+msgstr ""
+
+#: books/add.html
 msgid "Add this book now"
 msgstr ""
 
@@ -5771,7 +5777,7 @@ msgid ""
 "remorse."
 msgstr ""
 
-#: bulk_search/bulk_search.html
+#: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr ""
 

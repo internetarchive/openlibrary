@@ -255,10 +255,7 @@ def test_get_amazon_metadata() -> None:
     get_amazon_metadata() and cached_get_amazon_metadata().
     """
 
-    class MockRequests:
-        def get(self):
-            pass
-
+    class MockResponse:
         def raise_for_status(self):
             return True
 
@@ -304,7 +301,7 @@ def test_get_amazon_metadata() -> None:
     }
     isbn = "059035342X"
     with (
-        patch("requests.get", return_value=MockRequests()),
+        patch("openlibrary.core.vendors.session.get", return_value=MockResponse()),
         patch("openlibrary.core.vendors.affiliate_server_url", new=True),
     ):
         got = get_amazon_metadata(id_=isbn, id_type="isbn")

@@ -12,6 +12,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#popover">$_("Popover")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
+        <li><a href="#chip-group">$_("Chip Group")</a></li>
       </ul>
     </nav>
 
@@ -242,6 +243,84 @@ $ _x = ctx.setdefault('cssfile', 'design')
               });
             });
           </script>
+        </section>
+      </article>
+      <article class="design-pattern" id="chip-group">
+        <h2 class="design-pattern__title">$_("Chip Group")</h2>
+        <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Default (medium gap)")</h3>
+          <p>$_("Chips are spaced with an 8px gap by default.")</p>
+          <code class="example__code">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Small gap")</h3>
+          <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
+          <code class="example__code">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group gap="small">
+              <ol-chip size="small">$_("Fiction")</ol-chip>
+              <ol-chip size="small">$_("Science")</ol-chip>
+              <ol-chip size="small">$_("History")</ol-chip>
+              <ol-chip size="small">$_("Poetry")</ol-chip>
+              <ol-chip size="small">$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Large gap")</h3>
+          <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
+          <code class="example__code">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group gap="large">
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Wrapping behavior")</h3>
+          <p>$_("Chips automatically wrap to the next line when they exceed the container width.")</p>
+          <div class="example__output" style="max-width: 300px;">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+              <ol-chip>$_("Essays")</ol-chip>
+              <ol-chip>$_("Biography")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("With mixed chip states")</h3>
+          <p>$_("Chip groups work with any combination of chip sizes, states, and link chips.")</p>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
+              <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
+              <ol-chip href="/subjects/science" count="512">$_("Science")</ol-chip>
+              <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
+            </ol-chip-group>
+          </div>
         </section>
       </article>
     </main>
