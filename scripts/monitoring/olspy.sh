@@ -86,7 +86,7 @@ olspy_head() {
 export -f olspy_head
 
 exclude_internal_methods() {
-    grep -vE 'ssl\.py|urllib3|httpcore|httpx/|http/client\.py|sentry_sdk|requests/|urllib/|wait \(threading.py|result \(concurrent/futures|async_utils\.py|socket\.py|_call_with_frames_removed|get_solr_keys|storify \(web\/utils.py|_write_raw \(gzip\.py|\(json\/|urlopen_keep_trying|PIL\/|importlib._bootstrap_external|_db_cursor'
+    grep -vE 'ssl\.py|urllib3|httpcore|httpx/|http/client\.py|sentry_sdk|requests/|urllib/|wait \(threading.py|result \(concurrent/futures|async_utils\.py|socket\.py|_call_with_frames_removed|get_solr_keys|storify \(web\/utils.py|_write_raw \(gzip\.py|\(json\/|urlopen_keep_trying|PIL\/|importlib._bootstrap_external|_db_cursor|anyio\/|contextlib\.py'
 }
 export -f exclude_internal_methods
 
@@ -110,6 +110,7 @@ classify_workers_cur_fn() {
         else if ($1 == "xauth") print "ia.xauth";
         else if ($1 == "_solr_data") print "solr._solr_data";
         else if ($1 == "run_solr_query") print "solr.run_solr_query";
+        else if ($0 ~ / raw_request \(openlibrary\/utils\/solr\.py/) print "solr.raw_request";
         else if ($2 ~ /web\/template.py/) print "webpy.template";
         else if ($1 == "__template__") print "webpy.template";
         else if ($0 ~ / _post \(openlibrary\/core\/lending\.py/) print "ia.lending_api_post";
