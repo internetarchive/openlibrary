@@ -1,5 +1,5 @@
 #! /bin/bash
-# Note: The code in here is tested by scripts/monitoring/tests/test_utils_sh.py
+# Note: The code in here is tested by scripts/monitoring/tests/test_olspy_sh.py
 
 olspy_find_worker() {
     # Note this is unused in this file, and is just a helper function
