@@ -3,48 +3,60 @@
 # It takes a few environment variables:
 #
 # DOCKER_USERS=""
-# The users who will be able to use docker (space-separted)
+# The users who will be able to use docker (space-separated)
 
-# Which Ubuntu release are we running on?  Do not fail if /etc/os-release does not exist.
-cat /etc/os-release | grep VERSION= || true  # VERSION="20.04.1 LTS (Focal Fossa)"
+echo "This script isn't complete and not ready to be run yet. Please run it line-by-line for now."
+exit 1
 
-# CAUTION: To git clone olsystem, environment variables must be set...
-# Set $GITHUB_USERNAME or $USER will be used.
-# Set $GITHUB_TOKEN or this script will halt.
-if [[ -z ${GITHUB_TOKEN} ]]; then
-    echo "FATAL: Can not git clone olsystem" ;
-    exit 1 ;
-fi
+wait_yn() {
+    local prompt=$1
+
+    while true; do
+        read -p "$prompt (y/n) " yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) clean_exit;;
+            * ) ;;
+        esac
+    done
+}
+
+# Which debian release are we running on?  Do not fail if /etc/os-release does not exist.
+cat /etc/os-release | grep VERSION= || true  # VERSION="13 (trixie)"
 
 # apt list --installed
-sudo apt-get update
+sudo apt update
 
 # Remove any old versions and install newer versions of Docker Engine and Docker Compose.
-# See https://docs.docker.com/engine/install/ubuntu/ for any possible changes.
-sudo apt-get remove docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc
+# See https://docs.docker.com/engine/install/debian/ for any possible changes.
+sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
 
-sudo apt-get install \
+sudo apt install \
     ca-certificates \
     curl \
     gnupg \
     lsb-release
 
 # Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
+sudo apt update
+sudo apt install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo curl -fsSL https://XXXXXX/repository/raw-oss-mirror/mirrored-objects/download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://XXXXXX/repository/apt-docker-debian-proxy/
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update
 
 # apparmor is REQUIRED on Internet Archive servers
-sudo apt-get install -y \
+sudo apt install -y \
     apparmor \
     containerd.io \
     docker-ce \
@@ -52,14 +64,13 @@ sudo apt-get install -y \
     docker-buildx-plugin \
     docker-compose-plugin
 
-docker --version        # 26.0.0, build 2ae903e
-docker compose version  # v2.25.0
-sudo systemctl start docker
-sudo systemctl enable docker
+docker --version        # 29.x.x
+docker compose version  # v5.x.x
+sudo systemctl status docker
 
-# See nexus documentation for what to put in here
+# See "Nexus Artifact Repository User Documentation" in google docs for what to put here
 sudo vim /etc/docker/daemon.json
-sudo service docker restart
+sudo systemctl restart docker
 
 # Give certain users access to docker commands
 DOCKER_USERS="nagios $DOCKER_USERS"
@@ -70,22 +81,25 @@ done
 sudo groupadd --system openlibrary
 sudo useradd --no-log-init --system --gid openlibrary --create-home openlibrary
 
-cd /opt
-ls -Fla  # nothing
+sudo git config --global init.defaultBranch master
 
-sudo git clone git@github.com:internetarchive/olsystem.git
-sudo git clone git@github.com:internetarchive/openlibrary.git
-cd /opt/openlibrary
-sudo make git
-cd /opt/openlibrary/vendor/infogami
-sudo git pull origin master
-cd /opt/openlibrary
+# Here we need to run a deploy to get the commands
+echo "Next, you will need to run the deploy script to get olsystem and openlibrary"
+echo "onto the server."
+echo ""
+echo "For olsystem, run:"
+echo "SERVERS=ol-web3 ./scripts/deployment/deploy.sh olsystem"
+echo ""
+echo "For openlibrary, you will need to choose the tag for the last deploy to"
+echo "pass the olbase image check. Find that at https://github.com/internetarchive/openlibrary/releases ,"
+echo "and then run:"
+echo "SERVERS=ol-web3 GIT_BRANCH='deploy-2026-04-21-at-19-56' ./scripts/deployment/deploy.sh openlibrary"
+wait_yn "Enter 'y' once you have run the deploy script and have olsystem and openlibrary on the server."
 
-# Set permissions so we do not have to sudo in /scripts/run_olserver.sh
-sudo chown root:staff -R /opt/openlibrary /opt/olsystem
-sudo chmod g+w -R /opt/openlibrary /opt/olsystem
-sudo find /opt/openlibrary -type d -exec chmod g+s {} \;
-sudo find /opt/olsystem -type d -exec chmod g+s {} \;
+echo "Next, you will need to patch deploy the PR where you add ol-web3 to the compose files."
+echo "Run:"
+echo "SERVERS=ol-web3 PATCH_ON=host ./scripts/deployment/patchdeploy.sh 12433"
+wait_yn "Enter 'y' once you have patch deployed the PR to add ol-web3 to the compose files."
 
 # Setup docker ferm rules for internal-only servers
 # Note: This is a bit of an anti-pattern ; we should be using docker, not ferm to manage
@@ -102,6 +116,8 @@ if [[ $PUBLIC_FACING != 'true' ]]; then
     sudo service docker restart
 fi
 
-ls -Fla  # containerd, olsystem, openlibrary owned by openlibrary
+echo "To start everything up, run:"
+echo "SERVERS=ol-web3 ./scripts/deployment/deploy.sh images"
+echo "SERVERS=ol-web3 ./scripts/deployment/restart_servers.sh"
 
 # TODO: For ol-www0 and ol-home0, follow instructions in https://github.com/internetarchive/olsystem/wiki/Solr-Re%E2%80%90Indexing#setting-up-trending-nginx-log-access
