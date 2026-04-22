@@ -75,6 +75,7 @@ $ rev = page.latest_revision or page.revision
 
         </form>
 
+        $# Clamp so legacy ?page=0 URLs render as page 1 and match the component's 1-indexed scheme.
         $ page_num = max(1, safeint(query_param("page", "1")))
         $:macros.OlPaginationArrows(page_num, has_next)
 
