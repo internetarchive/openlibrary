@@ -70,7 +70,7 @@ olspy_head() {
         dump=$(echo "$dump" | head -n $count)
 
         # Exclude if first line matches the exclude pattern
-        if [[ "$only_other" == "true" && $(echo "$dump" | head -n1 | classify_workers_cur_fn | grep -vE '^other$') ]]; then
+        if [[ "$only_other" == "true" && $(echo "$dump" | head -n1 | classify_workers_cur_fn | grep -vE '^other\.other$') ]]; then
             continue
         fi
 
@@ -121,7 +121,7 @@ classify_workers_cur_fn() {
         else if ($0 ~ /GET \(openlibrary\/views\/showmarc\.py/) print "ol.showmarc_GET";
         else if ($1 == "render_list_preview_image") print "ol.render_list_preview_image";
         else if ($2 ~ /infogami\/infobase\//) print "infobase.other";
-        else print "other";
+        else print "other.other";
     }'
 }
 export -f classify_workers_cur_fn
