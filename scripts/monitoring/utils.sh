@@ -55,8 +55,8 @@ log_workers_cur_fn() {
     # Monitors the current function running on each gunicorn worker.
     #
     # Only explicitly names a few specific function to monitor:
-    # - connect: psycopg2; this was a bottleneck before we switched to using direct
-    #       IPs with psycopg2
+    # - connect: psycopg; this was a bottleneck before we switched to using direct
+    #       IPs with psycopg
     # - sleep|wait: Normal gunicorn behavior denoting a worker not doing anything
     # - getaddrinfo: Marker for DNS resolution time; saw this occasionally in Sentry's
     #       profiling for solr requests

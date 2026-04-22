@@ -153,7 +153,6 @@ def render_template(request):
 
     from openlibrary.plugins.openlibrary import code  # noqa: PLC0415
 
-    web.config.db_parameters = {}
     code.setup_template_globals()
 
     def render(name, *a, **kw):

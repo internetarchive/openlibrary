@@ -3,11 +3,43 @@
 import os
 import sys
 
+import web
 import yaml
 
 import infogami
 from infogami import config
-from infogami.infobase import server
+from infogami.infobase import server as infobase_server
+
+
+# TODO: Remove once infogami supports psycopg3 natively (#10258)
+def _patch_infogami_for_psycopg3():
+    """
+    Temporary patch: wraps infogami's parse_db_parameters to preserve
+    the 'driver' key, which infogami currently strips out.
+    """
+    orig = infobase_server.parse_db_parameters
+    if getattr(orig, "_is_patched", False):
+        return
+
+    def patched(d):
+        try:
+            result = orig(d)
+        except KeyError as e:
+            # Only handle missing 'db'/'database' — let other KeyErrors propagate
+            if isinstance(d, dict) and "driver" in d and e.args[0] in ("db", "database"):
+                return d
+            raise
+
+        if result and isinstance(d, dict) and "driver" in d:
+            result["driver"] = d["driver"]
+        return result
+
+    patched._is_patched = True
+    infobase_server.parse_db_parameters = patched
+
+
+_patch_infogami_for_psycopg3()
+
 
 runtime_config = {}
 
@@ -41,7 +73,12 @@ def load_config(config_file):
     setup_infobase_config(config_file)
 
     # This sets web.config.db_parameters
-    server.update_config(config.infobase)
+    infobase_server.update_config(config.infobase)
+
+    # Safety net: ensure driver survives update_config
+    # TODO: Remove once infogami is updated (#10258)
+    if isinstance(web.config.get("db_parameters"), dict):
+        web.config.db_parameters.setdefault("driver", "psycopg")
 
 
 def setup_infobase_config(config_file):

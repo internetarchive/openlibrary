@@ -17,6 +17,7 @@ def setup_db():
     system("dropdb coverstore_test")
     system("createdb coverstore_test")
     config.db_parameters = {
+        "driver": "psycopg",
         "dbn": "postgres",
         "db": "coverstore_test",
         "user": "openlibrary",

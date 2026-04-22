@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Literal, Self
 
 import aiofiles
-import psycopg2
+import psycopg
 
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
@@ -64,7 +64,7 @@ class LocalPostgresDataProvider(DataProvider):
         """
         super().__init__()
         self._db_conf = config_section_to_dict(db_conf_file, "postgres")
-        self._conn: psycopg2._psycopg.connection = None
+        self._conn: psycopg.Connection = None
         self.cache: dict = {}
         self.cached_work_editions_ranges: list = []
         self.cached_work_ratings: dict[str, WorkRatingsSummary] = {}
@@ -74,7 +74,7 @@ class LocalPostgresDataProvider(DataProvider):
         """
         :rtype: LocalPostgresDataProvider
         """
-        self._conn = psycopg2.connect(**self._db_conf)
+        self._conn = psycopg.connect(**self._db_conf)
         return self
 
     def __exit__(self, type, value, traceback):
@@ -127,7 +127,6 @@ class LocalPostgresDataProvider(DataProvider):
         # Not sure if this name needs to be unique
         cursor_name = cursor_name or "solr_builder_server_side_cursor_" + uuid.uuid4().hex
         cur = self._conn.cursor(name=cursor_name)
-        cur.itersize = size
         cur.execute(query)
 
         while True:
