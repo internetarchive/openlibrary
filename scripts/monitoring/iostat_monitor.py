@@ -1,10 +1,11 @@
+import asyncio
 import json
 import re
 import time
 
-from scripts.monitoring.utils import GraphiteEvent, bash_run
+from scripts.monitoring.utils import GraphiteEvent
 
-IOSTAT_COMMAND = "iostat -x -o JSON 5 1"
+IOSTAT_COMMAND = ("iostat", "-x", "-o", "JSON", "5", "2")
 
 
 def _normalize_metric_name(name: str) -> str:
@@ -14,7 +15,7 @@ def _normalize_metric_name(name: str) -> str:
     return normalized.strip("_")
 
 
-def get_iostat_payload() -> dict:
+async def get_iostat_payload() -> dict:
     """
     Example:
     {"sysstat": {
@@ -67,12 +68,19 @@ def get_iostat_payload() -> dict:
         ]
     }}
     """
-    output = bash_run(IOSTAT_COMMAND, capture_output=True).stdout
-    return json.loads(output)
+    process = await asyncio.create_subprocess_exec(
+        *IOSTAT_COMMAND,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    if process.returncode != 0:
+        raise RuntimeError(f"iostat failed with code {process.returncode}: {stderr.decode('utf-8', errors='replace').strip()}")
+    return json.loads(stdout.decode("utf-8"))
 
 
-def get_iostat_events(bucket: str, timestamp: int | None = None) -> list[GraphiteEvent]:
-    payload = get_iostat_payload()
+async def get_iostat_events(bucket: str, timestamp: int | None = None) -> list[GraphiteEvent]:
+    payload = await get_iostat_payload()
 
     hosts = payload.get("sysstat", {}).get("hosts", [])
     if not hosts:

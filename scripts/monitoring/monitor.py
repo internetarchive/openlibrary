@@ -254,8 +254,8 @@ def monitor_db_connections():
 
 @limit_server(["ol-solr0"], scheduler)
 @scheduler.scheduled_job('interval', seconds=60)
-def monitor_iostat():
-    events = get_iostat_events(bucket=f'stats.ol.{SERVER}')
+async def monitor_iostat():
+    events = await get_iostat_events(bucket=f'stats.ol.{SERVER}')
     if not events:
         return
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
