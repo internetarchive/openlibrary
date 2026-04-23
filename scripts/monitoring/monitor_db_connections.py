@@ -87,12 +87,13 @@ SELECT
     COALESCE(state, '') AS state,
     extract(epoch FROM now() - backend_start) AS session_age_seconds,
     CASE client_addr
-        WHEN '207.241.231.16'  THEN 'ol-web1'
         WHEN '207.241.231.169' THEN 'ol-dev1'
         WHEN '207.241.234.145' THEN 'ol-home0'
         WHEN '207.241.234.146' THEN 'ol-covers0'
-        WHEN '207.241.234.180' THEN 'ol-web2'
         WHEN '207.241.236.242' THEN 'ol-web0'
+        WHEN '207.241.231.16'  THEN 'ol-web1'
+        WHEN '207.241.234.180' THEN 'ol-web2'
+        WHEN '207.241.239.64' THEN 'ol-web3'
         ELSE 'OTHER'
     END AS hostname
 FROM pg_stat_activity
