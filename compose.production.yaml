@@ -346,6 +346,8 @@ services:
         - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
         - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
         - PIP_INDEX_URL=${PIP_INDEX_URL:-}
+    environment:
+      - OL_CONFIG=/olsystem/etc/openlibrary.yml
     hostname: "$HOSTNAME"
     command: docker/ol-monitoring-start.sh
     restart: unless-stopped
@@ -360,6 +362,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # Needed to inspect fail2ban since it runs on the host
       - /var/run/fail2ban:/var/run/fail2ban
+      - ../olsystem:/olsystem
     logging:
       options:
         max-size: "512m"
