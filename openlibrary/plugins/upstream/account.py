@@ -795,6 +795,19 @@ class import_books(delegate.page):
         return MyBooksTemplate(username, "imports").render(header_title=_("Imports and Exports"), template=template)
 
 
+class bulk_import(delegate.page):
+    path = "/account/import/bulk"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user['key'].split('/')[-1]
+        template = render['account/import_bulk']()
+        return MyBooksTemplate(username, 'imports').render(
+            header_title=_("Bulk Import"), template=template
+        )
+
+
 class fetch_goodreads(delegate.page):
     path = "/account/import/goodreads"
 
