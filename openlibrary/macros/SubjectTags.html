@@ -16,6 +16,19 @@ $def render_subjects(label, subjects, track_value, prefix="", edit_mode=False):
 
 $if work:
   $for tag in tags:
+    $if tag=="Genres":
+      $if work.get("genres"):
+        <div class="section link-box">
+          <span class="clamp" data-before="&#9656; ">
+          <h3>$_("Genres")</h3>
+            $for genre in work.genres:
+              $code:
+                genre_key = genre.get("key", "") if isinstance(genre, dict) else getattr(genre, "key", "")
+                genre_slug = genre_key.split("/")[-1].replace("OL_genre_", "").replace("_", " ").title() if genre_key else ""
+              $if genre_slug:
+                <a href="/subjects/genre:$genre_key.split('/')[-1].replace('OL_genre_', '')" data-ol-link-track="BookOverview|GenreClick">$genre_slug</a>$cond(not loop.last, ",", "")
+          </span>
+        </div>
     $if tag=="Subjects":
       $:render_subjects(_("Subjects"), work.get_subjects(),"BookOverview|SubjectClick", edit_mode=edit_mode)
     $if tag=="People":
