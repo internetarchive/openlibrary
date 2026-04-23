@@ -11,6 +11,7 @@ import time
 import httpx
 
 from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
+from scripts.monitoring.iostat_monitor import get_iostat_events
 from scripts.monitoring.monitor_db_connections import get_connection_metrics
 from scripts.monitoring.monitor_workers import get_worker_metrics
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
@@ -248,6 +249,15 @@ def monitor_db_connections():
     if len(events) > 400:
         events = events[:400]
         print("ERROR: Too many events for stats.ol.workers.timealive")
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
+
+
+@limit_server(["ol-solr0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def monitor_iostat():
+    events = get_iostat_events(bucket=f'stats.ol.{SERVER}')
+    if not events:
+        return
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
