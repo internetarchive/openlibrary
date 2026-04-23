@@ -39,7 +39,7 @@ class status(delegate.page):
         drift_info = {}
         if testing_state:
             drift_info, _ = _get_drift_info(testing_state)
-        show_testing = testing_state is not None or is_maintainer_user
+        show_testing = testing_state is not None and is_maintainer_user
         last_deploy = testing_state.last_deploy_at if testing_state else ''
         has_pending = bool(testing_state) and any(
             p.pull_latest_sha
