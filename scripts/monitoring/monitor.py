@@ -72,7 +72,7 @@ async def monitor_solr():
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.solr_logs_monitor import main
 
-    main(
+    await main(
         solr_container=(
             'solr_builder-solr_prod-1' if SERVER == 'ol-solr1' else 'openlibrary-solr-1'
         ),

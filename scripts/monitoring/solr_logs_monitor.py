@@ -211,7 +211,7 @@ def graphite_normalize(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_-]", "_", name)
 
 
-def main(
+async def main(
     solr_container="openlibrary-solr-1",
     graphite_prefix="stats.ol.solr0",
     graphite_address="graphite.us.archive.org:2004",
