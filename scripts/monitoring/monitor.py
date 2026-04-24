@@ -107,10 +107,13 @@ async def monitor_partner_useragents():
         return agent_counts
 
     known_names = extract_agent_counts("""
+    403 Research-Cover-Scraper (***@cornell.edu)
     309 BookshopLT/1.0 (***@gmail.com)
     230 BookReadingTime/2.0 (https://bookreadingtime.com; ***@bookreadingtime.com)
     180 CourseworkBot/1.0 (coursework@local)
     180 BookScraper/1.0 (data collection project; contact@example.com)
+    167 librimondo-pim/1.0 (https://librimondo.com; ***@fkwt.pl)
+    111 BookInClub/1.0 (https://bookinclub.com; ***@bookinclub.com) node.js/axios
     177 Whefi/1.0 (***@whefi.com)
     160 BookEnricher/1.0 (your@email.com)
     153 OrelhaDoLivro/1.0 (***@orelhadelivro.com.br; openlibrary-summary)
@@ -137,6 +140,7 @@ async def monitor_partner_useragents():
      22 booklist4u/1.0 (https://booklist4u.com; ***@gmail.com)
      21 TurkicMT-BookPipeline/1.0 (research; ***@example.com)
      20 Gleeph/1.0 (***@gleeph.net)
+     20 ReadingList/2.8.11 (***@readinglist.app)
      18 LitCore/1.0 (https://litcore.io; ***@litcore.io) httpx/0.27
      12 ISBN.nu Book Price Comparison (***@isbn.nu)
       9 ISBNdb (***@isbndb.com)
