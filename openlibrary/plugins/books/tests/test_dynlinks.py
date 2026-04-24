@@ -237,7 +237,8 @@ def monkeypatch_solr(monkeypatch, solr_overrides: list[dict] | None = None):
             fields: Iterable[str] | None = None,
             doc_wrapper: Callable[[dict], T] = web.storage,
         ) -> list[T]:
-            return [doc for doc in (solr_overrides or []) if doc["key"] in set(keys)]  # type: ignore
+            keys = set(keys)
+            return [doc for doc in (solr_overrides or []) if doc["key"] in keys]  # type: ignore
 
     mock_solr = FakeSolr("http://fake-solr:8983/solr/ol")
     monkeypatch.setattr(dynlinks, "get_solr", lambda: mock_solr)
