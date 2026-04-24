@@ -227,7 +227,7 @@ class ReadProcessor:
         # Note that it's available thru above works/docs
         self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
-        self.iaid_to_meta = {iaid: await ia.get_metadata_async(iaid) for iaid in iaids}
+        self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
 
         def lookup_iaids(iaids):
             step = 10

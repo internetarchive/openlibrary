@@ -11,7 +11,6 @@ import web
 from infogami import config
 from infogami.utils import stats
 from openlibrary.core import cache
-from openlibrary.utils.async_utils import async_bridge
 
 logger = logging.getLogger("openlibrary.ia")
 
@@ -19,7 +18,6 @@ IA_BASE_URL = "https://archive.org"
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 session = httpx.Client()
-session_async = httpx.AsyncClient()
 
 
 def setup(config):
@@ -29,7 +27,7 @@ def setup(config):
     IA_BASE_URL = config.get("ia_base_url", "https://archive.org")
 
 
-async def get_api_response_async(url: str, params: dict | None = None) -> dict:
+def get_api_response(url: str, params: dict | None = None) -> dict:
     """
     Makes an API GET request to archive.org, collects stats
     Returns a JSON dict.
@@ -38,7 +36,7 @@ async def get_api_response_async(url: str, params: dict | None = None) -> dict:
     api_response = {}
     stats.begin("archive.org", url=url)
     try:
-        r = await session_async.get(url, params=params, timeout=3)
+        r = session.get(url, params=params, timeout=3)
         if r.status_code == httpx.codes.OK:
             api_response = r.json()
         else:
@@ -47,9 +45,6 @@ async def get_api_response_async(url: str, params: dict | None = None) -> dict:
         logger.exception(f"Exception occurred accessing {url}.")
     stats.end()
     return api_response
-
-
-get_api_response = async_bridge.wrap(get_api_response_async)
 
 
 def save_page_now(url: str, access_key: str | None = None, secret_key: str | None = None) -> str:
@@ -90,7 +85,7 @@ def get_ia_s3_keys() -> tuple[str | None, str | None]:
     return spn_config.get("s3_key"), spn_config.get("s3_secret")
 
 
-async def get_metadata_direct_async(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict:
+def get_metadata_direct(itemid: str, only_metadata: bool = True, cache: bool = True) -> dict:
     """
     Fetches metadata by querying the archive.org metadata API, without local caching.
     :param bool cache: if false, requests uncached metadata from archive.org
@@ -100,14 +95,10 @@ async def get_metadata_direct_async(itemid: str, only_metadata: bool = True, cac
     params = {}
     if cache is False:
         params["dontcache"] = 1
-    full_json = await get_api_response_async(url, params)
+    full_json = get_api_response(url, params)
     return extract_item_metadata(full_json) if only_metadata else full_json
 
 
-get_metadata_direct = async_bridge.wrap(get_metadata_direct_async)
-
-
-get_metadata_async = cache.memoize("memcache", key="ia.get_metadata", expires=5 * cache.MINUTE_SECS)(get_metadata_direct_async)
 get_metadata: Callable[[str], dict] = cache.memcache_memoize(get_metadata_direct, key_prefix="ia.get_metadata", timeout=5 * cache.MINUTE_SECS)
 
 
