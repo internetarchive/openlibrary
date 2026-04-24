@@ -113,11 +113,11 @@ async def monitor_partner_useragents():
     180 CourseworkBot/1.0 (coursework@local)
     180 BookScraper/1.0 (data collection project; contact@example.com)
     167 librimondo-pim/1.0 (https://librimondo.com; ***@fkwt.pl)
-    111 BookInClub/1.0 (https://bookinclub.com; ***@bookinclub.com) node.js/axios
     177 Whefi/1.0 (***@whefi.com)
     160 BookEnricher/1.0 (your@email.com)
     153 OrelhaDoLivro/1.0 (***@orelhadelivro.com.br; openlibrary-summary)
     126 KiveoAPI/1.0 (***@kiveo.app)
+    111 BookInClub/1.0 (https://bookinclub.com; ***@bookinclub.com) node.js/axios
     107 BookDirectoryBot/1.0 (contact: ***@gmail.com)
     102 AwarioSmartBot/1.0 (+https://awario.com/bots.html; ***@awario.com)
      85 Bookhives/1.0 (***@gmail.com)
