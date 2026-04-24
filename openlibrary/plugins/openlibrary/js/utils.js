@@ -38,7 +38,7 @@ export function removeChildren(...elements) {
     for (const elem of elements) {
         if (elem) {
             while (elem.firstChild) {
-                elem.removeChild(elem.firstChild)
+                elem.removeChild(elem.firstChild);
             }
         }
     }
@@ -51,7 +51,7 @@ export function updateURLParameters(params) {
 
     // Iterate over the params object and update/add each parameter
     for (const key in params) {
-        if (params.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(params, key)) {
             url.searchParams.set(key, params[key]);
         }
     }

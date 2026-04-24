@@ -24,8 +24,10 @@ services:
       - LOCAL_DEV=true
       - OL_EXPOSE_SOLR_INTERNALS_PARAMS=true
     depends_on:
-      - db
-      - infobase
+      db:
+        condition: service_healthy
+      infobase:
+        condition: service_started
 
   fast_web:
     build:
@@ -53,6 +55,13 @@ services:
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=dev
       - LOCAL_DEV=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8983/solr/openlibrary/admin/ping"]
+      interval: 30s
+      start_interval: 1s
+      start_period: 20s
+      timeout: 1s
+      retries: 24
     volumes:
       - ./docker/ol-local-solr-start.sh:/docker/ol-solr-start.sh:ro
     ports:
@@ -66,13 +75,16 @@ services:
       dockerfile: docker/Dockerfile.oldev
     environment:
       - OL_SOLR_NEXT=true
+    depends_on:
+      solr:
+        condition: service_healthy
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
 
   db:
-    image: postgres:${POSTGRES_VERSION:-9.3}
+    image: postgres:${POSTGRES_VERSION:-18.3}
     networks:
       - dbnet
     environment:
@@ -82,10 +94,16 @@ services:
     volumes:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # Any files inside /docker-entrypoint-initdb.d/ will get run by postgres
-      # if the db is empty (which as of now is always, since we don't store the
-      # postgres data anywhere).
+      # if the db is empty (ie during first run).
       - ./docker/ol-db-init.sh:/docker-entrypoint-initdb.d/ol-db-init.sh
-      - ol-postgres:/var/lib/postgresql/data
+      - ol-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      start_interval: 1s
+      start_period: 20s
+      timeout: 1s
+      retries: 24
 
   covers:
     build:
@@ -112,7 +130,8 @@ services:
       - ol-vendor:/openlibrary/vendor
       - ${OL_MOUNT_DIR:-.}:/openlibrary
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   home:
     image: "${OLIMAGE:-oldev:latest}"
@@ -137,6 +156,11 @@ services:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
       # For OSP download persistence across restarts
       - solr-updater-data:/solr-updater-data
+    depends_on:
+      solr:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
 volumes:
   ol-vendor:

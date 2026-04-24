@@ -1,8 +1,10 @@
 from collections.abc import Sequence
+from unittest.mock import MagicMock, patch
 
 import pytest
 import web
 
+from infogami import config
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 from openlibrary.mocks.mock_infobase import MockSite
 
@@ -133,8 +135,6 @@ def test_canonical_url():
 
 
 def test_get_coverstore_url(monkeypatch):
-    from infogami import config
-
     monkeypatch.delattr(config, "coverstore_url", raising=False)
     assert utils.get_coverstore_url() == "https://covers.openlibrary.org"
 
@@ -342,8 +342,6 @@ def test_render_cached_macro_evicts_cache_on_error(monkeypatch):
     `work_search` returned a Solr error in RawQueryCarousel), the bad result
     must be evicted from memcache so subsequent requests get a fresh attempt.
     """
-    from unittest.mock import MagicMock, patch
-
     # Simulate the rendered macro result indicating failure
     error_page = {"do_not_cache": "True", "content": "<div></div>"}
 

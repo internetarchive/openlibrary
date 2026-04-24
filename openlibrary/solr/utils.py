@@ -18,7 +18,7 @@ solr_base_url = None
 solr_next: bool | None = None
 
 
-def load_config(c_config='conf/openlibrary.yml'):
+def load_config(c_config="conf/openlibrary.yml"):
     if not config.runtime_config:
         config.load(c_config)
         config.load_config(c_config)
@@ -35,11 +35,11 @@ def get_solr_base_url():
     if solr_base_url is not None:
         return solr_base_url
 
-    if os.environ.get('OL_SOLR_BASE_URL'):
-        solr_base_url = os.environ['OL_SOLR_BASE_URL']
+    if os.environ.get("OL_SOLR_BASE_URL"):
+        solr_base_url = os.environ["OL_SOLR_BASE_URL"]
     else:
         load_config()
-        solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
+        solr_base_url = config.runtime_config["plugin_worksearch"]["solr_base_url"]
 
     return solr_base_url
 
@@ -56,15 +56,13 @@ def get_solr_next() -> bool:
     global solr_next
 
     if solr_next is None:
-        if env_val := os.environ.get('OL_SOLR_NEXT'):
-            if env_val not in ('true', 'false', ''):
-                raise ValueError(f'Invalid OL_SOLR_NEXT, got {env_val}')
-            solr_next = env_val == 'true'
+        if env_val := os.environ.get("OL_SOLR_NEXT"):
+            if env_val not in ("true", "false", ""):
+                raise ValueError(f"Invalid OL_SOLR_NEXT, got {env_val}")
+            solr_next = env_val == "true"
         else:
             load_config()
-            solr_next = cast(
-                bool, config.runtime_config['plugin_worksearch'].get('solr_next', False)
-            )
+            solr_next = cast(bool, config.runtime_config["plugin_worksearch"].get("solr_next", False))
 
     return solr_next
 
@@ -98,8 +96,8 @@ class SolrUpdateRequest:
     def has_changes(self) -> bool:
         return bool(self.adds or self.deletes)
 
-    def to_solr_requests_json(self, indent: int | str | None = None, sep=',') -> str:
-        result = '{'
+    def to_solr_requests_json(self, indent: int | str | None = None, sep=",") -> str:
+        result = "{"
         if self.deletes:
             result += f'"delete": {json.dumps(self.deletes, indent=indent)}' + sep
         for doc in self.adds:
@@ -108,7 +106,7 @@ class SolrUpdateRequest:
             result += '"commit": {}' + sep
 
         result = result.removesuffix(sep)
-        result += '}'
+        result += "}"
         return result
 
     def clear_requests(self) -> None:
@@ -126,34 +124,34 @@ def solr_update(
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {
         # Don't fail the whole batch if one bad apple
-        'update.chain': 'tolerant-chain'
+        "update.chain": "tolerant-chain"
     }
     if skip_id_check:
-        params['overwrite'] = 'false'
+        params["overwrite"] = "false"
 
     def make_request():
         logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
             resp = httpx.post(
-                f'{solr_base_url}/update',
+                f"{solr_base_url}/update",
                 # Large batches especially can take a decent chunk of time
                 timeout=300,
                 params=params,
-                headers={'Content-Type': 'application/json'},
+                headers={"Content-Type": "application/json"},
                 content=content,
             )
 
             if resp.status_code == 400:
                 resp_json = resp.json()
 
-                indiv_errors = resp_json.get('responseHeader', {}).get('errors', [])
+                indiv_errors = resp_json.get("responseHeader", {}).get("errors", [])
                 if indiv_errors:
                     for e in indiv_errors:
-                        logger.error(f'Individual Solr POST Error: {e}')
+                        logger.error(f"Individual Solr POST Error: {e}")
 
-                global_error = resp_json.get('error')
+                global_error = resp_json.get("error")
                 if global_error:
-                    logger.error(f'Global Solr POST Error: {global_error.get("msg")}')
+                    logger.error(f"Global Solr POST Error: {global_error.get('msg')}")
 
                 if not (indiv_errors or global_error):
                     # We can handle the above errors. Any other 400 status codes
@@ -162,13 +160,13 @@ def solr_update(
             else:
                 resp.raise_for_status()
         except HTTPStatusError as e:
-            logger.error(f'HTTP Status Solr POST Error: {e}')
+            logger.error(f"HTTP Status Solr POST Error: {e}")
             raise
         except TimeoutException:
-            logger.error(f'Timeout Solr POST Error: {content}')
+            logger.error(f"Timeout Solr POST Error: {content}")
             raise
         except HTTPError as e:
-            logger.error(f'HTTP Solr POST Error: {e}')
+            logger.error(f"HTTP Solr POST Error: {e}")
             raise
 
     retry = RetryStrategy(
@@ -180,7 +178,7 @@ def solr_update(
     try:
         return retry(make_request)
     except MaxRetriesExceeded as e:
-        logger.error(f'Max retries exceeded for Solr POST: {e.last_exception}')
+        logger.error(f"Max retries exceeded for Solr POST: {e.last_exception}")
 
 
 async def solr_insert_documents(
@@ -194,14 +192,14 @@ async def solr_insert_documents(
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
     if skip_id_check:
-        params['overwrite'] = 'false'
+        params["overwrite"] = "false"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            f'{solr_base_url}/update',
+            f"{solr_base_url}/update",
             timeout=30,  # seconds; the default timeout is silly short
             params=params,
-            headers={'Content-Type': 'application/json'},
+            headers={"Content-Type": "application/json"},
             content=json.dumps(documents),
         )
     resp.raise_for_status()
@@ -214,5 +212,5 @@ def str_to_key(s):
     :param str s:
     :rtype: str
     """
-    to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
-    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
+    to_drop = set(""";/?:@&=+$,<>#%"{}|\\^[]`\n\r""")
+    return "".join(c if c != " " else "_" for c in s.lower() if c not in to_drop)

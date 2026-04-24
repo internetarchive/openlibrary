@@ -27,7 +27,7 @@ td {
   padding: 0;
 }
 h1 {
-  margin: 20px 0;
+  margin: var(--spacing-stack-lg) 0;
 }
 body,
 p,
@@ -38,7 +38,7 @@ body {
   font-size: 100%;
   line-height: normal;
   background-color: var(--beige);
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 fieldset {
   width: 100%;
@@ -76,13 +76,13 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   font-weight: 600;
 }
 div.head {
-  margin-bottom: 10px;
-  margin-top: 20px;
+  margin-bottom: var(--spacing-stack-sm);
+  margin-top: var(--spacing-stack-lg);
 }
 div.head span {
   font-size: var(--font-size-label-medium);

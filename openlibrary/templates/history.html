@@ -1,4 +1,4 @@
-$def with (page, h)
+$def with (page, h, has_next=False)
 
 $putctx("robots", "noindex,nofollow")
 
@@ -75,12 +75,8 @@ $ rev = page.latest_revision or page.revision
 
         </form>
 
-        <div class="sansserif">
-        $ page = safeint(query_param("page", "0"))
-        $if page != 0:
-            <a href="$changequery(page=page - 1)" rel="nofollow">&larr; $_("Back")</a>
-        $if len(h) == 20:
-            <a href="$changequery(page=page + 1)" rel="nofollow">$_("Next") &rarr;</a>
-        </div>
+        $# Clamp so legacy ?page=0 URLs render as page 1 and match the component's 1-indexed scheme.
+        $ page_num = max(1, safeint(query_param("page", "1")))
+        $:macros.OlPaginationArrows(page_num, has_next)
 
 </div>

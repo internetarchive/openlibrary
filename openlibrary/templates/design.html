@@ -3,15 +3,16 @@ $# /developers/design
 $ _x = ctx.setdefault('cssfile', 'design')
 
 <div class="design-pattern-library">
-  <h1>$_("Design Pattern Library")</h1>
+  <h1>$_("Web Component Library")</h1>
 
   <div class="design-pattern-library__layout">
     <nav class="design-pattern-nav">
-      <h2 class="design-pattern-nav__title">$_("Components")</h2>
       <ul class="design-pattern-nav__list">
         <li><a href="#pagination">$_("Pagination")</a></li>
+        <li><a href="#popover">$_("Popover")</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
+        <li><a href="#chip-group">$_("Chip Group")</a></li>
       </ul>
     </nav>
 
@@ -74,7 +75,30 @@ $ _x = ctx.setdefault('cssfile', 'design')
             <ol-pagination total-pages="100" current-page="50"></ol-pagination>
           </div>
         </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Arrows mode")</h3>
+          <p>$_("When total pages is unknown, use arrows mode to show only previous/next navigation.")</p>
+          <code class="example__code">&lt;ol-pagination mode="arrows" current-page="3" has-next-page&gt;&lt;/ol-pagination&gt;</code>
+
+          <h3 class="example__title">$_("Arrows mode (has next page)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
+          </div>
+
+          <h3 class="example__title">$_("Arrows mode (no next page)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="3"></ol-pagination>
+          </div>
+
+          <h3 class="example__title">$_("Arrows mode (first page, has next)")</h3>
+          <div class="example__output">
+            <ol-pagination mode="arrows" current-page="1" has-next-page></ol-pagination>
+          </div>
+        </section>
       </article>
+
+      $:render_template("design/popover")
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">$_("Read More")</h2>
@@ -219,6 +243,84 @@ $ _x = ctx.setdefault('cssfile', 'design')
               });
             });
           </script>
+        </section>
+      </article>
+      <article class="design-pattern" id="chip-group">
+        <h2 class="design-pattern__title">$_("Chip Group")</h2>
+        <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Default (medium gap)")</h3>
+          <p>$_("Chips are spaced with an 8px gap by default.")</p>
+          <code class="example__code">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Small gap")</h3>
+          <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
+          <code class="example__code">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group gap="small">
+              <ol-chip size="small">$_("Fiction")</ol-chip>
+              <ol-chip size="small">$_("Science")</ol-chip>
+              <ol-chip size="small">$_("History")</ol-chip>
+              <ol-chip size="small">$_("Poetry")</ol-chip>
+              <ol-chip size="small">$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Large gap")</h3>
+          <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
+          <code class="example__code">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <div class="example__output">
+            <ol-chip-group gap="large">
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Wrapping behavior")</h3>
+          <p>$_("Chips automatically wrap to the next line when they exceed the container width.")</p>
+          <div class="example__output" style="max-width: 300px;">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+              <ol-chip>$_("Essays")</ol-chip>
+              <ol-chip>$_("Biography")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("With mixed chip states")</h3>
+          <p>$_("Chip groups work with any combination of chip sizes, states, and link chips.")</p>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
+              <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
+              <ol-chip href="/subjects/science" count="512">$_("Science")</ol-chip>
+              <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
+            </ol-chip-group>
+          </div>
         </section>
       </article>
     </main>

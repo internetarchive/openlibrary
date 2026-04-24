@@ -39,9 +39,7 @@ def read_state_file(path, initial_state: str | None = None):
     try:
         return open(path).read()
     except OSError:
-        logger.error(
-            "State file %s is not found. Reading log from the beginning of today", path
-        )
+        logger.error("State file %s is not found. Reading log from the beginning of today", path)
         return initial_state or f"{datetime.date.today().isoformat()}:0"
 
 
@@ -55,7 +53,7 @@ class InfobaseLog:
         :param str hostname:
         :param str|None exclude: if specified, excludes records that include the string
         """
-        self.base_url = 'http://%s/openlibrary.org/log' % hostname
+        self.base_url = "http://%s/openlibrary.org/log" % hostname
         self.offset = get_default_offset()
         self.exclude = exclude
 
@@ -75,9 +73,9 @@ class InfobaseLog:
                 resp.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
-                if e.args and e.args[0].args == (111, 'Connection refused'):
+                if e.args and e.args[0].args == (111, "Connection refused"):
                     logger.error(
-                        'make sure infogami server is working, connection refused from %s',
+                        "make sure infogami server is working, connection refused from %s",
                         url,
                     )
                     sys.exit(1)
@@ -88,22 +86,22 @@ class InfobaseLog:
             except:
                 logger.error("Bad JSON: %s", resp.text)
                 raise
-            data = d['data']
+            data = d["data"]
             # no more data is available
             if not data:
                 logger.debug("no more records found")
                 # There's an infobase bug where we'll sometimes get 0 items, but the
                 # binary offset will have incremented...?
-                if 'offset' in d:
+                if "offset" in d:
                     # There's _another_ infobase bug where if you query a future date,
                     # it'll return back 2020-12-01. To avoid solrupdater getting stuck
                     # in a loop, only update the offset if it's newer than the current
-                    old_day, old_boffset = self.offset.split(':')
+                    old_day, old_boffset = self.offset.split(":")
                     old_boffset = int(old_boffset)
-                    new_day, new_boffset = d['offset'].split(':')
+                    new_day, new_boffset = d["offset"].split(":")
                     new_boffset = int(new_boffset)
                     if new_day >= old_day and new_boffset >= old_boffset:
-                        self.offset = d['offset']
+                        self.offset = d["offset"]
                 return
 
             for record in data:
@@ -111,7 +109,7 @@ class InfobaseLog:
                     continue
                 yield record
 
-            self.offset = d['offset']
+            self.offset = d["offset"]
 
 
 def find_keys(d: dict | list) -> Iterator[str]:
@@ -132,8 +130,8 @@ def find_keys(d: dict | list) -> Iterator[str]:
     ['foo']
     """
     if isinstance(d, dict):
-        if 'key' in d:
-            yield d['key']
+        if "key" in d:
+            yield d["key"]
         for val in d.values():
             yield from find_keys(val)
     elif isinstance(d, list):
@@ -146,14 +144,14 @@ def find_keys(d: dict | list) -> Iterator[str]:
 
 def parse_log(records, load_ia_scans: bool):
     for rec in records:
-        action = rec.get('action')
+        action = rec.get("action")
 
-        if action in ('save', 'save_many'):
-            changeset = rec['data'].get('changeset', {})
-            old_docs = changeset.get('old_docs', [])
-            new_docs = changeset.get('docs', [])
+        if action in ("save", "save_many"):
+            changeset = rec["data"].get("changeset", {})
+            old_docs = changeset.get("old_docs", [])
+            new_docs = changeset.get("docs", [])
             for before, after in zip(old_docs, new_docs):
-                yield after['key']
+                yield after["key"]
                 # before is None if the item is new
                 if before:
                     before_keys = set(find_keys(before))
@@ -162,7 +160,7 @@ def parse_log(records, load_ia_scans: bool):
                     # also need to be updated
                     yield from before_keys - after_keys
 
-        elif action == 'store.put':
+        elif action == "store.put":
             # A sample record looks like this:
             # {
             #   "action": "store.put",
@@ -173,18 +171,14 @@ def parse_log(records, load_ia_scans: bool):
             #   },
             #   "site": "openlibrary.org"
             # }
-            data = rec.get('data', {}).get("data", {})
+            data = rec.get("data", {}).get("data", {})
             key = data.get("_key", "")
             if data.get("type") == "ebook" and key.startswith("ebooks/books/"):
-                edition_key = data.get('book_key')
+                edition_key = data.get("book_key")
                 if edition_key:
                     yield edition_key
-            elif (
-                load_ia_scans
-                and data.get("type") == "ia-scan"
-                and key.startswith("ia-scan/")
-            ):
-                identifier = data.get('identifier')
+            elif load_ia_scans and data.get("type") == "ia-scan" and key.startswith("ia-scan/"):
+                identifier = data.get("identifier")
                 if identifier and is_allowed_itemid(identifier):
                     yield "/books/ia:" + identifier
 
@@ -192,11 +186,11 @@ def parse_log(records, load_ia_scans: bool):
             # The admin interface writes the keys to update to a document named
             # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
-            elif key == 'solr-force-update':
-                keys = data.get('keys')
+            elif key == "solr-force-update":
+                keys = data.get("keys")
                 yield from keys
 
-        elif action == 'store.delete':
+        elif action == "store.delete":
             key = rec.get("data", {}).get("key")
             # An ia-scan key is deleted when that book is deleted/darked from IA.
             # Delete it from OL solr by updating that key
@@ -220,7 +214,7 @@ async def update_keys(keys):
 
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     logger.debug("Args: %s" % str(args))
-    update.load_configs(args['ol_url'], args['ol_config'], 'default')
+    update.load_configs(args["ol_url"], args["ol_config"], "default")
 
     keys = [k for k in keys if update.can_update_key(k)]
 
@@ -243,9 +237,9 @@ async def main(
     ol_config: str,
     osp_dump: Path | None = None,
     debugger: bool = False,
-    state_file: str = 'solr-update.state',
+    state_file: str = "solr-update.state",
     exclude_edits_containing: str | None = None,
-    ol_url='http://openlibrary.org/',
+    ol_url="http://openlibrary.org/",
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
@@ -268,7 +262,7 @@ async def main(
         import debugpy  # noqa: T100
 
         logger.info("Enabling debugger attachment (attach if it hangs here)")
-        debugpy.listen(address=('0.0.0.0', 3000))  # noqa: T100
+        debugpy.listen(address=("0.0.0.0", 3000))  # noqa: T100
         logger.info("Waiting for debugger to attach...")
         debugpy.wait_for_client()  # noqa: T100
         logger.info("Debugger attached to port 3000")
@@ -286,13 +280,11 @@ async def main(
 
     logger.info("loading config from %s", ol_config)
     load_config(ol_config)
-    init_sentry(getattr(infogami.config, 'sentry', {}))
+    init_sentry(getattr(infogami.config, "sentry", {}))
 
     offset = read_state_file(state_file, initial_state)
 
-    logfile = InfobaseLog(
-        config.get('infobase_server'), exclude=exclude_edits_containing
-    )
+    logfile = InfobaseLog(config.get("infobase_server"), exclude=exclude_edits_containing)
     logfile.seek(offset)
 
     while True:

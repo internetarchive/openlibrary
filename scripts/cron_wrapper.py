@@ -68,12 +68,10 @@ def _parse_args():
         "-c",
         "--config",
         default=DEFAULT_CONFIG_PATH,
-        help=f"Path to cron-wrapper configuration file. Defaults to \"{DEFAULT_CONFIG_PATH}\"",
+        help=f'Path to cron-wrapper configuration file. Defaults to "{DEFAULT_CONFIG_PATH}"',
     )
     _parser.add_argument("monitor_slug", help="Monitor slug of the Sentry cron monitor")
-    _parser.add_argument(
-        "script", help="Path to script that will be wrapped and monitored"
-    )
+    _parser.add_argument("script", help="Path to script that will be wrapped and monitored")
     _parser.add_argument(
         "script_args",
         nargs=argparse.REMAINDER,
@@ -84,7 +82,7 @@ def _parse_args():
     return _parser
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = _parse_args()
     args = parser.parse_args()
     args.func(args)

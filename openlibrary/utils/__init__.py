@@ -6,7 +6,7 @@ from enum import Enum
 from subprocess import CalledProcessError, run
 from typing import Literal
 
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
+to_drop = set(""";/?:@&=+$,<>#%"{}|\\^[]`\n\r""")
 
 
 def str_to_key(s: str) -> str:
@@ -18,7 +18,7 @@ def str_to_key(s: str) -> str:
     >>> str_to_key("")
     ''
     """
-    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
+    return "".join(c if c != " " else "_" for c in s.lower() if c not in to_drop)
 
 
 def uniq[T](values: Iterable[T], key=None) -> list[T]:
@@ -63,9 +63,7 @@ def take_best[T](
     besties = []
     for item in items:
         score = scoring_fn(item)
-        if (optimization == "max" and score > best_score) or (
-            optimization == "min" and score < best_score
-        ):
+        if (optimization == "max" and score > best_score) or (optimization == "min" and score < best_score):
             best_score = score
             besties = [item]
         elif score == best_score:
@@ -75,9 +73,7 @@ def take_best[T](
     return besties
 
 
-def multisort_best[T](
-    items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]
-) -> T | None:
+def multisort_best[T](items: list[T], specs: list[tuple[Literal["min", "max"], Callable[[T], float]]]) -> T | None:
     """
     Takes the best item, taking into account the multisorts
 
@@ -117,7 +113,7 @@ def dicthash(d):
         return d
 
 
-olid_re = re.compile(r'OL\d+[A-Z]', re.IGNORECASE)
+olid_re = re.compile(r"OL\d+[A-Z]", re.IGNORECASE)
 
 
 def find_olid_in_string(s: str, olid_suffix: str | None = None) -> str | None:
@@ -152,10 +148,10 @@ def olid_to_key(olid: str) -> str:
     '/lists/OL123L'
     """
     typ = {
-        'A': 'authors',
-        'W': 'works',
-        'M': 'books',
-        'L': 'lists',
+        "A": "authors",
+        "W": "works",
+        "M": "books",
+        "L": "lists",
     }[olid[-1]]
     if not typ:
         raise ValueError(f"Invalid olid: {olid}")
@@ -169,9 +165,9 @@ def extract_numeric_id_from_olid(olid):
     >>> extract_numeric_id_from_olid("/authors/OL123A")
     '123'
     """
-    if '/' in olid:
-        olid = olid.split('/')[-1]
-    if olid.lower().startswith('ol'):
+    if "/" in olid:
+        olid = olid.split("/")[-1]
+    if olid.lower().startswith("ol"):
         olid = olid[2:]
     if not is_number(olid[-1].lower()):
         olid = olid[:-1]

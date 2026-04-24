@@ -115,11 +115,10 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/exports.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -160,86 +159,19 @@ msgid ""
 " effect on the live website."
 msgstr ""
 
-#: DonateModal.html
-msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet "
-"Archive</a> library."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Hooray! You've discovered a title that's missing from our <a "
-"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
-"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"If you own this book, you can<a "
-"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
-"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
-"address below."
-msgstr ""
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"When you donate a physical book to the Internet Archive, your book will "
-"enjoy:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Beautiful <a target=\"_blank\" href=\"https://archive.org/scanning"
-"\">high-fidelity digitization</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
-"books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
-" library access</a> by the <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
-"disabled</a> public"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Open Library is a project of the <a "
-"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
-"profit"
-msgstr ""
-
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
 
-#: EditButtons.html books/add.html type/tag/form.html
+#: EditButtons.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a>. Yippee!"
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to "
+"Creative Commons will open in a new window\">CC0</a>. Yippee!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
@@ -491,11 +423,11 @@ msgstr ""
 msgid "My Book Review"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
 msgstr ""
 
-#: OlPagination.html
+#: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
 msgstr ""
 
@@ -507,21 +439,9 @@ msgstr ""
 msgid "Page {page}, current page"
 msgstr ""
 
-#: OlPagination.html design.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html
-msgid "First"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html lib/pagination.html
-msgid "Previous"
-msgstr ""
-
-#: Pager.html Pager_loanhistory.html admin/memory/index.html history.html
-#: lib/pagination.html showmarc.html
-msgid "Next"
 msgstr ""
 
 #: Profile.html
@@ -683,12 +603,12 @@ msgid "View MARC"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Older"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/people/edits.html recentchanges/render.html
+#: recentchanges/render.html
 msgid "Newer"
 msgstr ""
 
@@ -823,6 +743,13 @@ msgstr ""
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: SearchResultsWork.html publishers/view.html
+#, python-format
+msgid "%(count)s ebook"
+msgid_plural "%(count)s ebooks"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -1068,7 +995,7 @@ msgid "Edit this page"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: my_books/check_ins/check_in_prompt.html
+#: design/popover.html my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -1454,6 +1381,20 @@ msgid "Loan History"
 msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
+msgid "this book"
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "Unable to return %s. Please try again later or contact info@archive.org."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
+#, python-format
+msgid "%s has been returned."
+msgstr ""
+
+#: openlibrary/plugins/upstream/borrow.py
 msgid ""
 "Your account has hit a lending limit. Please try again later or contact "
 "info@archive.org."
@@ -1562,7 +1503,7 @@ msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1588,7 +1529,7 @@ msgstr ""
 msgid "Settings & Privacy"
 msgstr ""
 
-#: account.html
+#: account.html status.html
 msgid "or"
 msgstr ""
 
@@ -1799,11 +1740,11 @@ msgid "Not yet imported"
 msgstr ""
 
 #: design.html
-msgid "Design Pattern Library"
+msgid "Web Component Library"
 msgstr ""
 
 #: design.html
-msgid "Components"
+msgid "Popover"
 msgstr ""
 
 #: design.html type/edition/view.html type/work/view.html
@@ -1812,6 +1753,10 @@ msgstr ""
 
 #: design.html
 msgid "Chip"
+msgstr ""
+
+#: design.html
+msgid "Chip Group"
 msgstr ""
 
 #: design.html
@@ -1867,6 +1812,28 @@ msgstr ""
 
 #: design.html
 msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode"
+msgstr ""
+
+#: design.html
+msgid ""
+"When total pages is unknown, use arrows mode to show only previous/next "
+"navigation."
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (has next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (no next page)"
+msgstr ""
+
+#: design.html
+msgid "Arrows mode (first page, has next)"
 msgstr ""
 
 #: design.html
@@ -2023,6 +1990,62 @@ msgstr ""
 msgid "Toggle me too"
 msgstr ""
 
+#: design.html
+msgid ""
+"The ol-chip-group component is a flex-wrap container that provides "
+"consistent spacing for groups of chips."
+msgstr ""
+
+#: design.html
+msgid "Default (medium gap)"
+msgstr ""
+
+#: design.html
+msgid "Chips are spaced with an 8px gap by default."
+msgstr ""
+
+#: design.html
+msgid "Small gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for tighter spacing (4px)."
+msgstr ""
+
+#: design.html
+msgid "Large gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for wider spacing (12px)."
+msgstr ""
+
+#: design.html
+msgid "Wrapping behavior"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chips automatically wrap to the next line when they exceed the container "
+"width."
+msgstr ""
+
+#: design.html
+msgid "Biography"
+msgstr ""
+
+#: design.html
+msgid "With mixed chip states"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chip groups work with any combination of chip sizes, states, and link "
+"chips."
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -2045,7 +2068,7 @@ msgstr ""
 msgid "history"
 msgstr ""
 
-#: diff.html
+#: diff.html status.html
 msgid "Added"
 msgstr ""
 
@@ -2112,10 +2135,6 @@ msgstr ""
 
 #: history.html
 msgid "...to this version"
-msgstr ""
-
-#: books/daisy.html history.html
-msgid "Back"
 msgstr ""
 
 #: import_preview.html
@@ -2405,6 +2424,10 @@ msgstr ""
 msgid "Download Link"
 msgstr ""
 
+#: showmarc.html
+msgid "Next"
+msgstr ""
+
 #: status.html
 msgid "Open Library server status"
 msgstr ""
@@ -2414,7 +2437,110 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
-msgid "Staged"
+msgid "Testing Environment"
+msgstr ""
+
+#: status.html
+msgid "Deploy triggered!"
+msgstr ""
+
+#: status.html
+msgid "View Jenkins progress"
+msgstr ""
+
+#: status.html
+msgid "GitHub status refreshed."
+msgstr ""
+
+#: status.html
+msgid "PR numbers or URLs, space/comma separated"
+msgstr ""
+
+#: status.html
+msgid "Add PR(s)"
+msgstr ""
+
+#: status.html
+msgid "PR"
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html status.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr ""
+
+#: status.html
+msgid "Assignee"
+msgstr ""
+
+#: status.html
+msgid "Pinned Commit"
+msgstr ""
+
+#: status.html
+msgid "Branch HEAD"
+msgstr ""
+
+#: status.html
+msgid "Drift"
+msgstr ""
+
+#: status.html
+msgid "Enabled"
+msgstr ""
+
+#: status.html
+msgid "up to date"
+msgstr ""
+
+#: status.html
+msgid "unknown"
+msgstr ""
+
+#: status.html
+msgid "1 commit behind"
+msgstr ""
+
+#: status.html
+#, python-format
+msgid "%(count)s commits behind"
+msgstr ""
+
+#: admin/solr.html status.html
+msgid "Update"
+msgstr ""
+
+#: status.html
+msgid "Enable"
+msgstr ""
+
+#: status.html
+msgid "Disable"
+msgstr ""
+
+#: lists/lists.html status.html type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
+#: status.html
+msgid "Selected PRs"
+msgstr ""
+
+#: status.html
+msgid "Refresh"
+msgstr ""
+
+#: status.html
+msgid "Deploy"
+msgstr ""
+
+#: status.html
+msgid "No PRs in testing set."
+msgstr ""
+
+#: status.html
+msgid "Last Build Result"
 msgstr ""
 
 #: status.html
@@ -2520,6 +2646,26 @@ msgstr ""
 msgid "Logged %(count)i times %(time_unit)s"
 msgstr ""
 
+#: verify_human.html
+msgid "Human Verification"
+msgstr ""
+
+#: verify_human.html
+msgid "Please verify you are human to continue."
+msgstr ""
+
+#: verify_human.html
+msgid "Verify you are human"
+msgstr ""
+
+#: verify_human.html
+msgid "Verification failed. Please try again."
+msgstr ""
+
+#: verify_human.html
+msgid "Verifying..."
+msgstr ""
+
 #: viewpage.html
 msgid "Revert to this revision?"
 msgstr ""
@@ -2554,7 +2700,9 @@ msgstr ""
 
 #: widget.html
 #, python-format
-msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
+msgid ""
+"on <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
 
 #: work_search.html
@@ -2721,8 +2869,8 @@ msgstr ""
 #: account/create.html
 msgid ""
 "I want to apply* for <a href=\"https://help.archive.org/help/program-"
-"overview/\" target=\"_blank\">special print disability access</a> through"
-" a qualifying program."
+"overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print "
+"disability access</a> through a qualifying program."
 msgstr ""
 
 #: account/create.html
@@ -2742,8 +2890,8 @@ msgstr ""
 #: account/create.html
 msgid ""
 "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
-"form__link\" href=\"//archive.org/about/terms.php\" "
-"target=\"_blank\">Terms of Service</a>."
+"form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" "
+"rel=\"noopener noreferrer\">Terms of Service</a>."
 msgstr ""
 
 #: account/create.html
@@ -3067,7 +3215,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html
+#: account/observations.html admin/inspect/memcache.html design/popover.html
 msgid "Delete"
 msgstr ""
 
@@ -3370,7 +3518,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html type/edition/modal_links.html
+#: account/view.html design/popover.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -3542,6 +3690,10 @@ msgstr ""
 msgid ""
 "IP address %(address)s has been added to the textarea. Please click Save "
 "to block that IP."
+msgstr ""
+
+#: admin/block.html
+msgid "Blocked IP Addresses"
 msgstr ""
 
 #: admin/graphs.html
@@ -3983,10 +4135,6 @@ msgstr ""
 msgid "Write one entry per line"
 msgstr ""
 
-#: admin/solr.html
-msgid "Update"
-msgstr ""
-
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
 msgstr ""
@@ -4062,6 +4210,10 @@ msgstr ""
 msgid ""
 "Updates an edition on archive.org by writing in its latest  "
 "openlibrary_edition and openlibrary_work identifier values"
+msgstr ""
+
+#: admin/sync.html
+msgid "TODO"
 msgstr ""
 
 #: admin/inspect/memcache.html
@@ -4221,10 +4373,6 @@ msgstr ""
 
 #: admin/memory/index.html
 msgid "mark"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "Prev"
 msgstr ""
 
 #: admin/memory/object.html
@@ -4731,12 +4879,6 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
-msgid "Title"
-msgstr ""
-
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
@@ -4756,7 +4898,7 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
-#: books/add.html books/edit/edition.html books/edit/excerpts.html
+#: books/add.html
 msgid "For example:"
 msgstr ""
 
@@ -4823,6 +4965,20 @@ msgid "Only fill this out if this is a web book"
 msgstr ""
 
 #: books/add.html
+#, python-format
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+
+#: books/add.html
+msgid "This link to Creative Commons will open in a new window"
+msgstr ""
+
+#: books/add.html
 msgid "Add this book now"
 msgstr ""
 
@@ -4883,6 +5039,10 @@ msgstr ""
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
+msgstr ""
+
+#: books/daisy.html
+msgid "Back"
 msgstr ""
 
 #: books/daisy.html
@@ -5055,8 +5215,8 @@ msgstr ""
 #: books/edit.html
 msgid ""
 "You can search by author name (like <em>j k rowling</em>) or by Open "
-"Library ID (like <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
+"Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
+"rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 msgstr ""
 
 #: books/edit.html
@@ -5233,6 +5393,10 @@ msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>envisioning the next 50 years</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Publishing Info"
 msgstr ""
 
@@ -5249,6 +5413,10 @@ msgid "City, Country please."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>New York, USA; Sydney, Australia</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "What is the copyright date?"
 msgstr ""
 
@@ -5261,11 +5429,19 @@ msgid "Edition Name (if applicable):"
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Series Name (if applicable)"
 msgstr ""
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
+msgstr ""
+
+#: books/edit/edition.html
+msgid "For example: <i>The Story of Civilization, Part III</i>"
 msgstr ""
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
@@ -5366,6 +5542,10 @@ msgid "Anything about the book that may be of interest."
 msgstr ""
 
 #: books/edit/edition.html
+msgid "For example: <i>A Plume Book</i>"
+msgstr ""
+
+#: books/edit/edition.html
 msgid "Is it known by any other titles?"
 msgstr ""
 
@@ -5395,7 +5575,8 @@ msgstr ""
 #: books/edit/edition.html
 msgid ""
 "You can search by title or by Open Library ID (like <a "
-"href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
+"href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
 
 #: books/edit/edition.html
@@ -5605,6 +5786,10 @@ msgid "Page number?"
 msgstr ""
 
 #: books/edit/excerpts.html
+msgid "For example: <i>23, xi or 433-434</i>"
+msgstr ""
+
+#: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
 msgstr ""
 
@@ -5685,7 +5870,7 @@ msgid ""
 "remorse."
 msgstr ""
 
-#: bulk_search/bulk_search.html
+#: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -5860,6 +6045,64 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/popover.html
+msgid "Popover component"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"The ol-popover component provides a reusable animated popover panel "
+"anchored to a trigger element. It animates from the trigger using "
+"transform-origin, closes on Escape or outside click, and respects "
+"prefers-reduced-motion."
+msgstr ""
+
+#: design/popover.html
+msgid "Menu popover"
+msgstr ""
+
+#: design/popover.html
+msgid ""
+"Popovers animate from the trigger using transform-origin. Click the "
+"button to see the scale + fade entrance."
+msgstr ""
+
+#: design/popover.html
+msgid "Options"
+msgstr ""
+
+#: design/popover.html
+msgid "Duplicate"
+msgstr ""
+
+#: design/popover.html
+msgid "Archive"
+msgstr ""
+
+#: design/popover.html
+msgid "Move"
+msgstr ""
+
+#: design/popover.html
+msgid "Placement options"
+msgstr ""
+
+#: design/popover.html
+#, python-format
+msgid ""
+"Use %(placement)s to control where the popover appears. The "
+"%(transform_origin)s automatically matches so the animation always "
+"expands from the trigger."
+msgstr ""
+
+#: design/popover.html
+msgid "bottom-start"
+msgstr ""
+
+#: design/popover.html
+msgid "top-center"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -5928,14 +6171,18 @@ msgstr ""
 msgid "Authors Alliance & MIT Press"
 msgstr ""
 
+#: home/index.html
+msgid "Books in Local Environment"
+msgstr ""
+
 #: home/loans.html
 #, python-format
 msgid ""
-"You can still <a href=\"/borrow\">borrow</a> one more book until you've "
-"hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one"
+" more book until you've hit the limit!"
 msgid_plural ""
-"You can still <a href=\"/borrow\">borrow</a> %(count)d more books until "
-"you've hit the limit!"
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
+"%(count)d more books until you've hit the limit!"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -6706,10 +6953,6 @@ msgstr ""
 msgid "Remove this seed?"
 msgstr ""
 
-#: lists/lists.html type/list/edit.html type/series/edit.html
-msgid "Remove"
-msgstr ""
-
 #: lists/lists.html
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
@@ -7141,13 +7384,6 @@ msgstr ""
 #, python-format
 msgid "Publisher: %(name)s"
 msgstr ""
-
-#: publishers/view.html
-#, python-format
-msgid "%(count)s ebook"
-msgid_plural "%(count)s ebooks"
-msgstr[0] ""
-msgstr[1] ""
 
 #: publishers/view.html
 msgid "0 ebooks"
@@ -8259,8 +8495,8 @@ msgstr ""
 
 #: type/list/view_body.html
 msgid ""
-"<a href=\"/search\" target=\"_blank\">Search for book, subjects, or "
-"authors</a> to add to your list."
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search "
+"for book, subjects, or authors</a> to add to your list."
 msgstr ""
 
 #: type/list/view_body.html

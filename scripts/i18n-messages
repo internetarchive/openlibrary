@@ -19,16 +19,14 @@ def help():
     print("Available Commands:")
     print("  compile  - compile the message files (.po) to .mo")
     print("  extract  - extract i18n messages from templates and macros")
-    print(
-        "  update   - update the existing translations by adding newly added string to it."
-    )
+    print("  update   - update the existing translations by adding newly added string to it.")
     print("  status   - check completeness and warnings/error summary of translations")
     print("  validate - check message file for errors")
     print("  help     - display this help message")
 
 
 def main(cmd, args):
-    if cmd == 'extract':
+    if cmd == "extract":
         # Using shell=True, because otherwise the *.py seems to cause trouble
         # on some systems, resulting in no python files being extracted.
         py_sources = subprocess.run(
@@ -40,25 +38,25 @@ def main(cmd, args):
         ).stdout.splitlines()
 
         message_sources = [
-            'openlibrary/templates/',
-            'openlibrary/macros/',
+            "openlibrary/templates/",
+            "openlibrary/macros/",
             *py_sources,
         ]
 
         i18n.extract_messages(
             message_sources,
-            verbose='--verbose' in args,
-            skip_untracked='--skip-untracked' in args,
+            verbose="--verbose" in args,
+            skip_untracked="--skip-untracked" in args,
         )
-    elif cmd == 'compile':
+    elif cmd == "compile":
         i18n.compile_translations(args)
-    elif cmd == 'update':
+    elif cmd == "update":
         i18n.update_translations(args)
-    elif cmd == 'add':
+    elif cmd == "add":
         i18n.generate_po(args)
-    elif cmd == 'status':
+    elif cmd == "status":
         i18n.check_status(args)
-    elif cmd == 'validate':
+    elif cmd == "validate":
         results = i18n.validate_translations(args)
 
         num_errors = 0
@@ -68,11 +66,11 @@ def main(cmd, args):
         if num_errors == 0:
             print("Validation passed!")
         else:
-            print(f'Validation failed.\n{num_errors} errors found...')
+            print(f"Validation failed.\n{num_errors} errors found...")
             sys.exit(1)
 
         sys.exit(0)
-    elif cmd == 'help':
+    elif cmd == "help":
         help()
     else:
         print("unknown command: %s" % repr(cmd), file=sys.stderr)

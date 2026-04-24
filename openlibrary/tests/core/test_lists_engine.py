@@ -1,18 +1,34 @@
 from openlibrary.core.lists import engine
 
 
-def test_reduce():
-    def test_reduce(self):
-        d1 = [1, 2, 1, "2010-11-11 10:20:30", {"subjects": ["Love", "Hate"]}]
+def test_get_seeds():
+    work = {
+        "key": "/works/OL1W",
+        "authors": [
+            {"author": {"key": "/authors/OL1A"}},
+            {"author": {"key": "/authors/OL2A"}},
+            {"not_author": {"key": "/authors/ignored"}},
+        ],
+        "editions": [
+            {"key": "/books/OL1M"},
+            {"key": "/books/OL2M"},
+        ],
+        "subjects": ["Love Story", "love_story", 123],
+        "subject_places": ["New York", None],
+        "subject_people": ["Jane Doe", {"name": "ignored"}],
+        "subject_times": ["2000-2099"],
+    }
 
-        d2 = [1, 1, 0, "2009-01-02 10:20:30", {"subjects": ["Love"]}]
-        assert engine.reduce([d1, d2]) == {
-            "works": 2,
-            "editions": 3,
-            "ebooks": 1,
-            "last_modified": "2010-11-11 10:20:30",
-            "subjects": [
-                {"name": "Love", "key": "subject:love", "count": 2},
-                {"name": "Hate", "key": "subject:hate", "count": 1},
-            ],
-        }
+    seeds = engine.get_seeds(work)
+
+    assert seeds == [
+        "/works/OL1W",
+        "/authors/OL1A",
+        "/authors/OL2A",
+        "/books/OL1M",
+        "/books/OL2M",
+        "subject:love_story",
+        "place:new_york",
+        "person:jane_doe",
+        "time:2000-2099",
+    ]

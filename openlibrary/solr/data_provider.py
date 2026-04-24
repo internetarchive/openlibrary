@@ -29,8 +29,8 @@ from openlibrary.utils import extract_numeric_id_from_olid
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
-IA_METADATA_FIELDS = ('identifier', 'boxid', 'collection', 'access-restricted-item')
-OCAID_PATTERN = re.compile(r'^[^\s&#?/]+$')
+IA_METADATA_FIELDS = ("identifier", "boxid", "collection", "access-restricted-item")
+OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
 
 
 def get_data_provider(type="default"):
@@ -103,9 +103,7 @@ class DataProvider:
         self.ia_cache: dict[str, dict | None] = {}
 
     @staticmethod
-    async def _get_lite_metadata(
-        ocaids: Sequence[str], _recur_depth=0, _max_recur_depth=3
-    ):
+    async def _get_lite_metadata(ocaids: Sequence[str], _recur_depth=0, _max_recur_depth=3):
         """
         For bulk fetch, some of the ocaids in Open Library may be bad
         and break archive.org ES fetches. When this happens, we (up to
@@ -115,9 +113,7 @@ class DataProvider:
         (and skip bad ocaids)
         """
         if not ocaids or _recur_depth > _max_recur_depth:
-            logger.warning(
-                'Max recursion exceeded trying fetch IA data', extra={'ocaids': ocaids}
-            )
+            logger.warning("Max recursion exceeded trying fetch IA data", extra={"ocaids": ocaids})
             return []
 
         try:
@@ -126,18 +122,18 @@ class DataProvider:
                     "https://archive.org/advancedsearch.php",
                     timeout=30,  # The default is silly short
                     headers={
-                        'x-application-id': 'ol-solr',
+                        "x-application-id": "ol-solr",
                     },
                     params={
-                        'doc_ids': ','.join(ocaids),
-                        'rows': len(ocaids),
-                        'fl': ','.join(IA_METADATA_FIELDS),
-                        'output': 'json',
-                        'service': 'metadata__unlimited',
+                        "doc_ids": ",".join(ocaids),
+                        "rows": len(ocaids),
+                        "fl": ",".join(IA_METADATA_FIELDS),
+                        "output": "json",
+                        "service": "metadata__unlimited",
                     },
                 )
             r.raise_for_status()
-            return r.json()['response']['docs']
+            return r.json()["response"]["docs"]
         except HTTPError:
             logger.warning("IA bulk query failed")
         except (ValueError, KeyError):
@@ -145,12 +141,7 @@ class DataProvider:
 
         # Only here if an exception occurred
         # there's probably a bad apple; try splitting the batch
-        parts = await asyncio.gather(
-            *(
-                DataProvider._get_lite_metadata(part, _recur_depth=_recur_depth + 1)
-                for part in partition(ocaids, 6)
-            )
-        )
+        parts = await asyncio.gather(*(DataProvider._get_lite_metadata(part, _recur_depth=_recur_depth + 1) for part in partition(ocaids, 6)))
         return list(itertools.chain(*parts))
 
     @staticmethod
@@ -163,20 +154,16 @@ class DataProvider:
                 )
             r.raise_for_status()
             response = r.json()
-            if 'error' not in response:
-                lite_metadata = {
-                    key: response['result'][key]
-                    for key in IA_METADATA_FIELDS
-                    if key in response['result']
-                }
+            if "error" not in response:
+                lite_metadata = {key: response["result"][key] for key in IA_METADATA_FIELDS if key in response["result"]}
                 return lite_metadata
             else:
                 return {
-                    'error': response['error'],
-                    'identifier': ocaid,
+                    "error": response["error"],
+                    "identifier": ocaid,
                 }
         except HTTPError:
-            logger.warning(f'Error fetching metadata for {ocaid}')
+            logger.warning(f"Error fetching metadata for {ocaid}")
             return None
 
     async def get_document(self, key):
@@ -214,20 +201,17 @@ class DataProvider:
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
             for doc in await task:
-                self.ia_cache[doc['identifier']] = doc
+                self.ia_cache[doc["identifier"]] = doc
 
         missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
         missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6))
         for missing_batch in missing_ocaid_batches:
             # Start them all async
-            tasks = [
-                asyncio.create_task(self._get_lite_metadata_direct(ocaid))
-                for ocaid in missing_batch
-            ]
+            tasks = [asyncio.create_task(self._get_lite_metadata_direct(ocaid)) for ocaid in missing_batch]
             for task in tasks:
                 lite_metadata = await task
                 if lite_metadata:
-                    self.ia_cache[lite_metadata['identifier']] = lite_metadata
+                    self.ia_cache[lite_metadata["identifier"]] = lite_metadata
 
     def preload_editions_of_works(self, work_keys: Iterable[str]):
         """
@@ -284,12 +268,12 @@ class LegacyDataProvider(DataProvider):
     def find_redirects(self, key):
         """Returns keys of all things which are redirected to this one."""
         logger.info("find_redirects %s", key)
-        q = {'type': '/type/redirect', 'location': key}
-        return [r['key'] for r in self._query_iter(q)]
+        q = {"type": "/type/redirect", "location": key}
+        return [r["key"] for r in self._query_iter(q)]
 
     def get_editions_of_work(self, work):
-        logger.info("find_editions_of_work %s", work['key'])
-        q = {'type': '/type/edition', 'works': work['key'], '*': None}
+        logger.info("find_editions_of_work %s", work["key"])
+        q = {"type": "/type/edition", "works": work["key"], "*": None}
         return list(self._query_iter(q))
 
     async def get_document(self, key):
@@ -297,7 +281,7 @@ class LegacyDataProvider(DataProvider):
         return self._withKey(key)
 
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
-        work_id = int(work_key[len('/works/OL') : -len('W')])
+        work_id = int(work_key[len("/works/OL") : -len("W")])
         return Ratings.get_work_ratings_summary(work_id)
 
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
@@ -306,8 +290,8 @@ class LegacyDataProvider(DataProvider):
         return cast(
             WorkReadingLogSolrSummary,
             {
-                'readinglog_count': sum(counts.values()),
-                **{f'{shelf}_count': count for shelf, count in counts.items()},
+                "readinglog_count": sum(counts.values()),
+                **{f"{shelf}_count": count for shelf, count in counts.items()},
             },
         )
 
@@ -319,13 +303,13 @@ class LegacyDataProvider(DataProvider):
     async def get_trending_data(self, work_key: str) -> dict:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                get_solr_base_url() + '/get',
+                get_solr_base_url() + "/get",
                 params={
-                    'id': work_key,
-                    "fl": ','.join(  # noqa: FLY002
+                    "id": work_key,
+                    "fl": ",".join(  # noqa: FLY002
                         (
                             "trending_score_hourly_sum",
-                            'trending_score_hourly_*',
+                            "trending_score_hourly_*",
                             "trending_score_daily_*",
                             "trending_z_score",
                         )
@@ -333,20 +317,18 @@ class LegacyDataProvider(DataProvider):
                 },
             )
             response.raise_for_status()
-            solr_doc = response.json()['doc'] or {}
+            solr_doc = response.json()["doc"] or {}
 
-            return {
-                field: solr_doc.get(field, 0) for field in get_all_trending_fields()
-            }
+            return {field: solr_doc.get(field, 0) for field in get_all_trending_fields()}
 
 
 def get_all_trending_fields():
     for index in range(24):
-        yield f'trending_score_hourly_{index}'
+        yield f"trending_score_hourly_{index}"
     for index in range(7):
-        yield f'trending_score_daily_{index}'
-    yield 'trending_score_hourly_sum'
-    yield 'trending_z_score'
+        yield f"trending_score_daily_{index}"
+    yield "trending_score_hourly_sum"
+    yield "trending_z_score"
 
 
 class ExternalDataProvider(DataProvider):
@@ -363,12 +345,10 @@ class ExternalDataProvider(DataProvider):
         return []
 
     def get_editions_of_work(self, work):
-        resp = requests.get(
-            f"http://{self.ol_host}{work['key']}/editions.json", params={'limit': 500}
-        ).json()
-        if 'next' in resp['links']:
+        resp = requests.get(f"http://{self.ol_host}{work['key']}/editions.json", params={"limit": 500}).json()
+        if "next" in resp["links"]:
             logger.warning(f"Too many editions for {work['key']}")
-        return resp['entries']
+        return resp["entries"]
 
     async def get_document(self, key: str):
         async with httpx.AsyncClient() as client:
@@ -444,29 +424,29 @@ class BetterDataProvider(LegacyDataProvider):
         for chunk in web.group(keys, 100):
             docs = self.get_site().get_many(list(chunk))
             for doc in docs:
-                self.cache[doc['key']] = doc.dict()
+                self.cache[doc["key"]] = doc.dict()
 
     def _preload_works(self):
         """Preloads works for all editions in the cache."""
         keys = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/edition' and doc.get('works'):
-                keys.append(doc['works'][0]['key'])
+            if doc and doc["type"]["key"] == "/type/edition" and doc.get("works"):
+                keys.append(doc["works"][0]["key"])
         # print "preload_works, found keys", keys
         self.preload_documents0(keys)
 
     def _preload_editions(self):
         keys = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/work':
-                keys.append(doc['key'])
+            if doc and doc["type"]["key"] == "/type/work":
+                keys.append(doc["key"])
         self.preload_editions_of_works(keys)
 
     async def _preload_metadata_of_editions(self):
         identifiers = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/edition' and doc.get('ocaid'):
-                identifiers.append(doc['ocaid'])
+            if doc and doc["type"]["key"] == "/type/edition" and doc.get("ocaid"):
+                identifiers.append(doc["ocaid"])
                 # source_records = doc.get("source_records", [])
                 # identifiers.extend(r[len("ia:"):] for r in source_records if r.startswith("ia:"))
         await self.preload_metadata(identifiers)
@@ -475,10 +455,10 @@ class BetterDataProvider(LegacyDataProvider):
         """Preloads authors for all works in the cache."""
         keys = []
         for doc in self.cache.values():
-            if doc and doc['type']['key'] == '/type/work' and doc.get('authors'):
-                keys.extend(a['author']['key'] for a in doc['authors'])
-            if doc and doc['type']['key'] == '/type/edition' and doc.get('authors'):
-                keys.extend(a['key'] for a in doc['authors'])
+            if doc and doc["type"]["key"] == "/type/work" and doc.get("authors"):
+                keys.extend(a["author"]["key"] for a in doc["authors"])
+            if doc and doc["type"]["key"] == "/type/edition" and doc.get("authors"):
+                keys.extend(a["key"] for a in doc["authors"])
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):
@@ -509,15 +489,13 @@ class BetterDataProvider(LegacyDataProvider):
             self.redirect_cache[thing.location].append(thing.key)
 
     def get_editions_of_work(self, work):
-        wkey = work['key']
+        wkey = work["key"]
         self.preload_editions_of_works([wkey])
         edition_keys = self.edition_keys_of_works_cache.get(wkey, [])
         return [self.cache[k] for k in edition_keys]
 
     def preload_editions_of_works(self, work_keys: Iterable[str]):
-        work_keys = [
-            wkey for wkey in work_keys if wkey not in self.edition_keys_of_works_cache
-        ]
+        work_keys = [wkey for wkey in work_keys if wkey not in self.edition_keys_of_works_cache]
         if not work_keys:
             return
         logger.info("preload_editions_of_works %s ..", work_keys[:5])
@@ -525,10 +503,7 @@ class BetterDataProvider(LegacyDataProvider):
         # Infobase doesn't has a way to do find editions of multiple works at once.
         # Using raw SQL to avoid making individual infobase queries, which is very
         # time consuming.
-        key_query = (
-            "select id from property where name='works'"
-            " and type=(select id from thing where key='/type/edition')"
-        )
+        key_query = "select id from property where name='works' and type=(select id from thing where key='/type/edition')"
 
         q = (
             "SELECT edition.key as edition_key, work.key as work_key"
@@ -540,9 +515,7 @@ class BetterDataProvider(LegacyDataProvider):
         )
         result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
-            self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(
-                row.edition_key
-            )
+            self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(row.edition_key)
 
         keys = [k for _keys in self.edition_keys_of_works_cache.values() for k in _keys]
         self.preload_documents0(keys)

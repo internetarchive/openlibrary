@@ -11,7 +11,7 @@ def setup():
         # Avoid attaching exception hooks multiple times
         return
 
-    sentry = init_sentry(getattr(infogami.config, 'sentry', {}))
+    sentry = init_sentry(getattr(infogami.config, "sentry", {}))
 
     if sentry.enabled:
         delegate.add_exception_hook(sentry.capture_exception_webpy)

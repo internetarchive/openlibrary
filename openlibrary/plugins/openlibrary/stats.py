@@ -74,26 +74,26 @@ def stats_hook():
     # This name is misleading. It gets incremented for more than just pages.
     # E.g. *.json requests (even ajax), image requests. Although I can't
     # see any *.js requests? So not sure exactly when we're called here.
-    graphite_stats.increment('ol.pageviews')
+    graphite_stats.increment("ol.pageviews")
 
     memcache_hits = 0
     memcache_misses = 0
     for s in web.ctx.get("stats", []):
-        if s.name == 'memcache.get':
-            if s.data['hit']:
+        if s.name == "memcache.get":
+            if s.data["hit"]:
                 memcache_hits += 1
             else:
                 memcache_misses += 1
 
     if memcache_hits:
-        graphite_stats.increment('ol.memcache.hits', memcache_hits, rate=0.025)
+        graphite_stats.increment("ol.memcache.hits", memcache_hits, rate=0.025)
     if memcache_misses:
-        graphite_stats.increment('ol.memcache.misses', memcache_misses, rate=0.025)
+        graphite_stats.increment("ol.memcache.misses", memcache_misses, rate=0.025)
 
     for name, value in stats_summary.items():
         name = name.replace(".", "_")
         time = value.get("time", 0.0) * 1000
-        key = 'ol.' + name
+        key = "ol." + name
         graphite_stats.put(key, time)
 
 
@@ -137,7 +137,7 @@ def register_filter(name, function):
 
 
 def _encode_key_part(key_part: str) -> str:
-    return key_part.replace('.', '_')
+    return key_part.replace(".", "_")
 
 
 def _get_path_page_name() -> str:
@@ -148,8 +148,8 @@ def _get_path_page_name() -> str:
         pageClass, _ = find_mode()
 
     result = pageClass.__name__
-    if hasattr(pageClass, 'encoding') and not result.endswith(pageClass.encoding):
-        result += '_' + pageClass.encoding
+    if hasattr(pageClass, "encoding") and not result.endswith(pageClass.encoding):
+        result += "_" + pageClass.encoding
 
     return result
 
@@ -159,9 +159,9 @@ def _get_top_level_path_for_metric(full_path: str) -> str:
     Normalize + shorten the string since it could be user-entered
     :param str full_path:
     """
-    path_parts = full_path.strip('/').split('/')
-    path = path_parts[0] or 'home'
-    return path.replace('.', '_')[:50]
+    path_parts = full_path.strip("/").split("/")
+    path = path_parts[0] or "home"
+    return path.replace(".", "_")[:50]
 
 
 class GraphiteRequestStats:
@@ -169,60 +169,60 @@ class GraphiteRequestStats:
         self.start: float | None = None
         self.end: float | None = None
         self.state = None  # oneof 'started', 'completed'
-        self.method = 'unknown'
-        self.path_page_name = 'unknown'
-        self.path_level_one = 'unknown'
-        self.response_code = 'unknown'
-        self.time_bucket = 'unknown'
-        self.user = 'not_logged_in'
+        self.method = "unknown"
+        self.path_page_name = "unknown"
+        self.path_level_one = "unknown"
+        self.response_code = "unknown"
+        self.time_bucket = "unknown"
+        self.user = "not_logged_in"
         self.duration = None
 
     def request_loaded(self):
         self.start = time.time()
-        self.state = 'started'
+        self.state = "started"
         self._compute_fields()
 
     def request_unloaded(self):
         self.end = time.time()
-        self.state = 'completed'
+        self.state = "completed"
         self._compute_fields()
 
     def _compute_fields(self):
-        if hasattr(web.ctx, 'method') and web.ctx.method:
+        if hasattr(web.ctx, "method") and web.ctx.method:
             self.method = web.ctx.method
 
-        if hasattr(web.ctx, 'path') and web.ctx.path:
+        if hasattr(web.ctx, "path") and web.ctx.path:
             self.path_page_name = _get_path_page_name()
             # This can be entered by a user to be anything! We record 404s.
             self.path_level_one = _get_top_level_path_for_metric(web.ctx.path)
 
-        if hasattr(web.ctx, 'status'):
-            self.response_code = web.ctx.status.split(' ')[0]
+        if hasattr(web.ctx, "status"):
+            self.response_code = web.ctx.status.split(" ")[0]
 
         if self.end is not None:
             self.duration = (self.end - self.start) * 1000
-            self.time_bucket = 'LONG'
+            self.time_bucket = "LONG"
             for upper in TIME_BUCKETS:
                 if self.duration < upper:
-                    self.time_bucket = '%dms' % upper
+                    self.time_bucket = "%dms" % upper
                     break
 
         if stats_filters.loggedin():
-            self.user = 'logged_in'
+            self.user = "logged_in"
 
     def to_metric(self):
-        return '.'.join(
+        return ".".join(
             [
-                'ol',
-                'requests',
+                "ol",
+                "requests",
                 self.state,
                 self.method,
                 self.response_code,
                 self.user,
                 self.path_level_one,
-                'class_' + self.path_page_name,
+                "class_" + self.path_page_name,
                 self.time_bucket,
-                'count',
+                "count",
             ]
         )
 
@@ -242,9 +242,9 @@ def increment_error_count(key: str) -> None:
     """
     :param str key: e.g. ol.exceptions or el.internal-errors-segmented
     """
-    top_url_path = 'none'
-    page_class = 'none'
-    if web.ctx and hasattr(web.ctx, 'path') and web.ctx.path:
+    top_url_path = "none"
+    page_class = "none"
+    if web.ctx and hasattr(web.ctx, "path") and web.ctx.path:
         top_url_path = _get_top_level_path_for_metric(web.ctx.path)
         page_class = _get_path_page_name()
 
@@ -260,26 +260,24 @@ def increment_error_count(key: str) -> None:
 
     # log just filename, unless it's code.py (cause that's useless!)
     ol_file = path[1]
-    if path[1] in ('code.py', 'index.html', 'edit.html', 'view.html'):
-        ol_file = os.path.split(path[0])[1] + '_' + _encode_key_part(path[1])
+    if path[1] in ("code.py", "index.html", "edit.html", "view.html"):
+        ol_file = os.path.split(path[0])[1] + "_" + _encode_key_part(path[1])
 
     metric_parts = [
         top_url_path,
-        'class_' + page_class,
+        "class_" + page_class,
         ol_file,
         exception_type_name,
-        'count',
+        "count",
     ]
-    metric = '.'.join([_encode_key_part(p) for p in metric_parts])
-    graphite_stats.increment(key + '.' + metric)
+    metric = ".".join([_encode_key_part(p) for p in metric_parts])
+    graphite_stats.increment(key + "." + metric)
 
 
 TEMPLATE_SYNTAX_ERROR_RE = re.compile(r"File '([^']+?)'")
 
 
-def find_topmost_useful_file(
-    exception: BaseException, tback: TracebackType | None
-) -> str:
+def find_topmost_useful_file(exception: BaseException, tback: TracebackType | None) -> str:
     """
     Find the topmost path in the traceback stack that's useful to report.
 
@@ -287,15 +285,15 @@ def find_topmost_useful_file(
     :param TracebackType tback: traceback from e.g. sys.exc_inf()
     :return: full path
     """
-    file_path = 'none'
+    file_path = "none"
 
     while tback is not None:
         cur_file = tback.tb_frame.f_code.co_filename
-        if '/openlibrary' in cur_file:
+        if "/openlibrary" in cur_file:
             file_path = cur_file
         tback = tback.tb_next
 
-    if file_path.endswith('template.py') and hasattr(exception, 'args'):
+    if file_path.endswith("template.py") and hasattr(exception, "args"):
         m = TEMPLATE_SYNTAX_ERROR_RE.search(exception.args[1])
         if m:
             file_path = m.group(1)

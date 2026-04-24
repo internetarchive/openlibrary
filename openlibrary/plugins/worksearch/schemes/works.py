@@ -7,7 +7,6 @@ from types import MappingProxyType
 from typing import Any, cast
 
 import luqum.tree
-import web
 from typing_extensions import deprecated
 
 import infogami
@@ -36,7 +35,7 @@ from openlibrary.utils.lcc import (
     normalize_lcc_range,
     short_lcc_to_sortable_lcc,
 )
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.worksearch")
 re_author_key = re.compile(r'(OL\d+A)')
@@ -356,15 +355,14 @@ class WorkSearchScheme(SearchScheme):
             # qf: the fields to query un-prefixed parts of the query.
             # e.g. 'harry potter' becomes
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
-            solr_qf='text alternative_title^10 author_name^10 chapter^5',
+            # TODO: Change solr's text field to exclude first_sentence, by_statement, title, subtitle,
+            # alternative_subtitle . Then can replace most of qf with just text.
+            solr_qf='alternative_title^40 author_name^40 series_name^5 chapter series_position author_alternative_name subject place person time series_key author_key ia oclc lccn isbn key edition_key publisher contributor',  # noqa: E501
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
-            solr_pf='alternative_title^10 author_name^10',
-            # bf (boost factor): boost results based on the value of this
-            # field. I.e. results with more editions get boosted, upto a
-            # max of 100, after which we don't see it as good signal of
-            # quality.
-            solr_bf='min(100,edition_count) min(100,def(readinglog_count,0))',
+            solr_pf='alternative_title^50 author_name^50 series_name^5',
+            solr_pf2='alternative_title^20 author_name^20 series_name^5 chapter^5',
+            solr_boost='sum(mul(20,log(sum(3,edition_count))),min(50,def(already_read_count,0)),mul(35,log(div(sum(4,def(readinglog_count,0)), 4))))',
             # v: the query to process with the edismax query parser. Note
             # we are using a solr variable here; this reads the url parameter
             # arbitrarily called userWorkQuery.
@@ -648,7 +646,7 @@ class WorkSearchScheme(SearchScheme):
                 for ed_doc in doc.get('editions', {}).get('docs', [])
             ]
 
-        things = cast(list[Work | Edition], web.ctx.site.get_many(keys))
+        things = cast(list[Work | Edition], site.get().get_many(keys))
         key_to_thing = {t.key: t for t in things if t.key in keys}
 
         from openlibrary.book_providers import get_acquisitions

@@ -95,6 +95,89 @@ def get_secret_key():
     return config.infobase['secret_key']
 
 
+def create_verification_cookie_value() -> str:
+    """Create a signed verification cookie value.
+
+    Returns:
+        str: Cookie value in format "vf/session_id,signature"
+    """
+    # Generate random session ID (server-side only)
+    session_id = secrets.token_urlsafe(32)
+
+    # Create the data portion
+    data = f"vf/{session_id}"
+
+    # Sign it (creates: "salt$hash")
+    signature = generate_hash(get_secret_key(), data)
+
+    # Combine into single cookie value
+    cookie_value = f"{data},{signature}"
+    # Result: "vf/kJ8x3mP...,a1b2c$d3e4f5"
+
+    return cookie_value
+
+
+def verify_verification_cookie(cookie_value: str) -> bool:
+    """Verify a verification cookie value.
+
+    Args:
+        cookie_value: The cookie value to verify
+
+    Returns:
+        bool: True if cookie is valid and properly signed, False otherwise
+    """
+    if not cookie_value:
+        return False
+
+    # Parse the single cookie
+    parts = cookie_value.split(",")
+    if len(parts) != 2:
+        return False  # Malformed cookie
+
+    data, signature = parts
+    # data = "vf/kJ8x3mP..."
+    # signature = "a1b2c$d3e4f5"
+
+    # Verify the signature (NO database lookup needed!)
+    if not verify_hash(get_secret_key(), data, signature):
+        return False  # Cookie was tampered with or forged
+
+    # Extract session ID (we can trust it because signature is valid)
+    return data.startswith("vf/")
+
+
+def verify_session_cookie(cookie_value: str) -> bool:
+    """Verify a session cookie's HMAC signature without a database lookup.
+
+    Session cookies have the format "/people/{username},{timestamp},{salt}${hash}".
+    The signature is produced by infogami's AccountManager._generate_salted_hash()
+    (see infogami/infobase/account.py), which is the same HMAC-MD5 scheme as
+    generate_hash() / verify_hash() here.
+
+    Infogami's AccountManager.get_user() is the canonical path: it verifies the
+    same signature and then does a DB lookup to return the user object (and to
+    detect revoked sessions). This function intentionally stops after the HMAC
+    check — no DB roundtrip — to serve as a cheap request-time guard in
+    CookieValidationProcessor.
+
+    TODO: infogami.AccountManager should expose a standalone verify_session_token()
+    that performs only the HMAC check, so get_user() can call it and OL can reuse
+    it here without duplicating the logic.
+
+    Returns True for cookies we did not issue (unknown format) so we only
+    reject cookies that are clearly forged OL session tokens.
+    """
+    if not cookie_value:
+        return False
+    if not cookie_value.startswith('/people/'):
+        return True  # Unknown format — don't invalidate
+    try:
+        data, signature = cookie_value.rsplit(',', 1)
+    except ValueError:
+        return False
+    return verify_hash(get_secret_key(), data, signature)
+
+
 def generate_login_code_for_user(username: str) -> str:
     """
     Args:
@@ -356,7 +439,7 @@ class Account(web.storage):
 
             # Clear patron's profile page:
             data = {'key': patron.key, 'type': '/type/delete'}
-            patron.set_data(data)
+            patron.set_data(data, "delete-profile")
 
             # Remove account information from store:
             del web.ctx.site.store[f'account/{username}']

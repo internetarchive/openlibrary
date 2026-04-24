@@ -37,7 +37,7 @@ $if stats:
         <div class="statschart">
           <div class="chartShow" onclick="window.location.href='/stats';" title="$_('We\'re a library, so we lend books, too')">
             <div id="ebooks-graph" style="width:150px;height:60px;" title="$_('Area graph of ebooks borrowed recently')"></div>
-            <a href="/borrow" title="$_('We\'re a library, so we lend books, too')"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">$_('eBooks Borrowed')</span></a>
+            <a href="/subjects/in_library#ebooks=true" title="$_('We\'re a library, so we lend books, too')"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">$_('eBooks Borrowed')</span></a>
           </div>
         </div>
       </div>

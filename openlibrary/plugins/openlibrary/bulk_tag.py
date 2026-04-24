@@ -23,7 +23,9 @@ class bulk_tag_works(delegate.page):
         if not user or not user.is_member_of_any(ALLOWED_USERGROUPS):
             raise web.unauthorized()
 
-        i = web.input(work_ids='', tags_to_add='', tags_to_remove='')
+        i = web.input(
+            work_ids='', tags_to_add='', tags_to_remove='', book_page_edit=False
+        )
 
         works = i.work_ids.split(',')
         tags_to_add = json.loads(i.tags_to_add or '{}')
@@ -69,7 +71,9 @@ class bulk_tag_works(delegate.page):
                 w.dict()
             )  # need to convert class to raw dict in order for save_many to work
 
-        web.ctx.site.save_many(docs_to_update, comment="Bulk tagging works")
+        web.ctx.site.save_many(
+            docs_to_update, comment="Bulk tagging works", action="bulk-edit-work-tags"
+        )
 
         def response(msg, status="success"):
             return delegate.RawText(
