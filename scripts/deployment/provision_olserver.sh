@@ -15,7 +15,7 @@ wait_yn() {
         read -p "$prompt (y/n) " yn
         case $yn in
             [Yy]* ) break;;
-            [Nn]* ) clean_exit;;
+            [Nn]* ) exit 1;;
             * ) ;;
         esac
     done
