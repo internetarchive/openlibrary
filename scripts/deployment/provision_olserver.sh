@@ -29,7 +29,10 @@ sudo apt update
 
 # Remove any old versions and install newer versions of Docker Engine and Docker Compose.
 # See https://docs.docker.com/engine/install/debian/ for any possible changes.
-sudo apt remove $(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
+docker_packages_to_remove=$(dpkg --get-selections docker.io docker-compose docker-doc podman-docker containerd runc | cut -f1)
+if [ -n "$docker_packages_to_remove" ]; then
+    sudo apt remove $docker_packages_to_remove
+fi
 
 sudo apt install \
     ca-certificates \
