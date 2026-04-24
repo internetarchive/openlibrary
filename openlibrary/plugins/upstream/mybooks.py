@@ -306,7 +306,7 @@ class mybooks_readinglog(delegate.page):
 
 @deprecated("migrated to fastapi")
 class public_my_books_json(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)"
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)\.json"
     encoding = "json"
 
     def GET(self, username, key="want-to-read"):
