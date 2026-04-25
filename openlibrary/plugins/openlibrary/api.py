@@ -462,7 +462,7 @@ class author_works(delegate.page):
 
         return {"links": links, "size": size, "entries": works}
 
-
+@deprecated("migrated to fastapi")
 class price_api(delegate.page):
     path = r"/prices"
 
