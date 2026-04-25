@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import AsyncMock
 
 from fastapi import FastAPI
@@ -6,20 +7,22 @@ from fastapi.testclient import TestClient
 from openlibrary.fastapi.internal.api import router
 
 
-# Create a minimal FastAPI app just for testing this router
-app = FastAPI()
-app.include_router(router)
-client = TestClient(app)
+@pytest.fixture()
+def client() -> TestClient:
+    """Return a TestClient for the internal API router."""
+    app = FastAPI()
+    app.include_router(router)
+    return TestClient(app)
 
 
-def test_price_api_missing_params():
+def test_price_api_missing_params(client):
     """Should return error when neither isbn nor asin is supplied."""
     resp = client.get("/prices.json")
     assert resp.status_code == 200
     assert resp.json()["error"] == "isbn or asin required"
 
 
-def test_price_api_with_isbn(monkeypatch):
+def test_price_api_with_isbn(client, monkeypatch):
     """Should return amazon and bwb data keyed correctly."""
     fake_amazon = {"price": "$10.00", "title": "Test Book"}
     fake_bwb = {"price": "$5.00 (used)", "isbn": "0765319853"}
@@ -40,7 +43,7 @@ def test_price_api_with_isbn(monkeypatch):
     assert data["betterworldbooks"] == fake_bwb
 
 
-def test_price_api_with_asin(monkeypatch):
+def test_price_api_with_asin(client, monkeypatch):
     """ASIN should skip BWB lookup entirely."""
     fake_amazon = {"price": "$15.00"}
 
@@ -56,7 +59,7 @@ def test_price_api_with_asin(monkeypatch):
     assert data["betterworldbooks"] == {}
 
 
-def test_price_api_isbn10_bwb_fallback(monkeypatch):
+def test_price_api_isbn10_bwb_fallback(client, monkeypatch):
     """When isbn_10 gives no BWB price, should retry with isbn_13."""
     monkeypatch.setattr(
         "openlibrary.fastapi.internal.api.get_amazon_metadata",
@@ -74,3 +77,4 @@ def test_price_api_isbn10_bwb_fallback(monkeypatch):
     data = resp.json()
     # The fallback isbn-13 result should be used
     assert data["betterworldbooks"]["price"] == "$3.00 (used)"
+
