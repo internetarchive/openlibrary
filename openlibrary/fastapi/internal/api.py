@@ -18,6 +18,8 @@ from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.core.vendors import (
+    BetterWorldBooksMetadata,
+    BetterWorldBooksMetadataError,
     get_amazon_metadata,
     get_betterworldbooks_metadata_async,
 )
@@ -307,10 +309,10 @@ async def price_api(
     id_ = asin or normalize_isbn(isbn) or isbn
     id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
 
-    bwb_data: dict[str, Any] | None = (
+    bwb_data: BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None = (
         await get_betterworldbooks_metadata_async(id_)
         if id_type.startswith("isbn_")
-        else {}
+        else None
     )
 
     metadata: dict[str, Any] = {
@@ -319,11 +321,14 @@ async def price_api(
     }
 
     # Fallback: if isbn_10 gave no BWB price, retry with isbn_13
-    if id_type == "isbn_10" and not metadata["betterworldbooks"].get("price"):
-        if isbn_13 := isbn_10_to_isbn_13(id_):
-            metadata["betterworldbooks"] = (
-                await get_betterworldbooks_metadata_async(isbn_13)
-            ) or {}
+    if (
+        id_type == "isbn_10"
+        and not metadata["betterworldbooks"].get("price")
+        and (isbn_13 := isbn_10_to_isbn_13(id_))
+    ):
+        metadata["betterworldbooks"] = (
+            await get_betterworldbooks_metadata_async(isbn_13)
+        ) or {}
 
     return metadata
 
