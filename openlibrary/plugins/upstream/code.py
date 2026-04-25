@@ -47,15 +47,6 @@ import logging
 logger = logging.getLogger('openlibrary.plugins.upstream.code')
 
 
-# Note: This is done in web_nginx.conf on production ; this endpoint is
-# only used in development environments.
-class static(delegate.page):
-    path = "/images/.*"
-
-    def GET(self):
-        return web.seeother(f'/static{web.ctx.path}')
-
-
 class history(delegate.mode):
     """Overwrite ?m=history to remove IP"""
 

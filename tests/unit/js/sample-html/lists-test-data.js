@@ -36,7 +36,7 @@ export const filledListCreationForm = createListFormMarkup(true);
 
 export const showcaseI18nInput = '<input type="hidden" name="list-i18n-strings" value="{&quot;cover_of&quot;: &quot;Cover of: &quot;, &quot;see_this_list&quot;: &quot;See this list&quot;, &quot;remove_from_list&quot;: &quot;Remove from your list?&quot;, &quot;from&quot;: &quot;from&quot;, &quot;you&quot;: &quot;You&quot;}"></input>';
 
-const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png';
+const DEFAULT_COVER_URL = '/static/images/icons/avatar_book-sm.png';
 
 /**
  * @typedef {Object} ShowcaseDetails

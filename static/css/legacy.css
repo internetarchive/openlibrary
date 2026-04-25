@@ -407,11 +407,11 @@ p.alert {
 }
 
 p.info {
-  background-image: url(/images/icons/icon_info.png);
+  background-image: url(/static/images/icons/icon_info.png);
 }
 
 p.thanks {
-  background-image: url(/images/icons/icon_check.png);
+  background-image: url(/static/images/icons/icon_check.png);
 }
 
 input[type="text"],
@@ -499,7 +499,7 @@ div#content div#contentLists {
   float: left;
   position: relative;
   border-top: 1px solid var(--lighter-grey);
-  background: var(--white) url(/images/back_results.png) repeat-x;
+  background: var(--white) url(/static/images/back_results.png) repeat-x;
 }
 /* stylelint-enable selector-max-specificity */
 
@@ -533,8 +533,8 @@ div.note {
 /* openlibrary/templates/lib/not_logged.html */
 div#noLogin {
   margin-top: 10px;
-  background: var(--light-yellow) url(/images/icons/icon_info.png) no-repeat
-    10px 50%;
+  background: var(--light-yellow) url(/static/images/icons/icon_info.png)
+    no-repeat 10px 50%;
   padding: 10px 10px 10px 44px;
 }
 
@@ -542,21 +542,24 @@ div#noLogin {
 div#preMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_merge.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#postMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_check.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_check.png) no-repeat
+    10px 10px;
 }
 
 /* openlibrary/templates/type/author/view.html */
 div#errorMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
-  background: transparent url(/images/icons/icon_alert.png) no-repeat 10px 10px;
+  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
+    10px 10px;
 }
 
 /* FORMS */
@@ -735,7 +738,7 @@ div.cclicense {
   padding: 3px 0 0 30px;
   color: var(--brown);
   margin-bottom: 12px;
-  background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
+  background: url(/static/images/logo_CC0-20px.png) 0 0 no-repeat;
 }
 
 /* TOOLS ACCORDION */
@@ -774,11 +777,11 @@ div.verify {
 
 /* openlibrary/templates/account/verify/failed.html */
 div.alert span {
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
 }
 
 div.verify span {
-  background: url(/images/icons/icon_check.png) no-repeat;
+  background: url(/static/images/icons/icon_check.png) no-repeat;
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
@@ -1343,7 +1346,7 @@ span.actions a span.image {
   height: 24px;
   margin: 0 auto;
   padding: 0;
-  background-image: url(/images/icons/icons_sprite-sm.png);
+  background-image: url(/static/images/icons/icons_sprite-sm.png);
   background-repeat: no-repeat;
 }
 
@@ -1522,7 +1525,7 @@ div.popAlert {
   width: 550px;
   padding: 8px 16px;
   margin-bottom: 15px;
-  background: url(/images/icons/icon_alert.png) no-repeat;
+  background: url(/static/images/icons/icon_alert.png) no-repeat;
   font-size: 1.25em;
   color: var(--red);
   text-align: center;
@@ -1596,7 +1599,7 @@ div.mergeThis {
   display: inline;
   padding: 15px 0 0 45px;
   margin-left: 15px;
-  background: url(/images/icons/icon_merge.png) no-repeat 0 0;
+  background: url(/static/images/icons/icon_merge.png) no-repeat 0 0;
 }
 
 @import "components/merge-form.css";
@@ -1641,7 +1644,7 @@ div.postSubmit {
   width: 28px;
   height: 28px;
   margin-right: 15px;
-  background-image: url(/images/icons/icons_lists.png);
+  background-image: url(/static/images/icons/icons_lists.png);
   background-repeat: no-repeat;
 }
 

@@ -110,7 +110,7 @@ export function initCoversSaved() {
             cover_url = `${coverstore_url}/a/id/${image}-M.jpg`;
         }
         else {
-            cover_url = '/images/icons/avatar_author-lg.png';
+            cover_url = '/static/images/icons/avatar_author-lg.png';
         }
         parent.$(cover_selector).attr('src', cover_url);
     }
