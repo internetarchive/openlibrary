@@ -100,7 +100,7 @@ div#databar a {
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 #editHead {
-  background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
+  background: url(/static/images/logo_OL-sm.png) 20px 15px no-repeat;
   padding: 25px 0 45px 140px;
   white-space: nowrap;
   clear: left;

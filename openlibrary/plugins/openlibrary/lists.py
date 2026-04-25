@@ -254,11 +254,12 @@ def get_list_data(list, seed, include_cover_url=True):
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
+
         d["cover_url"] = (
             cover and cover.url("S")
-        ) or "/images/icons/avatar_book-sm.png"
+        ) or "/static/images/icons/avatar_book-sm.png"
         if "None" in d["cover_url"]:
-            d["cover_url"] = "/images/icons/avatar_book-sm.png"
+            d["cover_url"] = "/static/images/icons/avatar_book-sm.png"
 
     d["owner"] = None
     if owner := list.get_owner():

@@ -309,7 +309,7 @@
 
 .listDelete a span {
   margin-right: var(--spacing-inline-sm);
-  background-image: url(/images/back_list-trash.png);
+  background-image: url(/static/images/back_list-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   height: 28px;

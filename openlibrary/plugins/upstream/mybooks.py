@@ -610,7 +610,7 @@ class PatronBooknotes:
         author_keys = [a.author.key for a in work.get("authors", [])]
 
         return {
-            "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/images/icons/avatar_book-sm.png"),
+            "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
             "title": work.get("title"),
             "authors": [a.name for a in web.ctx.site.get_many(author_keys)],
             "first_publish_year": work.first_publish_year or None,
