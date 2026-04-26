@@ -289,30 +289,18 @@ class PriceResponse(BaseModel):
     model_config = {"extra": "allow"}
 
 
-@router.get(
-    "/prices.json",
-    response_model=PriceResponse,
-    response_model_exclude_none=True,
-    description="Returns pricing data for a book from Amazon and BetterWorldBooks.",
-)
-async def price_api(
-    isbn: Annotated[str, Query(description="ISBN-10 or ISBN-13")] = "",
-    asin: Annotated[str, Query(description="Amazon ASIN")] = "",
-) -> dict:
-    """
-    Returns pricing metadata from Amazon and BetterWorldBooks for a given book.
-    Requires either an `isbn` or `asin` query parameter.
-    """
-    if not (isbn or asin):
-        return {"error": "isbn or asin required"}
+async def get_price_data(isbn: str, asin: str) -> dict[str, Any]:
+    """Fetch price data from Amazon and BetterWorldBooks for a given ISBN or ASIN.
 
+    :param str isbn: ISBN-10 or ISBN-13 (may be un-normalised).
+    :param str asin: Amazon ASIN (takes precedence over isbn when provided).
+    :return: dict with 'amazon' and 'betterworldbooks' keys.
+    """
     id_ = asin or normalize_isbn(isbn) or isbn
     id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
 
     bwb_data: BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None = (
-        await get_betterworldbooks_metadata_async(id_)
-        if id_type.startswith("isbn_")
-        else None
+        await get_betterworldbooks_metadata_async(id_) if id_type.startswith("isbn_") else None
     )
 
     metadata: dict[str, Any] = {
@@ -331,6 +319,26 @@ async def price_api(
         ) or {}
 
     return metadata
+
+
+@router.get(
+    "/prices.json",
+    response_model=PriceResponse,
+    response_model_exclude_none=True,
+    description="Returns pricing data for a book from Amazon and BetterWorldBooks.",
+)
+async def price_api(
+    isbn: Annotated[str, Query(description="ISBN-10 or ISBN-13")] = "",
+    asin: Annotated[str, Query(description="Amazon ASIN")] = "",
+) -> dict:
+    """
+    Returns pricing metadata from Amazon and BetterWorldBooks for a given book.
+    Requires either an `isbn` or `asin` query parameter.
+    """
+    if not (isbn or asin):
+        return {"error": "isbn or asin required"}
+
+    return await get_price_data(isbn, asin)
 
 
 async def patrons_follows_json():
