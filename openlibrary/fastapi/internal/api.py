@@ -276,14 +276,11 @@ async def author_works():
     pass
 
 
-
 class PriceResponse(BaseModel):
     """Response model for the /prices.json endpoint."""
 
     amazon: dict[str, Any] = Field(default_factory=dict, description="Amazon pricing data")
-    betterworldbooks: dict[str, Any] = Field(
-        default_factory=dict, description="BetterWorldBooks pricing data"
-    )
+    betterworldbooks: dict[str, Any] = Field(default_factory=dict, description="BetterWorldBooks pricing data")
     error: str | None = Field(None, description="Error message if request is invalid")
 
     model_config = {"extra": "allow"}
@@ -309,14 +306,8 @@ async def get_price_data(isbn: str, asin: str) -> dict[str, Any]:
     }
 
     # Fallback: if isbn_10 gave no BWB price, retry with isbn_13
-    if (
-        id_type == "isbn_10"
-        and not metadata["betterworldbooks"].get("price")
-        and (isbn_13 := isbn_10_to_isbn_13(id_))
-    ):
-        metadata["betterworldbooks"] = (
-            await get_betterworldbooks_metadata_async(isbn_13)
-        ) or {}
+    if id_type == "isbn_10" and not metadata["betterworldbooks"].get("price") and (isbn_13 := isbn_10_to_isbn_13(id_)):
+        metadata["betterworldbooks"] = (await get_betterworldbooks_metadata_async(isbn_13)) or {}
 
     return metadata
 

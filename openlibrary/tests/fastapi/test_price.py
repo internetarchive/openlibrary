@@ -1,13 +1,13 @@
-import pytest
 from unittest.mock import AsyncMock
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from openlibrary.fastapi.internal.api import get_price_data, router
 
 
-@pytest.fixture()
+@pytest.fixture
 def client() -> TestClient:
     """Return a TestClient for the internal API router."""
     app = FastAPI()
@@ -95,4 +95,3 @@ async def test_get_price_data_isbn10_bwb_fallback(monkeypatch):
 
     result = await get_price_data(isbn="0765319853", asin="")  # isbn-10
     assert result["betterworldbooks"]["price"] == "$3.00 (used)"
-
