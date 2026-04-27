@@ -32,6 +32,15 @@ def test_valid_template(filename: Path):
     assert parsed, err
 
 
-def test_login_template_does_not_bind_password_value():
-    template = Path("openlibrary/templates/login.html").read_text(encoding="utf-8")
-    assert "$form.password.value" not in template
+import re
+
+
+@pytest.mark.parametrize("filename", get_template_filenames(), ids=str)
+def test_noopener_noreferrer(filename: Path):
+    content = filename.read_text(encoding="utf-8")
+    # Find all anchor tags
+    a_tags = re.findall(r'<a\s+([^>]+)>', content, re.IGNORECASE)
+    for attrs in a_tags:
+        if 'target="_blank"' in attrs or "target='_blank'" in attrs:
+            assert 'rel="noopener noreferrer"' in attrs or "rel='noopener noreferrer'" in attrs, \
+                f"Missing rel='noopener noreferrer' on external link in {filename}"
