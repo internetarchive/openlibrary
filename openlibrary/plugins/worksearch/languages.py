@@ -35,6 +35,7 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
+
     def _locale_sort_key(item, sort_field: str) -> str:
         """Generate a locale-aware sort key for proper alphabetical sorting.
 
@@ -50,9 +51,9 @@ async def get_top_languages(
         # Normalize: decompose accented characters into base + combining marks,
         # then remove combining marks (diacritics) so accented letters sort with
         # their base letters
-        normalized = unicodedata.normalize('NFD', value.casefold())
+        normalized = unicodedata.normalize("NFD", value.casefold())
         # Filter out combining characters (diacritics like accent marks)
-        stripped = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
+        stripped = "".join(c for c in normalized if unicodedata.category(c) != "Mn")
 
         # Use locale-aware comparison for proper linguistic ordering
         return locale.strxfrm(stripped)
