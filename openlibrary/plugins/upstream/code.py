@@ -39,12 +39,12 @@ from openlibrary.plugins.upstream import (
 )  # TODO: unused imports?
 from openlibrary.plugins.upstream.utils import render_component
 
-if not config.get('coverstore_url'):
+if not config.get("coverstore_url"):
     config.coverstore_url = "https://covers.openlibrary.org"  # type: ignore[attr-defined]
 
 import logging
 
-logger = logging.getLogger('openlibrary.plugins.upstream.code')
+logger = logging.getLogger("openlibrary.plugins.upstream.code")
 
 
 class history(delegate.mode):
@@ -54,13 +54,11 @@ class history(delegate.mode):
 
     @jsonapi
     def GET(self, path):
-        query = make_query(web.input(), required_keys=['author', 'offset', 'limit'])
-        query['key'] = path
-        query['sort'] = '-created'
+        query = make_query(web.input(), required_keys=["author", "offset", "limit"])
+        query["key"] = path
+        query["sort"] = "-created"
         # Possibly use infogami.plugins.upstream.utils get_changes to avoid json load/dump?
-        history = json.loads(
-            infogami_request('/versions', data={'query': json.dumps(query)})
-        )
+        history = json.loads(infogami_request("/versions", data={"query": json.dumps(query)}))
         for _, row in enumerate(history):
             row.pop("ip")
         return json.dumps(history)
@@ -71,9 +69,7 @@ class edit(core.edit):
 
     def GET(self, key):
         page = web.ctx.site.get(key)
-        editable_keys_re = web.re_compile(
-            r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*"
-        )
+        editable_keys_re = web.re_compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
         if editable_keys_re.match(key):
             if page is None:
                 return web.seeother(key)
@@ -83,10 +79,8 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if web.re_compile('/(people/[^/]+)').match(key) and spamcheck.is_spam():
-            return render_template(
-                'message.html', 'Oops', 'Something went wrong. Please try again later.'
-            )
+        if web.re_compile("/(people/[^/]+)").match(key) and spamcheck.is_spam():
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         return core.edit.POST(self, key)
 
 
@@ -98,7 +92,7 @@ class change_cover(delegate.mode):
 
     def GET(self, key):
         page = web.ctx.site.get(key)
-        if page is None or page.type.key not in ['/type/edition', '/type/author']:
+        if page is None or page.type.key not in ["/type/edition", "/type/author"]:
             raise web.seeother(key)
         return render.change_cover(page)
 
@@ -107,47 +101,41 @@ class change_photo(change_cover):
     path = r"(/authors/OL\d+A)/photo"
 
 
-del delegate.modes[
-    'change_cover'
-]  # delete change_cover mode added by openlibrary plugin
+del delegate.modes["change_cover"]  # delete change_cover mode added by openlibrary plugin
 
 
 class components_test(delegate.page):
     path = "/_dev/components/HelloWorld"
 
     def GET(self):
-        return render_component('HelloWorld') + render_component('HelloWorld')
+        return render_component("HelloWorld") + render_component("HelloWorld")
 
 
 class library_explorer(delegate.page):
     path = "/explore"
 
     def GET(self):
-        return render_template('library_explorer')
+        return render_template("library_explorer")
 
 
 class merge_work(delegate.page):
     path = "/works/merge"
 
     def GET(self):
-        i = web.input(records='', mrid=None, primary=None)
+        i = web.input(records="", mrid=None, primary=None)
         user = web.ctx.site.get_user()
 
         if user is None:
             raise web.unauthorized()
-        has_access = user and (
-            (user.is_admin() or user.is_librarian()) or user.is_super_librarian()
-        )
+        has_access = user and ((user.is_admin() or user.is_librarian()) or user.is_super_librarian())
         if not has_access:
             raise web.forbidden()
 
         optional_kwargs = {}
         if not (user.is_admin() or user.is_super_librarian()):
-            optional_kwargs['can_merge'] = 'false'
+            optional_kwargs["can_merge"] = "false"
 
-        return render_template(
-            'merge/works', mrid=i.mrid, primary=i.primary, **optional_kwargs
-        )
+        return render_template("merge/works", mrid=i.mrid, primary=i.primary, **optional_kwargs)
 
 
 @functools.cache
@@ -161,15 +149,15 @@ def vendor_js():
             pardir,
             pardir,
             pardir,
-            'static',
-            'upstream',
-            'js',
-            'vendor.js',
+            "static",
+            "upstream",
+            "js",
+            "vendor.js",
         )
     )
-    with open(path, 'rb') as in_file:
+    with open(path, "rb") as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
-    return '/static/upstream/js/vendor.js?v=' + digest
+    return "/static/upstream/js/vendor.js?v=" + digest
 
 
 @functools.cache
@@ -177,10 +165,8 @@ def vendor_js():
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
     pardir = os.path.pardir
-    fullpath = os.path.abspath(
-        os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path)
-    )
-    with open(fullpath, 'rb') as in_file:
+    fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
+    with open(fullpath, "rb") as in_file:
         digest = hashlib.md5(in_file.read()).hexdigest()
     return f"/static/{path}?v={digest}"
 
@@ -191,17 +177,17 @@ class DynamicDocument:
     """
 
     def __init__(self, root):
-        self.root = web.rstrips(root, '/')
+        self.root = web.rstrips(root, "/")
         self.docs = None
         self._text = None
         self.last_modified = None
 
     def update(self):
-        keys = web.ctx.site.things({'type': '/type/rawtext', 'key~': self.root + '/*'})
+        keys = web.ctx.site.things({"type": "/type/rawtext", "key~": self.root + "/*"})
         docs = sorted(web.ctx.site.get_many(keys), key=lambda doc: doc.key)
         if docs:
             self.last_modified = min(doc.last_modified for doc in docs)
-            self._text = "\n\n".join(doc.get('body', '') for doc in docs)
+            self._text = "\n\n".join(doc.get("body", "") for doc in docs)
         else:
             self.last_modified = datetime.datetime.utcnow()
             self._text = ""
@@ -214,14 +200,14 @@ class DynamicDocument:
 
     def md5(self):
         """Returns md5 checksum of the combined documents"""
-        return hashlib.md5(self.get_text().encode('utf-8')).hexdigest()
+        return hashlib.md5(self.get_text().encode("utf-8")).hexdigest()
 
 
 def create_dynamic_document(url, prefix):
     """Creates a handler for `url` for servering combined js/css for `prefix/*` pages"""
     doc = DynamicDocument(prefix)
 
-    if url.endswith('.js'):
+    if url.endswith(".js"):
         content_type = "text/javascript"
     elif url.endswith(".css"):
         content_type = "text/css"
@@ -267,10 +253,10 @@ def create_dynamic_document(url, prefix):
 
 
 all_js = create_dynamic_document("/js/all.js", config.get("js_root", "/js"))
-web.template.Template.globals['all_js'] = all_js()
+web.template.Template.globals["all_js"] = all_js()
 
 all_css = create_dynamic_document("/css/all.css", config.get("css_root", "/css"))
-web.template.Template.globals['all_css'] = all_css()
+web.template.Template.globals["all_css"] = all_css()
 
 
 def reload():
@@ -310,9 +296,7 @@ class revert(delegate.mode):
             raise web.seeother(web.changequery({}))
 
         if not web.ctx.site.can_write(key) or not user_can_revert_records():
-            return render.permission_denied(
-                web.ctx.fullpath, "Permission denied to edit " + key + "."
-            )
+            return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)
 
@@ -325,9 +309,7 @@ class revert(delegate.mode):
                 if prev.type.key in ["/type/delete", "/type/redirect"]:
                     return revert(prev)
                 else:
-                    prev._save(
-                        "revert to revision %d" % prev.revision, action="revert-version"
-                    )
+                    prev._save("revert to revision %d" % prev.revision, action="revert-version")
                     return prev
             elif thing.type.key == "/type/redirect":
                 redirect = web.ctx.site.get(thing.location)
@@ -348,7 +330,7 @@ class revert(delegate.mode):
                 return [process(v) for v in value]
             elif isinstance(value, client.Thing):
                 if value.key:
-                    if value.type.key in ['/type/delete', '/type/revert']:
+                    if value.type.key in ["/type/delete", "/type/revert"]:
                         return revert(value)
                     else:
                         return value
