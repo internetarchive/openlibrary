@@ -1,11 +1,11 @@
+import asyncio
 import datetime
 import itertools
 import re
 import signal
-import subprocess
 import sys
 from collections import Counter
-from collections.abc import Callable, Generator, Iterable, Iterator
+from collections.abc import AsyncGenerator, AsyncIterable, Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -111,30 +111,30 @@ def parse_log_entry(log_line: str) -> "SolrLogEntry":
         )
 
 
-def groupby_buffered[T, U](
-    iterable: Iterable[T],
+async def groupby_buffered[T, U](
+    iterable: AsyncIterable[T],
     key_func: Callable[[T], U],
     buffer_size: int = 0,
-) -> Generator[list[T], None, None]:
+) -> AsyncGenerator[list[T], None]:
     current_group: list[T] = []
     current_key: U | None = None
     skipped: list[T] = []
     buffer: list[T] = []
 
     class CustomIterator:
-        def __init__(self, buffer: list[T], iterable: Iterable[T]):
+        def __init__(self, buffer: list[T], iterable: AsyncIterable[T]):
             self.buffer = buffer
-            self.iterable = iter(iterable)
+            self.iterable = iterable.__aiter__()
 
-        def __iter__(self) -> Iterator[T]:
+        def __aiter__(self):
             return self
 
-        def __next__(self) -> T:
+        async def __anext__(self) -> T:
             if self.buffer:
                 return self.buffer.pop(0)
-            return next(self.iterable)
+            return await anext(self.iterable)
 
-    for item in CustomIterator(buffer, iterable):
+    async for item in CustomIterator(buffer, iterable):
         key = key_func(item)
         if not current_group:
             # Initial case
@@ -166,22 +166,26 @@ def groupby_buffered[T, U](
             yield list(grp)
 
 
-def stream_docker_logs(container_name: str) -> Generator[str, None, None]:
-    process = subprocess.Popen(
-        ["docker", "logs", "--tail=0", "-f", container_name],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+async def stream_docker_logs_async(container_name: str) -> AsyncGenerator[str, None]:
+    process = await asyncio.create_subprocess_exec(
+        "docker",
+        "logs",
+        "--tail=0",
+        "-f",
+        container_name,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
     assert process.stdout
-    assert process.stderr
     try:
-        for line in iter(process.stdout.readline, b""):
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
             yield line.decode("utf-8").strip()
-    except KeyboardInterrupt:
-        process.terminate()
     finally:
-        process.stdout.close()
-        process.stderr.close()
+        process.terminate()
+        await process.wait()
 
 
 def safe_parse_log_entry(log_line: str) -> RequestLogEntry | SolrLogEntry | None:
@@ -211,7 +215,7 @@ def graphite_normalize(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_-]", "_", name)
 
 
-def main(
+async def main(
     solr_container="openlibrary-solr-1",
     graphite_prefix="stats.ol.solr0",
     graphite_address="graphite.us.archive.org:2004",
@@ -225,8 +229,8 @@ def main(
 
     interval_offset = 16 if interval == "minute" else 19
     try:
-        for minute_log_lines in groupby_buffered(
-            (entry for line in stream_docker_logs(solr_container) if (entry := safe_parse_log_entry(line)) is not None),
+        async for minute_log_lines in groupby_buffered(
+            (entry async for line in stream_docker_logs_async(solr_container) if (entry := safe_parse_log_entry(line)) is not None),
             key_func=lambda x: x.timestamp[:interval_offset],
             buffer_size=buffer,
         ):

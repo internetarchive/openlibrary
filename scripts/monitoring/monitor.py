@@ -11,6 +11,9 @@ import time
 import httpx
 
 from scripts.monitoring.fail2ban_monitor import get_fail2ban_counts
+from scripts.monitoring.iostat_monitor import get_iostat_events
+from scripts.monitoring.monitor_db_connections import get_connection_metrics
+from scripts.monitoring.monitor_workers import get_worker_metrics
 from scripts.monitoring.solr_updater_monitor import get_solr_updater_lag_event
 from scripts.monitoring.utils import (
     GraphiteEvent,
@@ -76,7 +79,7 @@ async def monitor_solr():
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.solr_logs_monitor import main
 
-    main(
+    await main(
         solr_container=(
             'solr_builder-solr_prod-1' if SERVER == 'ol-solr1' else 'openlibrary-solr-1'
         ),
@@ -221,6 +224,56 @@ def monitor_fail2ban():
         ],
         GRAPHITE_URL,
     )
+
+
+@limit_server(["ol-web*", "ol-covers0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def monitor_worker_processes():
+    """Logs live worker process ages to Graphite, keyed by host, worker type, and ID."""
+    ts = int(time.time())
+    events = [
+        GraphiteEvent(
+            path=f'stats.ol.workers.timealive.{SERVER}.{w.worker_type}.{w.worker_id}',
+            value=float(ts - w.create_time),
+            timestamp=ts,
+        )
+        for w in get_worker_metrics()
+    ]
+    # If there's a bug, avoid creating too many graphite buckets
+    if len(events) > 400:
+        events = events[:400]
+        print("ERROR: Too many events for stats.ol.workers.timealive")
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
+
+
+@limit_server(["ol-home0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+def monitor_db_connections():
+    """Logs active DB connection ages to Graphite, keyed by hostname and connection ID."""
+    ts = int(time.time())
+    metrics = get_connection_metrics()
+    events = [
+        GraphiteEvent(
+            path=f'stats.ol.db.connections.timealive.{c.hostname}.{c.connection_id}',
+            value=float(c.session_age_seconds),
+            timestamp=ts,
+        )
+        for c in metrics
+    ]
+    # If there's a bug, avoid creating too many graphite buckets
+    if len(events) > 400:
+        events = events[:400]
+        print("ERROR: Too many events for stats.ol.workers.timealive")
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
+
+
+@limit_server(["ol-solr0"], scheduler)
+@scheduler.scheduled_job('interval', seconds=60)
+async def monitor_iostat():
+    events = await get_iostat_events(bucket=f'stats.ol.{SERVER}')
+    if not events:
+        return
+    GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-home0"], scheduler)
