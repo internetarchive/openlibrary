@@ -1,6 +1,8 @@
 """Language pages"""
 
+import locale
 import logging
+import unicodedata
 from dataclasses import dataclass
 from typing import Literal, override
 
@@ -33,7 +35,38 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    results.sort(key=lambda x: x[sort].casefold() if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
+    def _locale_sort_key(item, sort_field: str) -> str:
+        """Generate a locale-aware sort key for proper alphabetical sorting.
+
+        This handles:
+        - Case-insensitive sorting (casefold)
+        - Accented letters (Č, Ć, Š sorted with their base letters)
+        - Locale-specific sorting rules
+        """
+        value = item[sort_field]
+        if not isinstance(value, str):
+            return ""
+
+        # Normalize: decompose accented characters into base + combining marks,
+        # then remove combining marks (diacritics) so accented letters sort with
+        # their base letters
+        normalized = unicodedata.normalize('NFD', value.casefold())
+        # Filter out combining characters (diacritics like accent marks)
+        stripped = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
+
+        # Use locale-aware comparison for proper linguistic ordering
+        return locale.strxfrm(stripped)
+
+    # Build sort key based on sort parameter and user language
+    if sort == "name":
+        sort_key = lambda x: _locale_sort_key(x, "name")
+    else:
+        sort_key = lambda x: x[sort]
+
+    results.sort(
+        key=sort_key,
+        reverse=sort in ("count", "ebook_edition_count"),
+    )
     return results[:limit]
 
 
