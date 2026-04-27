@@ -600,6 +600,7 @@
   display: block;
   min-width: 20px;
   padding-right: 10px;
+  white-space: nowrap;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
