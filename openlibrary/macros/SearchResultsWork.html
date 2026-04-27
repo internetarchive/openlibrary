@@ -193,7 +193,7 @@ $code:
                 <br>
               $if doc.get('edition_count'):
                 <span>
-                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+                  <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>,
                 </span>
               <span>
                 <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s ebook', '%(count)s ebooks', len(doc.get('ia')), count=len(doc.get('ia')))</a>
@@ -215,7 +215,7 @@ $code:
               <br>
             $if doc.get('edition_count'):
               <span>
-                <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>
+                <a href="$work_edition_all_url#editions-list">$ungettext('%(count)s edition', '%(count)s editions', doc.edition_count, count=doc.edition_count)</a>$cond(doc.get('ia'), ',')
               </span>
             $if doc.get('ia'):
               <span>

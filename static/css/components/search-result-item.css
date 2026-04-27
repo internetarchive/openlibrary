@@ -276,12 +276,18 @@
   color: var(--primary-blue);
 }
 
-.searchResultItem .preview-covers a:hover {
-  z-index: var(--z-index-level-5);
+@media (hover: hover) and (pointer: fine) {
+  .searchResultItem .preview-covers a:hover {
+    z-index: var(--z-index-level-5);
+  }
+
+  .searchResultItem .preview-covers a:hover img {
+    border-color: var(--primary-blue);
+  }
 }
 
-.searchResultItem .preview-covers a:hover img {
-  border-color: var(--primary-blue);
+.searchResultItem .preview-covers a:active img {
+  transform: scale(0.97);
 }
 
 .searchResultItem .preview-covers a:focus-visible {
