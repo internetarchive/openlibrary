@@ -5,7 +5,6 @@ from os import getenv
 
 import sentry_sdk
 import web
-from sentry_sdk.hub import Hub
 from sentry_sdk.tracing import Transaction, TransactionSource
 from sentry_sdk.tracing_utils import add_query_source, record_sql_queries
 from sentry_sdk.utils import capture_internal_exceptions
@@ -109,10 +108,8 @@ class Sentry:
         real_db_execute = DB._db_execute
 
         def _db_execute(self, cur, sql_query):
-            hub = Hub.current
             clean_sql_query = re.sub(r"(username='|account/|/people/)[^' ]+", r"\g<1>***", str(sql_query))
             with record_sql_queries(
-                hub,
                 cur,
                 clean_sql_query,
                 params_list=None,
@@ -122,7 +119,7 @@ class Sentry:
                 result = real_db_execute(self, cur, sql_query)
 
                 with capture_internal_exceptions():
-                    add_query_source(hub, span)
+                    add_query_source(span)
             return result
 
         DB._db_execute = _db_execute
