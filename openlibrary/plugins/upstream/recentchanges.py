@@ -50,11 +50,11 @@ class index(delegate.page):
 
         if date:
             begin_date, end_date = dateutil.parse_daterange(date)
-            query['begin_date'] = begin_date.isoformat()
-            query['end_date'] = end_date.isoformat()
+            query["begin_date"] = begin_date.isoformat()
+            query["end_date"] = end_date.isoformat()
 
         if kind:
-            query['kind'] = kind and kind.strip("/")
+            query["kind"] = kind and kind.strip("/")
 
         if web.ctx.encoding in ["json", "yml"]:
             return self.handle_encoding(query, web.ctx.encoding)
@@ -67,13 +67,13 @@ class index(delegate.page):
         # The bot stuff is handled in the template for the regular path.
         # We need to handle it here for api.
         if i.bot.lower() == "true":
-            query['bot'] = True
+            query["bot"] = True
         elif i.bot.lower() == "false":
-            query['bot'] = False
+            query["bot"] = False
 
         # Handle author query parameter
         if i.author:
-            query['author'] = i.author
+            query["author"] = i.author
 
         # and limit and offset business too
         limit = safeint(i.limit, 100)
@@ -91,8 +91,8 @@ class index(delegate.page):
         limit = constrain(limit, 0, 1000)
         offset = constrain(offset, 0, 10000)
 
-        query['limit'] = limit
-        query['offset'] = offset
+        query["limit"] = limit
+        query["offset"] = offset
 
         result = [c.dict() for c in web.ctx.site.recentchanges(query)]
 
@@ -107,9 +107,9 @@ class index(delegate.page):
             content_type = "text/plain"
 
         if i.text.lower() == "true":
-            web.header('Content-Type', 'text/plain')
+            web.header("Content-Type", "text/plain")
         else:
-            web.header('Content-Type', content_type)
+            web.header("Content-Type", content_type)
 
         return delegate.RawText(response)
 
@@ -164,7 +164,7 @@ class recentchanges_view(delegate.page):
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
 
-        if web.ctx.encoding == 'json':
+        if web.ctx.encoding == "json":
             return self.render_json(change)
 
         path = self.get_change_url(change)
@@ -179,21 +179,15 @@ class recentchanges_view(delegate.page):
                 return render_template("recentchanges/default/view", change)
 
     def render_json(self, change):
-        return delegate.RawText(
-            json.dumps(change.dict()), content_type="application/json"
-        )
+        return delegate.RawText(json.dumps(change.dict()), content_type="application/json")
 
     # Required for reverting changesets
     def POST(self, id):
-        allowed_usergroups = ['/usergroup/admin', '/usergroup/super-librarians']
-        if not (user := get_current_user()) or not (
-            user.is_member_of_any(allowed_usergroups)
-        ):
+        allowed_usergroups = ["/usergroup/admin", "/usergroup/super-librarians"]
+        if not (user := get_current_user()) or not (user.is_member_of_any(allowed_usergroups)):
             raise web.unauthorized()
         if not features.is_enabled("undo"):
-            return render_template(
-                "permission_denied", web.ctx.path, "Permission denied to undo."
-            )
+            return render_template("permission_denied", web.ctx.path, "Permission denied to undo.")
 
         id = int(id)
         change = web.ctx.site.get_change(id)

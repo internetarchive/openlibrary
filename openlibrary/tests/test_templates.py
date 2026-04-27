@@ -16,7 +16,9 @@ def get_template_filenames():
     return map(Path, template_files)
 
 
-def try_parse_template(template_text: str, filename: Path) -> tuple[bool, str | Exception | None]:
+def try_parse_template(
+    template_text: str, filename: Path
+) -> tuple[bool, str | Exception | None]:
     try:
         Template(template_text, str(filename))
         return True, None
@@ -42,9 +44,10 @@ def test_noopener_noreferrer(filename: Path):
     a_tags = re.findall(r"<a\s+([^>]+)>", content, re.IGNORECASE)
     for attrs in a_tags:
         if 'target="_blank"' in attrs or "target='_blank'" in attrs:
-            assert 'rel="noopener noreferrer"' in attrs or "rel='noopener noreferrer'" in attrs, (
-                f"Missing rel='noopener noreferrer' on external link in {filename}"
-            )
+            assert (
+                'rel="noopener noreferrer"' in attrs
+                or "rel='noopener noreferrer'" in attrs
+            ), f"Missing rel='noopener noreferrer' on external link in {filename}"
 
 
 def test_login_template_does_not_bind_password_value():

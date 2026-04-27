@@ -21,14 +21,13 @@ from . import db
 
 logger = logging.getLogger("openlibrary.imports")
 
-STAGED_SOURCES: Final = ('amazon', 'idb', 'google_books')
+STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
 if TYPE_CHECKING:
     from openlibrary.core.models import Edition
 
 
 class Batch(web.storage):
-
     def __init__(self, mapping, *requires, **defaults):
         """
         Initialize some statistics instance attributes yet retain web.storage's __init__ method.
@@ -59,7 +58,7 @@ class Batch(web.storage):
         self.add_items(items)
 
     def dedupe_items(self, items):
-        ia_ids = [item.get('ia_id') for item in items if item.get('ia_id')]
+        ia_ids = [item.get("ia_id") for item in items if item.get("ia_id")]
         already_present = {
             row.ia_id
             for row in db.query(
@@ -81,24 +80,20 @@ class Batch(web.storage):
         self.items_skipped = already_present
 
         # Those unique items whose ia_id's aren't already present
-        return [item for item in items if item.get('ia_id') not in already_present]
+        return [item for item in items if item.get("ia_id") not in already_present]
 
     def normalize_items(self, items):
         return [
             (
-                {'batch_id': self.id, 'ia_id': item}
+                {"batch_id": self.id, "ia_id": item}
                 if isinstance(item, str)
                 else {
-                    'batch_id': self.id,
+                    "batch_id": self.id,
                     # Partner bots set ia_id to eg "partner:978..."
-                    'ia_id': item.get('ia_id'),
-                    'status': item.get('status', 'pending'),
-                    'data': (
-                        json.dumps(item.get('data'), sort_keys=True)
-                        if item.get('data')
-                        else None
-                    ),
-                    'submitter': item.get('submitter') or None,
+                    "ia_id": item.get("ia_id"),
+                    "status": item.get("status", "pending"),
+                    "data": (json.dumps(item.get("data"), sort_keys=True) if item.get("data") else None),
+                    "submitter": item.get("submitter") or None,
                 }
             )
             for item in items
@@ -146,9 +141,7 @@ class ImportItem(web.storage):
         return None
 
     @staticmethod
-    def find_staged_or_pending(
-        identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES
-    ) -> ResultSet:
+    def find_staged_or_pending(identifiers: Iterable[str], sources: Iterable[str] = STAGED_SOURCES) -> ResultSet:
         """
         Find staged or pending items in import_item matching the ia_id identifiers.
 
@@ -158,62 +151,38 @@ class ImportItem(web.storage):
         Generated `ia_ids` have the form `{source}:{identifier}` for each `source`
         in `sources` and `identifier` in `identifiers`.
         """
-        ia_ids = [
-            f"{source}:{identifier}" for identifier in identifiers for source in sources
-        ]
+        ia_ids = [f"{source}:{identifier}" for identifier in identifiers for source in sources]
 
-        query = (
-            "SELECT * "
-            "FROM import_item "
-            "WHERE status IN ('staged', 'pending') "
-            "AND ia_id IN $ia_ids"
-        )
-        return db.query(query, vars={'ia_ids': ia_ids})
+        query = "SELECT * FROM import_item WHERE status IN ('staged', 'pending') AND ia_id IN $ia_ids"
+        return db.query(query, vars={"ia_ids": ia_ids})
 
     @staticmethod
-    def import_first_staged(
-        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
-    ) -> "Edition | None":
+    def import_first_staged(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> "Edition | None":
         """
         Import the first staged item in import_item matching the ia_id identifiers.
 
         This changes the status of matching ia_id identifiers to prevent a
         race condition that can result in duplicate imports.
         """
-        ia_ids = [
-            f"{source}:{identifier}" for identifier in identifiers for source in sources
-        ]
+        ia_ids = [f"{source}:{identifier}" for identifier in identifiers for source in sources]
 
-        query_start_processing = (
-            "UPDATE import_item "
-            "SET status = 'processing' "
-            "WHERE status = 'staged' "
-            "AND ia_id IN $ia_ids "
-            "RETURNING *"
-        )
+        query_start_processing = "UPDATE import_item SET status = 'processing' WHERE status = 'staged' AND ia_id IN $ia_ids RETURNING *"
 
         # TODO: Would this be better to update by the specific ID, given
         # we have the IDs? If this approach works generally, it could work for
         # both `staged` and `pending` by making a dictionary of the original
         # `status` values, and restoring all the original values, based on `id`,
         # save for the one upon which import was tested.
-        query_finish_processing = (
-            "UPDATE import_item "
-            "SET status = 'staged' "
-            "WHERE status = 'processing' "
-            "AND ia_id IN $ia_ids"
-        )
+        query_finish_processing = "UPDATE import_item SET status = 'staged' WHERE status = 'processing' AND ia_id IN $ia_ids"
 
-        if in_process_items := db.query(
-            query_start_processing, vars={'ia_ids': ia_ids}
-        ):
+        if in_process_items := db.query(query_start_processing, vars={"ia_ids": ia_ids}):
             item: ImportItem = ImportItem(in_process_items[0])
             try:
                 return item.single_import()
             except Exception:  # noqa: BLE001
                 return None
             finally:
-                db.query(query_finish_processing, vars={'ia_ids': ia_ids})
+                db.query(query_finish_processing, vars={"ia_ids": ia_ids})
 
         return None
 
@@ -223,15 +192,15 @@ class ImportItem(web.storage):
             # Avoids a circular import issue.
             from openlibrary.plugins.importapi.code import parse_data
 
-            edition, _ = parse_data(self.data.encode('utf-8'))
+            edition, _ = parse_data(self.data.encode("utf-8"))
             if edition:
                 reply = add_book.load(edition)
-                if reply.get('success') and 'edition' in reply:
-                    edition = reply['edition']
-                    self.set_status(edition['status'], ol_key=edition['key'])  # type: ignore[index]
-                    return web.ctx.site.get(edition['key'])  # type: ignore[index]
+                if reply.get("success") and "edition" in reply:
+                    edition = reply["edition"]
+                    self.set_status(edition["status"], ol_key=edition["key"])  # type: ignore[index]
+                    return web.ctx.site.get(edition["key"])  # type: ignore[index]
                 else:
-                    error_code = reply.get('error_code', 'unknown-error')
+                    error_code = reply.get("error_code", "unknown-error")
                     self.set_status("failed", error=error_code)
 
         except ValidationError:
@@ -250,9 +219,7 @@ class ImportItem(web.storage):
             return ImportItem(result[0])
 
     @staticmethod
-    def bulk_mark_pending(
-        identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES
-    ):
+    def bulk_mark_pending(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES):
         """
         Given a list of ISBNs, creates list of `ia_ids` and queries the import_item
         table the `ia_ids`.
@@ -262,15 +229,10 @@ class ImportItem(web.storage):
         """
         ia_ids = []
         for id in identifiers:
-            ia_ids += [f'{source}:{id}' for source in sources]
+            ia_ids += [f"{source}:{id}" for source in sources]
 
-        query = (
-            "UPDATE import_item "
-            "SET status = 'pending' "
-            "WHERE status = 'staged' "
-            "AND ia_id IN $ia_ids"
-        )
-        db.query(query, vars={'ia_ids': ia_ids})
+        query = "UPDATE import_item SET status = 'pending' WHERE status = 'staged' AND ia_id IN $ia_ids"
+        db.query(query, vars={"ia_ids": ia_ids})
 
     def set_status(self, status, error=None, ol_key=None):
         id_ = self.ia_id or f"{self.batch_id}:{self.id}"
@@ -281,39 +243,37 @@ class ImportItem(web.storage):
             "ol_key": ol_key,
             "import_time": datetime.datetime.utcnow(),
         }
-        if status != 'failed':
+        if status != "failed":
             d = dict(**d, data=None)
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
     def mark_failed(self, error):
-        self.set_status(status='failed', error=error)
+        self.set_status(status="failed", error=error)
 
     def mark_found(self, ol_key):
-        self.set_status(status='found', ol_key=ol_key)
+        self.set_status(status="found", ol_key=ol_key)
 
     def mark_created(self, ol_key):
-        self.set_status(status='created', ol_key=ol_key)
+        self.set_status(status="created", ol_key=ol_key)
 
     def mark_modified(self, ol_key):
-        self.set_status(status='modified', ol_key=ol_key)
+        self.set_status(status="modified", ol_key=ol_key)
 
     @classmethod
-    def delete_items(
-        cls, ia_ids: list[str], batch_id: int | None = None, _test: bool = False
-    ):
+    def delete_items(cls, ia_ids: list[str], batch_id: int | None = None, _test: bool = False):
         oldb = db.get_db()
         data: dict[str, Any] = {
-            'ia_ids': ia_ids,
+            "ia_ids": ia_ids,
         }
 
-        where = 'ia_id IN $ia_ids'
+        where = "ia_id IN $ia_ids"
 
         if batch_id:
-            data['batch_id'] = batch_id
-            where += ' AND batch_id=$batch_id'
+            data["batch_id"] = batch_id
+            where += " AND batch_id=$batch_id"
 
-        return oldb.delete('import_item', where=where, vars=data, _test=_test)
+        return oldb.delete("import_item", where=where, vars=data, _test=_test)
 
 
 class Stats:
@@ -323,10 +283,7 @@ class Stats:
     def get_imports_per_hour():
         """Returns the number imports happened in past one hour duration."""
         try:
-            result = db.query(
-                "SELECT count(*) as count FROM import_item"
-                " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
-            )
+            result = db.query("SELECT count(*) as count FROM import_item WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return 0
@@ -336,9 +293,7 @@ class Stats:
     def _get_count(status=None):
         where = "status=$status" if status else "1=1"
         try:
-            rows = db.select(
-                "import_item", what="count(*) as count", where=where, vars=locals()
-            )
+            rows = db.select("import_item", what="count(*) as count", where=where, vars=locals())
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return 0
@@ -432,9 +387,7 @@ class Stats:
         """Returns all rows with given added date."""
         where = "added_time::date = $date" if date else "1 = 1"
         try:
-            return db.select(
-                "import_item", where=where, order=order, limit=limit, vars=locals()
-            )
+            return db.select("import_item", where=where, order=order, limit=limit, vars=locals())
         except UndefinedTable:
             logger.exception("Database table import_item may not exist on localhost")
             return []
@@ -443,10 +396,7 @@ class Stats:
     def get_items_summary(date):
         """Returns all rows with given added date."""
         rows = db.query(
-            "SELECT status, count(*) as count"
-            " FROM import_item"
-            " WHERE added_time::date = $date"
-            " GROUP BY status",
+            "SELECT status, count(*) as count FROM import_item WHERE added_time::date = $date GROUP BY status",
             vars=locals(),
         )
         return {"counts": {row.status: row.count for row in rows}}

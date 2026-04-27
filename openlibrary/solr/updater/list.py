@@ -16,11 +16,11 @@ from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_
 
 
 class ListSolrUpdater(AbstractSolrUpdater):
-    key_prefix = '/lists/'
-    thing_type = '/type/list'
+    key_prefix = "/lists/"
+    thing_type = "/type/list"
 
     def key_test(self, key: str) -> bool:
-        return bool(re.match(r'^(/people/[^/]+)?/(lists|series)/[^/]+$', key))
+        return bool(re.match(r"^(/people/[^/]+)?/(lists|series)/[^/]+$", key))
 
     async def update_key(self, list: dict) -> tuple[SolrUpdateRequest, list[str]]:
         seeds = ListSolrBuilder(list).seed
@@ -30,8 +30,8 @@ class ListSolrUpdater(AbstractSolrUpdater):
 
 
 async def fetch_seeds_facets(seeds: list[str]):
-    base_url = get_solr_base_url() + '/select'
-    facet_fields: list[SubjectType] = ['subject', 'time', 'person', 'place']
+    base_url = get_solr_base_url() + "/select"
+    facet_fields: list[SubjectType] = ["subject", "time", "person", "place"]
 
     seeds_by_type: defaultdict[SeedType, list] = defaultdict(list)
     for seed in seeds:
@@ -40,31 +40,31 @@ async def fetch_seeds_facets(seeds: list[str]):
     query: list[str] = []
     for seed_type, seed_values in seeds_by_type.items():
         match seed_type:
-            case 'edition' | 'author':
-                edition_olids = " OR ".join(key.split('/')[-1] for key in seed_values)
-                query.append(f'edition_key:( {edition_olids} )')
-            case 'work':
+            case "edition" | "author":
+                edition_olids = " OR ".join(key.split("/")[-1] for key in seed_values)
+                query.append(f"edition_key:( {edition_olids} )")
+            case "work":
                 seed_keys = " OR ".join(f'"{key}"' for key in seed_values)
-                query.append(f'key:( {seed_keys} )')
-            case 'subject':
+                query.append(f"key:( {seed_keys} )")
+            case "subject":
                 pass
             case _:
-                raise NotImplementedError(f'Unknown seed type {seed_type}')
+                raise NotImplementedError(f"Unknown seed type {seed_type}")
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
             base_url,
             timeout=30,
             data={
-                'wt': 'json',
-                'json.nl': 'arrarr',
-                'q': ' OR '.join(query),
-                'fq': 'type:work',
-                'rows': 0,
-                'facet': 'true',
-                'facet.mincount': 1,
-                'facet.limit': 50,
-                'facet.field': [f"{field}_facet" for field in facet_fields],
+                "wt": "json",
+                "json.nl": "arrarr",
+                "q": " OR ".join(query),
+                "fq": "type:work",
+                "rows": 0,
+                "facet": "true",
+                "facet.mincount": 1,
+                "facet.limit": 50,
+                "facet.field": [f"{field}_facet" for field in facet_fields],
             },
         )
         return response.json()
@@ -85,57 +85,50 @@ class ListSolrBuilder(AbstractSolrBuilder):
             return {}
 
         doc: dict = {}
-        for facet, counts in self._solr_reply['facet_counts']['facet_fields'].items():
-            subject_type = cast(SubjectType, facet.split('_')[0])
+        for facet, counts in self._solr_reply["facet_counts"]["facet_fields"].items():
+            subject_type = cast(SubjectType, facet.split("_")[0])
             subjects = [s for s, count in counts]
             doc |= {
                 subject_type: subjects,
-                f'{subject_type}_facet': subjects,
-                f'{subject_type}_key': [str_to_key(s) for s in subjects],
+                f"{subject_type}_facet": subjects,
+                f"{subject_type}_key": [str_to_key(s) for s in subjects],
             }
         return doc
 
     @property
     def key(self) -> str:
-        return self._list['key']
+        return self._list["key"]
 
     @property
     def type(self) -> str:
-        list_key = self._list['key']
-        if list_key.startswith('/series/'):
-            return 'series'
+        list_key = self._list["key"]
+        if list_key.startswith("/series/"):
+            return "series"
         else:
-            return 'list'
+            return "list"
 
     @property
     def list_type(self) -> str:
-        list_key = self._list['key']
-        if list_key.startswith('/series/'):
-            return 'series'
-        elif list_key.startswith('/people/'):
-            return 'user_list'
+        list_key = self._list["key"]
+        if list_key.startswith("/series/"):
+            return "series"
+        elif list_key.startswith("/people/"):
+            return "user_list"
         else:
-            return 'community_list'
+            return "community_list"
 
     @property
     def name(self) -> str | None:
-        return self._list.get('name')
+        return self._list.get("name")
 
     @cached_property
     def seed(self) -> list[str]:
-        return [
-            (
-                (seed.get('key') or seed['thing']['key'])
-                if isinstance(seed, dict)
-                else seed
-            )
-            for seed in self._list.get('seeds', [])
-        ]
+        return [((seed.get("key") or seed["thing"]["key"]) if isinstance(seed, dict) else seed) for seed in self._list.get("seeds", [])]
 
     @property
     def last_modified(self) -> str:
         # Solr expects UTC ISO 8601 with 'Z' suffix, e.g. 2024-12-09T12:57:14.074200Z
-        return self._list['last_modified']['value'] + 'Z'
+        return self._list["last_modified"]["value"] + "Z"
 
     @property
     def seed_count(self) -> int:

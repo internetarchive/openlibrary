@@ -43,10 +43,10 @@ class books_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(bibkeys='', callback=None, details="false", high_priority=False)
+        i = web.input(bibkeys="", callback=None, details="false", high_priority=False)
         i.high_priority = i.get("high_priority") == "true"
-        if web.ctx.path.endswith('.json'):
-            i.format = 'json'
+        if web.ctx.path.endswith(".json"):
+            i.format = "json"
         return dynlinks.dynlinks(bib_keys=i.bibkeys.split(","), options=i)
 
 
@@ -54,9 +54,7 @@ class books_json(delegate.page):
 class read_singleget(delegate.page):
     """Handle the single-lookup form of the Hathi-style API"""
 
-    path = (
-        r"/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
-    )
+    path = r"/api/volumes/(brief|full)/(oclc|lccn|issn|isbn|htid|olid|recordnumber)/(.+)"
     encoding = "json"
 
     @jsonapi
@@ -64,7 +62,7 @@ class read_singleget(delegate.page):
         i = web.input()
 
         web.ctx.headers = []
-        req = f'{idtype}:{idval}'
+        req = f"{idtype}:{idval}"
         result = readlinks.readlinks(req, i)
         result = result.get(req, [])
         return json.dumps(result)

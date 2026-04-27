@@ -50,43 +50,33 @@ def format_date(date: str, only_year: bool) -> str:
 
 def map_book_to_olbook(book, promise_id):
     def clean_null(val: str | None) -> str | None:
-        if val in ('', 'null', 'null--'):
+        if val in ("", "null", "null--"):
             return None
         return val
 
-    asin_is_isbn_10 = book.get('ASIN') and book.get('ASIN')[0].isdigit()
-    product_json = book.get('ProductJSON', {})
-    publish_date = clean_null(product_json.get('PublicationDate'))
-    title = product_json.get('Title')
-    isbn = book.get('ISBN') or ' '
-    sku = book['BookSKUB'] or book['BookSKU'] or book['BookBarcode']
+    asin_is_isbn_10 = book.get("ASIN") and book.get("ASIN")[0].isdigit()
+    product_json = book.get("ProductJSON", {})
+    publish_date = clean_null(product_json.get("PublicationDate"))
+    title = product_json.get("Title")
+    isbn = book.get("ISBN") or " "
+    sku = book["BookSKUB"] or book["BookSKU"] or book["BookBarcode"]
     olbook = {
-        'local_id': [f"urn:bwbsku:{sku.upper()}"],
-        'identifiers': {
-            **({'amazon': [book.get('ASIN')]} if not asin_is_isbn_10 else {}),
-            **({'better_world_books': [isbn]} if not is_isbn_13(isbn) else {}),
+        "local_id": [f"urn:bwbsku:{sku.upper()}"],
+        "identifiers": {
+            **({"amazon": [book.get("ASIN")]} if not asin_is_isbn_10 else {}),
+            **({"better_world_books": [isbn]} if not is_isbn_13(isbn) else {}),
         },
-        **({'isbn_13': [isbn]} if is_isbn_13(isbn) else {}),
-        **({'isbn_10': [book.get('ASIN')]} if asin_is_isbn_10 else {}),
-        **({'title': title} if title else {}),
-        'authors': (
-            [{"name": clean_null(product_json.get('Author'))}]
-            if clean_null(product_json.get('Author'))
-            else []
-        ),
-        'publishers': [clean_null(product_json.get('Publisher')) or '????'],
-        'source_records': [f"promise:{promise_id}:{sku}"],
+        **({"isbn_13": [isbn]} if is_isbn_13(isbn) else {}),
+        **({"isbn_10": [book.get("ASIN")]} if asin_is_isbn_10 else {}),
+        **({"title": title} if title else {}),
+        "authors": ([{"name": clean_null(product_json.get("Author"))}] if clean_null(product_json.get("Author")) else []),
+        "publishers": [clean_null(product_json.get("Publisher")) or "????"],
+        "source_records": [f"promise:{promise_id}:{sku}"],
         # format_date adds hyphens between YYYY-MM-DD, or use only YYYY if date is suspect.
-        'publish_date': (
-            format_date(
-                date=publish_date, only_year=publish_date[-4:] in ('0000', '0101')
-            )
-            if publish_date
-            else ''
-        ),
+        "publish_date": (format_date(date=publish_date, only_year=publish_date[-4:] in ("0000", "0101")) if publish_date else ""),
     }
-    if not olbook['identifiers']:
-        del olbook['identifiers']
+    if not olbook["identifiers"]:
+        del olbook["identifiers"]
     return olbook
 
 
@@ -130,7 +120,7 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
 
         # Fall back to B* ASIN as a last resort.
         if not identifier:
-            if not (amazon := book.get('identifiers', {}).get('amazon', [])):
+            if not (amazon := book.get("identifiers", {}).get("amazon", [])):
                 continue
 
             identifier = amazon[0]
@@ -151,9 +141,7 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
-    olbooks_gen = (
-        map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, 'item')
-    )
+    olbooks_gen = (map_book_to_olbook(book, promise_id) for book in ijson.items(resp.raw, "item"))
 
     # Note: dry_run won't include BookWorm data.
     if dry_run:
@@ -168,7 +156,7 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
     stage_incomplete_records_for_import(olbooks)
 
     batch = Batch.find(promise_id) or Batch.new(promise_id)
-    batch_items = [{'ia_id': b['local_id'][0], 'data': b} for b in olbooks]
+    batch_items = [{"ia_id": b["local_id"][0], "data": b} for b in olbooks]
     for i in range(0, len(batch_items), batch_size):
         batch.add_items(batch_items[i : i + batch_size])
 
@@ -185,18 +173,18 @@ def get_promise_items_url(start_date: str, end_date: str):
     'https://archive.org/advancedsearch.php?q=collection:bookdonationsfrombetterworldbooks+identifier:bwb_daily_pallets_*+publicdate:[2022-12-01+TO+*]&sort=addeddate+desc&fl=identifier&rows=5000&output=json'
     """
     is_exact_date = start_date == end_date
-    selector = start_date if is_exact_date else '*'
+    selector = start_date if is_exact_date else "*"
     q = f"collection:bookdonationsfrombetterworldbooks identifier:bwb_daily_pallets_{selector}"
     if not is_exact_date:
-        q += f' publicdate:[{start_date} TO {end_date}]'
+        q += f" publicdate:[{start_date} TO {end_date}]"
 
     return "https://archive.org/advancedsearch.php?" + urlencode(
         {
-            'q': q,
-            'sort': 'addeddate desc',
-            'fl': 'identifier',
-            'rows': '5000',
-            'output': 'json',
+            "q": q,
+            "sort": "addeddate desc",
+            "fl": "identifier",
+            "rows": "5000",
+            "output": "json",
         }
     )
 
@@ -208,14 +196,14 @@ def main(ol_config: str, dates: str, dry_run: bool = False):
         E.g. "yyyy-mm-dd:yyyy-mm-dd" or just "yyyy-mm-dd" for a single date.
         "yyyy-mm-dd:*" for all dates after a certain date.
     """
-    if ':' in dates:
-        start_date, end_date = dates.split(':')
+    if ":" in dates:
+        start_date, end_date = dates.split(":")
     else:
         start_date = end_date = dates
 
     url = get_promise_items_url(start_date, end_date)
     r = requests.get(url)
-    identifiers = [d['identifier'] for d in r.json()['response']['docs']]
+    identifiers = [d["identifier"] for d in r.json()["response"]["docs"]]
 
     if not identifiers:
         logger.info("No promise items found for date(s) %s", dates)
@@ -230,5 +218,5 @@ def main(ol_config: str, dates: str, dry_run: bool = False):
         batch_import(promise_id, dry_run=dry_run)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

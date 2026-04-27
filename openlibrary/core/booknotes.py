@@ -12,15 +12,15 @@ class Booknotes(db.CommonExtras):
     @classmethod
     def summary(cls) -> dict:
         return {
-            'total_notes_created': {
-                'total': cls.total_booknotes(),
-                'month': cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
-                'week': cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
+            "total_notes_created": {
+                "total": cls.total_booknotes(),
+                "month": cls.total_booknotes(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_booknotes(since=DATE_ONE_WEEK_AGO),
             },
-            'total_note_takers': {
-                'total': cls.total_unique_users(),
-                'month': cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
-                'week': cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
+            "total_note_takers": {
+                "total": cls.total_unique_users(),
+                "month": cls.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                "week": cls.total_unique_users(since=DATE_ONE_WEEK_AGO),
             },
         }
 
@@ -30,8 +30,8 @@ class Booknotes(db.CommonExtras):
         query = f"SELECT count(*) from {cls.TABLENAME}"
         if since:
             query += " WHERE created >= $since"
-        results = oldb.query(query, vars={'since': since})
-        return results[0]['count'] if results else 0
+        results = oldb.query(query, vars={"since": since})
+        return results[0]["count"] if results else 0
 
     @classmethod
     def total_unique_users(cls, since=None) -> int:
@@ -48,8 +48,8 @@ class Booknotes(db.CommonExtras):
         query = "select count(DISTINCT username) from booknotes"
         if since:
             query += " WHERE created >= $since"
-        results = oldb.query(query, vars={'since': since})
-        return results[0]['count'] if results else 0
+        results = oldb.query(query, vars={"since": since})
+        return results[0]["count"] if results else 0
 
     @classmethod
     def most_notable_books(cls, limit=10, since=False):
@@ -58,8 +58,8 @@ class Booknotes(db.CommonExtras):
         query = "select work_id, count(*) as cnt from booknotes"
         if since:
             query += " AND created >= $since"
-        query += ' group by work_id order by cnt desc limit $limit'
-        return list(oldb.query(query, vars={'limit': limit, 'since': since}))
+        query += " group by work_id order by cnt desc limit $limit"
+        return list(oldb.query(query, vars={"limit": limit, "since": since}))
 
     @classmethod
     def get_booknotes_for_work(cls, work_id):
@@ -71,9 +71,9 @@ class Booknotes(db.CommonExtras):
     def count_total_booksnotes_by_user(cls, username):
         """Counts the (int) total number of books logged by this `username`"""
         oldb = db.get_db()
-        data = {'username': username}
+        data = {"username": username}
         query = "SELECT count(*) from booknotes WHERE username=$username"
-        return oldb.query(query, vars=data)[0]['count']
+        return oldb.query(query, vars=data)[0]["count"]
 
     @classmethod
     def count_works_with_notes_by_user(cls, username):
@@ -81,20 +81,18 @@ class Booknotes(db.CommonExtras):
         Counts the total number of works logged by this 'username'
         """
         oldb = db.get_db()
-        data = {'username': username}
+        data = {"username": username}
         query = """
             SELECT
                 COUNT(DISTINCT(work_id))
             FROM booknotes
             WHERE username=$username
         """
-        return oldb.query(query, vars=data)[0]['count']
+        return oldb.query(query, vars=data)[0]["count"]
 
     @classmethod
     def get_patron_booknote(cls, username, work_id, edition_id=NULL_EDITION_VALUE):
-        note = cls.get_patron_booknotes(
-            username, work_id=work_id, edition_id=edition_id
-        )
+        note = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
         return note and note[0]
 
     @classmethod
@@ -113,12 +111,12 @@ class Booknotes(db.CommonExtras):
         oldb = db.get_db()
         page = int(page) if page else 1
         data = {
-            'username': username,
-            'work_id': work_id,
-            'edition_id': edition_id,
-            'limit': limit,
-            'offset': limit * (page - 1),
-            'search': search,
+            "username": username,
+            "work_id": work_id,
+            "edition_id": edition_id,
+            "limit": limit,
+            "offset": limit * (page - 1),
+            "search": search,
         }
         query = "SELECT * from booknotes WHERE username=$username "
         if work_id:
@@ -138,7 +136,7 @@ class Booknotes(db.CommonExtras):
         return: List of records grouped by works.
         """
         oldb = db.get_db()
-        data = {'username': username, 'limit': limit, 'offset': limit * (page - 1)}
+        data = {"username": username, "limit": limit, "offset": limit * (page - 1)}
         query = """
             SELECT
                 work_id,
@@ -168,19 +166,17 @@ class Booknotes(db.CommonExtras):
             "notes": notes,
             "edition_id": edition_id,
         }
-        records = cls.get_patron_booknotes(
-            username, work_id=work_id, edition_id=edition_id
-        )
+        records = cls.get_patron_booknotes(username, work_id=work_id, edition_id=edition_id)
         if not records:
             return oldb.insert(
-                'booknotes',
+                "booknotes",
                 username=username,
                 work_id=work_id,
                 notes=notes,
                 edition_id=edition_id,
             )
         return oldb.update(
-            'booknotes',
+            "booknotes",
             where="work_id=$work_id AND username=$username AND edition_id=$edition_id",
             notes=notes,
             edition_id=edition_id,
@@ -203,16 +199,14 @@ class Booknotes(db.CommonExtras):
         """
         oldb = db.get_db()
         where = {
-            'username': username,
-            'work_id': int(work_id),
-            'edition_id': edition_id,
+            "username": username,
+            "work_id": int(work_id),
+            "edition_id": edition_id,
         }
         try:
             return oldb.delete(
-                'booknotes',
-                where=(
-                    'work_id=$work_id AND username=$username AND edition_id=$edition_id'
-                ),
+                "booknotes",
+                where=("work_id=$work_id AND username=$username AND edition_id=$edition_id"),
                 vars=where,
             )
         except:  # we want to catch no entry exists

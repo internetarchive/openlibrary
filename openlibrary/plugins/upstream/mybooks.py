@@ -57,18 +57,18 @@ class mybooks_home(delegate.page):
         need to update that redirect because it already just redirects
         here.
         """
-        mb = MyBooksTemplate(username, key='mybooks')
+        mb = MyBooksTemplate(username, key="mybooks")
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb: 'MyBooksTemplate') -> TemplateResult:
+    def render_template(self, mb: "MyBooksTemplate") -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
         docs: dict[str, Any] = {
-            'loans': [],
-            'want-to-read': [],
-            'currently-reading': [],
-            'already-read': [],
+            "loans": [],
+            "want-to-read": [],
+            "currently-reading": [],
+            "already-read": [],
         }
 
         if mb.me:
@@ -77,37 +77,35 @@ class mybooks_home(delegate.page):
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
                 # Book will be None if no OL edition exists for the book
-                if book := web.ctx.site.get(loan['book']):
+                if book := web.ctx.site.get(loan["book"]):
                     book.loan = loan
                     loans.docs.append(book)
-            docs['loans'] = loans
+            docs["loans"] = loans
 
         if mb.me or mb.is_public:
-            want_to_read = mb.readlog.get_works('want-to-read', limit=6)
-            currently_reading = mb.readlog.get_works('currently-reading', limit=6)
-            already_read = mb.readlog.get_works('already-read', limit=6)
+            want_to_read = mb.readlog.get_works("want-to-read", limit=6)
+            currently_reading = mb.readlog.get_works("currently-reading", limit=6)
+            already_read = mb.readlog.get_works("already-read", limit=6)
             works = want_to_read.docs + currently_reading.docs + already_read.docs
 
             def get_edition(solr_doc: web.Storage | dict) -> dict | None:
-                editions_raw = cast(dict | list[dict], solr_doc.get('editions'))
+                editions_raw = cast(dict | list[dict], solr_doc.get("editions"))
                 if isinstance(editions_raw, dict):
-                    editions = editions_raw.get('docs', [])
+                    editions = editions_raw.get("docs", [])
                 else:
                     editions = editions_raw or []
 
                 return editions[0] if editions else None
 
-            add_availability(
-                [get_edition(doc) or doc for doc in works if doc.get('title')]
-            )
+            add_availability([get_edition(doc) or doc for doc in works if doc.get("title")])
 
             docs |= {
-                'want-to-read': want_to_read,
-                'currently-reading': currently_reading,
-                'already-read': already_read,
+                "want-to-read": want_to_read,
+                "currently-reading": currently_reading,
+                "already-read": already_read,
             }
 
-        return render['account/mybooks'](
+        return render["account/mybooks"](
             mb.user,
             docs,
             key=mb.key,
@@ -124,12 +122,10 @@ class mybooks_notes(delegate.page):
 
     def GET(self, username):
         i = web.input(page=1)
-        mb = MyBooksTemplate(username, key='notes')
+        mb = MyBooksTemplate(username, key="notes")
         if mb.is_my_page:
             docs = PatronBooknotes(mb.user).get_notes(page=int(i.page))
-            template = render['account/notes'](
-                docs, mb.user, mb.counts['notes'], page=int(i.page)
-            )
+            template = render["account/notes"](docs, mb.user, mb.counts["notes"], page=int(i.page))
             return mb.render(header_title=_("Notes"), template=template)
         raise web.seeother(mb.user.key)
 
@@ -139,12 +135,10 @@ class mybooks_reviews(delegate.page):
 
     def GET(self, username):
         i = web.input(page=1)
-        mb = MyBooksTemplate(username, key='observations')
+        mb = MyBooksTemplate(username, key="observations")
         if mb.is_my_page:
             docs = PatronBooknotes(mb.user).get_observations(page=int(i.page))
-            template = render['account/observations'](
-                docs, mb.user, mb.counts['observations'], page=int(i.page)
-            )
+            template = render["account/observations"](docs, mb.user, mb.counts["observations"], page=int(i.page))
             return mb.render(header_title=_("Reviews"), template=template)
         raise web.seeother(mb.user.key)
 
@@ -153,11 +147,11 @@ class mybooks_feed(delegate.page):
     path = "/people/([^/]+)/books/feed"
 
     def GET(self, username):
-        mb = MyBooksTemplate(username, key='feed')
+        mb = MyBooksTemplate(username, key="feed")
         if mb.is_my_page:
             docs = PubSub.get_feed(username)
             doc_count = len(docs)
-            template = render['account/reading_log'](
+            template = render["account/reading_log"](
                 docs,
                 mb.key,
                 doc_count,
@@ -173,53 +167,53 @@ class mybooks_feed(delegate.page):
 class readinglog_stats(delegate.page):
     path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)(/year/\\d{4})?/stats"
 
-    def GET(self, username, key='want-to-read', year=None):
-        user = web.ctx.site.get('/people/%s' % username)
+    def GET(self, username, key="want-to-read", year=None):
+        user = web.ctx.site.get("/people/%s" % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
 
         cur_user = accounts.get_current_user()
-        if not cur_user or cur_user.key.split('/')[-1] != username:
-            return render.permission_denied(web.ctx.path, 'Permission Denied')
+        if not cur_user or cur_user.key.split("/")[-1] != username:
+            return render.permission_denied(web.ctx.path, "Permission Denied")
 
         yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(username)
         if year:
             # eg '/year/2025'; skip the '/year/'
-            year = int(year.split('/')[-1])
+            year = int(year.split("/")[-1])
 
         readlog = ReadingLog(user=user)
         works = readlog.get_works(key, page=1, limit=2000, year=year).docs
         works_json = [
             {
                 # Fallback to key if it is a redirect
-                'title': w.get('title') or w.key,
-                'subtitle': w.get('subtitle'),
-                'key': w.get('key'),
-                'author_keys': ['/authors/' + key for key in w.get('author_key', [])],
-                'first_publish_year': w.get('first_publish_year') or None,
-                'subjects': w.get('subject'),
-                'subject_people': w.get('person'),
-                'subject_places': w.get('place'),
-                'subject_times': w.get('time'),
+                "title": w.get("title") or w.key,
+                "subtitle": w.get("subtitle"),
+                "key": w.get("key"),
+                "author_keys": ["/authors/" + key for key in w.get("author_key", [])],
+                "first_publish_year": w.get("first_publish_year") or None,
+                "subjects": w.get("subject"),
+                "subject_people": w.get("person"),
+                "subject_places": w.get("place"),
+                "subject_times": w.get("time"),
             }
             for w in works
         ]
-        author_keys = {a for work in works_json for a in work['author_keys']}
+        author_keys = {a for work in works_json for a in work["author_keys"]}
         authors_json = [
             {
-                'key': a.key,
-                'name': a.name,
-                'birth_date': a.get('birth_date'),
+                "key": a.key,
+                "name": a.name,
+                "birth_date": a.get("birth_date"),
             }
             for a in web.ctx.site.get_many(list(author_keys))
         ]
-        return render['account/readinglog_stats'](
+        return render["account/readinglog_stats"](
             works_json,
             authors_json,
             len(works_json),
             user.key,
             user.displayname,
-            web.ctx.path.rsplit('/', 1)[0],
+            web.ctx.path.rsplit("/", 1)[0],
             key,
             lang=web.ctx.lang,
             year=year,
@@ -236,41 +230,37 @@ class readinglog_yearly(delegate.page):
             # The year is used in a LIKE statement when we query for the yearly summary, so
             # ensuring that the year is at least four digits long avoids incorrect results.
             raise web.badrequest(message="Year must be four digits")
-        mb = MyBooksTemplate(username, 'already-read')
+        mb = MyBooksTemplate(username, "already-read")
         mb.selected_year = str(year)
         template = mybooks_readinglog().render_template(mb, year=year)
         return mb.render(template=template, header_title=_("Already Read"))
 
 
 class mybooks_readinglog(delegate.page):
-    path = r'/people/([^/]+)/books/(want-to-read|currently-reading|already-read)'
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
 
-    def GET(self, username, key='want-to-read'):
+    def GET(self, username, key="want-to-read"):
         mb = MyBooksTemplate(username, key)
         if mb.is_my_page or mb.is_public:
             KEYS_TITLES = {
-                'currently-reading': _(
+                "currently-reading": _(
                     "Currently Reading (%(count)d)",
-                    count=mb.counts['currently-reading'],
+                    count=mb.counts["currently-reading"],
                 ),
-                'want-to-read': _(
-                    "Want to Read (%(count)d)", count=mb.counts['want-to-read']
-                ),
-                'already-read': _(
-                    "Already Read (%(count)d)", count=mb.counts['already-read']
-                ),
+                "want-to-read": _("Want to Read (%(count)d)", count=mb.counts["want-to-read"]),
+                "already-read": _("Already Read (%(count)d)", count=mb.counts["already-read"]),
             }
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
         raise web.seeother(mb.user.key)
 
-    def render_template(self, mb: 'MyBooksTemplate', year: int | None = None):
+    def render_template(self, mb: "MyBooksTemplate", year: int | None = None):
         i = web.input(
             page=1,
-            sort='desc',
+            sort="desc",
             q="",
             results_per_page=RESULTS_PER_PAGE,
-            mode='everything',
+            mode="everything",
         )
         # Limit reading log filtering to queries of 3+ characters
         # because filtering the reading log can be computationally expensive.
@@ -279,13 +269,13 @@ class mybooks_readinglog(delegate.page):
 
         # Construct fq parameter for ebooks filtering
         fq = None
-        if i.mode == 'ebooks':
+        if i.mode == "ebooks":
             fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
         logged_book_data: LoggedBooksData = mb.readlog.get_works(
             key=mb.key,  # type: ignore
             page=i.page,
-            sort='created',
+            sort="created",
             sort_order=i.sort,
             q=i.q,
             year=year,
@@ -299,11 +289,11 @@ class mybooks_readinglog(delegate.page):
             logged_book_data.load_ratings()
 
         # Add yearly reading goals to the MyBooksTemplate
-        if mb.key == 'already-read' and mb.is_my_page:
+        if mb.key == "already-read" and mb.is_my_page:
             mb.yearly_reads = BookshelvesEvents.get_user_yearly_read_counts(mb.username)
 
         ratings = logged_book_data.ratings
-        return render['account/reading_log'](
+        return render["account/reading_log"](
             docs,
             mb.key,
             mb.counts[mb.key],
@@ -326,53 +316,45 @@ class public_my_books_json(delegate.page):
     path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
     encoding = "json"
 
-    def GET(self, username, key='want-to-read'):
-        i = web.input(page=1, limit=100, q="", mode='everything')
+    def GET(self, username, key="want-to-read"):
+        i = web.input(page=1, limit=100, q="", mode="everything")
         key = cast(ReadingLog.READING_LOG_KEYS, key.lower())
         if len(i.q) < 3:
             i.q = ""
         page = safeint(i.page, 1)
         limit = safeint(i.limit, 100)
         # check if user's reading log is public
-        user = web.ctx.site.get('/people/%s' % username)
+        user = web.ctx.site.get("/people/%s" % username)
         if not user:
             return delegate.RawText(
-                json.dumps({'error': 'User %s not found' % username}),
+                json.dumps({"error": "User %s not found" % username}),
                 content_type="application/json",
             )
-        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        is_public = user.preferences().get("public_readlog", "no") == "yes"
         logged_in_user = accounts.get_current_user()
-        if is_public or (
-            logged_in_user and logged_in_user.key.split('/')[-1] == username
-        ):
+        if is_public or (logged_in_user and logged_in_user.key.split("/")[-1] == username):
             # Construct fq parameter for ebooks filtering
             fq = None
-            if i.mode == 'ebooks':
+            if i.mode == "ebooks":
                 fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key, page, limit, q=i.q, fq=fq).docs
             records_json = [
                 {
-                    'work': {
-                        'title': w.get('title'),
-                        'key': w.key,
-                        'author_keys': [
-                            '/authors/' + key for key in w.get('author_key', [])
-                        ],
-                        'author_names': w.get('author_name', []),
-                        'first_publish_year': w.get('first_publish_year') or None,
-                        'lending_edition_s': (w.get('lending_edition_s') or None),
-                        'edition_key': (w.get('edition_key') or None),
-                        'cover_id': (w.get('cover_i') or None),
-                        'cover_edition_key': (w.get('cover_edition_key') or None),
+                    "work": {
+                        "title": w.get("title"),
+                        "key": w.key,
+                        "author_keys": ["/authors/" + key for key in w.get("author_key", [])],
+                        "author_names": w.get("author_name", []),
+                        "first_publish_year": w.get("first_publish_year") or None,
+                        "lending_edition_s": (w.get("lending_edition_s") or None),
+                        "edition_key": (w.get("edition_key") or None),
+                        "cover_id": (w.get("cover_i") or None),
+                        "cover_edition_key": (w.get("cover_edition_key") or None),
                     },
-                    'logged_edition': w.get('logged_edition') or None,
-                    'logged_date': (
-                        w.get('logged_date').strftime("%Y/%m/%d, %H:%M:%S")
-                        if w.get('logged_date')
-                        else None
-                    ),
+                    "logged_edition": w.get("logged_edition") or None,
+                    "logged_date": (w.get("logged_date").strftime("%Y/%m/%d, %H:%M:%S") if w.get("logged_date") else None),
                 }
                 for w in books
             ]
@@ -385,16 +367,16 @@ class public_my_books_json(delegate.page):
             return delegate.RawText(
                 json.dumps(
                     {
-                        'page': page,
-                        'numFound': num_found,
-                        'reading_log_entries': records_json,
+                        "page": page,
+                        "numFound": num_found,
+                        "reading_log_entries": records_json,
                     }
                 ),
                 content_type="application/json",
             )
         else:
             return delegate.RawText(
-                json.dumps({'error': 'Shelf %s not found or not accessible' % key}),
+                json.dumps({"error": "Shelf %s not found or not accessible" % key}),
                 content_type="application/json",
             )
 
@@ -436,37 +418,29 @@ class MyBooksTemplate:
     def __init__(self, username: str, key: str) -> None:
         """The following is data required by every My Books sub-template (e.g. sidebar)"""
         self.username = username
-        self.user = web.ctx.site.get('/people/%s' % self.username)
+        self.user = web.ctx.site.get("/people/%s" % self.username)
 
         if not self.user:
             raise render.notfound("User %s" % self.username, create=False)
 
-        self.is_public = self.user.preferences().get('public_readlog', 'no') == 'yes'
-        self.user_itemname = self.user.get_account().get('internetarchive_itemname')
+        self.is_public = self.user.preferences().get("public_readlog", "no") == "yes"
+        self.user_itemname = self.user.get_account().get("internetarchive_itemname")
 
         self.me = accounts.get_current_user()
-        self.is_my_page = self.me and self.me.key.split('/')[-1] == self.username
-        self.is_subscribed = (
-            self.me.is_subscribed_user(self.username)
-            if self.me and self.is_public
-            else -1
-        )
+        self.is_my_page = self.me and self.me.key.split("/")[-1] == self.username
+        self.is_subscribed = self.me.is_subscribed_user(self.username) if self.me and self.is_public else -1
         self.key = key.lower()
 
         self.readlog = ReadingLog(user=self.user)
         self.lists = self.readlog.lists
-        self.counts = (
-            self.readlog.reading_log_counts
-            if (self.is_my_page or self.is_public)
-            else {}
-        )
+        self.counts = self.readlog.reading_log_counts if (self.is_my_page or self.is_public) else {}
 
         self.yearly_reads: list[tuple[int, int]] = []
         self.selected_year = None
 
         if (self.me and self.is_my_page) or self.is_public:
-            self.counts['followers'] = PubSub.count_followers(self.username)
-            self.counts['following'] = PubSub.count_following(self.username)
+            self.counts["followers"] = PubSub.count_followers(self.username)
+            self.counts["following"] = PubSub.count_following(self.username)
 
         if self.me and self.is_my_page:
             self.counts.update(PatronBooknotes.get_counts(self.username))
@@ -474,7 +448,7 @@ class MyBooksTemplate:
         self.component_times: dict = {}
 
     def render_sidebar(self) -> TemplateResult:
-        return render['account/sidebar'](
+        return render["account/sidebar"](
             self.username,
             self.key,
             self.is_my_page,
@@ -484,16 +458,12 @@ class MyBooksTemplate:
             self.component_times,
         )
 
-    def render(
-        self, template: TemplateResult, header_title: str, page: "List | None" = None
-    ) -> TemplateResult:
+    def render(self, template: TemplateResult, header_title: str, page: "List | None" = None) -> TemplateResult:
         """
         Gather the data necessary to render the My Books template, and then
         render the template.
         """
-        return render['account/view'](
-            mb=self, template=template, header_title=header_title, page=page
-        )
+        return render["account/view"](mb=self, template=template, header_title=header_title, page=page)
 
 
 class ReadingLog:
@@ -502,14 +472,12 @@ class ReadingLog:
     # Constants
     PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
     READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
-    READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = (
-        MappingProxyType(
-            {
-                "want-to-read": "Want to Read",
-                "already-read": "Already Read",
-                "currently-reading": "Currently Reading",
-            }
-        )
+    READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = MappingProxyType(
+        {
+            "want-to-read": "Want to Read",
+            "already-read": "Already Read",
+            "currently-reading": "Currently Reading",
+        }
     )
 
     def __init__(self, user=None):
@@ -531,23 +499,11 @@ class ReadingLog:
 
     @property
     def reading_log_counts(self) -> dict[str, int]:
-        counts = (
-            Bookshelves.count_total_books_logged_by_user_per_shelf(
-                self.user.get_username()
-            )
-            if self.user.get_username()
-            else {}
-        )
+        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(self.user.get_username()) if self.user.get_username() else {}
         return {
-            'want-to-read': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0
-            ),
-            'currently-reading': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0
-            ),
-            'already-read': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0
-            ),
+            "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
+            "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
+            "already-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Already Read"], 0),
         }
 
     def count_shelf(self, key: READING_LOG_KEYS) -> int:
@@ -561,12 +517,12 @@ class ReadingLog:
         key: READING_LOG_KEYS,
         page: int = 1,
         limit: int = RESULTS_PER_PAGE,
-        sort: str = 'created',
-        sort_order: str = 'desc',
+        sort: str = "created",
+        sort_order: str = "desc",
         q: str = "",
         year: int | None = None,
         fq: list[str] | None = None,
-    ) -> 'LoggedBooksData':
+    ) -> "LoggedBooksData":
         """
         Get works for want-to-read, currently-reading, and already-read as
         determined by {key}.
@@ -599,20 +555,20 @@ class ReadingLog:
 
 @public
 def get_read_status(work_key, username):
-    work_id = extract_numeric_id_from_olid(work_key.split('/')[-1])
+    work_id = extract_numeric_id_from_olid(work_key.split("/")[-1])
     return Bookshelves.get_users_read_status_of_work(username, work_id)
 
 
 @public
 def add_read_statuses(username, works):
-    work_ids = [extract_numeric_id_from_olid(work.key.split('/')[-1]) for work in works]
+    work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
     results = Bookshelves.get_users_read_status_of_works(username, work_ids)
     results_map = {}
     for result in results:
-        results_map[f"OL{result['work_id']}W"] = result['bookshelf_id']
+        results_map[f"OL{result['work_id']}W"] = result["bookshelf_id"]
     for work in works:
-        work_olid = work.key.split('/')[-1]
-        work['readinglog'] = results_map.get(work_olid)
+        work_olid = work.key.split("/")[-1]
+        work["readinglog"] = results_map.get(work_olid)
     return works
 
 
@@ -621,68 +577,54 @@ class PatronBooknotes:
 
     def __init__(self, user: User) -> None:
         self.user = user
-        self.username = user.key.split('/')[-1]
+        self.username = user.key.split("/")[-1]
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
-        notes = Booknotes.get_notes_grouped_by_work(
-            self.username, limit=limit, page=page
-        )
+        notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
 
         for entry in notes:
-            entry['work_key'] = f"/works/OL{entry['work_id']}W"
-            entry['work'] = self._get_work(entry['work_key'])
-            entry['work_details'] = self._get_work_details(entry['work'])
-            entry['notes'] = {i['edition_id']: i['notes'] for i in entry['notes']}
-            entry['editions'] = {
-                k: web.ctx.site.get(f'/books/OL{k}M')
-                for k in entry['notes']
-                if k != Booknotes.NULL_EDITION_VALUE
-            }
+            entry["work_key"] = f"/works/OL{entry['work_id']}W"
+            entry["work"] = self._get_work(entry["work_key"])
+            entry["work_details"] = self._get_work_details(entry["work"])
+            entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
+            entry["editions"] = {k: web.ctx.site.get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
-        observations = Observations.get_observations_grouped_by_work(
-            self.username, limit=limit, page=page
-        )
+        observations = Observations.get_observations_grouped_by_work(self.username, limit=limit, page=page)
 
         for entry in observations:
-            entry['work_key'] = f"/works/OL{entry['work_id']}W"
-            entry['work'] = self._get_work(entry['work_key'])
-            entry['work_details'] = self._get_work_details(entry['work'])
+            entry["work_key"] = f"/works/OL{entry['work_id']}W"
+            entry["work"] = self._get_work(entry["work_key"])
+            entry["work_details"] = self._get_work_details(entry["work"])
             ids = {}
-            for item in entry['observations']:
-                ids[item['observation_type']] = item['observation_values']
-            entry['observations'] = convert_observation_ids(ids)
+            for item in entry["observations"]:
+                ids[item["observation_type"]] = item["observation_values"]
+            entry["observations"] = convert_observation_ids(ids)
         return observations
 
     def _get_work(self, work_key: str) -> "Work | None":
         return web.ctx.site.get(work_key)
 
-    def _get_work_details(
-        self, work: "Work"
-    ) -> dict[str, list[str] | str | int | None]:
-        author_keys = [a.author.key for a in work.get('authors', [])]
+    def _get_work_details(self, work: "Work") -> dict[str, list[str] | str | int | None]:
+        author_keys = [a.author.key for a in work.get("authors", [])]
 
         return {
-            'cover_url': (
-                work.get_cover_url('S')
-                or 'https://openlibrary.org/images/icons/avatar_book-sm.png'
-            ),
-            'title': work.get('title'),
-            'authors': [a.name for a in web.ctx.site.get_many(author_keys)],
-            'first_publish_year': work.first_publish_year or None,
+            "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/images/icons/avatar_book-sm.png"),
+            "title": work.get("title"),
+            "authors": [a.name for a in web.ctx.site.get_many(author_keys)],
+            "first_publish_year": work.first_publish_year or None,
         }
 
     @classmethod
     def get_counts(cls, username: str) -> dict[str, int]:
         return {
-            'notes': Booknotes.count_works_with_notes_by_user(username),
-            'observations': Observations.count_distinct_observations(username),
+            "notes": Booknotes.count_works_with_notes_by_user(username),
+            "observations": Observations.count_distinct_observations(username),
         }
 
 
 class ActivityFeed:
-
     @classmethod
     def get_activity_feed(cls, username):
         """Returns up to three of the most recent events from one of two feeds.
@@ -715,11 +657,9 @@ class ActivityFeed:
         results = mc(username)
 
         for r in results:
-            if isinstance(
-                r['created'], str
-            ):  # `datetime` objects are stored in cache as strings
+            if isinstance(r["created"], str):  # `datetime` objects are stored in cache as strings
                 # Update `created` to datetime, which is the type expected by `datestr` (called in card template)
-                r['created'] = datetime.fromisoformat(r['created'])
+                r["created"] = datetime.fromisoformat(r["created"])
         return results
 
     @classmethod
@@ -727,7 +667,7 @@ class ActivityFeed:
         def has_public_reading_log(_username):
             if acct := OpenLibraryAccount.get_by_username(_username):
                 user = acct.get_user()
-                return user and user.preferences().get('public_readlog', 'no') == 'yes'
+                return user and user.preferences().get("public_readlog", "no") == "yes"
             return False
 
         logged_books = Bookshelves.get_recently_logged_books(limit=10)
@@ -735,11 +675,7 @@ class ActivityFeed:
 
         feed = []
         for idx, item in enumerate(logged_books):
-            if (
-                item['work']
-                and item['username'] != username
-                and has_public_reading_log(item['username'])
-            ):
+            if item["work"] and item["username"] != username and has_public_reading_log(item["username"]):
                 feed.append(item)
             if len(feed) > 2:
                 break
@@ -758,10 +694,8 @@ class ActivityFeed:
         results = mc(username)
 
         for r in results:
-            if isinstance(
-                r['created'], str
-            ):  # `datetime` objects are stored in cache as strings
-                r['created'] = datetime.fromisoformat(r['created'])
+            if isinstance(r["created"], str):  # `datetime` objects are stored in cache as strings
+                r["created"] = datetime.fromisoformat(r["created"])
         return results
 
 

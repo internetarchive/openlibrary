@@ -66,16 +66,10 @@ class HMACToken:
 
         err: Exception | None = None
 
-        current_time: float | datetime.datetime = (
-            time.time() if unix_time else datetime.datetime.now(datetime.UTC)
-        )
+        current_time: float | datetime.datetime = time.time() if unix_time else datetime.datetime.now(datetime.UTC)
         expiry_str = msg.rsplit(delimiter, maxsplit=1)[-1]
         try:
-            expiry: float | datetime.datetime = (
-                float(expiry_str)
-                if unix_time
-                else datetime.datetime.fromisoformat(expiry_str)
-            )
+            expiry: float | datetime.datetime = float(expiry_str) if unix_time else datetime.datetime.fromisoformat(expiry_str)
         except ValueError:
             err = ValueError("Invalid timestamp format")
             expiry = 0
@@ -85,15 +79,13 @@ class HMACToken:
 
         # `key` must be set to some non-empty value when the config cannot be accessed.
         # Otherwise, the `mac` will not be generated.
-        if not (key := config.get(secret_key_name, '')):
-            key = 'default_value'
+        if not (key := config.get(secret_key_name, "")):
+            key = "default_value"
             err = MissingKeyError()
 
-        mac = ''
+        mac = ""
         if key:
-            mac = hmac.new(
-                key.encode('utf-8'), msg.encode('utf-8'), hashlib.md5
-            ).hexdigest()
+            mac = hmac.new(key.encode("utf-8"), msg.encode("utf-8"), hashlib.md5).hexdigest()
 
         result = hmac.compare_digest(mac, digest)
         if err:
@@ -102,7 +94,6 @@ class HMACToken:
 
 
 class TimedOneTimePassword:
-
     VALID_MINUTES = 10
 
     @staticmethod
@@ -119,13 +110,11 @@ class TimedOneTimePassword:
         return base36[:length].lower()
 
     @classmethod
-    def generate(
-        cls, service_ip: str, client_email: str, client_ip: str, ts: int | None = None
-    ) -> str:
+    def generate(cls, service_ip: str, client_email: str, client_ip: str, ts: int | None = None) -> str:
         seed = config.get("otp_seed")
         ts = ts or int(time.time() // 60)
         payload = f"{service_ip}:{client_email}:{client_ip}:{ts}".encode()
-        digest = hmac.new(seed.encode('utf-8'), payload, hashlib.sha256).digest()
+        digest = hmac.new(seed.encode("utf-8"), payload, hashlib.sha256).digest()
         return cls.shorten(digest)
 
     @staticmethod
@@ -136,11 +125,7 @@ class TimedOneTimePassword:
             return False
         resolved_ip = socket.gethostbyname(parsed.hostname)
         r = requests.get(service_url, timeout=5)
-        return (
-            service_url.startswith("https://")
-            and resolved_ip == service_ip
-            and bool(r.json())
-        )
+        return service_url.startswith("https://") and resolved_ip == service_ip and bool(r.json())
 
     @classmethod
     def is_ratelimited(cls, ttl=60, service_ip="", **kwargs):
