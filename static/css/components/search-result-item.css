@@ -129,12 +129,17 @@
 }
 
 .searchResultItem .preview-covers img {
-  border-radius: 4px;
+  border-radius: var(--border-radius-thumbnail);
+  border: 2px solid var(--grey-fafafa);
   opacity: 1;
 }
 
 .searchResultItem .preview-covers--blur img {
   filter: blur(2px);
+}
+
+.searchResultItem .bookcover--blur img {
+  filter: blur(4px);
 }
 
 .searchResultItem .bookcover {
@@ -184,7 +189,7 @@
   font-style: normal;
 }
 
-.preview-covers-container {
+.searchResultItem .preview-covers-container {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -192,29 +197,33 @@
   margin-bottom: 5px;
 }
 
-.preview-covers a {
+.searchResultItem .preview-covers a {
   position: relative;
   display: inline-block;
   flex-shrink: 0;
 }
 
-.preview-covers a:nth-child(n + 2) {
-  margin-left: -15px;
+.searchResultItem .preview-covers a:nth-child(n + 2) {
+  margin-left: -8px;
 }
 
-.preview-covers a:nth-child(1) {
+.searchResultItem .preview-covers a:nth-child(1) {
+  z-index: var(--z-index-level-5);
+}
+
+.searchResultItem .preview-covers a:nth-child(2) {
   z-index: var(--z-index-level-4);
 }
 
-.preview-covers a:nth-child(2) {
+.searchResultItem .preview-covers a:nth-child(3) {
   z-index: var(--z-index-level-3);
 }
 
-.preview-covers a:nth-child(3) {
+.searchResultItem .preview-covers a:nth-child(4) {
   z-index: var(--z-index-level-2);
 }
 
-.preview-covers a:nth-child(4) {
+.searchResultItem .preview-covers a:nth-child(5) {
   z-index: var(--z-index-level-1);
 }
 
@@ -267,8 +276,19 @@
   color: var(--primary-blue);
 }
 
-.preview-covers img:hover {
+.searchResultItem .preview-covers a:hover {
   z-index: var(--z-index-level-5);
+}
+
+.searchResultItem .preview-covers a:hover img {
+  border-color: var(--primary-blue);
+}
+
+.searchResultItem .preview-covers a:focus-visible {
+  z-index: var(--z-index-level-5);
+  box-shadow: var(--box-shadow-focus);
+  border-radius: var(--border-radius-thumbnail);
+  outline: none;
 }
 
 /* Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists */
