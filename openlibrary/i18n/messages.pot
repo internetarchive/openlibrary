@@ -7677,7 +7677,11 @@ msgid "Birth Date (youngest) (beta: Librarian only)"
 msgstr ""
 
 #: search/sort_options.html
-msgid "Recently modified"
+msgid "List Order"
+msgstr ""
+
+#: search/sort_options.html
+msgid "Last Modified"
 msgstr ""
 
 #: search/sort_options.html
