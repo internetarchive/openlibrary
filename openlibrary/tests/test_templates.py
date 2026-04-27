@@ -45,3 +45,8 @@ def test_noopener_noreferrer(filename: Path):
             assert 'rel="noopener noreferrer"' in attrs or "rel='noopener noreferrer'" in attrs, (
                 f"Missing rel='noopener noreferrer' on external link in {filename}"
             )
+
+
+def test_login_template_does_not_bind_password_value():
+    template = Path("openlibrary/templates/login.html").read_text(encoding="utf-8")
+    assert "$form.password.value" not in template
