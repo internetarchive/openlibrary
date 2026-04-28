@@ -25,7 +25,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import price_api as legacy_price_api
+from openlibrary.plugins.openlibrary.api import get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -299,7 +299,7 @@ async def price_api(
     if not (isbn or asin):
         return {"error": "isbn or asin required"}
 
-    return await legacy_price_api.get_price_data_async(isbn, asin)
+    return await get_price_data_async(isbn, asin)
 
 
 async def patrons_follows_json():

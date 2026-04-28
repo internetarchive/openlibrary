@@ -47,7 +47,6 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
@@ -466,59 +465,42 @@ class author_works(delegate.page):
         return {"links": links, "size": size, "entries": works}
 
 
-@deprecated("migrated to fastapi")
-class price_api(delegate.page):
-    path = r"/prices"
+async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
+    id_type_short: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
+    id_ = asin or (normalize_isbn(isbn) or isbn)
 
-    @jsonapi
-    def GET(self):
-        i = web.input(isbn="", asin="")
-        if not (i.isbn or i.asin):
-            return json.dumps({"error": "isbn or asin required"})
+    metadata: dict = {
+        "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
+        "betterworldbooks": {},
+    }
+    if id_type_short == 'isbn':
+        metadata["betterworldbooks"] = await get_betterworldbooks_metadata(id_)
 
-        metadata = price_api.get_price_data(i.isbn, i.asin)
-        return json.dumps(metadata)
-
-    @staticmethod
-    async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
-        id_type_short: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
-        id_ = asin or (normalize_isbn(isbn) or isbn)
-
-        metadata: dict = {
-            "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
-            "betterworldbooks": {},
+    # fetch book by isbn if it exists
+    # TODO: perform existing OL lookup by ASIN if supplied, if possible
+    id_type_long = "asin" if asin else "isbn_13" if len(id_) == 13 else "isbn_10"
+    matches = site.get().things(
+        {
+            "type": "/type/edition",
+            id_type_long: id_,
         }
-        if id_type_short == 'isbn':
-            metadata["betterworldbooks"] = await get_betterworldbooks_metadata(id_)
-        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
+    )
 
-        # fetch book by isbn if it exists
-        # TODO: perform existing OL lookup by ASIN if supplied, if possible
-        id_type_long = "asin" if asin else "isbn_13" if len(id_) == 13 else "isbn_10"
-        matches = site.get().things(
-            {
-                "type": "/type/edition",
-                id_type_long: id_,
-            }
-        )
+    book_key = matches[0] if matches else None
 
-        book_key = matches[0] if matches else None
+    # if no OL edition for isbn, attempt to create
+    if (not book_key) and metadata.get("amazon"):
+        book_key = create_edition_from_amazon_metadata(id_, id_type=id_type_short)
 
-        # if no OL edition for isbn, attempt to create
-        if (not book_key) and metadata.get("amazon"):
-            book_key = create_edition_from_amazon_metadata(id_, id_type=id_type_short)
+    # include ol edition metadata in response, if available
+    if book_key:
+        ed = site.get().get(book_key)
+        if ed:
+            metadata["key"] = ed.key
+            if getattr(ed, "ocaid"):  # noqa: B009
+                metadata["ocaid"] = ed.ocaid
 
-        # include ol edition metadata in response, if available
-        if book_key:
-            ed = site.get().get(book_key)
-            if ed:
-                metadata["key"] = ed.key
-                if getattr(ed, "ocaid"):  # noqa: B009
-                    metadata["ocaid"] = ed.ocaid
-
-        return metadata
-
-    get_price_data = async_bridge.wrap(get_price_data_async)
+    return metadata
 
 
 class patrons_follows_json(delegate.page):
