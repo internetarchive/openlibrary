@@ -6232,11 +6232,9 @@ msgid "Preview Book"
 msgstr "معاينة الكتاب"
 
 #: BookPreview.html
+#: BookPreview.html
 msgid "Preview Only"
 msgstr "معاينة فقط"
-
-
-
 #: DonateModal.html
 msgid ""
 "Donate this book to the <a href=\"https://archive.org\">Internet "
