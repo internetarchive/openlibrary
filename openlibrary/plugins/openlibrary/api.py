@@ -8,6 +8,7 @@ import io
 import json
 import logging
 from collections import defaultdict
+from typing import Any, Literal
 
 import qrcode
 import web
@@ -40,13 +41,15 @@ from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
-    get_betterworldbooks_metadata,
+    get_betterworldbooks_metadata_async,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
 
 logger = logging.getLogger(__name__)
@@ -473,18 +476,26 @@ class price_api(delegate.page):
         if not (i.isbn or i.asin):
             return json.dumps({"error": "isbn or asin required"})
 
-        metadata = self.get_price_data(i.isbn, i.asin)
+        metadata = price_api.get_price_data(i.isbn, i.asin)
         return json.dumps(metadata)
 
     @staticmethod
-    def get_price_data(isbn, asin):
-        id_ = asin or normalize_isbn(isbn)
-        id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
+    async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
+        id_type_short: Literal['asin', 'isbn']
 
-        metadata = {
-            "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
+        if asin:
+            id_ = asin
+            id_type = "asin"
+            id_type_short = "asin"
+        else:
+            id_ = normalize_isbn(isbn) or isbn
+            id_type = "isbn_" + ("13" if len(id_) == 13 else "10")
+            id_type_short = "isbn"
+
+        metadata: dict = {
+            "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
             "betterworldbooks": (
-                get_betterworldbooks_metadata(id_)
+                await get_betterworldbooks_metadata_async(id_)
                 if id_type.startswith("isbn_")
                 else {}
             ),
@@ -495,12 +506,12 @@ class price_api(delegate.page):
         if id_type == "isbn_10" and metadata["betterworldbooks"].get("price") is None:
             isbn_13 = isbn_10_to_isbn_13(id_)
             metadata["betterworldbooks"] = (
-                isbn_13 and get_betterworldbooks_metadata(isbn_13)
+                isbn_13 and await get_betterworldbooks_metadata_async(isbn_13)
             ) or {}
 
         # fetch book by isbn if it exists
         # TODO: perform existing OL lookup by ASIN if supplied, if possible
-        matches = web.ctx.site.things(
+        matches = site.get().things(
             {
                 "type": "/type/edition",
                 id_type: id_,
@@ -511,17 +522,19 @@ class price_api(delegate.page):
 
         # if no OL edition for isbn, attempt to create
         if (not book_key) and metadata.get("amazon"):
-            book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
+            book_key = create_edition_from_amazon_metadata(id_, id_type=id_type_short)
 
         # include ol edition metadata in response, if available
         if book_key:
-            ed = web.ctx.site.get(book_key)
+            ed = site.get().get(book_key)
             if ed:
                 metadata["key"] = ed.key
                 if getattr(ed, "ocaid"):  # noqa: B009
                     metadata["ocaid"] = ed.ocaid
 
         return metadata
+
+    get_price_data = async_bridge.wrap(get_price_data_async)
 
 
 class patrons_follows_json(delegate.page):

@@ -17,12 +17,6 @@ from pydantic import BaseModel, BeforeValidator, Field
 from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
-from openlibrary.core.vendors import (
-    BetterWorldBooksMetadata,
-    BetterWorldBooksMetadataError,
-    get_amazon_metadata,
-    get_betterworldbooks_metadata_async,
-)
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
@@ -31,9 +25,9 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.plugins.openlibrary.api import price_api as legacy_price_api
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -281,35 +275,11 @@ class PriceResponse(BaseModel):
 
     amazon: dict[str, Any] = Field(default_factory=dict, description="Amazon pricing data")
     betterworldbooks: dict[str, Any] = Field(default_factory=dict, description="BetterWorldBooks pricing data")
+    key: str | None = Field(None, description="Open Library edition key, if found")
+    ocaid: str | None = Field(None, description="Internet Archive OCAID, if available")
     error: str | None = Field(None, description="Error message if request is invalid")
 
     model_config = {"extra": "allow"}
-
-
-async def get_price_data(isbn: str, asin: str) -> dict[str, Any]:
-    """Fetch price data from Amazon and BetterWorldBooks for a given ISBN or ASIN.
-
-    :param str isbn: ISBN-10 or ISBN-13 (may be un-normalised).
-    :param str asin: Amazon ASIN (takes precedence over isbn when provided).
-    :return: dict with 'amazon' and 'betterworldbooks' keys.
-    """
-    id_ = asin or normalize_isbn(isbn) or isbn
-    id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
-
-    bwb_data: BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None = (
-        await get_betterworldbooks_metadata_async(id_) if id_type.startswith("isbn_") else None
-    )
-
-    metadata: dict[str, Any] = {
-        "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-        "betterworldbooks": bwb_data or {},
-    }
-
-    # Fallback: if isbn_10 gave no BWB price, retry with isbn_13
-    if id_type == "isbn_10" and not metadata["betterworldbooks"].get("price") and (isbn_13 := isbn_10_to_isbn_13(id_)):
-        metadata["betterworldbooks"] = (await get_betterworldbooks_metadata_async(isbn_13)) or {}
-
-    return metadata
 
 
 @router.get(
@@ -329,7 +299,7 @@ async def price_api(
     if not (isbn or asin):
         return {"error": "isbn or asin required"}
 
-    return await get_price_data(isbn, asin)
+    return await legacy_price_api.get_price_data_async(isbn, asin)
 
 
 async def patrons_follows_json():
