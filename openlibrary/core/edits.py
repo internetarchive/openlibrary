@@ -2,6 +2,7 @@ import datetime
 import json
 from sqlite3 import IntegrityError
 from types import MappingProxyType
+from typing import Literal
 
 from psycopg2.errors import UniqueViolation
 
@@ -68,7 +69,7 @@ class CommunityEditsQueue:
         limit: int = 50,
         page: int = 1,
         mode: str = "all",
-        order: str | None = None,
+        order_by_updated: Literal["asc", "desc"] | None = None,
         **kwargs,
     ):
         oldb = db.get_db()
@@ -81,8 +82,12 @@ class CommunityEditsQueue:
 
         query_kwargs["where"] = cls.where_clause(mode, **kwargs)
 
-        if order:
-            query_kwargs["order"] = order
+        if order_by_updated:
+            # Verify the type to prevent sql injection
+            if order_by_updated not in ("asc", "desc"):
+                raise ValueError(f'Invalid order_by_updated value: "{order_by_updated}". Must be "asc" or "desc".')
+
+            query_kwargs["order"] = f"updated {order_by_updated}"
         return oldb.select(cls.TABLENAME, **query_kwargs)
 
     @classmethod

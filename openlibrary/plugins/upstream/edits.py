@@ -1,6 +1,7 @@
 """Librarian Edits"""
 
 import json
+from typing import Literal
 
 import web
 
@@ -47,13 +48,20 @@ class community_edits_queue(delegate.page):
             order="desc",
             status=None,
         )
+
+        order: Literal["asc", "desc"] = "desc"
+        if i.order and i.order.lower() in ("asc", "desc"):
+            order = i.order.lower()
+        else:
+            return web.badrequest(f'Invalid order parameter: "{i.order}". Must be "asc" or "desc".')
+
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
             mode=i.mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order=f"updated {i.order}",
+            order_by_updated=order,
             status=i.status,
         ).list()
 
