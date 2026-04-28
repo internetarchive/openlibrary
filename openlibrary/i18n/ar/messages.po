@@ -6231,6 +6231,7 @@ msgstr "فقط"
 msgid "Preview Book"
 msgstr "معاينة الكتاب"
 
+#: BookPreview.html
 msgid "Preview Only"
 msgstr "معاينة فقط"
 
