@@ -11,7 +11,7 @@ from __future__ import annotations
 import os
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Form, Path, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.core import lending, models
@@ -297,7 +297,10 @@ async def price_api(
     Requires either an `isbn` or `asin` query parameter.
     """
     if not (isbn or asin):
-        return {"error": "isbn or asin required"}
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="isbn or asin required",
+        )
 
     return await get_price_data_async(isbn, asin)
 
