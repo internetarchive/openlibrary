@@ -289,8 +289,8 @@ class PriceResponse(BaseModel):
     description="Returns pricing data for a book from Amazon and BetterWorldBooks.",
 )
 async def price_api(
-    isbn: Annotated[str, Query(description="ISBN-10 or ISBN-13")] = "",
-    asin: Annotated[str, Query(description="Amazon ASIN")] = "",
+    isbn: Annotated[str | None, Query(description="ISBN-10 or ISBN-13", min_length=10, max_length=13)] = None,
+    asin: Annotated[str | None, Query(description="Amazon ASIN", min_length=10, max_length=10)] = None,
 ) -> dict:
     """
     Returns pricing metadata from Amazon and BetterWorldBooks for a given book.
@@ -302,7 +302,7 @@ async def price_api(
             detail="isbn or asin required",
         )
 
-    return await get_price_data_async(isbn, asin)
+    return await get_price_data_async(isbn or "", asin or "")
 
 
 async def patrons_follows_json():

@@ -99,4 +99,5 @@ DEPRECATED_PATHS: list[tuple[str, str | None]] = [
     # Simplified regex
     (r"/api/volumes/(.+)", "json"),
     (r"/api/volumes/(.+)", None),
+    (r"/prices", "json"),
 ]
