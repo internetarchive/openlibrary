@@ -23,7 +23,6 @@ from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.utils import dateutil, uniq
-from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import (
     isbn_10_to_isbn_13,
     isbn_13_to_isbn_10,
@@ -606,10 +605,12 @@ class BetterWorldBooksMetadataError(TypedDict):
     code: int
 
 
-async def get_betterworldbooks_metadata_async(
+async def get_betterworldbooks_metadata(
     isbn: str,
 ) -> BetterWorldBooksMetadata | BetterWorldBooksMetadataError | None:
     """
+    Automatically tries with ISBN 13 if ISBN 10 fails.
+
     :param str isbn: Unnormalisied ISBN10 or ISBN13
     :return: Metadata for a single BWB book, currently lited on their catalog, or
              an error dict.
@@ -620,13 +621,14 @@ async def get_betterworldbooks_metadata_async(
         return None
 
     try:
-        return await _get_betterworldbooks_metadata(isbn)
+        if (result := await _get_betterworldbooks_metadata(isbn)).get("price") is None:
+            new_isbn = isbn_10_to_isbn_13(isbn)
+            if new_isbn and new_isbn != isbn:
+                result = await _get_betterworldbooks_metadata(new_isbn)
+        return result
     except Exception:
         logger.exception(f"_get_betterworldbooks_metadata({isbn})")
         return betterworldbooks_fmt(isbn)
-
-
-get_betterworldbooks_metadata = async_bridge.wrap(get_betterworldbooks_metadata_async)
 
 
 async def _get_betterworldbooks_metadata(

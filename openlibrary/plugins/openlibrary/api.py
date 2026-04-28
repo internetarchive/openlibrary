@@ -41,14 +41,14 @@ from openlibrary.core.observations import Observations, get_observation_metrics
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
-    get_betterworldbooks_metadata_async,
+    get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
 
@@ -481,40 +481,24 @@ class price_api(delegate.page):
 
     @staticmethod
     async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
-        id_type_short: Literal['asin', 'isbn']
-
-        if asin:
-            id_ = asin
-            id_type = "asin"
-            id_type_short = "asin"
-        else:
-            id_ = normalize_isbn(isbn) or isbn
-            id_type = "isbn_" + ("13" if len(id_) == 13 else "10")
-            id_type_short = "isbn"
+        id_type_short: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
+        id_ = asin or (normalize_isbn(isbn) or isbn)
 
         metadata: dict = {
             "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
-            "betterworldbooks": (
-                await get_betterworldbooks_metadata_async(id_)
-                if id_type.startswith("isbn_")
-                else {}
-            ),
+            "betterworldbooks": {},
         }
+        if id_type_short == 'isbn':
+            metadata["betterworldbooks"] = await get_betterworldbooks_metadata(id_)
         # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
-
-        # if bwb fails and isbn10, try again with isbn13
-        if id_type == "isbn_10" and metadata["betterworldbooks"].get("price") is None:
-            isbn_13 = isbn_10_to_isbn_13(id_)
-            metadata["betterworldbooks"] = (
-                isbn_13 and await get_betterworldbooks_metadata_async(isbn_13)
-            ) or {}
 
         # fetch book by isbn if it exists
         # TODO: perform existing OL lookup by ASIN if supplied, if possible
+        id_type_long = "asin" if asin else "isbn_13" if len(id_) == 13 else "isbn_10"
         matches = site.get().things(
             {
                 "type": "/type/edition",
-                id_type: id_,
+                id_type_long: id_,
             }
         )
 

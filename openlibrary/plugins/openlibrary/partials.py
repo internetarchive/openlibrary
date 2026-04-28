@@ -14,7 +14,7 @@ from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.lending import compose_ia_url, get_available
 from openlibrary.core.vendors import (
     get_amazon_metadata,
-    get_betterworldbooks_metadata_async,
+    get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import is_bot
@@ -221,7 +221,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         bwb_metadata = None
         amz_metadata = None
         if not is_bot() and opts.get("prices") and isbn:
-            bwb_metadata = await get_betterworldbooks_metadata_async(isbn)
+            bwb_metadata = await get_betterworldbooks_metadata(isbn)
             if not (bwb_metadata and bwb_metadata.get("market_price")):
                 amz_metadata = get_amazon_metadata(isbn, resources="prices")
 
