@@ -82,7 +82,7 @@ export default {
             }).asFunction(),
             quaggaVideo: null,
             ocrScanner: null,
-        }
+        };
     },
     async mounted() {
         await this.start();
@@ -107,7 +107,7 @@ export default {
                     decoder: {
                         readers: ['ean_reader']
                     },
-                }, async (err) => {
+                }, async(err) => {
                     if (err) {
                         rej(err);
                         return;
@@ -233,7 +233,7 @@ export default {
         },
 
     }
-}
+};
 </script>
 
 <style>
