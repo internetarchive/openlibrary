@@ -7,7 +7,6 @@ from types import MappingProxyType
 from typing import Any, cast
 
 import luqum.tree
-from typing_extensions import deprecated
 
 import infogami
 from openlibrary.fastapi.models import SolrInternalsParams
@@ -743,15 +742,6 @@ def isbn_transform(sf: luqum.tree.SearchField):
             field_val.value = isbn
     else:
         logger.warning(f"Unexpected isbn SearchField value type: {type(field_val)}")
-
-
-@deprecated('remove once we fully switch search to fastapi')
-def has_solr_editions_enabled():
-    """Check if Solr editions is enabled for the current request.
-
-    TODO: Remove once we fully switch search to fastapi, it's only used by templator right now.
-    """
-    return req_context.get().solr_editions
 
 
 def get_fulltext_min():
