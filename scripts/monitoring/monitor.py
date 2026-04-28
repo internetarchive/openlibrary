@@ -30,7 +30,7 @@ scheduler = OlAsyncIOScheduler("OL-MONITOR")
 
 
 @limit_server(["ol-web*", "ol-covers0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 def log_workers_cur_fn():
     """Logs the state of the gunicorn workers."""
     bash_run(
@@ -44,7 +44,7 @@ def log_workers_cur_fn():
 
 
 @limit_server(["ol-www0", "ol-covers0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 def monitor_nginx_logs():
     """Logs recent bot traffic, HTTP statuses, and top IP counts."""
     match SERVER:
@@ -70,47 +70,45 @@ def monitor_nginx_logs():
 
 
 @limit_server(["ol-solr0", "ol-solr1"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 async def monitor_solr():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.solr_logs_monitor import main
 
     main(
-        solr_container=(
-            'solr_builder-solr_prod-1' if SERVER == 'ol-solr1' else 'openlibrary-solr-1'
-        ),
-        graphite_prefix=f'stats.ol.{SERVER}',
+        solr_container=("solr_builder-solr_prod-1" if SERVER == "ol-solr1" else "openlibrary-solr-1"),
+        graphite_prefix=f"stats.ol.{SERVER}",
         graphite_address=GRAPHITE_URL,
     )
 
 
 @limit_server(["ol-www0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 async def monitor_partner_useragents():
 
     def graphite_safe(s: str) -> str:
         """Normalize a string for safe use as a Graphite metric name."""
         # Replace dots and spaces with underscores
-        s = s.replace('.', '_').replace(' ', '_')
+        s = s.replace(".", "_").replace(" ", "_")
         # Remove or replace unsafe characters
-        s = re.sub(r'[^A-Za-z0-9_-]+', '_', s)
+        s = re.sub(r"[^A-Za-z0-9_-]+", "_", s)
         # Collapse multiple underscores
-        s = re.sub(r'_+', '_', s)
+        s = re.sub(r"_+", "_", s)
         # Strip leading/trailing underscores or dots
-        return s.strip('._')
+        return s.strip("._")
 
     def extract_agent_counts(ua_counts, allowed_names=None):
         agent_counts = {}
         for ua in ua_counts.strip().split("\n"):
             count, agent, *_ = ua.strip().split(" ")
             count = int(count)
-            agent_name = graphite_safe(agent.split('/')[0])
+            agent_name = graphite_safe(agent.split("/")[0])
             if not allowed_names or agent_name in allowed_names:
                 agent_counts[agent_name] = count
             else:
-                agent_counts.setdefault('other', 0)
-                agent_counts['other'] += count
+                agent_counts.setdefault("other", 0)
+                agent_counts["other"] += count
         return agent_counts
 
     known_names = extract_agent_counts("""
@@ -178,20 +176,16 @@ async def monitor_partner_useragents():
     events = []
     ts = int(time.time())
     for agent, count in agent_counts.items():
-        events.append(
-            GraphiteEvent(
-                path=f'stats.ol.partners.{agent}', value=float(count), timestamp=ts
-            )
-        )
+        events.append(GraphiteEvent(path=f"stats.ol.partners.{agent}", value=float(count), timestamp=ts))
     GraphiteEvent.submit_many(events, GRAPHITE_URL)
 
 
 @limit_server(["ol-www0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 async def monitor_empty_homepage():
     async with httpx.AsyncClient() as client:
         ts = int(time.time())
-        response = await client.get('https://openlibrary.org')
+        response = await client.get("https://openlibrary.org")
         book_count = response.text.count('<div class="book ')
         GraphiteEvent(
             path="stats.ol.homepage_book_count",
@@ -201,7 +195,7 @@ async def monitor_empty_homepage():
 
 
 @limit_server(["ol-www0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 def monitor_fail2ban():
     """Logs fail2ban nginx-429 jail stats (currently failed and banned counts)."""
     failed, banned = get_fail2ban_counts("nginx-429")
@@ -224,7 +218,7 @@ def monitor_fail2ban():
 
 
 @limit_server(["ol-home0"], scheduler)
-@scheduler.scheduled_job('interval', seconds=60)
+@scheduler.scheduled_job("interval", seconds=60)
 async def monitor_solr_updater_lag():
     (await get_solr_updater_lag_event(solr_next=False)).submit(GRAPHITE_URL)
     (await get_solr_updater_lag_event(solr_next=True)).submit(GRAPHITE_URL)

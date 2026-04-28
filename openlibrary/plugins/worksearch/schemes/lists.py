@@ -16,49 +16,49 @@ logger = logging.getLogger("openlibrary.worksearch")
 # define a search scheme for lists, similar to SubjectSearchScheme
 class ListSearchScheme(SearchScheme):
     # this search only applies to list type documents
-    universe = frozenset(['type:list OR list_type:*'])
+    universe = frozenset(["type:list OR list_type:*"])
     all_fields = frozenset(
         {
-            'key',  # unique identifier for the list
-            'name',  # name/title of the list
-            'list_type',  # list type: "series", "user_list", or "community_list"
-            'seed',
-            'subject',
-            'subject_key',
-            'person',
-            'person_key',
-            'place',
-            'place_key',
-            'time',
-            'time_key',
-            'last_modified',
-            'seed_count',
+            "key",  # unique identifier for the list
+            "name",  # name/title of the list
+            "list_type",  # list type: "series", "user_list", or "community_list"
+            "seed",
+            "subject",
+            "subject_key",
+            "person",
+            "person_key",
+            "place",
+            "place_key",
+            "time",
+            "time_key",
+            "last_modified",
+            "seed_count",
         }
     )
 
     # short description of the list
-    non_solr_fields = frozenset({'description'})
+    non_solr_fields = frozenset({"description"})
 
     facet_fields = frozenset()
     field_name_map = MappingProxyType({})
     sorts = MappingProxyType(
         {
-            'name asc': 'name asc',
-            'last_modified': 'last_modified desc',
-            'last_modified asc': 'last_modified asc',
-            'last_modified desc': 'last_modified desc',
-            'seed_count': 'seed_count desc',
-            'seed_count asc': 'seed_count asc',
-            'seed_count desc': 'seed_count desc',
+            "name asc": "name asc",
+            "last_modified": "last_modified desc",
+            "last_modified asc": "last_modified asc",
+            "last_modified desc": "last_modified desc",
+            "seed_count": "seed_count desc",
+            "seed_count asc": "seed_count asc",
+            "seed_count desc": "seed_count desc",
             # Random (kept from SubjectSearchScheme)
-            'random': 'random_1 asc',
-            'random asc': 'random_1 asc',
-            'random desc': 'random_1 desc',
-            'random.hourly': lambda: f'random_{datetime.now():%Y%m%dT%H} asc',
-            'random.daily': lambda: f'random_{datetime.now():%Y%m%d} asc',
+            "random": "random_1 asc",
+            "random asc": "random_1 asc",
+            "random desc": "random_1 desc",
+            "random.hourly": lambda: f"random_{datetime.now():%Y%m%dT%H} asc",
+            "random.daily": lambda: f"random_{datetime.now():%Y%m%d} asc",
         }
     )
-    default_fetched_fields = frozenset({'key', 'name'})
+    default_fetched_fields = frozenset({"key", "name"})
 
     facet_rewrites = MappingProxyType({})
 
@@ -69,21 +69,21 @@ class ListSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
-        solr_internals_params: 'SolrInternalsParams | None' = None,
+        solr_internals_params: "SolrInternalsParams | None" = None,
     ) -> list[tuple[str, str]]:
         params = [
-            ('q', q),  # actual query string
-            ('q.op', 'AND'),  # use 'AND' for matching multiple words in search queries
-            ('defType', 'edismax'),  # use edismax parser for better full-text search
+            ("q", q),  # actual query string
+            ("q.op", "AND"),  # use 'AND' for matching multiple words in search queries
+            ("defType", "edismax"),  # use edismax parser for better full-text search
             # qf specifies which fields to search and their boost weights.
             # Searching 'text' allows matching on subjects aggregated from the list's
             # books, while boosting 'name' ensures title matches rank highest.
-            ('qf', 'text name^10'),
+            ("qf", "text name^10"),
         ]
         # Default: exclude low-seed lists (issue #11905).
         # Lists with fewer than 2 seeds are likely spam. Series are exempt
         # since new series may legitimately have only one book.
         # This filter is skipped if the user explicitly queries by seed_count.
-        if 'seed_count' not in q:
-            params.append(('fq', 'seed_count:[2 TO *] OR list_type:series'))
+        if "seed_count" not in q:
+            params.append(("fq", "seed_count:[2 TO *] OR list_type:series"))
         return params

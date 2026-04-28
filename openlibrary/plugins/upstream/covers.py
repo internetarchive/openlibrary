@@ -28,7 +28,7 @@ def setup():
 class image_validator:
     def __init__(self):
         self.max_file_size = 10 * 1024 * 1024  # 10 MB
-        self.allowed_extensions = {'.jpg', '.jpeg', '.gif', '.png', '.webp'}
+        self.allowed_extensions = {".jpg", ".jpeg", ".gif", ".png", ".webp"}
 
     def validate_size(self, file_data):
         file_size = len(file_data.read())
@@ -56,7 +56,7 @@ class add_cover(delegate.page):
 
     def GET(self, key):
         book = web.ctx.site.get(key)
-        return render_template('covers/add', book)
+        return render_template("covers/add", book)
 
     def POST(self, key):
         book = web.ctx.site.get(key)
@@ -74,20 +74,20 @@ class add_cover(delegate.page):
 
         data = self.upload(key, i)
 
-        if coverid := data.get('id'):
+        if coverid := data.get("id"):
             if isinstance(i.url, bytes):
                 i.url = i.url.decode("utf-8")
             self.save(book, coverid, url=i.url)
             cover = Image(web.ctx.site, "b", coverid)
             return render_template("covers/saved", cover)
         else:
-            return render_template("covers/add", book, {'url': i.url}, data)
+            return render_template("covers/add", book, {"url": i.url}, data)
 
     def upload(self, key, i):
         """Uploads a cover to coverstore and returns the response."""
         olid = key.split("/")[-1]
 
-        if i.file is not None and hasattr(i.file, 'file'):
+        if i.file is not None and hasattr(i.file, "file"):
             file_data = i.file.file
             filename = i.file.filename
 
@@ -97,7 +97,7 @@ class add_cover(delegate.page):
                 validator.validate_size(file_data)
                 validator.validate_image(file_data)
             except ValueError as e:
-                return web.storage({'error': str(e)})
+                return web.storage({"error": str(e)})
 
             data = file_data
         else:
@@ -114,23 +114,23 @@ class add_cover(delegate.page):
             "ip": web.ctx.ip,
         }
 
-        upload_url = f'{get_coverstore_url()}/{self.cover_category}/upload2'
+        upload_url = f"{get_coverstore_url()}/{self.cover_category}/upload2"
 
         if upload_url.startswith("//"):
             upload_url = "http:" + upload_url
 
         try:
-            files = {'data': data}
+            files = {"data": data}
             response = requests.post(upload_url, data=params, files=files)
             return web.storage(response.json())
         except requests.HTTPError as e:
             logger.exception("Covers upload failed")
-            return web.storage({'error': str(e)})
+            return web.storage({"error": str(e)})
 
     def save(self, book, coverid, url=None):
         book.covers = [coverid] + [cover.id for cover in book.get_covers()]
         book._save(
-            f'{get_coverstore_public_url()}/b/id/{coverid}-S.jpg',
+            f"{get_coverstore_public_url()}/b/id/{coverid}-S.jpg",
             action="add-cover",
             data={"url": url},
         )
@@ -153,12 +153,8 @@ class add_photo(add_cover):
 
     def GET(self, key):
         author = web.ctx.site.get(key)
-        wikidata_images = (
-            author.wikidata().get_image_urls() if author and author.wikidata() else []
-        )
-        return render_template(
-            'covers/add', author, {'wikidata_images': wikidata_images}
-        )
+        wikidata_images = author.wikidata().get_image_urls() if author and author.wikidata() else []
+        return render_template("covers/add", author, {"wikidata_images": wikidata_images})
 
     def save(self, author, photoid, url=None):
         author.photos = [photoid] + [photo.id for photo in author.get_photos()]
@@ -182,7 +178,7 @@ class manage_covers(delegate.page):
 
     def save_images(self, book, covers):
         book.covers = covers
-        book._save('Update covers', action="update-book-covers")
+        book._save("Update covers", action="update-book-covers")
 
     def POST(self, key):
         if not accounts.get_current_user():
@@ -192,8 +188,8 @@ class manage_covers(delegate.page):
             raise web.notfound()
 
         images = web.input(image=[]).image
-        if '-' in images:
-            images = [int(id) for id in images[: images.index('-')]]
+        if "-" in images:
+            images = [int(id) for id in images[: images.index("-")]]
             self.save_images(book, images)
             return render_template("covers/saved", self.get_image(book), showinfo=False)
         else:
@@ -216,4 +212,4 @@ class manage_photos(manage_covers):
 
     def save_images(self, author, photos):
         author.photos = photos
-        author._save('Update photos', action="update-author-photos")
+        author._save("Update photos", action="update-author-photos")
