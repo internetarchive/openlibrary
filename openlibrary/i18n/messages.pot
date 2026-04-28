@@ -588,8 +588,7 @@ msgid "Review what's changed from the previous revision"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/memory/index.html recentchanges/default/path.html
-#: recentchanges/updated_records.html
+#: recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
 msgstr ""
 
@@ -4361,30 +4360,6 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "Memory Status"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "type"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "count"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "mark"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referents"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referrers"
 msgstr ""
 
 #: admin/people/edits.html
