@@ -25,7 +25,7 @@ from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
 )
-from openlibrary.core import cache, lending, models
+from openlibrary.core import cache
 from openlibrary.core import helpers as h
 from openlibrary.core.admin import get_cached_unique_logins_since
 from openlibrary.core.auth import ExpiredTokenError, HMACToken
@@ -37,7 +37,7 @@ from openlibrary.core.models import (
     Booknotes,
     Work,
 )
-from openlibrary.core.observations import Observations, get_observation_metrics
+from openlibrary.core.observations import Observations
 from openlibrary.core.vendors import (
     create_edition_from_amazon_metadata,
     get_amazon_metadata,
@@ -49,111 +49,11 @@ from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import site
-from openlibrary.views.loanstats import get_trending_books
 
 logger = logging.getLogger(__name__)
 
 
-@deprecated("migrated to fastapi")
-class book_availability(delegate.page):
-    path = "/availability/v2"
-
-    def GET(self):
-        i = web.input(type="", ids="")
-        id_type = i.type
-        ids = i.ids.split(",")
-        result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-    def POST(self):
-        i = web.input(type="")
-        j = json.loads(web.data())
-        id_type = i.type
-        ids = j.get("ids", [])
-        result = self.get_book_availability(id_type, ids)
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-    @staticmethod
-    def get_book_availability(id_type, ids):
-        if id_type in ["openlibrary_work", "openlibrary_edition", "identifier"]:
-            return lending.get_availability(id_type, ids)
-        else:
-            return []
-
-
-@deprecated("migrated to fastapi")
-class trending_books_api(delegate.page):
-    path = "/trending(/?.*)"
-    # path = "/trending/(now|daily|weekly|monthly|yearly|forever)"
-    encoding = "json"
-
-    def GET(self, period="/daily"):
-        from openlibrary.views.loanstats import SINCE_DAYS
-
-        period = period[1:]  # remove slash
-        i = web.input(
-            page=1,
-            limit=100,
-            days=0,
-            hours=0,
-            sort_by_count=False,
-            minimum=0,
-            fields="",
-        )
-        fields = i.fields.split(",") if i.fields else None
-        days = SINCE_DAYS.get(period, int(i.days))
-        works = get_trending_books(
-            since_days=days,
-            since_hours=int(i.hours),
-            limit=int(i.limit),
-            page=int(i.page),
-            sort_by_count=i.sort_by_count != "false",
-            minimum=i.minimum,
-            fields=fields,
-        )
-        result = {
-            "query": f"/trending/{period}",
-            "works": [dict(work) for work in works],
-            "days": days,
-            "hours": i.hours,
-        }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-
-@deprecated("migrated to fastapi")
-class browse(delegate.page):
-    path = "/browse"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(q="", page=1, limit=100, subject="", sorts="")
-        sorts = i.sorts.split(",")
-        page = int(i.page)
-        limit = int(i.limit)
-        url = lending.compose_ia_url(
-            query=i.q,
-            limit=limit,
-            page=page,
-            subject=i.subject,
-            sorts=sorts,
-        )
-        works = lending.get_available(url=url) if url else []
-        result = {
-            "query": url,
-            "works": [work.dict() for work in works],
-        }
-        return delegate.RawText(json.dumps(result), content_type="application/json")
-
-
-@deprecated("migrated to fastapi")
-class ratings(delegate.page):
-    path = r"/works/OL(\d+)W/ratings"
-    encoding = "json"
-
-    @jsonapi
-    def GET(self, work_id):
-        stats = self.get_ratings_summary(work_id)
-        return json.dumps(stats)
+class ratings:
 
     @staticmethod
     def get_ratings_summary(work_id):
@@ -188,58 +88,6 @@ class ratings(delegate.page):
                     "5": 0,
                 },
             }
-
-    def POST(self, work_id):
-        """Registers new ratings for this work"""
-        user = accounts.get_current_user()
-        i = web.input(
-            edition_id=None,
-            rating=None,
-            redir=False,
-            redir_url=None,
-            page=None,
-            ajax=False,
-        )
-        key = i.redir_url or (i.edition_id or ("/works/OL%sW" % work_id))
-        edition_id = (
-            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
-        )
-
-        if not user:
-            raise web.seeother("/account/login?redirect=%s" % key)
-
-        username = user.key.split("/")[2]
-
-        def response(msg, status="success"):
-            return delegate.RawText(
-                json.dumps({status: msg}), content_type="application/json"
-            )
-
-        if i.rating is None:
-            models.Ratings.remove(username, work_id)
-            r = response("removed rating")
-
-        else:
-            try:
-                rating = int(i.rating)
-                if rating not in models.Ratings.VALID_STAR_RATINGS:
-                    raise ValueError
-            except ValueError:
-                return response("invalid rating", status="error")
-
-            models.Ratings.add(
-                username=username, work_id=work_id, rating=rating, edition_id=edition_id
-            )
-            r = response("rating added")
-
-        if i.redir and not i.ajax:
-            p = h.safeint(i.page, 1)
-            query_params = f"?page={p}" if p > 1 else ""
-            if i.page:
-                raise web.seeother(f"{key}{query_params}")
-
-            raise web.seeother(key)
-        return r
 
 
 @deprecated("migrated to fastapi")
@@ -598,26 +446,6 @@ class patrons_observations(delegate.page):
             )
 
         return response("Observations removed")
-
-
-@deprecated("migrated to fastapi")
-class public_observations(delegate.page):
-    """
-    Public observations fetches anonymized community reviews
-    for a list of works. Useful for decorating search results.
-    """
-
-    path = "/observations"
-    encoding = "json"
-
-    def GET(self):
-        i = web.input(olid=[])
-        works = i.olid
-        metrics = {w: get_observation_metrics(w) for w in works}
-
-        return delegate.RawText(
-            json.dumps({"observations": metrics}), content_type="application/json"
-        )
 
 
 class work_delete(delegate.page):

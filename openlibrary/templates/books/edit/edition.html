@@ -328,7 +328,8 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
-                <textarea name="edition--description" class="markdown" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                <textarea name="edition--description" id="edition-description">$book.description</textarea>
+                <ol-markdown-editor target-id="edition-description"></ol-markdown-editor>
             </div>
         </div>
 
@@ -361,11 +362,12 @@ $jsdef render_work_autocomplete_item(item):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $:_("For example: <i>A Plume Book</i>")</span>
+                <label for="edition--notes">$_("Any notes about this specific edition?")</label>
+            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>$_("A Plume Book")</i>.</span>
             </div>
             <div class="input">
-                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+                <textarea name="edition--notes" id="edition--notes">$book.notes</textarea>
+                <ol-markdown-editor target-id="edition--notes"></ol-markdown-editor>
             </div>
         </div>
 

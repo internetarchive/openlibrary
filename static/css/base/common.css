@@ -87,6 +87,13 @@ div.head {
 div.head span {
   font-size: var(--font-size-label-medium);
 }
+pre,
+code {
+  font-family: var(--font-family-code);
+  font-size: 0.875em;
+  font-weight: normal;
+  white-space: pre-wrap;
+}
 
 /* Tablet: max-width: 768px */
 @media only screen and (max-width: 768px) {

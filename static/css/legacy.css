@@ -20,7 +20,6 @@
  * with `page-` or `js-`
  */
 @import "legacy-tools.css";
-@import "legacy-wmd.css";
 
 @import "components/read-panel.css";
 @import "components/preview.css";
@@ -217,44 +216,6 @@ em {
   font-style: italic;
 }
 
-/* Styles that should apply to markdown documents */
-.markdown-content ol,
-.markdown-content ul {
-  padding-left: 40px;
-}
-
-.markdown-content ol li {
-  list-style: decimal;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-.markdown-content ul li {
-  list-style: disc;
-  color: var(--dark-grey);
-  line-height: var(--line-height-list);
-}
-
-pre,
-code {
-  font-family: var(--font-family-code);
-  font-size: 0.875em;
-  font-weight: normal;
-  white-space: pre-wrap;
-}
-
-blockquote,
-q {
-  quotes: "" "";
-}
-
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-  content: "";
-}
-
 /* SITE DEFAULTS */
 
 @import "base/common.css";
@@ -266,6 +227,7 @@ q:after {
 @import "base/dl.css";
 @import "base/helpers-common.css";
 @import "base/helpers-misc.css";
+@import "markdown.css";
 
 /* openlibrary/templates/recentchanges/header.html */
 /* openlibrary/templates/showia.html */

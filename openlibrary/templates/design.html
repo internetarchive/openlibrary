@@ -2,6 +2,10 @@ $def with()
 $# /developers/design
 $ _x = ctx.setdefault('cssfile', 'design')
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+
 <div class="design-pattern-library">
   <h1>$_("Web Component Library")</h1>
 
@@ -13,6 +17,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
         <li><a href="#chip-group">$_("Chip Group")</a></li>
+        <li><a href="#markdown-editor">$_("Markdown Editor")</a></li>
       </ul>
     </nav>
 
@@ -24,7 +29,10 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Event-based")</h3>
           <p>$:_("When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s.", update_page="<code>update:page</code>", event_detail="<code>event.detail</code>")</p>
-          <code class="example__code">&lt;ol-pagination total-pages="10" current-page="1"&gt;&lt;/ol-pagination&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-pagination
+  total-pages="10"
+  current-page="1"&gt;
+&lt;/ol-pagination&gt;</code></pre>
           <div class="example__output">
             <ol-pagination id="demo-pagination" total-pages="10" current-page="1"></ol-pagination>
           </div>
@@ -40,7 +48,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("URL-based Navigation")</h3>
           <p>$_("When base-url is provided, pagination renders anchor tags for SEO-friendly links.")</p>
-          <code class="example__code">&lt;ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"&gt;&lt;/ol-pagination&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-pagination
+  total-pages="50"
+  current-page="5"
+  base-url="/search?q=example"&gt;
+&lt;/ol-pagination&gt;</code></pre>
           <ol-pagination total-pages="50" current-page="5" base-url="/search?q=example"></ol-pagination>
         </section>
 
@@ -79,7 +91,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Arrows mode")</h3>
           <p>$_("When total pages is unknown, use arrows mode to show only previous/next navigation.")</p>
-          <code class="example__code">&lt;ol-pagination mode="arrows" current-page="3" has-next-page&gt;&lt;/ol-pagination&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-pagination
+  mode="arrows"
+  current-page="3"
+  has-next-page&gt;
+&lt;/ol-pagination&gt;</code></pre>
 
           <h3 class="example__title">$_("Arrows mode (has next page)")</h3>
           <div class="example__output">
@@ -107,7 +123,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Height-based truncation")</h3>
           <p>$:_("Use %(max_height)s to limit content by pixel height.", max_height="<code>max-height</code>")</p>
-          <code class="example__code">&lt;ol-read-more max-height="80px"&gt;...content...&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more max-height="80px"&gt;
+  ...content...
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-height="80px">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
@@ -118,7 +136,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Line-based truncation")</h3>
           <p>$:_("Use %(max_lines)s to limit content by number of lines.", max_lines="<code>max-lines</code>")</p>
-          <code class="example__code">&lt;ol-read-more max-lines="3"&gt;...content...&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more max-lines="3"&gt;
+  ...content...
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-lines="3">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
@@ -129,7 +149,12 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Custom button text")</h3>
           <p>$:_("Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example.", more_text="<code>more-text</code>", less_text="<code>less-text</code>")</p>
-          <code class="example__code">&lt;ol-read-more max-lines="2" more-text="$$_('Show more')" less-text="$$_('Show less')"&gt;...&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more
+  max-lines="2"
+  more-text="$$_('Show more')"
+  less-text="$$_('Show less')"&gt;
+  ...
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-lines="2" more-text="$_('Show more')" less-text="$_('Show less')">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
@@ -140,7 +165,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Custom background color")</h3>
           <p>$:_("Use %(background_color)s to match the gradient fade to your container background.", background_color="<code>background-color</code>")</p>
-          <code class="example__code">&lt;ol-read-more max-lines="2" background-color="#cef"&gt;...&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more
+  max-lines="2"
+  background-color="#cef"&gt;
+  ...
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px; background: #cef; padding: 12px 12px 0 12px; border-radius: 4px;">
             <ol-read-more max-lines="2" background-color="#cef">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
@@ -151,7 +180,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Small label size")</h3>
           <p>$:_("Use %(label_size)s for a smaller toggle button.", label_size='<code>label-size="small"</code>')</p>
-          <code class="example__code">&lt;ol-read-more max-lines="2" label-size="small"&gt;...&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more
+  max-lines="2"
+  label-size="small"&gt;
+  ...
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-lines="2" label-size="small">
               <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.</p>
@@ -162,7 +195,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Content shorter than limit (no button)")</h3>
           <p>$_("When content fits within the limit, no toggle button is shown.")</p>
-          <code class="example__code">&lt;ol-read-more max-lines="5"&gt;Short content&lt;/ol-read-more&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-read-more max-lines="5"&gt;
+  Short content
+&lt;/ol-read-more&gt;</code></pre>
           <div class="example__output" style="max-width: 360px;">
             <ol-read-more max-lines="5">
               <p>$_("This is short content that fits within 5 lines, so no button appears.")</p>
@@ -178,7 +213,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Default (medium)")</h3>
           <p>$_("Basic chips at the default medium size.")</p>
-          <code class="example__code">&lt;ol-chip&gt;Fiction&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip&gt;
+  Fiction
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip>$_("Fiction")</ol-chip>
             <ol-chip>$_("Science")</ol-chip>
@@ -189,7 +226,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Selected state")</h3>
           <p>$_("A selected chip displays a checkmark icon and uses an active color scheme.")</p>
-          <code class="example__code">&lt;ol-chip selected&gt;History&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip selected&gt;
+  History
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip>$_("Fiction")</ol-chip>
             <ol-chip selected>$_("History")</ol-chip>
@@ -200,7 +239,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Small size")</h3>
           <p>$:_("Use %(size)s for a compact chip.", size='<code>size="small"</code>')</p>
-          <code class="example__code">&lt;ol-chip size="small"&gt;Poetry&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip size="small"&gt;
+  Poetry
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip size="small">$_("Poetry")</ol-chip>
             <ol-chip size="small" selected>$_("Drama")</ol-chip>
@@ -211,7 +252,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("With count")</h3>
           <p>$:_("Use %(count)s to display a number alongside the label.", count="<code>count</code>")</p>
-          <code class="example__code">&lt;ol-chip count="42"&gt;Fiction&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip count="42"&gt;
+  Fiction
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip count="1,024">$_("Fiction")</ol-chip>
             <ol-chip count="76" selected>$_("History")</ol-chip>
@@ -221,7 +264,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("As a link")</h3>
           <p>$:_("When %(href)s is provided, the chip renders as an anchor tag instead of a button.", href="<code>href</code>")</p>
-          <code class="example__code">&lt;ol-chip href="/subjects/fiction" count="76"&gt;Fiction&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip
+  href="/subjects/fiction"
+  count="76"&gt;
+  Fiction
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
             <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
@@ -231,7 +278,9 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Interactive toggle")</h3>
           <p>$:_("Clicking a chip fires an %(event)s event. Toggle the selected state by listening to the event.", event="<code>ol-chip-select</code>")</p>
-          <code class="example__code">&lt;ol-chip id="demo-chip"&gt;Toggle me&lt;/ol-chip&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip id="demo-chip"&gt;
+  Toggle me
+&lt;/ol-chip&gt;</code></pre>
           <div class="example__output">
             <ol-chip id="demo-chip-1">$_("Toggle me")</ol-chip>
             <ol-chip id="demo-chip-2" selected>$_("Toggle me too")</ol-chip>
@@ -245,6 +294,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
           </script>
         </section>
       </article>
+
       <article class="design-pattern" id="chip-group">
         <h2 class="design-pattern__title">$_("Chip Group")</h2>
         <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
@@ -321,6 +371,106 @@ $ _x = ctx.setdefault('cssfile', 'design')
               <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
             </ol-chip-group>
           </div>
+        </section>
+      </article>
+
+      <article class="design-pattern" id="markdown-editor">
+        <h2 class="design-pattern__title">$_("Markdown Editor")</h2>
+        <p class="design-pattern__description">$_("The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Basic usage")</h3>
+          <p>$:_("Provide a %(target_id)s pointing to an existing textarea. The editor reads initial content from the textarea and syncs changes back to it.", target_id="<code>target-id</code>")</p>
+          <pre class="example__code"><code class="language-html">&lt;textarea id="my-input"&gt;
+  **Hello** world
+&lt;/textarea&gt;
+&lt;ol-markdown-editor
+  target-id="my-input"&gt;
+&lt;/ol-markdown-editor&gt;</code></pre>
+          <div class="example__output">
+            <textarea id="demo-editor-input" style="display:none;">**Bold text** and *italic text* to start with.
+
+This is a second paragraph with a [link](https://openlibrary.org).</textarea>
+            <ol-markdown-editor target-id="demo-editor-input"></ol-markdown-editor>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Mixed Markdown and HTML")</h3>
+          <p>$:_("Add the %(attr)s attribute to expose the HTML block button in the toolbar. HTML blocks appear with a preview and an Edit button to modify the source.", attr="<code>enable-html-block</code>")</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
+  target-id="my-input"
+  enable-html-block&gt;
+&lt;/ol-markdown-editor&gt;</code></pre>
+          <div class="example__output">
+            <textarea id="demo-editor-html" style="display:none;">## Welcome
+
+Open Library is a non-profit, open source, digital public library.
+
+<a class="cta-btn cta-btn--available" href="https://docs.google.com/forms/d/e/example/viewform">Contribute as a <strong>Volunteer</strong></a>
+
+There are several ways to participate:
+
+* Fix data errors in the catalog
+* Translate the website
+* Contribute code on GitHub
+
+<img width="800" alt="Books on a shelf" src="https://openlibrary.org/static/images/openlibrary-logo-tighter.svg">
+
+<hr>
+
+Want to create your own collection? Check out [these instructions](/help/faq/collections).</textarea>
+            <ol-markdown-editor target-id="demo-editor-html" enable-html-block></ol-markdown-editor>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Code blocks and inline code")</h3>
+          <p>$:_("Add the %(attr)s attribute to expose the inline code and code block buttons in the toolbar. Code support is off by default because only the wiki page renderer is guaranteed to render fenced code blocks.", attr="<code>enable-code</code>")</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
+  target-id="my-input"
+  enable-code&gt;
+&lt;/ol-markdown-editor&gt;</code></pre>
+          <div class="example__output">
+            <textarea id="demo-editor-code" style="display:none;">## Fetching a work
+
+Open Library exposes a JSON API for every record. Append `.json` to a work key to get the raw data:
+
+```
+import requests
+
+work = requests.get("https://openlibrary.org/works/OL45804W.json").json()
+print(work["title"])
+```
+
+The response includes `title`, `authors`, and a `description` field formatted as Markdown.</textarea>
+            <ol-markdown-editor target-id="demo-editor-code" enable-code></ol-markdown-editor>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Change event")</h3>
+          <p>$:_("The editor fires an %(event)s event on every change. The raw Markdown string is available in %(detail)s.", event="<code>ol-markdown-editor-change</code>", detail="<code>event.detail.value</code>")</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-markdown-editor
+  target-id="my-input"
+  height="100px"&gt;
+&lt;/ol-markdown-editor&gt;
+
+&lt;script&gt;
+  editor.addEventListener('ol-markdown-editor-change', (e) =&gt; {
+    console.log(e.detail.value);
+  });
+&lt;/script&gt;</code></pre>
+          <div class="example__output">
+            <textarea id="demo-editor-event" style="display:none;"></textarea>
+            <ol-markdown-editor id="demo-editor-event-component" target-id="demo-editor-event" height="100px"></ol-markdown-editor>
+            <pre id="demo-editor-event-output" style="margin-top: 8px; padding: 8px 12px; background: var(--off-white); border: var(--border-card); border-radius: var(--border-radius-card); font-size: 0.8rem; white-space: pre-wrap; max-height: 120px; overflow-y: auto;"></pre>
+          </div>
+          <script>
+            document.getElementById('demo-editor-event-component').addEventListener('ol-markdown-editor-change', (e) => {
+              document.getElementById('demo-editor-event-output').textContent = e.detail.value;
+            });
+          </script>
         </section>
       </article>
     </main>

@@ -43,12 +43,12 @@ $:macros.HiddenSaveButton("addAuthor")
 
                         <div class="formElement">
                             <div class="label">
-                                <label for="wmd-input">$_("A short bio?")</label>
+                                <label for="author--bio">$_("A short bio?")</label>
                                 <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--bio"
-                                    class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
+                                <textarea name="author--bio" id="author--bio">$page.bio</textarea>
+                                <ol-markdown-editor target-id="author--bio"></ol-markdown-editor>
                             </div>
                         </div>
 

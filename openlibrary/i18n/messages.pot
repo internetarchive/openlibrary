@@ -588,8 +588,7 @@ msgid "Review what's changed from the previous revision"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/memory/index.html recentchanges/default/path.html
-#: recentchanges/updated_records.html
+#: recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
 msgstr ""
 
@@ -1764,6 +1763,10 @@ msgid "Chip Group"
 msgstr ""
 
 #: design.html
+msgid "Markdown Editor"
+msgstr ""
+
+#: design.html
 msgid ""
 "The ol-pagination component provides support for both event-based and "
 "URL-based navigation."
@@ -2048,6 +2051,58 @@ msgstr ""
 msgid ""
 "Chip groups work with any combination of chip sizes, states, and link "
 "chips."
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that"
+" outputs Markdown. It syncs its content to a hidden target textarea."
+msgstr ""
+
+#: design.html
+msgid "Basic usage"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Provide a %(target_id)s pointing to an existing textarea. The editor "
+"reads initial content from the textarea and syncs changes back to it."
+msgstr ""
+
+#: design.html
+msgid "Mixed Markdown and HTML"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Add the %(attr)s attribute to expose the HTML block button in the "
+"toolbar. HTML blocks appear with a preview and an Edit button to modify "
+"the source."
+msgstr ""
+
+#: design.html
+msgid "Code blocks and inline code"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Add the %(attr)s attribute to expose the inline code and code block "
+"buttons in the toolbar. Code support is off by default because only the "
+"wiki page renderer is guaranteed to render fenced code blocks."
+msgstr ""
+
+#: design.html
+msgid "Change event"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"The editor fires an %(event)s event on every change. The raw Markdown "
+"string is available in %(detail)s."
 msgstr ""
 
 #: diff.html
@@ -4409,30 +4464,6 @@ msgstr ""
 msgid "Reverted spam"
 msgstr ""
 
-#: admin/memory/index.html
-msgid "Memory Status"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "type"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "count"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "mark"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referents"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referrers"
-msgstr ""
-
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
@@ -4948,7 +4979,7 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
-#: books/add.html
+#: books/add.html books/edit/edition.html
 msgid "For example:"
 msgstr ""
 
@@ -5592,7 +5623,7 @@ msgid "Anything about the book that may be of interest."
 msgstr ""
 
 #: books/edit/edition.html
-msgid "For example: <i>A Plume Book</i>"
+msgid "A Plume Book"
 msgstr ""
 
 #: books/edit/edition.html
