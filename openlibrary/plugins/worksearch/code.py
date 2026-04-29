@@ -781,7 +781,6 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            sfw = web.cookies(sfw="").sfw == 'yes'
             search_response = run_solr_query(
                 WorkSearchScheme(),
                 param,
@@ -789,7 +788,7 @@ class search(delegate.page):
                 page=page,
                 sort=sort,
                 spellcheck_count=3,
-                fields=compute_work_search_html_fields(sort, sfw),
+                fields=compute_work_search_html_fields(sort, req_context.get().sfw),
                 facet=False,
                 highlight=True,
                 request_label='BOOK_SEARCH',
