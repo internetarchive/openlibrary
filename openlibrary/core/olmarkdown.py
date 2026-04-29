@@ -7,8 +7,6 @@ Differences from traditional Markdown:
 * URLs are autolinked
 * generated HTML is sanitized
 
-The custom changes done here to markdown are also reptead in WMD editor,
-the javascript markdown editor used in OL.
 """
 
 import re
