@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from hashlib import md5
-from typing import NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs
 
 import web
@@ -84,7 +84,7 @@ class MyBooksDropperListsPartial(PartialDataHandler):
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
-    queryType: str = ""
+    queryType: Literal["SEARCH", "BROWSE", "TRENDING", "SUBJECTS"]
     q: str = ""
     limit: int = 18
     page: int = 1
@@ -111,7 +111,7 @@ class CarouselCardPartial(PartialDataHandler):
         p = self.params
 
         # Do search
-        search_results = await self._make_book_query(p.queryType, p)
+        search_results = await self._make_book_query(p)
 
         # Render cards
         cards = []
@@ -138,14 +138,14 @@ class CarouselCardPartial(PartialDataHandler):
 
         return {"partials": [str(template) for template in cards]}
 
-    async def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
-        if query_type == "SEARCH":
+    async def _make_book_query(self, params: CarouselLoadMoreParams) -> list:
+        if params.queryType == "SEARCH":
             return await self._do_search_query(params)
-        if query_type == "BROWSE":
+        if params.queryType == "BROWSE":
             return self._do_browse_query(params)
-        if query_type == "TRENDING":
+        if params.queryType == "TRENDING":
             return self._do_trends_query(params)
-        if query_type == "SUBJECTS":
+        if params.queryType == "SUBJECTS":
             return self._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
