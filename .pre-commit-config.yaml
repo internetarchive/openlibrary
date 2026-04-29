@@ -141,21 +141,6 @@ repos:
           - "@babel/preset-env@7.24.7"
         args: [--fix]
 
-  - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
-    hooks:
-      - id: sqlfluff-lint
-        args: [--dialect, postgres]
-        files: \.sql$
-        # Rule exclusions and their rationale are documented in pyproject.toml
-        # under [tool.sqlfluff.core].
-        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
-        # values and \N nulls which sqlfluff cannot parse.
-        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
-        # command which sqlfluff cannot parse.
-        # See: https://github.com/internetarchive/openlibrary/issues/12245
-        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
-
   - repo: local
     hooks:
     - id: generate-pot
@@ -184,3 +169,18 @@ repos:
       language: python
       verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.1.0
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+        files: \.sql$
+        # Rule exclusions and their rationale are documented in pyproject.toml
+        # under [tool.sqlfluff.core].
+        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
+        # values and \N nulls which sqlfluff cannot parse.
+        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
+        # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
