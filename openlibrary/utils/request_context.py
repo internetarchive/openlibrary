@@ -5,6 +5,7 @@ This module provides utilities for managing request-scoped context variables
 and parsing request data for both web.py and FastAPI frameworks.
 """
 
+import dataclasses
 from contextvars import ContextVar
 from dataclasses import dataclass
 from urllib.parse import unquote
@@ -32,6 +33,16 @@ class RequestContextVars:
     sfw: bool = False
     is_recognized_bot: bool = False
     is_bot: bool = False
+
+    def copy_for_cache_thread(self):
+        """Create a copy of the context vars for use in a new thread."""
+        # Everything the same, except x_forwarded_for and user_agent are see
+        # to None since they are only relevant for the original request thread.
+        return dataclasses.replace(
+            self,
+            x_forwarded_for=None,
+            user_agent=None,
+        )
 
 
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
@@ -166,10 +177,16 @@ def _parse_solr_editions_from_fastapi(request) -> bool:
     return True
 
 
-def set_context_from_legacy_web_py() -> None:
+def set_context_from_legacy_web_py(
+    req_context_override: RequestContextVars | None = None,
+) -> None:
     """
     Extracts context from the global web.ctx and populates ContextVars.
     """
+    if req_context_override is not None:
+        req_context.set(req_context_override)
+        return
+
     solr_editions = _parse_solr_editions_from_web()
     print_disabled = bool(web.cookies().get("pd", False))
     sfw = bool(web.cookies().get("sfw", ""))

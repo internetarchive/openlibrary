@@ -26,7 +26,6 @@ from openlibrary.core.lending import (
 from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -647,12 +646,11 @@ class ActivityFeed:
 
     @classmethod
     def get_cached_pub_sub_feed(cls, username):
-        five_minutes = 5 * dateutil.MINUTE_SECS
         mc = memcache_memoize(
             cls.get_pub_sub_feed,
             key_prefix="mybooks.pubsub.feed",
-            timeout=five_minutes,
-            prethread=caching_prethread(),
+            timeout=5 * dateutil.MINUTE_SECS,
+            cache_request_context=True,
         )
         results = mc(username)
 
@@ -684,12 +682,11 @@ class ActivityFeed:
 
     @classmethod
     def get_cached_trending_feed(cls, username):
-        five_minutes = 5 * dateutil.MINUTE_SECS
         mc = memcache_memoize(
             cls.get_trending_feed,
             key_prefix="mybooks.trending.feed",
-            timeout=five_minutes,
-            prethread=caching_prethread(),
+            timeout=5 * dateutil.MINUTE_SECS,
+            cache_request_context=True,
         )
         results = mc(username)
 

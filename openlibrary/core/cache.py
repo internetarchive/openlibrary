@@ -16,10 +16,11 @@ import web
 
 from infogami import config
 from infogami.infobase.client import Nothing
-from infogami.utils import stats
+from infogami.utils import delegate, stats
 from openlibrary.core.helpers import NothingEncoder
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
+from openlibrary.utils.request_context import RequestContextVars, req_context, set_context_from_legacy_web_py
 
 __all__ = [
     "Cache",
@@ -49,9 +50,10 @@ class memcache_memoize[**P, T]:
 
     :param f: function to be memozied
     :param key_prefix: key prefix used in memcache to store memoized results. A random value will be used if not specified.
-    :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
-    :param prethread: Function to call on the new thread to set it up
+    :param cache_request_context: Whether to cache the request context along with the value. This is useful
+        when the value depends on things like the user language, bot status, etc. Note not all variables in the
+        request context are forwarded to the background thread: see `RequestContextVars.copy_for_cache_thread`.
     """
 
     def __init__(
@@ -59,19 +61,19 @@ class memcache_memoize[**P, T]:
         f: Callable[P, T],
         key_prefix: str | None = None,
         timeout: int = MINUTE_SECS,
-        prethread: Callable[[], None] | None = None,
-        hash_args: bool = False,
+        hash_args: bool = True,
+        cache_request_context: bool = False,
     ):
         """Creates a new memoized function for ``f``."""
         self.f: Callable[P, T] = f
         self.key_prefix = key_prefix or self._generate_key_prefix()
         self.timeout = timeout
+        self.cache_request_context = cache_request_context
 
         self._memcache: memcache.Client | None = None
 
         self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads: dict[str, threading.Thread] = {}
-        self.prethread = prethread
         self.hash_args = hash_args
 
     @property
@@ -106,10 +108,9 @@ class memcache_memoize[**P, T]:
         Returns the cached value when available. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
-
         self.stats.calls += 1
 
-        value_time = self.memcache_get(args, kw)
+        value_time = self.memcache_get(*args, **kw)
 
         if value_time is None:
             self.stats.updates += 1
@@ -120,26 +121,37 @@ class memcache_memoize[**P, T]:
             value, t = value_time
             if t + self.timeout < time.time():
                 self.stats.async_updates += 1
-                self.update_async(*args, **kw)
+                background_req_context = None
+                if self.cache_request_context:
+                    background_req_context = req_context.get().copy_for_cache_thread()
+                self.update_async(background_req_context, *args, **kw)
 
         return value
 
-    def update_async(self, *args: P.args, **kw: P.kwargs) -> None:
+    def update_async(self, background_req_context: RequestContextVars | None, /, *args: P.args, **kw: P.kwargs) -> None:
         """Starts the update process asynchronously."""
-        t = threading.Thread(target=self._update_async_worker, args=args, kwargs=kw)
+        t = threading.Thread(target=self._update_async_worker, args=(background_req_context, *args), kwargs=kw)
         self.active_threads[t.name] = t
         t.start()
 
-    def _update_async_worker(self, *args: P.args, **kw: P.kwargs) -> None:
-        key = self.compute_key(args, kw) + "/flag"
+    def _update_async_worker(
+        self,
+        background_req_context: RequestContextVars | None,
+        /,
+        *args: P.args,
+        **kw: P.kwargs,
+    ) -> None:
+        key = self.compute_key(*args, **kw) + "/flag"
 
         if not self.memcache.add(key, "true"):
             # already somebody else is computing this value.
             return
 
         try:
-            if self.prethread:
-                self.prethread()
+            if background_req_context:
+                delegate.fakeload()
+                set_context_from_legacy_web_py(background_req_context)
+
             self.update(*args, **kw)
         finally:
             # Remove current thread from active threads
@@ -153,10 +165,10 @@ class memcache_memoize[**P, T]:
 
         Returns the computed value.
         """
+        key = self.compute_key(*args, **kw)
         value = self.f(*args, **kw)
         t = time.time()
-
-        self.memcache_set(args, kw, value, t)
+        self.memcache_set(key, value, t)
         return value, t
 
     def join_threads(self) -> None:
@@ -180,9 +192,12 @@ class memcache_memoize[**P, T]:
             return f"{hashlib.md5(a.encode('utf-8')).hexdigest()}"
         return a
 
-    def compute_key(self, args: tuple, kw: dict) -> str:
+    def compute_key(self, *args: P.args, **kw: P.kwargs) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
-        key = self.key_prefix + "$" + self.encode_args(args, kw)
+        key = f"{self.key_prefix}"
+        if self.cache_request_context:
+            key += f"${self.json_encode(req_context.get().copy_for_cache_thread().__dict__)}"
+        key += f"${self.encode_args(args, kw)}"
         return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value: Any) -> str:
@@ -196,31 +211,30 @@ class memcache_memoize[**P, T]:
             cls=NothingEncoder,
         )
 
-    def memcache_set(self, args: tuple, kw: dict, value: T, time: float) -> None:
+    def memcache_set(self, key: str, value: T, time: float) -> None:
         """Adds value and time to memcache. Key is computed from the arguments."""
-        key = self.compute_key(args, kw)
         json_data = self.json_encode([value, time])
 
         stats.begin("memcache.set", key=key)
         self.memcache.set(key, json_data)
         stats.end()
 
-    def memcache_delete(self, args: tuple, kw: dict) -> None:
-        key = self.compute_key(args, kw)
+    def memcache_delete(self, key: str) -> None:
         stats.begin("memcache.delete", key=key)
         self.memcache.delete(key)
         stats.end()
 
-    def memcache_delete_by_args(self, *args, **kw):
+    def memcache_delete_by_args(self, *args: P.args, **kw: P.kwargs):
         """A helper method to let you pass in arguments normally instead of as a tuple and dict"""
-        self.memcache_delete(args, kw)
+        key = self.compute_key(*args, **kw)
+        self.memcache_delete(key)
 
-    def memcache_get(self, args: tuple, kw: dict) -> tuple[T, float] | None:
+    def memcache_get(self, *args: P.args, **kw: P.kwargs) -> tuple[T, float] | None:
         """Reads the value from memcache. Key is computed from the arguments.
 
         Returns (value, time) when the value is available, None otherwise.
         """
-        key = self.compute_key(args, kw)
+        key = self.compute_key(*args, **kw)
         stats.begin("memcache.get", key=key)
         json_str = cast(str, self.memcache.get(key))
         stats.end(hit=bool(json_str))

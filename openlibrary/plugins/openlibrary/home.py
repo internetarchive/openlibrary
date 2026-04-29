@@ -18,10 +18,6 @@ from openlibrary.plugins.upstream.utils import (
 )
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.utils import dateutil
-from openlibrary.utils.request_context import (
-    req_context,
-    set_context_from_legacy_web_py,
-)
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -38,7 +34,7 @@ CAROUSELS_PRESETS = {
 }
 
 
-def get_homepage(devmode):
+def get_homepage(devmode: bool):
     try:
         stats = admin.get_stats(use_mock_data=devmode)
     except Exception:
@@ -55,20 +51,13 @@ def get_homepage(devmode):
 
 
 def get_cached_homepage():
-    from openlibrary.plugins.openlibrary.code import is_bot
+    mc = cache.memcache_memoize(
+        get_homepage,
+        "home.homepage",
+        timeout=5 * dateutil.MINUTE_SECS,
+        cache_request_context=True,
+    )
 
-    five_minutes = 5 * dateutil.MINUTE_SECS
-    lang = web.ctx.lang
-    key = f"home.homepage.{lang}"
-    cookies = web.cookies()
-    if cookies.get("pd", False):
-        key += ".pd"
-    if cookies.get("sfw", ""):
-        key += ".sfw"
-    if is_bot():
-        key += ".bot"
-
-    mc = cache.memcache_memoize(get_homepage, key, timeout=five_minutes, prethread=caching_prethread())
     devmode = "dev" in web.ctx.features
     page = mc(devmode)
 
@@ -77,32 +66,6 @@ def get_cached_homepage():
         mc(devmode)
 
     return page
-
-
-# Because of caching, memcache will call `get_homepage` on another thread! So we
-# need a way to carry some information to that computation on the other thread.
-# We do that by using a python closure. The outer function is executed on the main
-# thread, so all the web.* stuff is correct. The inner function is executed on the
-# other thread, so all the web.* stuff will be dummy.
-def caching_prethread():
-    from openlibrary.plugins.openlibrary.code import is_bot
-
-    # web.ctx.lang is undefined on the new thread, so need to transfer it over
-    lang = req_context.get().lang
-    host = web.ctx.host
-    _is_bot = is_bot()
-
-    def main():
-        # Leaving this in since this is a bit strange, but you can see it clearly
-        # in action with this debug line:
-        # web.debug(f'XXXXXXXXXXX web.ctx.lang={web.ctx.get("lang")}; {lang=}')
-        delegate.fakeload()
-        web.ctx.lang = lang
-        web.ctx.is_bot = _is_bot
-        web.ctx.host = host
-        set_context_from_legacy_web_py()
-
-    return main
 
 
 class home(delegate.page):
@@ -264,9 +227,9 @@ def get_featured_subjects():
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
         get_featured_subjects,
-        f"home.featured_subjects.{web.ctx.lang}",
+        "home.featured_subjects",
         timeout=dateutil.HOUR_SECS,
-        prethread=caching_prethread(),
+        cache_request_context=True,
     )()
 
 
@@ -279,12 +242,11 @@ def generic_carousel(
     timeout=None,
     safe_mode=True,
 ):
-    memcache_key = "home.ia_carousel_books"
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books,
-        memcache_key,
+        "home.ia_carousel_books",
         timeout=timeout or cache.DEFAULT_CACHE_LIFETIME,
-        prethread=caching_prethread(),
+        cache_request_context=True,
     )
     books = cached_ia_carousel_books(
         query=query,

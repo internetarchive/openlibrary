@@ -983,23 +983,13 @@ class opds_home(delegate.page):
             return catalog.model_dump()
 
         def get_cached_homepage():
-            from openlibrary.plugins.openlibrary.code import is_bot
-            from openlibrary.plugins.openlibrary.home import caching_prethread
             from openlibrary.utils import dateutil
 
-            five_minutes = 5 * dateutil.MINUTE_SECS
-            lang = web.ctx.lang
-            key = f"home.homepage-opds.{lang}"
-            cookies = web.cookies()
-            if cookies.get("pd", False):
-                key += ".pd"
-            if cookies.get("sfw", ""):
-                key += ".sfw"
-            if is_bot():
-                key += ".bot"
-
             mc = cache.memcache_memoize(
-                build_homepage, key, timeout=five_minutes, prethread=caching_prethread()
+                build_homepage,
+                "home.homepage-opds",
+                timeout=5 * dateutil.MINUTE_SECS,
+                cache_request_context=True,
             )
             page = mc()
 
