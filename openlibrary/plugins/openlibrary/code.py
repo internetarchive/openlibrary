@@ -12,6 +12,7 @@ import os
 import random
 import socket
 import sys
+from datetime import UTC
 from time import time
 from urllib.parse import parse_qs, urlencode
 
@@ -1161,7 +1162,7 @@ class invalidate(delegate.page):
 
 
 def save_error():
-    t = datetime.datetime.utcnow()
+    t = datetime.datetime.now(UTC)
     name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (
         t.year,
         t.month,

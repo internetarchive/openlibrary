@@ -1,5 +1,6 @@
 import datetime
 import json
+from datetime import UTC
 from sqlite3 import IntegrityError
 from types import MappingProxyType
 from typing import Literal
@@ -10,6 +11,7 @@ from infogami.utils.view import public
 from openlibrary.core import cache
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.dateutil import utcisoformat
 
 from . import db
 
@@ -222,7 +224,7 @@ class CommunityEditsQueue:
                 where="id=$rid",
                 reviewer=reviewer,
                 status=cls.STATUS["PENDING"],
-                updated=datetime.datetime.utcnow(),
+                updated=datetime.datetime.now(UTC),
                 vars={"rid": rid},
             )
             return {
@@ -242,7 +244,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=cls.STATUS["PENDING"],
             reviewer=None,
-            updated=datetime.datetime.utcnow(),
+            updated=datetime.datetime.now(UTC),
             vars={"rid": rid},
         )
 
@@ -269,7 +271,7 @@ class CommunityEditsQueue:
             where="id=$rid",
             status=status,
             reviewer=reviewer,
-            updated=datetime.datetime.utcnow(),
+            updated=datetime.datetime.now(UTC),
             vars={"rid": rid},
             **update_kwargs,
         )
@@ -285,7 +287,7 @@ class CommunityEditsQueue:
             cls.TABLENAME,
             where="id=$rid",
             comments=json.dumps(comments),
-            updated=datetime.datetime.utcnow(),
+            updated=datetime.datetime.now(UTC),
             vars={"rid": rid},
         )
 
@@ -311,7 +313,7 @@ class CommunityEditsQueue:
         """
         return {
             # isoformat to avoid to-json issues
-            "timestamp": datetime.datetime.utcnow().isoformat(),
+            "timestamp": utcisoformat(datetime.datetime.now(UTC)),
             "username": username,
             "message": message,
             # XXX It may be easier to update these comments if they had IDs

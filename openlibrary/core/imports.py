@@ -7,6 +7,7 @@ import logging
 import time
 from collections import defaultdict
 from collections.abc import Iterable
+from datetime import UTC
 from typing import TYPE_CHECKING, Any, Final
 
 import web
@@ -241,7 +242,7 @@ class ImportItem(web.storage):
             "status": status,
             "error": error,
             "ol_key": ol_key,
-            "import_time": datetime.datetime.utcnow(),
+            "import_time": datetime.datetime.now(UTC),
         }
         if status != "failed":
             d = dict(**d, data=None)

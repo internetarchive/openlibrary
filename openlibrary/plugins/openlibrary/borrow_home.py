@@ -4,21 +4,23 @@ Event handlers for loan statistics.
 
 import datetime
 import json
+from datetime import UTC
 
 import eventer
 
 from openlibrary.core import statsdb
+from openlibrary.utils.dateutil import utcisoformat
 
 
 def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan["loaned_at"])
+    t_start = datetime.fromtimestamp(loan["loaned_at"], UTC)
     d = {
         "book": loan["book"],
         "identifier": loan["ocaid"],
         "resource_type": loan["resource_type"],
-        "t_start": t_start.isoformat(),
+        "t_start": utcisoformat(t_start),
         "status": "active",
     }
     d["library"] = "/libraries/internet_archive"
@@ -29,8 +31,8 @@ def on_loan_created_statsdb(loan):
 def on_loan_completed_statsdb(loan):
     """Marks the loan as completed in the stats database."""
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan["loaned_at"])
-    t_end = datetime.datetime.utcfromtimestamp(loan["returned_at"])
+    t_start = datetime.fromtimestamp(loan["loaned_at"], UTC)
+    t_end = datetime.fromtimestamp(loan["returned_at"], UTC)
     d = {
         "book": loan["book"],
         "identifier": loan["ocaid"],

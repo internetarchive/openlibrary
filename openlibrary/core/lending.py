@@ -7,6 +7,7 @@ import logging
 import os
 import time
 import uuid
+from datetime import UTC
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 
 import eventer
@@ -21,6 +22,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.dateutil import utcisoformat
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -819,7 +821,7 @@ class Loan(dict):
         if resource_type == "bookreader":
             resource_id = "bookreader:" + identifier
             loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
+            expiry = utcisoformat(datetime.datetime.now(UTC) + datetime.timedelta(days=BOOKREADER_LOAN_DAYS))
         else:
             raise Exception("No longer supporting ACS borrows directly from Open Library. Please go to Archive.org")
 
@@ -902,7 +904,7 @@ class Loan(dict):
         eventer.trigger("loan-created", self)
 
     def is_expired(self) -> bool:
-        return self["expiry"] and self["expiry"] < datetime.datetime.utcnow().isoformat()
+        return self["expiry"] and self["expiry"] < utcisoformat(datetime.datetime.now(UTC))
 
     def is_yet_to_be_fulfilled(self) -> bool:
         """Returns True if the loan is not yet fulfilled and fulfillment time

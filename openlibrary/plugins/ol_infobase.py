@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import traceback
+from datetime import UTC
 
 import requests
 import web
@@ -284,7 +285,7 @@ def save_error(dir, prefix):
     try:
         logger.error("Error", exc_info=True)
         error = web.djangoerror()
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(UTC)
         path = "%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html" % (
             dir,
             now.year,
