@@ -23,8 +23,6 @@ from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     compute_work_search_html_fields,
     run_solr_query_async,
-    work_search,
-    do_search_async,
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
