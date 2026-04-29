@@ -152,4 +152,4 @@ async def carousel_load_more_partial(
     queryType (SEARCH | BROWSE | TRENDING | SUBJECTS), q, limit, page,
     sorts, subject, hasFulltextOnly, key, layout, published_in.
     """
-    return CarouselCardPartial(params=params).generate()
+    return await CarouselCardPartial(params=params).generate_async()
