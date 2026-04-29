@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -33,20 +32,7 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
 
-class PartialDataHandler(ABC):
-    """Base class for partial data handlers.
-
-    Has a single method, `generate`, that is expected to return a
-    JSON-serializable dict that contains data necessary to update
-    a page.
-    """
-
-    @abstractmethod
-    def generate(self) -> dict:
-        pass
-
-
-class ReadingGoalProgressPartial(PartialDataHandler):
+class ReadingGoalProgressPartial:
     """Handler for reading goal progress."""
 
     def __init__(self, year: int):
@@ -60,7 +46,7 @@ class ReadingGoalProgressPartial(PartialDataHandler):
         return {"partials": str(component)}
 
 
-class MyBooksDropperListsPartial(PartialDataHandler):
+class MyBooksDropperListsPartial:
     """Handler for the MyBooks dropper list component."""
 
     def generate(self) -> dict:
@@ -96,16 +82,13 @@ class CarouselLoadMoreParams(BaseModel):
     published_in: str = ""
 
 
-class CarouselCardPartial(PartialDataHandler):
+class CarouselCardPartial:
     """Handler for carousel "load_more" requests"""
 
     MAX_VISIBLE_CARDS = 5
 
     def __init__(self, params: CarouselLoadMoreParams):
         self.params = params
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         p = self.params
@@ -202,14 +185,11 @@ class CarouselCardPartial(PartialDataHandler):
         return subject.get("works", [])
 
 
-class AffiliateLinksPartial(PartialDataHandler):
+class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
     def __init__(self, data: dict):
         self.data = data
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         args = self.data.get("args", [])
@@ -237,7 +217,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
-class SearchFacetsPartial(PartialDataHandler):
+class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
     def __init__(self, data: dict, sfw: bool = False):
@@ -245,9 +225,6 @@ class SearchFacetsPartial(PartialDataHandler):
         self.data = data
         user = get_current_user()
         self.show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         path = self.data.get("path")
@@ -292,15 +269,12 @@ class SearchFacetsPartial(PartialDataHandler):
         }
 
 
-class FullTextSuggestionsPartial(PartialDataHandler):
+class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     def __init__(self, query: str):
         self.query = query or ""
         self.has_error: bool = False
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         query = self.query
@@ -315,15 +289,12 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
-class BookPageListsPartial(PartialDataHandler):
+class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
 
     def __init__(self, workId: str, editionId: str):
         self.workId = workId
         self.editionId = editionId
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         results: dict = {"partials": []}
@@ -360,14 +331,11 @@ class LazyCarouselParams(BaseModel):
     safe_mode: bool = True
 
 
-class LazyCarouselPartial(PartialDataHandler):
+class LazyCarouselPartial:
     """Handler for lazily-loaded query carousels."""
 
     def __init__(self, params: LazyCarouselParams):
         self.params = params
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         books = await gather_lazy_carousel_data_async(
