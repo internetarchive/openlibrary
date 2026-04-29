@@ -250,7 +250,7 @@ msgid ""
 "Log in to use your free Open Library card to borrow digital books from "
 "the nonprofit Internet Archive"
 msgstr ""
-"登陆以使用你的免费开放图书馆卡从非盈利组织Internet Archive里借阅电子书。"
+"登录以使用你的免费开放图书馆卡从非盈利组织Internet Archive里借阅电子书。"
 
 #: login.html
 msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
