@@ -21,6 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -249,7 +250,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
     return response
 
 
-def get_available(
+async def get_available_async(
     limit=None,
     page=1,
     subject=None,
@@ -291,13 +292,14 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = req_context.get().x_forwarded_for or "ol-internal"
+        req = req_context.get(None)
+        client_ip = req.x_forwarded_for if req and req.x_forwarded_for else "ol-internal"
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = ia.session.get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.async_session.get(url, headers=headers, timeout=config_http_request_timeout)
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
@@ -309,6 +311,10 @@ def get_available(
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"get_available({url})")
         return {"error": "request_timeout"}
+
+
+# Create a sync wrapper for backward compatibility
+get_available = async_bridge.wrap(get_available_async)
 
 
 class AvailabilityStatus(TypedDict):

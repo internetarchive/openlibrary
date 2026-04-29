@@ -10,7 +10,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
@@ -125,7 +125,7 @@ class CarouselCardPartial:
         if params.queryType == "SEARCH":
             return await self._do_search_query(params)
         if params.queryType == "BROWSE":
-            return self._do_browse_query(params)
+            return await self._do_browse_query(params)
         if params.queryType == "TRENDING":
             return self._do_trends_query(params)
         if params.queryType == "SUBJECTS":
@@ -163,7 +163,7 @@ class CarouselCardPartial:
         )
         return results.get("docs", [])
 
-    def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
         url = compose_ia_url(
             query=params.q,
             limit=params.limit,
@@ -173,7 +173,7 @@ class CarouselCardPartial:
             advanced=True,
             safe_mode=True,
         )
-        results = get_available(url=url)
+        results = await get_available_async(url=url)
         return results if "error" not in results else []
 
     def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:

@@ -187,7 +187,7 @@ async def browse(
         sorts=sorts,
     )
 
-    works = lending.get_available(url=url) if url else []
+    works = await lending.get_available_async(url=url) if url else []
     return {"query": url, "works": [work.dict() for work in works]}
 
 
