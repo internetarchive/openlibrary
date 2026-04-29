@@ -115,11 +115,10 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
-#: BookPreview.html CreateListModal.html DonateModal.html NotesModal.html
-#: ObservationsModal.html ShareModal.html covers/author_photo.html
-#: covers/book_cover.html covers/change.html lib/exports.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -160,80 +159,13 @@ msgid ""
 " effect on the live website."
 msgstr ""
 
-#: DonateModal.html
-msgid ""
-"Donate this book to the <a href=\"https://archive.org\">Internet "
-"Archive</a> library."
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Hooray! You've discovered a title that's missing from our <a "
-"href=\"https://help.archive.org/hc/en-us/articles/360016554912-Borrowing-"
-"From-The-Lending-Library\">library</a>. Can you help donate a copy?"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"If you own this book, you can<a "
-"href=\"https://store.usps.com/store/product/shipping-supplies/priority-"
-"mail-express-padded-flat-rate-envelope-P_EP13PE\">mail</a> it to our "
-"address below."
-msgstr ""
-
-#: DonateModal.html
-msgid "You can also purchase this book from a vendor and ship it to our address:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Benefits of donating"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"When you donate a physical book to the Internet Archive, your book will "
-"enjoy:"
-msgstr ""
-
-#: DonateModal.html
-msgid "Donation info"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Beautiful <a target=\"_blank\" rel=\"noopener noreferrer\" "
-"href=\"https://archive.org/scanning\">high-fidelity digitization</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Long-term <a href=\"https://blog.archive.org/2011/06/06/why-preserve-"
-"books-the-new-physical-archive-of-the-internet-archive/\">archival "
-"preservation</a>"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Free <a href=\"https://controlleddigitallending.org/\">controlled digital"
-" library access</a> by the <a "
-"href=\"https://en.wikipedia.org/wiki/Print_disability\">print-"
-"disabled</a> public"
-msgstr ""
-
-#: DonateModal.html
-msgid ""
-"Open Library is a project of the <a "
-"href=\"https://archive.org/about\">Internet Archive</a>, a 501(c)(3) non-"
-"profit"
-msgstr ""
-
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
 
-#: EditButtons.html books/add.html type/tag/form.html
+#: EditButtons.html type/tag/form.html
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -656,8 +588,7 @@ msgid "Review what's changed from the previous revision"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/memory/index.html recentchanges/default/path.html
-#: recentchanges/updated_records.html
+#: recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
 msgstr ""
 
@@ -1184,6 +1115,10 @@ msgstr ""
 msgid "Chinese"
 msgstr ""
 
+#: openlibrary/plugins/openlibrary/code.py
+msgid "Filipino"
+msgstr ""
+
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
 msgstr ""
@@ -1571,7 +1506,7 @@ msgstr ""
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
-#: search/work_search_selected_facets.html
+#: search/work_search_selected_facets.html status.html
 msgid "Author"
 msgstr ""
 
@@ -1597,7 +1532,7 @@ msgstr ""
 msgid "Settings & Privacy"
 msgstr ""
 
-#: account.html
+#: account.html status.html
 msgid "or"
 msgstr ""
 
@@ -1821,6 +1756,14 @@ msgstr ""
 
 #: design.html
 msgid "Chip"
+msgstr ""
+
+#: design.html
+msgid "Chip Group"
+msgstr ""
+
+#: design.html
+msgid "Markdown Editor"
 msgstr ""
 
 #: design.html
@@ -2054,6 +1997,114 @@ msgstr ""
 msgid "Toggle me too"
 msgstr ""
 
+#: design.html
+msgid ""
+"The ol-chip-group component is a flex-wrap container that provides "
+"consistent spacing for groups of chips."
+msgstr ""
+
+#: design.html
+msgid "Default (medium gap)"
+msgstr ""
+
+#: design.html
+msgid "Chips are spaced with an 8px gap by default."
+msgstr ""
+
+#: design.html
+msgid "Small gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for tighter spacing (4px)."
+msgstr ""
+
+#: design.html
+msgid "Large gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for wider spacing (12px)."
+msgstr ""
+
+#: design.html
+msgid "Wrapping behavior"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chips automatically wrap to the next line when they exceed the container "
+"width."
+msgstr ""
+
+#: design.html
+msgid "Biography"
+msgstr ""
+
+#: design.html
+msgid "With mixed chip states"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chip groups work with any combination of chip sizes, states, and link "
+"chips."
+msgstr ""
+
+#: design.html
+msgid ""
+"The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that"
+" outputs Markdown. It syncs its content to a hidden target textarea."
+msgstr ""
+
+#: design.html
+msgid "Basic usage"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Provide a %(target_id)s pointing to an existing textarea. The editor "
+"reads initial content from the textarea and syncs changes back to it."
+msgstr ""
+
+#: design.html
+msgid "Mixed Markdown and HTML"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Add the %(attr)s attribute to expose the HTML block button in the "
+"toolbar. HTML blocks appear with a preview and an Edit button to modify "
+"the source."
+msgstr ""
+
+#: design.html
+msgid "Code blocks and inline code"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"Add the %(attr)s attribute to expose the inline code and code block "
+"buttons in the toolbar. Code support is off by default because only the "
+"wiki page renderer is guaranteed to render fenced code blocks."
+msgstr ""
+
+#: design.html
+msgid "Change event"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"The editor fires an %(event)s event on every change. The raw Markdown "
+"string is available in %(detail)s."
+msgstr ""
+
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -2076,7 +2127,7 @@ msgstr ""
 msgid "history"
 msgstr ""
 
-#: diff.html
+#: diff.html status.html
 msgid "Added"
 msgstr ""
 
@@ -2445,7 +2496,110 @@ msgid "Server status"
 msgstr ""
 
 #: status.html
-msgid "Staged"
+msgid "Testing Environment"
+msgstr ""
+
+#: status.html
+msgid "Deploy triggered!"
+msgstr ""
+
+#: status.html
+msgid "View Jenkins progress"
+msgstr ""
+
+#: status.html
+msgid "GitHub status refreshed."
+msgstr ""
+
+#: status.html
+msgid "PR numbers or URLs, space/comma separated"
+msgstr ""
+
+#: status.html
+msgid "Add PR(s)"
+msgstr ""
+
+#: status.html
+msgid "PR"
+msgstr ""
+
+#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: search/advancedsearch.html status.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
+msgid "Title"
+msgstr ""
+
+#: status.html
+msgid "Assignee"
+msgstr ""
+
+#: status.html
+msgid "Pinned Commit"
+msgstr ""
+
+#: status.html
+msgid "Branch HEAD"
+msgstr ""
+
+#: status.html
+msgid "Drift"
+msgstr ""
+
+#: status.html
+msgid "Enabled"
+msgstr ""
+
+#: status.html
+msgid "up to date"
+msgstr ""
+
+#: status.html
+msgid "unknown"
+msgstr ""
+
+#: status.html
+msgid "1 commit behind"
+msgstr ""
+
+#: status.html
+#, python-format
+msgid "%(count)s commits behind"
+msgstr ""
+
+#: admin/solr.html status.html
+msgid "Update"
+msgstr ""
+
+#: status.html
+msgid "Enable"
+msgstr ""
+
+#: status.html
+msgid "Disable"
+msgstr ""
+
+#: lists/lists.html status.html type/list/edit.html type/series/edit.html
+msgid "Remove"
+msgstr ""
+
+#: status.html
+msgid "Selected PRs"
+msgstr ""
+
+#: status.html
+msgid "Refresh"
+msgstr ""
+
+#: status.html
+msgid "Deploy"
+msgstr ""
+
+#: status.html
+msgid "No PRs in testing set."
+msgstr ""
+
+#: status.html
+msgid "Last Build Result"
 msgstr ""
 
 #: status.html
@@ -3521,6 +3675,52 @@ msgid ""
 "your inbox for a note from us."
 msgstr ""
 
+#: account/security/check_email.html
+msgid "Account Security Check — 2026-04-28T18Z"
+msgstr ""
+
+#: account/security/check_email.html
+msgid "Account Security Check"
+msgstr ""
+
+#: account/security/check_email.html
+msgid "Incident date: 2026-04-28T18Z"
+msgstr ""
+
+#: account/security/check_email.html
+msgid ""
+"Check whether your Open Library account was in a set of accounts "
+"requiring attention."
+msgstr ""
+
+#: account/security/check_email.html
+msgid ""
+"Please <a "
+"href=\"/account/login?redirect=/account/security/2026-04-28T18\">log "
+"in</a> to check whether your account was affected."
+msgstr ""
+
+#: account/security/check_email.html
+msgid "Your account is in the affected set."
+msgstr ""
+
+#: account/security/check_email.html
+msgid ""
+"Your account was found in our affected accounts list. Please review any "
+"recent communications from Open Library and consider updating your "
+"password."
+msgstr ""
+
+#: account/security/check_email.html
+msgid "Your account is <em>not</em> in the affected set."
+msgstr ""
+
+#: account/security/check_email.html
+msgid ""
+"Your account was <em>not</em> found in the affected accounts list. No "
+"action is required."
+msgstr ""
+
 #: account/verify/activated.html
 msgid "Account already activated"
 msgstr ""
@@ -4040,10 +4240,6 @@ msgstr ""
 msgid "Write one entry per line"
 msgstr ""
 
-#: admin/solr.html
-msgid "Update"
-msgstr ""
-
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
 msgstr ""
@@ -4266,30 +4462,6 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "Memory Status"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "type"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "count"
-msgstr ""
-
-#: admin/memory/index.html
-msgid "mark"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referents"
-msgstr ""
-
-#: admin/memory/object.html
-msgid "Referrers"
 msgstr ""
 
 #: admin/people/edits.html
@@ -4788,12 +4960,6 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
-#: search/advancedsearch.html type/about/edit.html type/page/edit.html
-#: type/template/edit.html
-msgid "Title"
-msgstr ""
-
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
@@ -4813,7 +4979,7 @@ msgstr ""
 msgid "Who is the publisher?"
 msgstr ""
 
-#: books/add.html
+#: books/add.html books/edit/edition.html
 msgid "For example:"
 msgstr ""
 
@@ -4877,6 +5043,20 @@ msgstr ""
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
+msgstr ""
+
+#: books/add.html
+#, python-format
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+
+#: books/add.html
+msgid "This link to Creative Commons will open in a new window"
 msgstr ""
 
 #: books/add.html
@@ -5443,7 +5623,7 @@ msgid "Anything about the book that may be of interest."
 msgstr ""
 
 #: books/edit/edition.html
-msgid "For example: <i>A Plume Book</i>"
+msgid "A Plume Book"
 msgstr ""
 
 #: books/edit/edition.html
@@ -5771,7 +5951,7 @@ msgid ""
 "remorse."
 msgstr ""
 
-#: bulk_search/bulk_search.html
+#: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
 msgstr ""
 
@@ -6852,10 +7032,6 @@ msgstr ""
 
 #: lists/lists.html
 msgid "Remove this seed?"
-msgstr ""
-
-#: lists/lists.html type/list/edit.html type/series/edit.html
-msgid "Remove"
 msgstr ""
 
 #: lists/lists.html

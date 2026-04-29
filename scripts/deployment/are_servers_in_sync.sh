@@ -1,10 +1,10 @@
 #!/bin/bash
 
 SERVER_SUFFIX=${SERVER_SUFFIX:-""}
-SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-www0"}
+SERVER_NAMES=${SERVERS:-"ol-home0 ol-covers0 ol-web0 ol-web1 ol-web2 ol-web3 ol-www0"}
 SERVERS=$(echo $SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
-POLICY_SERVER_NAMES="ol-home0 ol-web0 ol-web1 ol-web2"
+POLICY_SERVER_NAMES="ol-home0 ol-web0 ol-web1 ol-web2 ol-web3"
 POLICY_SERVERS=$(echo $POLICY_SERVER_NAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
 
 REPO_DIRS="/opt/olsystem"

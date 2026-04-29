@@ -3,9 +3,9 @@ from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Iterator
 
-re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_isbn = re.compile(r"([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?")
 # handle ISBN like: 1402563884c$26.95
-re_isbn_and_price = re.compile(r'^([-\d]+X?)c\$[\d.]+$')
+re_isbn_and_price = re.compile(r"^([-\d]+X?)c\$[\d.]+$")
 
 
 class MarcException(Exception):
@@ -60,7 +60,7 @@ class MarcFieldBase:
 class MarcBase:
     def read_isbn(self, f: MarcFieldBase) -> list[str]:
         found = []
-        for v in f.get_subfield_values('az'):
+        for v in f.get_subfield_values("az"):
             m = re_isbn_and_price.match(v)
             if not m:
                 m = re_isbn.match(v)
@@ -73,10 +73,10 @@ class MarcBase:
         control = self.read_fields([tag])
         _, v = next(control, (tag, None))
         assert isinstance(v, (str, type(None)))
-        if tag == '008' and v:  # noqa: SIM102
+        if tag == "008" and v:  # noqa: SIM102
             # Handle duplicate 008s, even though control fields are non-repeatable.
             if others := [str(d) for _, d in list(control) if len(str(d)) == 40]:
-                return min(others + [v], key=lambda s: s.count(' '))
+                return min(others + [v], key=lambda s: s.count(" "))
         return v
 
     def get_fields(self, tag: str) -> list[MarcFieldBase]:
@@ -93,10 +93,10 @@ class MarcBase:
         :rtype: MarcFieldBase | None
         :return: alternate script field (880) corresponding to original, or None
         """
-        linkages = self.read_fields(['880'])
-        target = link.replace('880', original)
+        linkages = self.read_fields(["880"])
+        target = link.replace("880", original)
         for tag, f in linkages:
             assert isinstance(f, MarcFieldBase)
-            if f.get_subfield_values('6')[0].startswith(target):
+            if f.get_subfield_values("6")[0].startswith(target):
                 return f
         return None

@@ -17,14 +17,14 @@ from openlibrary.utils.solr import Solr
 
 
 def to_json(d):
-    web.header('Content-Type', 'application/json')
+    web.header("Content-Type", "application/json")
     return delegate.RawText(json.dumps(d))
 
 
 class autocomplete(delegate.page):
     path = "/_autocomplete"
-    fq: tuple[str, ...] = ('-type:edition',)
-    fl = 'key,type,name,title,score'
+    fq: tuple[str, ...] = ("-type:edition",)
+    fl = "key,type,name,title,score"
     olid_suffix: str | None = None
     sort: str | None = None
     query = 'title:"{q}"^2 OR title:({q}*) OR name:"{q}"^2 OR name:({q}*)'
@@ -37,8 +37,8 @@ class autocomplete(delegate.page):
 
     def doc_wrap(self, doc: dict):
         """Modify the returned solr document in place."""
-        if 'name' not in doc:
-            doc['name'] = doc.get('title')
+        if "name" not in doc:
+            doc["name"] = doc.get("title")
 
     def doc_filter(self, doc: dict) -> bool:
         """Exclude certain documents"""
@@ -67,16 +67,16 @@ class autocomplete(delegate.page):
 
         fq = fq or self.fq
         params = {
-            'q_op': 'AND',
-            'rows': i.limit,
-            **({'fq': fq} if fq else {}),
+            "q_op": "AND",
+            "rows": i.limit,
+            **({"fq": fq} if fq else {}),
             # limit the fields returned for better performance
-            'fl': self.fl,
-            **({'sort': self.sort} if self.sort else {}),
+            "fl": self.fl,
+            **({"sort": self.sort} if self.sort else {}),
         }
 
         data = get_solr().select(solr_q, **params)
-        docs = data['docs']
+        docs = data["docs"]
 
         if embedded_olid and not docs:
             # Grumble! Work not in solr yet. Create a dummy.
@@ -100,51 +100,49 @@ class languages_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
         web.header("Cache-Control", "max-age=%d" % (24 * 3600))
-        return to_json(
-            list(itertools.islice(utils.autocomplete_languages(i.q), i.limit))
-        )
+        return to_json(list(itertools.islice(utils.autocomplete_languages(i.q), i.limit)))
 
 
 class works_autocomplete(autocomplete):
     path = "/works/_autocomplete"
-    fq = ('type:work',)
-    fl = 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count'
-    olid_suffix = 'W'
+    fq = ("type:work",)
+    fl = "key,title,subtitle,cover_i,first_publish_year,author_name,edition_count"
+    olid_suffix = "W"
     query = 'title:"{q}"^2 OR title:({q}*)'
 
     def doc_filter(self, doc: dict) -> bool:
         # Exclude orphaned editions from autocomplete results
         # Note: Do this here instead of with an `fq=key:*W` for performance
         # reasons.
-        return doc['key'][-1] == 'W'
+        return doc["key"][-1] == "W"
 
     def doc_wrap(self, doc: dict):
-        doc['full_title'] = doc['title']
-        if 'subtitle' in doc:
-            doc['full_title'] += ": " + doc['subtitle']
-        doc['name'] = doc.get('title')
+        doc["full_title"] = doc["title"]
+        if "subtitle" in doc:
+            doc["full_title"] += ": " + doc["subtitle"]
+        doc["name"] = doc.get("title")
 
 
 class authors_autocomplete(autocomplete):
     path = "/authors/_autocomplete"
-    fq = ('type:author',)
-    fl = 'key,name,alternate_names,birth_date,death_date,work_count,top_work,top_subjects'
-    olid_suffix = 'A'
+    fq = ("type:author",)
+    fl = "key,name,alternate_names,birth_date,death_date,work_count,top_work,top_subjects"
+    olid_suffix = "A"
     query = 'name:({q}*) OR alternate_names:({q}*) OR name:"{q}"^2 OR alternate_names:"{q}"^2'
 
     def doc_wrap(self, doc: dict):
-        if 'top_work' in doc:
-            doc['works'] = [doc.pop('top_work')]
+        if "top_work" in doc:
+            doc["works"] = [doc.pop("top_work")]
         else:
-            doc['works'] = []
-        doc['subjects'] = doc.pop('top_subjects', [])
+            doc["works"] = []
+        doc["subjects"] = doc.pop("top_subjects", [])
 
 
 class series_autocomplete(autocomplete):
     path = "/series/_autocomplete"
-    fq = ('type:series',)
-    fl = 'key,name'
-    olid_suffix = 'L'
+    fq = ("type:series",)
+    fl = "key,name"
+    olid_suffix = "L"
     query = 'name:({q}*) OR name:"{q}"^2'
 
     def olid_to_key(self, olid: str) -> str:
@@ -159,16 +157,16 @@ class series_autocomplete(autocomplete):
 class subjects_autocomplete(autocomplete):
     # can't use /subjects/_autocomplete because the subjects endpoint = /subjects/[^/]+
     path = "/subjects_autocomplete"
-    fq = ('type:subject',)
-    fl = 'key,name,work_count'
-    query = 'name:({q}*)'
-    sort = 'work_count desc'
+    fq = ("type:subject",)
+    fl = "key,name,work_count"
+    query = "name:({q}*)"
+    sort = "work_count desc"
 
     def GET(self):
         i = web.input(type="")
         fq = self.fq
         if i.type:
-            fq = fq + (f'subject_type:{i.type}',)
+            fq = fq + (f"subject_type:{i.type}",)
 
         return super().direct_get(fq=fq)
 

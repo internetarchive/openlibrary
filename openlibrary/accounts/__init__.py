@@ -37,7 +37,7 @@ class RunAs:
         self.calling_user_auth_token = None
 
         if not self.tmp_account:
-            raise KeyError('Invalid username')
+            raise KeyError("Invalid username")
 
     def __enter__(self):
         # Save token of currently logged in user (or no-user)
@@ -76,37 +76,33 @@ def get_days_registered(user) -> str:
       d90+     — 90+ days (also the safe fallback on any error)
     """
     if not user:
-        return 'visitor'
+        return "visitor"
     try:
         reg_date = user.created.date()
         days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
     except (AttributeError, TypeError):
         # If the date is incorrectly encoded, assume the patron
         # registered a long time ago before we had this set up.
-        return 'd90+'
+        return "d90+"
     if days <= 0:
-        return 'd0'
+        return "d0"
     elif days < 7:
-        return 'd1+'
+        return "d1+"
     elif days < 14:
-        return 'd7+'
+        return "d7+"
     elif days < 30:
-        return 'd14+'
+        return "d14+"
     elif days < 90:
-        return 'd30+'
-    return 'd90+'
+        return "d30+"
+    return "d90+"
 
 
-def find(
-    username: str | None = None, lusername: str | None = None, email: str | None = None
-) -> Account | None:
+def find(username: str | None = None, lusername: str | None = None, email: str | None = None) -> Account | None:
     """Finds an account by username, email or lowercase username."""
 
     def query(name, value):
         try:
-            return web.ctx.site.store.values(
-                type="account", name=name, value=value, limit=1
-            )[0]
+            return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
         except IndexError:
             return None
 
@@ -122,10 +118,8 @@ def find(
         #
         # There are accounts with case-variation of emails. To handle those,
         # searching with the original case and using lower case if that fails.
-        email_doc = web.ctx.site.store.get(
-            "account-email/" + email
-        ) or web.ctx.site.store.get("account-email/" + email.lower())
-        doc = email_doc and web.ctx.site.store.get("account/" + email_doc['username'])
+        email_doc = web.ctx.site.store.get("account-email/" + email) or web.ctx.site.store.get("account-email/" + email.lower())
+        doc = email_doc and web.ctx.site.store.get("account/" + email_doc["username"])
     else:
         doc = None
 
@@ -133,9 +127,7 @@ def find(
 
 
 def register(username, email, password, displayname):
-    web.ctx.site.register(
-        username=username, email=email, password=password, displayname=displayname
-    )
+    web.ctx.site.register(username=username, email=email, password=password, displayname=displayname)
 
 
 def login(username, password):

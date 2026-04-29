@@ -26,7 +26,7 @@ class AttributeList(dict):
         return " ".join(f'{k}="{web.websafe(v)}"' for k, v in self.items())
 
     def __repr__(self):
-        return '<attrs: %s>' % repr(str(self))
+        return "<attrs: %s>" % repr(str(self))
 
 
 class Input:
@@ -34,16 +34,16 @@ class Input:
         self.name = name
         self.description = description or ""
         self.value = value
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
 
-        self.help = kw.pop('help', None)
-        self.note = kw.pop('note', None)
+        self.help = kw.pop("help", None)
+        self.note = kw.pop("note", None)
 
-        self.id = kw.pop('id', name)
+        self.id = kw.pop("id", name)
         self.__dict__.update(kw)
 
-        if 'klass' in kw:
-            kw['class'] = kw.pop('klass')
+        if "klass" in kw:
+            kw["class"] = kw.pop("klass")
 
         self.attrs = AttributeList(kw)
 
@@ -55,12 +55,12 @@ class Input:
 
     def render(self):
         attrs = self.attrs.copy()
-        attrs['id'] = self.id
-        attrs['type'] = self.get_type()
-        attrs['name'] = self.name
-        attrs['value'] = self.value or ''
+        attrs["id"] = self.id
+        attrs["type"] = self.get_type()
+        attrs["name"] = self.name
+        attrs["value"] = self.value or ""
 
-        return '<input ' + str(attrs) + ' />'
+        return "<input " + str(attrs) + " />"
 
     def validate(self, value):
         self.value = value
@@ -122,7 +122,7 @@ class Hidden(Input):
 class Form:
     def __init__(self, *inputs, **kw):
         self.inputs = inputs
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
         self.note = None
 
     def __call__(self):
@@ -139,7 +139,7 @@ class Form:
 
     def __getattr__(self, name):
         # don't interfere with deepcopy
-        inputs = self.__dict__.get('inputs') or []
+        inputs = self.__dict__.get("inputs") or []
         for x in inputs:
             if x.name == name:
                 return x

@@ -63,7 +63,7 @@ describe('createActiveShowcaseItem() tests', () => {
         const listKey = '/people/openlibrary/lists/OL1L';
         const seedKey = '/books/OL3421846M';
         const listTitle = 'My First List';
-        const coverUrl = '/images/icons/avatar_book-sm.png';
+        const coverUrl = '/static/images/icons/avatar_book-sm.png';
 
         const li = createActiveShowcaseItem(listKey, seedKey, listTitle, coverUrl);
         const anchors = li.querySelectorAll('a');
@@ -97,7 +97,7 @@ describe('createActiveShowcaseItem() tests', () => {
     test('createActiveShowcaseItem() sets the correct seed type', () => {
         const listKey = '/people/openlibrary/lists/OL1L';
         const listTitle = 'My First List';
-        const coverUrl = '/images/icons/avatar_book-sm.png';
+        const coverUrl = '/static/images/icons/avatar_book-sm.png';
 
         const editionKey = '/books/OL3421846M';
         const workKey = '/works/OL54120W';
@@ -130,7 +130,7 @@ describe('createActiveShowcaseItem() tests', () => {
         const li = createActiveShowcaseItem(listKey, seedKey, listTitle);
         const coverImage = li.querySelector('img');
 
-        const expectedCoverUrl = '/images/icons/avatar_book-sm.png';
+        const expectedCoverUrl = '/static/images/icons/avatar_book-sm.png';
         expect(coverImage.src.endsWith(expectedCoverUrl)).toBe(true);
     });
 });

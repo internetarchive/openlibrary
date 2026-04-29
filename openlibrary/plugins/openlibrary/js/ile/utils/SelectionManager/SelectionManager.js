@@ -383,22 +383,22 @@ SelectionManager.TYPES = [
         image: olid => {
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
-                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`
             else
-                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`
         },
     },
     {
         singular: 'edition',
         plural: 'editions',
         regex: /OL\d+M/,
-        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`,
+        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`,
     },
     {
         singular: 'author',
         plural: 'authors',
         regex: /OL\d+A/,
-        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_author-lg.png`,
+        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
     }
 ]
 

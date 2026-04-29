@@ -32,36 +32,6 @@ repos:
     hooks:
       - id: auto-walrus
 
-  - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
-    hooks:
-      - id: sqlfluff-lint
-        args: [--dialect, postgres]
-        files: \.sql$
-        # Rule exclusions and their rationale are documented in pyproject.toml
-        # under [tool.sqlfluff.core].
-        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
-        # values and \N nulls which sqlfluff cannot parse.
-        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
-        # command which sqlfluff cannot parse.
-        # See: https://github.com/internetarchive/openlibrary/issues/12245
-        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$
-
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.9
-    hooks:
-      - id: ruff-check
-        args: [ --fix ]
-      - id: ruff-format
-        files: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
-    hooks:
-      - id: black  # See pyproject.toml for args
-        exclude: ^openlibrary/(fastapi/|(actions|api|app|asgi_app|code|config|conftest).py$|plugins/openlibrary/(api|lists).py)|tests/
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.2
     hooks:
@@ -69,6 +39,62 @@ repos:
         additional_dependencies:
           - tomli
         args: ["--skip", "*.mjs"]
+        exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.25
+    hooks:
+      - id: validate-pyproject
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.9
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
+        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
+        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
+        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
+        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
+        # so the leading | on each line works correctly as an alternation operator.
+        exclude: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+          )$
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.3.1
+    hooks:
+      - id: black  # See pyproject.toml for args
+        # Complement to ruff-format above: black runs ONLY on files in active open PRs
+        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
+        files: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/catalog/add_book/__init__\.py
+            |openlibrary/core/models\.py
+            |openlibrary/core/vendors\.py
+            |openlibrary/fastapi/search\.py
+            |openlibrary/plugins/admin/code\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/upstream/utils\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+          )$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.19.0
@@ -87,10 +113,16 @@ repos:
           - types-simplejson
           - fastapi
 
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.25
+  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
+    rev: 0.0.2
     hooks:
-      - id: validate-pyproject
+      - id: stylelint
+        files: \.css$
+        additional_dependencies:
+          - stylelint@16.22.0
+          - stylelint-declaration-strict-value@1.11.1
+          - stylelint-prettier@5.0.3
+        args: [--fix]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v9.9.1
@@ -108,17 +140,6 @@ repos:
           - "@babel/core@7.24.7"
           - "@babel/preset-env@7.24.7"
         args: [--fix]
-
-  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
-    rev: 0.0.2
-    hooks:
-    - id: stylelint
-      files: \.css$
-      additional_dependencies:
-        - stylelint@16.22.0
-        - stylelint-declaration-strict-value@1.11.1
-        - stylelint-prettier@5.0.3
-      args: [--fix]
 
   - repo: local
     hooks:
@@ -146,5 +167,19 @@ repos:
       entry: python ./scripts/detect_missing_i18n.py
       types: [html]
       language: python
-      verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.1.0
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+        files: \.sql$
+        # Rule exclusions and their rationale are documented in pyproject.toml
+        # under [tool.sqlfluff.core].
+        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
+        # values and \N nulls which sqlfluff cannot parse.
+        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
+        # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$

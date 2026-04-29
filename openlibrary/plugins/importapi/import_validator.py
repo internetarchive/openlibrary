@@ -35,14 +35,11 @@ class CompleteBook(BaseModel):
     publishers: NonEmptyList[NonEmptyStr]
     publish_date: NonEmptyStr
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def remove_invalid_dates(cls, values):
         """Remove known bad dates prior to validation."""
-        is_exempt = any(
-            source_record.split(":")[0] in SUSPECT_DATE_EXEMPT_SOURCES
-            for source_record in values.get("source_records", [])
-        )
+        is_exempt = any(source_record.split(":")[0] in SUSPECT_DATE_EXEMPT_SOURCES for source_record in values.get("source_records", []))
         if is_exempt:
             return values
 
@@ -51,7 +48,7 @@ class CompleteBook(BaseModel):
 
         return values
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def remove_invalid_authors(cls, values):
         """Remove known bad authors (e.g. an author of "N/A") prior to validation."""
@@ -61,9 +58,7 @@ class CompleteBook(BaseModel):
         maybe_valid_authors = [
             author
             for author in authors
-            if isinstance(author, dict)
-            and isinstance(author.get("name"), str)
-            and author["name"].lower() not in SUSPECT_AUTHOR_NAMES
+            if isinstance(author, dict) and isinstance(author.get("name"), str) and author["name"].lower() not in SUSPECT_AUTHOR_NAMES
         ]
         values["authors"] = maybe_valid_authors
 
@@ -86,9 +81,7 @@ class StrongIdentifierBook(BaseModel):
     @model_validator(mode="after")
     def at_least_one_valid_strong_identifier(self):
         if not any([self.isbn_10, self.isbn_13, self.lccn]):
-            raise ValueError(
-                f"At least one of the following must be provided: {', '.join(STRONG_IDENTIFIERS)}"
-            )
+            raise ValueError(f"At least one of the following must be provided: {', '.join(STRONG_IDENTIFIERS)}")
 
         return self
 

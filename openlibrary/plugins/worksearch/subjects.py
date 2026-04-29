@@ -23,7 +23,7 @@ MAX_RESULTS = 1000
 
 
 class subjects(delegate.page):
-    path = '(/subjects/[^/]+)'
+    path = "(/subjects/[^/]+)"
 
     def GET(self, key):
         if (nkey := self.normalize_key(key)) != key:
@@ -34,15 +34,15 @@ class subjects(delegate.page):
         subj = get_subject(
             key,
             details=True,
-            filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
-            sort=web.input(sort='readinglog').sort,
-            request_label='SUBJECT_ENGINE_PAGE',
+            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+            sort=web.input(sort="readinglog").sort,
+            request_label="SUBJECT_ENGINE_PAGE",
         )
 
-        delegate.context.setdefault('cssfile', 'subject')
+        delegate.context.setdefault("cssfile", "subject")
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
-            page = render_template('subjects/notfound.tmpl', key)
+            page = render_template("subjects/notfound.tmpl", key)
         else:
             self.decorate_with_tags(subj)
             page = render_template("subjects", page=subj)
@@ -64,32 +64,26 @@ class subjects(delegate.page):
             tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-            if filtered_tags := [
-                tag for tag in tags if tag.tag_type == subject.subject_type
-            ]:
+            if filtered_tags := [tag for tag in tags if tag.tag_type == subject.subject_type]:
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
 
             for tag in subject.disambiguations:
-                tag.subject_key = (
-                    f"/subjects/{tag.name}"
-                    if tag.tag_type == "subject"
-                    else f"/subjects/{tag.tag_type}:{tag.name}"
-                )
+                tag.subject_key = f"/subjects/{tag.name}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{tag.name}"
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
     if published_in:
-        if '-' in published_in:
-            begin, end = published_in.split('-', 1)
+        if "-" in published_in:
+            begin, end = published_in.split("-", 1)
             if safeint(begin, None) is not None and safeint(end, None) is not None:
-                return f'[{begin} TO {end}]'
+                return f"[{begin} TO {end}]"
         else:
             year = safeint(published_in, None)
             if year is not None:
                 return published_in
-    return ''
+    return ""
 
 
 SubjectPseudoKey = str
@@ -104,9 +98,9 @@ async def get_subject_async(
     key: SubjectPseudoKey,
     details=False,
     offset=0,
-    sort='editions',
+    sort="editions",
     limit=DEFAULT_RESULTS,
-    request_label: SolrRequestLabel = 'UNLABELLED',
+    request_label: SolrRequestLabel = "UNLABELLED",
     **filters,
 ) -> Subject:
     """Returns data related to a subject.
@@ -197,8 +191,8 @@ class SubjectEngine:
         details=False,
         offset=0,
         limit=DEFAULT_RESULTS,
-        sort='new',
-        request_label: SolrRequestLabel = 'UNLABELLED',
+        sort="new",
+        request_label: SolrRequestLabel = "UNLABELLED",
         **filters,
     ):
         # Circular imports are everywhere -_-
@@ -212,13 +206,13 @@ class SubjectEngine:
         name = path.replace("_", " ")
 
         unescaped_filters = {}
-        if 'publish_year' in filters:
+        if "publish_year" in filters:
             # Don't want this escaped or used in fq for perf reasons
-            unescaped_filters['publish_year'] = filters.pop('publish_year')
+            unescaped_filters["publish_year"] = filters.pop("publish_year")
         result = await run_solr_query_async(
             WorkSearchScheme(),
             {
-                'q': query_dict_to_str(
+                "q": query_dict_to_str(
                     {self.facet_key: self.normalize_key(path)},
                     unescaped=unescaped_filters,
                     phrase=True,
@@ -261,12 +255,12 @@ class SubjectEngine:
                 ]
             ),
             extra_params=[
-                ('facet.mincount', 1),
-                ('facet.limit', 25),
+                ("facet.mincount", 1),
+                ("facet.limit", 25),
             ],
             allowed_filter_params={
-                'has_fulltext',
-                'publish_year',
+                "has_fulltext",
+                "publish_year",
             },
         )
 
@@ -284,10 +278,7 @@ class SubjectEngine:
 
         if details:
             result.facet_counts = {
-                facet_field: [
-                    self.facet_wrapper(facet_field, key, label, count)
-                    for key, label, count in facet_counts
-                ]
+                facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()
             }
 
@@ -309,7 +300,7 @@ class SubjectEngine:
 
             subject.authors = result.facet_counts["author_key"]
             subject.publishers = result.facet_counts["publisher_facet"]
-            subject.languages = result.facet_counts['language']
+            subject.languages = result.facet_counts["language"]
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
@@ -339,9 +330,7 @@ class SubjectEngine:
         if facet == "publish_year":
             return [int(value), count]
         elif facet == "publisher_facet":
-            return web.storage(
-                name=value, count=count, key="/publishers/" + value.replace(" ", "_")
-            )
+            return web.storage(name=value, count=count, key="/publishers/" + value.replace(" ", "_"))
         elif facet == "author_key":
             return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
@@ -364,26 +353,23 @@ class SubjectEngine:
         These docs are weird :/ We should be using more standardized results
         across our search APIs, but that would be a big breaking change.
         """
-        ia_collection = w.get('ia_collection') or []
+        ia_collection = w.get("ia_collection") or []
         return web.storage(
-            key=w['key'],
+            key=w["key"],
             title=w["title"],
             edition_count=w["edition_count"],
-            cover_id=w.get('cover_i'),
-            cover_edition_key=w.get('cover_edition_key'),
-            subject=w.get('subject', []),
+            cover_id=w.get("cover_i"),
+            cover_edition_key=w.get("cover_edition_key"),
+            subject=w.get("subject", []),
             ia_collection=ia_collection,
-            printdisabled='printdisabled' in ia_collection,
-            lending_edition=w.get('lending_edition_s', ''),
-            lending_identifier=w.get('lending_identifier_s', ''),
-            authors=[
-                web.storage(key=f'/authors/{olid}', name=name)
-                for olid, name in zip(w.get('author_key', []), w.get('author_name', []))
-            ],
-            first_publish_year=w.get('first_publish_year'),
-            ia=w.get('ia', [None])[0],
-            public_scan=w.get('public_scan_b', bool(w.get('ia'))),
-            has_fulltext=w.get('has_fulltext', False),
+            printdisabled="printdisabled" in ia_collection,
+            lending_edition=w.get("lending_edition_s", ""),
+            lending_identifier=w.get("lending_identifier_s", ""),
+            authors=[web.storage(key=f"/authors/{olid}", name=name) for olid, name in zip(w.get("author_key", []), w.get("author_name", []))],
+            first_publish_year=w.get("first_publish_year"),
+            ia=w.get("ia", [None])[0],
+            public_scan=w.get("public_scan_b", bool(w.get("ia"))),
+            has_fulltext=w.get("has_fulltext", False),
         )
 
 

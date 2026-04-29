@@ -27,19 +27,15 @@ class GraphiteEvent:
         GraphiteEvent.submit_many([self], graphite_address)
 
     @staticmethod
-    def submit_many(
-        events: list['GraphiteEvent'], graphite_address: str | tuple[str, int]
-    ):
+    def submit_many(events: list["GraphiteEvent"], graphite_address: str | tuple[str, int]):
         if isinstance(graphite_address, str):
-            graphite_host, graphite_port = cast(
-                tuple[str, str], tuple(graphite_address.split(':', 1))
-            )
+            graphite_host, graphite_port = cast(tuple[str, str], tuple(graphite_address.split(":", 1)))
             graphite_address_tuple = (graphite_host, int(graphite_port))
         else:
             graphite_address_tuple = graphite_address
 
         payload = pickle.dumps([event.serialize() for event in events], protocol=2)
-        header = struct.pack('!L', len(payload))
+        header = struct.pack("!L", len(payload))
         message = header + payload
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -51,17 +47,10 @@ def bash_run(cmd: str, sources: list[str | Path] | None = None, capture_output=F
     if not sources:
         sources = []
 
-    source_paths = [
-        (
-            os.path.join("scripts", "monitoring", source)
-            if not os.path.isabs(source)
-            else source
-        )
-        for source in sources
-    ]
+    source_paths = [(os.path.join("scripts", "monitoring", source) if not os.path.isabs(source) else source) for source in sources]
     bash_command = "\n".join(
         (
-            'set -e',
+            "set -e",
             *(f'source "{path}"' for path in source_paths),
             cmd,
         )

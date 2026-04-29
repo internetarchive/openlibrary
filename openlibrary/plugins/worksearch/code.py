@@ -38,7 +38,6 @@ from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
-    has_solr_editions_enabled,
 )
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
@@ -189,9 +188,6 @@ async def execute_solr_query_async(
 
 
 execute_solr_query = async_bridge.wrap(execute_solr_query_async)
-
-# Expose this publicly
-public(has_solr_editions_enabled)
 
 
 @public
@@ -819,6 +815,7 @@ class search(delegate.page):
             search_response = SearchResponse(
                 facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
             )
+
         return render.work_search(
             ' '.join(q_list),
             search_response,
@@ -826,6 +823,7 @@ class search(delegate.page):
             param,
             page,
             rows,
+            has_solr_editions_enabled=req_context.get().solr_editions,
         )
 
 

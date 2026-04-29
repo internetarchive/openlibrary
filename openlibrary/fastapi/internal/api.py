@@ -9,9 +9,9 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import os
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Form, Path, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.core import lending, models
@@ -25,6 +25,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.plugins.openlibrary.api import get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -269,8 +270,39 @@ async def author_works():
     pass
 
 
-async def price_api():
-    pass
+class PriceResponse(BaseModel):
+    """Response model for the /prices.json endpoint."""
+
+    amazon: dict[str, Any] = Field(default_factory=dict, description="Amazon pricing data")
+    betterworldbooks: dict[str, Any] = Field(default_factory=dict, description="BetterWorldBooks pricing data")
+    key: str | None = Field(None, description="Open Library edition key, if found")
+    ocaid: str | None = Field(None, description="Internet Archive OCAID, if available")
+    error: str | None = Field(None, description="Error message if request is invalid")
+
+    model_config = {"extra": "allow"}
+
+
+@router.get(
+    "/prices.json",
+    response_model=PriceResponse,
+    response_model_exclude_none=True,
+    description="Returns pricing data for a book from Amazon and BetterWorldBooks.",
+)
+async def price_api(
+    isbn: Annotated[str | None, Query(description="ISBN-10 or ISBN-13", min_length=10, max_length=13)] = None,
+    asin: Annotated[str | None, Query(description="Amazon ASIN", min_length=10, max_length=10)] = None,
+) -> dict:
+    """
+    Returns pricing metadata from Amazon and BetterWorldBooks for a given book.
+    Requires either an `isbn` or `asin` query parameter.
+    """
+    if not (isbn or asin):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="isbn or asin required",
+        )
+
+    return await get_price_data_async(isbn or "", asin or "")
 
 
 async def patrons_follows_json():

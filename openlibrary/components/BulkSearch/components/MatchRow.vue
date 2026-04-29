@@ -26,10 +26,10 @@
 </template>
 
 <script>
-import { BulkSearchState, BookMatch } from '../utils/classes.js'
-import { buildSearchUrl } from '../utils/searchUtils.js'
-import BookCard from './BookCard.vue'
-import NoBookCard from './NoBookCard.vue'
+import { BulkSearchState, BookMatch } from '../utils/classes.js';
+import { buildSearchUrl } from '../utils/searchUtils.js';
+import BookCard from './BookCard.vue';
+import NoBookCard from './NoBookCard.vue';
 export default {
     components: {
         BookCard, NoBookCard
@@ -42,10 +42,10 @@ export default {
     },
     computed: {
         searchUrl() {
-            return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false)
+            return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false);
         }
     }
-}
+};
 </script>
 
 <style>

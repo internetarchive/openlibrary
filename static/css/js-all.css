@@ -22,7 +22,6 @@
 /* Remove items from list */
 @import "components/ui-dialog.css";
 
-@import "components/wmd-prompt-dialog--js.css";
 @import "legacy-jquery-ui.css";
 
 /* openlibrary/plugins/openlibrary/js/subjects.js */

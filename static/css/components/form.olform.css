@@ -22,7 +22,7 @@
 }
 
 .olform .label {
-  padding: 10px 0 2px;
+  padding: 10px 0 var(--spacing-stack-xs);
 }
 
 .olform .label label {

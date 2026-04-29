@@ -20,11 +20,11 @@ def make_date_string(year: int, month: int | None, day: int | None) -> str:
     "YYYY-MM"
     "YYYY-MM-DD"
     """
-    result = f'{year}'
+    result = f"{year}"
     if month:
-        result += f'-{month:02}'
+        result += f"-{month:02}"
         if day:
-            result += f'-{day:02}'
+            result += f"-{day:02}"
     return result
 
 
@@ -48,20 +48,18 @@ def get_latest_read_date(work_olid: str) -> dict | None:
     if not user:
         return None
 
-    username = user['key'].split('/')[-1]
+    username = user["key"].split("/")[-1]
 
     work_id = extract_numeric_id_from_olid(work_olid)
 
-    result = BookshelvesEvents.get_latest_event_date(
-        username, work_id, BookshelfEvent.FINISH
-    )
+    result = BookshelvesEvents.get_latest_event_date(username, work_id, BookshelfEvent.FINISH)
     return result
 
 
 @deprecated("migrated to fastapi")
 class patron_check_ins(delegate.page):
-    path = r'/works/OL(\d+)W/check-ins'
-    encoding = 'json'
+    path = r"/works/OL(\d+)W/check-ins"
+    encoding = "json"
 
     def POST(self, work_id):
         """Validates data, constructs date string, and persists check-in event.
@@ -76,79 +74,67 @@ class patron_check_ins(delegate.page):
         """
         user = get_current_user()
         if not user:
-            raise web.HTTPError(
-                "401 Unauthorized", headers={"Content-Type": "application/json"}
-            )
+            raise web.HTTPError("401 Unauthorized", headers={"Content-Type": "application/json"})
 
         data = json.loads(web.data())
         if not self.validate_data(data):
-            raise web.HTTPError(
-                "400 Bad Request", headers={"Content-Type": "application/json"}
-            )
+            raise web.HTTPError("400 Bad Request", headers={"Content-Type": "application/json"})
 
-        username = user['key'].split('/')[-1]
+        username = user["key"].split("/")[-1]
 
-        edition_key = data.get('edition_key', None)
+        edition_key = data.get("edition_key", None)
         edition_id = extract_numeric_id_from_olid(edition_key) if edition_key else None
 
-        event_type = data.get('event_type')
+        event_type = data.get("event_type")
 
         date_str = make_date_string(
-            data.get('year', None),
-            data.get('month', None),
-            data.get('day', None),
+            data.get("year", None),
+            data.get("month", None),
+            data.get("day", None),
         )
 
-        event_id = data.get('event_id', None)
+        event_id = data.get("event_id", None)
 
         if event_id:
             # update existing event
             events = BookshelvesEvents.select_by_id(event_id)
             if not events:
-                raise web.HTTPError(
-                    "404 Not Found", headers={"Content-Type": "application/json"}
-                )
+                raise web.HTTPError("404 Not Found", headers={"Content-Type": "application/json"})
 
             event = events[0]
-            if username != event['username']:
-                raise web.HTTPError(
-                    "403 Forbidden", headers={"Content-Type": "application/json"}
-                )
+            if username != event["username"]:
+                raise web.HTTPError("403 Forbidden", headers={"Content-Type": "application/json"})
 
-            BookshelvesEvents.update_event(
-                event_id, event_date=date_str, edition_id=edition_id
-            )
+            BookshelvesEvents.update_event(event_id, event_date=date_str, edition_id=edition_id)
         else:
             # create new event
-            result = BookshelvesEvents.create_event(
-                username, work_id, edition_id, date_str, event_type=event_type
-            )
+            result = BookshelvesEvents.create_event(username, work_id, edition_id, date_str, event_type=event_type)
 
             event_id = result
 
-        return delegate.RawText(json.dumps({'status': 'ok', 'id': event_id}))
+        return delegate.RawText(json.dumps({"status": "ok", "id": event_id}))
 
     def validate_data(self, data):
         """Validates data submitted from check-in dialog."""
 
         # Event type must exist:
-        if 'event_type' not in data:
+        if "event_type" not in data:
             return False
 
-        if not BookshelfEvent.has_value(data.get('event_type')):
+        if not BookshelfEvent.has_value(data.get("event_type")):
             return False
 
         # Date must be valid:
         return is_valid_date(
-            data.get('year', None),
-            data.get('month', None),
-            data.get('day', None),
+            data.get("year", None),
+            data.get("month", None),
+            data.get("day", None),
         )
 
 
 @deprecated("migrated to fastapi")
 class patron_check_in(delegate.page):
-    path = r'/check-ins/(\d+)'
+    path = r"/check-ins/(\d+)"
 
     def DELETE(self, check_in_id):
         user = get_current_user()
@@ -157,11 +143,11 @@ class patron_check_in(delegate.page):
 
         events = BookshelvesEvents.select_by_id(check_in_id)
         if not events:
-            raise web.notfound(message='Event does not exist')
+            raise web.notfound(message="Event does not exist")
 
         event = events[0]
-        username = user['key'].split('/')[-1]
-        if username != event['username']:
+        username = user["key"].split("/")[-1]
+        if username != event["username"]:
             raise web.forbidden()
 
         BookshelvesEvents.delete_by_id(check_in_id)

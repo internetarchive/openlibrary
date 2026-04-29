@@ -44,7 +44,7 @@ $ blur_cover = "fsi__bookcover-img-blur" if blur else ""
 <div class="fsi" itemscope itemtype="https://schema.org/Book" $:attrs>
   <div class="fsi__main">
     <span class="fsi__book-cover">
-      $ cover = get_cover_url(selected_ed) or "/images/icons/avatar_book-sm.png"
+      $ cover = get_cover_url(selected_ed) or "/static/images/icons/avatar_book-sm.png"
       <a data-ol-link-track="SearchInsideSuggestion|BookClick" href="$work_edition_url">
         <img class="fsi__book-cover-img $blur_cover"
               itemprop="image"

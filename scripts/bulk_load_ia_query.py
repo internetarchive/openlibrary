@@ -24,9 +24,7 @@ from infogami import config
 from openlibrary.config import load_config
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
-spec = importlib.util.spec_from_file_location(
-    "openlibrary", "scripts/manage-imports.py"
-)
+spec = importlib.util.spec_from_file_location("openlibrary", "scripts/manage-imports.py")
 assert spec
 importer = importlib.util.module_from_spec(spec)
 assert spec.loader
@@ -45,7 +43,7 @@ REQUIRED_FIELDS = [
 ]
 SPECIAL_CASES = ["(-title:*report OR -isbn:*)", '-publisher:"[n.p.]"']
 EXCLUDE_TITLES = [
-    ' OR '.join(  # noqa: FLY002
+    " OR ".join(  # noqa: FLY002
         [
             "annals",
             "proceeding",
@@ -67,7 +65,7 @@ EXCLUDE_TITLES = [
 ]
 
 EXCLUDE_COMPLEX_TITLES = [
-    ' AND '.join(
+    " AND ".join(
         [
             f"-title:{t}"
             for t in [
@@ -151,7 +149,7 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     scrape_api_url = "https://archive.org/services/search/v1/scrape"
     headers = {"authorization": "LOW {s3_key}:{s3_secret}".format(**s3_keys)}
     fields = ["identifier"]
-    q = ' AND '.join(
+    q = " AND ".join(
         REQUIRED_FIELDS
         + SPECIAL_CASES
         + EXCLUDE_COMPLEX_TITLES
@@ -175,21 +173,17 @@ def get_candidate_ocaids(s3_keys, rows=10_000, idfile=None):
     ids = []
     while cursor is not None:
         if cursor:
-            query_params['cursor'] = cursor
+            query_params["cursor"] = cursor
 
-        response = session.get(
-            scrape_api_url, headers=headers, params=query_params, timeout=60
-        )
+        response = session.get(scrape_api_url, headers=headers, params=query_params, timeout=60)
         response.raise_for_status()
         data = response.json()
         cursor = data.get("cursor")
-        ids += [doc['identifier'] for doc in data.get("items", [])]
-        print(
-            f"Fetching batch {batch}; adding {len(data.get('items', []))} items -> {len(ids)}"
-        )
+        ids += [doc["identifier"] for doc in data.get("items", [])]
+        print(f"Fetching batch {batch}; adding {len(data.get('items', []))} items -> {len(ids)}")
         batch += 1
     if idfile:
-        with open(idfile, 'w') as fout:
+        with open(idfile, "w") as fout:
             json.dump(ids, fout)
     return ids
 
@@ -211,7 +205,7 @@ def main(
 ):
     load_config(ol_config)
     infogami._setup()
-    s3_keys = config.get('ia_ol_metadata_write_s3')
+    s3_keys = config.get("ia_ol_metadata_write_s3")
     if idfile and os.path.exists(idfile):
         with open(idfile) as fin:
             ocaids = json.load(fin)
@@ -222,5 +216,5 @@ def main(
         import_ocaids(ocaids)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()
