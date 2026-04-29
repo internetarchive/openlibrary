@@ -238,7 +238,8 @@ def setup_context_from_script():
     silently have it using defaults we don't expect. It's better to have it loudly fail,
     like it has with scripts. See #12249
     """
-    setup_site()
+    s = create_site()
+    site.set(s)
     req_context.set(
         RequestContextVars(
             x_forwarded_for=None,
