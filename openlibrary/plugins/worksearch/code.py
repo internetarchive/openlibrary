@@ -1127,41 +1127,6 @@ def _prepare_work_search_query(
     )
 
 
-# Note: these could share an "implementation" to keep a common interface but it creates a lot more complexity
-# Warning: when changing this please also change the async version
-@public
-def work_search(
-    query: dict,
-    sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
-    limit: int = 100,
-    fields: str = '*',
-    facet: bool = True,
-    highlight: bool = False,
-    spellcheck_count: int | None = None,
-    request_label: SolrRequestLabel = 'UNLABELLED',
-) -> dict:
-    prepared = _prepare_work_search_query(query, page, offset, limit)
-
-    resp = run_solr_query(
-        WorkSearchScheme(),
-        prepared.query,
-        rows=prepared.limit,
-        page=prepared.page,
-        sort=sort,
-        offset=prepared.offset,
-        fields=fields,
-        facet=facet,
-        highlight=highlight,
-        spellcheck_count=spellcheck_count,
-        request_label=request_label,
-    )
-
-    return _process_solr_search_response(resp, fields)
-
-
-# Warning: when changing this please also change the sync version
 @public
 async def work_search_async(
     query: dict,

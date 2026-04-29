@@ -23,7 +23,6 @@ from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
     do_search_async,
-    work_search,
     work_search_async,
 )
 from openlibrary.plugins.worksearch.subjects import (
@@ -106,10 +105,13 @@ class CarouselCardPartial(PartialDataHandler):
         self.params = params
 
     def generate(self) -> dict:
+        raise NotImplementedError("Use generate_async instead")
+
+    async def generate_async(self) -> dict:
         p = self.params
 
         # Do search
-        search_results = self._make_book_query(p.queryType, p)
+        search_results = await self._make_book_query(p.queryType, p)
 
         # Render cards
         cards = []
@@ -136,9 +138,9 @@ class CarouselCardPartial(PartialDataHandler):
 
         return {"partials": [str(template) for template in cards]}
 
-    def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
+    async def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
         if query_type == "SEARCH":
-            return self._do_search_query(params)
+            return await self._do_search_query(params)
         if query_type == "BROWSE":
             return self._do_browse_query(params)
         if query_type == "TRENDING":
@@ -148,7 +150,7 @@ class CarouselCardPartial(PartialDataHandler):
 
         raise ValueError("Unknown query type")
 
-    def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
         fields = [
             "key",
             "title",
@@ -168,7 +170,7 @@ class CarouselCardPartial(PartialDataHandler):
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 
-        results = work_search(
+        results = await work_search_async(
             query_params,
             sort=params.sorts or "new",
             fields=",".join(fields),
