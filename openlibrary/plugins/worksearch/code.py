@@ -70,6 +70,39 @@ if hasattr(config, 'plugin_worksearch'):
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 
+def compute_work_search_html_fields(sort: str | None, sfw: bool) -> list[str]:
+    """
+    Compute the Solr fields needed for rendering work search HTML.
+
+    HTML require additional fields beyond the default search results to display
+    rich metadata like edition counts, ratings, and availability. This function extends
+    the base WorkSearchScheme fields with HTML-specific display fields.
+
+    Base fields (from WorkSearchScheme.default_fetched_fields) include core metadata
+    like title, author, and publish year needed for all work search results.
+
+    :param sort: Sort string, checked for 'trending' to add trending fields
+    :param sfw: Safe mode flag, adds subject field when True
+    :return: List of Solr field names to fetch
+    """
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    if sort and 'trending' in sort:
+        extra_fields.add('trending_*')
+
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
+
+    if sfw:
+        fields |= {'subject'}
+
+    return list(fields)
+
+
 @public
 def get_facet_map() -> tuple[tuple[str, str]]:
     return (
@@ -540,56 +573,6 @@ class SearchResponse:
         return highlighting or None
 
 
-async def do_search_async(
-    param: dict,
-    sort: str | None,
-    page=1,
-    rows=100,
-    facet=False,
-    highlight=False,
-    spellcheck_count=None,
-    request_label: SolrRequestLabel = 'UNLABELLED',
-    sfw: bool = False,
-    solr_internals_params: 'SolrInternalsParams | None' = None,
-):
-    """
-    :param param: dict of search url parameters
-    :param sort: csv sort ordering
-    :param spellcheck_count: Not really used; should probably drop
-    """
-    # If you want work_search page html to extend default_fetched_fields:
-    extra_fields = {
-        'editions',
-        'providers',
-        'ratings_average',
-        'ratings_count',
-        'want_to_read_count',
-    }
-    if sort and 'trending' in sort:
-        extra_fields.add('trending_*')
-    fields = WorkSearchScheme.default_fetched_fields | extra_fields
-
-    if sfw:
-        fields |= {'subject'}
-
-    return await run_solr_query_async(
-        WorkSearchScheme(),
-        param,
-        rows=rows,
-        page=page,
-        sort=sort,
-        spellcheck_count=spellcheck_count,
-        fields=list(fields),
-        facet=facet,
-        highlight=highlight,
-        request_label=request_label,
-        solr_internals_params=solr_internals_params,
-    )
-
-
-do_search = async_bridge.wrap(do_search_async)
-
-
 def get_doc(doc: SolrDocument):
     """
     Coerce a solr document to look more like an Open Library edition/work. Ish.
@@ -798,15 +781,18 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            search_response = do_search(
+            sfw = web.cookies(sfw="").sfw == 'yes'
+            search_response = run_solr_query(
+                WorkSearchScheme(),
                 param,
-                sort,
-                page,
                 rows=rows,
-                highlight=True,
+                page=page,
+                sort=sort,
                 spellcheck_count=3,
+                fields=compute_work_search_html_fields(sort, sfw),
+                facet=False,
+                highlight=True,
                 request_label='BOOK_SEARCH',
-                sfw=web.cookies(sfw="").sfw == 'yes',
                 solr_internals_params=solr_internals_params,
             )
         else:

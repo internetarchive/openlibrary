@@ -22,10 +22,12 @@ from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_list
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
-    do_search_async,
+    compute_work_search_html_fields,
+    run_solr_query_async,
     work_search,
     work_search_async,
 )
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
@@ -254,14 +256,17 @@ class SearchFacetsPartial(PartialDataHandler):
         param = self.data.get("param", {})
 
         sort = None
-        search_response = await do_search_async(
+        search_response = await run_solr_query_async(
+            WorkSearchScheme(),
             param,
-            sort,
             rows=0,
+            page=1,
+            sort=sort,
             spellcheck_count=3,
+            fields=compute_work_search_html_fields(sort, self.sfw),
             facet=True,
+            highlight=False,
             request_label="BOOK_SEARCH_FACETS",
-            sfw=self.sfw,
         )
 
         sidebar = render_template(
