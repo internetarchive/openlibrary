@@ -116,13 +116,13 @@ repos:
   - repo: https://github.com/awebdeveloper/pre-commit-stylelint
     rev: 0.0.2
     hooks:
-    - id: stylelint
-      files: \.css$
-      additional_dependencies:
-        - stylelint@16.22.0
-        - stylelint-declaration-strict-value@1.11.1
-        - stylelint-prettier@5.0.3
-      args: [--fix]
+      - id: stylelint
+        files: \.css$
+        additional_dependencies:
+          - stylelint@16.22.0
+          - stylelint-declaration-strict-value@1.11.1
+          - stylelint-prettier@5.0.3
+        args: [--fix]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v9.9.1
