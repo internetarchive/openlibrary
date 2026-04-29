@@ -69,7 +69,7 @@ msgstr "Gérer les paramètres de notification"
 
 #: account.html:27
 msgid "Manage Mailing List Subscriptions"
-msgstr "Gérer les souscriptions au liste de diffusion"
+msgstr "Gérer les abonnements aux listes de diffusion"
 
 #: account.html:28
 msgid "Change Password"
@@ -182,7 +182,7 @@ msgstr "Aperçu"
 
 #: history.html:23
 msgid "History of edits to"
-msgstr "Historiques des modifications de"
+msgstr "Historique des modifications de"
 
 #: history.html:31
 msgid "Revision"
@@ -534,8 +534,8 @@ msgid ""
 "shortly. You can also <a href=\"https://twitter.com/openlibrary\">contact"
 " us on Twitter</a>."
 msgstr ""
-"Votre question a été envoyée à notre équipe support. Nous reviendrons "
-"vers vous rapidement. Vous pouvez aussi <a "
+"Votre question a été envoyée à notre équipe d'assistance. Nous vous "
+"répondrons rapidement. Vous pouvez aussi <a "
 "href=\"https://twitter.com/openlibrary\">nous contacter sur Twitter</a>."
 
 #: support.html:19
@@ -620,7 +620,7 @@ msgid ""
 "If you encounter an error message, please include it. For questions about"
 " our books, please provide the title/author or Open Library ID."
 msgstr ""
-"Si vous tombez sur un message d'erreur, veuillez le rajouter. Si vous "
+"Si vous rencontrez un message d'erreur, veuillez l'inclure. Si vous "
 "avez des questions sur nos livres, veuillez fournir le titre/auteur ou "
 "l'identifiant Open Library."
 
@@ -801,7 +801,7 @@ msgstr "Malvoyant"
 
 #: work_search.html:101
 msgid "This is only visible to super librarians."
-msgstr "Ceci est seulement visible pour les super libraires."
+msgstr "Ceci est seulement visible pour les super bibliothécaires."
 
 #: work_search.html:107
 msgid "Solr Editions"
@@ -955,7 +955,7 @@ msgstr "Emprunts"
 
 #: account/books.html:48
 msgid "Imports and Exports"
-msgstr "Imports et exports"
+msgstr "Importations et exportations"
 
 #: account/books.html:50
 msgid "My Lists"
@@ -983,7 +983,7 @@ msgstr ""
 
 #: account/books.html:90
 msgid "Your reading log is currently set to public"
-msgstr "Votre journal de lecture est publique"
+msgstr "Votre journal de lecture est public"
 
 #: account/books.html:93
 msgid "Your reading log is currently set to private"
@@ -995,12 +995,12 @@ msgstr "Gérer vos paramètres de confidentialité"
 
 #: account/create.html:9
 msgid "Sign Up to Open Library"
-msgstr "S'enregistrer sur Open Library"
+msgstr "S'inscrire sur Open Library"
 
 #: account/create.html:12 account/create.html:89 lib/header_dropdown.html:60
 #: lib/nav_head.html:119
 msgid "Sign Up"
-msgstr "S'enregistrer"
+msgstr "S'inscrire"
 
 #: account/create.html:21
 msgid "Complete the form below to create a new Internet Archive account."
@@ -1052,11 +1052,11 @@ msgstr "Désolé, cette fonctionnalité n'est pas encore implémentée."
 
 #: account/import.html:12
 msgid "Import from Goodreads"
-msgstr "Importer de Goodreads"
+msgstr "Importer depuis Goodreads"
 
 #: account/import.html:18
 msgid "File size limit 10MB and .csv file type only"
-msgstr "Taille de fichier limitée à 10MB et fichier .csv seulement"
+msgstr "Taille de fichier limitée à 10Mo et fichier .csv seulement"
 
 #: account/import.html:22
 msgid "Load Books"
@@ -1759,7 +1759,7 @@ msgstr "Solr"
 
 #: admin/menu.html:27
 msgid "Imports"
-msgstr "Imports"
+msgstr "Importations"
 
 #: admin/menu.html:29
 msgid "Graphs"
@@ -2149,7 +2149,7 @@ msgstr ""
 "href=\"https://standardebooks.org/\">Standard Ebooks</a>. Standard Ebooks"
 " est un fournisseur approuvé de livres et un projet conduit par des "
 "volontaires qui produit de nouvelles éditions de livres électroniques "
-"dans le domaine publique qui sont mises en forme avec amour, ouvertes, "
+"dans le domaine public qui sont mises en forme avec amour, ouvertes, "
 "libres de droits et gratuites."
 
 #: books/RelatedWorksCarousel.html:19
@@ -2889,7 +2889,7 @@ msgstr "Métadonnée supplémentaire"
 
 #: books/edit/edition.html:694
 msgid "This field can accept arbitrary key:value pairs"
-msgstr "Ce champ supporte des pairs de clé:valeur arbitraire"
+msgstr "Ce champ prend en charge des paires clé:valeur arbitraires"
 
 #: books/edit/edition.html:706
 msgid "First sentence"
@@ -3059,7 +3059,7 @@ msgstr "Supprimer l'événement"
 
 #: check_ins/check_in_prompt.html:32
 msgid "When did you finish this book?"
-msgstr "Quand avez vous finit ce livre ?"
+msgstr "Quand avez-vous fini ce livre ?"
 
 #: check_ins/check_in_prompt.html:37
 msgid "Other"
@@ -3419,7 +3419,7 @@ msgstr "Des douzaines de manière d'améliorer la bibliothèque"
 
 #: home/welcome.html:96
 msgid "Send us feedback"
-msgstr "Envoyer nous vos impressions"
+msgstr "Envoyez-nous vos impressions"
 
 #: home/welcome.html:97
 msgid "Your feedback will help us improve these cards"
@@ -3771,7 +3771,7 @@ msgstr "Déconnexion"
 
 #: lib/nav_head.html:19
 msgid "Pending Merge Requests"
-msgstr "Demande de fusion en attente"
+msgstr "Demandes de fusion en attente"
 
 #: lib/nav_head.html:29
 msgid "Trending"
@@ -3795,7 +3795,7 @@ msgstr "Aide & Support"
 
 #: lib/nav_head.html:44
 msgid "Librarians Portal"
-msgstr "Portail des libraires"
+msgstr "Portail des bibliothécaires"
 
 #: lib/nav_head.html:48
 msgid "My Open Library"
@@ -3815,7 +3815,7 @@ msgstr "Ressources"
 
 #: lib/nav_head.html:59
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr "La bibliothèque libre d'Internet Archive : Une page pour chaque livre"
+msgstr "Open Library d'Internet Archive : une page pour chaque livre"
 
 #: lib/nav_head.html:91
 msgid "All"
@@ -3844,9 +3844,9 @@ msgid ""
 msgstr ""
 "<strong>Vous n'êtes pas <a href=\"/account/login\" title=\"Se connecter "
 "maintenant\">connecté</a>.</strong> Open Library enregistrera votre "
-"adresse IP et l'inclura à l'historique publique des modifications de "
+"adresse IP et l'inclura dans l'historique public des modifications de "
 "cette page. Si vous <a href=\"/account/create\" title=\"Créer un compte "
-"Open Library\">créez un compte</a>, votre adresse IP est masqué et vous "
+"Open Library\">créez un compte</a>, votre adresse IP est masquée et vous "
 "pouvez plus facilement suivre toutes vos modifications et ajouts."
 
 #: Pager.html:27 lib/pagination.html:22
@@ -4572,7 +4572,7 @@ msgstr "# total d'évaluateurs uniques (de tous les temps)"
 
 #: stats/readinglog.html:67
 msgid "Most Wanted Books (This Month)"
-msgstr "Lives les plus recherchés (Ce mois-ci)"
+msgstr "Livres les plus recherchés (Ce mois-ci)"
 
 #: stats/readinglog.html:67 stats/readinglog.html:75 stats/readinglog.html:84
 #: stats/readinglog.html:93
@@ -4584,11 +4584,11 @@ msgstr[1] "Ajouté %(count)d fois"
 
 #: stats/readinglog.html:75
 msgid "Most Wanted Books (All Time)"
-msgstr "Lives les plus recherchés (De tous les temps)"
+msgstr "Livres les plus recherchés (de tous les temps)"
 
 #: stats/readinglog.html:83
 msgid "Most Logged Books"
-msgstr "Lives les plus enregistrés"
+msgstr "Livres les plus enregistrés"
 
 #: stats/readinglog.html:84
 msgid "Most Read Books (All Time)"
@@ -4823,7 +4823,7 @@ msgstr "Cette page a été supprimée"
 
 #: type/delete/view.html:16
 msgid "What would you like to do?"
-msgstr "Que souhaiteriez vous faire ?"
+msgstr "Que souhaiteriez-vous faire ?"
 
 #: type/delete/view.html:19
 msgid "Go back where I came from"
@@ -4847,7 +4847,7 @@ msgstr "Corps du document :"
 
 #: type/edition/admin_bar.html:17
 msgid "Add to Staff Picks"
-msgstr "Ajouter au choix des libraires"
+msgstr "Ajouter aux coups de cœur de l'équipe"
 
 #: type/edition/admin_bar.html:22
 msgid "Sync Archive.org ID"
@@ -5537,7 +5537,7 @@ msgstr "%s prévisualisable"
 
 #: SearchResultsWork.html:102
 msgid "This is only visible to librarians."
-msgstr "Ceci est seulement visible pour les libraires."
+msgstr "Ceci est seulement visible pour les bibliothécaires."
 
 #: SearchResultsWork.html:104
 msgid "Work Title"

@@ -20,21 +20,21 @@
 .carousel-container,
 .lazy-carousel {
   margin: 0 -20px;
-  padding: 3px 15px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-md);
 }
 
 .carousel {
   display: flex;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
   overflow-x: scroll;
-  padding: 10px 20px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-lg);
 }
 
 .carousel.carousel--grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  grid-gap: 30px 20px;
-  padding: 10px;
+  grid-gap: var(--spacing-stack-xl) var(--spacing-inline-xl);
+  padding: var(--spacing-inset-sm);
 
   /* Fallback for non-grid browsers */
   flex-wrap: wrap;
@@ -46,10 +46,10 @@
 }
 
 .carousel__item {
-  padding: 2px;
+  padding: var(--spacing-inset-xs);
   float: left;
   height: 100%;
-  margin: 0 10px;
+  margin: 0 var(--spacing-inset-sm);
   min-height: 1px;
   overflow: hidden;
   box-sizing: border-box;
@@ -100,7 +100,7 @@
 /*h2*/
 .carousel .book .book-title {
   font-size: 0.8em;
-  margin: 5px 0;
+  margin: var(--spacing-stack-xs) 0;
   color: var(--dark-grey);
   font-weight: normal;
 }
@@ -140,7 +140,7 @@
 
 .carousel__item__blankcover {
   position: relative;
-  padding: 33% 10px 10px;
+  padding: 33% var(--spacing-inset-sm) var(--spacing-inset-sm);
   text-align: center;
   background: var(--lighter-grey);
   font-size: 1em;
@@ -160,7 +160,7 @@
   top: 0;
   bottom: 0;
   /* stylelint-enable declaration-block-no-redundant-longhand-properties */
-  margin: 10px;
+  margin: var(--spacing-inset-sm);
 }
 
 .carousel__item__blankcover--title {
@@ -171,7 +171,7 @@
 .carousel__item__blankcover--authors {
   position: relative;
   color: var(--dark-grey-two);
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: 0.6875em;
   font-style: oblique;
 }
@@ -186,7 +186,7 @@
 
 .carousel--compact .carousel__item__blankcover {
   height: var(--height-cover-compact);
-  padding: 20% 10px 10px;
+  padding: 20% var(--spacing-inset-sm) var(--spacing-inset-sm);
   margin: 0 auto;
 }
 
@@ -211,5 +211,5 @@
   border: 1px var(--grey) solid;
   background: var(--lightest-grey);
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-inset-lg);
 }

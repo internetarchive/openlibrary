@@ -1049,7 +1049,12 @@ class User(Thing):
         return lists
 
     @classmethod
-    # @cache.memoize(engine="memcache", key="user-avatar")
+    @cache.memoize(
+        engine="memcache",
+        key=lambda cls, username: f"user-avatar-{username}",
+        expires=24 * 3600,
+        cacheable=lambda key, value: not value.endswith('/None'),
+    )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
@@ -1179,9 +1184,9 @@ class User(Thing):
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
-    def set_data(self, data):
+    def set_data(self, data, action):
         self._data = data
-        self._save()
+        self._save(action=action)
 
 
 class UserGroup(Thing):
@@ -1209,7 +1214,11 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
+            web.ctx.site.save(
+                self.dict(),
+                f"Adding {userkey} to {self.key}",
+                action="edit-usergroup-add-member",
+            )
 
     def remove_user(self, userkey):
         if not web.ctx.site.get(userkey):
@@ -1224,7 +1233,11 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}")
+        web.ctx.site.save(
+            self.dict(),
+            f"Removing {userkey} from {self.key}",
+            action="edit-usergroup-delete-member",
+        )
 
 
 class Subject(web.storage):
@@ -1308,10 +1321,7 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(
-                tag,
-                comment=comment,
-            )
+            t = web.ctx.site.save(tag, comment=comment, action="create-tag")
             return t
 
 

@@ -21,7 +21,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 ITEM_SIZE = 1_000_000
 BATCH_SIZE = 10_000
-BATCH_SIZES = ('', 's', 'm', 'l')
+BATCH_SIZES = ("", "s", "m", "l")
 
 
 def log(*args):
@@ -32,8 +32,8 @@ def log(*args):
 class Uploader:
     @staticmethod
     def _get_s3():
-        s3_keys = config.get('ia_s3_covers')
-        return s3_keys.get('s3_key'), s3_keys.get('s3_secret')
+        s3_keys = config.get("ia_s3_covers")
+        return s3_keys.get("s3_key"), s3_keys.get("s3_secret")
 
     @classmethod
     def upload(cls, itemname, filepaths):
@@ -61,12 +61,10 @@ class Uploader:
         :param item: name of archive.org item to look within, e.g. `s_covers_0008`
         :param filename: filename to look for within item
         """
-        zip_command = fr'ia list {item} | grep "{filename}" | wc -l'
+        zip_command = rf'ia list {item} | grep "{filename}" | wc -l'
         if verbose:
             print(zip_command)
-        zip_result = subprocess.run(
-            zip_command, shell=True, text=True, capture_output=True, check=True
-        )
+        zip_result = subprocess.run(zip_command, shell=True, text=True, capture_output=True, check=True)
         return int(zip_result.stdout.strip()) == 1
 
 
@@ -111,9 +109,7 @@ class Batch:
             batch_complete = True
 
             for size in BATCH_SIZES:
-                itemname, filename = cls.get_relpath(
-                    item_id, batch_id, ext="zip", size=size
-                ).split(os.path.sep)
+                itemname, filename = cls.get_relpath(item_id, batch_id, ext="zip", size=size).split(os.path.sep)
 
                 # TODO Uploader.check_item_health(itemname)
                 # to ensure no conflicting tasks/redrows
@@ -121,15 +117,11 @@ class Batch:
                 print(f"* {filename}: Uploaded? {zip_uploaded}")
                 if not zip_uploaded:
                     batch_complete = False
-                    zip_complete, errors = cls.is_zip_complete(
-                        item_id, batch_id, size=size, verbose=True
-                    )
+                    zip_complete, errors = cls.is_zip_complete(item_id, batch_id, size=size, verbose=True)
                     print(f"* Completed? {zip_complete} {errors or ''}")
                     if zip_complete and upload:
                         print(f"=> Uploading {filename} to {itemname}")
-                        fullpath = os.path.join(
-                            config.data_root, "items", itemname, filename
-                        )
+                        fullpath = os.path.join(config.data_root, "items", itemname, filename)
                         Uploader.upload(itemname, fullpath)
 
             print(f"* Finalize? {finalize}")
@@ -170,7 +162,7 @@ class Batch:
         if unarchived := len(cdb.get_batch_unarchived(start_id)):
             errors.append({"error": "archival_incomplete", "remaining": unarchived})
         if not os.path.exists(filepath):
-            errors.append({'error': 'nozip'})
+            errors.append({"error": "nozip"})
         else:
             expected_num_files = len(cdb.get_batch_archived(start_id=start_id))
             num_files = ZipManager.count_files_in_zip(filepath)
@@ -189,10 +181,7 @@ class Batch:
     def finalize(cls, start_id, test=True):
         """Update all covers in batch to point to zips, delete files, set deleted=True"""
         cdb = CoverDB()
-        covers = (
-            Cover(**c)
-            for c in cdb._get_batch(start_id=start_id, failed=False, uploaded=False)
-        )
+        covers = (Cover(**c) for c in cdb._get_batch(start_id=start_id, failed=False, uploaded=False))
 
         for cover in covers:
             if not cover.has_valid_files():
@@ -213,8 +202,8 @@ class Batch:
 
 
 class CoverDB:
-    TABLE = 'cover'
-    STATUS_KEYS = ('failed', 'archived', 'uploaded')
+    TABLE = "cover"
+    STATUS_KEYS = ("failed", "archived", "uploaded")
 
     def __init__(self):
         self.db = db.getdb()
@@ -240,21 +229,17 @@ class CoverDB:
         kwargs: additional specifiable cover table query arguments
         like those found in STATUS_KEYS
         """
-        wheres = [
-            f"{key}=${key}"
-            for key in kwargs
-            if key in self.STATUS_KEYS and kwargs.get(key) is not None
-        ]
+        wheres = [f"{key}=${key}" for key in kwargs if key in self.STATUS_KEYS and kwargs.get(key) is not None]
         if start_id:
             wheres.append("id>=$start_id AND id<$end_id")
-            kwargs['start_id'] = start_id
-            kwargs['end_id'] = end_id or self._get_batch_end_id(start_id)
+            kwargs["start_id"] = start_id
+            kwargs["end_id"] = end_id or self._get_batch_end_id(start_id)
             limit = None
 
         return self.db.select(
             self.TABLE,
             where=" AND ".join(wheres) if wheres else None,
-            order='id asc',
+            order="id asc",
             vars=kwargs,
             limit=limit,
         )
@@ -288,7 +273,7 @@ class CoverDB:
         return self.db.update(
             self.TABLE,
             where="id=$cid",
-            vars={'cid': cid},
+            vars={"cid": cid},
             **kwargs,
         )
 
@@ -298,7 +283,7 @@ class CoverDB:
         return self.db.update(
             self.TABLE,
             where="id>=$start_id AND id<$end_id AND archived=true AND failed=false AND uploaded=false",
-            vars={'start_id': start_id, 'end_id': end_id},
+            vars={"start_id": start_id, "end_id": end_id},
             uploaded=True,
             filename=Batch.get_relpath(item_id, batch_id, ext="zip"),
             filename_s=Batch.get_relpath(item_id, batch_id, ext="zip", size="s"),
@@ -323,11 +308,7 @@ class Cover(web.Storage):
 
     @property
     def timestamp(self):
-        t = (
-            utils.parse_datetime(self.created)
-            if isinstance(self.created, str)
-            else self.created
-        )
+        t = utils.parse_datetime(self.created) if isinstance(self.created, str) else self.created
         return time.mktime(t.timetuple())
 
     def has_valid_files(self):
@@ -335,26 +316,18 @@ class Cover(web.Storage):
 
     def get_files(self):
         files = {
-            'filename': web.storage(name="%010d.jpg" % self.id, filename=self.filename),
-            'filename_s': web.storage(
-                name="%010d-S.jpg" % self.id, filename=self.filename_s
-            ),
-            'filename_m': web.storage(
-                name="%010d-M.jpg" % self.id, filename=self.filename_m
-            ),
-            'filename_l': web.storage(
-                name="%010d-L.jpg" % self.id, filename=self.filename_l
-            ),
+            "filename": web.storage(name="%010d.jpg" % self.id, filename=self.filename),
+            "filename_s": web.storage(name="%010d-S.jpg" % self.id, filename=self.filename_s),
+            "filename_m": web.storage(name="%010d-M.jpg" % self.id, filename=self.filename_m),
+            "filename_l": web.storage(name="%010d-L.jpg" % self.id, filename=self.filename_l),
         }
         for file_type, f in files.items():
-            files[file_type].path = f.filename and os.path.join(
-                config.data_root, "localdisk", f.filename
-            )
+            files[file_type].path = f.filename and os.path.join(config.data_root, "localdisk", f.filename)
         return files
 
     def delete_files(self):
         for f in self.files.values():
-            print('removing', f.path)
+            print("removing", f.path)
             os.remove(f.path)
 
     @staticmethod
@@ -382,15 +355,11 @@ def archive(limit=None, start_id=None, end_id=None):
     cdb = CoverDB()
 
     try:
-        covers = (
-            cdb.get_unarchived_covers(limit=limit)
-            if limit
-            else cdb.get_batch_unarchived(start_id=start_id, end_id=end_id)
-        )
+        covers = cdb.get_unarchived_covers(limit=limit) if limit else cdb.get_batch_unarchived(start_id=start_id, end_id=end_id)
 
         for cover in covers:
             cover = Cover(**cover)
-            print('archiving', cover)
+            print("archiving", cover)
             print(cover.files.values())
 
             if not cover.has_valid_files():
@@ -421,10 +390,7 @@ def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
     """
     scope = range(*(batch_ids if isinstance(batch_ids, tuple) else (0, batch_ids)))
     for size in sizes:
-        files = (
-            Batch.get_relpath(f"{item_id:04}", f"{i:02}", ext="zip", size=size)
-            for i in scope
-        )
+        files = (Batch.get_relpath(f"{item_id:04}", f"{i:02}", ext="zip", size=size) for i in scope)
         missing_files = []
         sys.stdout.write(f"\n{size or 'full'}: ")
         for f in files:
@@ -439,9 +405,7 @@ def audit(item_id, batch_ids=(0, 100), sizes=BATCH_SIZES) -> None:
         sys.stdout.write("\n")
         sys.stdout.flush()
         if missing_files:
-            print(
-                f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10"
-            )
+            print(f"ia upload {item} {' '.join([f'{item}/{mf}*' for mf in missing_files])} --retries 10")
 
 
 class ZipManager:
@@ -453,9 +417,7 @@ class ZipManager:
     @staticmethod
     def count_files_in_zip(filepath):
         command = f'unzip -l {filepath} | grep "jpg" |  wc -l'
-        result = subprocess.run(
-            command, shell=True, text=True, capture_output=True, check=True
-        )
+        result = subprocess.run(command, shell=True, text=True, capture_output=True, check=True)
         return int(result.stdout.strip())
 
     def get_zipfile(self, name):
@@ -463,8 +425,8 @@ class ZipManager:
         zipname = f"covers_{cid[:4]}_{cid[4:6]}.zip"
 
         # for {cid}-[SML].jpg
-        if '-' in name:
-            size = name[len(cid + '-') :][0].lower()
+        if "-" in name:
+            size = name[len(cid + "-") :][0].lower()
             zipname = size + "_" + zipname
         else:
             size = ""
@@ -474,7 +436,7 @@ class ZipManager:
             _zipname and _zipfile.close()
             _zipfile = self.open_zipfile(zipname)
             self.zipfiles[size.upper()] = zipname, _zipfile
-            log('writing', zipname)
+            log("writing", zipname)
 
         return _zipfile
 
@@ -484,7 +446,7 @@ class ZipManager:
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-        return zipfile.ZipFile(path, 'a')
+        return zipfile.ZipFile(path, "a")
 
     def add_file(self, name, filepath, **args):
         zipper = self.get_zipfile(name)
@@ -502,12 +464,12 @@ class ZipManager:
 
     @classmethod
     def contains(cls, zip_file_path, filename):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
+        with zipfile.ZipFile(zip_file_path, "r") as zip_file:
             return filename in zip_file.namelist()
 
     @classmethod
     def get_last_file_in_zip(cls, zip_file_path):
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
+        with zipfile.ZipFile(zip_file_path, "r") as zip_file:
             file_list = zip_file.namelist()
             if file_list:
                 return max(file_list)
@@ -522,5 +484,5 @@ def main(openlibrary_yml: str, coverstore_yml: str, dry_run: bool = False):
     Batch.process_pending(upload=True, finalize=True, test=dry_run)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     FnToCLI(main).run()

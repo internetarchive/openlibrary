@@ -38,7 +38,7 @@ def update_url_with_params(url: str, new_params: dict[str, str]):
 
 
 def extract_year(date_string: str) -> str | None:
-    match = re.match(r'(\d{4})', date_string)
+    match = re.match(r"(\d{4})", date_string)
     return match.group(1) if match else None
 
 
@@ -93,7 +93,7 @@ WIKIDATA_API_URL = "https://query.wikidata.org/bigdata/namespace/wdq/sparql"
 
 
 def get_wd_item_id(string: str):
-    return string.rsplit('/', maxsplit=1)[-1]
+    return string.rsplit("/", maxsplit=1)[-1]
 
 
 @dataclass
@@ -126,37 +126,22 @@ WHERE {
                     mwapi:generator "categorymembers";
                     mwapi:gcmtitle "'''
             + self._catformat(category)
-            + '''".
+            + """".
     ?page wikibase:apiOutput mwapi:title.
     ?item wikibase:apiOutputItem mwapi:item .
   }
 
   ?item wdt:P31/wdt:P279* ?instanceOf.
-  '''
-            + ''.join(
-                [
-                    f"FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n  "
-                    for type in EXCLUDED_WIKIDATA_SUBCLASSES
-                ]
-            )
-            + ''.join(
-                [
-                    f"FILTER NOT EXISTS {{ ?item wdt:P31 wd:{type}. }}\n  "
-                    for type in EXCLUDED_WIKIDATA_INSTANCES
-                ]
-            )
-            + ''.join(
-                [
-                    f"FILTER NOT EXISTS {{ ?item wdt:P136 wd:{type}. }}\n  "
-                    for type in EXCLUDED_WIKIDATA_GENRES
-                ]
-            )
-            + '''
+  """
+            + "".join([f"FILTER NOT EXISTS {{ ?item wdt:P31/wdt:P279* wd:{type}. }}\n  " for type in EXCLUDED_WIKIDATA_SUBCLASSES])
+            + "".join([f"FILTER NOT EXISTS {{ ?item wdt:P31 wd:{type}. }}\n  " for type in EXCLUDED_WIKIDATA_INSTANCES])
+            + "".join([f"FILTER NOT EXISTS {{ ?item wdt:P136 wd:{type}. }}\n  " for type in EXCLUDED_WIKIDATA_GENRES])
+            + """
   FILTER (!CONTAINS(STR(?page), "/"))
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,"""
             + self.langcode
-            + '''". }
-}'''
+            + """". }
+}"""
         )
 
     def _sparql_url(self, category: str) -> str:
@@ -175,16 +160,12 @@ WHERE {
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self.excluded_category_names]
 
-    def exclude_book(self, book: 'BookRecord') -> bool:
+    def exclude_book(self, book: "BookRecord") -> bool:
         bad_category = any(c for c in book.categories if c in self.excluded_categories)
         if bad_category:
             return True
 
-        if (
-            self.description_exclusion_re
-            and book.description
-            and re.search(self.description_exclusion_re, book.description)
-        ):
+        if self.description_exclusion_re and book.description and re.search(self.description_exclusion_re, book.description):
             return True
 
         book_title = book.title or ""
@@ -194,11 +175,7 @@ WHERE {
         if self.title_exclusion_re and re.search(self.title_exclusion_re, book_title):
             return True
 
-        return bool(
-            self.subject_exclusion_re
-            and book.subjects
-            and re.search(self.subject_exclusion_re, ' '.join(book.subjects))
-        )
+        return bool(self.subject_exclusion_re and book.subjects and re.search(self.subject_exclusion_re, " ".join(book.subjects)))
 
 
 # Each version of wikisource has different category names and prefixes,
@@ -238,7 +215,7 @@ ws_languages = [
         # eg https://en.wikisource.org/wiki/A_New_Genus_of_Characeae_and_New_Merostomata_from_the_Coal_Measures_of_Nova_Scotia
         description_exclusion_re=r"^Letter\b|[ .]\d{1,3}[-–]\d{1,3}\b",  # noqa RUF001
         title_exclusion_re=r"(^Announcement|^Report|^Notes on|^Letter from|^Letter to|^Address|\bpaper|\b[Ss]ecretary)\b",
-        subject_exclusion_re=r'\b(speeches)\b',
+        subject_exclusion_re=r"\b(speeches)\b",
     )
 ]
 
@@ -301,14 +278,10 @@ class BookRecord:
         self.publish_places = uniq(self.publish_places + places)
 
     def add_authors(self, authors: list[Author]) -> None:
-        self.authors = uniq(
-            self.authors + authors, key=lambda author: author.friendly_name
-        )
+        self.authors = uniq(self.authors + authors, key=lambda author: author.friendly_name)
 
     def add_illustrators(self, illustrators: list[str]) -> None:
-        new_illustrators: list[ContributorDict] = [
-            {"name": a, "role": "illustrator"} for a in illustrators
-        ]
+        new_illustrators: list[ContributorDict] = [{"name": a, "role": "illustrator"} for a in illustrators]
         self.illustrators = uniq(self.illustrators + new_illustrators, key=json.dumps)
 
     def add_subjects(self, subjects: list[str]) -> None:
@@ -408,25 +381,17 @@ def fetch_until_successful(url: str) -> dict:
                 time.sleep(10)
             else:
                 raise SystemExit(error)
-    raise SystemExit(
-        f"could not fetch {url} after 5 tries. You may be rate limited, try again later"
-    )
+    raise SystemExit(f"could not fetch {url} after 5 tries. You may be rate limited, try again later")
 
 
-def update_record_with_wikisource_metadata(
-    book: BookRecord, book_id: str, new_data: dict, author_map: dict[str, list[str]]
-):
+def update_record_with_wikisource_metadata(book: BookRecord, book_id: str, new_data: dict, author_map: dict[str, list[str]]):
     if "categories" in new_data:
         book.add_categories([cat["title"] for cat in new_data["categories"]])
 
     # Parse other params from the infobox
     revision_data = new_data.get("revisions", [])
     infobox = next(
-        (
-            d["slots"]["main"]["*"]
-            for d in revision_data
-            if "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]
-        ),
+        (d["slots"]["main"]["*"] for d in revision_data if "slots" in d and "main" in d["slots"] and "*" in d["slots"]["main"]),
         None,
     )
     # Exit if infobox doesn't exist
@@ -436,9 +401,7 @@ def update_record_with_wikisource_metadata(
     templates = wikicode.filter_templates()
     if not templates:
         return
-    template = next(
-        (template for template in templates if template.name.strip() == "header"), None
-    )
+    template = next((template for template in templates if template.name.strip() == "header"), None)
     if template is None:
         return
 
@@ -463,9 +426,7 @@ def update_record_with_wikisource_metadata(
             if author != "":
                 authors = re.split(r"(?:\sand\s|,\s?)", author)
                 if authors:
-                    book.add_authors(
-                        [Author(friendly_name=format_human_name(a)) for a in authors]
-                    )
+                    book.add_authors([Author(friendly_name=format_human_name(a)) for a in authors])
         except ValueError:
             pass
 
@@ -525,14 +486,10 @@ def scrape_wikisource_api(
         results = data["query"]["pages"]
 
         for page in results.values():
-            page_identifier = quote(page["title"].replace(' ', '_'))
+            page_identifier = quote(page["title"].replace(" ", "_"))
 
             key = next(
-                (
-                    key
-                    for key in imports
-                    if imports[key].wikisource_page_title == page_identifier
-                ),
+                (key for key in imports if imports[key].wikisource_page_title == page_identifier),
                 None,
             )
             if not key:
@@ -552,9 +509,7 @@ def scrape_wikisource_api(
         cont_url = update_url_with_params(url, data["continue"])
 
 
-def update_import_with_wikidata_api_response(
-    impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]
-):
+def update_import_with_wikidata_api_response(impt: BookRecord, book_id: str, obj: Any, author_map: dict[str, list[str]]):
 
     # Author ID: Fetch more data about authors at a later time. WD query times out if we include author data
     if "author" in obj and "value" in obj["author"]:
@@ -571,18 +526,8 @@ def update_import_with_wikidata_api_response(
         impt.add_illustrators([obj["illustratorLabel"]["value"]])
 
     # Publisher
-    if ("publisher" in obj and "value" in obj["publisher"]) or (
-        "publisherName" in obj and "value" in obj["publisherName"]
-    ):
-        impt.add_publishers(
-            [
-                (
-                    obj["publisherName"]["value"]
-                    if "publisherLabel" not in obj
-                    else obj["publisherLabel"]["value"]
-                )
-            ]
-        )
+    if ("publisher" in obj and "value" in obj["publisher"]) or ("publisherName" in obj and "value" in obj["publisherName"]):
+        impt.add_publishers([(obj["publisherName"]["value"] if "publisherLabel" not in obj else obj["publisherLabel"]["value"])])
 
     # Page count
     if "pageCount" in obj and "value" in obj["pageCount"]:
@@ -642,14 +587,14 @@ def scrape_wikidata_api(
     item_ids = []
 
     for binding in data["results"]["bindings"]:
-        if "value" not in binding.get('item', {}):
+        if "value" not in binding.get("item", {}):
             print("no value in binding:", binding)
             continue
 
         item_id = get_wd_item_id(binding["item"]["value"])
         item_ids.append(item_id)
         imports[item_id] = BookRecord(
-            wikisource_page_title=quote(binding["page"]["value"].replace(' ', '_')),
+            wikisource_page_title=quote(binding["page"]["value"].replace(" ", "_")),
             langconfig=cfg,
             wikidata_id=item_id,
         )
@@ -660,7 +605,6 @@ def scrape_wikidata_api(
 
     # Get book metadata from the wikidata API using 50 wikidata book IDs at a time
     for batch in itertools.batched(item_ids, 50):
-
         # "Title" and "page" (retrieved from the previous query) are often similar, but sometimes not exactly the same.
         # "Page" (the wikisource page ID) will sometimes contain extra info like the year of publishing, etc,
         # and is used to hyperlink back to Wikisource.
@@ -669,7 +613,7 @@ def scrape_wikidata_api(
         # returns a weird URL for publisherLabel if retrieved with wdt:P123 instead of p:P123
         # but it has a qualifier property, pq:P1932, which contains the raw text (non wikidata item) publisher name if it exists.
         query = (
-            '''SELECT DISTINCT
+            """SELECT DISTINCT
   ?item
   ?itemLabel
   ?title
@@ -693,9 +637,9 @@ def scrape_wikidata_api(
   ?isbn10
   ?isbn13
 WHERE {
-  VALUES ?item {'''
-            + ''.join([f"wd:{id}\n    " for id in batch])
-            + '''}
+  VALUES ?item {"""
+            + "".join([f"wd:{id}\n    " for id in batch])
+            + """}
   OPTIONAL { ?item wdt:P1476 ?title. }
   OPTIONAL { ?item wdt:P1680 ?subtitle. }
   OPTIONAL { ?item wdt:P50 ?author. }
@@ -714,15 +658,13 @@ WHERE {
   OPTIONAL { ?item wdt:P957 ?isbn10. }
   OPTIONAL { ?item wdt:P212 ?isbn13. }
   BIND(CONCAT("https://commons.wikimedia.org/wiki/Special:FilePath/", REPLACE(STR(?image), "^.*[/#]", "")) AS ?imageUrl)
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,"""
             + cfg.langcode
-            + '''". }
-}'''
+            + """". }
+}"""
         )
         # Get most metadata from wikidata
-        metadata_url = update_url_with_params(
-            WIKIDATA_API_URL, {"format": "json", "query": query}
-        )
+        metadata_url = update_url_with_params(WIKIDATA_API_URL, {"format": "json", "query": query})
 
         data = fetch_until_successful(metadata_url)
 
@@ -738,30 +680,15 @@ WHERE {
             and "value" in obj["item"]
             and not (
                 # skip if no title or item label exists in the result
-                (
-                    ("title" not in obj or "value" not in obj["title"])
-                    and ("itemLabel" not in obj or "value" not in obj["itemLabel"])
-                )
+                (("title" not in obj or "value" not in obj["title"]) and ("itemLabel" not in obj or "value" not in obj["itemLabel"]))
                 # skip if duplicate result of an existing record with a different language title
-                or (
-                    "title" in obj
-                    and "xml:lang" in obj["title"]
-                    and obj["title"]["xml:lang"] != cfg.langcode
-                )
+                or ("title" in obj and "xml:lang" in obj["title"] and obj["title"]["xml:lang"] != cfg.langcode)
             )
         ]
 
         for obj in results:
-            title: str = (
-                obj["title"]["value"]
-                if "title" in obj and "value" in obj["title"]
-                else obj["itemLabel"]["value"]
-            )
-            subtitle: str | None = (
-                obj["subtitle"]["value"]
-                if "subtitle" in obj and "value" in obj["subtitle"]
-                else None
-            )
+            title: str = obj["title"]["value"] if "title" in obj and "value" in obj["title"] else obj["itemLabel"]["value"]
+            subtitle: str | None = obj["subtitle"]["value"] if "subtitle" in obj and "value" in obj["subtitle"] else None
 
             book_id = get_wd_item_id(obj["item"]["value"])
             impt = imports[book_id]
@@ -775,7 +702,6 @@ WHERE {
         # For some reason, querying 50 titles can sometimes bring back more than 50 results,
         # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
         for ws_batch in itertools.batched(ids_for_wikisource_api, 50):
-
             # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
             ws_api_url = update_url_with_params(
                 cfg.wikisource_api_url,
@@ -800,22 +726,16 @@ WHERE {
             book_id = get_wd_item_id(obj["item"]["value"])
             impt = imports[book_id]
 
-            if (
-                impt.imagename is None
-                and "imageUrl" in obj
-                and "value" in obj["imageUrl"]
-            ):
+            if impt.imagename is None and "imageUrl" in obj and "value" in obj["imageUrl"]:
                 impt.imagename = obj["imageUrl"]["value"]
                 impt.cover = obj["imageUrl"]["value"]
 
 
-def fix_contributor_data(
-    imports: dict[str, BookRecord], map: dict[str, list[str]], cfg: LangConfig
-):
+def fix_contributor_data(imports: dict[str, BookRecord], map: dict[str, list[str]], cfg: LangConfig):
     contributor_ids = list(map.keys())
     for batch in itertools.batched(contributor_ids, 50):
         query = (
-            '''SELECT DISTINCT
+            """SELECT DISTINCT
   ?contributor
   ?contributorLabel
   ?olId
@@ -836,9 +756,9 @@ def fix_contributor_data(
   ?birthDate
   ?deathDate
 WHERE {
-  VALUES ?contributor {'''
-            + ''.join([f"wd:{id}\n    " for id in batch])
-            + '''}
+  VALUES ?contributor {"""
+            + "".join([f"wd:{id}\n    " for id in batch])
+            + """}
   OPTIONAL { ?contributor wdt:P648 ?olId. }
   OPTIONAL { ?contributor wdt:P214 ?viaf. }
   OPTIONAL { ?contributor wdt:P2607 ?bookbrainz. }
@@ -856,25 +776,19 @@ WHERE {
   OPTIONAL { ?contributor wdt:P2397 ?youtube. }
   OPTIONAL { ?contributor wdt:P569 ?birthDate. }
   OPTIONAL { ?contributor wdt:P570 ?deathDate. }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,'''
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],mul,"""
             + cfg.langcode
-            + '''". }
-}'''
+            + """". }
+}"""
         )
-        metadata_url = update_url_with_params(
-            WIKIDATA_API_URL, {"format": "json", "query": query}
-        )
+        metadata_url = update_url_with_params(WIKIDATA_API_URL, {"format": "json", "query": query})
 
         data = fetch_until_successful(metadata_url)
 
         if "results" not in data or "bindings" not in data["results"]:
             continue
 
-        results = [
-            obj
-            for obj in data["results"]["bindings"]
-            if "contributor" in obj and "value" in obj["contributor"]
-        ]
+        results = [obj for obj in data["results"]["bindings"] if "contributor" in obj and "value" in obj["contributor"]]
 
         for obj in results:
             contributor_id = get_wd_item_id(obj["contributor"]["value"])
@@ -892,9 +806,9 @@ WHERE {
                 contributor.death_date = extract_year(obj["deathDate"]["value"])
 
             if "olId" in obj and "value" in obj["olId"]:
-                contributor.key = f"/authors/{obj["olId"]["value"]}"
+                contributor.key = f"/authors/{obj['olId']['value']}"
 
-            contributor.remote_ids['wikidata'] = contributor_id
+            contributor.remote_ids["wikidata"] = contributor_id
 
             # Couldn't find inventaire
             for id in [
@@ -916,7 +830,7 @@ WHERE {
                 if id in obj and "value" in obj[id]:
                     val = obj[id]["value"]
                     if id == "youtube" and val[0] != "@":
-                        val = f'@{val}'
+                        val = f"@{val}"
                     contributor.remote_ids[id] = val
 
             if contributor_id in map:

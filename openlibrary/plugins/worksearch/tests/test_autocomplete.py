@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import web
 
-from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
+from openlibrary.plugins.worksearch.autocomplete import autocomplete, series_autocomplete, works_autocomplete
 from openlibrary.utils.solr import Solr
 
 
@@ -106,8 +106,6 @@ def test_works_autocomplete():
 
 
 def test_series_autocomplete_olid():
-    from openlibrary.plugins.worksearch.autocomplete import series_autocomplete
-
     ac = series_autocomplete()
     with (
         patch("web.input") as mock_web_input,
@@ -124,8 +122,6 @@ def test_series_autocomplete_olid():
 
 
 def test_series_autocomplete_url():
-    from openlibrary.plugins.worksearch.autocomplete import series_autocomplete
-
     ac = series_autocomplete()
     with (
         patch("web.input") as mock_web_input,

@@ -50,14 +50,14 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
             </h2>
         </div>
 
-	$jsdef renderSubjects(subjects):
-	    $if len(subjects) > 0:
-	        <span class="subject">
-	        $for s in subjects:
-	            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
-	        </span>
-	    $else:
-	        <span class="title"><em>$_("None found.")</em></span>
+    $jsdef renderSubjects(subjects):
+        $if len(subjects) > 0:
+            <ol-chip-group gap="small">
+            $for s in subjects:
+                <ol-chip size="small" href="$s.key">$s.name</ol-chip>
+            </ol-chip-group>
+        $else:
+            <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
         <div class="contentQuarter link-box link-box--with-header">

@@ -129,7 +129,8 @@
 }
 
 .ac_loading {
-  background: var(--white) url(/images/indicator.gif) right center no-repeat;
+  background: var(--white) url(/static/images/indicator.gif) right center
+    no-repeat;
 }
 
 .ac_odd {

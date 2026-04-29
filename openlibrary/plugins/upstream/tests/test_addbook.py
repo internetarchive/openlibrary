@@ -525,7 +525,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [author],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }
@@ -548,7 +548,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }

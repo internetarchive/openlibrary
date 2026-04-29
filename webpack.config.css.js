@@ -1,4 +1,3 @@
-/* eslint-env node, es6 */
 /*
  * Webpack config for compiling CSS entry points to independent CSS files in static/build/
  *

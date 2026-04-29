@@ -8,6 +8,7 @@ import io
 import json
 import logging
 from collections import defaultdict
+from typing import Any, Literal
 
 import qrcode
 import web
@@ -46,7 +47,8 @@ from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.utils.isbn import normalize_isbn
+from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import get_trending_books
 
 logger = logging.getLogger(__name__)
@@ -199,7 +201,9 @@ class ratings(delegate.page):
             ajax=False,
         )
         key = i.redir_url or (i.edition_id or ("/works/OL%sW" % work_id))
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        edition_id = (
+            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        )
 
         if not user:
             raise web.seeother("/account/login?redirect=%s" % key)
@@ -207,7 +211,9 @@ class ratings(delegate.page):
         username = user.key.split("/")[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
 
         if i.rating is None:
             models.Ratings.remove(username, work_id)
@@ -221,7 +227,9 @@ class ratings(delegate.page):
             except ValueError:
                 return response("invalid rating", status="error")
 
-            models.Ratings.add(username=username, work_id=work_id, rating=rating, edition_id=edition_id)
+            models.Ratings.add(
+                username=username, work_id=work_id, rating=rating, edition_id=edition_id
+            )
             r = response("rating added")
 
         if i.redir and not i.ajax:
@@ -255,18 +263,24 @@ class booknotes(delegate.page):
             raise web.seeother("/account/login?redirect=/works/%s" % work_id)
 
         i = web.input(notes=None, edition_id=None, redir=None)
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
+        edition_id = (
+            int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else -1
+        )
 
         username = user.key.split("/")[2]
 
         def response(msg, status="success"):
-            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
 
         if i.notes is None:
             Booknotes.remove(username, work_id, edition_id=edition_id)
             return response("removed note")
 
-        Booknotes.add(username=username, work_id=work_id, notes=i.notes, edition_id=edition_id)
+        Booknotes.add(
+            username=username, work_id=work_id, notes=i.notes, edition_id=edition_id
+        )
 
         if i.redir:
             raise web.seeother("/works/%s" % work_id)
@@ -332,8 +346,12 @@ class work_bookshelves(delegate.page):
                 content_type="application/json",
             )
 
-        if ((not i.dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
-            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
+        if (
+            (not i.dont_remove) and bookshelf_id == current_status
+        ) or bookshelf_id == -1:
+            work_bookshelf = Bookshelves.remove(
+                username=username, work_id=work_id, bookshelf_id=current_status
+            )
             BookshelvesEvents.delete_by_username_and_work(username, work_id)
 
         else:
@@ -360,7 +378,9 @@ class work_editions(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/work":
-            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit) or 50
@@ -405,7 +425,9 @@ class author_works(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.get(key)
         if not doc or doc.type.key != "/type/author":
-            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
+            raise web.HTTPError(
+                "404 Not Found", {"Content-Type": "application/json"}, data="{}"
+            )
         else:
             i = web.input(limit=50, offset=0)
             limit = h.safeint(i.limit, 50)
@@ -443,58 +465,42 @@ class author_works(delegate.page):
         return {"links": links, "size": size, "entries": works}
 
 
-class price_api(delegate.page):
-    path = r"/prices"
+async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
+    id_type_short: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
+    id_ = asin or (normalize_isbn(isbn) or isbn)
 
-    @jsonapi
-    def GET(self):
-        i = web.input(isbn="", asin="")
-        if not (i.isbn or i.asin):
-            return json.dumps({"error": "isbn or asin required"})
+    metadata: dict = {
+        "amazon": get_amazon_metadata(id_, id_type=id_type_short) or {},
+        "betterworldbooks": {},
+    }
+    if id_type_short == 'isbn':
+        metadata["betterworldbooks"] = await get_betterworldbooks_metadata(id_)
 
-        metadata = self.get_price_data(i.isbn, i.asin)
-        return json.dumps(metadata)
-
-    @staticmethod
-    def get_price_data(isbn, asin):
-        id_ = asin or normalize_isbn(isbn)
-        id_type = "asin" if asin else "isbn_" + ("13" if len(id_) == 13 else "10")
-
-        metadata = {
-            "amazon": get_amazon_metadata(id_, id_type=id_type[:4]) or {},
-            "betterworldbooks": (get_betterworldbooks_metadata(id_) if id_type.startswith("isbn_") else {}),
+    # fetch book by isbn if it exists
+    # TODO: perform existing OL lookup by ASIN if supplied, if possible
+    id_type_long = "asin" if asin else "isbn_13" if len(id_) == 13 else "isbn_10"
+    matches = site.get().things(
+        {
+            "type": "/type/edition",
+            id_type_long: id_,
         }
-        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
+    )
 
-        # if bwb fails and isbn10, try again with isbn13
-        if id_type == "isbn_10" and metadata["betterworldbooks"].get("price") is None:
-            isbn_13 = isbn_10_to_isbn_13(id_)
-            metadata["betterworldbooks"] = (isbn_13 and get_betterworldbooks_metadata(isbn_13)) or {}
+    book_key = matches[0] if matches else None
 
-        # fetch book by isbn if it exists
-        # TODO: perform existing OL lookup by ASIN if supplied, if possible
-        matches = web.ctx.site.things(
-            {
-                "type": "/type/edition",
-                id_type: id_,
-            }
-        )
+    # if no OL edition for isbn, attempt to create
+    if (not book_key) and metadata.get("amazon"):
+        book_key = create_edition_from_amazon_metadata(id_, id_type=id_type_short)
 
-        book_key = matches[0] if matches else None
+    # include ol edition metadata in response, if available
+    if book_key:
+        ed = site.get().get(book_key)
+        if ed:
+            metadata["key"] = ed.key
+            if getattr(ed, "ocaid"):  # noqa: B009
+                metadata["ocaid"] = ed.ocaid
 
-        # if no OL edition for isbn, attempt to create
-        if (not book_key) and metadata.get("amazon"):
-            book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
-
-        # include ol edition metadata in response, if available
-        if book_key:
-            ed = web.ctx.site.get(book_key)
-            if ed:
-                metadata["key"] = ed.key
-                if getattr(ed, "ocaid"):  # noqa: B009
-                    metadata["ocaid"] = ed.ocaid
-
-        return metadata
+    return metadata
 
 
 class patrons_follows_json(delegate.page):
@@ -518,6 +524,11 @@ class patrons_follows_json(delegate.page):
         user = accounts.get_current_user()
         if not user or user.key != key:
             raise web.seeother(f"/account/login?redir_url={i.redir_url}")
+
+        # Validate that the publisher account exists
+        publisher_account = accounts.find(username=i.publisher)
+        if not publisher_account:
+            raise web.notfound()
 
         username = user.key.split("/")[2]
         action = PubSub.subscribe if i.state == "0" else PubSub.unsubscribe
@@ -549,7 +560,9 @@ class patrons_observations(delegate.page):
             kv_pair = Observations.get_key_value_pair(r["type"], r["value"])
             patron_observations[kv_pair.key].append(kv_pair.value)
 
-        return delegate.RawText(json.dumps(patron_observations), content_type="application/json")
+        return delegate.RawText(
+            json.dumps(patron_observations), content_type="application/json"
+        )
 
     def POST(self, work_id):
         user = accounts.get_current_user()
@@ -559,10 +572,14 @@ class patrons_observations(delegate.page):
 
         data = json.loads(web.data())
 
-        Observations.persist_observation(data["username"], work_id, data["observation"], data["action"])
+        Observations.persist_observation(
+            data["username"], work_id, data["observation"], data["action"]
+        )
 
         def response(msg, status="success"):
-            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
 
         return response("Observations added")
 
@@ -576,7 +593,9 @@ class patrons_observations(delegate.page):
         Observations.remove_observations(username, work_id)
 
         def response(msg, status="success"):
-            return delegate.RawText(json.dumps({status: msg}), content_type="application/json")
+            return delegate.RawText(
+                json.dumps({status: msg}), content_type="application/json"
+            )
 
         return response("Observations removed")
 
@@ -596,7 +615,9 @@ class public_observations(delegate.page):
         works = i.olid
         metrics = {w: get_observation_metrics(w) for w in works}
 
-        return delegate.RawText(json.dumps({"observations": metrics}), content_type="application/json")
+        return delegate.RawText(
+            json.dumps({"observations": metrics}), content_type="application/json"
+        )
 
 
 class work_delete(delegate.page):
@@ -650,9 +671,11 @@ class work_delete(delegate.page):
 
         editions: list[dict] = self.get_editions_of_work(work)
         keys_to_delete: list = [el.get("key") for el in [*editions, work.dict()]]
-        delete_payload: list[dict] = [{"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete]
+        delete_payload: list[dict] = [
+            {"key": key, "type": {"key": "/type/delete"}} for key in keys_to_delete
+        ]
 
-        web.ctx.site.save_many(delete_payload, comment)
+        web.ctx.site.save_many(delete_payload, comment, action="bulk-delete-books")
         return delegate.RawText(
             json.dumps(
                 {
@@ -677,9 +700,13 @@ class hide_banner(delegate.page):
         if user and data["cookie-name"].startswith("yrg"):
             user.save_preferences({"yrg_banner_pref": data["cookie-name"]})
 
-        web.setcookie(data["cookie-name"], "1", expires=(cookie_duration_days * DAY_SECONDS))
+        web.setcookie(
+            data["cookie-name"], "1", expires=(cookie_duration_days * DAY_SECONDS)
+        )
 
-        return delegate.RawText(json.dumps({"success": "Preference saved"}), content_type="application/json")
+        return delegate.RawText(
+            json.dumps({"success": "Preference saved"}), content_type="application/json"
+        )
 
 
 class create_qrcode(delegate.page):
@@ -768,7 +795,9 @@ class bestbook_count(delegate.page):
     @jsonapi
     def GET(self):
         filt = web.input(work_id=None, username=None, topic=None)
-        result = Bestbook.get_count(work_id=filt.work_id, username=filt.username, topic=filt.topic)
+        result = Bestbook.get_count(
+            work_id=filt.work_id, username=filt.username, topic=filt.topic
+        )
         return json.dumps({"count": result})
 
 
@@ -969,7 +998,9 @@ class opds_home(delegate.page):
             if is_bot():
                 key += ".bot"
 
-            mc = cache.memcache_memoize(build_homepage, key, timeout=five_minutes, prethread=caching_prethread())
+            mc = cache.memcache_memoize(
+                build_homepage, key, timeout=five_minutes, prethread=caching_prethread()
+            )
             page = mc()
 
             if not page:
@@ -995,15 +1026,25 @@ class unlink_ia_ol(delegate.page):
         try:
             HMACToken.verify(digest, msg, "ia_sync_secret")
         except (ValueError, ExpiredTokenError):
-            raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
+            raise web.HTTPError(
+                "401 Unauthorized", {"Content-Type": "application/json"}
+            )
 
         ocaid, ts = msg.split("|")
 
         if not ts or not ocaid:
-            raise web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, data=json.dumps({"error": "Invalid inputs"}))
+            raise web.HTTPError(
+                "400 Bad Request",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": "Invalid inputs"}),
+            )
 
         # Fetch affected editions
-        if not (edition_keys := web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})):
+        if not (
+            edition_keys := web.ctx.site.things(
+                {"type": "/type/edition", "ocaid": ocaid}
+            )
+        ):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
@@ -1011,7 +1052,9 @@ class unlink_ia_ol(delegate.page):
             raise web.HTTPError(
                 "409 Conflict",
                 {"Content-Type": "application/json"},
-                data=json.dumps({"error": "Multiple editions associated with given ocaid"}),
+                data=json.dumps(
+                    {"error": "Multiple editions associated with given ocaid"}
+                ),
             )
 
         edition = editions[0]
@@ -1020,8 +1063,14 @@ class unlink_ia_ol(delegate.page):
         try:
             self.make_dark(edition)
         except ClientException as e:
-            logger.error(f"Failed to disassociate record with key {edition.key}", exc_info=True)
-            raise web.HTTPError("500 Internal Server Error", {"Content-Type": "application/json"}, data=json.dumps({"error": str(e)}))
+            logger.error(
+                f"Failed to disassociate record with key {edition.key}", exc_info=True
+            )
+            raise web.HTTPError(
+                "500 Internal Server Error",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": str(e)}),
+            )
 
         return delegate.RawText(json.dumps({"status": "ok"}))
 
@@ -1030,10 +1079,12 @@ class unlink_ia_ol(delegate.page):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])
-        data["source_records"] = [rec for rec in source_records if not rec.startswith("ia:")]
+        data["source_records"] = [
+            rec for rec in source_records if not rec.startswith("ia:")
+        ]
         if not data["source_records"]:
             del data["source_records"]
-        web.ctx.site.save(data, "Remove OCAID: Item no longer available to borrow.")
+        web.ctx.site.save(data, "Disassociate OCAID", action="edit-edition-ocaid")
 
 
 class monthly_logins(delegate.page):

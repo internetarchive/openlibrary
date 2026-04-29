@@ -27,7 +27,7 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
 
-WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
+WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2 ol-web3"
 ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 ol-solr0 ol-solr1 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
@@ -94,6 +94,12 @@ check_for_local_changes() {
     REPO_DIR=$2
 
     echo -n "   $SERVER ... "
+
+    # First check if it doesn't exist
+    if ! ssh $SERVER "test -d $REPO_DIR"; then
+        echo "✓ ($REPO_DIR doesn't exist, will be created on deploy)"
+        return
+    fi
 
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
@@ -218,6 +224,10 @@ deploy_olsystem() {
     check_server_access
     check_crons
 
+    while ! check_server_storage; do
+        read -p "Press Enter to retry..."
+    done
+
     cd $DEPLOY_DIR
 
     CLEANUP=${CLEANUP:-1}
@@ -262,7 +272,9 @@ deploy_olsystem() {
             sudo chmod -R g+rwX /opt/$REPO_NEW
 
             sudo rm -rf /opt/$REPO_PREVIOUS || true
-            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            if [ -d /opt/$REPO ]; then
+                sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            fi
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
             echo "✓"
@@ -322,10 +334,11 @@ tag_release() {
 }
 
 check_olbase_image_up_to_date() {
+    local git_branch="${GIT_BRANCH:-master}"
     echo "[Now] Checking if Docker image is up-to-date"
 
     # Get latest commit timestamp from GitHub API
-    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/master"
+    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/$git_branch"
     GIT_LAST_UPDATED=$(curl -s "$GITHUB_COMMIT_API" | jq -r '.commit.committer.date')
     echo "Latest Git commit: $GIT_LAST_UPDATED"
 
@@ -351,6 +364,7 @@ check_olbase_image_up_to_date() {
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    local git_branch="${GIT_BRANCH:-master}"
 
     echo "[Now] Deploying openlibrary"
 
@@ -361,8 +375,12 @@ deploy_openlibrary() {
     if [ -d "$DEPLOY_DIR/openlibrary_new" ]; then
         cleanup "$DEPLOY_DIR/openlibrary_new"
     fi
-    echo -ne "Cloning openlibrary repo ... "
+    echo -ne "Cloning openlibrary repo (branch: $git_branch) ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
+    if [ -n "$git_branch" ]; then
+        git -C openlibrary fetch --depth=1 origin $git_branch
+        git -C openlibrary checkout FETCH_HEAD
+    fi
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
     echo "✔ (SHA: $GIT_SHA)"
     echo ""
@@ -422,7 +440,7 @@ deploy_openlibrary() {
     echo "Pull the latest docker images..."
     deploy_images
 
-    tag_deploy
+
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -649,6 +667,9 @@ deploy_wizard() {
         fi
     fi
 
+    echo "Creating git tag for deploy... "
+    tag_deploy
+
     read -p "[Now] Restart services? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
@@ -656,7 +677,7 @@ deploy_wizard() {
         echo ""
     fi
 
-    read -p "[Now] Tag and announce release? [N/y]..." answer
+    read -p "[Now] Create and announce release? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time tag_release

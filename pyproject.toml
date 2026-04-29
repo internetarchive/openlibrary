@@ -82,7 +82,6 @@ lint.ignore = [
     # openlibrary/plugins/upstream/utils.py - unclear but it's huge
     # scripts/tests/test_affiliate_server.py - probably needed for side effects
     # scripts/tests/test_solr_updater.p - probably needed for side effects
-  "PLC0415", # import-outside-top-level we really need to turn this on but it's a decently big change
 ]
 line-length = 162
 lint.select = [
@@ -175,15 +174,15 @@ max-statements = 70
 "openlibrary/core/stats.py" = ["BLE001"]
 "openlibrary/core/vendors.py" = ["B009"]
 "openlibrary/coverstore/code.py" = ["E722"]
-"openlibrary/i18n/__init__.py" = ["BLE001"]
+"openlibrary/i18n/__init__.py" = ["BLE001", "PLC0415"]
 "openlibrary/plugins/admin/code.py" = ["E722"]
 "openlibrary/plugins/admin/mem.py" = ["E722"]
 "openlibrary/plugins/admin/memory.py" = ["E722"]
 "openlibrary/plugins/admin/services.py" = ["BLE001"]
 "openlibrary/plugins/books/dynlinks.py" = ["E722"]
-"openlibrary/plugins/books/readlinks.py" = ["E722"]
+"openlibrary/plugins/books/readlinks.py" = ["E722", "PLC0415"]
 "openlibrary/plugins/importapi/code.py" = ["BLE001"]
-"openlibrary/plugins/ol_infobase.py" = ["BLE001"]
+"openlibrary/plugins/ol_infobase.py" = ["BLE001", "PLC0415"]
 "openlibrary/plugins/openlibrary/code.py" = ["BLE001", "E722"]
 "openlibrary/plugins/openlibrary/connection.py" = ["E722"]
 "openlibrary/plugins/openlibrary/stats.py" = ["BLE001"]
@@ -196,16 +195,47 @@ max-statements = 70
 "openlibrary/utils/open_syllabus_project.py" = ["BLE001"]
 "openlibrary/utils/schema.py" = ["PERF402"]
 "openlibrary/utils/tests/test_retry.py" = ["PT012", "PT017"]
-"scripts/affiliate_server*.py" = ["SIM105"]
+"scripts/affiliate_server*.py" = ["SIM105", "PLC0415"]
 "scripts/copydocs.py" = ["BLE001", "PYI024"]
 "scripts/delete_import_items.py" = ["BLE001"]
 "scripts/import_book_covers.py" = ["BLE001"]
 "scripts/lc_marc_update.py" = ["E722"]
-"scripts/manage-imports.py" = ["BLE001"]
+"scripts/manage-imports.py" = ["BLE001", "PLC0415"]
 "scripts/sitemaps/sitemap.py" = ["BLE001"]
 "scripts/solr_builder/solr_builder/solr_builder.py" = ["PYI024", "PLR0913"]
 "scripts/tests/test_obfi.py" = ["E501"]
 "tests/*" = ["S101"]
+
+# All these rules are about imports not at the top level of a file
+# TODO: Slowly move the imports to the top of the files and add noqa statements where we can't move them up
+# Then remove the line here
+"openlibrary/admin/*.py" = ["PLC0415"]
+"openlibrary/core/*.py" = ["PLC0415"]
+"openlibrary/coverstore/*.py" = ["PLC0415"]
+"openlibrary/plugins/admin/*.py" = ["PLC0415"]
+"openlibrary/plugins/importapi/*.py" = ["PLC0415"]
+"openlibrary/plugins/openlibrary/*.py" = ["PLC0415"]
+"openlibrary/plugins/upstream/*.py" = ["PLC0415"]
+"openlibrary/plugins/worksearch/*.py" = ["PLC0415"]
+"openlibrary/plugins/worksearch/schemes/*.py" = ["PLC0415"]
+"openlibrary/accounts/model.py" = ["PLC0415"]
+"openlibrary/asgi_app.py" = ["PLC0415"]
+"openlibrary/book_providers.py" = ["PLC0415"]
+"openlibrary/catalog/add_book/__init__.py" = ["PLC0415"]
+"openlibrary/code.py" = ["PLC0415"]
+"openlibrary/core/lists/model.py" = ["PLC0415"]
+"openlibrary/coverstore/tests/test_coverstore.py" = ["PLC0415"]
+"openlibrary/mocks/mock_infobase.py" = ["PLC0415"]
+"openlibrary/solr/data_provider.py" = ["PLC0415"]
+"openlibrary/views/showmarc.py" = ["PLC0415"]
+"scripts/coverstore-server" = ["PLC0415"]
+"scripts/infobase-server" = ["PLC0415"]
+"scripts/openlibrary-server" = ["PLC0415"]
+"scripts/monitoring/monitor.py" = ["PLC0415"]
+"scripts/solr_updater/solr_updater.py" = ["PLC0415"]
+"scripts/utils/scheduler.py" = ["PLC0415"]
+"tests/test_docker_compose.py" = ["PLC0415"]
+
 
 [tool.sqlfluff.core]
 dialect = "postgres"

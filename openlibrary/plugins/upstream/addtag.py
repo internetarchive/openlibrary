@@ -28,16 +28,11 @@ TAG_TYPES = SUBJECT_SUB_TYPES + ["collection"]
 
 
 def validate_tag(tag):
-    return (
-        tag.get('name', '')
-        and tag.get('tag_description', '')
-        and tag.get('tag_type', '') in get_tag_types()
-        and tag.get('body')
-    )
+    return tag.get("name", "") and tag.get("tag_description", "") and tag.get("tag_type", "") in get_tag_types() and tag.get("body")
 
 
 def validate_subject_tag(tag):
-    return validate_tag(tag) and tag.get('tag_type', '') in get_subject_tag_types()
+    return validate_tag(tag) and tag.get("tag_type", "") in get_subject_tag_types()
 
 
 def create_tag(tag: dict):
@@ -72,24 +67,24 @@ def find_match(name: str, tag_type: str) -> str:
     Returns the key of the matching tag, or an empty string if no such tag exists.
     """
     matches = Tag.find(name, tag_type=tag_type)
-    return matches[0] if matches else ''
+    return matches[0] if matches else ""
 
 
 class addtag(delegate.page):
-    path = '/tag/add'
+    path = "/tag/add"
 
     def GET(self):
         """Main user interface for adding a tag to Open Library."""
         if not (patron := get_current_user()):
             # NOTE : will lose any query params on login redirect
-            raise web.seeother(f'/account/login?redirect={self.path}')
+            raise web.seeother(f"/account/login?redirect={self.path}")
 
         if not self.has_permission(patron):
-            raise web.unauthorized(message='Permission denied to add tags')
+            raise web.unauthorized(message="Permission denied to add tags")
 
         i = web.input(name=None, type=None, sub_type=None)
 
-        return render_template('type/tag/form', i)
+        return render_template("type/tag/form", i)
 
     def has_permission(self, user) -> bool:
         """
@@ -106,15 +101,13 @@ class addtag(delegate.page):
         )
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         if not (patron := get_current_user()):
-            raise web.seeother(f'/account/login?redirect={self.path}')
+            raise web.seeother(f"/account/login?redirect={self.path}")
 
         if not self.has_permission(patron):
-            raise web.unauthorized(message='Permission denied to add tags')
+            raise web.unauthorized(message="Permission denied to add tags")
 
         if not self.validate_input(i):
             raise web.badrequest()
@@ -122,10 +115,10 @@ class addtag(delegate.page):
         if match := find_match(i.name, i.tag_type):
             # A tag with the same name and type already exists
             add_flash_message(
-                'error',
+                "error",
                 f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>',
             )
-            return render_template('type/tag/form', i)
+            return render_template("type/tag/form", i)
 
         tag = create_tag(i)
         raise safe_seeother(tag.key)
@@ -175,23 +168,21 @@ class tag_edit(delegate.page):
             if match:
                 # A tag with the same name and type already exists
                 add_flash_message(
-                    'error',
+                    "error",
                     f'A matching tag with the same name and type already exists: <a href="{match}">{match}</a>',
                 )
                 return render_template("type/tag/form", formdata, redirect=i.redir)
 
         try:
             if "_delete" in i:
-                tag = web.ctx.site.new(
-                    key, {"key": key, "type": {"key": "/type/delete"}}
-                )
-                tag._save(comment=i._comment)
+                tag = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
+                tag._save(comment=i._comment, action="delete-tag")
                 raise safe_seeother(key)
             tag.update(formdata)
-            tag._save(comment=i._comment)
+            tag._save(comment=i._comment, action="edit-tag")
             raise safe_seeother(i.redir or key)
         except (ClientException, ValidationException) as e:
-            add_flash_message('error', str(e))
+            add_flash_message("error", str(e))
             return render_template("type/tag/form", tag, redirect=i.redir)
 
     def validate(self, data, tag_type):

@@ -1,6 +1,8 @@
 # Contributing
 
-Thanks for your interest in contributing to Open Library! This guide explains how to choose work, coordinate with maintainers, and submit a pull request successfully. For setup instructions, see the [Quick Start](https://docs.openlibrary.org/developers/quick-start.html) guide.
+Thanks for your interest in contributing to Open Library! We value thoughtful, collaborative contributions. Before picking up work, make sure you understand the problem, check whether someone is already working on it, and coordinate with maintainers so efforts align with project priorities. Good contributions are not just about completing an issue, but about solving the right problem clearly and respectfully.
+
+For setup instructions, see the [Quick Start](https://docs.openlibrary.org/developers/quick-start.html) guide.
 
 ## How contributing works
 
@@ -13,17 +15,27 @@ Thanks for your interest in contributing to Open Library! This guide explains ho
 
 ## Before you begin
 
+We value all contributors and want to ensure a positive and collaborative environment where everyone's contributions are respected and celebrated.
+
+### Respecting Other Contributors' Work
+
+Our community thrives on mutual respect. Please consider others who may already be investing their time and energy:
+
+- **Check before starting**: Look at the issue comments to see if someone has already requested assignment or is actively working on it
+- **Respect current assignments**: If someone is assigned to an issue, they've committed their time to it. Opening a competing PR without coordination undermines their contribution
+- **Coordinate when uncertain**: If you're unsure about someone's progress, ask on the issue before starting related work
+- **Give space for follow-through**: If an assigned issue has been inactive for 2 weeks, kindly ask whether it can be reassigned rather than assuming it's abandoned
+### Requesting Issue Assignments
+
 Please **request assignment** to an issue before starting work. Our maintainers triage issues weekly (or immediately for high-priority items) to ensure your contribution aligns with current priorities and prevent duplicate effort.
 
 When requesting assignment:
 
-- Focus on one meaningful issue at a time rather than requesting many
-- Explain the problem and your proposed approach in your own words
-- Mention which files or components you plan to modify
+- **Focus on quality over quantity**: Work on one meaningful issue at a time rather than requesting many assignments
+- **Show you understand the problem**: Include your summary of the challenge, your proposed approach, and which files you plan to modify
+- **Share your questions**: If something isn't clear, ask! This helps us provide better guidance
 
-**Use AI tools responsibly.** Be prepared to explain the problem and your proposed solution in your own words.
-
-Please respect current assignments. If someone is already assigned or actively working on an issue, coordinate on the issue before starting related work.
+**Use AI tools responsibly.** You're encouraged to use AI tools to assist with research and understanding the codebase, but please take time to truly comprehend the suggestions and present them in your own words. This demonstrates your genuine understanding and helps us have meaningful conversations about your approach.
 
 ## Choosing work
 
