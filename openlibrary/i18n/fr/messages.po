@@ -4414,6 +4414,15 @@ msgstr "Lieu"
 msgid "Person"
 msgstr "Personne"
 
+msgid "How to search?"
+msgstr "Comment chercher ?"
+
+msgid "Full Text Search?"
+msgstr "Recherche plein texte ?"
+
+msgid "Bulk Search (beta)"
+msgstr "Recherche en masse (bêta)"
+
 #: search/advancedsearch.html:50
 msgid "Full Text Search"
 msgstr "Recherche en plein texte"
