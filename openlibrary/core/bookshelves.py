@@ -182,7 +182,7 @@ class Bookshelves(db.CommonExtras):
             if key in work_index:
                 readinglog_items[i]["work"] = work_index[key]
 
-    add_solr_works = async_bridge.wrap(add_solr_works_async)
+    add_solr_works = staticmethod(async_bridge.wrap(add_solr_works_async))
 
     @classmethod
     def count_total_books_logged_by_user(cls, username: str, bookshelf_ids: list[str] | None = None) -> int:
