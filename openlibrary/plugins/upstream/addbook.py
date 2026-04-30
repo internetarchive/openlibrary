@@ -637,9 +637,11 @@ class SaveBookHelper:
             except TocParseError as e:
                 raise ClientException("400 Bad Request", f"Table of contents parse error: {e}")
 
-            if edition_data.pop("translation", None) != "yes":
+            is_translation = edition_data.pop("translation", None) == "yes"
+            if not is_translation:
                 edition_data.translation_of = None
                 edition_data.translated_from = None
+            edition_data.translation = is_translation or None
 
             if "contributors" not in edition_data:
                 self.edition.contributors = []
