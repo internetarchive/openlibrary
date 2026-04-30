@@ -4,9 +4,9 @@ import json
 from typing import Literal
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
 

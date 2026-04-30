@@ -6,9 +6,8 @@ This is temporary while we migrate to fastapi and have two containers running.
 """
 
 import httpx
-import web
-
 import infogami
+import web
 from infogami.utils import delegate
 
 

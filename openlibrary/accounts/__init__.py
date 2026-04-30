@@ -2,8 +2,8 @@ import datetime
 from typing import TYPE_CHECKING
 
 import web
-
 from infogami.utils.view import public
+
 from openlibrary.utils.request_context import site
 
 # FIXME: several modules import things from accounts.model

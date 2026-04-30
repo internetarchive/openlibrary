@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import override
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 

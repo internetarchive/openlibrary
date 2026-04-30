@@ -5,16 +5,16 @@ from os import getenv
 
 import sentry_sdk
 import web
-from sentry_sdk.tracing import Transaction, TransactionSource
-from sentry_sdk.tracing_utils import add_query_source, record_sql_queries
-from sentry_sdk.utils import capture_internal_exceptions
-from web import DB
-
 from infogami.utils.app import (
     find_page,
     modes,
 )
 from infogami.utils.types import type_patterns
+from sentry_sdk.tracing import Transaction, TransactionSource
+from sentry_sdk.tracing_utils import add_query_source, record_sql_queries
+from sentry_sdk.utils import capture_internal_exceptions
+from web import DB
+
 from openlibrary.utils import get_software_version
 
 

@@ -1,6 +1,6 @@
 import web
-
 from infogami.infobase import client, common
+
 from openlibrary.plugins.upstream import models
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,

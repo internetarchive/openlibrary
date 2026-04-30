@@ -8,9 +8,9 @@ import sys
 from collections.abc import Iterable
 
 import web
-
 from infogami.utils import stats
 from infogami.utils.delegate import register_exception
+
 from openlibrary.core import helpers, ia
 from openlibrary.plugins.books import dynlinks
 

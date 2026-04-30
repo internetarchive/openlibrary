@@ -32,9 +32,6 @@ import requests
 import web
 import yaml
 from babel.lists import format_list
-from web.template import TemplateResult
-from web.utils import Storage
-
 from infogami import config
 from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
@@ -47,6 +44,9 @@ from infogami.utils.view import (
     public,
     render,
 )
+from web.template import TemplateResult
+from web.utils import Storage
+
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
@@ -1270,7 +1270,7 @@ class HTML(str):
     __slots__ = ()
 
     def __init__(self, html):
-        str.__init__(self, web.safeunicode(html))
+        str.__init__(self, str(html))
 
     def __repr__(self):
         return "<html: %s>" % str.__repr__(self)
@@ -1328,10 +1328,7 @@ class UpstreamMemcacheClient:
         keys = [web.safestr(k) for k in keys]
 
         d = self._client.get_multi(keys)
-        return {
-            web.safeunicode(adapter.unconvert_key(k)): self.decompress(v)
-            for k, v in d.items()
-        }
+        return {str(adapter.unconvert_key(k)): self.decompress(v) for k, v in d.items()}
 
 
 if config.get('upstream_memcache_servers'):

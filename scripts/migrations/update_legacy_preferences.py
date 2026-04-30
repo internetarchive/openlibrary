@@ -6,9 +6,9 @@ Updates all legacy preferences, deleting "rpd" and "pda" values.
 import argparse
 from pathlib import Path
 
+import infogami
 import web
 
-import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.config import load_config
 from openlibrary.core import db

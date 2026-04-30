@@ -4,9 +4,9 @@ from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs
 
 import web
+from infogami.utils.view import public, render_template
 from pydantic import BaseModel
 
-from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async

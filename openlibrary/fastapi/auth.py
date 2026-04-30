@@ -12,9 +12,9 @@ from typing import Annotated
 from urllib.parse import unquote
 
 from fastapi import Cookie, Depends, HTTPException, status
+from infogami import config
 from pydantic import BaseModel, Field
 
-from infogami import config
 from openlibrary.accounts.model import get_secret_key, verify_hash
 
 logger = logging.getLogger(__name__)

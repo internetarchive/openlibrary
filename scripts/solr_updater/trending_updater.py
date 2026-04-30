@@ -3,9 +3,9 @@ import datetime
 import logging
 from pathlib import Path
 
+import infogami
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 
-import infogami
 from openlibrary.config import load_config
 from openlibrary.utils.sentry import init_sentry
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI

@@ -5,9 +5,9 @@ from datetime import date
 from typing import cast
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str

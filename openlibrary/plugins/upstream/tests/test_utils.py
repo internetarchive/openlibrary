@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import web
-
 from infogami import config
+
 from openlibrary.catalog.add_book.tests.conftest import add_languages  # noqa: F401
 from openlibrary.mocks.mock_infobase import MockSite
 

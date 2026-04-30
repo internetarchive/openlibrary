@@ -4,8 +4,8 @@ import re
 from typing import ClassVar, cast
 
 import web
-
 from infogami import config
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (

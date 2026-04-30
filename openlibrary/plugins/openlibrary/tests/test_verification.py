@@ -1,8 +1,8 @@
 """Tests for human verification challenge functionality."""
 
 import web
-
 from infogami import config
+
 from openlibrary.plugins.openlibrary.processors import CookieValidationProcessor
 from openlibrary.utils.request_context import RequestContextVars, req_context
 

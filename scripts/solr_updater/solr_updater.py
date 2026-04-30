@@ -18,11 +18,11 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import aiofiles
+import infogami
 import requests
 import web
-
-import infogami
 from infogami import config
+
 from openlibrary.config import load_config
 from openlibrary.solr import update
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location

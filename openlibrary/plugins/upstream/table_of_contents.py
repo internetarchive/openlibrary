@@ -4,8 +4,8 @@ from functools import cached_property
 from typing import Required, TypedDict, TypeVar
 
 import web
-
 from infogami.infobase.client import Nothing, Thing
+
 from openlibrary.core.models import ThingReferenceDict
 
 

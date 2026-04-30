@@ -21,9 +21,9 @@ import re
 import sys
 from pathlib import Path
 
+import infogami
 import web
 
-import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.config import load_config
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested

@@ -3,6 +3,7 @@
 import os
 
 from infogami import config
+
 from openlibrary.utils.solr import Solr
 
 _ACTIVE_SOLR: Solr | None = None

@@ -5,10 +5,10 @@ import re
 from typing import Any
 
 import web
-
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.accounts import get_current_user
 from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
@@ -174,12 +174,12 @@ def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
         if isinstance(r, str):
             level = 0
             label = ""
-            title = web.safeunicode(r)
+            title = str(r)
             pagenum = ""
         elif "value" in r:
             level = 0
             label = ""
-            title = web.safeunicode(r["value"])
+            title = str(r["value"])
             pagenum = ""
         else:
             level = safeint(r.get("level", "0"), 0)

@@ -3,10 +3,10 @@
 import json
 
 import web
-from typing_extensions import deprecated
-
 from infogami.utils import delegate
 from infogami.utils.view import public
+from typing_extensions import deprecated
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils import extract_numeric_id_from_olid

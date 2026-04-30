@@ -6,8 +6,8 @@ import urllib
 from urllib.parse import quote_plus
 
 import web
-
 from infogami.utils.view import render
+
 from openlibrary.core import helpers as h
 
 logger = logging.getLogger("openlibrary.readableurls")
@@ -54,7 +54,7 @@ class ReadableUrlProcessor:
         # @@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
         if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":
-            raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
+            raise web.redirect(str(readable_path) + str(web.ctx.query))
 
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
@@ -148,7 +148,7 @@ def get_readable_path(site, path, patterns, encoding=None):
     _type, _property, default_title, prefix, middle, suffix = match(path)
 
     if _type is None:
-        path = web.safeunicode(path)
+        path = str(path)
         return (path, path)
 
     if encoding is not None or path.endswith((".json", ".rdf", ".yml")):
@@ -157,7 +157,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         thing = _get_object(site, key)
         if thing:
             path = thing.key + ext
-        path = web.safeunicode(path)
+        path = str(path)
         return (path, path)
 
     thing = _get_object(site, prefix)
@@ -175,8 +175,8 @@ def get_readable_path(site, path, patterns, encoding=None):
     if is_exclusion(thing):
         web.ctx.exclude = True
 
-    prefix = web.safeunicode(prefix)
-    middle = web.safeunicode(middle)
-    suffix = web.safeunicode(suffix)
+    prefix = str(prefix)
+    middle = str(middle)
+    suffix = str(suffix)
 
     return (prefix + suffix, prefix + middle + suffix)

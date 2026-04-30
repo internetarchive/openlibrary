@@ -10,6 +10,7 @@ import sys
 
 import infogami
 from infogami.utils.app import pages
+
 from openlibrary.plugins.openlibrary import deprecated_handler
 
 

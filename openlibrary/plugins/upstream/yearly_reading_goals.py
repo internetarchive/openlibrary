@@ -2,6 +2,7 @@ from datetime import datetime
 from math import floor
 
 from infogami.utils.view import public
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.core.yearly_reading_goals import YearlyReadingGoals

@@ -13,10 +13,10 @@ from typing import Any
 from urllib.parse import urlencode
 
 import web
-
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public, render_template
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, stats
 from openlibrary.utils import get_software_version

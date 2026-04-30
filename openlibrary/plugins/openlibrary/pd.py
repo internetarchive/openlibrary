@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
 import requests
-
 from infogami import config
+
 from openlibrary.core import cache
 from openlibrary.core.pd import make_pd_request_query
 from openlibrary.i18n import gettext as _

@@ -1,8 +1,8 @@
 import json
 
 import web
-
 from infogami.utils import delegate
+
 from openlibrary.accounts import get_current_user
 from openlibrary.core import stats
 from openlibrary.utils import uniq

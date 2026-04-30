@@ -13,9 +13,9 @@ import traceback
 
 import requests
 import web
-
 from infogami.infobase import cache as _ib_cache
 from infogami.infobase import common, config, dbstore, server
+
 from openlibrary.plugins.upstream.utils import strip_accents
 
 from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
@@ -484,12 +484,12 @@ def fix_table_of_contents(table_of_contents):
         if isinstance(r, str):
             level = 0
             label = ""
-            title = web.safeunicode(r)
+            title = str(r)
             pagenum = ""
         elif "value" in r:
             level = 0
             label = ""
-            title = web.safeunicode(r["value"])
+            title = str(r["value"])
             pagenum = ""
         elif isinstance(r, dict):
             level = safeint(r.get("level", "0"), 0)

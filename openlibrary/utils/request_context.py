@@ -11,7 +11,6 @@ from urllib.parse import unquote
 
 import web
 from fastapi import Request
-
 from infogami import config
 from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site

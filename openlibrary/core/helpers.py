@@ -17,7 +17,6 @@ import genshi.filters
 import web
 from babel.core import Locale
 from bs4 import BeautifulSoup
-
 from infogami import config
 from infogami.infobase.client import Nothing
 
