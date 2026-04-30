@@ -183,7 +183,7 @@ class CarouselCardPartial:
 
     async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
-        subject = await get_subject_async(params.q, offset=params.page, limit=params.limit,     publish_year=publish_year)
+        subject = await get_subject_async(params.q, offset=params.page, limit=params.limit, publish_year=publish_year)
         return subject.get("works", [])
 
 
