@@ -48,7 +48,7 @@ from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.plugins.openlibrary.home import get_cached_featured_subjects
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import normalize_isbn
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger(__name__)
 
@@ -818,10 +818,10 @@ class opds_home(delegate.page):
             five_minutes = 5 * dateutil.MINUTE_SECS
             lang = web.ctx.lang
             key = f"home.homepage-opds.{lang}"
-            cookies = web.cookies()
-            if cookies.get("pd", False):
+            ctx = req_context.get()
+            if ctx.print_disabled:
                 key += ".pd"
-            if cookies.get("sfw", ""):
+            if ctx.sfw:
                 key += ".sfw"
             if is_bot():
                 key += ".bot"

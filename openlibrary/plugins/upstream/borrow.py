@@ -32,6 +32,7 @@ from openlibrary.core import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import req_context
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -497,7 +498,7 @@ def user_can_borrow_edition(user, edition) -> Literal["borrow", "browse", False]
     user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
     if book_is_lendable:
-        if web.cookies().get("pd", False):
+        if req_context.get().print_disabled:
             return "borrow"
         elif user_is_below_loan_limit:
             if lending_st.get("available_to_browse"):

@@ -60,10 +60,10 @@ def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
     lang = web.ctx.lang
     key = f"home.homepage.{lang}"
-    cookies = web.cookies()
-    if cookies.get("pd", False):
+    ctx = req_context.get()
+    if ctx.print_disabled:
         key += ".pd"
-    if cookies.get("sfw", ""):
+    if ctx.sfw:
         key += ".sfw"
     if is_bot():
         key += ".bot"
