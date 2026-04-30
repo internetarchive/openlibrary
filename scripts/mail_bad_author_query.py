@@ -28,7 +28,7 @@ for row in db_error.query("select t, query, result from errors where t between '
     seen.add(author)
     bad_count += 1
     body += "-" * 60 + "\nAuthor name: " + author + "\n"
-    body += "http://openlibrary.org/query.json?type=/type/author&name=%s" % web.urlquote(author) + "\n\n"
+    body += "http://openlibrary.org/query.json?type=/type/author&name=%s" % urllib.parse.quote(author) + "\n\n"
     body += row.result + "\n"
 
 if bad_count == 0:

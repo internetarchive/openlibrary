@@ -1,3 +1,4 @@
+from urllib.parse import quote
 import json
 import sys
 import urllib
@@ -62,7 +63,7 @@ def get_all_ia():
     q["offset"] = 0
 
     while True:
-        url = base_url() + "/api/things?query=" + web.urlquote(json.dumps(q))
+        url = base_url() + "/api/things?query=" + urllib.parse.quote(json.dumps(q))
         ret = jsonload(url)["result"]
         yield from ret
         if not ret:

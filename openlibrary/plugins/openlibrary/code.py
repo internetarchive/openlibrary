@@ -1,7 +1,7 @@
 """
 Open Library Plugin.
 """
-
+from urllib.parse import quote
 import datetime
 import functools
 import gzip
@@ -1179,7 +1179,7 @@ def setup_template_globals():
             'zip': zip,
             'tuple': tuple,
             'hash': hash,
-            'urlquote': web.urlquote,
+            'urlquote': urllib.parse.quote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',

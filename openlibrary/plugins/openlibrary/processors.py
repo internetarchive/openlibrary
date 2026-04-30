@@ -1,5 +1,5 @@
 """web.py application processors for Open Library."""
-
+from urllib.parse import quote
 import re
 from typing import ClassVar, cast
 
@@ -150,7 +150,7 @@ class CookieValidationProcessor:
 
             if web.ctx.env.get("HTTP_X_OL_VERIFY_HUMAN") == "1":
                 next_url = web.ctx.env.get("REQUEST_URI") or web.ctx.env.get("HTTP_X_REQUEST_URI") or web.ctx.path
-                raise web.seeother("/verify_human?next=" + web.urlquote(next_url))
+                raise web.seeother("/verify_human?next=" + urllib.parse.quote(next_url))
 
         return handler()
 
