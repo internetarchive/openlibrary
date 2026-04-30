@@ -34,6 +34,28 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
 
+def _solr_query_to_subject_key(query: str) -> str:
+    """Convert Solr query format to subject key format."""
+    # Handle Solr field format and seed format
+    prefixes = [
+        ("subject_key:", "/subjects/"),
+        ("person_key:", "/subjects/person:"),
+        ("place_key:", "/subjects/place:"),
+        ("time_key:", "/subjects/time:"),
+        ("subject:", "/subjects/"),
+    ]
+
+    for prefix, replacement in prefixes:
+        if query.startswith(prefix):
+            return f"{replacement}{query.removeprefix(prefix)}"
+
+    # Already in correct format
+    if query.startswith("/subjects/"):
+        return query
+
+    raise ValueError(f"Unable to convert query to subject key: {query}")
+
+
 class ReadingGoalProgressPartial:
     """Handler for reading goal progress."""
 
@@ -183,11 +205,15 @@ class CarouselCardPartial:
 
     async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
+        subject_key = _solr_query_to_subject_key(params.q)
+        # Convert page (1-indexed) to offset (0-indexed), ensure non-negative
+        offset = max(0, params.page - 1) if params.page else 0
         subject = await get_subject_async(
-            params.q,
-            offset=params.page,
+            subject_key,
+            offset=offset,
             limit=params.limit,
-            publish_year=publish_year,
+            publish_year=publish_year or None,
+            request_label="BOOK_CAROUSEL",
         )
         return subject.get("works", [])
 
