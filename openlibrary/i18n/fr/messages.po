@@ -1224,6 +1224,9 @@ msgstr "Emprunter maintenant"
 msgid "Leave the waiting list?"
 msgstr "Quitter la liste d'attente ?"
 
+msgid "Or, check out our <a href=\"/collections\">special collections</a>."
+msgstr "Ou, consultez nos <a href=\"/collections\">collections spéciales</a>."
+
 #: account/loans.html:218 home/index.html:34
 msgid "Books We Love"
 msgstr "Livres que nous aimons"
