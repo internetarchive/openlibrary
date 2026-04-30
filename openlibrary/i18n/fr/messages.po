@@ -730,6 +730,10 @@ msgstr "Emprunter « %(title)s »"
 msgid "Borrow"
 msgstr "Emprunter"
 
+#: LocateButton.html
+msgid "Locate"
+msgstr "Localiser"
+
 #: widget.html:45
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
@@ -3428,6 +3432,10 @@ msgstr "Votre retour nous aidera à améliorer ces encarts"
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
 msgstr "Fixer un objectif annuel de lecture"
+
+#: home/welcome.html
+msgid "Learn how to set a yearly reading goal and track what you read"
+msgstr "Apprenez à fixer un objectif de lecture annuel et à suivre vos lectures"
 
 #: languages/index.html:15
 #, python-format
