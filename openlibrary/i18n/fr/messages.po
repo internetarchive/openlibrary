@@ -3807,6 +3807,9 @@ msgstr "En vogue"
 msgid "K-12 Student Library"
 msgstr "Bibliothèque scolaire"
 
+msgid "Book Talks"
+msgstr "Discussions littéraires"
+
 #: lib/nav_head.html:34
 msgid "Random Book"
 msgstr "Livre au hasard"
