@@ -1094,6 +1094,7 @@ def _prepare_work_search_query(
     )
 
 
+@public
 async def work_search_async(
     query: dict,
     sort: str | None = None,
