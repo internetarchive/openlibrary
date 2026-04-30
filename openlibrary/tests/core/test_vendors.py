@@ -1,10 +1,11 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from unittest.mock import patch
 
 import pytest
 
 from openlibrary.core.vendors import (
     AmazonAPI,
+    AmazonCreatorsAPI,
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
     get_amazon_metadata,
@@ -499,3 +500,308 @@ def test_is_dvd(physical_format, product_group, expected):
 
     got = is_dvd(book)
     assert got is expected
+
+
+# ---- Creators API dataclass fixtures ----------------------------------------
+# Minimal stand-ins for the objects returned by the python-amazon-paapi SDK.
+# Only attributes accessed by AmazonCreatorsAPI.serialize() are defined.
+
+
+@dataclass
+class CDisplayVal:
+    display_value: object
+
+
+@dataclass
+class CLangEntry:
+    display_value: str
+    type: str
+
+
+@dataclass
+class CLangs:
+    display_values: list
+
+
+@dataclass
+class CEans:
+    display_values: list  # list[str] — raw EAN strings
+
+
+@dataclass
+class CExtIds:
+    eans: object = None
+
+
+@dataclass
+class CContentInfo:
+    pages_count: object = None
+    publication_date: object = None
+    languages: object = None
+    edition: object = None
+
+
+@dataclass
+class CCreatorsContributor:
+    name: str
+    role: str
+
+
+@dataclass
+class CByLine:
+    contributors: list | None = None
+    brand: object = None
+    manufacturer: object = None
+
+
+@dataclass
+class CClassify:
+    product_group: object = None
+    binding: object = None
+
+
+@dataclass
+class CItemInfo:
+    title: object = None
+    by_line_info: object = None
+    classifications: CClassify | None = None
+    content_info: object = None
+    external_ids: CExtIds | None = None
+
+
+@dataclass
+class CImage:
+    url: str = ""
+
+
+@dataclass
+class CImgSizes:
+    large: object = None
+
+
+@dataclass
+class CImages:
+    primary: object = None
+    variants: list = field(default_factory=list)
+
+
+@dataclass
+class CMoney:
+    display_amount: str = ""
+    amount: float = 0.0
+
+
+@dataclass
+class CSavings:
+    percentage: float = 0.0
+
+
+@dataclass
+class CSavingBasis:
+    money: object = None
+
+
+@dataclass
+class CPrice:
+    money: object = None
+    savings: object = None
+    saving_basis: object = None
+
+
+@dataclass
+class CAvailability:
+    type: str = ""
+
+
+@dataclass
+class CListing:
+    price: object = None
+    availability: object = None
+
+
+@dataclass
+class COffersV2:
+    listings: list = field(default_factory=list)
+
+
+@dataclass
+class CBrowseNode:
+    context_free_name: str = ""
+    ancestor: object = None
+
+
+@dataclass
+class CBrowseNodeInfo:
+    browse_nodes: list = field(default_factory=list)
+
+
+@dataclass
+class CItem:
+    asin: str = ""
+    item_info: CItemInfo | None = None
+    images: object = None
+    offers_v2: object = None
+    browse_node_info: object = None
+
+
+def _make_creators_item() -> CItem:
+    """
+    Fully-populated Creators API item fixture modelling a real book
+    (The Sea Around Us by Rachel Carson, ISBN-10 0190906766).
+    """
+    return CItem(
+        asin="0190906766",
+        item_info=CItemInfo(
+            title=CDisplayVal("The Sea Around Us"),
+            by_line_info=CByLine(
+                contributors=[
+                    CCreatorsContributor("Rachel Carson", "Author"),
+                    CCreatorsContributor("Translator Name", "Translator"),
+                ],
+                manufacturer=CDisplayVal("Oxford University Press"),
+            ),
+            classifications=CClassify(
+                product_group=CDisplayVal("Book"),
+                binding=CDisplayVal("Paperback"),
+            ),
+            content_info=CContentInfo(
+                pages_count=CDisplayVal(256),
+                publication_date=CDisplayVal("2018-12-18T00:00:01Z"),
+                languages=CLangs(
+                    display_values=[
+                        CLangEntry("English", "Published"),
+                        CLangEntry("English", "Original Language"),
+                    ]
+                ),
+            ),
+            external_ids=CExtIds(eans=CEans(["9780190906764"])),
+        ),
+        images=CImages(
+            primary=CImgSizes(large=CImage("https://m.media-amazon.com/images/I/example.jpg")),
+            variants=[CImgSizes(large=CImage("https://m.media-amazon.com/images/I/variant1.jpg"))],
+        ),
+        offers_v2=COffersV2(
+            listings=[
+                CListing(
+                    price=CPrice(
+                        money=CMoney("$9.50", 9.50),
+                        savings=CSavings(10.0),
+                        saving_basis=CSavingBasis(money=CMoney("$10.56", 10.56)),
+                    ),
+                    availability=CAvailability("IN_STOCK"),
+                )
+            ]
+        ),
+        browse_node_info=CBrowseNodeInfo(
+            browse_nodes=[
+                CBrowseNode("Science & Math", ancestor=CBrowseNode("Books")),
+                CBrowseNode("Oceans & Seas"),
+            ]
+        ),
+    )
+
+
+# ---- AmazonCreatorsAPI.serialize() tests ------------------------------------
+
+
+def test_creators_serialize_full_book() -> None:
+    """Golden path: all standard and Creators-API-specific fields serialize correctly."""
+    result = AmazonCreatorsAPI.serialize(_make_creators_item())
+
+    # Core identity fields
+    assert result["source_records"] == ["amazon:0190906766"]
+    assert result["isbn_10"] == ["0190906766"]
+    assert result["isbn_13"] == ["9780190906764"]
+    assert result["title"] == "The Sea Around Us"
+
+    # Contributors
+    assert result["authors"] == [{"name": "Rachel Carson"}]
+    assert result["contributors"] == [{"name": "Translator Name", "role": "Translator"}]
+    assert result["publishers"] == ["Oxford University Press"]
+
+    # Edition metadata
+    assert result["physical_format"] == "paperback"
+    assert result["product_group"] == "Book"
+    assert result["languages"] == ["English"]  # "Original Language" duplicate removed
+    assert result["number_of_pages"] == 256
+    assert result["publish_date"] == "Dec 18, 2018"
+
+    # Price (Creators API path: price.money.display_amount)
+    assert result["price"] == "$9.50"
+    assert result["price_amt"] == 950
+
+    # Cover image
+    assert result["cover"] == "https://m.media-amazon.com/images/I/example.jpg"
+
+    # Creators API additions absent from the legacy PA-API output
+    assert result["categories"] == ["Science & Math", "Oceans & Seas"]
+    assert result["availability"] == "IN_STOCK"
+    assert result["price_savings_pct"] == 10.0
+    assert result["list_price"] == "$10.56"
+    assert result["image_variants"] == ["https://m.media-amazon.com/images/I/variant1.jpg"]
+
+
+def test_creators_serialize_isbn13_fallback_from_isbn10() -> None:
+    """When external_ids.eans is absent, ISBN-13 is computed from the ISBN-10 ASIN."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    item.item_info.external_ids = None
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["isbn_10"] == ["0190906766"]
+    assert result["isbn_13"] == ["9780190906764"]
+
+
+def test_creators_serialize_non_isbn_asin() -> None:
+    """An ASIN starting with 'B' (not an ISBN) produces empty isbn_10 and isbn_13."""
+    item = _make_creators_item()
+    item.asin = "B000KRRIZI"
+    assert item.item_info is not None
+    item.item_info.external_ids = None
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["isbn_10"] == []
+    assert result["isbn_13"] == []
+    assert result["source_records"] == ["amazon:B000KRRIZI"]
+
+
+def test_creators_serialize_dvd_returns_empty() -> None:
+    """Items whose binding is 'DVD' are filtered out and return an empty dict."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    assert item.item_info.classifications is not None
+    item.item_info.classifications.binding = CDisplayVal("DVD")
+    assert AmazonCreatorsAPI.serialize(item) == {}
+
+
+def test_creators_serialize_categories_filter_internal_nodes() -> None:
+    """UUID-named, ASIN-containing, promotional, and generic root nodes are excluded."""
+    item = _make_creators_item()
+    item.browse_node_info = CBrowseNodeInfo(
+        browse_nodes=[
+            CBrowseNode("Science & Math"),  # kept
+            CBrowseNode("1a2b3c4d-5e6f-7890-abcd-ef1234567890"),  # UUID → dropped
+            CBrowseNode("ASIN lookup"),  # contains 'ASIN' → dropped
+            CBrowseNode("Test node alpha"),  # matches ^Test node → dropped
+            CBrowseNode("Subjects"),  # generic root → dropped
+            CBrowseNode("Oceans & Seas"),  # kept
+        ]
+    )
+    result = AmazonCreatorsAPI.serialize(item)
+    assert result["categories"] == ["Science & Math", "Oceans & Seas"]
+
+
+@pytest.mark.parametrize(
+    ("product_group", "expected"),
+    [
+        ("dvd", {}),
+        ("DVD", {}),
+        ("Dvd", {}),
+    ],
+)
+def test_creators_serialize_does_not_load_dvds(product_group, expected) -> None:
+    """DVD product_group is filtered out regardless of case."""
+    item = _make_creators_item()
+    assert item.item_info is not None
+    assert item.item_info.classifications is not None
+    item.item_info.classifications.product_group = CDisplayVal(product_group)
+    item.item_info.classifications.binding = CDisplayVal(product_group)
+    assert AmazonCreatorsAPI.serialize(item) == expected
