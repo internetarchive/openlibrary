@@ -3,7 +3,7 @@
 import pytest
 
 from openlibrary.core.models import Tag
-from openlibrary.plugins.upstream.addtag import parse_slugs
+from openlibrary.plugins.upstream.addtag import SUBJECT_SUB_TYPES, TAG_TYPES, parse_slugs
 
 
 @pytest.mark.parametrize(
@@ -34,3 +34,19 @@ def test_tag_normalize(name, expected):
 )
 def test_parse_slugs(name, slugs_input, expected):
     assert parse_slugs(name, slugs_input) == expected
+
+
+@pytest.mark.parametrize(
+    "tag_type",
+    ["genre", "subgenre", "content_format", "literary_form", "mood"],
+)
+def test_new_subject_sub_types_in_subject_sub_types(tag_type):
+    assert tag_type in SUBJECT_SUB_TYPES
+
+
+@pytest.mark.parametrize(
+    "tag_type",
+    ["genre", "subgenre", "content_format", "literary_form", "mood"],
+)
+def test_new_subject_sub_types_in_tag_types(tag_type):
+    assert tag_type in TAG_TYPES
