@@ -655,22 +655,29 @@ def _get_ia_loan(identifier: str, userid: str | None = None):
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
-    """TODO: Remove inclusion of local data; should only come from IA"""
+    """Returns all active loans for the given user from Archive.org.
+
+    Loan records are authoritative at IA; the local OL store previously held a
+    mirror of them but that mirror is no longer maintained.
+
+    Next step (issue #11232): replace the ia_lending_api.find_loans() call below
+    with s3_loan_api(s3_keys, action="user_bookshelf"), which uses the patron's
+    own S3 credentials against the official /services/loans/loan/ endpoint.
+    That change requires plumbing s3_keys into this function and is deferred
+    because the privilege API cannot be exercised in a local dev environment.
+    """
     if "env" not in web.ctx:
-        """For the get_cached_user_loans to call the API if no cache is present,
-        we have to fakeload the web.ctx
-        """
+        # fakeload is required so that the memcache wrapper can call this
+        # function from a background context with no live web request.
         delegate.fakeload()
         set_context_from_legacy_web_py()
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
-    loans = [Loan(d) for d in loandata]
-    if account and account.itemname:
-        loans += _get_ia_loans_of_user(account.itemname)
-    # Set patron's loans in cache w/ now timestamp
-    get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
+    loans = _get_ia_loans_of_user(account.itemname) if account and account.itemname else []
+    # Rehydrate the memcache entry so callers that use get_cached_loans_of_user
+    # immediately after this call get a fresh result without an extra round-trip.
+    get_cached_loans_of_user.memcache_set((user_key,), {}, loans, time.time())
     return loans
 
 
