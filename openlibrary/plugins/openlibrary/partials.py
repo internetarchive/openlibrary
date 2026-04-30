@@ -28,7 +28,7 @@ from openlibrary.plugins.worksearch.code import (
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
-    get_subject,
+    get_subject_async,
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
@@ -131,7 +131,7 @@ class CarouselCardPartial:
         if params.queryType == "TRENDING":
             return self._do_trends_query(params)
         if params.queryType == "SUBJECTS":
-            return self._do_subjects_query(params)
+            return await self._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
 
@@ -181,9 +181,9 @@ class CarouselCardPartial:
     def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
         return get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
 
-    def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
-        subject = get_subject(params.q, offset=params.page, limit=params.limit, publish_year=publish_year)
+        subject = await get_subject_async(params.q, offset=params.page, limit=params.limit,     publish_year=publish_year)
         return subject.get("works", [])
 
 
