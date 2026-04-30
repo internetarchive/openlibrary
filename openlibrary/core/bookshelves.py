@@ -513,10 +513,16 @@ class Bookshelves(db.CommonExtras):
                 )
 
             if not bookshelf_id:
-                query = "SELECT * from bookshelves_books WHERE username=$username"
-                # XXX Removing limit, offset, etc from data looks like a bug
-                # unrelated / not fixing in this PR.
-                query_params = {"username": username}
+                query = (
+                    "SELECT * from bookshelves_books WHERE username=$username "
+                    f"ORDER BY created {'DESC' if sort == 'created desc' else 'ASC'} "
+                    "LIMIT $limit OFFSET $offset"
+                )
+                query_params = {
+                    "username": username,
+                    "limit": query_params["limit"],
+                    "offset": query_params["offset"],
+                }
             reading_log_books: list[web.storage] = list(oldb.query(query, vars=query_params))
 
             reading_log_keys = [
@@ -533,7 +539,7 @@ class Bookshelves(db.CommonExtras):
             if len(solr_docs) < len(reading_log_keys):
                 cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
 
-            total_results = shelf_totals.get(bookshelf_id, 0)
+            total_results = shelf_totals.get(bookshelf_id) or sum(shelf_totals.values())
             solr_docs = add_reading_log_data(reading_log_books, solr_docs)
             solr_docs = cls.link_editions_to_works(solr_docs)
 
