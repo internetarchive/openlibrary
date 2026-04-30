@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Literal, cast
 
 import aiofiles
-import web
 
 from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
