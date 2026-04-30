@@ -33,7 +33,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
@@ -659,7 +659,7 @@ class Work(Thing):
         }
 
     def _make_subject_link(self, title, prefix=""):
-        slug = web.safestr(title.lower().replace(' ', '_').replace(',', ''))
+        slug = normalize_subject_name(title)
         key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
@@ -1295,10 +1295,19 @@ class Tag(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
+    @staticmethod
+    def normalize(name: str) -> str:
+        """Normalize a tag/subject name to a URL-safe lowercase slug.
+
+        Canonical form for stored tag names and subject URL keys.
+        Delegates to normalize_subject_name.
+        """
+        return normalize_subject_name(name)
+
     @classmethod
     def find(cls, tag_name, tag_type=None):
-        """Returns a list of keys for Tags that match the search criteria."""
-        q = {'type': '/type/tag', 'name': tag_name}
+        """Returns a list of keys for Tags whose slugs contain the normalized tag_name."""
+        q = {'type': '/type/tag', 'slugs': cls.normalize(tag_name)}
         if tag_type:
             q['tag_type'] = tag_type
         matches = list(web.ctx.site.things(q))

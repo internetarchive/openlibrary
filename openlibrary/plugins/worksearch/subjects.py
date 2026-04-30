@@ -11,7 +11,6 @@ from infogami.utils.view import render_template, safeint
 from openlibrary.core.lending import add_availability
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
-from openlibrary.utils import str_to_key
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
@@ -324,7 +323,7 @@ class SubjectEngine:
         return subject
 
     def normalize_key(self, key):
-        return str_to_key(key).lower()
+        return Tag.normalize(key)
 
     def facet_wrapper(self, facet: str, value: str, label: str, count: int):
         if facet == "publish_year":
@@ -337,7 +336,7 @@ class SubjectEngine:
             engine = next((d for d in SUBJECTS if d.facet == facet), None)
             assert engine is not None, "Invalid subject facet: {facet}"
             return web.storage(
-                key=engine.prefix + str_to_key(value).replace(" ", "_"),
+                key=engine.prefix + Tag.normalize(value),
                 name=value,
                 count=count,
             )

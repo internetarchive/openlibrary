@@ -24,8 +24,8 @@ from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSumma
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
-from openlibrary.solr.utils import SolrUpdateRequest, str_to_key
-from openlibrary.utils import uniq
+from openlibrary.solr.utils import SolrUpdateRequest
+from openlibrary.utils import normalize_subject_name, uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
 from openlibrary.utils.open_syllabus_project import get_total_by_olid
@@ -639,7 +639,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
             doc |= {
                 subject_type: self._work[work_field],
                 f"{subject_type}_facet": self._work[work_field],
-                f"{subject_type}_key": [str_to_key(s) for s in self._work[work_field]],
+                f"{subject_type}_key": [normalize_subject_name(s) for s in self._work[work_field]],
             }
         return doc
 

@@ -1,7 +1,6 @@
-from abc import ABC, abstractmethod
 from datetime import datetime
 from hashlib import md5
-from typing import NotRequired, TypedDict
+from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs
 
 import web
@@ -22,10 +21,11 @@ from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_list
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
-    do_search_async,
-    work_search,
+    compute_work_search_html_fields,
+    run_solr_query_async,
     work_search_async,
 )
+from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
     get_subject,
@@ -34,20 +34,7 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
 
 
-class PartialDataHandler(ABC):
-    """Base class for partial data handlers.
-
-    Has a single method, `generate`, that is expected to return a
-    JSON-serializable dict that contains data necessary to update
-    a page.
-    """
-
-    @abstractmethod
-    def generate(self) -> dict:
-        pass
-
-
-class ReadingGoalProgressPartial(PartialDataHandler):
+class ReadingGoalProgressPartial:
     """Handler for reading goal progress."""
 
     def __init__(self, year: int):
@@ -61,7 +48,7 @@ class ReadingGoalProgressPartial(PartialDataHandler):
         return {"partials": str(component)}
 
 
-class MyBooksDropperListsPartial(PartialDataHandler):
+class MyBooksDropperListsPartial:
     """Handler for the MyBooks dropper list component."""
 
     def generate(self) -> dict:
@@ -85,7 +72,7 @@ class MyBooksDropperListsPartial(PartialDataHandler):
 class CarouselLoadMoreParams(BaseModel):
     """Parameters for the carousel load-more partial."""
 
-    queryType: str = ""
+    queryType: Literal["SEARCH", "BROWSE", "TRENDING", "SUBJECTS"]
     q: str = ""
     limit: int = 18
     page: int = 1
@@ -97,7 +84,7 @@ class CarouselLoadMoreParams(BaseModel):
     published_in: str = ""
 
 
-class CarouselCardPartial(PartialDataHandler):
+class CarouselCardPartial:
     """Handler for carousel "load_more" requests"""
 
     MAX_VISIBLE_CARDS = 5
@@ -105,11 +92,11 @@ class CarouselCardPartial(PartialDataHandler):
     def __init__(self, params: CarouselLoadMoreParams):
         self.params = params
 
-    def generate(self) -> dict:
+    async def generate_async(self) -> dict:
         p = self.params
 
         # Do search
-        search_results = self._make_book_query(p.queryType, p)
+        search_results = await self._make_book_query(p)
 
         # Render cards
         cards = []
@@ -136,19 +123,19 @@ class CarouselCardPartial(PartialDataHandler):
 
         return {"partials": [str(template) for template in cards]}
 
-    def _make_book_query(self, query_type: str, params: CarouselLoadMoreParams) -> list:
-        if query_type == "SEARCH":
-            return self._do_search_query(params)
-        if query_type == "BROWSE":
+    async def _make_book_query(self, params: CarouselLoadMoreParams) -> list:
+        if params.queryType == "SEARCH":
+            return await self._do_search_query(params)
+        if params.queryType == "BROWSE":
             return self._do_browse_query(params)
-        if query_type == "TRENDING":
+        if params.queryType == "TRENDING":
             return self._do_trends_query(params)
-        if query_type == "SUBJECTS":
+        if params.queryType == "SUBJECTS":
             return self._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
 
-    def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
         fields = [
             "key",
             "title",
@@ -168,7 +155,7 @@ class CarouselCardPartial(PartialDataHandler):
         if params.hasFulltextOnly:
             query_params["has_fulltext"] = "true"
 
-        results = work_search(
+        results = await work_search_async(
             query_params,
             sort=params.sorts or "new",
             fields=",".join(fields),
@@ -200,14 +187,11 @@ class CarouselCardPartial(PartialDataHandler):
         return subject.get("works", [])
 
 
-class AffiliateLinksPartial(PartialDataHandler):
+class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
     def __init__(self, data: dict):
         self.data = data
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         args = self.data.get("args", [])
@@ -235,7 +219,7 @@ class AffiliateLinksPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
-class SearchFacetsPartial(PartialDataHandler):
+class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
     def __init__(self, data: dict, sfw: bool = False):
@@ -244,9 +228,6 @@ class SearchFacetsPartial(PartialDataHandler):
         user = get_current_user()
         self.show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
 
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
-
     async def generate_async(self) -> dict:
         path = self.data.get("path")
         query = self.data.get("query", "")
@@ -254,14 +235,17 @@ class SearchFacetsPartial(PartialDataHandler):
         param = self.data.get("param", {})
 
         sort = None
-        search_response = await do_search_async(
+        search_response = await run_solr_query_async(
+            WorkSearchScheme(),
             param,
-            sort,
             rows=0,
+            page=1,
+            sort=sort,
             spellcheck_count=3,
+            fields=compute_work_search_html_fields(sort, self.sfw),
             facet=True,
+            highlight=False,
             request_label="BOOK_SEARCH_FACETS",
-            sfw=self.sfw,
         )
 
         sidebar = render_template(
@@ -290,15 +274,12 @@ class SearchFacetsPartial(PartialDataHandler):
         }
 
 
-class FullTextSuggestionsPartial(PartialDataHandler):
+class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     def __init__(self, query: str):
         self.query = query or ""
         self.has_error: bool = False
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         query = self.query
@@ -313,15 +294,12 @@ class FullTextSuggestionsPartial(PartialDataHandler):
         return {"partials": str(macro)}
 
 
-class BookPageListsPartial(PartialDataHandler):
+class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
 
     def __init__(self, workId: str, editionId: str):
         self.workId = workId
         self.editionId = editionId
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         results: dict = {"partials": []}
@@ -358,14 +336,11 @@ class LazyCarouselParams(BaseModel):
     safe_mode: bool = True
 
 
-class LazyCarouselPartial(PartialDataHandler):
+class LazyCarouselPartial:
     """Handler for lazily-loaded query carousels."""
 
     def __init__(self, params: LazyCarouselParams):
         self.params = params
-
-    def generate(self) -> dict:
-        raise NotImplementedError("Use generate_async instead")
 
     async def generate_async(self) -> dict:
         books = await gather_lazy_carousel_data_async(

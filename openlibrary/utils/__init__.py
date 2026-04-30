@@ -6,19 +6,16 @@ from enum import Enum
 from subprocess import CalledProcessError, run
 from typing import Literal
 
-to_drop = set(""";/?:@&=+$,<>#%"{}|\\^[]`\n\r""")
+_SUBJECT_CHARS_TO_DROP = frozenset(""";/?:@&=+$,<>#%"{}|\\^[]`\n\r""")
 
 
-def str_to_key(s: str) -> str:
+def normalize_subject_name(name: str) -> str:
+    """Normalize a subject/tag name to a URL-safe lowercase slug.
+
+    Spaces become underscores; characters in _SUBJECT_CHARS_TO_DROP are removed.
+    This is the canonical normalization used by Tag.normalize and subject helpers.
     """
-    >>> str_to_key("?H$e##l{o}[0] -world!")
-    'helo0_-world!'
-    >>> str_to_key("".join(to_drop))
-    ''
-    >>> str_to_key("")
-    ''
-    """
-    return "".join(c if c != " " else "_" for c in s.lower() if c not in to_drop)
+    return "".join("_" if c == " " else c for c in name.strip().lower() if c not in _SUBJECT_CHARS_TO_DROP)
 
 
 def uniq[T](values: Iterable[T], key=None) -> list[T]:
