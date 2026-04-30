@@ -201,7 +201,7 @@ class SubjectEngine:
         )
 
         subject_type = self.name
-        path = web.lstrips(key, self.prefix)
+        path = key.removeprefix(self.prefix)
         name = path.replace("_", " ")
 
         unescaped_filters = {}

@@ -64,7 +64,7 @@ def make_path(doc):
         return "openlibrary/plugins/openlibrary/js/" + doc["key"].split("/")[-1]
     else:
         key = doc["key"].rsplit(".")[0]
-        key = web.lstrips(key, options.template_root)
+        key = key.removeprefix(options.template_root)
 
         plugin = doc.get("plugin", options.default_plugin)
         return f"openlibrary/plugins/{plugin}{key}.html"

@@ -148,7 +148,7 @@ def load_configs(
     c_config: str,
     c_data_provider: (DataProvider | Literal["default", "legacy", "external"]) = "default",
 ) -> DataProvider:
-    host = web.lstrips(c_host, "http://").strip("/")
+    host = c_host.removeprefix("http://").strip("/")
     set_query_host(host)
 
     load_config(c_config)

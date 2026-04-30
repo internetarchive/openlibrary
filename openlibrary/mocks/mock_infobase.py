@@ -211,7 +211,7 @@ class MockSite:
                 # this corrects any nested keys that have been included
                 # in values.
                 flat = common.flatten_dict(v)[0]
-                k = web.rstrips(k + "." + flat[0], ".key")
+                k = (k + "." + flat[0]).removesuffix(".key")
                 v = flat[1]
             keys = {k for k in self.filter_index(self.index, k, v) if k in keys}
 
@@ -266,10 +266,10 @@ class MockSite:
         for k, v in index:
             # for handling last_modified.value
             if k.endswith(".value"):
-                k = web.rstrips(k, ".value")
+                k = k.removesuffix(".value")
 
             if k.endswith(".key"):
-                yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
+                yield web.storage(key=key, datatype="ref", name=k.removesuffix(".key"), value=v)
             elif isinstance(v, str):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
