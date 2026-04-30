@@ -44,40 +44,40 @@ def fetch_issues_by_label() -> list:
     Used by the digest when real-time labeling via the issue_comment_labeler workflow
     is in place, replacing the expensive poll-and-filter approach.
     """
-    p = {'labels': 'Needs: Response', 'state': 'all', 'per_page': 100}
+    p = {"labels": "Needs: Response", "state": "all", "per_page": 100}
     response = requests.get(
-        'https://api.github.com/repos/internetarchive/openlibrary/issues',
+        "https://api.github.com/repos/internetarchive/openlibrary/issues",
         params=p,
         headers=github_headers,
     )
     d = response.json()
     if response.status_code != 200:
-        print('Request for labeled issues has failed.')
-        print(f'Message: {d.get("message", "")}')
-        print(f'Documentation URL: {d.get("documentation_url", "")}')
+        print("Request for labeled issues has failed.")
+        print(f"Message: {d.get('message', '')}")
+        print(f"Documentation URL: {d.get('documentation_url', '')}")
         response.raise_for_status()
 
     results = d
     links = response.links
-    next_url = links.get('next', {}).get('url', '')
+    next_url = links.get("next", {}).get("url", "")
     while next_url:
         time.sleep(1)
         resp = requests.get(next_url, headers=github_headers)
         d = resp.json()
         if resp.status_code != 200:
-            print('Request for next page of labeled issues has failed.')
-            print(f'Message: {d.get("message", "")}')
+            print("Request for next page of labeled issues has failed.")
+            print(f"Message: {d.get('message', '')}")
             response.raise_for_status()
         results = results + d
-        next_url = resp.links.get('next', {}).get('url', '')
+        next_url = resp.links.get("next", {}).get("url", "")
 
     return [
         {
-            'number': i['number'],
-            'comment_url': i['html_url'],
-            'commenter': '',
-            'issue_title': i['title'],
-            'lead_label': find_lead_label(i.get('labels', [])),
+            "number": i["number"],
+            "comment_url": i["html_url"],
+            "commenter": "",
+            "issue_title": i["title"],
+            "lead_label": find_lead_label(i.get("labels", [])),
         }
         for i in results
     ]
@@ -496,9 +496,9 @@ def _get_parser() -> argparse.ArgumentParser:
         action="store_true",
     )
     parser.add_argument(
-        '--use-label',
+        "--use-label",
         help='Fetch issues by "Needs: Response" label instead of polling all issues for recent comments. Use when the issue_comment_labeler workflow handles real-time labeling.',
-        action='store_true',
+        action="store_true",
     )
 
     return parser
