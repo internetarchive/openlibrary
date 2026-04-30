@@ -13,7 +13,6 @@ from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit 
 from urllib.parse import urlencode as real_urlencode
 
 import requests
-import web
 
 from openlibrary.coverstore import config, oldb
 
