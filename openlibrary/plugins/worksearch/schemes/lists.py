@@ -70,7 +70,6 @@ class ListSearchScheme(SearchScheme):
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
         solr_internals_params: "SolrInternalsParams | None" = None,
-        editions: bool = True,
     ) -> list[tuple[str, str]]:
         params = [
             ("q", q),  # actual query string

@@ -135,12 +135,11 @@ def get_solr_works(
     if editions:
         # To get the top matching edition, need to do a proper query
         resp = run_solr_query(
-            WorkSearchScheme(),
+            WorkSearchScheme(solr_editions=editions),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
             fields=list(fields),
             facet=False,
-            editions=editions,
         )
         return {
             # storify isn't typed properly, but basically recursively call web.storage
@@ -255,7 +254,6 @@ def _prepare_solr_query_params(  # noqa: PLR0912
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
     solr_internals_params: SolrInternalsParams | None = None,
-    editions: bool = True,
 ) -> tuple[list[tuple[str, Any]], list[str]]:
     """
     :param param: dict of query parameters
@@ -351,7 +349,6 @@ def _prepare_solr_query_params(  # noqa: PLR0912
             params,
             highlight=highlight,
             solr_internals_params=solr_internals_params,
-            editions=editions,
         )
 
     if sort:
@@ -396,15 +393,10 @@ async def run_solr_query_async(
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = 'UNLABELLED',
     solr_internals_params: SolrInternalsParams | None = None,
-    editions: bool | None = None,
 ) -> 'SearchResponse':
     """
     Builds and executes a synchronous Solr query.
     """
-    # If editions isn't passed down get it from the request context
-    # This is to avoid updating every single place where we call this function
-    if editions is None:
-        editions = req_context.get().solr_editions
     params, fields = _prepare_solr_query_params(
         scheme,
         param,
@@ -420,7 +412,6 @@ async def run_solr_query_async(
         extra_params=extra_params,
         request_label=request_label,
         solr_internals_params=solr_internals_params,
-        editions=editions,
     )
 
     url = f'{solr_select_url}?{urlencode(params)}'
@@ -773,7 +764,7 @@ class search(delegate.page):
 
         if param:
             search_response = run_solr_query(
-                WorkSearchScheme(),
+                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
                 param,
                 rows=rows,
                 page=page,
