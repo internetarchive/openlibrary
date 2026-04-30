@@ -28,6 +28,7 @@ from openlibrary.solr.utils import (
 )
 from openlibrary.utils import uniq
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+from openlibrary.solr.updater.page import PageSolrUpdater
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -45,6 +46,7 @@ def get_solr_updaters() -> list[AbstractSolrUpdater]:
         WorkSolrUpdater(data_provider),
         AuthorSolrUpdater(data_provider),
         ListSolrUpdater(data_provider),
+        PageSolrUpdater(data_provider),
     ]
 
 

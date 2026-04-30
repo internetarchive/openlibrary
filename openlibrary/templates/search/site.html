@@ -1,0 +1,33 @@
+$def with (q, resp=None)
+
+$var title: $_('Site search results')
+
+<div id="contentHead">
+    <h1>$_("Site Search")</h1>
+</div>
+
+<div id="contentBody">
+
+<form class="siteSearch searchInsideForm" action="/search/site">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+</form>
+
+  $if q and resp and resp.num_found:
+    <div class="search-results-stats">
+      $ungettext('%(count)s hit', '%(count)s hits', resp.num_found, count=commify(resp.num_found))
+    </div>
+    <div class="mybooks-list">
+      <ul id="listResults" class="list-books">
+        $for doc in resp.docs:
+          <li class="searchResultItem">
+            <a href="$doc['key']">$doc.get('title', doc['key'])</a>
+          </li>
+      </ul>
+    </div>
+  $elif q:
+    <center>
+      <div class="red">$:_('No <strong>site</strong> results found for your search')</div>
+    </center>
+
+</div>

@@ -1,0 +1,44 @@
+import logging
+import typing
+from types import MappingProxyType
+
+from openlibrary.plugins.worksearch.schemes import SearchScheme
+
+if typing.TYPE_CHECKING:
+    from openlibrary.fastapi.models import SolrInternalsParams
+
+logger = logging.getLogger("openlibrary.worksearch")
+
+
+class PageSearchScheme(SearchScheme):
+    universe = frozenset(['type:page'])
+    all_fields = frozenset(
+        {
+            'key',
+            'title',
+            'body',
+            'last_modified',
+        }
+    )
+    non_solr_fields = frozenset()
+    facet_fields = frozenset()
+    field_name_map = MappingProxyType({})
+    sorts = MappingProxyType({})
+    default_fetched_fields = frozenset({'key', 'title', 'body'})
+    facet_rewrites = MappingProxyType({})
+
+    def q_to_solr_params(
+        self,
+        q: str,
+        solr_fields: set[str],
+        cur_solr_params: list[tuple[str, str]],
+        highlight: bool = False,
+        solr_internals_params: 'SolrInternalsParams | None' = None,
+    ) -> list[tuple[str, str]]:
+        return [
+            ('q', q),
+            ('q.op', 'AND'),
+            ('defType', 'edismax'),
+            # Search body and title, boosting title matches
+            ('qf', 'body title^5'),
+        ]

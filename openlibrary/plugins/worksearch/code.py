@@ -51,6 +51,7 @@ from openlibrary.utils.solr import (
     DEFAULT_SOLR_TIMEOUT_SECONDS,
     SolrRequestLabel,
 )
+from openlibrary.plugins.worksearch.schemes.pages import PageSearchScheme
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -928,6 +929,20 @@ class ListSearchRequest:
             api=i.get('api', ''),
         )
 
+class page_search(delegate.page):
+    path = '/search/site'
+
+    def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+        resp = run_solr_query(
+            PageSearchScheme(),
+            {'q': i.q},
+            offset=safeint(i.offset, 0),
+            rows=safeint(i.limit, 10),
+            request_label='PAGE_SEARCH',
+            
+        )
+        return render_template('search/site', q=i.q, resp=resp)
 
 # searches for lists and returns results in html format
 class list_search(delegate.page):

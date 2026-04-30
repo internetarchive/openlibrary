@@ -134,6 +134,7 @@
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/>
+    <field name="body" type="text_en_splitting"/>
     <field name="title_suggest" type="text_general" multiValued="false"/>
     <field name="title_sort" type="text_title_sort" multiValued="false"/>
     <field name="subtitle" type="text_en_splitting"/>
