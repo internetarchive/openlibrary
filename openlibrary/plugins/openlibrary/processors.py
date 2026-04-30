@@ -2,12 +2,12 @@
 
 import re
 from typing import ClassVar, cast
+from urllib.parse import quote
 
 import web
 
 from infogami import config
 from openlibrary.accounts import get_current_user
-from urllib.parse import quote
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
