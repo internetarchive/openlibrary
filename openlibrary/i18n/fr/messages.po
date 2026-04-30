@@ -4964,6 +4964,32 @@ msgstr "Détails du livre"
 msgid "Published in"
 msgstr "Lieu de publication"
 
+msgid "Edition Identifiers"
+msgstr "Identifiants de l'édition"
+
+msgid "Work Identifiers"
+msgstr "Identifiants de l'œuvre"
+
+msgid "Source records"
+msgstr "Enregistrements sources"
+
+msgid "record"
+msgstr "enregistrement"
+
+msgid "item record"
+msgstr "enregistrement de l'article"
+
+msgid "MARC record"
+msgstr "notice MARC"
+
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+"Lorsque vous achetez des livres via ces liens, Internet Archive peut "
+"percevoir une <a class=\"nostyle\" href=\"/help/faq/about#selling\">petite "
+"commission</a>."
+
 #: type/edition/view.html:364 type/edition/view.html:454
 #: type/edition/view.html:455 type/work/view.html:364 type/work/view.html:454
 #: type/work/view.html:455
