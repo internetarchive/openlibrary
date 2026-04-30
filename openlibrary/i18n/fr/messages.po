@@ -3309,6 +3309,24 @@ msgstr "Romans policiers"
 msgid "Textbooks"
 msgstr "Manuels scolaires"
 
+msgid "Art"
+msgstr "Art"
+
+msgid "Science Fiction"
+msgstr "Science-fiction"
+
+msgid "Fantasy"
+msgstr "Fantasy"
+
+msgid "Biographies"
+msgstr "Biographies"
+
+msgid "Recipes"
+msgstr "Recettes"
+
+msgid "Children"
+msgstr "Jeunesse"
+
 #: home/stats.html:9 site/around_the_library.html:52
 msgid "Around the Library"
 msgstr "Autour de la bibliothèque"
