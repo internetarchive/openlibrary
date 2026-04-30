@@ -880,7 +880,7 @@ class list_subjects_json(delegate.page):
     def _process_subject(s):
         key = s["key"]
         if key.startswith("subject:"):
-            key = "/subjects/" + web.lstrips(key, "subject:")
+            key = "/subjects/" + key.removeprefix("subject:")
         else:
             key = "/subjects/" + key
         return {"name": s["name"], "count": s["count"], "url": key}

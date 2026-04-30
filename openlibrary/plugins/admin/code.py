@@ -215,7 +215,7 @@ class reload:
 
     def reload(self, servers):
         for s in servers:
-            s = web.rstrips(s, "/") + "/_reload"
+            s = s.removesuffix("/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
                 response = requests.get(s).text

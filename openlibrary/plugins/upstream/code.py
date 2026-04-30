@@ -177,7 +177,7 @@ class DynamicDocument:
     """
 
     def __init__(self, root):
-        self.root = web.rstrips(root, "/")
+        self.root = root.removesuffix("/")
         self.docs = None
         self._text = None
         self.last_modified = None

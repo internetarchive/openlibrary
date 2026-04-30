@@ -35,7 +35,7 @@ def safeint(value, default=None):
 
 
 def get_ol_url():
-    return web.rstrips(config.ol_url, "/")
+    return config.ol_url.removesuffix("/")
 
 
 def ol_things(key: str, value: str) -> list[str]:

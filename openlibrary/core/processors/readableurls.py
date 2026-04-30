@@ -133,7 +133,7 @@ def get_readable_path(site, path, patterns, encoding=None):
             m = web.re_compile("^" + pat).match(path)
             if m:
                 prefix = m.group()
-                extra = web.lstrips(path, prefix)
+                extra = path.removeprefix(prefix)
                 tokens = extra.split("/", 2)
 
                 # `extra` starts with "/". So first token is always empty.

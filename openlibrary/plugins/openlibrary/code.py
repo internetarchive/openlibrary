@@ -856,7 +856,7 @@ class _yaml_edit(_yaml):
 
 def _get_user_root():
     user_root = infogami.config.get('infobase', {}).get('user_root', '/user')
-    return web.rstrips(user_root, '/')
+    return user_root.removesuffix('/')
 
 
 def _get_bots():
