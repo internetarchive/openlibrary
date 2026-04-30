@@ -1006,7 +1006,44 @@ def update_loan_status(identifier):
 
 
 class IA_Lending_API:
-    """Archive.org waiting list API."""
+    """Server-side client for Archive.org's internal loan/waitinglist RPC API.
+
+    This class POSTs to config_ia_loan_api_url using OL's shared server key.
+    The goal (issue #11232) is to replace all calls here with s3_loan_api(),
+    which uses the patron's own S3 credentials against the official public
+    endpoint (S3_LOAN_URL = https://<host>/services/loans/loan/).
+
+    Migration status per method
+    ---------------------------
+    find_loans(userid=…)
+        → s3_loan_api(s3_keys, action="user_bookshelf")
+        Blocked on: plumbing patron s3_keys into get_loans_of_user().
+        Tracked in: issue #11232.
+
+    create_loan(identifier, userid, format, ol_key)
+        Already replaced in the user-facing borrow flow by
+        s3_loan_api(s3_keys, action="borrow_book") in borrow.py.
+        lending.create_loan() itself has no remaining callers and can be
+        removed once the method below is confirmed dead.
+
+    delete_loan(identifier, userid)
+        Used server-side in Loan.delete() for expired/forced returns.
+        → s3_loan_api(s3_keys, action="return_loan") requires patron keys.
+        Needs investigation: does IA accept a server-keyed return, or must
+        it always be patron-signed?
+
+    get_loan(identifier, userid)
+        Used in _get_ia_loan() / sync_loan() to check whether a specific
+        identifier is on loan.  No direct s3_loan_api equivalent today.
+        Needs investigation: does user_bookshelf or another action cover it?
+
+    Waitinglist methods (join/leave/update/query)
+        join_waitinglist / leave_waitinglist already have patron-signed
+        equivalents in borrow.py (s3_loan_api join_waitlist/leave_waitlist).
+        update_waitinglist and query are used internally by waitinglist.py
+        for background processing (e.g. notifying next patron in queue).
+        These need a confirmed s3 equivalent before migrating.
+    """
 
     def get_loan(self, identifier: str, userid: str | None = None):
         params = {"method": "loan.query", "identifier": identifier}
