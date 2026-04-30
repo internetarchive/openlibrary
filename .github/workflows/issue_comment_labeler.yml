@@ -1,0 +1,60 @@
+name: issue_comment_labeler
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  label_if_needs_response:
+    if: ${{ github.repository == 'internetarchive/openlibrary' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/github-script@v7
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ABC_TEAM_PLUS }}
+        with:
+          script: |
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('.github/workflows/config/new_comment_digest.json', 'utf8'));
+            const leads = config.leads.map(l => l.githubUsername);
+
+            const commenter = context.payload.comment.user.login;
+            const issue = context.payload.issue;
+
+            if (leads.includes(commenter)) return;
+
+            if (issue.state === 'open') {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['Needs: Response'],
+              });
+              console.log(`Labeled #${issue.number} as "Needs: Response"`);
+            } else {
+              // Closed issue — notify Slack directly instead of labeling
+              const slackToken = process.env.SLACK_TOKEN;
+              const slackChannel = process.env.SLACK_CHANNEL;
+              if (!slackToken || !slackChannel) return;
+
+              const lead = config.leads.find(l =>
+                issue.labels?.some(label => label.name === `Lead: @${l.githubUsername}`)
+              );
+              const mention = lead?.slackId ?? 'Unknown lead';
+              const text = `💬 New comment on *closed* issue <${context.payload.comment.html_url}|#${issue.number}: ${issue.title}> by *${commenter}*\nLead: ${mention}`;
+
+              await fetch('https://slack.com/api/chat.postMessage', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${slackToken}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ channel: slackChannel, text }),
+              });
+              console.log(`Pinged Slack for comment on closed issue #${issue.number}`);
+            }

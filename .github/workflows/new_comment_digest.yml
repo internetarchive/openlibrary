@@ -34,6 +34,7 @@ env:
   CHANNEL_ARG: '-s "#team-abc-plus"'
   VERBOSE_FLAG: ''
   NO_LABELS_FLAG: ''
+  USE_LABEL_FLAG: '--use-label'
 
 jobs:
   new_comment_digest:
@@ -79,7 +80,7 @@ jobs:
       - id: run_bot
         run: |
           trap 'echo "exit_code=$?" >> "$GITHUB_OUTPUT"' EXIT
-          scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }}
+          scripts/gh_scripts/issue_comment_bot.py ${{ env.HOURS }} -c .github/workflows/config/new_comment_digest.json ${{ env.CHANNEL_ARG }} ${{ env.VERBOSE_FLAG }} ${{ env.NO_LABELS_FLAG }} ${{ env.USE_LABEL_FLAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
