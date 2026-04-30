@@ -1109,7 +1109,7 @@ async def work_search_async(
     solr_internals_params: 'SolrInternalsParams | None' = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
-    scheme = WorkSearchScheme(lang=lang)
+    scheme = WorkSearchScheme(lang=lang, solr_editions=req_context.get().solr_editions)
     resp = await run_solr_query_async(
         scheme,
         prepared.query,
@@ -1122,7 +1122,6 @@ async def work_search_async(
         spellcheck_count=spellcheck_count,
         request_label=request_label,
         solr_internals_params=solr_internals_params,
-        editions=req_context.get().solr_editions,
     )
 
     return _process_solr_search_response(resp, fields)

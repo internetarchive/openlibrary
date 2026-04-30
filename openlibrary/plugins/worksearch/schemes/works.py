@@ -261,8 +261,9 @@ class WorkSearchScheme(SearchScheme):
 
     solr_editions: bool = True
 
-    def __init__(self, solr_editions: bool = True):
+    def __init__(self, lang: str | None = None, solr_editions: bool = True):
         self.solr_editions = solr_editions
+        super().__init__(lang=lang)
 
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
