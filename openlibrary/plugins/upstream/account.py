@@ -1155,13 +1155,13 @@ class account_loans(delegate.page):
 
     @require_login
     def GET(self):
-        from openlibrary.core.lending import get_loans_of_user
+        from openlibrary.core.lending import get_cached_loans_of_user
 
         user = accounts.get_current_user()
         user.update_loan_status()
         username = user["key"].split("/")[-1]
         mb = MyBooksTemplate(username, "loans")
-        docs = get_loans_of_user(user.key)
+        docs = get_cached_loans_of_user(user.key)
         template = render["account/loans"](user, docs)
         return mb.render(header_title=_("Loans"), template=template)
 
