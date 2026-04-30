@@ -684,7 +684,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
 get_cached_loans_of_user = cache.memcache_memoize(
     get_loans_of_user,
     key_prefix="lending.cached_loans",
-    timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
+    timeout=10 * dateutil.MINUTE_SECS,
 )
 
 
