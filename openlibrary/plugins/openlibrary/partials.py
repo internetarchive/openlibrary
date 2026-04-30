@@ -1,7 +1,7 @@
 from datetime import datetime
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 import web
 from pydantic import BaseModel
@@ -344,7 +344,7 @@ class BookPageListsPartial:
             results["partials"].append(_("This work does not appear on any lists."))
         else:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(f'"{k}"' for k in keys)
-            all_url = "/search/lists?q=" + web.urlquote(query) + "&sort=last_modified"
+            all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
             lists_template = render_template("lists/carousel", lists, all_url)
             results["partials"].append(str(lists_template))
 

@@ -13,7 +13,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, quote, urlencode
 
 import requests
 import web
@@ -1179,7 +1179,7 @@ def setup_template_globals():
             'zip': zip,
             'tuple': tuple,
             'hash': hash,
-            'urlquote': web.urlquote,
+            'urlquote': quote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',

@@ -7,6 +7,7 @@ import web
 
 from infogami import config
 from openlibrary.accounts import get_current_user
+from urllib.parse import quote
 from openlibrary.core import helpers as h
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
@@ -150,7 +151,7 @@ class CookieValidationProcessor:
 
             if web.ctx.env.get("HTTP_X_OL_VERIFY_HUMAN") == "1":
                 next_url = web.ctx.env.get("REQUEST_URI") or web.ctx.env.get("HTTP_X_REQUEST_URI") or web.ctx.path
-                raise web.seeother("/verify_human?next=" + web.urlquote(next_url))
+                raise web.seeother("/verify_human?next=" + quote(next_url))
 
         return handler()
 
