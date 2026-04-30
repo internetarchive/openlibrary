@@ -34,7 +34,6 @@ from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
-from openlibrary.utils.request_context import req_context
 
 router = APIRouter()
 
@@ -225,7 +224,6 @@ async def search_subjects_json(
         rows=pagination.limit,
         sort="work_count desc",
         request_label="SUBJECT_SEARCH_API",
-        editions=req_context.get().solr_editions,
     )
 
     # Backward compatibility
@@ -307,7 +305,6 @@ async def search_lists_json(
         fields=params.fields,
         sort=params.sort,
         request_label="LIST_SEARCH_API",
-        editions=req_context.get().solr_editions,
     )
 
     if params.api == "next":
@@ -350,7 +347,6 @@ async def search_authors_json(
         fields=params.fields,
         sort=params.sort,
         request_label="AUTHOR_SEARCH_API",
-        editions=req_context.get().solr_editions,
     )
 
     # SIGH the public API exposes the key like this :(
