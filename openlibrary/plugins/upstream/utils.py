@@ -31,6 +31,8 @@ import babel.dates
 import requests
 import web
 import yaml
+import re
+
 from babel.lists import format_list
 from web.template import TemplateResult
 from web.utils import Storage
@@ -391,7 +393,7 @@ def fuzzy_find(value, options, stopwords=None):
     if not options:
         return value
 
-    rx = web.re_compile(r"[-_\.&, ]+")
+    rx = re.compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -1356,7 +1358,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile(r"reverted to revision \d+")
+    re_revert = re.compile(r"reverted to revision \d+")
 
     def is_revert(r):
         return re_revert.match(r.comment or "")

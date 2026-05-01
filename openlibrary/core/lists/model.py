@@ -9,6 +9,7 @@ from functools import cached_property
 from typing import NotRequired, TypedDict, cast
 
 import web
+import re 
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed
@@ -99,7 +100,7 @@ class List(Thing):
         return self.name or "unnamed"
 
     def get_owner(self) -> User | None:
-        if match := web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
+        if match := re.compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
             key = match.group(1)
             return cast(User, self._site.get(key))
         else:

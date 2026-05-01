@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 
 import requests
 import web
+import re
 
 from infogami.infobase import client
 
@@ -263,7 +264,7 @@ class Edition(Thing):
 
     def get_publish_year(self) -> int | None:
         if self.publish_date:
-            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
+            m = re.compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
         return None
 

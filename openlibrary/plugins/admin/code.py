@@ -13,6 +13,8 @@ from datetime import date, datetime, timedelta
 
 import requests
 import web
+import re
+
 from internetarchive.exceptions import ItemLocateError
 
 import openlibrary
@@ -148,7 +150,7 @@ class admin(delegate.page):
             return self.handle(admin_index)
 
         for t in admin_tasks:
-            m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
+            m = re.compile('^' + t.path + '$').match(web.ctx.path)
             if m:
                 return self.handle(t.cls, m.groups(), librarians=t.librarians)
         raise web.notfound()

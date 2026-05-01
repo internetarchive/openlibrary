@@ -6,6 +6,7 @@ from copy import deepcopy
 from typing import Any, Literal, Required, TypedDict, cast
 
 import web
+import re 
 
 from infogami.utils.delegate import register_exception
 from openlibrary.core import helpers as h
@@ -94,7 +95,7 @@ def split_key(bib_key: str) -> tuple[str | None, str | None]:
         value = bib_key
 
     # treat OLxxxM as OLID
-    re_olid = web.re_compile(r"OL\d+M(@\d+)?")
+    re_olid = re.compile(r"OL\d+M(@\d+)?")
     if key is None and re_olid.match(bib_key.upper()):
         key = "olid"
         value = bib_key.upper()

@@ -13,6 +13,7 @@ import traceback
 
 import requests
 import web
+import re
 
 from infogami.infobase import cache as _ib_cache
 from infogami.infobase import common, config, dbstore, server
@@ -185,7 +186,7 @@ class has_user:
         i = server.input("username")
 
         # Don't allows OLIDs to be usernames
-        if web.re_compile(r"OL\d+[A-Z]").match(i.username.upper()):
+        if re.compile(r"OL\d+[A-Z]").match(i.username.upper()):
             return True
 
         key = "/user/" + i.username.lower()

@@ -8,6 +8,7 @@ from datetime import datetime
 
 import pytest
 import web
+import re
 
 from infogami import config
 from infogami.infobase import account, client, common
@@ -233,7 +234,7 @@ class MockSite:
             "=": lambda i, value: i.value == value,
         }
         pattern = ".*([%s])$" % "".join(operations)
-        rx = web.re_compile(pattern)
+        rx = re.compile(pattern)
 
         if m := rx.match(name):
             op = m.group(1)

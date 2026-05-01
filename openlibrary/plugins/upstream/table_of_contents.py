@@ -4,6 +4,7 @@ from functools import cached_property
 from typing import Required, TypedDict, TypeVar
 
 import web
+import re
 
 from infogami.infobase.client import Nothing, Thing
 from openlibrary.core.models import ThingReferenceDict
@@ -106,7 +107,7 @@ class TocEntry:
         (0, '1.1', 'Apple', None)
         """
 
-        RE_LEVEL = web.re_compile(r"(\**)(.*)")
+        RE_LEVEL = re.compile(r"(\**)(.*)")
         level, text = RE_LEVEL.match(line.strip()).groups()
 
         if "|" in text:

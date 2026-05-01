@@ -1,4 +1,5 @@
 import web
+import re
 
 from infogami.infobase import client, common
 from openlibrary.core.processors import readableurls as processors
@@ -21,7 +22,7 @@ class MockSite:
         self.docs[key] = client.create_thing(self, key, doc)
 
         olid = key.split("/")[-1]
-        if web.re_compile(r"OL\d+[A-Z]").match(olid):
+        if re.compile(r"OL\d+[A-Z]").match(olid):
             self.olids[olid] = key
 
     def _request(self, path, method=None, data=None):
