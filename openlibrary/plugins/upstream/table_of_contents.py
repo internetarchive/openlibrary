@@ -1,10 +1,8 @@
 import json
+import re
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Required, TypedDict, TypeVar
-
-import web
-import re
 
 from infogami.infobase.client import Nothing, Thing
 from openlibrary.core.models import ThingReferenceDict

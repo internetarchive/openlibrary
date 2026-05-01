@@ -10,10 +10,9 @@ List of events:
 
 import functools
 import logging
+import re
 
 import eventer
-import web
-import re
 
 from infogami.infobase import config, server
 from openlibrary.utils import olmemcache

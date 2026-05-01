@@ -13,7 +13,6 @@ import traceback
 
 import requests
 import web
-import re
 
 from infogami.infobase import cache as _ib_cache
 from infogami.infobase import common, config, dbstore, server

@@ -4,11 +4,11 @@ import csv
 import datetime
 import io
 import logging
+import re
 import urllib
 from typing import Literal, NoReturn, overload
 
 import web
-import re
 from web.webapi import SeeOther
 
 from infogami import config

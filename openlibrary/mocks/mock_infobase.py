@@ -8,7 +8,6 @@ from datetime import datetime
 
 import pytest
 import web
-import re
 
 from infogami import config
 from infogami.infobase import account, client, common

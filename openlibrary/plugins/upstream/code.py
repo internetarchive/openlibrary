@@ -6,9 +6,9 @@ import hashlib
 import json
 import os.path
 import random
+import re
 
 import web
-import re
 
 from infogami import config
 from infogami.core import code as core

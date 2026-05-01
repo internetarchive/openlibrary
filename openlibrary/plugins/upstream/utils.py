@@ -31,8 +31,6 @@ import babel.dates
 import requests
 import web
 import yaml
-import re
-
 from babel.lists import format_list
 from web.template import TemplateResult
 from web.utils import Storage

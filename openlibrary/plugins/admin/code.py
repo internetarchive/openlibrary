@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -13,8 +14,6 @@ from datetime import date, datetime, timedelta
 
 import requests
 import web
-import re
-
 from internetarchive.exceptions import ItemLocateError
 
 import openlibrary

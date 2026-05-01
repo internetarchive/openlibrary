@@ -9,7 +9,6 @@ from functools import cached_property
 from typing import NotRequired, TypedDict, cast
 
 import web
-import re 
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase import client, common  # noqa: F401 side effects may be needed

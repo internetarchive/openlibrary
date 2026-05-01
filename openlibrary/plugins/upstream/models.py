@@ -6,7 +6,6 @@ from functools import cached_property
 from typing import cast
 
 import web
-import re
 from isbnlib import NotValidISBNError, canonical, mask
 
 from infogami import config  # noqa: F401 side effects may be needed

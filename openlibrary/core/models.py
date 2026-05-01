@@ -2,6 +2,7 @@
 
 import functools
 import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -10,7 +11,6 @@ from urllib.parse import urlencode
 
 import requests
 import web
-import re
 
 from infogami.infobase import client
 

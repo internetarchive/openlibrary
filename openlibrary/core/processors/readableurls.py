@@ -2,11 +2,11 @@
 
 import logging
 import os
+import re
 import urllib
 from urllib.parse import quote_plus
 
 import web
-import re
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
