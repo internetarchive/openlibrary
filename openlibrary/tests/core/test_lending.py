@@ -1,8 +1,10 @@
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
+import web
 
 from openlibrary.core import lending
+from openlibrary.utils import dateutil
 from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
@@ -101,3 +103,69 @@ class TestGetAvailability:
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"
             assert r3 == {"foo": foo_expected, "bar": bar_expected}
+
+
+class TestGetLoansOfUser:
+    """Tests for get_loans_of_user and get_cached_loans_of_user."""
+
+    @pytest.fixture(autouse=True)
+    def _web_ctx(self, monkeypatch):
+        """Provide a minimal web.ctx so fakeload() is skipped."""
+        ctx = MagicMock()
+        ctx.__contains__ = lambda self_, key: key == "env"
+        monkeypatch.setattr(web, "ctx", ctx)
+
+    def test_returns_ia_loans(self, monkeypatch):
+        ia_loan = lending.Loan(
+            {
+                "_key": "loan-test-item",
+                "type": "/type/loan",
+                "user": "/people/testuser",
+                "book": "/books/OL1M",
+                "ocaid": "test-item",
+                "resource_type": "bookreader",
+                "stored_at": "ia",
+            }
+        )
+        mock_account = Mock()
+        mock_account.itemname = "@testuser"
+        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_username", lambda u: mock_account)
+        monkeypatch.setattr(lending, "_get_ia_loans_of_user", lambda userid: [ia_loan])
+        monkeypatch.setattr(lending.get_cached_loans_of_user, "memcache_set", lambda *a, **kw: None)
+
+        result = lending.get_loans_of_user("/people/testuser")
+
+        assert result == [ia_loan]
+
+    def test_returns_empty_list_when_no_account(self, monkeypatch):
+        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_username", lambda u: None)
+        monkeypatch.setattr(lending.get_cached_loans_of_user, "memcache_set", lambda *a, **kw: None)
+
+        result = lending.get_loans_of_user("/people/unknown")
+
+        assert result == []
+
+    def test_returns_empty_list_when_no_itemname(self, monkeypatch):
+        mock_account = Mock()
+        mock_account.itemname = None
+        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_username", lambda u: mock_account)
+        monkeypatch.setattr(lending.get_cached_loans_of_user, "memcache_set", lambda *a, **kw: None)
+
+        result = lending.get_loans_of_user("/people/testuser")
+
+        assert result == []
+
+    def test_does_not_query_local_store(self, monkeypatch):
+        """Local OL store must not be consulted — loans are authoritative at IA."""
+        mock_account = Mock()
+        mock_account.itemname = "@testuser"
+        monkeypatch.setattr(lending.OpenLibraryAccount, "get_by_username", lambda u: mock_account)
+        monkeypatch.setattr(lending, "_get_ia_loans_of_user", lambda userid: [])
+        monkeypatch.setattr(lending.get_cached_loans_of_user, "memcache_set", lambda *a, **kw: None)
+
+        lending.get_loans_of_user("/people/testuser")
+
+        web.ctx.site.store.values.assert_not_called()
+
+    def test_cache_ttl_is_ten_minutes(self):
+        assert lending.get_cached_loans_of_user.timeout == 10 * dateutil.MINUTE_SECS
