@@ -691,5 +691,3 @@ class ActivityFeed:
             if isinstance(r["created"], str):  # `datetime` objects are stored in cache as strings
                 r["created"] = datetime.fromisoformat(r["created"])
         return results
-
-
