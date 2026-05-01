@@ -271,11 +271,6 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         return '<span>Failed to render macro</span>'
 
 
-def get_error(name, *args):
-    """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
-
-
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
