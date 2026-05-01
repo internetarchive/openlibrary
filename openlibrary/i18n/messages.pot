@@ -210,10 +210,9 @@ msgstr[1] ""
 msgid "Reviews"
 msgstr ""
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html
-#: lib/nav_head.html lists/home.html recentchanges/index.html
-#: type/edition/view.html type/list/embed.html type/user/view.html
-#: type/work/view.html
+#: EditionNavBar.html account/sidebar.html lib/nav_head.html lists/home.html
+#: recentchanges/index.html type/edition/view.html type/list/embed.html
+#: type/user/view.html type/work/view.html
 msgid "Lists"
 msgstr ""
 
@@ -703,6 +702,10 @@ msgstr ""
 #: SearchNavigation.html authors/index.html lib/nav_foot.html
 #: merge/authors.html publishers/view.html
 msgid "Authors"
+msgstr ""
+
+#: SearchNavigation.html lib/nav_head.html
+msgid "Lists & Series"
 msgstr ""
 
 #: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
@@ -7717,7 +7720,7 @@ msgid "Search results for Lists"
 msgstr ""
 
 #: search/lists.html
-msgid "Search Lists"
+msgid "Search Lists & Series"
 msgstr ""
 
 #: search/lists.html
