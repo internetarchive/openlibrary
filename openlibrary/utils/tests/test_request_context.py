@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 import web
-from fastapi import Request
 
+from fastapi import Request
 from openlibrary.utils.request_context import (
     _parse_solr_editions_from_fastapi,
     _parse_solr_editions_from_web,

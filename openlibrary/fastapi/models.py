@@ -4,9 +4,9 @@ import json
 import re
 from typing import Self
 
-from fastapi import HTTPException, Request, Response
 from pydantic import BaseModel, Field, model_validator
 
+from fastapi import HTTPException, Request, Response
 from openlibrary.core.env import get_ol_env
 
 JS_CALLBACK_RE = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$.]*$")

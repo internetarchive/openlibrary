@@ -345,7 +345,7 @@ class addbook(delegate.page):
         else:
             return result.docs  # Case 4
 
-    def extract_year(self, value: str) -> str:
+    def extract_year(self, value: str) -> str | None:
         """
         Extract just the 4 digit year from a date string.
 

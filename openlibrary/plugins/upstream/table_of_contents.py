@@ -106,7 +106,10 @@ class TocEntry:
         """
 
         RE_LEVEL = re.compile(r"(\**)(.*)")
-        level, text = RE_LEVEL.match(line.strip()).groups()
+        if match := RE_LEVEL.match(line.strip()):
+            level, text = match.groups()
+        else:
+            level, text = "", ""
 
         if "|" in text:
             tokens = text.split("|", 3)

@@ -6,9 +6,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, field_validator, model_validator
 
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,

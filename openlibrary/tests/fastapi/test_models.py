@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from fastapi import Request
 
+from fastapi import Request
 from openlibrary.fastapi.models import SolrInternalsParams, parse_comma_separated_list, wrap_jsonp
 
 
