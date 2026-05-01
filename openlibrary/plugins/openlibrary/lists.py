@@ -787,7 +787,6 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-@deprecated("migrated to fastapi")
 def get_list_editions(key, offset=0, limit=50, api=False):
     if lst := cast(List | None, web.ctx.site.get(key)):
         offset = offset or 0  # enforce sane int defaults
@@ -823,6 +822,7 @@ class list_editions_json(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'

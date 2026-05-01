@@ -66,7 +66,7 @@ def fastapi_make_collection(
 def _get_editions_response(request: Request, key: str, ext: str, limit: int, offset: int) -> Response:
     lst = site.get().get(key)
     if not lst:
-        raise HTTPException(status_code=404, detail="Editions not found")
+        raise HTTPException(status_code=404)
 
     all_editions = list(lst.get_editions())
     editions = all_editions[offset : offset + limit]
