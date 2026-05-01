@@ -11,9 +11,9 @@ import urllib.parse
 from typing import Annotated, Any, Literal
 
 import web
+from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, BeforeValidator, Field, TypeAdapter
 
-from fastapi import APIRouter, Query, Request
 from openlibrary.fastapi.models import parse_comma_separated_list, wrap_jsonp
 from openlibrary.plugins.books import dynlinks, readlinks
 from openlibrary.plugins.books.dynlinks import DynlinksOptions

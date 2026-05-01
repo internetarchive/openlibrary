@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
+from fastapi import APIRouter, Depends, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -16,7 +17,6 @@ from pydantic import (
     model_validator,
 )
 
-from fastapi import APIRouter, Depends, Query, Request
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.fastapi.models import (
     Pagination,

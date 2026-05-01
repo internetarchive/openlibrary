@@ -11,9 +11,9 @@ from __future__ import annotations
 import os
 from typing import Annotated, Any, Literal
 
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from openlibrary.core import lending, models
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
