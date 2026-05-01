@@ -102,8 +102,11 @@ export class ReadingLogForms {
          */
         this.checkInComponents = checkInComponents;
 
-        this.readingLogForms = dropper.querySelectorAll('form.reading-log');
-        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled');
+    this.readingLogForms = dropper.querySelectorAll('form.reading-log');
+    this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled');
+
+    const i18nInput = document.querySelector('input[name="reading-log-i18n-strings"]');
+    this.i18n = i18nInput ? JSON.parse(i18nInput.value) : {};
     }
 
     /**
@@ -142,9 +145,8 @@ export class ReadingLogForms {
      * @param {HTMLFormElement} form
      */
     updateReadingLog(form) {
-        let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText;
-        // XXX: Use i18n strings
-        this.updatePrimaryButtonText('saving...');
+    let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText;
+    this.updatePrimaryButtonText(this.i18n.saving || 'saving...');
 
         const formData = new FormData(form);
         const url = form.getAttribute('action');
@@ -154,8 +156,7 @@ export class ReadingLogForms {
         let canUpdateShelf = true;
 
         if (!hasAddedBook && this.checkInComponents && this.checkInComponents.hasReadDate()) {
-            // XXX: Use i18n strings
-            canUpdateShelf = confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?');
+        canUpdateShelf = confirm(this.i18n.confirmRemoveWithCheckIns || 'Removing this book from your shelves will delete your check-ins for this work.  Continue?');
         }
 
         if (canUpdateShelf) {

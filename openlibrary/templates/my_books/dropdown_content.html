@@ -125,3 +125,10 @@ $if render_once('my_books/dropdown_content.new_list_modal'):
 $# Change render_once key once this code is removed from lists/widget
 $if render_once('lists/widget.i18n-strings'):
   $:i18n_input()
+
+$if render_once('my_books/dropdown_content.reading-log-i18n-strings'):
+  $ reading_log_i18n_strings = {
+    $ "saving": _('saving...'),
+    $ "confirmRemoveWithCheckIns": _('Removing this book from your shelves will delete your check-ins for this work.  Continue?')
+    $ }
+  <input type="hidden" name="reading-log-i18n-strings" value="$json_encode(reading_log_i18n_strings)">
