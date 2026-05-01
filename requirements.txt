@@ -4,7 +4,7 @@ APScheduler==3.11.0
 Babel==2.12.1
 beautifulsoup4==4.12.2
 eventer==0.1.1
-fastapi==0.119.0
+fastapi==0.136.1
 feedparser==6.0.11
 flup-py3==1.0.3
 Genshi==0.7.10
