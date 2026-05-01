@@ -359,16 +359,6 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
 
 # ######### Public Functions
 @public
-def is_loan_available(edition, type) -> bool:
-    resource_id = edition.get_lending_resource_id(type)
-
-    if not resource_id:
-        return False
-
-    return not is_loaned_out(resource_id)
-
-
-@public
 def datetime_from_isoformat(expiry):
     """Returns datetime object, or None"""
     return None if expiry is None else parse_datetime(expiry)
@@ -380,19 +370,8 @@ def datetime_from_utc_timestamp(seconds):
 
 
 @public
-def can_return_resource_type(resource_type: str) -> bool:
-    """Returns true if this resource can be returned from the OL site."""
-    return resource_type.startswith("bookreader")
-
-
-@public
 def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + "/" + itemid
-
-
-@public
-def get_bookreader_host() -> str:
-    return bookreader_host
 
 
 # ######### Helper Functions

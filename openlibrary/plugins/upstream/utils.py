@@ -272,12 +272,6 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
 
 @public
-def get_error(name, *args):
-    """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
-
-
-@public
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
@@ -293,25 +287,6 @@ def get_message_from_template(
         return msg % args
     else:
         return msg
-
-
-@public
-def list_recent_pages(path, limit=100, offset=0):
-    """Lists all pages with name path/* in the order of last_modified."""
-    q = {}
-
-    q['key~'] = path + '/*'
-    # don't show /type/delete and /type/redirect
-    q['a:type!='] = '/type/delete'
-    q['b:type!='] = '/type/redirect'
-
-    q['sort'] = 'key'
-    q['limit'] = limit
-    q['offset'] = offset
-    q['sort'] = '-last_modified'
-    # queries are very slow with != conditions
-    # q['type'] != '/type/delete'
-    return web.ctx.site.get_many(web.ctx.site.things(q))
 
 
 @public
@@ -1556,11 +1531,6 @@ def render_once(key: str) -> bool:
 @public
 def today():
     return datetime.datetime.today()
-
-
-@public
-def to_datetime(time: str):
-    return datetime.datetime.fromisoformat(time)
 
 
 class HTMLTagRemover(HTMLParser):

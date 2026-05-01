@@ -140,28 +140,6 @@ class merge_work(delegate.page):
 
 @functools.cache
 @public
-def vendor_js():
-    pardir = os.path.pardir
-    path = os.path.abspath(
-        os.path.join(
-            __file__,
-            pardir,
-            pardir,
-            pardir,
-            pardir,
-            "static",
-            "upstream",
-            "js",
-            "vendor.js",
-        )
-    )
-    with open(path, "rb") as in_file:
-        digest = hashlib.md5(in_file.read()).hexdigest()
-    return "/static/upstream/js/vendor.js?v=" + digest
-
-
-@functools.cache
-@public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
     pardir = os.path.pardir
