@@ -15,7 +15,7 @@ export class Toast {
     constructor($toast, containerParent=document.body) {
         const $parent = $(containerParent);
         if (!$parent.has('.toast-container').length) {
-            $parent.prepend('<div class="toast-container"></div>')
+            $parent.prepend('<div class="toast-container"></div>');
         }
         if ($toast.data('toast-trigger')) {
             $($toast.data('toast-trigger')).on('click', () => this.show());
@@ -57,7 +57,7 @@ export class FadingToast extends Toast {
         const $toast = $(`<div class="toast">
             <span class="toast__body">${message}</span>
             <a class="toast__close">&times;<span class="shift">Close</span></a>
-        </div>`)
+        </div>`);
 
         // Prevent sending null parent:
         if ($parent) {
@@ -90,7 +90,7 @@ export class PersistentToast extends Toast {
         const $toast = $(`<div class="toast ${classes}">
             <span class="toast__body">${message}</span>
             <a class="toast__close">&times;<span class="shift">Close</span>
-        </div>`)
-        super($toast)
+        </div>`);
+        super($toast);
     }
 }
