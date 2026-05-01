@@ -23,7 +23,7 @@ def lists_delete(
 ) -> dict:
     key = f"/people/{username}/lists/{list_id}"
 
-    if not key.startswith(user.user_key):
+    if username != user.username:
         raise HTTPException(status_code=403, detail="Permission denied.")
 
     doc = site.get().get(key)
