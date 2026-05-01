@@ -944,10 +944,17 @@ class subject_search(delegate.page):
     path = '/search/subjects'
 
     def GET(self):
-        get_results = functools.partial(
-            self.get_results, request_label='SUBJECT_SEARCH'
+        i = web.input(q='', page=None)
+        q = i.q.strip()
+        results_per_page = 100
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        response = (
+            self.get_results(q, offset=offset, limit=results_per_page, request_label='SUBJECT_SEARCH')
+            if q
+            else None
         )
-        return render_template('search/subjects', get_results)
+        return render_template('search/subjects', q, page, offset, results_per_page, response)
 
     def get_results(
         self,
@@ -972,8 +979,14 @@ class author_search(delegate.page):
     path = '/search/authors'
 
     def GET(self):
-        get_results = functools.partial(self.get_results, request_label='AUTHOR_SEARCH')
-        return render_template('search/authors', get_results)
+        i = web.input(q='', page=None, sort=None)
+        q = i.q.strip()
+        results_per_page = 100
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or ''
+        results = self.get_results(q, offset=offset, limit=results_per_page, sort=sort, request_label='AUTHOR_SEARCH')
+        return render_template('search/authors', q, page, offset, results_per_page, sort, results)
 
     def get_results(
         self,
