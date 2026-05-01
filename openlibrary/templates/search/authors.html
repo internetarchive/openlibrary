@@ -41,7 +41,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
               <div id="fulltext-search-suggestion" data-query="$q">
                   $:macros.LoadingIndicator(_("Checking Search Inside matches"))
               </div>
-       $if results.num_found:
+      $if results and results.num_found:
         <ul class="authorList list-books">
         $for doc in results.docs:
             $ n = doc['name']
