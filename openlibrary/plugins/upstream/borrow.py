@@ -6,7 +6,6 @@ import hashlib
 import hmac
 import json
 import logging
-import re
 import time
 import urllib
 from datetime import datetime
@@ -333,26 +332,11 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
         d["checkedout_on_ia"] = ia_checkedout
 
     if include_resources:
-        d.update(
-            {
-                "resource_bookreader": "absent",
-                "resource_pdf": "absent",
-                "resource_epub": "absent",
-            }
-        )
+        d["resource_bookreader"] = "absent"
         if editions:
-            resources = editions[0].get_lending_resources()
-            resource_pattern = r"acs:(\w+):(.*)"
-            for resource_urn in resources:
-                if resource_urn.startswith("acs:"):
-                    resource_type, resource_id = re.match(resource_pattern, resource_urn).groups()
-                else:
-                    resource_type, resource_id = "bookreader", resource_urn
-                resource_type = "resource_" + resource_type
-                if is_loaned_out(resource_id):
-                    d[resource_type] = "checkedout"
-                else:
-                    d[resource_type] = "available"
+            resource_id = editions[0].get_lending_resource_id("bookreader")
+            if resource_id:
+                d["resource_bookreader"] = "checkedout" if is_loaned_out(resource_id) else "available"
     return web.storage(d)
 
 

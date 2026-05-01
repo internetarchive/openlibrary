@@ -144,51 +144,26 @@ class Edition(models.Edition):
             meta = {}
         else:
             meta = ia.get_metadata(self.ocaid)
-            meta.setdefault("external-identifier", [])
             meta.setdefault("collection", [])
 
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
     def is_daisy_encrypted(self):
-        meta_fields = self.get_ia_meta_fields()
-        if not meta_fields:
-            return
-        v = meta_fields["collection"]
-        return "printdisabled" in v
-
-    def get_lending_resources(self):
-        """Returns the loan resource identifiers (in meta.xml format for ACS4 resources) for books hosted on archive.org
-
-        Returns e.g. ['bookreader:lettertoannewarr00west',
-                      'acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891',
-                      'acs:pdf:urn:uuid:7f192e62-13f5-4a62-af48-be4bea67e109']
-        """
-
-        # The entries in meta.xml look like this:
-        # <external-identifier>
-        #     acs:epub:urn:uuid:0df6f344-7ce9-4038-885e-e02db34f2891
-        # </external-identifier>
-
         if not self.ocaid:
-            return []
-        return self.get_ia_meta_fields()["external-identifier"]
+            return False
+        try:
+            solr_doc = get_solr().get(self.key, fields=["ebook_access"])
+        except Exception:
+            logging.getLogger(__name__).exception("Solr lookup failed for edition %s", self.key)
+            return False
+        if solr_doc:
+            return solr_doc.get("ebook_access") == "printdisabled"
+        return False
 
     def get_lending_resource_id(self, type):
         if type == "bookreader":
-            desired = "bookreader:"
-        else:
-            desired = "acs:%s:" % type
-
-        for urn in self.get_lending_resources():
-            if urn.startswith(desired):
-                # Got a match
-                # $$$ a little icky - prune the acs:type if present
-                if urn.startswith("acs:"):
-                    urn = urn[len(desired) :]
-
-                return urn
-
+            return f"bookreader:{self.ocaid}" if self.ocaid else None
         return None
 
     def get_current_and_available_loans(self):
@@ -223,51 +198,17 @@ class Edition(models.Edition):
         return self._get_available_loans([])
 
     def _get_available_loans(self, current_loans):
-        default_type = "bookreader"
-
-        loans = []
-
-        # Check if we have a possible loan - may not yet be fulfilled in ACS4
         if current_loans:
-            # There is a current loan or offer
             return []
 
-        # Create list of possible loan formats
-        resource_pattern = r"acs:(\w+):(.*)"
-        for resource_urn in self.get_lending_resources():
-            if resource_urn.startswith("acs:"):
-                type, resource_id = re.match(resource_pattern, resource_urn).groups()
-                loans.append({"resource_id": resource_id, "resource_type": type, "size": None})
-            elif resource_urn.startswith("bookreader"):
-                loans.append(
-                    {
-                        "resource_id": resource_urn,
-                        "resource_type": "bookreader",
-                        "size": None,
-                    }
-                )
+        if not self.ocaid:
+            return []
 
-        # Put default type at start of list, then sort by type name
-        def loan_key(loan):
-            if loan["resource_type"] == default_type:
-                return "1-%s" % loan["resource_type"]
-            else:
-                return "2-%s" % loan["resource_type"]
+        resource_id = f"bookreader:{self.ocaid}"
+        if borrow.is_loaned_out(resource_id):
+            return []
 
-        loans = sorted(loans, key=loan_key)
-
-        # For each possible loan, check if it is available We
-        # shouldn't be out of sync (we already checked
-        # get_edition_loans for current loans) but we fail safe, for
-        # example the book may have been borrowed in a dev instance
-        # against the live ACS4 server
-        for loan in loans:
-            if borrow.is_loaned_out(loan["resource_id"]):
-                # Only a single loan of an item is allowed
-                # $$$ log out of sync state
-                return []
-
-        return loans
+        return [{"resource_id": resource_id, "resource_type": "bookreader", "size": None}]
 
     def update_loan_status(self):
         """Update the loan status"""
