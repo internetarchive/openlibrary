@@ -439,13 +439,13 @@ class AmazonCreatorsAPI:
         # Required for ol-home0 which has no direct internet access. See #10310.
         if proxy_url:
             try:
-                from urllib3 import make_headers
                 from creatorsapi_python_sdk.configuration import (
                     Configuration as CreatorsConfig,
                 )
                 from creatorsapi_python_sdk.rest import (
                     RESTClientObject as CreatorsRESTClient,
                 )
+                from urllib3 import make_headers
 
                 configuration = CreatorsConfig()
                 configuration.proxy = proxy_url
@@ -709,6 +709,7 @@ class AmazonCreatorsAPI:
         if is_dvd(book):
             return {}
         return book
+
 
 def get_amazon_metadata(
     id_: str,
