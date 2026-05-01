@@ -1,68 +1,48 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Path, Query
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, HTTPException
 
-from openlibrary.plugins.openlibrary.lists import get_list
+from infogami.infobase import client
+from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
+from openlibrary.utils.request_context import site
 
 router = APIRouter()
 
 
-def _get_list_or_404(key: str, raw: bool) -> dict:
-    """Fetch a list by key and raise 404 if not found or deleted."""
-    if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
-        raise HTTPException(status_code=404, detail="List not found")
-    return lst
-
-
-UsernamePath = Annotated[str, Path(description="The patron's username")]
-RawFlag = Annotated[bool, Query(alias="_raw", description="Return raw database record")]
-ListOLID = Annotated[str, Path(description="The OLID, e.g. OL123L", pattern=r"OL\d+L")]
-ListCategory = Annotated[Literal["lists", "series"], Path(description="List category")]
-
-
-@router.get("/people/{username}/{category}/{list_id}.json")
-def list_view_json_user(
-    username: UsernamePath,
-    category: ListCategory,
-    list_id: ListOLID,
-    raw: RawFlag = False,
+@router.post(
+    "/people/{username}/lists/{list_id}/delete.json",
+    description="Delete a list owned by the given user.",
+)
+def lists_delete(
+    username: str,
+    list_id: str,
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
-    """
-    Returns JSON metadata for a user-owned list or series.
+    key = f"/people/{username}/lists/{list_id}"
 
-    Examples:
-    /people/mekBot/lists/OL123L.json
-    /people/mekBot/series/OL123L.json
-    """
-    key = f"/people/{username}/{category}/{list_id}"
-    return _get_list_or_404(key, raw=raw)
+    if not key.startswith(user.user_key):
+        raise HTTPException(status_code=403, detail="Permission denied.")
 
+    doc = site.get().get(key)
+    if doc is None or doc.type.key != "/type/list":
+        raise HTTPException(status_code=404, detail="Not found.")
 
-@router.get("/{category}/{list_id}.json")
-def list_view_json_public(
-    category: ListCategory,
-    list_id: ListOLID,
-    raw: RawFlag = False,
-) -> dict:
-    """
-    Returns JSON metadata for a public list or series.
+    try:
+        _LegacyListsDelete.process_delete(doc, key)
+    except client.ClientException as e:
+        raise HTTPException(status_code=int(e.status.split()[0]), detail=str(e))
 
-    Examples:
-    /lists/OL456L.json
-    /series/OL789L.json
-    """
-    key = f"/{category}/{list_id}"
-    return _get_list_or_404(key, raw=raw)
-
-
-async def lists_delete(filename: Annotated[str, Path()]) -> Response:
-    return Response(status_code=200)
+    return {"status": "ok"}
 
 
 async def lists_json():
+    pass
+
+
+async def list_view_json():
     pass
 
 

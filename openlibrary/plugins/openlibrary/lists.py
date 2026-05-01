@@ -489,6 +489,7 @@ class lists_add(delegate.page):
         return lists_edit().POST(user_key, list_type_plural, None)
 
 
+@deprecated("migrated to fastapi")
 class lists_delete(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
     encoding = "json"
