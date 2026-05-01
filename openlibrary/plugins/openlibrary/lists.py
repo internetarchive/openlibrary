@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
 
-import web
 from typing_extensions import deprecated
+import web
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
