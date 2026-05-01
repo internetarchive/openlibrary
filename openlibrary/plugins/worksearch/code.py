@@ -1146,12 +1146,11 @@ def _prepare_work_search_query(
     )
 
 
-@public
 async def work_search_async(
     query: dict,
     sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
+    page: int | None = 1,
+    offset: int | None = 0,
     limit: int = 100,
     fields: str | list[str] = '*',
     facet: bool = True,
