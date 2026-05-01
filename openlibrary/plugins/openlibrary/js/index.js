@@ -442,6 +442,14 @@ jQuery(function() {
             .removeAttr('open');
     });
 
+    // Show loading state on Check Options button click
+    document.querySelectorAll('[data-ol-link-track="CTAClick|CheckOptions"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            btn.classList.add('cta-btn--available--load');
+            setTimeout(() => btn.classList.remove('cta-btn--available--load'), 3000);
+        });
+    });
+
     // Prevent default star rating behavior:
     const ratingForms = document.querySelectorAll('.star-rating-form');
     if (ratingForms.length) {

@@ -285,3 +285,38 @@ ul.ebook-download-options li {
   /* stylelint-enable selector-max-specificity */
   /* stylelint-enable max-nesting-depth */
 }
+
+/* Smooth scroll for Check Options anchor navigation */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Base state required for border animation to work */
+.desktop-vendor,
+.mobile-vendor {
+  border: 1px solid transparent;
+  border-radius: 5px;
+}
+
+@keyframes check-options-highlight {
+  0% {
+    border: 1px solid transparent;
+    box-shadow: 0 0 10px transparent;
+  }
+
+  50% {
+    border: 1px solid var(--link-blue);
+    box-shadow: 0 0 10px var(--link-blue);
+  }
+
+  100% {
+    border: 1px solid transparent;
+    box-shadow: 0 0 10px transparent;
+  }
+}
+
+.desktop-vendor:target,
+.mobile-vendor:target {
+  animation: check-options-highlight 3s;
+  scroll-margin-top: 100px;
+}

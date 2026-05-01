@@ -338,7 +338,7 @@ msgid "Checked Out"
 msgstr ""
 
 #: LocateButton.html
-msgid "Locate"
+msgid "Check Options"
 msgstr ""
 
 #: ManageLoansButtons.html admin/loans_table.html
