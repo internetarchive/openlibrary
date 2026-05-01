@@ -149,23 +149,6 @@ class Edition(models.Edition):
         self._ia_meta_fields = meta
         return self._ia_meta_fields
 
-    def is_daisy_encrypted(self):
-        if not self.ocaid:
-            return False
-        try:
-            solr_doc = get_solr().get(self.key, fields=["ebook_access"])
-        except Exception:
-            logging.getLogger(__name__).exception("Solr lookup failed for edition %s", self.key)
-            return False
-        if solr_doc:
-            return solr_doc.get("ebook_access") == "printdisabled"
-        return False
-
-    def get_lending_resource_id(self, type):
-        if type == "bookreader":
-            return f"bookreader:{self.ocaid}" if self.ocaid else None
-        return None
-
     def get_current_and_available_loans(self):
         current_loans = borrow.get_edition_loans(self)
         current_and_available_loans = (

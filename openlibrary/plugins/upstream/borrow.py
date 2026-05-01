@@ -12,7 +12,6 @@ from datetime import datetime
 from typing import Literal
 
 import web
-
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -20,6 +19,7 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.app import render_template
@@ -300,47 +300,30 @@ class ia_loan_status(delegate.page):
     path = r"/ia_loan_status/(.*)"
 
     def GET(self, itemid):
-        d = get_borrow_status(itemid, include_resources=False, include_ia=False)
+        d = get_borrow_status(itemid)
         return delegate.RawText(json.dumps(d), content_type="application/json")
 
 
-def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
-    """Returns borrow status for each of the sources and formats.
-
-    If the optional argument editions is provided, it uses that edition instead
-    of finding edition from itemid. This is added for performance reasons.
-    """
+@public
+def get_borrow_status(itemid):
+    """Returns borrow status for this IA identifier."""
     loan = lending.get_loan(itemid)
     has_loan = bool(loan)
 
-    if edition:
-        editions = [edition]
-    else:
-        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
-        editions = web.ctx.site.get_many(edition_keys)
+    edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
+    editions = web.ctx.site.get_many(edition_keys)
     has_waitinglist = editions and any(e.get_waitinglist_size() > 0 for e in editions)
 
-    d = {
-        "identifier": itemid,
-        "checkedout": has_loan or has_waitinglist,
-        "has_loan": has_loan,
-        "has_waitinglist": has_waitinglist,
-    }
-    if include_ia:
-        ia_checkedout = lending.is_loaned_out_on_ia(itemid)
-        d["checkedout"] = d["checkedout"] or ia_checkedout
-        d["checkedout_on_ia"] = ia_checkedout
-
-    if include_resources:
-        d["resource_bookreader"] = "absent"
-        if editions:
-            resource_id = editions[0].get_lending_resource_id("bookreader")
-            if resource_id:
-                d["resource_bookreader"] = "checkedout" if is_loaned_out(resource_id) else "available"
-    return web.storage(d)
+    return web.storage(
+        {
+            "identifier": itemid,
+            "checkedout": has_loan or has_waitinglist,
+            "has_loan": has_loan,
+            "has_waitinglist": has_waitinglist,
+        }
+    )
 
 
-# ######### Public Functions
 @public
 def datetime_from_isoformat(expiry):
     """Returns datetime object, or None"""
@@ -397,17 +380,6 @@ def get_edition_loans(edition):
         if loan:
             return [loan]
     return []
-
-
-def get_loan_link(edition, type):
-    """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
-    resource_id = edition.get_lending_resource_id(type)
-
-    if type == "bookreader":
-        # link to bookreader
-        return (resource_id, get_bookreader_stream_url(edition.ocaid))
-
-    raise Exception("Unknown resource type %s for loan of edition %s", edition.key, type)
 
 
 def get_loan_key(resource_id: str):
