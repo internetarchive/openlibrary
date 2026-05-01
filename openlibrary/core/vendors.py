@@ -439,6 +439,7 @@ class AmazonCreatorsAPI:
         # Required for ol-home0 which has no direct internet access. See #10310.
         if proxy_url:
             try:
+                from urllib3 import make_headers
                 from creatorsapi_python_sdk.configuration import (
                     Configuration as CreatorsConfig,
                 )
@@ -447,7 +448,8 @@ class AmazonCreatorsAPI:
                 )
 
                 configuration = CreatorsConfig()
-                configuration.proxy = proxy_url
+                configuration.proxy = f"http://{proxy_creds}@{proxy_url.split('://')[1]}"
+                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
                 rest_client = CreatorsRESTClient(configuration=configuration)
                 # _api_client is the ApiClient instance stored directly on
                 # AmazonCreatorsApi; replace its rest_client to route all

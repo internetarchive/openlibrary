@@ -639,6 +639,7 @@ def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
     http_proxy_url = config.get("http_proxy")
+    http_proxy_creds = config.get("http_proxy_creds")
 
     stats.client = stats.create_stats_client(cfg=config)
 
@@ -666,6 +667,7 @@ def load_config(configfile):
             version=creators_version,
             throttling=0.9,
             proxy_url=http_proxy_url,
+            proxy_creds=http_proxy_creds,
         )
         logger.info("AmazonCreatorsAPI Initialized")
     elif all(legacy_args):
