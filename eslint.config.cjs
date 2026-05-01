@@ -228,7 +228,7 @@ module.exports = [
       },
     },
   },
-  
+
 // TEMPORARY EXEMPTIONS: Turn off new formatting rules for files locked in active PRs
   {
     files: [
