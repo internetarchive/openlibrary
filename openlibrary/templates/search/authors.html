@@ -1,4 +1,4 @@
-$def with (q, page, offset, results_per_page, sort, results)
+$def with (q, page, results_per_page, sort, results)
 
 $var title: $_('Search Open Library for "%(query)s"', query=q)
 
@@ -15,7 +15,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
     </form>
   </div>
 
-    $if q and results.error:
+    $if q and results and results.error:
         <strong>
             $for line in results.error.splitlines():
                 $line

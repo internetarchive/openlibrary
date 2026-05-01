@@ -956,9 +956,7 @@ class subject_search(delegate.page):
             if q
             else None
         )
-        return render_template(
-            'search/subjects', q, page, offset, results_per_page, response
-        )
+        return render_template('search/subjects', q, page, results_per_page, response)
 
     def get_results(
         self,
@@ -989,15 +987,19 @@ class author_search(delegate.page):
         page = safeint(i.page, 1) if i.page else 1
         offset = (page - 1) * results_per_page
         sort = i.sort or ''
-        results = self.get_results(
-            q,
-            offset=offset,
-            limit=results_per_page,
-            sort=sort,
-            request_label='AUTHOR_SEARCH',
+        results = (
+            self.get_results(
+                q,
+                offset=offset,
+                limit=results_per_page,
+                sort=sort,
+                request_label='AUTHOR_SEARCH',
+            )
+            if q
+            else None
         )
         return render_template(
-            'search/authors', q, page, offset, results_per_page, sort, results
+            'search/authors', q, page, results_per_page, sort, results
         )
 
     def get_results(
