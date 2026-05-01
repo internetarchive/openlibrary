@@ -151,7 +151,7 @@ class CarouselCardPartial:
         if params.queryType == "BROWSE":
             return await self._do_browse_query(params)
         if params.queryType == "TRENDING":
-            return self._do_trends_query(params)
+            return await self._do_trends_query(params)
         if params.queryType == "SUBJECTS":
             return await self._do_subjects_query(params)
 
@@ -200,8 +200,8 @@ class CarouselCardPartial:
         results = await get_available_async(url=url)
         return results if "error" not in results else []
 
-    def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
-        return get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
+    async def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
+        return await get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
 
     async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
