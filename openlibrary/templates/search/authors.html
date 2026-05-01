@@ -23,7 +23,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
                     <br>
         </strong>
 
-    $if q and not results.error:
+    $if q and results and not results.error:
         $if results.num_found:
             <div class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', results.num_found, count=commify(results.num_found))
               $if results.num_found > 1:
