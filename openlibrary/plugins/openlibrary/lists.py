@@ -8,6 +8,7 @@ from typing import Literal, cast
 from urllib.parse import parse_qs
 
 import web
+from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
@@ -802,6 +803,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
         return editions
 
 
+@deprecated("migrated to fastapi")
 class list_editions_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/editions"
     encoding = "json"
@@ -820,6 +822,7 @@ class list_editions_json(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
