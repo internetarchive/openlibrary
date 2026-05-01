@@ -846,8 +846,7 @@ class User(models.User):
 
     def update_loan_status(self):
         """Sync OL ebook records for all of this user's active loans."""
-        for loan in lending.get_loans_of_user(self.key):
-            lending.sync_loan(loan["ocaid"])
+        self.get_loans()
 
     def get_safe_mode(self):
         return (self.get_users_settings() or {}).get("safe_mode", "").lower()

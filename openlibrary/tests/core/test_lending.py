@@ -110,9 +110,14 @@ class TestGetLoansOfUser:
 
     @pytest.fixture(autouse=True)
     def _web_ctx(self, monkeypatch):
-        """Provide a minimal web.ctx so fakeload() is skipped."""
-        ctx = MagicMock()
-        ctx.__contains__ = lambda self_, key: key == "env"
+        """Provide a minimal web.ctx so fakeload() is skipped.
+
+        web.storage is a dict subclass, so `"env" in ctx` works correctly via
+        the standard __contains__ lookup — unlike MagicMock where setting
+        __contains__ on the instance is ignored by the `in` operator (Python
+        resolves special methods on the type, not the instance).
+        """
+        ctx = web.storage(env={}, site=web.storage(store=MagicMock()))
         monkeypatch.setattr(web, "ctx", ctx)
 
     def test_returns_ia_loans(self, monkeypatch):
