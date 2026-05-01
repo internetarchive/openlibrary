@@ -11,6 +11,8 @@
 
 Then follow the **[Quick Start](https://docs.openlibrary.org/developers/quick-start.html)** to set up your environment and make your first contribution.
 
+Prefer to develop without Docker? See the **[Build from Source guide](docs/build-from-source.md)** for a native setup.
+
 For full developer documentation, see [docs.openlibrary.org](https://docs.openlibrary.org/).
 
 To volunteer in non-development roles, visit [openlibrary.org/volunteer](https://openlibrary.org/volunteer).
