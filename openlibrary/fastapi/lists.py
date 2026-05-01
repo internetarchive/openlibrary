@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Path, Query, Response, HTTPException
+from fastapi import APIRouter, HTTPException, Path, Query, Response
 from fastapi.responses import Response
-from openlibrary.utils.request_context import site
+
 from openlibrary.core import formats
+from openlibrary.utils.request_context import site
 
 router = APIRouter()
 
@@ -33,7 +34,7 @@ def fastapi_make_collection(request: Request, size: int, entries: list, limit: i
         "end": offset + limit,
         "entries": entries,
         "links": {
-            "self": f"{request.url.path}{f"?{request.url.query}" if request.url.query else ""}",
+            "self": f"{request.url.path}{f'?{request.url.query}' if request.url.query else ''}",
         },
     }
 
