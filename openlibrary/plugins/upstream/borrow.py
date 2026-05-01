@@ -368,15 +368,11 @@ def datetime_from_utc_timestamp(seconds):
     return datetime.utcfromtimestamp(seconds)
 
 
-@public
-<<<<<<< refactor/remove-public-decorator-non-html
 def can_return_resource_type(resource_type: str) -> bool:
     """Returns true if this resource can be returned from the OL site."""
     return resource_type.startswith("bookreader")
 
 
-=======
->>>>>>> master
 def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + "/" + itemid
 
