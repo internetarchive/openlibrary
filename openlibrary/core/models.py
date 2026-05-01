@@ -447,7 +447,7 @@ class Edition(Thing):
             # is staged in `import_item`.
             try:
                 id_ = asin or book_ids[0]
-                id_type = "asin" if asin else "isbn"
+                id_type: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
                 get_amazon_metadata(
                     id_=id_, id_type=id_type, high_priority=high_priority
                 )
