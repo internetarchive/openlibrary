@@ -5,7 +5,6 @@ import os
 from optparse import OptionParser
 
 import _init_path  # noqa: F401 Imported for its side effect of setting PYTHONPATH
-import web
 
 from openlibrary.api import OpenLibrary, marshal
 
@@ -64,7 +63,7 @@ def make_path(doc):
         return "openlibrary/plugins/openlibrary/js/" + doc["key"].split("/")[-1]
     else:
         key = doc["key"].rsplit(".")[0]
-        key = web.lstrips(key, options.template_root)
+        key = key.removeprefix(options.template_root)
 
         plugin = doc.get("plugin", options.default_plugin)
         return f"openlibrary/plugins/{plugin}{key}.html"

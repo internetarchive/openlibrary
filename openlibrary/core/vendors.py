@@ -17,7 +17,6 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
-from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -400,6 +399,7 @@ class AmazonCreatorsAPI:
         country: str = 'US',
         throttling: float = 0.9,
         proxy_url: str = "",
+        proxy_creds: str = "",
     ) -> None:
         """
         :param str credential_id: Creators API key / credential ID (OAuth 2.0)
@@ -448,7 +448,7 @@ class AmazonCreatorsAPI:
                 )
 
                 configuration = CreatorsConfig()
-                configuration.proxy = f"http://{proxy_creds}@{proxy_url.split('://')[1]}"
+                configuration.proxy = proxy_url
                 configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
                 rest_client = CreatorsRESTClient(configuration=configuration)
                 # _api_client is the ApiClient instance stored directly on
@@ -710,8 +710,6 @@ class AmazonCreatorsAPI:
             return {}
         return book
 
-
-@public
 def get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',

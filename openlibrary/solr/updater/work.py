@@ -182,7 +182,7 @@ def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> Option
     metadata = data_provider.get_metadata(ia)
     if metadata is None:
         # It's none when the IA id is not found/invalid.
-        # TODO: It would be better if get_metadata riased an error.
+        # TODO: It would be better if get_metadata raised an error.
         return None
     return {
         "boxid": set(get_list(metadata, "boxid")),

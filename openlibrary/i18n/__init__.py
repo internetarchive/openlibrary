@@ -150,9 +150,9 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 
 
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
-    # The creation date is fixed to prevent merge conflicts on this line as a result of i18n auto-updates
-    # In the unlikely event we need to update the fixed creation date, you can change the hard-coded date below
-    fixed_creation_date = datetime.fromisoformat("2024-05-01 18:58-0400")
+    # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
+    # Occasional manual bumps (like this PR) are fine; just update the date below when doing so.
+    fixed_creation_date = datetime.fromisoformat("2026-04-28 18:58-0400")
     catalog = Catalog(
         project="Open Library",
         copyright_holder="Internet Archive",
@@ -165,8 +165,12 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     if skip_untracked:
         skipped_files = get_untracked_files(sources, (".py", ".html"))
 
-    # Note the must be sorted to avoid the messages.pot file constantly jumping around
-    for source in map(Path, sorted(sources)):
+    # Keep historical directories stable at the beginning and
+    # sort the rest because it's claimed that their order varies across platforms
+    pinned = ["openlibrary/templates/", "openlibrary/macros/"]
+    sources = pinned + sorted(set(sources) - set(pinned))
+
+    for source in map(Path, sources):
         counts: dict[Path, int] = {}
 
         if source.is_file():

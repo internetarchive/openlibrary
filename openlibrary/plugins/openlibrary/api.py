@@ -852,20 +852,23 @@ class unlink_ia_ol(delegate.page):
         msg = i.msg
 
         try:
-            HMACToken.verify(digest, msg, "ia_sync_secret")
+            if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
+                raise web.HTTPError(
+                    "401 Unauthorized", {"Content-Type": "application/json"}
+                )
         except (ValueError, ExpiredTokenError):
             raise web.HTTPError(
                 "401 Unauthorized", {"Content-Type": "application/json"}
             )
 
-        ocaid, ts = msg.split("|")
-
-        if not ts or not ocaid:
+        parts = msg.split("|", maxsplit=1)
+        if len(parts) != 2 or not all(parts):
             raise web.HTTPError(
                 "400 Bad Request",
                 {"Content-Type": "application/json"},
                 data=json.dumps({"error": "Invalid inputs"}),
             )
+        ocaid, _ts = parts
 
         # Fetch affected editions
         if not (
@@ -889,7 +892,7 @@ class unlink_ia_ol(delegate.page):
 
         # Update records
         try:
-            self.make_dark(edition)
+            self.make_dark(edition, ocaid)
         except ClientException as e:
             logger.error(
                 f"Failed to disassociate record with key {edition.key}", exc_info=True
@@ -903,16 +906,20 @@ class unlink_ia_ol(delegate.page):
         return delegate.RawText(json.dumps({"status": "ok"}))
 
     @staticmethod
-    def make_dark(edition):
+    def make_dark(edition, ocaid):
         data = edition.dict()
         del data["ocaid"]
         source_records = data.get("source_records", [])
-        data["source_records"] = [
-            rec for rec in source_records if not rec.startswith("ia:")
-        ]
+        data["source_records"] = [rec for rec in source_records if rec != f"ia:{ocaid}"]
         if not data["source_records"]:
             del data["source_records"]
-        web.ctx.site.save(data, "Disassociate OCAID", action="edit-edition-ocaid")
+        with accounts.RunAs('ImportBot'):
+            web.ctx.ip = web.ctx.ip or '127.0.0.1'
+            web.ctx.site.save(
+                data,
+                "Remove OCAID: Item no longer available to borrow.",
+                action="edit-edition-ocaid",
+            )
 
 
 class monthly_logins(delegate.page):

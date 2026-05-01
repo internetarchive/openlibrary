@@ -1,16 +1,6 @@
-$def with (get_results)
-
-$ q = query_param('q', '').strip()
-$ results_per_page = 100
-$ page = query_param('page')
-$if page:
-    $ page = int(page)
-$else:
-    $ page = 1
-$ offset = (page - 1) * results_per_page
+$def with (q, page, results_per_page, sort, results)
 
 $var title: $_('Search Open Library for "%(query)s"', query=q)
-$ sort = query_param('sort', None)
 
 <div id="contentHead">
     <h1>$_("Search Authors")</h1>
@@ -25,9 +15,7 @@ $ sort = query_param('sort', None)
     </form>
   </div>
 
-    $ results = get_results(q, offset=offset, limit=results_per_page, sort=sort)
-
-    $if q and results.error:
+    $if q and results and results.error:
         <strong>
             $for line in results.error.splitlines():
                 $line
@@ -35,7 +23,7 @@ $ sort = query_param('sort', None)
                     <br>
         </strong>
 
-    $if q and not results.error:
+    $if q and results and not results.error:
         $if results.num_found:
             <div class="search-results-stats">$ungettext('%(count)s hit', '%(count)s hits', results.num_found, count=commify(results.num_found))
               $if results.num_found > 1:
@@ -53,7 +41,7 @@ $ sort = query_param('sort', None)
               <div id="fulltext-search-suggestion" data-query="$q">
                   $:macros.LoadingIndicator(_("Checking Search Inside matches"))
               </div>
-       $if results.num_found:
+      $if results and results.num_found:
         <ul class="authorList list-books">
         $for doc in results.docs:
             $ n = doc['name']

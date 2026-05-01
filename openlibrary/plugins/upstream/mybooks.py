@@ -554,12 +554,6 @@ class ReadingLog:
 
 
 @public
-def get_read_status(work_key, username):
-    work_id = extract_numeric_id_from_olid(work_key.split("/")[-1])
-    return Bookshelves.get_users_read_status_of_work(username, work_id)
-
-
-@public
 def add_read_statuses(username, works):
     work_ids = [extract_numeric_id_from_olid(work.key.split("/")[-1]) for work in works]
     results = Bookshelves.get_users_read_status_of_works(username, work_ids)
@@ -697,8 +691,3 @@ class ActivityFeed:
             if isinstance(r["created"], str):  # `datetime` objects are stored in cache as strings
                 r["created"] = datetime.fromisoformat(r["created"])
         return results
-
-
-@public
-def get_activity_feed(username):
-    return ActivityFeed.get_activity_feed(username)

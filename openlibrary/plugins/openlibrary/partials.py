@@ -1,7 +1,7 @@
 from datetime import datetime
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 import web
 from pydantic import BaseModel
@@ -10,7 +10,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
-from openlibrary.core.lending import compose_ia_url, get_available
+from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     get_amazon_metadata,
     get_betterworldbooks_metadata,
@@ -28,10 +28,32 @@ from openlibrary.plugins.worksearch.code import (
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.subjects import (
     date_range_to_publish_year_filter,
-    get_subject,
+    get_subject_async,
 )
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.views.loanstats import get_trending_books
+
+
+def _solr_query_to_subject_key(query: str) -> str:
+    """Convert Solr query format to subject key format."""
+    # Handle Solr field format and seed format
+    prefixes = [
+        ("subject_key:", "/subjects/"),
+        ("person_key:", "/subjects/person:"),
+        ("place_key:", "/subjects/place:"),
+        ("time_key:", "/subjects/time:"),
+        ("subject:", "/subjects/"),
+    ]
+
+    for prefix, replacement in prefixes:
+        if query.startswith(prefix):
+            return f"{replacement}{query.removeprefix(prefix)}"
+
+    # Already in correct format
+    if query.startswith("/subjects/"):
+        return query
+
+    raise ValueError(f"Unable to convert query to subject key: {query}")
 
 
 class ReadingGoalProgressPartial:
@@ -127,11 +149,11 @@ class CarouselCardPartial:
         if params.queryType == "SEARCH":
             return await self._do_search_query(params)
         if params.queryType == "BROWSE":
-            return self._do_browse_query(params)
+            return await self._do_browse_query(params)
         if params.queryType == "TRENDING":
-            return self._do_trends_query(params)
+            return await self._do_trends_query(params)
         if params.queryType == "SUBJECTS":
-            return self._do_subjects_query(params)
+            return await self._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
 
@@ -165,7 +187,7 @@ class CarouselCardPartial:
         )
         return results.get("docs", [])
 
-    def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
         url = compose_ia_url(
             query=params.q,
             limit=params.limit,
@@ -175,15 +197,24 @@ class CarouselCardPartial:
             advanced=True,
             safe_mode=True,
         )
-        results = get_available(url=url)
+        results = await get_available_async(url=url)
         return results if "error" not in results else []
 
-    def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
-        return get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
+    async def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
+        return await get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
 
-    def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
+    async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
-        subject = get_subject(params.q, offset=params.page, limit=params.limit, publish_year=publish_year)
+        subject_key = _solr_query_to_subject_key(params.q)
+        # Convert page (1-indexed) to offset (0-indexed), ensure non-negative
+        offset = max(0, params.page - 1) if params.page else 0
+        subject = await get_subject_async(
+            subject_key,
+            offset=offset,
+            limit=params.limit,
+            publish_year=publish_year or None,
+            request_label="BOOK_CAROUSEL",
+        )
         return subject.get("works", [])
 
 
@@ -313,7 +344,7 @@ class BookPageListsPartial:
             results["partials"].append(_("This work does not appear on any lists."))
         else:
             query = "seed_count:[2 TO *] seed:(%s)" % " OR ".join(f'"{k}"' for k in keys)
-            all_url = "/search/lists?q=" + web.urlquote(query) + "&sort=last_modified"
+            all_url = "/search/lists?q=" + quote(query) + "&sort=last_modified"
             lists_template = render_template("lists/carousel", lists, all_url)
             results["partials"].append(str(lists_template))
 

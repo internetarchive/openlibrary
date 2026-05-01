@@ -6,6 +6,7 @@ import hashlib
 import json
 import os.path
 import random
+import re
 
 import web
 
@@ -69,7 +70,7 @@ class edit(core.edit):
 
     def GET(self, key):
         page = web.ctx.site.get(key)
-        editable_keys_re = web.re_compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
+        editable_keys_re = re.compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
         if editable_keys_re.match(key):
             if page is None:
                 return web.seeother(key)
@@ -79,7 +80,7 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if web.re_compile("/(people/[^/]+)").match(key) and spamcheck.is_spam():
+        if re.compile("/(people/[^/]+)").match(key) and spamcheck.is_spam():
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         return core.edit.POST(self, key)
 
@@ -140,28 +141,6 @@ class merge_work(delegate.page):
 
 @functools.cache
 @public
-def vendor_js():
-    pardir = os.path.pardir
-    path = os.path.abspath(
-        os.path.join(
-            __file__,
-            pardir,
-            pardir,
-            pardir,
-            pardir,
-            "static",
-            "upstream",
-            "js",
-            "vendor.js",
-        )
-    )
-    with open(path, "rb") as in_file:
-        digest = hashlib.md5(in_file.read()).hexdigest()
-    return "/static/upstream/js/vendor.js?v=" + digest
-
-
-@functools.cache
-@public
 def static_url(path):
     """Takes path relative to static/ and constructs url to that resource with hash."""
     pardir = os.path.pardir
@@ -177,7 +156,7 @@ class DynamicDocument:
     """
 
     def __init__(self, root):
-        self.root = web.rstrips(root, "/")
+        self.root = root.removesuffix("/")
         self.docs = None
         self._text = None
         self.last_modified = None

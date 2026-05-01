@@ -1,4 +1,4 @@
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -9,10 +9,10 @@ from openlibrary.utils.request_context import RequestContextVars, req_context
 @pytest.mark.usefixtures("request_context_fixture")
 class TestAddAvailability:
     def test_reads_ocaids(self, monkeypatch):
-        def mock_get_availability(id_type, ocaids):
+        async def mock_get_availability_async(id_type, ocaids):
             return {"foo": {"status": "available"}}
 
-        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
+        monkeypatch.setattr(lending, "get_availability_async", mock_get_availability_async)
 
         f = lending.add_availability
         assert f([{"ocaid": "foo"}]) == [{"ocaid": "foo", "availability": {"status": "available"}}]
@@ -25,10 +25,10 @@ class TestAddAvailability:
         assert f([{}]) == [{}]
 
     def test_handles_availability_none(self, monkeypatch):
-        def mock_get_availability(id_type, ocaids):
+        async def mock_get_availability_async(id_type, ocaids):
             return {"foo": {"status": "error"}}
 
-        monkeypatch.setattr(lending, "get_availability", mock_get_availability)
+        monkeypatch.setattr(lending, "get_availability_async", mock_get_availability_async)
 
         f = lending.add_availability
         r = f([{"ocaid": "foo"}])
@@ -55,12 +55,16 @@ class TestGetAvailability:
         req_context.reset(token)
 
     def test_cache(self):
-        with patch("openlibrary.core.ia.session.get") as mock_get:
-            mock_get.return_value = Mock()
-            mock_get.return_value.json.return_value = {
-                "success": True,
-                "responses": {"foo": {"status": "open"}},
-            }
+        with patch("openlibrary.core.ia.async_session.get") as mock_get:
+            mock_response = AsyncMock()
+            mock_response.json = Mock(
+                return_value={
+                    "success": True,
+                    "responses": {"foo": {"status": "open"}},
+                }
+            )
+            mock_response.raise_for_status = Mock()
+            mock_get.return_value = mock_response
 
             foo_expected = {
                 "status": "open",
@@ -87,10 +91,12 @@ class TestGetAvailability:
             assert r2 == {"foo": foo_expected}
 
             # Now should make a call for just the new identifier
-            mock_get.return_value.json.return_value = {
-                "success": True,
-                "responses": {"bar": {"status": "error"}},
-            }
+            mock_response.json = Mock(
+                return_value={
+                    "success": True,
+                    "responses": {"bar": {"status": "error"}},
+                }
+            )
             r3 = lending.get_availability("identifier", ["foo", "bar"])
             assert mock_get.call_count == 2
             assert mock_get.call_args[1]["params"]["identifier"] == "bar"

@@ -84,7 +84,7 @@ class AvailabilityRequest(BaseModel):
     response_model=dict[str, AvailabilityStatusV2],
     description="Returns availability status for one or more books",
 )
-def get_book_availability(
+async def get_book_availability(
     id_type: Annotated[AvailabilityIDType, Query(alias="type", description="Type of the identifiers")],
     ids: Annotated[
         list[str],
@@ -92,7 +92,7 @@ def get_book_availability(
         Query(min_length=1, description="Comma-separated list of IDs (e.g. OL123W, ISBN, ocaid)"),
     ],
 ) -> dict:
-    return lending.get_availability(id_type, ids)
+    return await lending.get_availability_async(id_type, ids)
 
 
 @router.post(
@@ -100,11 +100,11 @@ def get_book_availability(
     response_model=dict[str, AvailabilityStatusV2],
     description="Returns availability status for one or more books",
 )
-def post_book_availability(
+async def post_book_availability(
     id_type: Annotated[AvailabilityIDType, Query(alias="type")],
     request: AvailabilityRequest,
 ) -> dict:
-    return lending.get_availability(id_type, request.ids)
+    return await lending.get_availability_async(id_type, request.ids)
 
 
 class TrendingRequestParams(Pagination):
@@ -140,7 +140,7 @@ class TrendingResponse(BaseModel):
     response_model_exclude_none=True,
     description="Returns works sorted by recent activity (reads, loans, etc.)",
 )
-def trending_books_api(
+async def trending_books_api(
     period: Annotated[TrendingPeriod, Path(description="The time period for trending books")],
     params: Annotated[TrendingRequestParams, Query()],
 ) -> TrendingResponse:
@@ -148,7 +148,7 @@ def trending_books_api(
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS.get(period, params.days)
 
-    works = get_trending_books(
+    works = await get_trending_books(
         since_days=since_days,
         since_hours=params.hours,
         limit=params.limit,
@@ -187,7 +187,7 @@ async def browse(
         sorts=sorts,
     )
 
-    works = lending.get_available(url=url) if url else []
+    works = await lending.get_available_async(url=url) if url else []
     return {"query": url, "works": [work.dict() for work in works]}
 
 

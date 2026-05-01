@@ -99,7 +99,7 @@ class List(Thing):
         return self.name or "unnamed"
 
     def get_owner(self) -> User | None:
-        if match := web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
+        if match := re.compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
             key = match.group(1)
             return cast(User, self._site.get(key))
         else:
@@ -554,13 +554,13 @@ class Seed:
         if self.document:
             return self.document.url()
         elif self.key.startswith("subject:"):
-            return "/subjects/" + web.lstrips(self.key, "subject:")
+            return "/subjects/" + self.key.removeprefix("subject:")
         else:
             return "/subjects/" + self.key
 
     def get_subject_url(self, subject: SeedSubjectString) -> str:
         if subject.startswith("subject:"):
-            return "/subjects/" + web.lstrips(subject, "subject:")
+            return "/subjects/" + subject.removeprefix("subject:")
         else:
             return "/subjects/" + subject
 

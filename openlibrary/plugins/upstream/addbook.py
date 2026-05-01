@@ -4,6 +4,7 @@ import csv
 import datetime
 import io
 import logging
+import re
 import urllib
 from typing import Literal, NoReturn, overload
 
@@ -344,14 +345,14 @@ class addbook(delegate.page):
         else:
             return result.docs  # Case 4
 
-    def extract_year(self, value: str) -> str:
+    def extract_year(self, value: str) -> str | None:
         """
         Extract just the 4 digit year from a date string.
 
         :param str value: A freeform string representing a publication date.
         :return: a four digit year
         """
-        m = web.re_compile(r"(\d\d\d\d)").search(value)
+        m = re.compile(r"(\d\d\d\d)").search(value)
         return m and m.group(1)
 
     def try_edition_match(
