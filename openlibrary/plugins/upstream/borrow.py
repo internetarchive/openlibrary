@@ -305,7 +305,6 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(json.dumps(d), content_type="application/json")
 
 
-@public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
 
@@ -385,7 +384,6 @@ def can_return_resource_type(resource_type: str) -> bool:
     return resource_type.startswith("bookreader")
 
 
-@public
 def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + "/" + itemid
 

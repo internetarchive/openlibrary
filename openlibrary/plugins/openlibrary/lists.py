@@ -238,7 +238,6 @@ def get_seed_info(doc):
     }
 
 
-@public
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -699,7 +698,6 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 
-@public
 def get_list_seeds(key):
     if lst := web.ctx.site.get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]

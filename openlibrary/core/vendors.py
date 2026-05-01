@@ -17,7 +17,6 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
-from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -369,7 +368,6 @@ def is_dvd(book) -> bool:
     return 'dvd' in [product_group, physical_format]
 
 
-@public
 def get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',
