@@ -3,19 +3,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 <header id="header-bar" class="header-bar">
 
 
-  $if ctx.user:
-    $ loginLinks = [
-    $     { "href": "/account/books", "text": _("My Books"), "track": "MyBooks", "subheading": _("Loans, Reading Log, Lists, Stats") },
-    $     { "href": ctx.user.key, "text": _("My Profile"), "track": "MyProfile" },
-    $     { "href": homepath() + "/account", "text": _("Settings"), "track": "MySettings" },
-    $     { "post": "/account/logout", "text": _("Log out"), "track": "Logout", "name":"hamburger-logout" },
-    $ ]
-      $if is_privileged_user:
-        $ loginLinks.insert(2, { "href": homepath() + "/merges", "text": _("Pending Merge Requests"),"track": "MyRequests", "badge": True })
-  $else:
-    $ loginLinks = [
-    $     { "loginClass": "login-links" }
-    $ ]
   $ myBooksLinks = [
   $     { "href": homepath() + "/account/books", "text": _("My Books"), "track": "MyBooks" },
   $ ]
@@ -30,26 +17,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   $     { "href": "/random", "text": _("Random Book"), "track": "RandomBook" },
   $     { "href": "/advancedsearch", "text": _("Advanced Search"), "track": "AdvancedSearch" }
   $ ]
-  $ contributeLinks = [
-  $     { "href": "/books/add", "text": _("Add a Book"), "track": "AddBook" },
-  $     { "href": "/recentchanges", "text": _("Recent Community Edits"), "track": "RecentEdits" }
-  $ ]
-  $ resourceLinks = [
-  $     { "href": "/help", "text": _("Help & Support"), "track": "Help" },
-  $     { "href": "/developers", "text": _("Developer Center"), "track": "DevelopersHelp" },
-  $     { "href": "/librarians", "text": _("Librarians Portal"), "track": "LibrariansHelp" }
-  $ ]
-  $ hamburgerProps = {
-  $  'name': 'hamburger',
-  $  'links': [ { "subsection": _("My Open Library") } ] + loginLinks +
-  $     [ { "subsection": _("Browse") } ] + browseLinks +
-  $     [ { "subsection": _("Contribute") } ] + contributeLinks +
-  $     [ { "subsection": _("Resources") } ] + resourceLinks,
-  $  'image': '/static/images/hamburger-icon.svg',
-  $  'image-class': 'hamburger__icon',
-  $  'label': 'additional options menu',
-  $  'show_mask': True
-  $ }
 
   <div class="logo-component">
     <a href="/" title="$_('The Internet Archive\'s Open Library: One page for every book')">
@@ -132,9 +99,99 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
-  $:render_template("lib/header_dropdown", hamburgerProps, track_prefix="Hamburger")
+  <div class="hamburger-component" data-ol-link-track="HeaderBar|Hamburger">
+    <button class="hamburger-trigger" aria-label="$_('Menu')" aria-expanded="false">
+      $if ctx.user:
+        <img class="account__icon" src="https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))" alt="$_('My account')" title="$(ctx.user.key.split('/')[-1])&#10;$_('Joined %(date)s', date=datestr(ctx.user.created))">
+        $if is_privileged_user and cached_get_counts_by_mode(mode='open') > 0:
+          <span class="mr-notifications">$(cached_get_counts_by_mode(mode='open'))</span>
+      <img class="hamburger__icon" src="/static/images/hamburger-icon.svg" alt=""/>
+    </button>
+  </div>
 
 </header>
+
+<ol-drawer id="hamburger-drawer" label="$_('Menu')">
+  <ul class="drawer-menu hamburger-drawer-menu">
+
+    $# ── My Open Library ──
+    <li class="drawer-menu__subsection">$_("My Open Library")</li>
+    $if ctx.user:
+      <li class="drawer-menu__item">
+        <a href="/account/books" data-ol-link-track="Hamburger|MyBooks">
+          $_("My Books")
+          <br><span class="drawer-menu__subheading">$_("Loans, Reading Log, Lists, Stats")</span>
+        </a>
+      </li>
+      <li class="drawer-menu__item">
+        <a href="$(ctx.user.key)" data-ol-link-track="Hamburger|MyProfile">$_("My Profile")</a>
+      </li>
+      $if is_privileged_user:
+        <li class="drawer-menu__item">
+          $if cached_get_counts_by_mode(mode='open') > 0:
+            <div class="drawer-menu__badge">$(cached_get_counts_by_mode(mode='open'))</div>
+          <a href="$(homepath())/merges" data-ol-link-track="Hamburger|MyRequests">$_("Pending Merge Requests")</a>
+        </li>
+      <li class="drawer-menu__item">
+        <a href="$(homepath())/account" data-ol-link-track="Hamburger|MySettings">$_("Settings")</a>
+      </li>
+      <li class="drawer-menu__item">
+        <form name="hamburger-logout" action="/account/logout" method="post">
+          <button data-ol-link-track="Hamburger|Logout">$_("Log out")</button>
+        </form>
+      </li>
+    $else:
+      <li class="drawer-menu__login-links">
+        <a class="drawer-menu__login-secondary" href="/account/login">$_('Log In')</a>
+        <a class="drawer-menu__login-primary" href="/account/create">$_('Sign Up')</a>
+      </li>
+
+    $# ── Browse ──
+    <li class="drawer-menu__subsection">$_("Browse")</li>
+    <li class="drawer-menu__item"><a href="/subjects" data-ol-link-track="Hamburger|Subjects">$_("Subjects")</a></li>
+    <li class="drawer-menu__item"><a href="/trending" data-ol-link-track="Hamburger|Trending">$_("Trending")</a></li>
+    <li class="drawer-menu__item"><a href="/explore" data-ol-link-track="Hamburger|Explore">$_("Library Explorer")</a></li>
+    <li class="drawer-menu__item"><a href="/lists" data-ol-link-track="Hamburger|Lists">$_("Lists")</a></li>
+    <li class="drawer-menu__item"><a href="/collections" data-ol-link-track="Hamburger|Collections">$_("Collections")</a></li>
+    <li class="drawer-menu__item"><a href="/k-12" data-ol-link-track="Hamburger|K12Library">$_("K-12 Student Library")</a></li>
+    <li class="drawer-menu__item"><a href="/booktalks" data-ol-link-track="Hamburger|BookTalks">$_("Book Talks")</a></li>
+    <li class="drawer-menu__item"><a href="/random" data-ol-link-track="Hamburger|RandomBook">$_("Random Book")</a></li>
+    <li class="drawer-menu__item"><a href="/advancedsearch" data-ol-link-track="Hamburger|AdvancedSearch">$_("Advanced Search")</a></li>
+
+    $# ── Contribute ──
+    <li class="drawer-menu__subsection">$_("Contribute")</li>
+    <li class="drawer-menu__item"><a href="/books/add" data-ol-link-track="Hamburger|AddBook">$_("Add a Book")</a></li>
+    <li class="drawer-menu__item"><a href="/recentchanges" data-ol-link-track="Hamburger|RecentEdits">$_("Recent Community Edits")</a></li>
+
+    $# ── Resources ──
+    <li class="drawer-menu__subsection">$_("Resources")</li>
+    <li class="drawer-menu__item"><a href="/help" data-ol-link-track="Hamburger|Help">$_("Help & Support")</a></li>
+    <li class="drawer-menu__item"><a href="/developers" data-ol-link-track="Hamburger|DevelopersHelp">$_("Developer Center")</a></li>
+    <li class="drawer-menu__item"><a href="/librarians" data-ol-link-track="Hamburger|LibrariansHelp">$_("Librarians Portal")</a></li>
+  </ul>
+</ol-drawer>
+<script>
+  (function() {
+    var trigger = document.querySelector('.hamburger-trigger');
+    var drawer = document.getElementById('hamburger-drawer');
+    if (trigger && drawer) {
+      trigger.addEventListener('click', function() {
+        drawer.open = !drawer.open;
+      });
+      drawer.addEventListener('ol-drawer-show', function() {
+        trigger.setAttribute('aria-expanded', 'true');
+      });
+      drawer.addEventListener('ol-drawer-after-hide', function() {
+        trigger.setAttribute('aria-expanded', 'false');
+      });
+      drawer.addEventListener('click', function(e) {
+        if (e.target.closest('a[href], button[type="submit"], button:not([type])')) {
+          drawer.open = false;
+        }
+      });
+    }
+  })();
+</script>
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
