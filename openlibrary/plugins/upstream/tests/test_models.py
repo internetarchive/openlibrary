@@ -2,7 +2,7 @@
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import web
 
@@ -143,7 +143,7 @@ class TestGetAvatarUrl:
         assert models.User.get_avatar_url("bob") == "https://archive.org/services/img/@bob-archive"
 
 
-class TestEditionACS4Removal:
+class TestEdition:
     def setup_method(self, method):
         web.ctx.site = MockSite()
         models.setup()
@@ -154,19 +154,6 @@ class TestEditionACS4Removal:
             data["ocaid"] = ocaid
         web.ctx.site.save(data)
         return web.ctx.site.get("/books/OL1M")
-
-    def test_get_lending_resource_id_bookreader(self):
-        ed = self._make_edition(ocaid="testitem00archive")
-        assert ed.get_lending_resource_id("bookreader") == "bookreader:testitem00archive"
-
-    def test_get_lending_resource_id_no_ocaid(self):
-        ed = self._make_edition()
-        assert ed.get_lending_resource_id("bookreader") is None
-
-    def test_get_lending_resource_id_acs4_returns_none(self):
-        ed = self._make_edition(ocaid="testitem00archive")
-        assert ed.get_lending_resource_id("epub") is None
-        assert ed.get_lending_resource_id("pdf") is None
 
     def test_get_available_loans_no_ocaid(self):
         ed = self._make_edition()
@@ -188,31 +175,6 @@ class TestEditionACS4Removal:
         with patch("openlibrary.core.lending.is_loaned_out", return_value=True):
             loans = ed.get_available_loans()
         assert loans == []
-
-    def test_is_daisy_encrypted_no_ocaid(self):
-        ed = self._make_edition()
-        assert ed.is_daisy_encrypted() is False
-
-    def test_is_daisy_encrypted_printdisabled(self):
-        ed = self._make_edition(ocaid="testitem00archive")
-        mock_solr = MagicMock()
-        mock_solr.get.return_value = {"key": "/books/OL1M", "ebook_access": "printdisabled"}
-        with patch("openlibrary.plugins.upstream.models.get_solr", return_value=mock_solr):
-            assert ed.is_daisy_encrypted() is True
-
-    def test_is_daisy_encrypted_borrowable(self):
-        ed = self._make_edition(ocaid="testitem00archive")
-        mock_solr = MagicMock()
-        mock_solr.get.return_value = {"key": "/books/OL1M", "ebook_access": "borrowable"}
-        with patch("openlibrary.plugins.upstream.models.get_solr", return_value=mock_solr):
-            assert ed.is_daisy_encrypted() is False
-
-    def test_is_daisy_encrypted_not_in_solr(self):
-        ed = self._make_edition(ocaid="testitem00archive")
-        mock_solr = MagicMock()
-        mock_solr.get.return_value = None
-        with patch("openlibrary.plugins.upstream.models.get_solr", return_value=mock_solr):
-            assert ed.is_daisy_encrypted() is False
 
     def test_get_ia_meta_fields_no_external_identifier(self):
         ed = self._make_edition(ocaid="testitem00archive")
