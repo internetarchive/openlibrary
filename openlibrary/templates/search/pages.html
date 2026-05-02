@@ -30,9 +30,9 @@ $:macros.SearchNavigation()
 
     <div class="search-results-nav">
       $if offset > 0:
-        <a href="/search/pages?q=$q&offset=$(offset - limit)&limit=$limit">&laquo; $:_('Previous')</a>
+        <a href="/search/pages?q=$urlencode(q)&offset=$(offset - limit)&limit=$limit">&laquo; $:_('Previous')</a>
       $if offset + limit < resp.num_found:
-        <a href="/search/pages?q=$q&offset=$(offset + limit)&limit=$limit">$:_('Next') &raquo;</a>
+        <a href="/search/pages?q=$urlencode(q)&offset=$(offset + limit)&limit=$limit">$:_('Next') &raquo;</a>
     </div>
 
   $elif q:
