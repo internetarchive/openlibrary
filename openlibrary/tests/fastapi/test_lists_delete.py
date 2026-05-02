@@ -63,7 +63,5 @@ class TestListsDelete:
 
     def test_invalid_list_id_format(self, fastapi_client, mock_authenticated_user):
         # list_id must match OL\d+L — invalid format should return 422
-        response = fastapi_client.post(
-            "/people/testuser/lists/invalid-id/delete.json"
-        )
+        response = fastapi_client.post("/people/testuser/lists/invalid-id/delete.json")
         assert response.status_code == 422
