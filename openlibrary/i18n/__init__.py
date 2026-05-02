@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import sys
 from collections.abc import Iterator
-from datetime import datetime
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 
@@ -150,13 +150,9 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
 
 
 def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
-    # The creation date is hard-coded to prevent merge conflicts from i18n auto-updates.
-    # Occasional manual bumps are fine to make it more up-to-date
-    fixed_creation_date = datetime.fromisoformat("2026-04-28 18:58-0400")
     catalog = Catalog(
         project="Open Library",
         copyright_holder="Internet Archive",
-        creation_date=fixed_creation_date,
     )
     METHODS = [("**.py", "python"), ("**.html", "openlibrary.i18n:extract_templetor")]
     COMMENT_TAGS = ["NOTE:"]
@@ -200,6 +196,18 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
                 print(f"{count}\t{file_path}", file=sys.stderr)
 
     path = os.path.join(root, "messages.pot")
+
+    # Preserve the existing creation_date if the message set hasn't changed.
+    # This prevents spurious date bumps from CI runs that don't add/remove strings,
+    # which was the original source of merge conflicts (see #12463).
+    creation_date = datetime.now(UTC)
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            existing = read_po(f)
+        if {msg.id for msg in existing if msg.id} == {msg.id for msg in catalog if msg.id}:
+            creation_date = existing.creation_date
+    catalog.creation_date = creation_date
+
     with open(path, "wb") as f:
         write_po(f, catalog, include_lineno=False)
 
