@@ -35,6 +35,7 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+from openlibrary.plugins.worksearch.schemes.pages import PageSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -918,6 +919,23 @@ class ListSearchRequest:
             api=i.get('api', ''),
         )
 
+
+
+class page_search(delegate.page):
+    path = '/search/pages'
+
+    def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+        offset = min(safeint(i.offset, 0), 10_000)
+        limit = min(safeint(i.limit, 10), 100)
+        resp = run_solr_query(
+            PageSearchScheme(),
+            {'q': i.q},
+            offset=offset,
+            rows=limit,
+            request_label='PAGE_SEARCH',
+        )
+        return render_template('search/pages', q=i.q, resp=resp, offset=offset, limit=limit)
 
 # searches for lists and returns results in html format
 class list_search(delegate.page):

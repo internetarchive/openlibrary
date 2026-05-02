@@ -17,6 +17,7 @@ from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
 from openlibrary.solr.updater.list import ListSolrUpdater
+from openlibrary.solr.updater.page import PageSolrUpdater
 from openlibrary.solr.updater.work import WorkSolrUpdater
 from openlibrary.solr.utils import (
     SolrUpdateRequest,
@@ -44,6 +45,7 @@ def get_solr_updaters() -> list[AbstractSolrUpdater]:
         WorkSolrUpdater(data_provider),
         AuthorSolrUpdater(data_provider),
         ListSolrUpdater(data_provider),
+        PageSolrUpdater(data_provider),
     ]
 
 
