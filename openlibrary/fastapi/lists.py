@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Path
 
 from infogami.infobase import client
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
@@ -17,13 +17,13 @@ router = APIRouter()
     description="Delete a list owned by the given user.",
 )
 def lists_delete(
-    username: str,
-    list_id: str,
+    username: Annotated[str, Path()],
+    list_id: Annotated[str, Path(pattern=r"^OL\d+L$")],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     key = f"/people/{username}/lists/{list_id}"
 
-    if username != user.username:
+    if not site.get().can_write(key):
         raise HTTPException(status_code=403, detail="Permission denied.")
 
     doc = site.get().get(key)
@@ -33,7 +33,7 @@ def lists_delete(
     try:
         _LegacyListsDelete.process_delete(doc, key)
     except client.ClientException as e:
-        raise HTTPException(status_code=int(e.status.split()[0]), detail=str(e))
+        raise HTTPException(status_code=int(e.status.split()[0]), detail=e.json)
 
     return {"status": "ok"}
 

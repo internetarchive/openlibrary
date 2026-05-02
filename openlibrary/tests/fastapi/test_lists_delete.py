@@ -25,6 +25,7 @@ class TestListsDelete:
         doc = MagicMock()
         doc.type.key = "/type/list"
         mock_site.get.return_value.get.return_value = doc
+        mock_site.get.return_value.can_write.return_value = True
 
         response = fastapi_client.post("/people/testuser/lists/OL1L/delete.json")
         assert response.status_code == 200
@@ -36,6 +37,7 @@ class TestListsDelete:
         assert response.status_code == 401
 
     def test_delete_list_not_found(self, fastapi_client, mock_authenticated_user, mock_site):
+        mock_site.get.return_value.can_write.return_value = True
         mock_site.get.return_value.get.return_value = None
 
         response = fastapi_client.post("/people/testuser/lists/OL999L/delete.json")
@@ -44,6 +46,7 @@ class TestListsDelete:
     def test_delete_wrong_type(self, fastapi_client, mock_authenticated_user, mock_site):
         doc = MagicMock()
         doc.type.key = "/type/work"
+        mock_site.get.return_value.can_write.return_value = True
         mock_site.get.return_value.get.return_value = doc
 
         response = fastapi_client.post("/people/testuser/lists/OL1L/delete.json")
@@ -52,8 +55,15 @@ class TestListsDelete:
     def test_delete_forbidden_wrong_user(self, fastapi_client, mock_authenticated_user, mock_site):
         doc = MagicMock()
         doc.type.key = "/type/list"
-        mock_site.get.return_value.get.return_value = doc
+        mock_site.get.return_value.can_write.return_value = False
 
         # testuser trying to delete otheruser's list
         response = fastapi_client.post("/people/otheruser/lists/OL1L/delete.json")
         assert response.status_code == 403
+
+    def test_invalid_list_id_format(self, fastapi_client, mock_authenticated_user):
+        # list_id must match OL\d+L — invalid format should return 422
+        response = fastapi_client.post(
+            "/people/testuser/lists/invalid-id/delete.json"
+        )
+        assert response.status_code == 422
