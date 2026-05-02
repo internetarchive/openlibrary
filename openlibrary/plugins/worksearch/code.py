@@ -920,7 +920,6 @@ class ListSearchRequest:
         )
 
 
-
 class page_search(delegate.page):
     path = '/search/pages'
 
@@ -936,6 +935,7 @@ class page_search(delegate.page):
             request_label='PAGE_SEARCH',
         )
         return render_template('search/pages', q=i.q, resp=resp, offset=offset, limit=limit)
+
 
 # searches for lists and returns results in html format
 class list_search(delegate.page):
