@@ -1,4 +1,3 @@
-from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest
 
@@ -67,8 +66,8 @@ class PageSolrBuilder(AbstractSolrBuilder):
             return last_mod if last_mod.endswith("Z") else last_mod + "Z"
         return None
 
-    def build(self) -> SolrDocument:
-        doc: SolrDocument = {
+    def build(self) -> dict:
+        doc: dict = {
             "key": self.key,
             "type": self.type,
         }
