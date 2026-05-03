@@ -934,7 +934,9 @@ class page_search(delegate.page):
             rows=limit,
             request_label='PAGE_SEARCH',
         )
-        return render_template('search/pages', q=i.q, resp=resp, offset=offset, limit=limit)
+        return render_template(
+            'search/pages', q=i.q, resp=resp, offset=offset, limit=limit
+        )
 
 
 # searches for lists and returns results in html format

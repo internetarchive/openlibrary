@@ -1067,7 +1067,7 @@ msgstr ""
 msgid "Download Link"
 msgstr ""
 
-#: showmarc.html type/tag/index.html
+#: search/pages.html showmarc.html type/tag/index.html
 msgid "Next"
 msgstr ""
 
@@ -3414,7 +3414,8 @@ msgstr ""
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
-#: search/publishers.html search/searchbox.html type/local_id/view.html
+#: search/pages.html search/publishers.html search/searchbox.html
+#: type/local_id/view.html
 msgid "Search"
 msgstr ""
 
@@ -6687,6 +6688,29 @@ msgstr ""
 msgid "No <strong>lists</strong> directly matched your search"
 msgstr ""
 
+#: search/pages.html
+msgid "Page search results"
+msgstr ""
+
+#: search/pages.html
+msgid "Search is temporarily unavailable. Please try again shortly."
+msgstr ""
+
+#: search/pages.html
+#, python-format
+msgid "%(count)s result"
+msgid_plural "%(count)s results"
+msgstr[0] ""
+msgstr[1] ""
+
+#: search/pages.html type/tag/index.html
+msgid "Previous"
+msgstr ""
+
+#: search/pages.html
+msgid "No <strong>page</strong> results found for your search"
+msgstr ""
+
 #: search/publishers.html
 msgid "Publishers Search"
 msgstr ""
@@ -7678,10 +7702,6 @@ msgstr ""
 
 #: type/tag/index.html
 msgid "View subject page"
-msgstr ""
-
-#: type/tag/index.html
-msgid "Previous"
 msgstr ""
 
 #: type/tag/index.html

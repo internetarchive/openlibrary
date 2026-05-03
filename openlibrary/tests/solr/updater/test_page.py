@@ -1,9 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
 
-from openlibrary.solr.updater.page import PageSolrBuilder, PageSolrUpdater
-from openlibrary.plugins.worksearch.schemes.pages import PageSearchScheme
+import pytest
 
+from openlibrary.plugins.worksearch.schemes.pages import PageSearchScheme
+from openlibrary.solr.updater.page import PageSolrBuilder, PageSolrUpdater
 
 # ---------------------------------------------------------------------------
 # PageSolrBuilder
@@ -87,10 +87,11 @@ class TestPageSolrBuilder:
         assert doc["key"] == "/help/faq"
 
     def test_last_modified_as_dict_already_has_z(self):
-        page = {"key": "/about",
-                "type": {"key": "/type/page"},
-                "last_modified": {"value": "2023-06-01T12:00:00Z"},
-                }
+        page = {
+            "key": "/about",
+            "type": {"key": "/type/page"},
+            "last_modified": {"value": "2023-06-01T12:00:00Z"},
+        }
         doc = self._make(page).build()
         assert doc["last_modified"] == "2023-06-01T12:00:00Z"
 
@@ -149,6 +150,7 @@ class TestPageSolrUpdaterKeyTest:
     def test_rejects_collections(self):
         assert self.updater.key_test("/collections/OL123C") is False
 
+
 # ---------------------------------------------------------------------------
 # PageSolrUpdater.update_key
 # ---------------------------------------------------------------------------
@@ -186,6 +188,7 @@ class TestPageSolrUpdaterUpdateKey:
         assert req.adds == []
         assert keys == []
 
+
 # ---------------------------------------------------------------------------
 # PageSearchScheme
 # ---------------------------------------------------------------------------
@@ -196,41 +199,41 @@ class TestPageSearchScheme:
         self.scheme = PageSearchScheme()
 
     def test_universe_filters_to_type_page(self):
-        assert 'type:page' in self.scheme.universe
+        assert "type:page" in self.scheme.universe
 
     def test_q_to_solr_params_uses_edismax(self):
-        params = self.scheme.q_to_solr_params('librarians', set(), [])
+        params = self.scheme.q_to_solr_params("librarians", set(), [])
         param_dict = dict(params)
-        assert param_dict['defType'] == 'edismax'
+        assert param_dict["defType"] == "edismax"
 
     def test_q_to_solr_params_searches_body_and_title(self):
-        params = self.scheme.q_to_solr_params('librarians', set(), [])
+        params = self.scheme.q_to_solr_params("librarians", set(), [])
         param_dict = dict(params)
-        assert 'body' in param_dict['qf']
-        assert 'title' in param_dict['qf']
+        assert "body" in param_dict["qf"]
+        assert "title" in param_dict["qf"]
 
     def test_q_to_solr_params_uses_and_operator(self):
-        params = self.scheme.q_to_solr_params('help faq', set(), [])
+        params = self.scheme.q_to_solr_params("help faq", set(), [])
         param_dict = dict(params)
-        assert param_dict['q.op'] == 'AND'
+        assert param_dict["q.op"] == "AND"
 
     def test_default_fetched_fields_excludes_body(self):
         # body can be very large; it should not be fetched by default
-        assert 'body' not in self.scheme.default_fetched_fields
+        assert "body" not in self.scheme.default_fetched_fields
 
     def test_default_fetched_fields_includes_key_and_title(self):
-        assert 'key' in self.scheme.default_fetched_fields
-        assert 'title' in self.scheme.default_fetched_fields
+        assert "key" in self.scheme.default_fetched_fields
+        assert "title" in self.scheme.default_fetched_fields
 
     def test_no_facet_fields(self):
         assert len(self.scheme.facet_fields) == 0
 
     def test_q_to_solr_params_boosts_title(self):
-        params = self.scheme.q_to_solr_params('librarians', set(), [])
+        params = self.scheme.q_to_solr_params("librarians", set(), [])
         param_dict = dict(params)
-        assert 'title^5' in param_dict['qf']
+        assert "title^5" in param_dict["qf"]
 
     def test_q_to_solr_params_filters_to_page_type(self):
-        params = self.scheme.q_to_solr_params('librarians', set(), [])
-        fq_values = [v for k, v in params if k == 'fq']
-        assert 'type:page' in fq_values
+        params = self.scheme.q_to_solr_params("librarians", set(), [])
+        fq_values = [v for k, v in params if k == "fq"]
+        assert "type:page" in fq_values

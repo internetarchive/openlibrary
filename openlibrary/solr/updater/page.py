@@ -25,9 +25,7 @@ class PageSolrUpdater(AbstractSolrUpdater):
             "/search",
             "/admin",
         )
-        return key.startswith("/") and not any(
-            key.startswith(p) for p in EXCLUDED
-        )
+        return key.startswith("/") and not any(key.startswith(p) for p in EXCLUDED)
 
     async def update_key(self, thing: dict) -> tuple[SolrUpdateRequest, list[str]]:
         if thing.get("type", {}).get("key") != "/type/page":
