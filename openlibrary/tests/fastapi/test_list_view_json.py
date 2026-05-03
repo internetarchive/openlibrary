@@ -90,10 +90,11 @@ def test_list_view_json_series(client, monkeypatch):
 
 
 def test_list_view_json_raw_param(client, monkeypatch):
-    """?_raw=true should be passed through to get_list."""
+    """?_raw=true should be passed through to get_list, along with the correct key."""
     captured = {}
 
     def fake_get_list(key, raw=False):
+        captured["key"] = key
         captured["raw"] = raw
         return FAKE_LIST
 
@@ -101,3 +102,4 @@ def test_list_view_json_raw_param(client, monkeypatch):
     resp = client.get("/people/testuser/lists/OL123L.json?_raw=true")
     assert resp.status_code == 200
     assert captured["raw"] is True
+    assert captured["key"] == "/people/testuser/lists/OL123L"

@@ -648,7 +648,7 @@ class lists_yaml(lists_json):
 
 
 def get_list(key: str, raw: bool = False) -> dict | None:
-    lst = site.get(key)
+    lst = cast(List | None, site.get(key))
     if not lst:
         return None
 
