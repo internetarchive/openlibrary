@@ -202,10 +202,13 @@ def extract_messages(sources: list[str], verbose: bool, skip_untracked: bool):
     # which was the original source of merge conflicts (see #12463).
     creation_date = datetime.now(UTC)
     if os.path.exists(path):
-        with open(path, "rb") as f:
-            existing = read_po(f)
-        if {msg.id for msg in existing if msg.id} == {msg.id for msg in catalog if msg.id}:
-            creation_date = existing.creation_date
+        try:
+            with open(path, "rb") as f:
+                existing = read_po(f)
+            if {msg.id for msg in existing if msg.id} == {msg.id for msg in catalog if msg.id}:
+                creation_date = existing.creation_date
+        except Exception:
+            pass  # malformed POT (e.g. conflict markers) — regenerate with current timestamp
     catalog.creation_date = creation_date
 
     with open(path, "wb") as f:
