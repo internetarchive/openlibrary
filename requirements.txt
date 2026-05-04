@@ -30,7 +30,7 @@ python-memcached==1.62
 python-multipart==0.0.26
 PyYAML==6.0.1
 qrcode==7.4.2
-requests==2.33.0
+requests==2.33.1
 sentry-sdk[fastapi]==2.58.0
 simplejson==3.19.1
 statsd==4.0.1
