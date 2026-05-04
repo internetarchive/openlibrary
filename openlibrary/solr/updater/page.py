@@ -1,3 +1,6 @@
+from typing import cast
+
+from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.utils import SolrUpdateRequest
 
@@ -7,8 +10,6 @@ class PageSolrUpdater(AbstractSolrUpdater):
     thing_type = "/type/page"
 
     def key_test(self, key: str) -> bool:
-        # Exclude all known non-page key prefixes. The type check in
-        # update_key() is the authoritative guard; this is a fast pre-filter.
         EXCLUDED = (
             "/type/",
             "/works/",
@@ -60,21 +61,11 @@ class PageSolrBuilder(AbstractSolrBuilder):
     def last_modified(self) -> str | None:
         last_mod = self._page.get("last_modified")
         if isinstance(last_mod, dict):
-            value = last_mod["value"]
-            return value if value.endswith("Z") else value + "Z"
+            value = last_mod.get("value")
+            return (value + "Z") if value and not value.endswith("Z") else value
         elif isinstance(last_mod, str):
             return last_mod if last_mod.endswith("Z") else last_mod + "Z"
         return None
 
-    def build(self) -> dict:
-        doc: dict = {
-            "key": self.key,
-            "type": self.type,
-        }
-        if self.title is not None:
-            doc["title"] = self.title
-        if self.body is not None:
-            doc["body"] = self.body
-        if self.last_modified is not None:
-            doc["last_modified"] = self.last_modified
-        return doc
+    def build(self) -> SolrDocument:
+        return cast(SolrDocument, super().build())
