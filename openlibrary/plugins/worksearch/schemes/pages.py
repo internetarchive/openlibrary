@@ -23,7 +23,13 @@ class PageSearchScheme(SearchScheme):
     non_solr_fields = frozenset()
     facet_fields = frozenset()
     field_name_map = MappingProxyType({})
-    sorts = MappingProxyType({})
+    sorts = MappingProxyType(
+        {
+            "random": "random_1 asc",
+            "random asc": "random_1 asc",
+            "random desc": "random_1 desc",
+        }
+    )
     default_fetched_fields = frozenset({"key", "title"})
     facet_rewrites = MappingProxyType({})
 
@@ -35,13 +41,10 @@ class PageSearchScheme(SearchScheme):
         highlight: bool = False,
         solr_internals_params: "SolrInternalsParams | None" = None,
     ) -> list[tuple[str, str]]:
-        universe_terms = sorted(self.universe)
-        universe_filter = universe_terms[0] if len(universe_terms) == 1 else f"({' OR '.join(universe_terms)})"
         return [
             ("q", q),
             ("q.op", "AND"),
             ("defType", "edismax"),
             # Search body and title, boosting title matches
             ("qf", "body title^5"),
-            ("fq", universe_filter),
         ]
