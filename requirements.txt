@@ -1,6 +1,6 @@
 aiofiles==23.1.0
 amightygirl.paapi5-python-sdk==1.0.0
-APScheduler==3.11.0
+APScheduler==3.11.2
 Babel==2.12.1
 beautifulsoup4==4.14.3
 eventer==0.1.1
