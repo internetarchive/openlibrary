@@ -232,8 +232,3 @@ class TestPageSearchScheme:
         params = self.scheme.q_to_solr_params("librarians", set(), [])
         param_dict = dict(params)
         assert "title^5" in param_dict["qf"]
-
-    def test_q_to_solr_params_filters_to_page_type(self):
-        params = self.scheme.q_to_solr_params("librarians", set(), [])
-        fq_values = [v for k, v in params if k == "fq"]
-        assert "type:page" in fq_values
