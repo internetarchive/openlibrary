@@ -16,7 +16,7 @@ httpx==0.28.1
 ijson==3.5.0
 internetarchive==5.8.0
 isbnlib==3.10.14
-luqum==0.11.0
+luqum==0.14.0
 lxml==6.1.0
 multipart==1.2.2
 Pillow==12.2.0
