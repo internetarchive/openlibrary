@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
@@ -301,21 +302,24 @@ class SearchFacetsPartial:
         }
 
 
+@dataclass
+class FullTextSuggestionsPartialResult:
+    body: dict
+    has_error: bool = False
+
+
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
     @classmethod
-    async def generate_async(cls, query: str) -> dict:
-        query = query or ""
+    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
         data = await fulltext_search_async(query)
-        # Add caching headers only if there were no errors in the search results
-        has_error = "error" in data
-        hits = data.get("hits", [])
-        if not hits["hits"]:
+        hits = data.get("hits", {})
+        if not hits.get("total"):
             macro = "<div></div>"
         else:
             macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
-        return {"partials": str(macro), "has_error": has_error}
+        return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 
 class BookPageListsPartial:

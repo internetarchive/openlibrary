@@ -93,12 +93,11 @@ async def fulltext_search_suggestion_partial(
     The data parameter is the raw search query string.
     """
     result = await FullTextSuggestionsPartial.generate_async(query=data)
-    has_error = result.pop("has_error", False)
 
-    if not has_error:
+    if not result.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"
 
-    return result
+    return result.body
 
 
 @router.get("/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
