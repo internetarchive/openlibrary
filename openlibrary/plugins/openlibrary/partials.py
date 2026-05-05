@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from datetime import datetime
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote
@@ -62,7 +61,6 @@ class ReadingGoalProgressPartial:
 
     @classmethod
     def generate(cls, year: int) -> dict:
-        year = year or datetime.now().year
         goal = get_reading_goals(year=year)
         component = render_template("reading_goals/reading_goal_progress", [goal])
 
