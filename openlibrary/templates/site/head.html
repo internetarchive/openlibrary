@@ -12,7 +12,7 @@ $def with (title)
 
     <link rel="canonical" href="$request.canonical_url" />
 
-    $if not is_bot():
+    $if not is_bot() and not ctx.get('disable_analytics'):
         <link rel="preconnect" href="https://athena.archive.org">
         <link rel="preconnect" href="https://apollo.archive.org">
 
