@@ -121,7 +121,7 @@ class Batch(web.storage):
             except UniqueViolation:
                 for item in items:
                     with contextlib.suppress(UniqueViolation):
-                        db.get_db().insert("import_item", **item)
+                        db.get_db().insert("import_item", **item)  # type: ignore[arg-type]
 
             logger.info("batch %s: added %d items", self.name, len(items))
 
