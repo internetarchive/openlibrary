@@ -74,7 +74,7 @@ existing = {f.attrib["name"] for f in root}
 
 host = "rs7.loc.gov"
 
-to_upload = set()
+to_upload: set[str] = set()
 
 
 def print_line(f):

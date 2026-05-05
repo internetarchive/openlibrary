@@ -48,7 +48,7 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
-admin_tasks = []
+admin_tasks: list[web.storage] = []
 
 
 def register_admin_page(path, cls, label=None, visible=True, librarians=False):

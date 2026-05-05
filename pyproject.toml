@@ -18,7 +18,9 @@ skip = "./.*,*/ocm00400866,*/read_toc.py,*.it,*.js,*.json,*.mrc,*.page,*.pg_dump
 
 [tool.mypy]
 ignore_missing_imports = true
+local_partial_types = true
 pretty = true
+strict_bytes = true
 scripts_are_modules = true
 show_error_codes = true
 show_error_context = true

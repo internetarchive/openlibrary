@@ -153,7 +153,7 @@ async def get_solr_works_async(
 
 
 # Create a sync wrapper for backward compatibility
-get_solr_works = async_bridge.wrap(get_solr_works_async)
+get_solr_works = async_bridge.wrap(get_solr_works_async, "get_solr_works")
 public(get_solr_works)
 
 
