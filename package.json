@@ -59,7 +59,7 @@
     "isbn3": "1.1.1",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
-    "jquery": "3.6.0",
+    "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
     "jquery-ui": "1.13.2",
     "jquery-ui-touch-punch": "0.2.3",
