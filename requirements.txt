@@ -1,4 +1,4 @@
-aiofiles==23.1.0
+aiofiles==23.2.1
 amightygirl.paapi5-python-sdk==1.0.0
 APScheduler==3.11.2
 Babel==2.12.1
