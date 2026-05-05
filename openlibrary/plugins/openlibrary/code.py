@@ -49,11 +49,11 @@ from infogami.utils.view import (
     safeint,
 )
 from openlibrary.accounts import get_current_user
-from openlibrary.core.lending import get_availability, get_availabilities
+from openlibrary.core.lending import get_availabilities, get_availability
 from openlibrary.core.models import Edition
-from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
+from openlibrary.plugins.worksearch.code import get_solr_works
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
 
