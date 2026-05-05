@@ -6,7 +6,6 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
-
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
@@ -128,7 +127,7 @@ async def my_books_dropper_lists_partial(
     """
     # Despite the fact we are not yet using the user directly, it gives us faster
     # auth checking and api documentation.
-    return MyBooksDropperListsPartial().generate()
+    return MyBooksDropperListsPartial.generate()
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)

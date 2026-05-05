@@ -71,7 +71,8 @@ class ReadingGoalProgressPartial:
 class MyBooksDropperListsPartial:
     """Handler for the MyBooks dropper list component."""
 
-    def generate(self) -> dict:
+    @classmethod
+    def generate(cls) -> dict:
         user_lists = get_user_lists(None)
 
         dropper = render_template("lists/dropper_lists", user_lists)
