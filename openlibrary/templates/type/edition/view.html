@@ -91,7 +91,7 @@ $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/static/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
@@ -324,10 +324,11 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       $if previews and any([len(e.languages) for e in previews]):
         <p class="preview-languages">
           Previews available in:
+          $ user_lang = get_lang() or 'en'
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
+              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key, user_lang)</a>
         </p>
 
     <div class="subjects">
@@ -560,11 +561,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     $:render_template("books/RelatedWorksCarousel", work)
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
-
-  $ component_times['HistoryTable'] = time()
-  $:render_template("lib/history", page)
-  $ component_times['HistoryTable'] = time() - component_times['HistoryTable']
-
+  $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
   $if query_param('debug'):

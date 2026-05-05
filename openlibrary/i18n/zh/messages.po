@@ -232,6 +232,10 @@ msgstr ""
 "我们已注意到此错误 %s 并将尽快调查此错误。前往 "
 "<a href=\"/\">首页</a>?"
 
+#: lib/nav_head.html search/sort_options.html
+msgid "Trending"
+msgstr "趋势"
+
 #: lib/nav_head.html:31 library_explorer.html:6
 msgid "Library Explorer"
 msgstr "图书馆资源管理器"
@@ -240,6 +244,17 @@ msgstr "图书馆资源管理器"
 #: login.html:62
 msgid "Log In"
 msgstr "登录"
+
+#: login.html
+msgid ""
+"Log in to use your free Open Library card to borrow digital books from "
+"the nonprofit Internet Archive"
+msgstr ""
+"登录以使用你的免费开放图书馆卡从非盈利组织Internet Archive里借阅电子书。"
+
+#: login.html
+msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
+msgstr "没有账号？<a href=\"/account/create\">立即注册</a>."
 
 #: login.html:15
 msgid ""
@@ -639,6 +654,14 @@ msgstr "借阅 \"%(title)s\""
 msgid "Borrow"
 msgstr "借阅"
 
+#: LocateButton.html
+msgid "Locate"
+msgstr "查找图书馆"
+
+#: BookPreview.html
+msgid "Preview Only"
+msgstr "仅供预览"
+
 #: widget.html:44
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
@@ -903,7 +926,7 @@ msgstr "您的阅读日志目前被设置为公开"
 
 #: account/books.html:103
 msgid "Your reading log is currently set to private"
-msgstr ""您的阅读日志目前被设置为私密
+msgstr "您的阅读日志目前被设置为私密"
 
 #: account/books.html:105 type/user/view.html:57
 msgid "Manage your privacy settings"
@@ -1756,7 +1779,7 @@ msgstr "电子邮箱地址:"
 
 #: admin/people/index.html:51
 msgid "Recent Accounts"
-msgstr ""近期账号
+msgstr "近期账号"
 
 #: admin/people/index.html:58 type/author/edit.html:26
 #: type/language/view.html:27
@@ -2258,7 +2281,7 @@ msgstr "它是另外一本书的译本吗？"
 
 #: books/edit/edition.html:309
 msgid "Yes, it's a translation"
-msgstr "是的，它是一份译本
+msgstr "是的，它是一份译本"
 
 #: books/edit/edition.html:314
 msgid "What's the original book?"
@@ -2739,7 +2762,7 @@ msgstr "近期归还的书"
 
 #: home/index.html:35
 msgid "Romance"
-msgstr "浪漫的"
+msgstr "爱情"
 
 #: home/index.html:37
 msgid "Kids"
@@ -2808,6 +2831,10 @@ msgstr "已借阅的电子书"
 #: home/welcome.html:26
 msgid "Read Free Library Books Online"
 msgstr "在线阅读免费图书馆书籍"
+
+#: home/welcome.html
+msgid "Set a Yearly Reading Goal"
+msgstr "设置一个年度阅读目标"
 
 #: home/welcome.html:27
 msgid "Millions of books available through Controlled Digital Lending"
@@ -3037,6 +3064,14 @@ msgstr "探索开放图书馆开发人员中心"
 msgid "Developer Center"
 msgstr "开发人员中心"
 
+#: lib/nav_head.html
+msgid "Book Talks"
+msgstr "书谈视频集"
+
+#: lib/nav_head.html
+msgid "Librarians Portal"
+msgstr "图书管理员资源中心"
+
 #: lib/nav_foot.html:38
 msgid "Explore Open Library APIs"
 msgstr "探索开放图书馆API"
@@ -3192,6 +3227,14 @@ msgstr "我的开放图书馆"
 #: lib/nav_head.html:41 lib/nav_head.html:60
 msgid "Browse"
 msgstr "浏览"
+
+#: lib/nav_head.html
+msgid "Contribute"
+msgstr "贡献"
+
+#: lib/nav_head.html
+msgid "Resources"
+msgstr "资源"
 
 #: lib/nav_head.html:49
 msgid "The Internet Archive's Open Library: One page for every book"
@@ -3765,18 +3808,18 @@ msgid "No hits for: %(query)s"
 msgstr "未找到符合条件: %(query)s"
 
 #: search/inside.html:29
-#, fuzzy, python-format
+#, python-format
 msgid "About %(count)s result found"
 msgid_plural "About %(count)s results found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "找到约%(count)s个结果"
+msgstr[1] "找到约%(count)s个结果"
 
 #: search/inside.html:29
-#, fuzzy, python-format
+#, python-format
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
-msgstr[0] "在%(seconds)s秒内找到约1个结果"
-msgstr[1] "在%(seconds)s秒内找到约个结果"
+msgstr[0] "在%(seconds)s秒内"
+msgstr[1] "在%(seconds)s秒内"
 
 #: search/lists.html:7
 msgid "Search results for Lists"
@@ -4029,7 +4072,7 @@ msgid ""
 "this date and populating the \"Date of birth\" and \"Date of death\" fields. "
 "Thanks!"
 msgstr ""
-"这是一个废弃的字段。你可以通过删除这个日期并填入"出生日期"和"死亡日期"字段来帮助"
+"这是一个废弃的字段。你可以通过删除这个日期并填入“出生日期”和“死亡日期”字段来帮助"
 "改进这个记录。谢谢！"
 
 #: type/author/edit.html:106
@@ -4091,7 +4134,7 @@ msgstr "这次合并失败了。这是我们的错误，我们已经将它记录
 
 #: type/author/view.html:97
 msgid "Website"
-msgstr "网站
+msgstr "网站"
 
 #: type/author/view.html:103
 msgid "Location"
@@ -4172,7 +4215,7 @@ msgstr "文档正文:"
 
 #: type/edition/admin_bar.html:17
 msgid "Add to Staff Picks"
-msgstr "添加到"工作人员精选"中"
+msgstr "添加到“工作人员精选”中"
 
 #: type/edition/admin_bar.html:22
 msgid "Sync Archive.org ID"

@@ -2,10 +2,11 @@
 
 import functools
 import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NotRequired, TypedDict, TypeVar
 from urllib.parse import urlencode
 
 import requests
@@ -33,7 +34,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
@@ -41,6 +42,9 @@ from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_u
 from . import cache, waitinglist
 from .ia import get_metadata
 from .waitinglist import WaitingLoan
+
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import Series, SeriesDict
 
 SubjectType = Literal["subject", "place", "person", "time"]
 
@@ -260,7 +264,7 @@ class Edition(Thing):
 
     def get_publish_year(self) -> int | None:
         if self.publish_date:
-            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
+            m = re.compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
         return None
 
@@ -444,7 +448,7 @@ class Edition(Thing):
             # is staged in `import_item`.
             try:
                 id_ = asin or book_ids[0]
-                id_type = "asin" if asin else "isbn"
+                id_type: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
                 get_amazon_metadata(
                     id_=id_, id_type=id_type, high_priority=high_priority
                 )
@@ -482,8 +486,51 @@ class Edition(Thing):
         )
 
 
+class ListSeedMetadata(TypedDict):
+    position: NotRequired[str]
+    """Position of the seed in a series; e.g. '1', '2', '1-7', etc."""
+
+    notes: NotRequired[str]
+    """Notes about the seed."""
+
+
+def does_seed_have_metadata(seed: ListSeedMetadata) -> bool:
+    """Returns True if the seed has any metadata."""
+    return bool(seed.get('position') or seed.get('notes'))
+
+
+def update_list_seed_metadata(a: ListSeedMetadata, b: ListSeedMetadata) -> None:
+    """Modifies the original ListSeedMetadata inplace."""
+
+    if p := b.get('position'):
+        a['position'] = p
+    else:
+        a.pop('position', None)
+
+    if n := b.get('notes'):
+        a['notes'] = n
+    else:
+        a.pop('notes', None)
+
+
+TSeries = TypeVar('TSeries', 'Series', ThingReferenceDict, 'SeriesDict')
+
+
+class WorkSeriesEdge[TSeries](ListSeedMetadata):
+    series: TSeries
+
+
+WorkSeriesEdgeDB = WorkSeriesEdge['Series']
+"""
+Note: In reality, since the DB always wraps dicts in a `Thing` object,
+this will be a `Thing` not a raw dict.
+"""
+
+
 class Work(Thing):
     """Class to represent /type/work objects in OL."""
+
+    series: list[WorkSeriesEdgeDB] | None
 
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
@@ -613,7 +660,7 @@ class Work(Thing):
         }
 
     def _make_subject_link(self, title, prefix=""):
-        slug = web.safestr(title.lower().replace(' ', '_').replace(',', ''))
+        slug = normalize_subject_name(title)
         key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
@@ -633,6 +680,21 @@ class Work(Thing):
             return [self._make_subject_link(s, "time:") for s in self.subject_times]
         else:
             return []
+
+    def get_primary_series(self) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        return series[0] if series else None
+
+    def find_series_edge(self, series_key: str) -> WorkSeriesEdgeDB | None:
+        series = self.series or []
+        for s in series:
+            if s['series']['key'] == series_key:
+                return s
+        return None
+
+    def remove_series_edge(self, series_key: str) -> None:
+        series = self.series or []
+        self.series = [s for s in series if s['series']['key'] != series_key]
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.
@@ -988,7 +1050,12 @@ class User(Thing):
         return lists
 
     @classmethod
-    # @cache.memoize(engine="memcache", key="user-avatar")
+    @cache.memoize(
+        engine="memcache",
+        key=lambda cls, username: f"user-avatar-{username}",
+        expires=24 * 3600,
+        cacheable=lambda key, value: not value.endswith('/None'),
+    )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
@@ -1118,9 +1185,9 @@ class User(Thing):
         # Why nofollow?
         return f'<a rel="nofollow" href="{self.key}" {extra_attrs}>{web.net.htmlquote(self.displayname)}</a>'
 
-    def set_data(self, data):
+    def set_data(self, data, action):
         self._data = data
-        self._save()
+        self._save(action=action)
 
 
 class UserGroup(Thing):
@@ -1148,7 +1215,11 @@ class UserGroup(Thing):
         if not any(userkey == member['key'] for member in members):
             members.append({'key': userkey})
             self.members = members
-            web.ctx.site.save(self.dict(), f"Adding {userkey} to {self.key}")
+            web.ctx.site.save(
+                self.dict(),
+                f"Adding {userkey} to {self.key}",
+                action="edit-usergroup-add-member",
+            )
 
     def remove_user(self, userkey):
         if not web.ctx.site.get(userkey):
@@ -1163,7 +1234,11 @@ class UserGroup(Thing):
                 break
 
         self.members = members
-        web.ctx.site.save(self.dict(), f"Removing {userkey} from {self.key}")
+        web.ctx.site.save(
+            self.dict(),
+            f"Removing {userkey} from {self.key}",
+            action="edit-usergroup-delete-member",
+        )
 
 
 class Subject(web.storage):
@@ -1221,10 +1296,19 @@ class Tag(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
+    @staticmethod
+    def normalize(name: str) -> str:
+        """Normalize a tag/subject name to a URL-safe lowercase slug.
+
+        Canonical form for stored tag names and subject URL keys.
+        Delegates to normalize_subject_name.
+        """
+        return normalize_subject_name(name)
+
     @classmethod
     def find(cls, tag_name, tag_type=None):
-        """Returns a list of keys for Tags that match the search criteria."""
-        q = {'type': '/type/tag', 'name': tag_name}
+        """Returns a list of keys for Tags whose slugs contain the normalized tag_name."""
+        q = {'type': '/type/tag', 'slugs': cls.normalize(tag_name)}
         if tag_type:
             q['tag_type'] = tag_type
         matches = list(web.ctx.site.things(q))
@@ -1247,10 +1331,7 @@ class Tag(Thing):
 
         with RunAs(patron):
             web.ctx.ip = web.ctx.ip or ip
-            t = web.ctx.site.save(
-                tag,
-                comment=comment,
-            )
+            t = web.ctx.site.save(tag, comment=comment, action="create-tag")
             return t
 
 

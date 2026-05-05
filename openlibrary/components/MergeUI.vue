@@ -52,13 +52,13 @@
 </template>
 
 <script>
-import MergeTable from './MergeUI/MergeTable.vue'
+import MergeTable from './MergeUI/MergeTable.vue';
 import { do_merge, update_merge_request, createMergeRequest, DEFAULT_EDITION_LIMIT } from './MergeUI/utils.js';
 
-const DO_MERGE = 'Do Merge'
-const REQUEST_MERGE = 'Request Merge'
-const LOADING = 'Loading...'
-const SAVING = 'Saving...'
+const DO_MERGE = 'Do Merge';
+const REQUEST_MERGE = 'Request Merge';
+const LOADING = 'Loading...';
+const SAVING = 'Saving...';
 
 export default {
     name: 'App',
@@ -88,7 +88,7 @@ export default {
             mergeOutput: null,
             show_diffs: false,
             comment: ''
-        }
+        };
     },
     computed: {
         olids() {
@@ -101,19 +101,19 @@ export default {
         },
 
         isSuperLibrarian() {
-            return this.canmerge === 'true'
+            return this.canmerge === 'true';
         },
 
         isDisabled() {
-            return this.mergeStatus !== DO_MERGE && this.mergeStatus !== REQUEST_MERGE
+            return this.mergeStatus !== DO_MERGE && this.mergeStatus !== REQUEST_MERGE;
         },
 
         showRejectButton() {
-            return this.mrid && this.isSuperLibrarian
+            return this.mrid && this.isSuperLibrarian;
         }
     },
     mounted() {
-        const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE
+        const readyCta = this.isSuperLibrarian ? DO_MERGE : REQUEST_MERGE;
         this.$watch(
             '$refs.mergeTable.merge',
             (new_value) => {
@@ -141,10 +141,10 @@ export default {
                     }
                     this.mergeOutput = await r.json();
                     if (this.mrid) {
-                        await update_merge_request(this.mrid, 'approve', this.comment)
+                        await update_merge_request(this.mrid, 'approve', this.comment);
                     } else {
-                        const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                        await createMergeRequest(workIds)
+                        const workIds = [master.key].concat(Array.from(dupes, item => item.key));
+                        await createMergeRequest(workIds);
                     }
                 } catch (e) {
                     this.mergeOutput = e.message;
@@ -153,25 +153,25 @@ export default {
                 }
             } else {
                 // Create a new merge request with "pending" status
-                const workIds = [master.key].concat(Array.from(dupes, item => item.key))
-                const splitKey = master.key.split('/')
-                const primaryRecord = splitKey[splitKey.length - 1]
+                const workIds = [master.key].concat(Array.from(dupes, item => item.key));
+                const splitKey = master.key.split('/');
+                const primaryRecord = splitKey[splitKey.length - 1];
                 await createMergeRequest(workIds, primaryRecord, 'create-pending', this.comment)
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'ok') {
                             // Redirect to merge table on success:
-                            window.location.replace(`/merges#mrid-${data.id}`)
+                            window.location.replace(`/merges#mrid-${data.id}`);
                         }
-                    })
+                    });
             }
             this.mergeStatus = 'Done';
         },
 
         async rejectMerge() {
             try {
-                await update_merge_request(this.mrid, 'decline', this.comment)
-                this.mergeOutput = 'Merge request closed'
+                await update_merge_request(this.mrid, 'decline', this.comment);
+                this.mergeOutput = 'Merge request closed';
             } catch (e) {
                 this.mergeOutput = e.message;
                 throw e;
@@ -179,17 +179,17 @@ export default {
             this.mergeStatus = 'Reject Merge';
         }
     }
-}
+};
 </script>
 
-<style lang="less">
+<style>
 #app {
     font-family: monospace;
+}
 
-    div#diffs-toggle {
-        float: right;
-        padding: 4px 8px 0 0;
-    }
+#app div#diffs-toggle {
+    float: right;
+    padding: 4px 8px 0 0;
 }
 
 .btn-group {
@@ -197,45 +197,45 @@ export default {
     justify-content: space-between;
     margin-bottom: 5px;
     padding: 5px;
+}
 
-    & > button {
-        font-size: 1.3em;
-        padding: 10px;
-        margin: 5px;
-        border: none;
-        border-radius: 5px;
-        color: white;
-    }
+.btn-group > button {
+    font-size: 1.3em;
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
 
-    .merge-btn {
-        background-color: rgb(76, 118, 76);
-    }
-    .merge-btn:hover {
-        background-color: rgb(100, 156, 100);
-    }
+.btn-group .merge-btn {
+    background-color: rgb(76, 118, 76);
+}
+.btn-group .merge-btn:hover {
+    background-color: rgb(100, 156, 100);
+}
 
-    .merge-btn[disabled] {
-        background-color: rgb(117, 117, 117);
-    }
-    .merge-btn[disabled]:hover {
-        background-color: rgb(117, 117, 117);
-    }
-    .reject-btn {
-        background-color: rgb(125, 43, 43);
-    }
-    .reject-btn:hover {
-        background-color: rgb(161, 56, 56);
-    }
+.btn-group .merge-btn[disabled] {
+    background-color: rgb(117, 117, 117);
+}
+.btn-group .merge-btn[disabled]:hover {
+    background-color: rgb(117, 117, 117);
+}
+.btn-group .reject-btn {
+    background-color: rgb(125, 43, 43);
+}
+.btn-group .reject-btn:hover {
+    background-color: rgb(161, 56, 56);
 }
 
 .comment-input {
     display: flex;
     flex-direction: column;
     padding: 0 5px 5px 10px;
+}
 
-    input {
-        width: 90%;
-    }
+.comment-input input {
+    width: 90%;
 }
 
 .action-bar {

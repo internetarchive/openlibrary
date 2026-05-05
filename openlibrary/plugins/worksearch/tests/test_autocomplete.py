@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import web
 
-from openlibrary.plugins.worksearch.autocomplete import autocomplete, works_autocomplete
+from openlibrary.plugins.worksearch.autocomplete import autocomplete, series_autocomplete, works_autocomplete
 from openlibrary.utils.solr import Solr
 
 
@@ -103,3 +103,35 @@ def test_works_autocomplete():
             db_fetch.return_value = {"key": "/works/OL123W", "title": "Foo Bar"}
             ac.GET()
             db_fetch.assert_called_once_with("/works/OL123W")
+
+
+def test_series_autocomplete_olid():
+    ac = series_autocomplete()
+    with (
+        patch("web.input") as mock_web_input,
+        patch("web.header"),
+        patch("openlibrary.utils.solr.Solr.select") as mock_solr_select,
+        patch("openlibrary.plugins.worksearch.autocomplete.get_solr") as mock_get_solr,
+        patch.object(ac, "db_fetch", return_value=None),
+    ):
+        mock_get_solr.return_value = Solr("http://foohost:8983/solr")
+        mock_web_input.return_value = web.storage(q="OL327669L", limit=5)
+        mock_solr_select.return_value = {"docs": []}
+        ac.GET()
+        assert mock_solr_select.call_args[0][0] == 'key:"/series/OL327669L"'
+
+
+def test_series_autocomplete_url():
+    ac = series_autocomplete()
+    with (
+        patch("web.input") as mock_web_input,
+        patch("web.header"),
+        patch("openlibrary.utils.solr.Solr.select") as mock_solr_select,
+        patch("openlibrary.plugins.worksearch.autocomplete.get_solr") as mock_get_solr,
+        patch.object(ac, "db_fetch", return_value=None),
+    ):
+        mock_get_solr.return_value = Solr("http://foohost:8983/solr")
+        mock_web_input.return_value = web.storage(q="https://openlibrary.org/series/OL327669L/Bright_Falls", limit=5)
+        mock_solr_select.return_value = {"docs": []}
+        ac.GET()
+        assert mock_solr_select.call_args[0][0] == 'key:"/series/OL327669L"'

@@ -15,6 +15,7 @@ from openlibrary.fastapi.auth import (
 )
 from openlibrary.fastapi.models import Pagination  # noqa: TC001
 from openlibrary.plugins.upstream.mybooks import ReadingLog
+from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils.request_context import site
 
 router = APIRouter()
@@ -94,8 +95,6 @@ async def get_public_my_books_json(
 
     fq = None
     if mode == "ebooks":
-        from openlibrary.solr.solr import get_fulltext_min
-
         fq = [f"ebook_access:[{get_fulltext_min()} TO *]"]
 
     page = pagination.page or 1

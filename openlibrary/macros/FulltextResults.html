@@ -14,5 +14,5 @@ $if results and results.get('hits'):
       $for doc in docs:
         $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], extra=render_snippet(query, doc), include_dropper=True, seq_index=loop.index0)
     </ul>
-    $:macros.Pager(page, num_found)
+    $:macros.OlPagination(page, ceil(num_found / 20))
   </div>

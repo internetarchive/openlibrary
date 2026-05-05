@@ -36,7 +36,7 @@ $var title: $_('Search results for Lists')
         </ul>
       </div>
 
-      $:macros.Pager(search_request.page, search_response.num_found, search_request.limit)
+      $:macros.OlPagination(search_request.page, ceil(search_response.num_found / search_request.limit))
 
     $else:
       <center>

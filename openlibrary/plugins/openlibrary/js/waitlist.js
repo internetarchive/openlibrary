@@ -8,7 +8,7 @@ import 'jquery-ui/ui/widgets/dialog';
 export function initLeaveWaitlist(leaveWaitlistLinks) {
     for (const link of leaveWaitlistLinks) {
         link.addEventListener('click', () => {
-            const $link = $(link)
+            const $link = $(link);
             const title = $link.parents('tr').find('.book').text();
             $('#leave-waitinglist-dialog strong').text(title);
             // We remove the hidden class here because otherwise it flashes for a moment on page load
@@ -16,6 +16,6 @@ export function initLeaveWaitlist(leaveWaitlistLinks) {
             $('#leave-waitinglist-dialog')
                 .data('origin', $link)
                 .dialog('open');
-        })
+        });
     }
 }

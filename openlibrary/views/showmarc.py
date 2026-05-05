@@ -14,7 +14,7 @@ class old_show_marc(app.view):
     path = "/show-marc/(.*)"
 
     def GET(self, param):
-        raise web.seeother('/show-records/' + param)
+        raise web.seeother("/show-records/" + param)
 
 
 class show_ia(app.view):
@@ -22,7 +22,7 @@ class show_ia(app.view):
 
     def GET(self, ia):
         error_404 = False
-        url = f'https://archive.org/download/{ia}/{ia}_meta.mrc'
+        url = f"https://archive.org/download/{ia}/{ia}_meta.mrc"
         try:
             response = requests.get(url)
             response.raise_for_status()
@@ -34,24 +34,24 @@ class show_ia(app.view):
                 return "ERROR:" + str(e)
 
         if error_404:  # no MARC record
-            url = f'https://archive.org/download/{ia}/{ia}_meta.xml'
+            url = f"https://archive.org/download/{ia}/{ia}_meta.xml"
             try:
                 response = requests.get(url)
                 response.raise_for_status()
                 data = response.content
             except requests.HTTPError as e:
                 return "ERROR:" + str(e)
-            raise web.seeother('https://archive.org/details/' + ia)
+            raise web.seeother("https://archive.org/details/" + ia)
 
         books = web.ctx.site.things(
             {
-                'type': '/type/edition',
-                'source_records': 'ia:' + ia,
+                "type": "/type/edition",
+                "source_records": "ia:" + ia,
             }
         ) or web.ctx.site.things(
             {
-                'type': '/type/edition',
-                'ocaid': ia,
+                "type": "/type/edition",
+                "ocaid": ia,
             }
         )
 
@@ -63,7 +63,7 @@ class show_ia(app.view):
             return "ERROR reading MARC for " + ia
 
         if len(data) != leader_len:
-            data = data.decode('utf-8').encode('raw_unicode_escape')
+            data = data.decode("utf-8").encode("raw_unicode_escape")
         assert len(data) == int(data[:5])
 
         try:
@@ -95,7 +95,7 @@ class show_google_books(app.view):
         return app.render_template("showgoogle_books", isbn)
 
 
-re_bad_meta_mrc = re.compile(r'^([^/]+)_meta\.mrc$')
+re_bad_meta_mrc = re.compile(r"^([^/]+)_meta\.mrc$")
 
 
 class show_marc(app.view):
@@ -103,14 +103,14 @@ class show_marc(app.view):
 
     def GET(self, filename, offset, length):
         if m := re_bad_meta_mrc.match(filename):
-            raise web.seeother('/show-records/ia:' + m.group(1))
+            raise web.seeother("/show-records/ia:" + m.group(1))
 
         loc = f"marc:{filename}:{offset}:{length}"
 
         books = web.ctx.site.things(
             {
-                'type': '/type/edition',
-                'source_records': loc,
+                "type": "/type/edition",
+                "source_records": loc,
             }
         )
 
@@ -118,8 +118,8 @@ class show_marc(app.view):
         length = int(length)
 
         r0, r1 = offset, offset + 100000
-        url = 'https://archive.org/download/%s' % filename
-        headers = {'Range': 'bytes=%d-%d' % (r0, r1)}
+        url = "https://archive.org/download/%s" % filename
+        headers = {"Range": "bytes=%d-%d" % (r0, r1)}
 
         try:
             response = requests.get(url, headers=headers)
@@ -129,9 +129,7 @@ class show_marc(app.view):
             return "ERROR:" + str(e)
 
         if (len_in_rec := int(result[:5])) != length:
-            raise web.seeother(
-                '/show-records/%s:%d:%d' % (filename, offset, len_in_rec)
-            )
+            raise web.seeother("/show-records/%s:%d:%d" % (filename, offset, len_in_rec))
 
         from openlibrary.catalog.marc import html
 

@@ -50,7 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.utils import request_context
+from openlibrary.utils import normalize_subject_name, request_context
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -105,6 +105,7 @@ class MultiDict(MutableMapping):
     >>> list(d.multi_items())
     [('x', [1, 2]), ('y', [3])]
     >>> d1 = MultiDict(items=(('a', 1), ('b', 2)), a=('x', 10, 11, 12))
+    >>> list(d1.multi_items())
     [('a', [1, ('x', 10, 11, 12)]), ('b', [2])]
     """
 
@@ -263,18 +264,13 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
+        if page.get('do_not_cache') == 'True':
+            mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
     except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
 
 
-@public
-def get_error(name, *args):
-    """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
-
-
-@public
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
@@ -290,25 +286,6 @@ def get_message_from_template(
         return msg % args
     else:
         return msg
-
-
-@public
-def list_recent_pages(path, limit=100, offset=0):
-    """Lists all pages with name path/* in the order of last_modified."""
-    q = {}
-
-    q['key~'] = path + '/*'
-    # don't show /type/delete and /type/redirect
-    q['a:type!='] = '/type/delete'
-    q['b:type!='] = '/type/redirect'
-
-    q['sort'] = 'key'
-    q['limit'] = limit
-    q['offset'] = offset
-    q['sort'] = '-last_modified'
-    # queries are very slow with != conditions
-    # q['type'] != '/type/delete'
-    return web.ctx.site.get_many(web.ctx.site.things(q))
 
 
 @public
@@ -338,13 +315,13 @@ def is_feature_enabled(feature_name: str) -> bool:
     return features.is_enabled(feature_name)
 
 
-def unflatten(d: dict, separator: str = "--") -> dict:
+def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
-    {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
+    <Storage {'a': 1, 'b': <Storage {'x': 2, 'y': 3}>, 'c': [4, 5]}>
     >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
-    {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
+    <Storage {'a': [<Storage {'x': 1, 'y': 2}>, <Storage {'x': 3, 'y': 4}>]}>
 
     """
 
@@ -388,7 +365,7 @@ def fuzzy_find(value, options, stopwords=None):
     if not options:
         return value
 
-    rx = web.re_compile(r"[-_\.&, ]+")
+    rx = re.compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -658,7 +635,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
     return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
-@public
 def entity_decode(text: str) -> str:
     return unescape(text)
 
@@ -1183,7 +1159,7 @@ def get_marc21_language(language: str) -> str | None:
 
 @public
 def get_language_name(
-    lang_or_key: "Nothing | str | Thing", user_lang: str = 'en'
+    lang_or_key: "Nothing | str | Thing", user_lang: str
 ) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
@@ -1223,7 +1199,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.
@@ -1267,7 +1243,7 @@ class HTML(str):
     __slots__ = ()
 
     def __init__(self, html):
-        str.__init__(self, web.safeunicode(html))
+        str.__init__(self, str(html))
 
     def __repr__(self):
         return "<html: %s>" % str.__repr__(self)
@@ -1325,10 +1301,7 @@ class UpstreamMemcacheClient:
         keys = [web.safestr(k) for k in keys]
 
         d = self._client.get_multi(keys)
-        return {
-            web.safeunicode(adapter.unconvert_key(k)): self.decompress(v)
-            for k, v in d.items()
-        }
+        return {str(adapter.unconvert_key(k)): self.decompress(v) for k, v in d.items()}
 
 
 if config.get('upstream_memcache_servers'):
@@ -1353,7 +1326,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile(r"reverted to revision \d+")
+    re_revert = re.compile(r"reverted to revision \d+")
 
     def is_revert(r):
         return re_revert.match(r.comment or "")
@@ -1418,7 +1391,6 @@ _get_recent_changes2 = web.memoize(
 )
 
 
-@public
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
@@ -1498,7 +1470,6 @@ def item_image(image_path: str | None, default: str | None = None) -> str | None
     return "https:" + image_path
 
 
-@public
 def get_blog_feeds() -> list[Storage]:
     def process(post):
         post = Storage(post)
@@ -1556,11 +1527,6 @@ def render_once(key: str) -> bool:
 @public
 def today():
     return datetime.datetime.today()
-
-
-@public
-def to_datetime(time: str):
-    return datetime.datetime.fromisoformat(time)
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1688,10 +1654,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
 @public
 def subject_name_to_key(subject: str, prefix='') -> str:
-    # TODO: DRY with scripts/solr_builder/solr_builder/index_subjects.py
     if prefix:
         prefix = prefix.rstrip(':') + ':'
-    return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
+    return f'/subjects/{prefix}{normalize_subject_name(subject)}'
 
 
 def setup_requests(config=config) -> None:
