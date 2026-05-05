@@ -476,7 +476,7 @@ async def gather_lazy_carousel_data_async(
     return return_dict
 
 
-gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async)
+gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "gather_lazy_carousel_data")
 
 # Expose this publicly for the template
 public(gather_lazy_carousel_data)
