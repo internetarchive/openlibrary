@@ -56,7 +56,7 @@
     "eslint-plugin-vue": "^9.32.0",
     "flot": "0.8.3",
     "globals": "^15.14.0",
-    "isbn3": "1.1.1",
+    "isbn3": "1.2.19",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
     "jquery": "3.6.0",
