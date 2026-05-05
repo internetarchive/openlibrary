@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Response
+
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     require_authenticated_user,
