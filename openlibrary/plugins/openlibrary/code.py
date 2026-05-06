@@ -13,7 +13,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, quote, urlencode
 
 import requests
 import web
@@ -368,108 +368,6 @@ class clonebook(delegate.page):
             for k in ['isbn_10', 'isbn_13', 'lccn', 'oclc']:
                 d.pop(k, None)
             return render.edit(page, '/addbook', 'Clone Book')
-
-
-class search(delegate.page):
-    path = '/suggest/search'
-
-    def GET(self):
-        i = web.input(prefix='')
-        if len(i.prefix) > 2:
-            q = {
-                'type': '/type/author',
-                'name~': i.prefix + '*',
-                'sort': 'name',
-                'limit': 5,
-            }
-            things = web.ctx.site.things(q)
-            things = [web.ctx.site.get(key) for key in things]
-            result = [
-                {
-                    'type': [{'id': t.key, 'name': t.key}],
-                    'name': web.safestr(t.name),
-                    'guid': t.key,
-                    'id': t.key,
-                    'article': {'id': t.key},
-                }
-                for t in things
-            ]
-        else:
-            result = []
-        callback = i.pop('callback', None)
-        d = {
-            'status': '200 OK',
-            'query': dict(i, escape='html'),
-            'code': '/api/status/ok',
-            'result': result,
-        }
-
-        if callback:
-            data = f'{callback}({json.dumps(d)})'
-        else:
-            data = json.dumps(d)
-        raise web.HTTPError('200 OK', {}, data)
-
-
-class blurb(delegate.page):
-    path = '/suggest/blurb/(.*)'
-
-    def GET(self, path):
-        i = web.input()
-        author = web.ctx.site.get('/' + path)
-        body = ''
-        if author.birth_date or author.death_date:
-            body = f'{author.birth_date} - {author.death_date}'
-        else:
-            body = '%s' % author.date
-
-        body += '<br/>'
-        if author.bio:
-            body += web.safestr(author.bio)
-
-        result = {'body': body, 'media_type': 'text/html', 'text_encoding': 'utf-8'}
-        d = {'status': '200 OK', 'code': '/api/status/ok', 'result': result}
-        if callback := i.pop('callback', None):
-            data = f'{callback}({json.dumps(d)})'
-        else:
-            data = json.dumps(d)
-
-        raise web.HTTPError('200 OK', {}, data)
-
-
-class thumbnail(delegate.page):
-    path = '/suggest/thumbnail'
-
-
-@public
-def get_property_type(type, name):
-    for p in type.properties:
-        if p.name == name:
-            return p.expected_type
-    return web.ctx.site.get('/type/string')
-
-
-def save(filename, text):
-    root = os.path.dirname(__file__)
-    path = root + filename
-    dir = os.path.dirname(path)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    with open(path, 'w') as file:
-        file.write(text)
-
-
-def change_ext(filename, ext):
-    filename, _ = os.path.splitext(filename)
-    if ext:
-        filename = filename + ext
-    return filename
-
-
-def get_pages(type, processor):
-    pages = web.ctx.site.things({'type': type})
-    for p in pages:
-        processor(web.ctx.site.get(p))
 
 
 class robotstxt(delegate.page):
@@ -958,7 +856,7 @@ class _yaml_edit(_yaml):
 
 def _get_user_root():
     user_root = infogami.config.get('infobase', {}).get('user_root', '/user')
-    return web.rstrips(user_root, '/')
+    return user_root.removesuffix('/')
 
 
 def _get_bots():
@@ -1111,29 +1009,6 @@ def get_recent_changes(*a, **kw):
         return _get_recentchanges(*a, **kw)
 
 
-@public
-def most_recent_change():
-    if 'cache_most_recent' in infogami.config.features:
-        v = web.ctx.site._request('/most_recent')
-        v.thing = web.ctx.site.get(v.key)
-        v.author = v.author and web.ctx.site.get(v.author)
-        v.created = client.parse_datetime(v.created)
-        return v
-    else:
-        return get_recent_changes(limit=1)[0]
-
-
-@public
-def get_cover_id(key):
-    try:
-        _, cat, oln = key.split('/')
-        return requests.get(
-            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
-        ).json()[0]
-    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
-        return None
-
-
 local_ip = None
 
 
@@ -1235,6 +1110,7 @@ def is_bot():
     return req_context.get().is_bot
 
 
+@public
 def is_recognized_bot():
     # Reads from the request-scoped ContextVar set by set_context_from_legacy_web_py()
     # (web.py) or set_context_from_fastapi() — the web.py equivalent of web.ctx.
@@ -1269,6 +1145,7 @@ def setup_template_globals():
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
             "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
+            "tl": {"code": "tl", "localized": _('Filipino'), "native": "Filipino"},
         }
 
     web.template.Template.globals.update(
@@ -1279,7 +1156,7 @@ def setup_template_globals():
             'zip': zip,
             'tuple': tuple,
             'hash': hash,
-            'urlquote': web.urlquote,
+            'urlquote': quote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',

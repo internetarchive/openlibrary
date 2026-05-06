@@ -4,12 +4,16 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
   <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
     $if read_status == 3:
       $ message = _("Already Read")
+      $ track_value = "ReadingLog|AlreadyRead"
     $elif read_status == 2:
       $ message = _("Currently Reading")
+      $ track_value = "ReadingLog|CurrentlyReading"
     $elif user_key:
       $ message = _("Want to Read")
+      $ track_value = "ReadingLog|WantToRead"
     $else:
       $ message = _("Add to List")
+      $ track_value = "ReadingLog|AddToList"
 
     $ action_value = 'remove' if read_status else 'add'
     $ bookshelf_id_value = read_status or '1'
@@ -24,7 +28,7 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
     $if user_key:
       <input type="hidden" name="user-key" value="$(user_key)" />
 
-    <button class="book-progress-btn primary-action $(activated_status)" type="submit" disabled>
+    <button class="book-progress-btn primary-action $(activated_status)" type="submit" disabled data-ol-link-track="$(track_value)">
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>
     </button>

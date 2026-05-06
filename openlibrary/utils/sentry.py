@@ -6,7 +6,9 @@ from os import getenv
 import sentry_sdk
 import web
 from sentry_sdk.tracing import Transaction, TransactionSource
+from sentry_sdk.tracing_utils import add_query_source, record_sql_queries
 from sentry_sdk.utils import capture_internal_exceptions
+from web import DB
 
 from infogami.utils.app import (
     find_page,
@@ -100,6 +102,27 @@ class Sentry:
                     scope.set_extra(key, value)
             scope.add_event_processor(add_web_ctx_to_event)
             sentry_sdk.capture_exception(ex)
+
+    def bind_to_webpy_db(self):
+        """Allow Sentry to record DB events."""
+        real_db_execute = DB._db_execute
+
+        def _db_execute(self, cur, sql_query):
+            clean_sql_query = re.sub(r"(username='|account/|/people/)[^' ]+", r"\g<1>***", str(sql_query))
+            with record_sql_queries(
+                cur,
+                clean_sql_query,
+                params_list=None,
+                paramstyle=None,
+                executemany=False,
+            ) as span:
+                result = real_db_execute(self, cur, sql_query)
+
+                with capture_internal_exceptions():
+                    add_query_source(span)
+            return result
+
+        DB._db_execute = _db_execute
 
 
 @dataclass

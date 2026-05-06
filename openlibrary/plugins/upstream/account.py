@@ -37,6 +37,7 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     get_items_and_add_availability,
@@ -1411,3 +1412,25 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
         "limit": limit,
         "page": page,
     }
+
+
+class account_security_check(delegate.page):
+    path = "/account/security/2026-04-28T18"
+    AFFECTED_ACCOUNTS_THRESHOLD = 51085470
+
+    @classmethod
+    def is_affected_account(cls, email: str) -> bool:
+        rows = list(
+            get_db().query(
+                "SELECT 1 FROM account WHERE email=$email AND thing_id <= $threshold LIMIT 1",
+                vars={"email": email.lower().strip(), "threshold": cls.AFFECTED_ACCOUNTS_THRESHOLD},
+            )
+        )
+        return bool(rows)
+
+    def GET(self):
+        if user := accounts.get_current_user():
+            email = user.get_email()
+            affected = self.is_affected_account(email) if email else False
+            return render["account/security/check_email"](affected=affected)
+        return render["account/security/check_email"](affected=None)

@@ -175,7 +175,7 @@ async def search_json(
     """
 
     raw_response = await work_search_async(
-        params.selected_query,
+        params.selected_query,  # type: ignore[arg-type]
         sort=params.sort,
         page=params.page,
         offset=params.offset,

@@ -103,7 +103,7 @@
   right: 20px;
   width: 32px;
   height: 32px;
-  background-image: url(/images/icons/icon_close-pop.png);
+  background-image: url(/static/images/icons/icon_close-pop.png);
   background-position: 0 0;
   background-repeat: no-repeat;
 }

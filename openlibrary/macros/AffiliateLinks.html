@@ -1,4 +1,4 @@
-$def with (title, opts, async_load=False)
+$def with (title, opts, async_load=False, bwb_metadata=None, amz_metadata=None)
 
 $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
   <li class="prices-$key">
@@ -28,7 +28,8 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         'link': 'https://www.betterworldbooks.com/%s' % (
           ('product/detail/-%s' % isbn) if isbn else ('search/results?q=' + title.replace(' ','%20'))
         ),
-        'price_note': _(' - includes shipping')
+        'price_note': _(' - includes shipping'),
+        'price': bwb_metadata and bwb_metadata.get('price')
       }
 
       amazon = {
@@ -36,6 +37,7 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         'analytics_key': 'Amazon',
         'name': _('Amazon'),
         'link': 'https://www.amazon.com/dp/%s/?tag=%s' % (asin or isbn, affiliate_id('amazon')),
+        'price': (bwb_metadata and bwb_metadata.get('market_price')) or (amz_metadata and amz_metadata.get('price'))
       } if (asin or isbn) else None
 
       bookshop = {
@@ -44,16 +46,6 @@ $def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
         'name': _('Bookshop.org'),
         'link': 'https://bookshop.org/a/%s/%s' % (affiliate_id('bookshop-org'), isbn),
       } if isbn else None
-
-      # Fetch price data
-      if not is_bot() and prices and isbn:
-        bwb_metadata = get_betterworldbooks_metadata(isbn)
-        bwb['price'] = bwb_metadata and bwb_metadata.get('price')
-        if amazon:
-          amazon['price'] = bwb_metadata and bwb_metadata.get('market_price')
-        if amazon and not amazon['price']:
-          amz_metadata = get_amazon_metadata(isbn, resources='prices')
-          amazon['price'] = amz_metadata and amz_metadata.get('price')
 
       primary_stores = [store for store in [bwb, amazon] if store]
       more_stores = [store for store in [bookshop] if store]

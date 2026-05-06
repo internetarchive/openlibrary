@@ -88,16 +88,12 @@ def pytest_ignore_collect(collection_path, config):
 
     # If this is in the scripts directory but not in the tests subdirectory,
     # we need to decide whether to skip it
-    if collection_path.is_relative_to(
-        scripts_dir
-    ) and not collection_path.is_relative_to(tests_dir):
+    if collection_path.is_relative_to(scripts_dir) and not collection_path.is_relative_to(tests_dir):
         # Allow test files even if they're not in tests/ subdirectory
         if "test_" in collection_path.name or "_test.py" in collection_path.name:
             return None
         # Ignore __pycache__ and hidden directories/files
-        if "__pycache__" in collection_path.name or collection_path.name.startswith(
-            "."
-        ):
+        if "__pycache__" in collection_path.name or collection_path.name.startswith("."):
             return True
         # For Python files, skip them unless they're test files
         if collection_path.suffix == ".py" and collection_path.parent != tests_dir:

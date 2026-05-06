@@ -21,6 +21,7 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
@@ -249,7 +250,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
     return response
 
 
-def get_available(
+async def get_available_async(
     limit=None,
     page=1,
     subject=None,
@@ -291,24 +292,29 @@ def get_available(
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = req_context.get().x_forwarded_for or "ol-internal"
+        req = req_context.get(None)
+        client_ip = req.x_forwarded_for if req and req.x_forwarded_for else "ol-internal"
         headers = {
             "x-client-id": client_ip,
             "x-preferred-client-id": client_ip,
             "x-application-id": "openlibrary",
         }
-        response = ia.session.get(url, headers=headers, timeout=config_http_request_timeout)
+        response = await ia.async_session.get(url, headers=headers, timeout=config_http_request_timeout)
         items = response.json().get("response", {}).get("docs", [])
         results = {}
         for item in items:
             if item.get("openlibrary_work"):
                 results[item["openlibrary_work"]] = item["openlibrary_edition"]
         books = web.ctx.site.get_many([f"/books/{olid}" for olid in results.values()])
-        books = add_availability(books)
+        books = await add_availability_async(books)
         return books
     except Exception:  # TODO: Narrow exception scope
         logger.exception(f"get_available({url})")
         return {"error": "request_timeout"}
+
+
+# Create a sync wrapper for backward compatibility
+get_available = async_bridge.wrap(get_available_async)
 
 
 class AvailabilityStatus(TypedDict):
@@ -401,7 +407,7 @@ def update_availability_schema_to_v2(
     return v2_resp
 
 
-def get_availability(
+async def get_availability_async(
     id_type: Literal["identifier", "openlibrary_work", "openlibrary_edition"],
     ids: list[str],
 ) -> dict[str, AvailabilityStatusV2]:
@@ -430,7 +436,7 @@ def get_availability(
         }
         if config_ia_ol_metadata_write_s3:
             headers["authorization"] = "LOW {s3_key}:{s3_secret}".format(**config_ia_ol_metadata_write_s3)
-        resp = ia.session.get(
+        resp = await ia.async_session.get(
             config_ia_availability_api_v2_url,
             params={
                 id_type: ",".join(ids_to_fetch),
@@ -480,6 +486,9 @@ def get_availability(
         }  # type: ignore
 
 
+get_availability = async_bridge.wrap(get_availability_async)
+
+
 def get_ocaid(item: dict) -> str | None:
     # Circular import otherwise
     from ..book_providers import is_non_ia_ocaid
@@ -527,8 +536,7 @@ def get_availabilities(items: list) -> dict:
     return result
 
 
-@public
-def add_availability(
+async def add_availability_async(
     items: list,
     mode: Literal["identifier", "openlibrary_work"] = "identifier",
 ) -> list:
@@ -547,19 +555,23 @@ def add_availability(
                     item["availability"] = get_ebook_access_availability(ocaid, EbookAccess.from_solr_str(item["ebook_access"]))
         else:
             ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
-            availabilities = get_availability("identifier", ocaids)
+            availabilities = await get_availability_async("identifier", ocaids)
             for item in items:
                 ocaid = get_ocaid(item)
                 if ocaid:
                     item["availability"] = availabilities.get(ocaid)
     elif mode == "openlibrary_work":
         _ids = [item["key"].split("/")[-1] for item in items]
-        availabilities = get_availability("openlibrary_work", _ids)
+        availabilities = await get_availability_async("openlibrary_work", _ids)
         for item in items:
             olid = item["key"].split("/")[-1]
             if olid:
                 item["availability"] = availabilities.get(olid)
     return items
+
+
+add_availability = async_bridge.wrap(add_availability_async, "add_availability")
+public(add_availability)
 
 
 def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:

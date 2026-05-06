@@ -5,7 +5,7 @@ from urllib.parse import urlencode
 import httpx
 
 from infogami import config
-from openlibrary.core.lending import get_availability
+from openlibrary.core.lending import get_availability_async
 from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import req_context, site
@@ -59,7 +59,7 @@ async def fulltext_search_async(q, page=1, offset=None, limit=100, js=False, fac
     if "error" not in ia_results and ia_results["hits"]:
         hits = ia_results["hits"].get("hits", [])
         ocaids = [hit["fields"].get("identifier", [""])[0] for hit in hits]
-        availability = get_availability("identifier", ocaids)
+        availability = await get_availability_async("identifier", ocaids)
         if "error" in availability:
             availability = {}
 

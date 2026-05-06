@@ -9,7 +9,7 @@ import { addItem, removeItem } from '../../lists/ListService';
 import { attachNewActiveShowcaseItem, toggleActiveShowcaseItems } from '../../lists/ShowcaseItem';
 import { FadingToast } from '../../Toast';
 
-const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png';
+const DEFAULT_COVER_URL = '/static/images/icons/avatar_book-sm.png';
 
 /**
  * Represents a single My Books dropper's list affordances, and defines their

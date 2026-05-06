@@ -353,7 +353,7 @@ def main(
     dest_ol: Disk | OpenLibrary = OpenLibrary(dest) if dest.startswith("http://") else Disk(dest)
 
     if isinstance(dest_ol, OpenLibrary):
-        section = "[%s]" % web.lstrips(dest, "http://").strip("/")
+        section = "[%s]" % dest.removeprefix("http://").strip("/")
         if section in read_lines(os.path.expanduser("~/.olrc")):
             dest_ol.autologin()
         else:

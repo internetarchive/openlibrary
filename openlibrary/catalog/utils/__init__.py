@@ -6,13 +6,6 @@ from unicodedata import normalize
 
 import web
 
-from openlibrary.plugins.upstream.utils import (
-    LanguageMultipleMatchError,
-    LanguageNoMatchError,
-    convert_iso_to_marc,
-    get_abbrev_from_full_lang_name,
-    get_languages,
-)
 from openlibrary.utils import uniq
 
 if TYPE_CHECKING:
@@ -442,6 +435,14 @@ def format_languages(languages: Iterable) -> list[dict[str, str]]:
     E.g. an input of ["English", "fre"], return:
     [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
     """
+    from openlibrary.plugins.upstream.utils import (  # noqa: PLC0415
+        LanguageMultipleMatchError,
+        LanguageNoMatchError,
+        convert_iso_to_marc,
+        get_abbrev_from_full_lang_name,
+        get_languages,
+    )
+
     if not languages:
         return []
 

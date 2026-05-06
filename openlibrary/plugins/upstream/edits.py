@@ -1,13 +1,14 @@
 """Librarian Edits"""
 
 import json
+from typing import Literal
 
 import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
-from openlibrary.core.edits import CommunityEditsQueue, get_status_for_view
+from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -37,7 +38,7 @@ def process_merge_request(rtype, data):
 class community_edits_queue(delegate.page):
     path = "/merges"
 
-    def GET(self):
+    def GET(self) -> str | web.HTTPError:
         i = web.input(
             page=1,
             limit=25,
@@ -47,13 +48,26 @@ class community_edits_queue(delegate.page):
             order="desc",
             status=None,
         )
+
+        order: Literal["asc", "desc"] = "desc"
+        if i.order and i.order.lower() in ("asc", "desc"):
+            order = i.order.lower()
+        else:
+            return web.badrequest(f'Invalid order parameter: "{i.order}". Must be "asc" or "desc".')
+
+        mode: ApiMode = "open"
+        if i.mode and i.mode.lower() in CommunityEditsQueue.MODES:
+            mode = i.mode.lower()
+        else:
+            return web.badrequest(f'Invalid mode parameter: "{i.mode}". Must be one of {list(CommunityEditsQueue.MODES.keys())}.')
+
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
-            mode=i.mode,
+            mode=mode,
             submitter=i.submitter,
             reviewer=i.reviewer,
-            order=f"updated {i.order}",
+            order_by_updated=order,
             status=i.status,
         ).list()
 

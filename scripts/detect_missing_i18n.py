@@ -17,6 +17,8 @@ EXCLUDE_LIST = {
     "static/status-500.html",
     # Uses jsdef and the current stance is no i18n in JS.
     "openlibrary/templates/jsdef/LazyAuthorPreview.html",
+    # Design library with demo content that doesn't need translation.
+    "openlibrary/templates/design.html",
 }
 
 default_directories = ("openlibrary/templates/", "openlibrary/macros/")

@@ -1,5 +1,6 @@
 """Generic web.py application processors."""
 
+import re
 import time
 
 import web
@@ -18,7 +19,7 @@ class RateLimitProcessor:
         :param int window_size: the time frame in seconds during which the requests are measured.
         :param int path_regex: regular expression to specify which urls are rate-limited.
         """
-        self.path_regex = web.re_compile(path_regex)
+        self.path_regex = re.compile(path_regex)
         self.limit = limit
         self.window_size = window_size
         self.reset(None)

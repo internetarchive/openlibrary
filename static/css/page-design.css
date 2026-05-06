@@ -93,16 +93,27 @@
   margin-bottom: 8px;
 }
 
-.example__code {
-  display: block;
+/* Reset Prism theme styles that leak outside code blocks */
+.design-pattern-library .tag,
+.design-pattern-library .token:not(.example__code .token) {
+  color: inherit;
+  background: none;
+}
+
+pre.example__code {
   background-color: var(--lightest-grey);
-  padding: 12px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   margin-bottom: 12px;
   border-radius: var(--border-radius-card);
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-medium);
   font-family: var(--font-family-code);
   overflow-x: auto;
+  white-space: pre-wrap;
   word-break: break-all;
+}
+
+pre.example__code code[class*="language-"] {
+  font-size: var(--font-size-label-medium);
 }
 
 @media only screen and (min-width: 768px) {
@@ -110,7 +121,7 @@
     padding: 24px;
   }
 
-  .example__code {
+  pre.example__code {
     word-break: normal;
   }
 }

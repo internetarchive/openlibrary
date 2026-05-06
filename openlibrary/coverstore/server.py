@@ -42,6 +42,7 @@ def setup(configfile: str) -> None:
     sentry = init_sentry(getattr(config, "sentry", {}))
     if sentry.enabled:
         sentry.bind_to_webpy_app(code.app)
+        sentry.bind_to_webpy_db()
 
 
 def main(configfile, *args):

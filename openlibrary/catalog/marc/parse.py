@@ -147,6 +147,7 @@ def read_lccn(rec: MarcBase) -> list[str]:
         for lccn in f.get_subfield_values("a"):
             if re_question.match(lccn):
                 continue
+            lccn = lccn.replace("^", " ")  # replace visual whitespace
             m = re_lccn.search(lccn)
             if not m:
                 continue

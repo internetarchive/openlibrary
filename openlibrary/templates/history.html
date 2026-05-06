@@ -1,4 +1,4 @@
-$def with (page, h)
+$def with (page, h, page_num=1, total_pages=1)
 
 $putctx("robots", "noindex,nofollow")
 
@@ -20,6 +20,8 @@ $ rev = page.latest_revision or page.revision
     <h1><a href="$page.key">$name</a></h1>
 </div>
 <div id="contentBody">
+        $:macros.OlPagination(page_num, total_pages)
+
         <form action="">
         <table id="pageHistory">
         <thead>
@@ -75,7 +77,6 @@ $ rev = page.latest_revision or page.revision
 
         </form>
 
-        $ page_num = safeint(query_param("page", "0"))
-        $:macros.OlPaginationArrows(page_num + 1, len(h) == 20)
+        $:macros.OlPagination(page_num, total_pages)
 
 </div>
