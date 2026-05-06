@@ -6,7 +6,6 @@ from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import (
-    Checkbox,
     Email,
     Form,
     Hidden,
@@ -29,10 +28,18 @@ def find_ia_account(email=None):
 
 
 Login = Form(
-    Textbox('username', description=_('Username'), klass='required'),
-    Password('password', description=_('Password'), klass='required'),
-    Hidden('redirect'),
-    Hidden('action'),
+    Textbox(
+        "username",
+        description=_("Username"),
+        klass="required",
+    ),
+    Password(
+        "password",
+        description=_("Password"),
+        klass="required",
+    ),
+    Hidden("redirect"),
+    Hidden("action"),
 )
 forms.login = Login
 
@@ -40,12 +47,10 @@ email_already_used = Validator(
     _("No user registered with this email address"),
     lambda email: find_account(email=email) is not None,
 )
-email_not_already_used = Validator(
-    _("Email already registered"), lambda email: not find_ia_account(email=email)
-)
+email_not_already_used = Validator(_("Email already registered"), lambda email: not find_ia_account(email=email))
 email_not_disposable = Validator(
     _("Disposable email not permitted"),
-    lambda email: not email.lower().endswith('@dispostable.com'),
+    lambda email: not email.lower().endswith("@dispostable.com"),
 )
 email_domain_not_blocked = Validator(
     _("Your email provider is not recognized."),
@@ -56,10 +61,8 @@ username_validator = Validator(
     lambda username: not find_account(lusername=username.lower()),
 )
 
-vlogin = RegexpValidator(
-    r"^[A-Za-z0-9\-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')
-)
-vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
+vlogin = RegexpValidator(r"^[A-Za-z0-9\-_]{3,20}$", _("Must be between 3 and 20 letters and numbers"))
+vpass = RegexpValidator(r".{3,20}", _("Must be between 3 and 20 characters"))
 vemail = RegexpValidator(
     r".*@.*\..*",
     _("Must be a valid email address"),
@@ -80,10 +83,10 @@ class EqualToValidator(Validator):
 class RegisterForm(Form):
     INPUTS = (
         Email(
-            'email',
-            description=_('Email'),
-            klass='required',
-            id='emailAddr',
+            "email",
+            description=_("Email"),
+            klass="required",
+            id="emailAddr",
             required="true",
             validators=[
                 vemail,
@@ -91,41 +94,29 @@ class RegisterForm(Form):
                 email_not_disposable,
                 email_domain_not_blocked,
             ],
+            autocomplete="email",
         ),
         Textbox(
-            'username',
+            "username",
             description=_("Screen Name"),
-            klass='required',
+            klass="required",
             help=_("Public and cannot be changed later."),
             autocapitalize="off",
             validators=[vlogin, username_validator],
             pattern=vlogin.rexp.pattern,
             title=vlogin.msg,
             required="true",
+            autocomplete="username",
         ),
         Password(
-            'password',
-            description=_('Password'),
-            klass='required',
+            "password",
+            description=_("Password"),
+            klass="required",
             validators=[vpass],
             minlength="3",
             maxlength="20",
             required="true",
-        ),
-        Checkbox(
-            'ia_newsletter',
-            description=_(
-                'I want to receive news, announcements, and resources from the '
-                '<a href="https://archive.org/">Internet Archive</a>, the non-profit '
-                'that runs Open Library.'
-            ),
-        ),
-        Checkbox(
-            "pd_request",
-            description=_(
-                'I want to apply* for <a href="https://help.archive.org/help/program-overview/" target="_blank">'
-                'special print disability access</a> through a qualifying program.'
-            ),
+            autocomplete="new-password",
         ),
     )
 
@@ -151,7 +142,7 @@ def verify_password(password):
         return False
 
     try:
-        username = user.key.split('/')[-1]
+        username = user.key.split("/")[-1]
         web.ctx.site.login(username, password)
     except ClientException:
         return False
@@ -163,12 +154,18 @@ validate_password = Validator(_("Invalid password"), verify_password)
 
 ForgotPassword = Form(
     Textbox(
-        'email',
+        "email",
         description=_("Your email address"),
         validators=[vemail, email_already_used],
+        autocomplete="email",
     )
 )
 
 ResetPassword = Form(
-    Password('password', description=_("Choose a password"), validators=[vpass])
+    Password(
+        "password",
+        description=_("Choose a password"),
+        validators=[vpass],
+        autocomplete="new-password",
+    )
 )

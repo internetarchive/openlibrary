@@ -88,11 +88,5 @@ $def call_template(name, change):
 
 </form>
 $if paginate:
-    <div class="historyPager small sansserif gray">
-        $if len(changes) == limit:
-            <a href="$changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
-        $if page > 1:
-             &nbsp;|&nbsp;
-            <a href="$changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
-    </div>
+    $:macros.OlPaginationArrows(page, len(changes) == limit)
 </div>

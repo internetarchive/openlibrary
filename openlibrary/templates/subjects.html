@@ -55,8 +55,9 @@ $ q = query_param('q')
 <div class="contentBody">
     $if has_tag:
       $:format(sanitize(page.tag.body))
-
-    $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
+    $else:
+      $# Only show default carousel if subject doesn't have an associated Tag
+      $:macros.QueryCarousel(query=page.solr_query, sort='trending,trending_score_hourly_sum', user_lang_only=True, fallback=True)
     $:macros.PublishingHistory(page.publishing_history)
 
     <div class="clearfix"></div>

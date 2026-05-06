@@ -1,14 +1,16 @@
 """Plugin to provide admin interface."""
 
-import datetime
+import functools
 import json
 import logging
 import os
+import re
 import socket
 import subprocess
 import sys
 import traceback
 from collections.abc import Iterable
+from datetime import date, datetime, timedelta
 
 import requests
 import web
@@ -46,7 +48,7 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
-admin_tasks = []
+admin_tasks: list[web.storage] = []
 
 
 def register_admin_page(path, cls, label=None, visible=True, librarians=False):
@@ -70,6 +72,12 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
         added_records: list[list[dict]] = [
             c.changes for c in changes if c.kind == 'add-book'
         ]
+        # Also delete lists `created` by this user
+        added_records.extend(
+            [r for r in c.changes if r.get('revision') == 1]  # created, not just edited
+            for c in changes
+            if c.kind == 'lists'
+        )
         flattened_records: list[dict] = [
             record for lst in added_records for record in lst
         ]
@@ -103,7 +111,7 @@ def revert_all_user_edits(account: Account) -> tuple[int, int]:
     delete_payload = [
         {'key': key, 'type': {'key': '/type/delete'}} for key in keys_to_delete
     ]
-    web.ctx.site.save_many(delete_payload, 'Delete spam')
+    web.ctx.site.save_many(delete_payload, 'Delete spam', action="bulk-revert-spam")
     return edit_count, len(delete_payload)
 
 
@@ -141,7 +149,7 @@ class admin(delegate.page):
             return self.handle(admin_index)
 
         for t in admin_tasks:
-            m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
+            m = re.compile('^' + t.path + '$').match(web.ctx.path)
             if m:
                 return self.handle(t.cls, m.groups(), librarians=t.librarians)
         raise web.notfound()
@@ -208,7 +216,7 @@ class reload:
 
     def reload(self, servers):
         for s in servers:
-            s = web.rstrips(s, "/") + "/_reload"
+            s = s.removesuffix("/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
                 response = requests.get(s).text
@@ -217,7 +225,7 @@ class reload:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
 
 
-@web.memoize
+@functools.cache
 def local_ip():
 
     return socket.gethostbyname(socket.gethostname())
@@ -515,7 +523,7 @@ class stats:
     def POST(self, today):
         """Update stats for today."""
         doc = self.get_stats(today)
-        doc._save()
+        doc._save(action="create-stats")
         raise web.seeother(web.ctx.path)
 
     def get_stats(self, today):
@@ -551,7 +559,7 @@ class block:
             "/admin/block", {"key": "/admin/block", "type": "/type/object"}
         )
         page.ips = [{'ip': ip} for ip in ips]
-        page._save("updated blocked IPs")
+        page._save("updated blocked IPs", action="edit-blocked-ips")
 
 
 def get_blocked_ips():
@@ -574,8 +582,8 @@ def block_ip_processor(handler):
         return handler()
 
 
-def daterange(date, *slice):
-    return [date + datetime.timedelta(i) for i in range(*slice)]
+def daterange(startdate: datetime, *slice):
+    return [startdate + timedelta(i) for i in range(*slice)]
 
 
 def storify(d):
@@ -613,15 +621,15 @@ def get_admin_stats():
             'members': sum(doc['members'] for doc in docs),
         }
 
-    date = datetime.datetime.utcnow().date()
+    current_date = date.today()
 
-    if has_doc(date):
-        today = f([date])
+    if has_doc(current_date):
+        today = f([current_date])
     else:
-        today = g([stats().get_stats(date.isoformat())])
-    yesterday = f(daterange(date, -1, 0, 1))
-    thisweek = f(daterange(date, 0, -7, -1))
-    thismonth = f(daterange(date, 0, -30, -1))
+        today = g([stats().get_stats(current_date.isoformat())])
+    yesterday = f(daterange(current_date, -1, 0, 1))
+    thisweek = f(daterange(current_date, 0, -7, -1))
+    thismonth = f(daterange(current_date, 0, -30, -1))
 
     xstats = {
         'edits': {
@@ -745,7 +753,9 @@ class permissions:
         books = self.set_permission("/books", i.perm_records)
         authors = self.set_permission("/authors", i.perm_records)
         web.ctx.site.save_many(
-            [root, works, books, authors], comment="Updated edit policy."
+            [root, works, books, authors],
+            comment="Updated edit policy.",
+            action="bulk-edit-permissions",
         )
 
         add_flash_message("info", "Edit policy has been updated!")
@@ -871,11 +881,6 @@ def setup():
     )
     register_admin_page('/admin/spamwords', spamwords, label="")
     register_admin_page("/admin/pd", pd_dashboard)
-
-    from openlibrary.plugins.admin import mem
-
-    for p in [mem._memory, mem._memory_type, mem._memory_id]:
-        register_admin_page('/admin' + p.path, p)
 
     public(get_admin_stats)
     public(get_blocked_ips)

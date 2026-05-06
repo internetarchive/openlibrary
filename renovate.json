@@ -6,8 +6,8 @@
     "enabled": true
   },
   "pip_requirements": {
-    "fileMatch": [
-      "(^|/)requirements[^/]*\\.txt$"
+    "managerFilePatterns": [
+      "/(^|/)requirements[^/]*\\.txt$/"
     ]
   },
   "packageRules": [
@@ -29,8 +29,7 @@
         "stylelint",
         "stylelint-declaration-strict-value",
         "stylelint-prettier",
-        "prettier",
-        "postcss-less"
+        "prettier"
       ],
       "automerge": false
     },
@@ -40,8 +39,7 @@
         "mypy",
         "pytest",
         "pytest-asyncio",
-        "ruff",
-        "safety"
+        "ruff"
       ]
     },
     {

@@ -4,12 +4,16 @@ import datetime
 import os
 from io import BytesIO
 from logging import getLogger
+from typing import TYPE_CHECKING
 
 import web
 from PIL import Image, ImageOps
 
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.utils import random_string, rm_f
+
+if TYPE_CHECKING:
+    from openlibrary.coverstore.code import PartialCoverDetails
 
 logger = getLogger("openlibrary.coverstore.coverlib")
 
@@ -29,20 +33,20 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
 
     d = web.storage(
         {
-            'category': category,
-            'olid': olid,
-            'author': author,
-            'source_url': source_url,
+            "category": category,
+            "olid": olid,
+            "author": author,
+            "source_url": source_url,
         }
     )
-    d['width'], d['height'] = img.size
+    d["width"], d["height"] = img.size
 
-    filename = prefix + '.jpg'
-    d['ip'] = ip
-    d['filename'] = filename
-    d['filename_s'] = prefix + '-S.jpg'
-    d['filename_m'] = prefix + '-M.jpg'
-    d['filename_l'] = prefix + '-L.jpg'
+    filename = prefix + ".jpg"
+    d["ip"] = ip
+    d["filename"] = filename
+    d["filename_s"] = prefix + "-S.jpg"
+    d["filename_m"] = prefix + "-M.jpg"
+    d["filename_l"] = prefix + "-L.jpg"
     d.id = db.new(**d)
     return d
 
@@ -66,7 +70,7 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
         os.makedirs(dirname)
     try:
         # save original image
-        with open(path_prefix + '.jpg', 'wb') as f:
+        with open(path_prefix + ".jpg", "wb") as f:
             f.write(data)
 
         img = Image.open(BytesIO(data))
@@ -78,8 +82,8 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
         except (AttributeError, KeyError, OSError, ValueError) as e:
             logger.warning(f"Failed to apply EXIF orientation: {e}")
 
-        if img.mode != 'RGB':
-            img = img.convert('RGB')  # type: ignore[assignment]
+        if img.mode != "RGB":
+            img = img.convert("RGB")  # type: ignore[assignment]
 
         for name, size in config.image_sizes.items():
             path = f"{path_prefix}-{name}.jpg"
@@ -89,10 +93,10 @@ def write_image(data: bytes, prefix: str) -> Image.Image | None:
         logger.exception("write_image() failed")
 
         # cleanup
-        rm_f(prefix + '.jpg')
-        rm_f(prefix + '-S.jpg')
-        rm_f(prefix + '-M.jpg')
-        rm_f(prefix + '-L.jpg')
+        rm_f(prefix + ".jpg")
+        rm_f(prefix + "-S.jpg")
+        rm_f(prefix + "-M.jpg")
+        rm_f(prefix + "-L.jpg")
 
         return None
 
@@ -113,27 +117,25 @@ def resize_image(image, size):
 
 
 def find_image_path(filename):
-    if ':' in filename:
-        return os.path.join(
-            config.data_root, 'items', filename.rsplit('_', 1)[0], filename
-        )
+    if ":" in filename:
+        return os.path.join(config.data_root, "items", filename.rsplit("_", 1)[0], filename)
     else:
-        return os.path.join(config.data_root, 'localdisk', filename)
+        return os.path.join(config.data_root, "localdisk", filename)
 
 
 def read_file(path):
-    if ':' in path:
-        path, offset, size = path.rsplit(':', 2)
-        with open(path, 'rb') as f:
+    if ":" in path:
+        path, offset, size = path.rsplit(":", 2)
+        with open(path, "rb") as f:
             f.seek(int(offset))
             return f.read(int(size))
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         return f.read()
 
 
-def read_image(d, size):
+def read_image(d: "PartialCoverDetails | db.CoverDbDetails", size):
     if size:
-        filename = d['filename_' + size.lower()] or d.filename + f"-{size.upper()}.jpg"
+        filename = d["filename_" + size.lower()] or d.filename + f"-{size.upper()}.jpg"
     else:
         filename = d.filename
     path = find_image_path(filename)

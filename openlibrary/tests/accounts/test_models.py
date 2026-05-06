@@ -19,11 +19,11 @@ def test_xauth_http_error_without_json(monkeypatch):
     xauth = InternetArchiveAccount.xauth
     resp = Response()
     resp.status_code = 500
-    resp._content = b'Internal Server Error'
-    monkeypatch.setattr(model.requests, 'post', lambda url, **kwargs: resp)
-    assert xauth('create', s3_key='_', s3_secret='_') == {
-        'code': 500,
-        'error': 'Internal Server Error',
+    resp._content = b"Internal Server Error"
+    monkeypatch.setattr(model.requests, "post", lambda url, **kwargs: resp)
+    assert xauth("create", s3_key="_", s3_secret="_") == {
+        "code": 500,
+        "error": "Internal Server Error",
     }
 
 
@@ -32,10 +32,8 @@ def test_xauth_http_error_with_json(monkeypatch):
     resp = Response()
     resp.status_code = 400
     resp._content = b'{"error": "Unknown Parameter Blah"}'
-    monkeypatch.setattr(model.requests, 'post', lambda url, **kwargs: resp)
-    assert xauth('create', s3_key='_', s3_secret='_') == {
-        "error": "Unknown Parameter Blah"
-    }
+    monkeypatch.setattr(model.requests, "post", lambda url, **kwargs: resp)
+    assert xauth("create", s3_key="_", s3_secret="_") == {"error": "Unknown Parameter Blah"}
 
 
 @mock.patch("openlibrary.accounts.model.web")
@@ -96,6 +94,6 @@ def test_get(mock_web):
     retrieved_username = get_username(retrieved_account)
     assert retrieved_username == test_username
 
-    key = f'test/{retrieved_username}'
+    key = f"test/{retrieved_username}"
     retrieved_account = OpenLibraryAccount.get_by_key(key)
     assert retrieved_account

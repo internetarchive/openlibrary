@@ -28,7 +28,7 @@ def parse_datetime(value: datetime | str) -> datetime:
     """
     if isinstance(value, datetime):
         return value
-    tokens = re.split(r'-|T|:|\.| ', value)
+    tokens = re.split(r"-|T|:|\.| ", value)
     return datetime(*(int(token) for token in tokens))  # type: ignore[arg-type]
 
 

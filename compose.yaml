@@ -64,7 +64,6 @@ services:
       options:
         max-size: "512m"
         max-file: "4"
-    # Create (or use if already existing) a core called "openlibrary" with our config & schema
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   solr-updater:

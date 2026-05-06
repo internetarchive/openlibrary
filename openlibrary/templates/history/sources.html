@@ -59,6 +59,7 @@ $code:
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
     def link(url, label):
+        # detect-missing-i18n-skip-line
         return '<a href="' + url + '">' + label + '</a>' if url else label
 
     def get_source_html(record_id):

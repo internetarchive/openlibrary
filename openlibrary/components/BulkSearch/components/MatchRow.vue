@@ -17,6 +17,7 @@
           v-for="(doc, index) in bookMatch.solrDocs.docs"
           :key="index"
           :doc="doc"
+          :is-primary="index === 0"
         />
         <NoBookCard v-if="bookMatch.solrDocs.numFound===0" />
       </div>
@@ -25,10 +26,10 @@
 </template>
 
 <script>
-import { BulkSearchState, BookMatch } from '../utils/classes.js'
-import { buildSearchUrl } from '../utils/searchUtils.js'
-import BookCard from './BookCard.vue'
-import NoBookCard from './NoBookCard.vue'
+import { BulkSearchState, BookMatch } from '../utils/classes.js';
+import { buildSearchUrl } from '../utils/searchUtils.js';
+import BookCard from './BookCard.vue';
+import NoBookCard from './NoBookCard.vue';
 export default {
     components: {
         BookCard, NoBookCard
@@ -41,10 +42,10 @@ export default {
     },
     computed: {
         searchUrl() {
-            return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false)
+            return buildSearchUrl(this.bookMatch.extractedBook, this.bulkSearchState.matchOptions, false);
         }
     }
-}
+};
 </script>
 
 <style>
@@ -59,6 +60,10 @@ th {
     align-items: center;
     overflow-x:auto;
     scrollbar-width:thin;
+
+    .book-card--primary {
+        margin-right: 20px;
+    }
 }
 
 

@@ -3,9 +3,9 @@ import { debounce } from './nonjquery_utils.js';
 export function initSignupForm() {
     const signupForm = document.querySelector('form[name=signup]');
     const submitBtn = document.querySelector('button[name=signup]');
-    const rpdCheckbox = document.querySelector('#pd_request')
-    const pdaSelectorContainer = document.querySelector('#pda-selector')
-    const pdaSelector = document.querySelector('#pd_program')
+    const rpdCheckbox = document.querySelector('#pd-request');
+    const pdaSelectorContainer = document.querySelector('#pda-selector');
+    const pdaSelector = document.querySelector('#pd_program');
     const i18nStrings = JSON.parse(signupForm.dataset.i18n);
     const emailLoadingIcon = $('.ol-signup-form__input--emailAddr .ol-signup-form__icon--loading');
     const usernameLoadingIcon = $('.ol-signup-form__input--username .ol-signup-form__icon--loading');
@@ -24,13 +24,13 @@ export function initSignupForm() {
     function submitCreateAccountForm() {
         signupForm.submit();
     }
-    window.submitCreateAccountForm = submitCreateAccountForm
+    window.submitCreateAccountForm = submitCreateAccountForm;
 
     // Checks whether reportValidity exists for cross-browser compatibility
     // Includes invalid input count to account for checks not covered by reportValidity
     $(signupForm).on('submit', function(e) {
         e.preventDefault();
-        validatePDSelection()
+        validatePDSelection();
         const numInvalidInputs = signupForm.querySelectorAll('.invalid').length;
         const isFormattingValid = !signupForm.reportValidity || signupForm.reportValidity();
         if (numInvalidInputs === 0 && isFormattingValid && window.grecaptcha) {
@@ -41,7 +41,7 @@ export function initSignupForm() {
 
     $('#username').on('keyup', function(){
         const value = $(this).val();
-        $('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
+        $('#userUrl').addClass('darkgreen').text(value).css('font-weight', '700');
     });
 
     /**
@@ -160,15 +160,18 @@ export function initSignupForm() {
 
     function validatePDSelection() {
         if (!rpdCheckbox.checked) {
-            clearError('#pd_program', '#pd_programMessage')
-            return
+            clearError('#pd_program', '#pd_programMessage');
+            pdaSelector.setAttribute('aria-invalid', 'false');
+            return;
         }
         if (pdaSelector.value === '') {
-            renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err'])
-            return
+            renderError('#pd_program', '#pd_programMessage', i18nStrings['missing_pda_err']);
+            pdaSelector.setAttribute('aria-invalid', 'true');
+            return;
         }
 
-        clearError('#pd_program', '#pd_programMessage')
+        clearError('#pd_program', '#pd_programMessage');
+        pdaSelector.setAttribute('aria-invalid', 'false');
     }
 
     // Maps input ID attribute to corresponding validation function
@@ -185,7 +188,7 @@ export function initSignupForm() {
         }
     }
 
-    const $nonCheckboxInputs = $('form[name=signup] input:not([type="checkbox"])')
+    const $nonCheckboxInputs = $('form[name=signup] input:not([type="checkbox"])');
 
     // Validates input fields already marked as invalid on value change
     $nonCheckboxInputs.on('input', debounce(function(){
@@ -203,22 +206,28 @@ export function initSignupForm() {
 
     // Validates the print-disability authority selection when the selection changes
     $('form[name=signup] select').on('change', function() {
-        validatePDSelection()
-    })
+        validatePDSelection();
+    });
 
     function updateSelectorVisibility() {
         if (rpdCheckbox.checked) {
-            pdaSelectorContainer.classList.remove('hidden')
+            pdaSelectorContainer.classList.remove('hidden');
+            rpdCheckbox.setAttribute('aria-expanded', 'true');
+            pdaSelectorContainer.setAttribute('aria-hidden', 'false');
+            pdaSelector.setAttribute('aria-required', 'true');
         } else {
-            pdaSelectorContainer.classList.add('hidden')
+            pdaSelectorContainer.classList.add('hidden');
+            rpdCheckbox.setAttribute('aria-expanded', 'false');
+            pdaSelectorContainer.setAttribute('aria-hidden', 'true');
+            pdaSelector.setAttribute('aria-required', 'false');
         }
     }
 
-    rpdCheckbox.addEventListener('change', updateSelectorVisibility)
+    rpdCheckbox.addEventListener('change', updateSelectorVisibility);
 
     // On page reload, display PD program options and validate selection
-    updateSelectorVisibility()
-    validatePDSelection()
+    updateSelectorVisibility();
+    validatePDSelection();
 }
 
 export function initLoginForm() {
@@ -227,5 +236,5 @@ export function initLoginForm() {
 
     loginForm.on('submit', () => {
         $('button[type=submit]').prop('disabled', true).text(loadingText);
-    })
+    });
 }

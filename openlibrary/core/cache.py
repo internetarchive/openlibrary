@@ -2,6 +2,7 @@
 
 import functools
 import hashlib
+import inspect
 import json
 import random
 import string
@@ -25,7 +26,6 @@ __all__ = [
     "MemcacheCache",
     "MemoryCache",
     "RequestCache",
-    "cached_property",
     "get_memcache",
     "memcache_memoize",
     "memoize",
@@ -33,8 +33,8 @@ __all__ = [
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class memcache_memoize[**P, T]:
@@ -81,9 +81,7 @@ class memcache_memoize[**P, T]:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug(
-                    "Could not find memcache_servers in the configuration. Used dummy memcache."
-                )
+                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
                 from pymemcache.test.utils import MockMemcacheClient
 
                 self._memcache = MockMemcacheClient()
@@ -185,9 +183,7 @@ class memcache_memoize[**P, T]:
     def compute_key(self, args: tuple, kw: dict) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "$" + self.encode_args(args, kw)
-        return key.replace(
-            " ", "_"
-        )  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value: Any) -> str:
         """json.dumps without extra spaces.
@@ -239,28 +235,6 @@ class memcache_memoize[**P, T]:
 
 
 ####
-
-
-def cached_property(getter):
-    """Decorator like `property`, but the value is computed on first call and cached.
-
-    class Foo:
-
-        @cached_property
-        def memcache_client(self):
-            ...
-    """
-    name = getter.__name__
-
-    def g(self):
-        if name in self.__dict__:
-            return self.__dict__[name]
-
-        value = getter(self)
-        self.__dict__[name] = value
-        return value
-
-    return property(g)
 
 
 class Cache:
@@ -322,14 +296,12 @@ class MemcacheCache(Cache):
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
 
-    @cached_property
+    @functools.cached_property
     def memcache(self):
         if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
-            web.debug(
-                "Could not find memcache_servers in the configuration. Used dummy memcache."
-            )
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
             from pymemcache.test.utils import MockMemcacheClient
 
             return MockMemcacheClient()
@@ -488,30 +460,47 @@ class memoize:
         cacheable: Callable | None = None,
     ):
         self.cache = _get_cache(engine)
-        self.keyfunc = (
-            key if callable(key) else functools.partial(build_memcache_key, key)
-        )
+        self.keyfunc = key if callable(key) else functools.partial(build_memcache_key, key)
         self.cacheable = cacheable
         self.expires = expires
 
     def __call__(self, f):
         """Returns the memoized version of f."""
 
-        @functools.wraps(f)
-        def func(*args, **kwargs):
-            """The memoized function.
+        if inspect.iscoroutinefunction(f):
+            # Async function - return async wrapper
+            @functools.wraps(f)
+            async def async_func(*args, **kwargs):
+                """The memoized async function.
 
-            If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
-            Otherwise, value from the cache is returned.
-            """
-            key = self.keyfunc(*args, **kwargs)
-            value = self.cache_get(key)
-            if value is None:
-                value = f(*args, **kwargs)
-                self.cache_set(key, value)
-            return value
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = await f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
 
-        return func
+            return async_func
+        else:
+            # Sync function - return sync wrapper (existing behavior)
+            @functools.wraps(f)
+            def func(*args, **kwargs):
+                """The memoized function.
+
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
+
+            return func
 
     def cache_get(self, key: str | tuple):
         """Reads value of a key from the cache.
@@ -566,28 +555,3 @@ def build_memcache_key(prefix: str, *args, **kw) -> str:
         key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
     return key
-
-
-def method_memoize(f):
-    """
-    object-local memoize.
-    Works only for functions with simple arguments; i.e. JSON serializeable
-    """
-
-    @functools.wraps(f)
-    def g(self, *args, **kwargs):
-        cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = json.dumps(
-            {
-                'function': f.__name__,
-                'args': args,
-                'kwargs': kwargs,
-            },
-            sort_keys=True,
-        )
-
-        if key not in cache:
-            cache[key] = f(self, *args, **kwargs)
-        return cache[key]
-
-    return g

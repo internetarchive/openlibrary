@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import Any
 
 import yaml
 
@@ -9,7 +10,7 @@ import infogami
 from infogami import config
 from infogami.infobase import server
 
-runtime_config = {}
+runtime_config: dict[str, Any] = {}
 
 
 def load(config_file):
@@ -20,9 +21,9 @@ def load(config_file):
 
     WARNING: This function is deprecated, please use load_config instead.
     """
-    if 'pytest' in sys.modules:
+    if "pytest" in sys.modules:
         # During pytest ensure we're not using like olsystem or something
-        assert config_file == 'conf/openlibrary.yml'
+        assert config_file == "conf/openlibrary.yml"
     # for historic reasons
     global runtime_config
     with open(config_file) as in_file:
@@ -34,9 +35,9 @@ def load_config(config_file):
 
     The loaded config will be available via infogami.config.
     """
-    if 'pytest' in sys.modules:
+    if "pytest" in sys.modules:
         # During pytest ensure we're not using like olsystem or something
-        assert config_file == 'conf/openlibrary.yml'
+        assert config_file == "conf/openlibrary.yml"
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
 

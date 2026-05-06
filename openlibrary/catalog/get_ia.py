@@ -9,8 +9,8 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.core import ia
 
-IA_BASE_URL = config.get('ia_base_url')
-IA_DOWNLOAD_URL = f'{IA_BASE_URL}/download/'
+IA_BASE_URL = config.get("ia_base_url")
+IA_DOWNLOAD_URL = f"{IA_BASE_URL}/download/"
 MAX_MARC_LENGTH = 100000
 
 
@@ -27,9 +27,7 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
         sleep(2)
 
 
-def get_marc_record_from_ia(
-    identifier: str, ia_metadata: dict | None = None
-) -> MarcBinary | MarcXml | None:
+def get_marc_record_from_ia(identifier: str, ia_metadata: dict | None = None) -> MarcBinary | MarcXml | None:
     """
     Takes IA identifiers and optional IA metadata and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
@@ -40,12 +38,12 @@ def get_marc_record_from_ia(
     """
     if ia_metadata is None:
         ia_metadata = ia.get_metadata(identifier)
-    filenames = ia_metadata['_filenames']  # type: ignore[index]
+    filenames = ia_metadata["_filenames"]  # type: ignore[index]
 
-    marc_xml_filename = identifier + '_marc.xml'
-    marc_bin_filename = identifier + '_meta.mrc'
+    marc_xml_filename = identifier + "_marc.xml"
+    marc_bin_filename = identifier + "_meta.mrc"
 
-    item_base = f'{IA_DOWNLOAD_URL}{identifier}/'
+    item_base = f"{IA_DOWNLOAD_URL}{identifier}/"
 
     # Try marc.bin first
     if marc_bin_filename in filenames:
@@ -55,9 +53,7 @@ def get_marc_record_from_ia(
     # If that fails, try marc.xml
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).content
-        root = etree.fromstring(
-            data, parser=lxml.etree.XMLParser(resolve_entities=False)
-        )
+        root = etree.fromstring(data, parser=lxml.etree.XMLParser(resolve_entities=False))
         return MarcXml(root)
     return None
 
@@ -73,7 +69,7 @@ def get_from_archive_bulk(locator):
     :rtype: (str|None, int|None, int|None)
     :return: (Binary MARC data, Next record offset, Next record length)
     """
-    locator = locator.removeprefix('marc:')
+    locator = locator.removeprefix("marc:")
     filename, offset, length = locator.split(":")
     offset = int(offset)
     length = int(length)
@@ -85,16 +81,14 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    response = urlopen_keep_trying(url, headers={'Range': 'bytes=%d-%d' % (r0, r1)})
+    response = urlopen_keep_trying(url, headers={"Range": "bytes=%d-%d" % (r0, r1)})
     data = None
     if response:
         # this truncates the data to MAX_MARC_LENGTH, but is probably not necessary here?
         data = response.content[:MAX_MARC_LENGTH]
         len_in_rec = int(data[:5])
         if len_in_rec != length:
-            data, next_offset, next_length = get_from_archive_bulk(
-                '%s:%d:%d' % (filename, offset, len_in_rec)
-            )
+            data, next_offset, next_length = get_from_archive_bulk("%s:%d:%d" % (filename, offset, len_in_rec))
         else:
             next_length = data[length:]
             data = data[:length]

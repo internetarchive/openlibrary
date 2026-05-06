@@ -36,7 +36,9 @@ from web.template import TemplateResult
 from web.utils import Storage
 
 from infogami import config
+from infogami.infobase import client
 from infogami.infobase.client import Changeset, Nothing, Thing, storify
+from infogami.infobase.common import parse_query
 from infogami.utils import delegate, features, stats, view
 from infogami.utils.context import InfogamiContext, context
 from infogami.utils.macro import macro
@@ -48,6 +50,7 @@ from infogami.utils.view import (
 from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime, truncate
 from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.utils import normalize_subject_name, request_context
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import (
@@ -102,6 +105,7 @@ class MultiDict(MutableMapping):
     >>> list(d.multi_items())
     [('x', [1, 2]), ('y', [3])]
     >>> d1 = MultiDict(items=(('a', 1), ('b', 2)), a=('x', 10, 11, 12))
+    >>> list(d1.multi_items())
     [('a', [1, ('x', 10, 11, 12)]), ('b', [2])]
     """
 
@@ -234,18 +238,17 @@ def render_macro(name, args, **kwargs):
 
 @public
 def render_cached_macro(name: str, args: tuple, **kwargs):
-    from openlibrary.plugins.openlibrary.code import is_bot
     from openlibrary.plugins.openlibrary.home import caching_prethread
 
     def get_key_prefix():
-        lang = web.ctx.lang
+        req_context = request_context.req_context.get()
+        lang = req_context.lang
         key_prefix = f'{name}.{lang}'
-        cookies = web.cookies()
-        if cookies.get('pd', False):
+        if req_context.print_disabled:
             key_prefix += '.pd'
-        if cookies.get('sfw', ''):
+        if req_context.sfw:
             key_prefix += '.sfw'
-        if is_bot():
+        if req_context.is_bot:
             key_prefix += '.bot'
         return key_prefix
 
@@ -261,18 +264,13 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
 
     try:
         page = mc(name, args, **kwargs)
+        if page.get('do_not_cache') == 'True':
+            mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
     except (ValueError, TypeError):
         return '<span>Failed to render macro</span>'
 
 
-@public
-def get_error(name, *args):
-    """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
-
-
-@public
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
@@ -291,28 +289,11 @@ def get_message_from_template(
 
 
 @public
-def list_recent_pages(path, limit=100, offset=0):
-    """Lists all pages with name path/* in the order of last_modified."""
-    q = {}
-
-    q['key~'] = path + '/*'
-    # don't show /type/delete and /type/redirect
-    q['a:type!='] = '/type/delete'
-    q['b:type!='] = '/type/redirect'
-
-    q['sort'] = 'key'
-    q['limit'] = limit
-    q['offset'] = offset
-    q['sort'] = '-last_modified'
-    # queries are very slow with != conditions
-    # q['type'] != '/type/delete'
-    return web.ctx.site.get_many(web.ctx.site.things(q))
-
-
-@public
 def commify_list(items: Iterable[Any]) -> str:
     # Not sure why lang is sometimes ''
-    lang = web.ctx.lang or 'en'
+
+    lang = request_context.req_context.get().lang or 'en'
+
     # If the list item is a template/html element, we strip it
     # so that there is no space before the comma.
     try:
@@ -334,13 +315,13 @@ def is_feature_enabled(feature_name: str) -> bool:
     return features.is_enabled(feature_name)
 
 
-def unflatten(d: dict, separator: str = "--") -> dict:
+def unflatten(d: dict, separator: str = "--") -> Storage | list[Any]:
     """Convert flattened data into nested form.
 
     >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
-    {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
+    <Storage {'a': 1, 'b': <Storage {'x': 2, 'y': 3}>, 'c': [4, 5]}>
     >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
-    {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
+    <Storage {'a': [<Storage {'x': 1, 'y': 2}>, <Storage {'x': 3, 'y': 4}>]}>
 
     """
 
@@ -384,7 +365,7 @@ def fuzzy_find(value, options, stopwords=None):
     if not options:
         return value
 
-    rx = web.re_compile(r"[-_\.&, ]+")
+    rx = re.compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -654,7 +635,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
     return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
-@public
 def entity_decode(text: str) -> str:
     return unescape(text)
 
@@ -722,10 +702,9 @@ def strip_accents(s: str) -> str:
 
 @functools.cache
 def get_languages(limit: int = 1000) -> dict:
-    keys = web.ctx.site.things({"type": "/type/language", "limit": limit})
-    return {
-        lang.key: lang for lang in web.ctx.site.get_many(keys) if not lang.deprecated
-    }
+    site = request_context.site.get()
+    keys = site.things({"type": "/type/language", "limit": limit})
+    return {lang.key: lang for lang in site.get_many(keys) if not lang.deprecated}
 
 
 def word_prefix_match(prefix: str, text: str) -> bool:
@@ -736,17 +715,19 @@ def word_prefix_match(prefix: str, text: str) -> bool:
 
 def autocomplete_languages(prefix: str) -> Iterator[Storage]:
     """
-    Given, e.g., "English", this returns an iterator of the following:
-        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
-        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
+    Given, e.g., "English", this returns an iterator of the following,
+    sorted so that names starting with the prefix appear first (alphabetically),
+    followed by names that contain the prefix elsewhere (also alphabetically):
         <Storage {'key': '/languages/eng', 'code': 'eng', 'name': 'English'}>
         <Storage {'key': '/languages/enm', 'code': 'enm', 'name': 'English, Middle (1100-1500)'}>
+        <Storage {'key': '/languages/ang', 'code': 'ang', 'name': 'English, Old (ca. 450-1100)'}>
+        <Storage {'key': '/languages/cpe', 'code': 'cpe', 'name': 'Creoles and Pidgins, English-based (Other)'}>
     """
 
     def get_names_to_try(lang: dict) -> Generator[str | None, None, None]:
         # For each language attempt to match based on:
         # The language's name translated into the current user's chosen language (user_lang)
-        user_lang = web.ctx.lang or 'en'
+        user_lang = request_context.req_context.get().lang or 'en'
         yield safeget(lambda: lang['name_translated'][user_lang][0])
 
         # The language's name translated into its native name (lang_iso_code)
@@ -760,15 +741,22 @@ def autocomplete_languages(prefix: str) -> Iterator[Storage]:
         return strip_accents(s).lower()
 
     prefix = normalize_for_search(prefix)
+    matches = []
     for lang in get_languages().values():
         for lang_name in get_names_to_try(lang):
             if lang_name and word_prefix_match(prefix, normalize_for_search(lang_name)):
-                yield Storage(
-                    key=lang.key,
-                    code=lang.code,
-                    name=lang_name,
+                matches.append(
+                    Storage(
+                        key=lang.key,
+                        code=lang.code,
+                        name=lang_name,
+                    )
                 )
                 break
+    yield from sorted(
+        matches,
+        key=lambda x: (not normalize_for_search(x.name).startswith(prefix), x.name),
+    )
 
 
 def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
@@ -1170,7 +1158,9 @@ def get_marc21_language(language: str) -> str | None:
 
 
 @public
-def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
+def get_language_name(
+    lang_or_key: "Nothing | str | Thing", user_lang: str
+) -> Nothing | str:
     if isinstance(lang_or_key, str):
         lang = get_language(lang_or_key)
         if not lang:
@@ -1178,7 +1168,6 @@ def get_language_name(lang_or_key: "Nothing | str | Thing") -> Nothing | str:
     else:
         lang = lang_or_key
 
-    user_lang = web.ctx.lang or 'en'
     return safeget(lambda: lang['name_translated'][user_lang][0]) or lang.name  # type: ignore[index]
 
 
@@ -1210,7 +1199,7 @@ def get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> S
     return _get_identifier_config(identifier)
 
 
-@web.memoize
+@functools.cache
 def _get_identifier_config(identifier: Literal['work', 'edition', 'author']) -> Storage:
     """
     Returns the identifier config.
@@ -1254,7 +1243,7 @@ class HTML(str):
     __slots__ = ()
 
     def __init__(self, html):
-        str.__init__(self, web.safeunicode(html))
+        str.__init__(self, str(html))
 
     def __repr__(self):
         return "<html: %s>" % str.__repr__(self)
@@ -1312,10 +1301,7 @@ class UpstreamMemcacheClient:
         keys = [web.safestr(k) for k in keys]
 
         d = self._client.get_multi(keys)
-        return {
-            web.safeunicode(adapter.unconvert_key(k)): self.decompress(v)
-            for k, v in d.items()
-        }
+        return {str(adapter.unconvert_key(k)): self.decompress(v) for k, v in d.items()}
 
 
 if config.get('upstream_memcache_servers'):
@@ -1340,7 +1326,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile(r"reverted to revision \d+")
+    re_revert = re.compile(r"reverted to revision \d+")
 
     def is_revert(r):
         return re_revert.match(r.comment or "")
@@ -1405,7 +1391,6 @@ _get_recent_changes2 = web.memoize(
 )
 
 
-@public
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
@@ -1434,7 +1419,7 @@ def _get_blog_feeds():
 
 
 _get_blog_feeds = cache.memcache_memoize(
-    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5 * 60
+    _get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=60 * 60 * 24
 )
 
 
@@ -1451,6 +1436,18 @@ def jsdef_get(obj, key, default=None):
     in both environments.
     """
     return obj.get(key, default)
+
+
+@public
+def create_thing(data: dict) -> Thing:
+    """
+    Helper method to convert a data object recursively to the correct `Thing`
+    classes. Will change the dict to be the same type as when fetched from
+    the database via `web.ctx.site.get`.
+    """
+    return client.create_thing(
+        web.ctx.site, data['key'], web.ctx.site._process_dict(parse_query(data))
+    )
 
 
 @public
@@ -1473,7 +1470,6 @@ def item_image(image_path: str | None, default: str | None = None) -> str | None
     return "https:" + image_path
 
 
-@public
 def get_blog_feeds() -> list[Storage]:
     def process(post):
         post = Storage(post)
@@ -1531,11 +1527,6 @@ def render_once(key: str) -> bool:
 @public
 def today():
     return datetime.datetime.today()
-
-
-@public
-def to_datetime(time: str):
-    return datetime.datetime.fromisoformat(time)
 
 
 class HTMLTagRemover(HTMLParser):
@@ -1663,10 +1654,9 @@ def get_location_and_publisher(loc_pub: str) -> tuple[list[str], list[str]]:
 
 @public
 def subject_name_to_key(subject: str, prefix='') -> str:
-    # TODO: DRY with scripts/solr_builder/solr_builder/index_subjects.py
     if prefix:
         prefix = prefix.rstrip(':') + ':'
-    return f'/subjects/{prefix}{subject.lower().replace(' ', '_').replace(',', '').replace('/', '')}'
+    return f'/subjects/{prefix}{normalize_subject_name(subject)}'
 
 
 def setup_requests(config=config) -> None:

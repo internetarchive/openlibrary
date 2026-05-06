@@ -82,8 +82,10 @@ SUSPECT_DATE_EXEMPT_SOURCES: Final = ["wikisource"]
 SUSPECT_AUTHOR_NAMES: Final = ["unknown", "n/a"]
 SOURCE_RECORDS_REQUIRING_DATE_SCRUTINY: Final = ["amazon", "bwb", "promise"]
 ALLOWED_COVER_HOSTS: Final = (
+    "archive.org",
     "books.google.com",
     "commons.wikimedia.org",
+    "covers.openlibrary.org",
     "m.media-amazon.com",
 )
 
@@ -585,7 +587,10 @@ def check_cover_url_host(
     )
 
     if not host_is_allowed:
-        logger.info(f"disallowed cover url: {cover_url}")
+        logger.warning(
+            "disallowed cover host",
+            extra={"host": parsed_url.netloc.casefold(), "url": cover_url},
+        )
         return False
 
     return True
@@ -692,7 +697,7 @@ def load_data(  # noqa: PLR0912, PLR0915
         for a in edition.get('authors', [])
     ]
     # build_author_reply() adds authors to edits
-    (authors, author_reply) = load_author_import_records(
+    authors, author_reply = load_author_import_records(
         author_in, edits, rec['source_records'][0], save=save
     )
 
@@ -741,7 +746,8 @@ def load_data(  # noqa: PLR0912, PLR0915
         comment = (
             "overwrite existing edition" if existing_edition else "import new book"
         )
-        web.ctx.site.save_many(edits, comment=comment, action='add-book')
+        action = "edit-book" if existing_edition else "add-book"
+        web.ctx.site.save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:

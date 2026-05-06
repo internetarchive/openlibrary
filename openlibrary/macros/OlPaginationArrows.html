@@ -1,0 +1,13 @@
+$def with (page, has_next_page)
+
+<div class="ol-pagination-wrapper">
+    <ol-pagination
+        mode="arrows"
+        current-page="$page"
+        $if has_next_page:
+            has-next-page
+        label-previous-page="$_('Go to previous page')"
+        label-next-page="$_('Go to next page')"
+        label-pagination="$_('Pagination')"
+    ></ol-pagination>
+</div>

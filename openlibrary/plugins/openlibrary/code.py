@@ -3,6 +3,7 @@ Open Library Plugin.
 """
 
 import datetime
+import functools
 import gzip
 import json
 import logging
@@ -12,7 +13,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, quote, urlencode
 
 import requests
 import web
@@ -25,15 +26,20 @@ from openlibrary.core.batch_imports import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
+from openlibrary.utils.request_context import (
+    req_context,
+    set_context_from_legacy_web_py,
+)
 
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
+
 import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
-from infogami.utils import delegate, features
+from infogami.utils import delegate, features, i18n, macro, template
 from infogami.utils.app import metapage
 from infogami.utils.view import (
     add_flash_message,
@@ -42,18 +48,46 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
 from openlibrary.plugins.openlibrary import processors
 from openlibrary.plugins.openlibrary.stats import increment_error_count
 from openlibrary.utils.isbn import canonical, isbn_10_to_isbn_13, isbn_13_to_isbn_10
 
+
+def setup_contextvars(handler):
+    """Processor that sets up context variables for the entire request lifecycle.
+
+    This ensures RequestContextVars are available during template rendering
+    and throughout the entire request.
+
+    IMPORTANT: We DON'T wrap in a new context here because that would isolate
+    the context variables to just this processor. Instead, we set them in the
+    current context so they're available to all subsequent processors and templates.
+    """
+    # Set context variables for this request
+    set_context_from_legacy_web_py()
+
+    # Run the handler (and all subsequent processors)
+    return handler()
+
+
+# Add processors in order - setup_contextvars must come BEFORE the handler
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-delegate.app.add_processor(processors.CORSProcessor(cors_prefixes={'/api/'}))
+delegate.app.add_processor(
+    processors.CORSProcessor(
+        cors_paths={'/opds'},
+        cors_prefixes={'/api/', '/opds/'},
+    )
+)
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
+# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
+# It's added here (not as a loadhook) so it runs in the same request context
+delegate.app.add_processor(setup_contextvars)
 
 try:
     from infogami.plugins.api import code as api
@@ -82,6 +116,7 @@ models.register_types()
 import openlibrary.core.lists.model as list_models
 
 list_models.register_models()
+list_models.register_types()
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [
@@ -203,7 +238,7 @@ def sampleload(filename='sampledump.txt.gz'):
     with gzip.open(filename) if filename.endswith('.gz') else open(filename) as file:
         queries = [json.loads(line) for line in file]
 
-    print(web.ctx.site.save_many(queries))
+    print(web.ctx.site.save_many(queries, action="infogami-sampleload-action"))
 
 
 class routes(delegate.page):
@@ -259,7 +294,7 @@ class widget(delegate.page):
     path = r'(/works/OL\d+W|/books/OL\d+M)/widget'
 
     def GET(self, key: str):  # type: ignore[override]
-        olid = key.split('/')[-1]
+        olid = key.rsplit('/', maxsplit=1)[-1]
         item = web.ctx.site.get(key)
         is_work = key.startswith('/works/')
         item['olid'] = olid
@@ -305,6 +340,8 @@ class addauthor(delegate.page):
     path = '/addauthor'
 
     def POST(self):
+        if not (get_current_user()):
+            raise web.unauthorized()
         i = web.input('name')
         if len(i.name) < 2:
             return web.badrequest()
@@ -313,6 +350,7 @@ class addauthor(delegate.page):
         web.ctx.site.save(
             {'key': key, 'name': i.name, 'type': {'key': '/type/author'}},
             comment='New Author',
+            action="create-author",
         )
         raise web.HTTPError('200 OK', {}, key)
 
@@ -332,108 +370,6 @@ class clonebook(delegate.page):
             return render.edit(page, '/addbook', 'Clone Book')
 
 
-class search(delegate.page):
-    path = '/suggest/search'
-
-    def GET(self):
-        i = web.input(prefix='')
-        if len(i.prefix) > 2:
-            q = {
-                'type': '/type/author',
-                'name~': i.prefix + '*',
-                'sort': 'name',
-                'limit': 5,
-            }
-            things = web.ctx.site.things(q)
-            things = [web.ctx.site.get(key) for key in things]
-            result = [
-                {
-                    'type': [{'id': t.key, 'name': t.key}],
-                    'name': web.safestr(t.name),
-                    'guid': t.key,
-                    'id': t.key,
-                    'article': {'id': t.key},
-                }
-                for t in things
-            ]
-        else:
-            result = []
-        callback = i.pop('callback', None)
-        d = {
-            'status': '200 OK',
-            'query': dict(i, escape='html'),
-            'code': '/api/status/ok',
-            'result': result,
-        }
-
-        if callback:
-            data = f'{callback}({json.dumps(d)})'
-        else:
-            data = json.dumps(d)
-        raise web.HTTPError('200 OK', {}, data)
-
-
-class blurb(delegate.page):
-    path = '/suggest/blurb/(.*)'
-
-    def GET(self, path):
-        i = web.input()
-        author = web.ctx.site.get('/' + path)
-        body = ''
-        if author.birth_date or author.death_date:
-            body = f'{author.birth_date} - {author.death_date}'
-        else:
-            body = '%s' % author.date
-
-        body += '<br/>'
-        if author.bio:
-            body += web.safestr(author.bio)
-
-        result = {'body': body, 'media_type': 'text/html', 'text_encoding': 'utf-8'}
-        d = {'status': '200 OK', 'code': '/api/status/ok', 'result': result}
-        if callback := i.pop('callback', None):
-            data = f'{callback}({json.dumps(d)})'
-        else:
-            data = json.dumps(d)
-
-        raise web.HTTPError('200 OK', {}, data)
-
-
-class thumbnail(delegate.page):
-    path = '/suggest/thumbnail'
-
-
-@public
-def get_property_type(type, name):
-    for p in type.properties:
-        if p.name == name:
-            return p.expected_type
-    return web.ctx.site.get('/type/string')
-
-
-def save(filename, text):
-    root = os.path.dirname(__file__)
-    path = root + filename
-    dir = os.path.dirname(path)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    with open(path, 'w') as file:
-        file.write(text)
-
-
-def change_ext(filename, ext):
-    filename, _ = os.path.splitext(filename)
-    if ext:
-        filename = filename + ext
-    return filename
-
-
-def get_pages(type, processor):
-    pages = web.ctx.site.things({'type': type})
-    for p in pages:
-        processor(web.ctx.site.get(p))
-
-
 class robotstxt(delegate.page):
     path = '/robots.txt'
 
@@ -444,7 +380,7 @@ class robotstxt(delegate.page):
         return web.ok(open(f'static/{robots_file}').read())
 
 
-@web.memoize
+@functools.cache
 def fetch_ia_js(filename: str) -> str:
     return requests.get(f'https://archive.org/includes/{filename}').text
 
@@ -905,7 +841,7 @@ class _yaml_edit(_yaml):
             d = self.load(i.body)
             p = web.ctx.site.new(key, d)
             try:
-                p._save(i._comment)
+                p._save(i._comment, action="edit-yaml")
             except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
@@ -920,7 +856,7 @@ class _yaml_edit(_yaml):
 
 def _get_user_root():
     user_root = infogami.config.get('infobase', {}).get('user_root', '/user')
-    return web.rstrips(user_root, '/')
+    return user_root.removesuffix('/')
 
 
 def _get_bots():
@@ -1073,29 +1009,6 @@ def get_recent_changes(*a, **kw):
         return _get_recentchanges(*a, **kw)
 
 
-@public
-def most_recent_change():
-    if 'cache_most_recent' in infogami.config.features:
-        v = web.ctx.site._request('/most_recent')
-        v.thing = web.ctx.site.get(v.key)
-        v.author = v.author and web.ctx.site.get(v.author)
-        v.created = client.parse_datetime(v.created)
-        return v
-    else:
-        return get_recent_changes(limit=1)[0]
-
-
-@public
-def get_cover_id(key):
-    try:
-        _, cat, oln = key.split('/')
-        return requests.get(
-            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
-        ).json()[0]
-    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
-        return None
-
-
 local_ip = None
 
 
@@ -1193,71 +1106,15 @@ class memory(delegate.page):
 
 
 def is_bot():
-    r"""Generated on ol-www1 within /var/log/nginx with:
+    """Check if the current request is from a bot."""
+    return req_context.get().is_bot
 
-    cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
-    cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'
 
-    Manually removed singleton `bot` (to avoid overly complex grep regex)
-    """
-    if 'is_bot' in web.ctx:
-        return web.ctx.is_bot
-
-    user_agent_bots = [
-        'sputnikbot',
-        'dotbot',
-        'semrushbot',
-        'googlebot',
-        'yandexbot',
-        'monsidobot',
-        'kazbtbot',
-        'seznambot',
-        'dubbotbot',
-        '360spider',
-        'redditbot',
-        'yandexmobilebot',
-        'linkdexbot',
-        'musobot',
-        'mojeekbot',
-        'focuseekbot',
-        'behloolbot',
-        'startmebot',
-        'yandexaccessibilitybot',
-        'uptimerobot',
-        'femtosearchbot',
-        'pinterestbot',
-        'toutiaospider',
-        'yoozbot',
-        'parsijoobot',
-        'equellaurlbot',
-        'donkeybot',
-        'paperlibot',
-        'nsrbot',
-        'discordbot',
-        'ahrefsbot',
-        '`googlebot',
-        'coccocbot',
-        'buzzbot',
-        'laserlikebot',
-        'baiduspider',
-        'bingbot',
-        'mj12bot',
-        'yoozbotadsbot',
-        'ahrefsbot',
-        'amazonbot',
-        'applebot',
-        'bingbot',
-        'brightbot',
-        'gptbot',
-        'petalbot',
-        'semanticscholarbot',
-        'yandex.com/bots',
-        'icc-crawler',
-    ]
-    if not web.ctx.env.get('HTTP_USER_AGENT'):
-        return True
-    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
-    return any(bot in user_agent for bot in user_agent_bots)
+@public
+def is_recognized_bot():
+    # Reads from the request-scoped ContextVar set by set_context_from_legacy_web_py()
+    # (web.py) or set_context_from_fastapi() — the web.py equivalent of web.ctx.
+    return req_context.get().is_recognized_bot
 
 
 def setup_template_globals():
@@ -1288,6 +1145,7 @@ def setup_template_globals():
             "te": {"code": "te", "localized": _('Telugu'), "native": "తెలుగు"},
             "uk": {"code": "uk", "localized": _('Ukrainian'), "native": "Українська"},
             "zh": {"code": "zh", "localized": _('Chinese'), "native": "中文"},
+            "tl": {"code": "tl", "localized": _('Filipino'), "native": "Filipino"},
         }
 
     web.template.Template.globals.update(
@@ -1298,7 +1156,7 @@ def setup_template_globals():
             'zip': zip,
             'tuple': tuple,
             'hash': hash,
-            'urlquote': web.urlquote,
+            'urlquote': quote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',
@@ -1323,7 +1181,13 @@ def setup_template_globals():
 def setup_context_defaults():
     from infogami.utils import context
 
-    context.defaults.update({'features': [], 'user': None, 'MAX_VISIBLE_BOOKS': 5})
+    context.defaults.update(
+        {
+            'features': [],
+            'user': None,
+            'MAX_VISIBLE_BOOKS': 5,
+        }
+    )
 
 
 def setup():
@@ -1340,6 +1204,10 @@ def setup():
         status,
         swagger,
     )
+
+    template.load_templates("openlibrary/plugins/openlibrary", lazy=True)
+    macro.load_macros("openlibrary/plugins/openlibrary", lazy=True)
+    i18n.load_strings("openlibrary/plugins/openlibrary")
 
     sentry.setup()
     home.setup()
@@ -1359,11 +1227,7 @@ def setup():
     )
 
     delegate.app.add_processor(web.unloadhook(stats.stats_hook))
-
-    if infogami.config.get('dev_instance') is True:
-        from openlibrary.plugins.openlibrary import dev_instance
-
-        dev_instance.setup()
+    delegate.app.add_processor(processors.CookieValidationProcessor())
 
     setup_context_defaults()
     setup_template_globals()

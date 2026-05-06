@@ -13,12 +13,10 @@ $if follows:
         </div>
         <div>
           $if manage:
-            $:macros.Follow(follow['publisher'], following=1)
+            $:macros.Follow(follow['publisher'], following=1, link_track='FollowsPage|Follow')
         </div>
       </li>
     </ul>
-  <div class="pager">
-    $:macros.Pager(page, num_found, results_per_page)
-  </div>
+  $:macros.OlPagination(page, ceil(num_found / results_per_page))
 $else:
   <p>$_("There is nothing to see here yet.")</p>
