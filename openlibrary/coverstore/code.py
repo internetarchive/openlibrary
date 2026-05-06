@@ -276,8 +276,8 @@ class cover:
             web.header('Cache-Control', 'public, max-age=31536000, immutable')
             web.expires(365 * 24 * 3600)
         else:
-            web.header('Cache-Control', 'public, max-age=2592000')
-            web.expires(30 * 24 * 3600)
+            web.header('Cache-Control', 'public, max-age=86400')
+            web.expires(24 * 3600)
 
         web.header('Content-Type', 'image/jpeg')
         try:
