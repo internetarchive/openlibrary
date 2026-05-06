@@ -5,6 +5,7 @@ editions of the same work that might be available.
 
 import re
 import sys
+from collections.abc import Iterable
 
 import web
 
@@ -18,14 +19,14 @@ def key_to_olid(key):
     return key.split("/")[-1]
 
 
-def get_solr_fields_for_works(
+async def get_solr_fields_for_works(
     field: str,
-    wkeys: list[str],
+    wkeys: Iterable[str],
     clip_limit: int | None = None,
 ) -> dict[str, list[str]]:
     from openlibrary.plugins.worksearch.search import get_solr
 
-    docs = get_solr().get_many(wkeys, fields=["key", field])
+    docs = await get_solr().get_many_async(wkeys, fields=["key", field])
     return {doc["key"]: doc.get(field, [])[:clip_limit] for doc in docs}
 
 
@@ -205,14 +206,14 @@ class ReadProcessor:
             result["tosort"] = iaids_tosort
         return result
 
-    def process(self, req):
+    async def process(self, req: str):
         requests = req.split("|")
         bib_keys = [item for r in requests for item in r.split(";")]
 
         # filter out 'id:foo' before passing to dynlinks
         bib_keys = [k for k in bib_keys if k[:3].lower() != "id:"]
 
-        self.docs = dynlinks.add_availability(dynlinks.query_docs(bib_keys))
+        self.docs = await dynlinks.add_availability(dynlinks.query_docs(bib_keys))
         if not self.options.get("no_details"):
             self.detailss = dynlinks.process_result_for_details(self.docs)
         else:
@@ -224,7 +225,7 @@ class ReadProcessor:
         # XXX control costs below with iaid_limit - note that this may result
         # in no 'exact' item match, even if one exists
         # Note that it's available thru above works/docs
-        self.wkey_to_iaids = get_solr_fields_for_works("ia", self.works, 500)
+        self.wkey_to_iaids = await get_solr_fields_for_works("ia", self.works, 500)
         iaids = [value for sublist in self.wkey_to_iaids.values() for value in sublist]
         self.iaid_to_meta = {iaid: ia.get_metadata(iaid) for iaid in iaids}
 
@@ -273,7 +274,7 @@ class ReadProcessor:
         return result
 
 
-def readlinks(req, options):
+async def readlinks(req: str, options: dict):
     try:
         dbstr = "debug|"
         if req.startswith(dbstr):
@@ -290,17 +291,16 @@ def readlinks(req, options):
         if options.get("listofworks"):
             """For load-testing, handle a special syntax"""
             wids = req.split("|")
-            mapping = get_solr_fields_for_works("edition_key", wids[:5])
-            req = "|".join(("olid:" + k) for k in mapping.values())
+            mapping = await get_solr_fields_for_works("edition_key", wids[:5])
+            req = "|".join(("olid:" + k) for lst in mapping.values() for k in lst)
 
-        result = rp.process(req)
+        result = await rp.process(req)
 
         if options.get("stats"):
-            summary = stats.stats_summary()
-            s = {}
-            result["stats"] = s
-            s["summary"] = summary
-            s["stats"] = web.ctx.get("stats", [])
+            result["stats"] = {
+                "summary": stats.stats_summary(),
+                "stats": web.ctx.get("stats", []),
+            }
     except:
         print("Error in processing Read API", file=sys.stderr)
         if options.get("show_exception"):

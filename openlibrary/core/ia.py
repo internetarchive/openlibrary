@@ -18,6 +18,7 @@ IA_BASE_URL = "https://archive.org"
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 EXEMPT_COLLECTIONS = ["collection:thoth-archiving-network"]
 session = httpx.Client()
+async_session = httpx.AsyncClient()
 
 
 def setup(config):

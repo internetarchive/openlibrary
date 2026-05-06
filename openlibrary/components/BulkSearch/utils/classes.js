@@ -18,7 +18,7 @@ class AbstractExtractor {
      */
     constructor(label) {
         /** @type {string} */
-        this.label = label
+        this.label = label;
     }
     /**
      * @param {ExtractionOptions} _extractOptions
@@ -26,20 +26,20 @@ class AbstractExtractor {
      * @returns {Promise<BookMatch[]>}
      */
     async run(_extractOptions, _text) {  //eslint-disable-line no-unused-vars
-        throw new Error('Not Implemented Error')
+        throw new Error('Not Implemented Error');
     }
 }
 
 export class RegexExtractor extends AbstractExtractor {
 
-    name = 'regex_extractor'
+    name = 'regex_extractor';
     /**
      *
      * @param {string} label
      * @param {string} pattern
      */
     constructor(label, pattern){
-        super(label)
+        super(label);
         /** @type {RegExp} */
         this.pattern = new RegExp(pattern, 'gmu');
     }
@@ -50,24 +50,24 @@ export class RegexExtractor extends AbstractExtractor {
      * @returns {Promise<BookMatch[]>}
      */
     async run(_extractOptions, text) {
-        const data = [...text.matchAll(this.pattern)]
-        const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author, entry.groups?.isbn))
-        const matchedBooks = extractedBooks.map((entry) => new BookMatch(entry, []))
-        return matchedBooks
+        const data = [...text.matchAll(this.pattern)];
+        const extractedBooks = data.map((entry) => new ExtractedBook(entry.groups?.title, entry.groups?.author, entry.groups?.isbn));
+        const matchedBooks = extractedBooks.map((entry) => new BookMatch(entry, []));
+        return matchedBooks;
     }
 }
 
 export class AiExtractor extends AbstractExtractor{
 
-    name = 'ai_extractor'
+    name = 'ai_extractor';
     /**
      * @param {string} label
      * @param {string} model
      */
     constructor(label, model) {
-        super(label)
+        super(label);
         /** @type {string} */
-        this.model = model
+        this.model = model;
     }
 
     /**
@@ -99,27 +99,27 @@ export class AiExtractor extends AbstractExtractor{
                 ],
             })
 
-        }
+        };
         try {
-            const resp = await fetch('https://api.openai.com/v1/chat/completions', request)
+            const resp = await fetch('https://api.openai.com/v1/chat/completions', request);
 
             if (!resp.ok) {
-                const status = resp.status
-                let errorMessage = 'Network response was not okay.'
+                const status = resp.status;
+                let errorMessage = 'Network response was not okay.';
                 if (status === 401) {
 
-                    errorMessage = `${errorMessage} Error: Incorrect Authorization key.`
+                    errorMessage = `${errorMessage} Error: Incorrect Authorization key.`;
                 }
-                throw new Error(errorMessage)
+                throw new Error(errorMessage);
             }
-            const data = await resp.json()
+            const data = await resp.json();
             return JSON.parse(data.choices[0].message.content)['books']
                 .map((entry) =>
                     new BookMatch(new ExtractedBook(entry?.title, entry?.author, entry?.isbn), {})
-                )
+                );
         }
         catch (error) {
-            return []
+            return [];
         }
 
 
@@ -128,17 +128,17 @@ export class AiExtractor extends AbstractExtractor{
 
 export class TableExtractor extends AbstractExtractor{
 
-    name = 'table_extractor'
+    name = 'table_extractor';
     /**
      *
      * @param {string} label
      */
     constructor(label) {
-        super(label)
+        super(label);
         /** @type {string} */
-        this.authorColumn = 'author'
+        this.authorColumn = 'author';
         /** @type {string} */
-        this.titleColumn = 'title'
+        this.titleColumn = 'title';
     }
 
     /**
@@ -149,39 +149,39 @@ export class TableExtractor extends AbstractExtractor{
     async run(extractionOptions, text){
 
         /** @type {string[]} */
-        const lines = text.split('\n')
+        const lines = text.split('\n');
         /** @type {string[][]} */
-        const cells = lines.map(line => line.split('\t'))
+        const cells = lines.map(line => line.split('\t'));
         /** @type {{columns: String[], rows: {columnName: string}[]}} */
         const tableData = {
             columns: cells[0],
             rows: []
-        }
+        };
         for (let i=1; i< cells.length; i++){
-            const row = {}
+            const row = {};
             for (let j = 0; j < tableData.columns.length; j++){
-                row[tableData.columns[j].trim().toLowerCase()] = cells[i][j]
+                row[tableData.columns[j].trim().toLowerCase()] = cells[i][j];
             }
             // @ts-ignore
-            tableData.rows.push(row)
+            tableData.rows.push(row);
         }
         return tableData.rows.map(
             row => new BookMatch(
                 new ExtractedBook(
                     row[this.titleColumn] || '', row[this.authorColumn] || '', row['isbn'] || ''),
                 {})
-        )
+        );
     }
 }
 
 class ExtractionOptions {
     constructor() {
         /** @type {string} */
-        this.openaiApiKey = ''
+        this.openaiApiKey = '';
     }
 }
 class MatchOptions  {
-    constructor (){
+    constructor(){
         /** @type {boolean} */
         this.includeAuthor = true;
     }
@@ -196,12 +196,12 @@ export class BookMatch {
     constructor(extractedBook, solrDocs){
         /** @type {ExtractedBook} */
         this.extractedBook = extractedBook;
-        this.solrDocs = solrDocs
+        this.solrDocs = solrDocs;
     }
 }
 
 
-const BASE_LIST_URL = '/account/lists/add?seeds='
+const BASE_LIST_URL = '/account/lists/add?seeds=';
 
 export class BulkSearchState{
     constructor(){
@@ -210,7 +210,7 @@ export class BulkSearchState{
         /** @type {BookMatch[]} */
         this.matchedBooks = [];
         /** @type {MatchOptions} */
-        this.matchOptions =  new MatchOptions()
+        this.matchOptions =  new MatchOptions();
         /** @type {ExtractionOptions} */
         this.extractionOptions = new ExtractionOptions();
         /** @type {AbstractExtractor[]} */
@@ -222,14 +222,14 @@ export class BulkSearchState{
             new RegexExtractor('Wikipedia Citation Pattern: (e.g. Baum, Frank L. (1994). The Wizard of Oz)', '^(?<author>[^.()]+).*?\\)\\. (?<title>[^.]+)'),
             new AiExtractor('✨ AI Extraction (Beta)', 'gpt-4o-mini'),
             new TableExtractor('Extract from a Table/Spreadsheet')
-        ]
+        ];
         /** @type {Number} */
-        this._activeExtractorIndex = 0
+        this._activeExtractorIndex = 0;
     }
 
     /**@type {AbstractExtractor} */
     get activeExtractor() {
-        return this.extractors[this._activeExtractorIndex]
+        return this.extractors[this._activeExtractorIndex];
     }
     /**@type {String} */
     get listUrl() {

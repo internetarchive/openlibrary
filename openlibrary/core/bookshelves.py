@@ -11,6 +11,7 @@ from infogami.infobase.utils import flatten
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
 from . import db
@@ -154,25 +155,25 @@ class Bookshelves(db.CommonExtras):
 
         return list(oldb.query(query, vars=data))
 
-    @classmethod
-    def add_solr_works(cls, readinglog_items, fields: Iterable[str] | None = None) -> None:
+    @staticmethod
+    async def add_solr_works_async(readinglog_items, fields: Iterable[str] | None = None) -> None:
         """Given a list of readinglog_items, such as those returned by
         Bookshelves.most_logged_books, fetch the corresponding Open Library
         book records from solr with availability. This will add a 'work' key
         to each item in readinglog_items.
         """
-        from openlibrary.core.lending import add_availability
-        from openlibrary.plugins.worksearch.code import get_solr_works
+        from openlibrary.core.lending import add_availability_async
+        from openlibrary.plugins.worksearch.code import get_solr_works_async
 
         # This gives us a dict of all the works representing
         # the logged_books, keyed by work_id
-        work_index = get_solr_works(
+        work_index = await get_solr_works_async(
             {f"/works/OL{i['work_id']}W" for i in readinglog_items},
             fields,
             editions=True,
         )
 
-        add_availability([((w.get("editions") or {}).get("docs") or [None])[0] or w for w in work_index.values()])
+        await add_availability_async([((w.get("editions") or {}).get("docs") or [None])[0] or w for w in work_index.values()])
 
         # Attach items from the work_index in the order
         # they are represented by the trending logged books
@@ -180,6 +181,8 @@ class Bookshelves(db.CommonExtras):
             key = f"/works/OL{item['work_id']}W"
             if key in work_index:
                 readinglog_items[i]["work"] = work_index[key]
+
+    add_solr_works = staticmethod(async_bridge.wrap(add_solr_works_async))
 
     @classmethod
     def count_total_books_logged_by_user(cls, username: str, bookshelf_ids: list[str] | None = None) -> int:

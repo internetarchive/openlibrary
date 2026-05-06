@@ -35,7 +35,7 @@ div#revertLink,
 .column {
   min-height: 90px;
   margin: 10px;
-  background-image: url(/images/back_sortable.png);
+  background-image: url(/static/images/back_sortable.png);
   background-repeat: no-repeat;
 }
 .trashCan {
@@ -44,7 +44,7 @@ div#revertLink,
   right: 32px;
   width: 32px;
   height: 42px;
-  background-image: url(/images/back_sort-trash.png);
+  background-image: url(/static/images/back_sort-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   cursor: pointer;
@@ -100,7 +100,7 @@ div#revertLink,
   text-decoration: none;
 }
 .saved {
-  background: url(/images/icons/icon_saved.png) no-repeat;
+  background: url(/static/images/icons/icon_saved.png) no-repeat;
   font-size: 1.5em;
   font-weight: 700;
   color: var(--black);

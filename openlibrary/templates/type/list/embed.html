@@ -13,7 +13,7 @@ $def render_seed_count(seed_count):
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
-        <a href="/" title="$_('Visit Open Library')"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
+        <a href="/" title="$_('Visit Open Library')"><img src="/static/images/logo_OL-sm.png" width="90" height="71" alt="$_('Open Library logo')" class="right"/></a>
 
         $ owner = list.get_owner()
         $if owner:
@@ -43,7 +43,7 @@ $def render_seed_count(seed_count):
     $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
         <li id="seed-$loop.index" class="searchResultItem">
             $ cover = seed.get_cover()
-            $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+            $ cover_url = cover and cover.url("M") or "/static/images/icons/avatar_book-sm.png"
             <span class="image">
                 <a href="$seed.url"><img src="$cover_url" height="70"/></a>
             </span>

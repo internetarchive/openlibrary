@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Literal, cast
 
 import aiofiles
-import web
 
 from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
@@ -148,7 +147,7 @@ def load_configs(
     c_config: str,
     c_data_provider: (DataProvider | Literal["default", "legacy", "external"]) = "default",
 ) -> DataProvider:
-    host = web.lstrips(c_host, "http://").strip("/")
+    host = c_host.removeprefix("http://").strip("/")
     set_query_host(host)
 
     load_config(c_config)

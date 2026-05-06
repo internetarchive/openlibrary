@@ -1,4 +1,4 @@
-$def with (q_param, search_response, get_doc, param, page, rows)
+$def with (q_param, search_response, get_doc, param, page, rows, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
 
@@ -30,7 +30,7 @@ $ layout = get_remembered_layout()
             style="padding: 4px; display: inline-block;"
             onchange="document.cookie = `SOLR_EDITIONS=\${this.firstElementChild.checked ? 'true' : 'false'}`; location.reload()"
             >
-                <input type="checkbox" $:cond(has_solr_editions_enabled(), 'checked="checked"')/>
+                <input type="checkbox" $:cond(has_solr_editions_enabled, 'checked="checked"')/>
                 $:_('Solr Editions')
             </label>
         </div>

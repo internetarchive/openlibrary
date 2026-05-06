@@ -70,13 +70,6 @@ jQuery(function() {
         $(this).attr('disabled', true);
     });
 
-    // wmd editor
-    const $markdownTextAreas = $('textarea.markdown');
-    if ($markdownTextAreas.length) {
-        import(/* webpackChunkName: "markdown-editor" */ './markdown-editor')
-            .then((module) => module.initMarkdownEditor($markdownTextAreas));
-    }
-
     init($);
 
     const edition = document.getElementById('addWork');

@@ -2,6 +2,7 @@ import datetime
 import json
 from sqlite3 import IntegrityError
 from types import MappingProxyType
+from typing import Literal
 
 from psycopg2.errors import UniqueViolation
 
@@ -13,7 +14,6 @@ from openlibrary.utils import dateutil
 from . import db
 
 
-@public
 def get_status_for_view(status_code: int) -> str:
     """Returns localized status string that corresponds with the given status code."""
     if status_code == CommunityEditsQueue.STATUS["DECLINED"]:
@@ -23,6 +23,9 @@ def get_status_for_view(status_code: int) -> str:
     if status_code == CommunityEditsQueue.STATUS["MERGED"]:
         return _("Merged")
     return _("Unknown")
+
+
+ApiMode = Literal["all", "open", "closed"]
 
 
 class CommunityEditsQueue:
@@ -54,7 +57,7 @@ class CommunityEditsQueue:
         }
     )
 
-    MODES: MappingProxyType[str, list[int]] = MappingProxyType(
+    MODES: MappingProxyType[ApiMode, list[int]] = MappingProxyType(
         {
             "all": [STATUS["DECLINED"], STATUS["PENDING"], STATUS["MERGED"]],
             "open": [STATUS["PENDING"]],
@@ -67,8 +70,8 @@ class CommunityEditsQueue:
         cls,
         limit: int = 50,
         page: int = 1,
-        mode: str = "all",
-        order: str | None = None,
+        mode: ApiMode = "all",
+        order_by_updated: Literal["asc", "desc"] | None = None,
         **kwargs,
     ):
         oldb = db.get_db()
@@ -81,12 +84,12 @@ class CommunityEditsQueue:
 
         query_kwargs["where"] = cls.where_clause(mode, **kwargs)
 
-        if order:
-            query_kwargs["order"] = order
+        if order_by_updated:
+            query_kwargs["order"] = f"updated {order_by_updated}"
         return oldb.select(cls.TABLENAME, **query_kwargs)
 
     @classmethod
-    def get_counts_by_mode(cls, mode="all", **kwargs):
+    def get_counts_by_mode(cls, mode: ApiMode = "all", **kwargs):
         oldb = db.get_db()
 
         query = f"SELECT count(*) from {cls.TABLENAME}"
@@ -108,7 +111,7 @@ class CommunityEditsQueue:
         return list(oldb.query(query))
 
     @classmethod
-    def where_clause(cls, mode, **kwargs):
+    def where_clause(cls, mode: ApiMode, **kwargs):
         wheres = []
 
         if kwargs.get("reviewer") is not None:
@@ -315,7 +318,7 @@ class CommunityEditsQueue:
 
 
 @public
-def cached_get_counts_by_mode(mode="all", reviewer="", **kwargs):
+def cached_get_counts_by_mode(mode: ApiMode = "all", reviewer="", **kwargs):
     return cache.memcache_memoize(
         CommunityEditsQueue.get_counts_by_mode,
         f"librarian_queue_counts_{mode}",

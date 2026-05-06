@@ -52,9 +52,25 @@ async def get_books(
     thumbnail links, and preview availability. Supports ISBNs, LCCNs,
     OCLC numbers, and Open Library IDs.
 
-    When `high_priority=true`, API will attempt to import editions
-    from ISBNs that don't exist in database immediately, rather
-    than queueing them for later lookup.
+    - `bibkeys` is expected a comma separated string of ISBNs, LCCNs, etc.
+    - `'high_priority=true'` will attempt to import an edition from a supplied ISBN
+      if no matching edition is found. If not `high_priority`, then missed bib_keys
+      are queued for lookup on the affiliate-server, and any responses are `staged`
+      in `import_item`.
+
+    Example call:
+        http://localhost:8080/api/books.json?bibkeys=059035342X,0312368615&high_priority=true
+
+    Returns a JSONified dictionary of the form:
+        {"059035342X": {
+            "bib_key": "059035342X",
+            "info_url": "http://localhost:8080/books/OL43M/Harry_Potter_and_the_Sorcerer's_Stone",
+            "preview": "noview",
+            "preview_url": "https://archive.org/details/lccn_078073006991",
+            "thumbnail_url": "https://covers.openlibrary.org/b/id/21-S.jpg"
+            }
+        "0312368615": {...}
+        }
     """
 
     # Set up web context for dynlinks compatibility
@@ -75,7 +91,7 @@ async def get_books(
             options["format"] = "json"
 
     # Call existing business logic
-    result_str = dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
+    result_str = await dynlinks.dynlinks(bib_keys=params.bibkeys, options=options)
 
     return wrap_jsonp(request, result_str)
 
@@ -111,7 +127,7 @@ async def get_volumes_multiget(
 
     _brief_or_full, req = m.groups()
 
-    result = readlinks.readlinks(req, {})
+    result = await readlinks.readlinks(req, {})
     return wrap_jsonp(request, result)
 
 
@@ -149,7 +165,7 @@ async def get_volume(
         options["show_all_items"] = show_all_items
 
     # Call existing business logic
-    result = readlinks.readlinks(req, options)
+    result = await readlinks.readlinks(req, options)
 
     # Return the result for this specific request key
     result = result.get(req, [])

@@ -2,7 +2,7 @@ $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=
 
 
 $def render_carousel_cover(book, lazy, index):
-  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ fallback_cover = 'https://openlibrary.org/static/images/icons/avatar_book.png'
   $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
   $ title = book.title
