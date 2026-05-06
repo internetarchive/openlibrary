@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from openlibrary.fastapi.lists import router
 
 
-@pytest.fixture()
+@pytest.fixture
 def client() -> TestClient:
     """Return a TestClient for the lists router."""
     app = FastAPI()
