@@ -20,6 +20,18 @@
       "schedule": ["at any time"]
     },
     {
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "Python dependencies (non-major)",
+      "groupSlug": "python-non-major"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "JS dependencies (non-major)",
+      "groupSlug": "js-non-major"
+    },
+    {
       "matchPackageNames": [
         "eslint",
         "@babel/eslint-parser",
