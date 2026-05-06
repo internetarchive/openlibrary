@@ -57,14 +57,19 @@ def test_list_view_json_user_not_found(client, monkeypatch):
 
 
 def test_list_view_json_deleted_list_returns_404(client, monkeypatch):
-    """A deleted list (type = /type/delete) should return 404."""
+    """A deleted list (type = /type/delete) should return 404 regardless of ?_raw."""
     deleted = {"type": {"key": "/type/delete"}}
     monkeypatch.setattr(
         "openlibrary.fastapi.lists.get_list",
         lambda key, raw=False: deleted,
     )
+    # Without ?_raw
     resp = client.get("/people/testuser/lists/OL123L.json")
     assert resp.status_code == 404
+
+    # With ?_raw=true — must also be 404 (not the raw deleted record)
+    resp_raw = client.get("/people/testuser/lists/OL123L.json?_raw=true")
+    assert resp_raw.status_code == 404
 
 
 def test_list_view_json_public_list(client, monkeypatch):

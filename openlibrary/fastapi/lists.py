@@ -12,7 +12,8 @@ router = APIRouter()
 
 def _get_list_or_404(key: str, raw: bool) -> dict:
     """Fetch a list by key and raise 404 if not found or deleted."""
-    if not (lst := get_list(key, raw=raw)) or (not raw and lst.get("type", {}).get("key") == "/type/delete"):
+    if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
+
         raise HTTPException(status_code=404, detail="List not found")
     return lst
 
