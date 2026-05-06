@@ -230,7 +230,7 @@ def set_context_from_fastapi(request: Request) -> None:
     )
 
 
-def create_context_for_scripts() -> RequestContextVars:
+def create_context_for_script() -> RequestContextVars:
     """
     These are the defaults we will use when executing from scripts.
     Why not set these as default all the time?

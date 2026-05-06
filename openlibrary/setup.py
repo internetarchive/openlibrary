@@ -4,7 +4,7 @@ import web
 
 import infogami
 from openlibrary.config import load_config
-from openlibrary.utils.request_context import create_context_for_scripts, req_context, site
+from openlibrary.utils.request_context import create_context_for_script, req_context, site
 
 
 def setup_for_script(config_path: str | None = None):
@@ -14,4 +14,4 @@ def setup_for_script(config_path: str | None = None):
         load_config(config_path)
     infogami._setup()
     site.set(web.ctx.site)
-    req_context.set(create_context_for_scripts())
+    req_context.set(create_context_for_script())
