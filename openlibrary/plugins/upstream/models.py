@@ -290,6 +290,9 @@ class Edition(models.Edition):
 
                 id = id_map.get(name) or web.storage(name=name, label=name, url_format=None)
                 for v in value:
+                    if v is None:
+                        continue
+
                     d[id.name] = web.storage(
                         name=id.name,
                         label=id.label,
@@ -359,7 +362,7 @@ class Edition(models.Edition):
         names = ["dewey_decimal_class", "lc_classifications"]
         d = defaultdict(list)
         for c in classifications:
-            if "name" not in c or "value" not in c or not web.re_compile("[a-z0-9_]*").match(c["name"]):
+            if "name" not in c or "value" not in c or not re.compile("[a-z0-9_]*").match(c["name"]):
                 continue
             d[c["name"]].append(c["value"])
 
@@ -871,7 +874,7 @@ class UnitParser:
     def parse(self, s):
         """Parse the string and return storage object with specified fields and units."""
         pattern = "^" + " *x *".join("([0-9.]*)" for f in self.fields) + " *(.*)$"
-        rx = web.re_compile(pattern)
+        rx = re.compile(pattern)
         m = rx.match(s)
         return m and web.storage(zip(self.fields + ["units"], m.groups()))
 

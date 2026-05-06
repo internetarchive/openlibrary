@@ -271,13 +271,6 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         return '<span>Failed to render macro</span>'
 
 
-@public
-def get_error(name, *args):
-    """Return error with the given name from errors.tmpl template."""
-    return get_message_from_template("errors", name, args)
-
-
-@public
 def get_message(name: str, *args) -> str:
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
@@ -293,25 +286,6 @@ def get_message_from_template(
         return msg % args
     else:
         return msg
-
-
-@public
-def list_recent_pages(path, limit=100, offset=0):
-    """Lists all pages with name path/* in the order of last_modified."""
-    q = {}
-
-    q['key~'] = path + '/*'
-    # don't show /type/delete and /type/redirect
-    q['a:type!='] = '/type/delete'
-    q['b:type!='] = '/type/redirect'
-
-    q['sort'] = 'key'
-    q['limit'] = limit
-    q['offset'] = offset
-    q['sort'] = '-last_modified'
-    # queries are very slow with != conditions
-    # q['type'] != '/type/delete'
-    return web.ctx.site.get_many(web.ctx.site.things(q))
 
 
 @public
@@ -391,7 +365,7 @@ def fuzzy_find(value, options, stopwords=None):
     if not options:
         return value
 
-    rx = web.re_compile(r"[-_\.&, ]+")
+    rx = re.compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -661,7 +635,6 @@ def urlencode(dict_or_list_of_tuples: dict | list[tuple[str, Any]], plus=True) -
     return og_urlencode(params, quote_via=quote_plus if plus else quote)
 
 
-@public
 def entity_decode(text: str) -> str:
     return unescape(text)
 
@@ -1270,7 +1243,7 @@ class HTML(str):
     __slots__ = ()
 
     def __init__(self, html):
-        str.__init__(self, web.safeunicode(html))
+        str.__init__(self, str(html))
 
     def __repr__(self):
         return "<html: %s>" % str.__repr__(self)
@@ -1328,10 +1301,7 @@ class UpstreamMemcacheClient:
         keys = [web.safestr(k) for k in keys]
 
         d = self._client.get_multi(keys)
-        return {
-            web.safeunicode(adapter.unconvert_key(k)): self.decompress(v)
-            for k, v in d.items()
-        }
+        return {str(adapter.unconvert_key(k)): self.decompress(v) for k, v in d.items()}
 
 
 if config.get('upstream_memcache_servers'):
@@ -1356,7 +1326,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile(r"reverted to revision \d+")
+    re_revert = re.compile(r"reverted to revision \d+")
 
     def is_revert(r):
         return re_revert.match(r.comment or "")
@@ -1421,7 +1391,6 @@ _get_recent_changes2 = web.memoize(
 )
 
 
-@public
 def _get_blog_feeds():
     url = "https://blog.openlibrary.org/feed/"
     try:
@@ -1501,7 +1470,6 @@ def item_image(image_path: str | None, default: str | None = None) -> str | None
     return "https:" + image_path
 
 
-@public
 def get_blog_feeds() -> list[Storage]:
     def process(post):
         post = Storage(post)
@@ -1559,11 +1527,6 @@ def render_once(key: str) -> bool:
 @public
 def today():
     return datetime.datetime.today()
-
-
-@public
-def to_datetime(time: str):
-    return datetime.datetime.fromisoformat(time)
 
 
 class HTMLTagRemover(HTMLParser):

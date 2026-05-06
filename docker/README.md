@@ -199,6 +199,21 @@ docker network connect openlibrary_webnet openlibrary-web-1  # or `openlibrary_d
 docker container inspect --format '{{.NetworkSettings.Networks}}' openlibrary-web-1
 # output: map[openlibrary_dbnet:0xc00016c460 openlibrary_webnet:0xc00016c540]
 ```
+ 11874/hotfix/add-selinux-relabel-bind-mount-option-on-selinux-compose
+No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
+
+To understand a bit more about what's going on here, there are docker networks configured in `compose.yaml`. The containers should be able to resolve one another based on the container names (e.g. `web` and `solr`), assuming `compose.yaml` has them on the same netork. For more, see [Networking in Compose](https://docs.docker.com/compose/networking/).
+
+### Permission denied errors on SELinux
+
+SELinux implements [Mandatory Access Controls (MAC)](https://docs.redhat.com/en/documentation/red_hat_enterprise_linux/7/html/virtualization_security_guide/sect-virtualization_security_guide-svirt-mac). Even if normal file permissions (user/group/other) would allow access, SELinux can still block resulting in permission denied errors. By adding the `z` or `Z` [bind mount options for Docker/Podman](https://docs.docker.com/engine/storage/bind-mounts/#configure-the-selinux-label) this allows the container process to access the files, by changing the MAC label.
+
+`compose.selinux.yaml` contains these label overrides to allow the containers to run with Docker or Podman within SELinux enabled systems.
+
+`podman-compose -f compose.yaml -f compose.override.yaml -f compose.selinux.yaml up -d`
+
+## Technical notes
+ master
 
 No restart is required. If `webnet` no longer exists, recreating it _should_ fix things: `docker network create openlibrary_webnet`.
 

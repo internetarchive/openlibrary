@@ -15,7 +15,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
       <input type="hidden" name="work_id" value="$(work_key)"/>
-      <button class="remove-from-list $(btn_visibilities[0])" type="submit">$_('Remove From Shelf')</button>
+      <button class="remove-from-list $(btn_visibilities[0])" type="submit" data-ol-link-track="ReadingLog|RemoveFromShelf">$_('Remove From Shelf')</button>
     </form>
 
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
@@ -23,7 +23,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="1"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
-      <button class="nostyle-btn $(btn_visibilities[1])" type="submit">$_('Want to Read')</button>
+      <button class="nostyle-btn $(btn_visibilities[1])" type="submit" data-ol-link-track="ReadingLog|WantToRead">$_('Want to Read')</button>
     </form>
 
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
@@ -31,7 +31,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="2"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
-      <button class="nostyle-btn $(btn_visibilities[2])" type="submit">$_('Currently Reading')</button>
+      <button class="nostyle-btn $(btn_visibilities[2])" type="submit" data-ol-link-track="ReadingLog|CurrentlyReading">$_('Currently Reading')</button>
     </form>
 
     <form class="reading-log" method="POST" action="$(work_key)/bookshelves.json">
@@ -39,7 +39,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="3"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
-      <button class="nostyle-btn $(btn_visibilities[3])" type="submit">$_('Already Read')</button>
+      <button class="nostyle-btn $(btn_visibilities[3])" type="submit" data-ol-link-track="ReadingLog|AlreadyRead">$_('Already Read')</button>
     </form>
   </div>
 

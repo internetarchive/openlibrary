@@ -14,7 +14,6 @@ from openlibrary.utils import dateutil
 from . import db
 
 
-@public
 def get_status_for_view(status_code: int) -> str:
     """Returns localized status string that corresponds with the given status code."""
     if status_code == CommunityEditsQueue.STATUS["DECLINED"]:

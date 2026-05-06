@@ -13,14 +13,14 @@ __all__ = [
     "register_datatype",
 ]
 
-_datatypes = {}
+_datatypes: dict[str, type] = {}
 
 
 def register_datatype(name, datatype):
     _datatypes[name] = datatype
 
 
-_adapters = {}
+_adapters: dict[str, type] = {}
 
 
 def register_adapter(name, adapter):
@@ -34,7 +34,7 @@ def get_adapter(name):
         return _adapters[name]()
 
 
-_constants = {}
+_constants: dict[str, "Constant"] = {}
 
 
 def register_constant(name, constant):

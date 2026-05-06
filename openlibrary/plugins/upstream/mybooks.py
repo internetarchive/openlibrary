@@ -421,7 +421,7 @@ class MyBooksTemplate:
         self.user = web.ctx.site.get("/people/%s" % self.username)
 
         if not self.user:
-            raise render.notfound("User %s" % self.username, create=False)
+            raise web.notfound("User %s" % self.username)
 
         self.is_public = self.user.preferences().get("public_readlog", "no") == "yes"
         self.user_itemname = self.user.get_account().get("internetarchive_itemname")
@@ -551,12 +551,6 @@ class ReadingLog:
         )
 
         return logged_books
-
-
-@public
-def get_read_status(work_key, username):
-    work_id = extract_numeric_id_from_olid(work_key.split("/")[-1])
-    return Bookshelves.get_users_read_status_of_work(username, work_id)
 
 
 @public
@@ -697,8 +691,3 @@ class ActivityFeed:
             if isinstance(r["created"], str):  # `datetime` objects are stored in cache as strings
                 r["created"] = datetime.fromisoformat(r["created"])
         return results
-
-
-@public
-def get_activity_feed(username):
-    return ActivityFeed.get_activity_feed(username)

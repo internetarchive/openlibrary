@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -47,7 +48,7 @@ def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
 
-admin_tasks = []
+admin_tasks: list[web.storage] = []
 
 
 def register_admin_page(path, cls, label=None, visible=True, librarians=False):
@@ -148,7 +149,7 @@ class admin(delegate.page):
             return self.handle(admin_index)
 
         for t in admin_tasks:
-            m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
+            m = re.compile('^' + t.path + '$').match(web.ctx.path)
             if m:
                 return self.handle(t.cls, m.groups(), librarians=t.librarians)
         raise web.notfound()
@@ -215,7 +216,7 @@ class reload:
 
     def reload(self, servers):
         for s in servers:
-            s = web.rstrips(s, "/") + "/_reload"
+            s = s.removesuffix("/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
                 response = requests.get(s).text

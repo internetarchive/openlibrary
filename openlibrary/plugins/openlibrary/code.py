@@ -13,7 +13,7 @@ import random
 import socket
 import sys
 from time import time
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, quote, urlencode
 
 import requests
 import web
@@ -856,7 +856,7 @@ class _yaml_edit(_yaml):
 
 def _get_user_root():
     user_root = infogami.config.get('infobase', {}).get('user_root', '/user')
-    return web.rstrips(user_root, '/')
+    return user_root.removesuffix('/')
 
 
 def _get_bots():
@@ -1009,29 +1009,6 @@ def get_recent_changes(*a, **kw):
         return _get_recentchanges(*a, **kw)
 
 
-@public
-def most_recent_change():
-    if 'cache_most_recent' in infogami.config.features:
-        v = web.ctx.site._request('/most_recent')
-        v.thing = web.ctx.site.get(v.key)
-        v.author = v.author and web.ctx.site.get(v.author)
-        v.created = client.parse_datetime(v.created)
-        return v
-    else:
-        return get_recent_changes(limit=1)[0]
-
-
-@public
-def get_cover_id(key):
-    try:
-        _, cat, oln = key.split('/')
-        return requests.get(
-            f"https://covers.openlibrary.org/{cat}/query?olid={oln}&limit=1"
-        ).json()[0]
-    except (IndexError, json.decoder.JSONDecodeError, TypeError, ValueError):
-        return None
-
-
 local_ip = None
 
 
@@ -1179,7 +1156,7 @@ def setup_template_globals():
             'zip': zip,
             'tuple': tuple,
             'hash': hash,
-            'urlquote': web.urlquote,
+            'urlquote': quote,
             'isbn_13_to_isbn_10': isbn_13_to_isbn_10,
             'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
             'NEWLINE': '\n',

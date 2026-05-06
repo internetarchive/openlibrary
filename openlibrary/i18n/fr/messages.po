@@ -268,6 +268,9 @@ msgstr ""
 "href=\"https://archive.org\">Internet Archive</a> pour accéder à votre "
 "compte Open Library."
 
+msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
+msgstr "Connectez-vous pour utiliser votre carte Open Library gratuite et emprunter des livres numériques auprès de l'Internet Archive à but non lucratif"
+
 #: account/create.html:50 login.html:21
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
@@ -310,6 +313,9 @@ msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>
 msgstr ""
 "Pas encore membre d'Open Library ? <a href=\"/account/create"
 "\">Enregistrez-vous maintenant</a>."
+
+msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
+msgstr "Pas encore de compte ? <a href=\"/account/create\">Inscrivez-vous maintenant</a>."
 
 #: messages.html:11
 msgid "Created new author record."
@@ -729,6 +735,10 @@ msgstr "Emprunter « %(title)s »"
 #: widget.html:39
 msgid "Borrow"
 msgstr "Emprunter"
+
+#: LocateButton.html
+msgid "Locate"
+msgstr "Localiser"
 
 #: widget.html:45
 #, python-format
@@ -1219,6 +1229,9 @@ msgstr "Emprunter maintenant"
 #: account/loans.html:204
 msgid "Leave the waiting list?"
 msgstr "Quitter la liste d'attente ?"
+
+msgid "Or, check out our <a href=\"/collections\">special collections</a>."
+msgstr "Ou, consultez nos <a href=\"/collections\">collections spéciales</a>."
 
 #: account/loans.html:218 home/index.html:34
 msgid "Books We Love"
@@ -3305,6 +3318,24 @@ msgstr "Romans policiers"
 msgid "Textbooks"
 msgstr "Manuels scolaires"
 
+msgid "Art"
+msgstr "Art"
+
+msgid "Science Fiction"
+msgstr "Science-fiction"
+
+msgid "Fantasy"
+msgstr "Fantasy"
+
+msgid "Biographies"
+msgstr "Biographies"
+
+msgid "Recipes"
+msgstr "Recettes"
+
+msgid "Children"
+msgstr "Jeunesse"
+
 #: home/stats.html:9 site/around_the_library.html:52
 msgid "Around the Library"
 msgstr "Autour de la bibliothèque"
@@ -3428,6 +3459,10 @@ msgstr "Votre retour nous aidera à améliorer ces encarts"
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
 msgstr "Fixer un objectif annuel de lecture"
+
+#: home/welcome.html
+msgid "Learn how to set a yearly reading goal and track what you read"
+msgstr "Apprenez à fixer un objectif de lecture annuel et à suivre vos lectures"
 
 #: languages/index.html:15
 #, python-format
@@ -3780,6 +3815,9 @@ msgstr "En vogue"
 #: lib/nav_head.html:33
 msgid "K-12 Student Library"
 msgstr "Bibliothèque scolaire"
+
+msgid "Book Talks"
+msgstr "Discussions littéraires"
 
 #: lib/nav_head.html:34
 msgid "Random Book"
@@ -4388,6 +4426,15 @@ msgstr "Lieu"
 msgid "Person"
 msgstr "Personne"
 
+msgid "How to search?"
+msgstr "Comment chercher ?"
+
+msgid "Full Text Search?"
+msgstr "Recherche plein texte ?"
+
+msgid "Bulk Search (beta)"
+msgstr "Recherche en masse (bêta)"
+
 #: search/advancedsearch.html:50
 msgid "Full Text Search"
 msgstr "Recherche en plein texte"
@@ -4925,6 +4972,32 @@ msgstr "Détails du livre"
 #: type/edition/view.html:356 type/work/view.html:356
 msgid "Published in"
 msgstr "Lieu de publication"
+
+msgid "Edition Identifiers"
+msgstr "Identifiants de l'édition"
+
+msgid "Work Identifiers"
+msgstr "Identifiants de l'œuvre"
+
+msgid "Source records"
+msgstr "Enregistrements sources"
+
+msgid "record"
+msgstr "enregistrement"
+
+msgid "item record"
+msgstr "enregistrement de l'article"
+
+msgid "MARC record"
+msgstr "notice MARC"
+
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+"Lorsque vous achetez des livres via ces liens, Internet Archive peut "
+"percevoir une <a class=\"nostyle\" href=\"/help/faq/about#selling\">petite "
+"commission</a>."
 
 #: type/edition/view.html:364 type/edition/view.html:454
 #: type/edition/view.html:455 type/work/view.html:364 type/work/view.html:454

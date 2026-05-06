@@ -238,7 +238,6 @@ def get_seed_info(doc):
     }
 
 
-@public
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -699,7 +698,6 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 
-@public
 def get_list_seeds(key):
     if lst := web.ctx.site.get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
@@ -880,7 +878,7 @@ class list_subjects_json(delegate.page):
     def _process_subject(s):
         key = s["key"]
         if key.startswith("subject:"):
-            key = "/subjects/" + web.lstrips(key, "subject:")
+            key = "/subjects/" + key.removeprefix("subject:")
         else:
             key = "/subjects/" + key
         return {"name": s["name"], "count": s["count"], "url": key}

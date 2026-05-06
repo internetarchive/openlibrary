@@ -85,7 +85,7 @@ class HMACToken:
 
         mac = ""
         if key:
-            mac = hmac.new(key.encode("utf-8"), msg.encode("utf-8"), hashlib.md5).hexdigest()
+            mac = hmac.new(key.encode("utf-8"), msg.encode("utf-8"), hashlib.sha256).hexdigest()
 
         result = hmac.compare_digest(mac, digest)
         if err:

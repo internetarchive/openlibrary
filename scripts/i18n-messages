@@ -40,7 +40,8 @@ def main(cmd, args):
         message_sources = [
             "openlibrary/templates/",
             "openlibrary/macros/",
-            *py_sources,
+            # grep can return things in an inconsistent order depending on the system
+            *sorted(py_sources),
         ]
 
         i18n.extract_messages(

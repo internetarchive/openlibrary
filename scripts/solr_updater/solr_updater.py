@@ -273,7 +273,7 @@ async def main(
 
     # set OL URL when running on a dev-instance
     if ol_url:
-        host = web.lstrips(ol_url, "http://").strip("/")
+        host = ol_url.removeprefix("http://").strip("/")
         update.set_query_host(host)
 
     set_osp_dump_location(osp_dump)

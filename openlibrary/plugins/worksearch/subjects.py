@@ -8,7 +8,7 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-from openlibrary.core.lending import add_availability
+from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils.async_utils import async_bridge
@@ -201,7 +201,7 @@ class SubjectEngine:
         )
 
         subject_type = self.name
-        path = web.lstrips(key, self.prefix)
+        path = key.removeprefix(self.prefix)
         name = path.replace("_", " ")
 
         unescaped_filters = {}
@@ -272,7 +272,7 @@ class SubjectEngine:
                 phrase=True,
             ),
             work_count=result.num_found,
-            works=add_availability([self.work_wrapper(d) for d in result.docs]),
+            works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
         if details:

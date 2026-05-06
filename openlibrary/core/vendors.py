@@ -17,7 +17,6 @@ from paapi5_python_sdk.partner_type import PartnerType
 from paapi5_python_sdk.rest import ApiException, RESTClientObject
 from paapi5_python_sdk.search_items_request import SearchItemsRequest
 
-from infogami.utils.view import public
 from openlibrary import accounts
 from openlibrary.catalog.add_book import load
 from openlibrary.core import cache
@@ -369,7 +368,349 @@ def is_dvd(book) -> bool:
     return 'dvd' in [product_group, physical_format]
 
 
-@public
+class AmazonCreatorsAPI:
+    """
+    Amazon Creators API wrapper — replacement for AmazonAPI (PA-API 5.0).
+
+    Uses the `python-amazon-paapi` library (amazon_creatorsapi module).
+    Auth: OAuth 2.0 credential_id + credential_secret instead of AWS key+secret.
+    Exposes the same public interface as AmazonAPI so it is a drop-in replacement
+    in affiliate_server.py.
+
+    See: https://affiliate-program.amazon.com/creatorsapi/docs/en-us/introduction
+    Migration: https://affiliate-program.amazon.com/creatorsapi/docs/en-us/migrating-to-creatorsapi-from-paapi
+    """
+
+    # Browse-node filtering constants — compiled once at class definition time.
+    _GENERIC_NODES: frozenset[str] = frozenset({'Books', 'Subjects', 'Departments'})
+    _UUID_RE: re.Pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-', re.IGNORECASE)
+    _INTERNAL_TERMS: re.Pattern = re.compile(
+        r'ASIN|^Test node|^Sponsored|^Textbook Rental|^Special Offer'
+        r'|Challenge Faves|Goodreads',
+        re.IGNORECASE,
+    )
+
+    def __init__(
+        self,
+        credential_id: str,
+        credential_secret: str,
+        tag: str,
+        version: str = "3.1",
+        country: str = 'US',
+        throttling: float = 0.9,
+        proxy_url: str = "",
+        proxy_creds: str = "",
+    ) -> None:
+        """
+        :param str credential_id: Creators API key / credential ID (OAuth 2.0)
+        :param str credential_secret: Creators API secret / credential secret (OAuth 2.0)
+        :param str tag: affiliate tag / Application Id from the Creators API credentials portal
+        :param str version: Creators API version string from the credentials portal (e.g. '3.1')
+        :param str country: two-letter country code (default 'US')
+        :param float throttling: Reduce this value to wait longer between API calls.
+            Minimum inter-call gap is ``1 / throttling`` seconds (same semantics as
+            AmazonAPI).  The library's internal throttle is disabled so this class
+            is the sole source of rate-limiting.
+        :param str proxy_url: HTTP proxy URL for environments without direct internet access
+        """
+        self.tag = tag
+        self.throttling = throttling
+        self.last_query_time = time.time()
+
+        # Lazy import: python-amazon-paapi may not be installed in all environments
+        # (e.g. test runners that don't have the package). Importing here means the
+        # rest of vendors.py loads fine; only AmazonCreatorsAPI instantiation fails.
+        from amazon_creatorsapi import AmazonCreatorsApi, Country
+
+        # Pass throttling=0 to the library so it never sleeps internally.
+        # We own the throttle loop in get_products (1/throttling semantics),
+        # matching AmazonAPI behaviour. Letting the library also sleep would
+        # double the wait time at every call.
+        self.api = AmazonCreatorsApi(
+            credential_id=credential_id,
+            credential_secret=credential_secret,
+            version=version,
+            tag=tag,
+            country=getattr(Country, country),
+            throttling=0,
+        )
+
+        # Inject proxy into underlying SDK rest client, mirroring the PA-API approach.
+        # Required for ol-home0 which has no direct internet access. See #10310.
+        if proxy_url:
+            try:
+                from creatorsapi_python_sdk.configuration import (
+                    Configuration as CreatorsConfig,
+                )
+                from creatorsapi_python_sdk.rest import (
+                    RESTClientObject as CreatorsRESTClient,
+                )
+                from urllib3 import make_headers
+
+                configuration = CreatorsConfig()
+                configuration.proxy = proxy_url
+                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
+                rest_client = CreatorsRESTClient(configuration=configuration)
+                # _api_client is the ApiClient instance stored directly on
+                # AmazonCreatorsApi; replace its rest_client to route all
+                # outbound HTTP through the proxy.
+                self.api._api_client.rest_client = rest_client
+            except (ImportError, AttributeError):
+                logger.warning(
+                    "AmazonCreatorsAPI: could not inject proxy — "
+                    "falling back to environment-level proxy (HTTPS_PROXY)",
+                    exc_info=True,
+                )
+
+    def get_product(self, asin: str, serialize: bool = False, **kwargs):
+        if products := self.get_products([asin], **kwargs):
+            return next(self.serialize(p) if serialize else p for p in products)
+
+    def get_products(
+        self,
+        asins: list | str,
+        serialize: bool = False,
+        **kwargs,
+    ) -> list | None:
+        """
+        :param asins: One or more ASINs. Max 10 per call.
+        :param serialize: If True, run each product through serialize() before returning.
+
+        Additional keyword args (e.g. `marketplace`, `resources`) are accepted and silently
+        ignored for drop-in compatibility with AmazonAPI.get_products callers.
+        """
+        wait_time = 1 / self.throttling - (time.time() - self.last_query_time)
+        if wait_time > 0:
+            time.sleep(wait_time)
+        self.last_query_time = time.time()
+
+        item_ids = asins if isinstance(asins, list) else [asins]
+        try:
+            products = self.api.get_items(item_ids) or []
+        except Exception as e:
+            logger.error(
+                f"AmazonCreatorsAPI fetch failed for: {', '.join(item_ids)}: {e}",
+                exc_info=True,
+            )
+            return None
+
+        return products if not serialize else [self.serialize(p) for p in products]
+
+    @staticmethod
+    def serialize(product: Any) -> dict:
+        """
+        Maps a Creators API Item object to the same dict shape as AmazonAPI.serialize(),
+        plus new fields only available via the Creators API.
+
+        New fields (not present in the legacy PA-API output):
+          isbn_13         — sourced directly from external_ids.eans (more reliable than
+                            computing from ISBN-10)
+          categories      — Amazon browse node names, usable as OL subjects
+          availability    — 'IN_STOCK', 'AVAILABLE_DATE', etc.
+          price_savings_pct — discount percentage off list price
+          list_price      — original list price string, e.g. '$17.00'
+          image_variants  — alternate cover image URLs (back cover, spine, etc.)
+        """
+        if not product:
+            return {}
+
+        item_info = getattr(product, 'item_info', None)
+        images = getattr(product, 'images', None)
+        edition_info = item_info and getattr(item_info, 'content_info', None)
+        attribution = item_info and getattr(item_info, 'by_line_info', None)
+
+        # Creators API: offers_v2 replaces offers
+        offers_v2 = getattr(product, 'offers_v2', None)
+        listings = getattr(offers_v2, 'listings', None) if offers_v2 else None
+        listing = listings[0] if listings else None
+        price = listing and listing.price
+
+        brand = (
+            attribution
+            and getattr(attribution, 'brand', None)
+            and getattr(attribution.brand, 'display_value', None)
+        )
+        manufacturer = (
+            item_info
+            and getattr(item_info, 'by_line_info', None)
+            and getattr(item_info.by_line_info, 'manufacturer', None)
+            and item_info.by_line_info.manufacturer.display_value
+        )
+        product_group = (
+            item_info
+            and getattr(item_info, 'classifications', None)
+            and getattr(item_info.classifications, 'product_group', None)
+            and item_info.classifications.product_group.display_value
+        )
+
+        languages = []
+        if edition_info and getattr(edition_info, 'languages', None):
+            languages = uniq(
+                lang.display_value
+                for lang in getattr(edition_info.languages, 'display_values', [])
+                if lang.type != 'Original Language'
+            )
+
+        try:
+            publish_date = (
+                edition_info
+                and edition_info.publication_date
+                and isoparser.parse(
+                    edition_info.publication_date.display_value
+                ).strftime('%b %d, %Y')
+            )
+        except Exception:
+            logger.exception(
+                "AmazonCreatorsAPI.serialize: failed to parse publish_date for asin=%s",
+                product.asin,
+            )
+            publish_date = None
+
+        asin_is_isbn10 = not product.asin.startswith("B")
+
+        # Prefer ISBN-13 from external_ids.eans (authoritative); fall back to
+        # computing it from the ISBN-10 as we did with PA-API.
+        external_ids = item_info and getattr(item_info, 'external_ids', None)
+        eans = (
+            external_ids
+            and getattr(external_ids, 'eans', None)
+            and getattr(external_ids.eans, 'display_values', None)
+        )
+        if eans:
+            isbn_13_list = [e for e in eans if len(e) == 13]
+        elif asin_is_isbn10:
+            derived = isbn_10_to_isbn_13(product.asin)
+            isbn_13_list = [derived] if derived else []
+        else:
+            isbn_13_list = []
+
+        # Browse node categories: unique context_free_name from all nodes +
+        # their immediate ancestors, excluding generic roots and Amazon-internal
+        # nodes (UUIDs, test nodes, internal campaign labels).
+        browse_node_info = getattr(product, 'browse_node_info', None)
+        browse_nodes = (
+            browse_node_info and getattr(browse_node_info, 'browse_nodes', None)
+        ) or []
+        categories = uniq(
+            name
+            for node in browse_nodes
+            for name in (
+                [getattr(node, 'context_free_name', None)]
+                + (
+                    [getattr(node.ancestor, 'context_free_name', None)]
+                    if getattr(node, 'ancestor', None)
+                    else []
+                )
+            )
+            if name
+            and name not in AmazonCreatorsAPI._GENERIC_NODES
+            and not AmazonCreatorsAPI._UUID_RE.match(name)
+            and not AmazonCreatorsAPI._INTERNAL_TERMS.search(name)
+        )
+
+        # Availability from the buy-box listing
+        availability = (
+            listing
+            and getattr(listing, 'availability', None)
+            and getattr(listing.availability, 'type', None)
+        )
+
+        # Savings: percentage off and original list price
+        savings = price and getattr(price, 'savings', None)
+        price_savings_pct = savings and getattr(savings, 'percentage', None)
+        saving_basis = price and getattr(price, 'saving_basis', None)
+        saving_basis_money = saving_basis and getattr(saving_basis, 'money', None)
+        list_price = saving_basis_money and getattr(
+            saving_basis_money, 'display_amount', None
+        )
+
+        # Variant images (alternate covers: back, spine, etc.)
+        variants = (images and getattr(images, 'variants', None)) or []
+        image_variants = [
+            v.large.url
+            for v in variants
+            if getattr(v, 'large', None) and getattr(v.large, 'url', None)
+        ]
+
+        book = {
+            'url': "https://www.amazon.com/dp/{}/?tag={}".format(
+                product.asin, h.affiliate_id('amazon')
+            ),
+            'source_records': [f'amazon:{product.asin}'],
+            'isbn_10': [product.asin] if asin_is_isbn10 else [],
+            'isbn_13': isbn_13_list,
+            # Creators API: price is OfferPriceV2 → price.money.display_amount
+            'price': price and price.money and price.money.display_amount,
+            'price_amt': (
+                price
+                and price.money
+                and price.money.amount
+                and int(100 * price.money.amount)
+            ),
+            'title': (
+                item_info
+                and item_info.title
+                and getattr(item_info.title, 'display_value', None)
+            ),
+            'cover': (
+                images.primary.large.url
+                if images
+                and images.primary
+                and images.primary.large
+                and images.primary.large.url
+                and '/01RmK+J4pJL.' not in images.primary.large.url
+                else None
+            ),
+            'authors': attribution
+            and [
+                {'name': contrib.name}
+                for contrib in (getattr(attribution, 'contributors', None) or [])
+                if contrib.role == 'Author'
+            ],
+            'contributors': attribution
+            and [
+                {'name': contrib.name, 'role': 'Translator'}
+                for contrib in (getattr(attribution, 'contributors', None) or [])
+                if contrib.role == 'Translator'
+            ],
+            'publishers': list({p for p in (brand, manufacturer) if p}),
+            **(
+                {'number_of_pages': edition_info.pages_count.display_value}
+                if (
+                    edition_info
+                    and edition_info.pages_count
+                    and edition_info.pages_count.display_value
+                )
+                else {}
+            ),
+            'edition_num': (
+                edition_info
+                and edition_info.edition
+                and edition_info.edition.display_value
+            ),
+            'publish_date': publish_date,
+            'product_group': product_group,
+            'physical_format': (
+                item_info
+                and item_info.classifications
+                and getattr(
+                    item_info.classifications.binding, 'display_value', ''
+                ).lower()
+            ),
+            **({'languages': languages} if languages else {}),
+            # --- Creators API additions ---
+            **({'categories': categories} if categories else {}),
+            **({'availability': availability} if availability else {}),
+            **({'price_savings_pct': price_savings_pct} if price_savings_pct else {}),
+            **({'list_price': list_price} if list_price else {}),
+            **({'image_variants': image_variants} if image_variants else {}),
+        }
+
+        if is_dvd(book):
+            return {}
+        return book
+
+
 def get_amazon_metadata(
     id_: str,
     id_type: Literal['asin', 'isbn'] = 'isbn',

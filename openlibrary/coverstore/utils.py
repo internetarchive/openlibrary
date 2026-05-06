@@ -13,7 +13,6 @@ from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit 
 from urllib.parse import urlencode as real_urlencode
 
 import requests
-import web
 
 from openlibrary.coverstore import config, oldb
 
@@ -35,7 +34,7 @@ def safeint(value, default=None):
 
 
 def get_ol_url():
-    return web.rstrips(config.ol_url, "/")
+    return config.ol_url.removesuffix("/")
 
 
 def ol_things(key: str, value: str) -> list[str]:

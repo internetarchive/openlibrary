@@ -2,7 +2,7 @@ $def with(lists, limit, user_key)
 
 $def render_follow_button(owner_username, is_subscribed):
   $ request = "/people/" + owner_username
-  $:macros.Follow(owner_username, following=is_subscribed, request_path=request)
+  $:macros.Follow(owner_username, following=is_subscribed, request_path=request, link_track='ListCardCarousel|Follow')
 
 $def list_card(list, owner, own_list):
     $ has_owner = owner
