@@ -6,7 +6,9 @@ $def with()
 
   <section class="example">
     <h3 class="example__title">$_("Variants")</h3>
-    <code class="example__code">&lt;ol-button&gt;Primary&lt;/ol-button&gt; &lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt; &lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code>
+    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Primary&lt;/ol-button&gt;
+&lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt;
+&lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
       <ol-button>$_("Primary")</ol-button>
       <ol-button variant="secondary">$_("Secondary")</ol-button>
@@ -16,7 +18,9 @@ $def with()
 
   <section class="example">
     <h3 class="example__title">$_("Sizes")</h3>
-    <code class="example__code">&lt;ol-button size="small"&gt;Small&lt;/ol-button&gt; &lt;ol-button&gt;Medium&lt;/ol-button&gt; &lt;ol-button size="large"&gt;Large&lt;/ol-button&gt;</code>
+    <pre class="example__code"><code class="language-html">&lt;ol-button size="small"&gt;Small&lt;/ol-button&gt;
+&lt;ol-button&gt;Medium&lt;/ol-button&gt;
+&lt;ol-button size="large"&gt;Large&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
       <ol-button size="small">$_("Small")</ol-button>
       <ol-button>$_("Medium")</ol-button>
@@ -26,7 +30,7 @@ $def with()
 
   <section class="example">
     <h3 class="example__title">$_("Disabled")</h3>
-    <code class="example__code">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code>
+    <pre class="example__code"><code class="language-html">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
       <ol-button disabled>$_("Primary")</ol-button>
       <ol-button variant="secondary" disabled>$_("Secondary")</ol-button>
@@ -37,7 +41,7 @@ $def with()
   <section class="example">
     <h3 class="example__title">$_("Loading")</h3>
     <p>$:_("Toggle the %(loading)s attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.", loading="<code>loading</code>")</p>
-    <code class="example__code">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code>
+    <pre class="example__code"><code class="language-html">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
       <ol-button loading>$_("Save")</ol-button>
       <ol-button variant="secondary" loading>$_("Cancel")</ol-button>
@@ -63,8 +67,8 @@ $def with()
 
   <section class="example">
     <h3 class="example__title">$_("Full width")</h3>
-    <code class="example__code">&lt;ol-button full-width&gt;Continue&lt;/ol-button&gt;</code>
-    <div class="example__output" style="max-width: 360px;">
+    <pre class="example__code"><code class="language-html">&lt;ol-button full-width&gt;Continue&lt;/ol-button&gt;</code></pre>
+    <div class="example__output">
       <ol-button full-width>$_("Continue")</ol-button>
     </div>
   </section>
@@ -72,7 +76,10 @@ $def with()
   <section class="example">
     <h3 class="example__title">$_("Form submission")</h3>
     <p>$:_("Set %(type)s and place the button inside a %(form)s. The component renders a real %(native_submit)s, so native validation, the form's %(submit_event)s event, and Enter-to-submit from input fields all work without any extra wiring.", type='<code>type="submit"</code>', form="<code>&lt;form&gt;</code>", native_submit='<code>&lt;button type="submit"&gt;</code>', submit_event="<code>submit</code>")</p>
-    <code class="example__code">&lt;form&gt; &lt;input required&gt; &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt; &lt;/form&gt;</code>
+    <pre class="example__code"><code class="language-html">&lt;form&gt;
+  &lt;input required&gt;
+  &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt;
+&lt;/form&gt;</code></pre>
     <div class="example__output">
       <form id="demo-button-form" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
         <label for="demo-button-form-input">$_("Your name"):</label>
