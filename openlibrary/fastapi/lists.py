@@ -12,17 +12,8 @@ from openlibrary.utils.request_context import site
 router = APIRouter()
 
 
-@router.post(
-    "/people/{username}/lists/{list_id}/delete.json",
-    description="Delete a list owned by the given user.",
-)
-def lists_delete(
-    username: Annotated[str, Path()],
-    list_id: Annotated[str, Path(pattern=r"^OL\d+L$")],
-    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-) -> dict:
-    key = f"/people/{username}/lists/{list_id}"
-
+def _process_list_delete(key: str) -> dict:
+    """Shared delete logic for both route variants."""
     if not site.get().can_write(key):
         raise HTTPException(status_code=403, detail="Permission denied.")
 
@@ -36,6 +27,29 @@ def lists_delete(
         raise HTTPException(status_code=int(e.status.split()[0]), detail=e.json)
 
     return {"status": "ok"}
+
+
+@router.post(
+    "/people/{username}/lists/{list_id}/delete.json",
+    description="Delete a list owned by the given user.",
+)
+def lists_delete(
+    username: Annotated[str, Path()],
+    list_id: Annotated[str, Path(pattern=r"^OL\d+L$")],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    return _process_list_delete(f"/people/{username}/lists/{list_id}")
+
+
+@router.post(
+    "/lists/{list_id}/delete.json",
+    description="Delete a list.",
+)
+def lists_delete_no_prefix(
+    list_id: Annotated[str, Path(pattern=r"^OL\d+L$")],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    return _process_list_delete(f"/lists/{list_id}")
 
 
 async def lists_json():

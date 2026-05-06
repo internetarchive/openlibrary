@@ -65,3 +65,14 @@ class TestListsDelete:
         # list_id must match OL\d+L — invalid format should return 422
         response = fastapi_client.post("/people/testuser/lists/invalid-id/delete.json")
         assert response.status_code == 422
+
+    def test_delete_no_prefix_route(self, fastapi_client, mock_authenticated_user, mock_site, mock_process_delete):
+        doc = MagicMock()
+        doc.type.key = "/type/list"
+        mock_site.get.return_value.get.return_value = doc
+        mock_site.get.return_value.can_write.return_value = True
+
+        response = fastapi_client.post("/lists/OL1L/delete.json")
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+        mock_process_delete.assert_called_once()
