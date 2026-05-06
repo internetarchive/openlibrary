@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 import web
 
 from infogami.utils.view import public
-from openlibrary.utils.request_context import setup_site, site
+from openlibrary.utils.request_context import create_site, site
 
 # FIXME: several modules import things from accounts.model
 # directly through openlibrary.accounts
@@ -43,7 +43,7 @@ class RunAs:
         # Save token of currently logged in user (or no-user)
         # If being called from the context of a script, we setup a context vars site
         if not site.get(None):
-            setup_site()
+            site.set(create_site())
 
         self.calling_user_auth_token = site.get()._conn.get_auth_token()
 
