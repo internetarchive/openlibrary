@@ -4045,6 +4045,14 @@ msgstr ""
 msgid "Editing..."
 msgstr ""
 
+#: books/edit.html
+msgid "Delete work and all editions"
+msgstr ""
+
+#: books/edit.html
+msgid "Delete edition"
+msgstr ""
+
 #: books/edit.html type/author/edit.html type/tag/form.html
 #: type/template/edit.html
 msgid "Delete Record"
