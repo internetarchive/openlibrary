@@ -2,6 +2,7 @@ $def with (page, name, unique=True, right=False)
 
 $ label = i18n.get('/type/user', name)
 $ value = page[name]
+$ original_label = label
 
 <div class="formElement title" id="clone_$name">
     <div class="label">
@@ -19,7 +20,7 @@ $else:
             $if i == 0:
                 id="$name"
             $else:
-                aria-label="Website"
+                aria-label="$original_label"
             />
             <span>
                 $if i == len(value) - 1:
