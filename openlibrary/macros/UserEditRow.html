@@ -15,7 +15,12 @@ $else:
     $ value = value or [""]
     $for i, v in enumerate(value):
         <div class="input">
-            <input type="text" name="$name#$i" value="$v"/>
+            <input type="text" name="$name#$i" value="$v"
+            $if i == 0:
+                id="$name"
+            $else:
+                aria-label="Website"
+            />
             <span>
                 $if i == len(value) - 1:
                     <button id="add_row_button" type="button">$_('Add another')</button>
