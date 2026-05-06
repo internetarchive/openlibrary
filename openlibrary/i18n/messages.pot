@@ -279,6 +279,10 @@ msgid "Chip"
 msgstr ""
 
 #: design.html
+msgid "Button"
+msgstr ""
+
+#: design.html
 msgid "Chip Group"
 msgstr ""
 
