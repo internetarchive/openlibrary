@@ -67,11 +67,11 @@
     },
     {
       "path": "static/build/css/page-edit.css",
-      "maxSize": "27KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/css/page-form.css",
-      "maxSize": "27KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/css/page-home.css",
@@ -79,7 +79,7 @@
     },
     {
       "path": "static/build/css/page-plain.css",
-      "maxSize": "27KB"
+      "maxSize": "26KB"
     },
     {
       "path": "static/build/css/page-subject.css",
