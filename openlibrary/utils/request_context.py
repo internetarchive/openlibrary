@@ -230,7 +230,7 @@ def set_context_from_fastapi(request: Request) -> None:
     )
 
 
-def setup_context_from_script():
+def create_context_for_scripts() -> RequestContextVars:
     """
     These are the defaults we will use when executing from scripts.
     Why not set these as default all the time?
@@ -238,16 +238,12 @@ def setup_context_from_script():
     silently have it using defaults we don't expect. It's better to have it loudly fail,
     like it has with scripts. See #12249
     """
-    s = create_site()
-    site.set(s)
-    req_context.set(
-        RequestContextVars(
-            x_forwarded_for=None,
-            user_agent=None,
-            lang=None,
-            solr_editions=True,
-            print_disabled=False,
-            sfw=False,
-            is_bot=False,
-        )
+    return RequestContextVars(
+        x_forwarded_for=None,
+        user_agent=None,
+        lang=None,
+        solr_editions=True,
+        print_disabled=False,
+        sfw=False,
+        is_bot=False,
     )
