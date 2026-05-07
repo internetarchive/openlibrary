@@ -18,7 +18,7 @@ apt-get update
 # Install nginx and the NJS module
 apt-get install -y --no-install-recommends nginx nginx-module-njs letsencrypt
 # Install modsecurity
-apt-get install -y libmodsecurity3 libmodsecurity-dev
+apt-get install -y libmodsecurity3 modsecurity-crs
 
 # Consider pulling modsecurity rules from:
 #wget https://github.com/coreruleset/coreruleset/archive/refs/tags/v4.25.0.tar.gz
