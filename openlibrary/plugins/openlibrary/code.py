@@ -15,11 +15,11 @@ import sys
 from time import time
 from urllib.parse import parse_qs, quote, urlencode
 
+import infogami
 import requests
 import web
 import yaml
 
-import infogami
 from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
@@ -36,7 +36,6 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []  # type: ignore[attr-defined]
 
 
-import openlibrary.core.stats
 from infogami.core.db import ValidationException
 from infogami.infobase import client
 from infogami.utils import delegate, features, i18n, macro, template
@@ -48,6 +47,8 @@ from infogami.utils.view import (
     render_template,
     safeint,
 )
+
+import openlibrary.core.stats
 from openlibrary.accounts import get_current_user
 from openlibrary.core.lending import get_availability
 from openlibrary.core.models import Edition
@@ -466,14 +467,18 @@ class batch_imports(delegate.page):
         # Get the upload from web.py. See the template for the <form> used.
         batch_result = None
         form_data = web.input()
+        batch_name = form_data.get('batchName') or None
         if form_data.get("batchImportFile"):
             batch_result = batch_import(
-                form_data['batchImportFile'], import_status=import_status
+                form_data['batchImportFile'],
+                import_status=import_status,
+                batch_name=batch_name,
             )
         elif form_data.get("batchImportText"):
             batch_result = batch_import(
                 form_data['batchImportText'].encode("utf-8"),
                 import_status=import_status,
+                batch_name=batch_name,
             )
         else:
             add_flash_message(
