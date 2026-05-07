@@ -13,11 +13,12 @@ from unicodedata import normalize
 
 import httpx
 import web
-
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+from requests import Response
+
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability, add_availability_async
@@ -1095,6 +1096,59 @@ def random_author_search(limit=10) -> SearchResponse:
         rows=limit,
         sort="random.hourly",
     )
+
+
+class edition_search(delegate.page):
+    path = "/search/editions"
+
+    def GET(self):
+        i = web.input(q="", page=None, sort=None, work_key=None)
+        q = i.q.strip()
+        work_key = i.get("work_key", "").strip() or None
+        results_per_page = 20
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or "new"
+
+        results = (
+            self.get_results(
+                q,
+                work_key=work_key,
+                offset=offset,
+                limit=results_per_page,
+                sort=sort,
+                request_label="EDITION_SEARCH",
+            )
+            if q or work_key
+            else None
+        )
+        return render_template("search/editions", q, page, results_per_page, sort, results)
+
+    def get_results(
+        self,
+        q,
+        request_label: Literal["EDITION_SEARCH", "EDITION_SEARCH_API"],
+        work_key=None,
+        offset=0,
+        limit=20,
+        fields=None,
+        sort="new",
+    ):
+        extra_params = []
+        if work_key:
+            extra_params.append(("fq", f'work_key:"{work_key}"'))
+
+        return run_solr_query(
+            EditionSearchScheme(),
+            {"q": q or "*:*"},
+            offset=offset,
+            rows=limit,
+            fields=fields or list(EditionSearchScheme.default_fetched_fields),
+            sort=sort,
+            facet=False,
+            extra_params=extra_params or None,
+            request_label=request_label,
+        )
 
 
 def rewrite_list_query(q, page, offset, limit):

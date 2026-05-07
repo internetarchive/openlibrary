@@ -11,6 +11,10 @@ $ q = query_param("q", "")
     <a data-ol-link-track="SearchNav|SearchAuthors"
        href="/search/authors?$urlencode(dict(q=q))">$_("Authors")</a>
   </li>
+  <li class="$('selected' if ctx.path=='/search/editions' else '')">
+    <a data-ol-link-track="SearchNav|SearchEditions"
+       href="/search/editions?$urlencode(dict(q=q))">$_("Editions")</a>
+  </li>
   <li class="$('selected' if ctx.path=='/search/inside' else '')">
     <a data-ol-link-track="SearchNav|SearchFulltext"
        href="/search/inside?$urlencode(dict(q=q))">$_("Search Inside")</a>

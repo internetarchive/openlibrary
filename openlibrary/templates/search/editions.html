@@ -1,0 +1,85 @@
+$def with (q, page, results_per_page, sort, results)
+
+$var title: $_('Search Open Library for "%(query)s"', query=q)
+
+<div id="contentHead">
+    <h1>$_("Search Editions")</h1>
+</div>
+
+<div id="contentBody">
+  $:macros.SearchNavigation()
+
+  <div class="section">
+    <form class="siteSearch olform" action="">
+        $:render_template("search/searchbox", q=q)
+    </form>
+  </div>
+
+    $if q and results and results.error:
+        <strong>
+            $for line in results.error.splitlines():
+                $line
+                $if not loop.last:
+                    <br>
+        </strong>
+
+    $if q and results and not results.error:
+        $if results.num_found:
+            <div class="search-results-stats">$ungettext('%(count)s edition', '%(count)s editions', results.num_found, count=commify(results.num_found))
+            </div>
+        $else:
+            <center>
+                <div class="red">$:_('No <strong>editions</strong> directly matched your search')</div>
+                <hr>
+            </center>
+            <div id="fulltext-search-suggestion" data-query="$q">
+                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
+            </div>
+
+    $if results and results.num_found:
+        <ul class="list-books searchResultsList">
+        $for doc in results.docs:
+            $ cover_id = doc.get('cover_i')
+            $ cover_url = "%s/b/id/%s-M.jpg" % (get_coverstore_public_url(), cover_id) if cover_id else "/images/icons/avatar_book-sm.png"
+            $ edition_key = doc.get('key', '')
+            $ title_text = doc.get('title', _('Untitled'))
+            $ subtitle_text = doc.get('subtitle', '')
+            $ publishers = doc.get('publisher', [])
+            $ publisher_str = ', '.join(publishers[:2])
+            $ publish_date = doc.get('publish_date', '')
+            $ languages = doc.get('language', [])
+            $ language_str = ', '.join(languages[:2])
+            $ isbns = doc.get('isbn', [])
+            $ ebook_access = doc.get('ebook_access', '')
+            $ work_key = doc.get('work_key', '')
+            <li class="searchResultItem">
+              <a href="$edition_key">
+                <img src="$cover_url" alt="$_('Cover of %(title)s', title=title_text)" class="cover book">
+              </a>
+              <div class="details">
+                <a href="$edition_key" class="larger">$title_text</a>
+                $if subtitle_text:
+                    <span class="subtitle">: $subtitle_text</span>
+                <br>
+                $if publisher_str:
+                    <span class="publisher">$publisher_str</span>
+                $if publish_date:
+                    <span class="publish-date">$publish_date</span>
+                $if language_str:
+                    <span class="language small grey">$language_str</span>
+                $if isbns:
+                    <span class="isbn small grey">$_('ISBN: %(isbn)s', isbn=isbns[0])</span>
+                $if work_key:
+                    <br><a href="$work_key" class="small sansserif">$_("See work")</a>
+                $if ebook_access == 'public':
+                    <span class="read-status small green">$_("Freely Available")</span>
+                $elif ebook_access == 'borrowable':
+                    <span class="read-status small teal">$_("Borrowable")</span>
+              </div>
+            </li>
+        </ul>
+
+        $:macros.OlPagination(page, ceil(results.num_found / results_per_page))
+  </div>
+
+</div>
