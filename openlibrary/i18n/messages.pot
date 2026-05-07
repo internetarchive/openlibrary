@@ -119,6 +119,20 @@ msgstr ""
 msgid "Or copy/paste JSONL text:"
 msgstr ""
 
+#: batch_import.html
+msgid "Batch name (optional):"
+msgstr ""
+
+#: batch_import.html
+msgid "main"
+msgstr ""
+
+#: batch_import.html
+msgid ""
+"Records are added to your existing batch with this name, or a new one is "
+"created. Leave blank to use the default \"main\" batch."
+msgstr ""
+
 #: batch_import.html import_preview.html
 msgid "Import"
 msgstr ""
