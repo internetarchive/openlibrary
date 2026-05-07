@@ -31,6 +31,7 @@ from openlibrary.plugins.worksearch.code import (
     work_search_async,
 )
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
+from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
@@ -348,3 +349,59 @@ async def search_authors_json(
         doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp
+
+
+EditionSortOption = create_sort_option_type(EditionSearchScheme.sorts)
+
+
+class EditionSearchRequestParams(Pagination):
+    q: str = Field("", description="The search query")
+    work_key: str | None = Field(
+        None,
+        description="Filter results to editions of a specific work.",
+        examples=["/works/OL82536W"],
+    )
+    fields: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
+        sorted(EditionSearchScheme.default_fetched_fields),
+        description="The fields to return.",
+    )
+    sort: EditionSortOption = Field("", description="Sort order")  # type: ignore[valid-type]
+
+
+@router.get("/search/editions.json", tags=["search"])
+async def search_editions_json(
+    params: Annotated[EditionSearchRequestParams, Depends()],
+) -> Any:
+    """
+    Search for edition documents in the Solr index.
+
+    Supports full-text search across edition fields (title, ISBN, publisher, etc.)
+    and optional filtering by work key.
+    """
+    extra_params = []
+    if params.work_key:
+        extra_params.append(('fq', f'work_key:"{params.work_key}"'))
+
+    response = await run_solr_query_async(
+        EditionSearchScheme(),
+        {"q": params.q or "*:*"},
+        offset=params.offset,
+        page=params.page,
+        rows=params.limit,
+        fields=params.fields,
+        sort=params.sort,
+        facet=False,
+        extra_params=extra_params or None,
+        request_label="EDITION_SEARCH_API",
+    )
+
+    raw_resp = response.raw_resp["response"]
+    return {
+        "numFound": raw_resp.get("numFound", 0),
+        "start": raw_resp.get("start", params.offset or 0),
+        "numFoundExact": raw_resp.get("numFoundExact", True),
+        "num_found": raw_resp.get("numFound", 0),
+        "q": params.q,
+        "offset": params.offset,
+        "docs": raw_resp.get("docs", []),
+    }

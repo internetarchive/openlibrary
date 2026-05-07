@@ -7,14 +7,12 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 logger = logging.getLogger("openlibrary.worksearch")
 
 
-# Kind of mostly a stub for now since you can't really search editions
-# directly, but it's still useful for somethings (eg editions have a custom
-# sort logic).
 class EditionSearchScheme(SearchScheme):
-    universe = frozenset(["type:work"])
+    universe = frozenset(["type:edition"])
     all_fields = frozenset(
         {
             "key",
+            "work_key",
             "title",
             "subtitle",
             "alternative_title",
@@ -64,7 +62,20 @@ class EditionSearchScheme(SearchScheme):
             "random.daily": lambda: f"random_{datetime.now():%Y%m%d} asc",
         }
     )
-    default_fetched_fields = frozenset()
+    default_fetched_fields = frozenset(
+        {
+            "key",
+            "work_key",
+            "title",
+            "subtitle",
+            "cover_i",
+            "ebook_access",
+            "publish_date",
+            "language",
+            "publisher",
+            "isbn",
+        }
+    )
     facet_rewrites = MappingProxyType({})
 
     def is_search_field(self, field: str):
