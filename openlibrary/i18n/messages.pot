@@ -3307,19 +3307,6 @@ msgstr ""
 msgid "activate account"
 msgstr ""
 
-#: admin/people/view.html
-#, python-format
-msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Activation link expired"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Resend activation link"
-msgstr ""
-
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
 msgstr ""
@@ -8772,33 +8759,13 @@ msgid "An Internet Archive account already exists with this email"
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email address is already used."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
 msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
+"Verification failed. The link may be invalid or expired. Please try "
+"registering again."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email verification successful."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email address couldn't be verified."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
+msgid "Your email has been verified. You are now logged in."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
