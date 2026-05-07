@@ -148,6 +148,17 @@ def _default_search_response():
     }
 
 
+@pytest.fixture
+def mock_run_solr_query_async():
+    """Mock run_solr_query_async to avoid actual Solr calls.
+
+    Used by FastAPI search/editions, search/authors, search/subjects tests.
+    """
+    with patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock:
+        mock.return_value = _default_edition_solr_response()
+        yield mock
+
+
 def _default_subjects_response():
     """Default mock response for subjects search."""
 
@@ -173,6 +184,39 @@ def _default_subjects_response():
                         "work_count": 10,
                     }
                 ]
+            }
+        },
+        solr_select="mock",
+    )
+
+
+def _default_edition_solr_response():
+    """Default mock SearchResponse for edition search tests."""
+    return SearchResponse(
+        facet_counts=None,
+        sort="publish_year desc",
+        docs=[
+            {
+                "key": "/books/OL1M",
+                "title": "Test Edition 1",
+                "work_key": "/works/OL1W",
+                "publish_date": "2023",
+            }
+        ],
+        num_found=1,
+        raw_resp={
+            "response": {
+                "numFound": 1,
+                "numFoundExact": True,
+                "start": 0,
+                "docs": [
+                    {
+                        "key": "/books/OL1M",
+                        "title": "Test Edition 1",
+                        "work_key": "/works/OL1W",
+                        "publish_date": "2023",
+                    }
+                ],
             }
         },
         solr_select="mock",
