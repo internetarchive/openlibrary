@@ -54,7 +54,7 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
-def batch_import(raw_data: bytes, import_status: str, batch_name: str | None = None) -> BatchResult:
+def batch_import(raw_data: bytes, import_status: str, batch_suffix: str | None = None) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
 
@@ -67,13 +67,15 @@ def batch_import(raw_data: bytes, import_status: str, batch_name: str | None = N
     The line numbers errors use 1-based counting because they are line numbers in a file.
 
     import_status: "pending", "needs_review", etc.
-    batch_name: optional suffix; the batch is named "{username}:{batch_name}". Defaults
-                to "main", so repeated submissions land in the same batch by default.
+    batch_suffix: optional name suffix; the batch is stored as "{username}:{batch_suffix}".
+                  Defaults to "main", so repeated submissions land in the same batch.
     """
     user = accounts.get_current_user()
-    username = user.get_username() if user else None
-    suffix = batch_name.strip() if batch_name and batch_name.strip() else "main"
-    batch_name = f"{username}:{suffix}"
+    username = user and user.get_username()
+    if not username:
+        raise ValueError("batch_import requires an authenticated user with a username")
+    suffix = batch_suffix.strip() if batch_suffix and batch_suffix.strip() else "main"
+    full_batch_name = f"{username}:{suffix}"
     errors: list[BatchImportError] = []
     raw_import_records: list[dict] = []
 
@@ -117,7 +119,7 @@ def batch_import(raw_data: bytes, import_status: str, batch_name: str | None = N
     ]
 
     # Create the batch
-    batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
+    batch = Batch.find(full_batch_name) or Batch.new(name=full_batch_name, submitter=username)
     batch.add_items(batch_data)
 
     return BatchResult(batch=batch)
