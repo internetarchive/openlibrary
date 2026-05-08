@@ -1,18 +1,12 @@
-# This is based on Wikipedia/MediaWiki's browser support matrix
-# Which is defined at https://www.mediawiki.org/wiki/Compatibility#Modern_(Grade_A)
+# Matches MediaWiki Grade A (Modern) browser support.
+# https://www.mediawiki.org/wiki/Compatibility#Browser_support_matrix
+#
+# Mirrors browserslist-config-wikimedia/modern. The "last 3 years" window
+# slides forward automatically as caniuse data updates.
 
-# https//en.wikipedia.org/wiki/Google_Chrome_version_history
-chrome 13
-
-ie 11
-
-# https//en.wikipedia.org/wiki/Firefox_version_history
-firefox 4.0
-
-safari 5.0
-
-opera 15
-
-ios 6.0
-
-android 4.1
+Chrome > 0 and last 3 years
+Edge > 0 and last 3 years
+Firefox > 0 and last 3 years
+Safari >= 11.1
+iOS >= 11.3
+Android >= 5
