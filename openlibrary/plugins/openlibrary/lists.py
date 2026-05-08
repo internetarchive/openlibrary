@@ -489,6 +489,7 @@ class lists_add(delegate.page):
         return lists_edit().POST(user_key, list_type_plural, None)
 
 
+@deprecated("migrated to fastapi")
 class lists_delete(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
     encoding = "json"
@@ -514,13 +515,13 @@ class lists_delete(delegate.page):
         return delegate.RawText('{"status": "ok"}')
 
     @staticmethod
-    def process_delete(doc, key):
+    def process_delete(doc, key: str):
         # Deletes list preview from memcache, if it exists
         cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
         cache.memcache_cache.delete(cache_key)
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
-        web.ctx.site.save(delete_doc, action="delete-list", comment="Deleted list.")
+        site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
 class lists_json(delegate.page):
@@ -651,6 +652,10 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     lst = site.get().get(key)
 
     if not lst:
+        return None
+
+    # Check for delete type before accessing properties that return Nothing
+    if lst.type.key == "/type/delete":
         return None
 
     if raw:

@@ -121,5 +121,13 @@
       "form-data": "4.0.5",
       "qs": "6.15.1"
     }
-  }
+  },
+  "browserslist": [
+    "Chrome > 0 and last 3 years",
+    "Edge > 0 and last 3 years",
+    "Firefox > 0 and last 3 years",
+    "Safari >= 11.1",
+    "iOS >= 11.3",
+    "Android >= 5"
+  ]
 }

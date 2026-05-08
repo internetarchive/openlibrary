@@ -12,12 +12,18 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * The popover uses `position: fixed` to escape overflow clipping and animates
  * from the trigger's location using `transform-origin`.
  *
+ * Self-manages open state by default — clicking the slotted trigger toggles
+ * the popover, Escape and outside-click close it. Consumers can drive `open`
+ * imperatively for programmatic control. The `ol-popover-close` event is
+ * cancelable: call `event.preventDefault()` to keep the popover open.
+ *
  * Automatically flips and shifts when the panel would overflow the viewport.
  * Repositions on scroll and resize. On mobile viewports, renders as a bottom
  * tray with a drag handle, swipe-to-dismiss, and body scroll locking.
  *
  * Traps focus within the popover while open and restores focus to the
- * previously-focused element on close.
+ * previously-focused element on close. The host's `aria-label` is forwarded
+ * to the inner dialog as its accessible name.
  *
  * @element ol-popover
  *
@@ -26,20 +32,23 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  *     Format: "{side}-{align}" where side is "top" or "bottom" and align is
  *     "start", "center", or "end". Default: "bottom-center"
  * @prop {Number} offset - Gap in px between trigger and popover (default: 4)
- * @prop {String} accessibleLabel - Accessible label for the popover dialog
  * @prop {Boolean} autoClose - Whether outside clicks close the popover.
  *     Escape always closes for accessibility. Default: true
  *
+ * @attr aria-label - Forwarded to the inner dialog as its accessible name.
+ *
  * @fires ol-popover-open - Fired when the popover opens.
  *     detail: { placement: String }
- * @fires ol-popover-close - Fired when the popover requests to close.
+ * @fires ol-popover-close - Cancelable. Fired when the popover requests to
+ *     close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss
+ *     close fires after the gesture completes and is not cancelable.
  *     detail: { reason: 'escape' | 'outside-click' | 'swipe' }
  *
  * @slot trigger - The trigger element (button, icon, etc.)
  * @slot - Default slot for popover content
  *
  * @example
- * <ol-popover accessible-label="Edit options">
+ * <ol-popover aria-label="Edit options">
  *   <button slot="trigger">Open</button>
  *   <div>Popover content here</div>
  * </ol-popover>
@@ -49,7 +58,6 @@ export class OlPopover extends LitElement {
         open: { type: Boolean, reflect: true },
         placement: { type: String },
         offset: { type: Number },
-        accessibleLabel: { type: String, attribute: 'accessible-label' },
         autoClose: { type: Boolean, attribute: 'auto-close' },
         _position: { state: true },
         _transformOrigin: { state: true },
@@ -73,9 +81,9 @@ export class OlPopover extends LitElement {
         .panel {
             position: fixed;
             z-index: 1000;
-            background: var(--white, #fff);
-            border-radius: var(--border-radius-overlay, 12px);
-            box-shadow: 0 8px 24px var(--boxshadow-black, hsla(0, 0%, 0%, 0.15));
+            background: var(--white);
+            border-radius: var(--border-radius-overlay);
+            box-shadow: 0 8px 24px var(--boxshadow-black);
             opacity: 0;
             transform: scale(0.95);
             pointer-events: none;
@@ -242,7 +250,6 @@ export class OlPopover extends LitElement {
         this.open = false;
         this.placement = 'bottom-center';
         this.offset = 4;
-        this.accessibleLabel = '';
         this.autoClose = true;
         this._position = { top: 0, left: 0 };
         this._transformOrigin = 'top left';
@@ -251,7 +258,8 @@ export class OlPopover extends LitElement {
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
-        this._savedOverflow = null;
+        this._savedBodyStyle = null;
+        this._savedScrollY = 0;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -260,6 +268,7 @@ export class OlPopover extends LitElement {
         this._isHandleDrag = false;
         this._lastDragY = 0;
 
+        this._onTriggerClick = this._onTriggerClick.bind(this);
         this._onOutsideClick = this._onOutsideClick.bind(this);
         this._onKeydownGlobal = this._onKeydownGlobal.bind(this);
         this._onScrollResize = this._onScrollResize.bind(this);
@@ -271,7 +280,7 @@ export class OlPopover extends LitElement {
     render() {
         const showPanel = this._animState !== 'closed';
         return html`
-            <slot name="trigger"></slot>
+            <slot name="trigger" @click="${this._onTriggerClick}"></slot>
             ${showPanel ? html`
                 ${this._mobile ? html`
                     <div
@@ -286,7 +295,7 @@ export class OlPopover extends LitElement {
                     data-state="${this._animState}"
                     role="dialog"
                     aria-modal="true"
-                    aria-label="${ifDefined(this.accessibleLabel || undefined)}"
+                    aria-label="${ifDefined(this.getAttribute('aria-label') || undefined)}"
                     tabindex="-1"
                     style="${this._mobile ? '' : `
                         top: ${this._position.top}px;
@@ -577,7 +586,9 @@ export class OlPopover extends LitElement {
 
     get _triggerEl() {
         const slot = this.shadowRoot?.querySelector('slot[name="trigger"]');
-        return slot?.assignedElements()[0] ?? null;
+        // flatten:true unwraps nested <slot>s (ol-select-popover) so we anchor
+        // to the real trigger element, not a layout-less slot node.
+        return slot?.assignedElements({ flatten: true })[0] ?? null;
     }
 
     // ── Scroll / resize repositioning ───────────────────────────
@@ -609,7 +620,11 @@ export class OlPopover extends LitElement {
         });
     }
 
-    // ── Outside click / keyboard ────────────────────────────────
+    // ── Trigger / outside click / keyboard ──────────────────────
+
+    _onTriggerClick() {
+        this.open = !this.open;
+    }
 
     _onOutsideClick(e) {
         if (!this.autoClose) return;
@@ -634,10 +649,14 @@ export class OlPopover extends LitElement {
     }
 
     _requestClose(reason) {
-        this.dispatchEvent(new CustomEvent('ol-popover-close', {
-            bubbles: true, composed: true,
+        const ev = new CustomEvent('ol-popover-close', {
+            bubbles: true, composed: true, cancelable: true,
             detail: { reason },
-        }));
+        });
+        this.dispatchEvent(ev);
+        if (!ev.defaultPrevented) {
+            this.open = false;
+        }
     }
 
     // ── Mobile touch / swipe-to-dismiss ─────────────────────────
@@ -767,15 +786,32 @@ export class OlPopover extends LitElement {
     // ── Body scroll lock ────────────────────────────────────────
 
     _lockBodyScroll() {
-        this._savedOverflow = document.body.style.overflow;
+        // If another popover already holds the lock, don't trample its saved styles.
+        if (document.body.style.position === 'fixed') return;
+
+        this._savedScrollY = window.scrollY;
+        this._savedBodyStyle = {
+            position: document.body.style.position,
+            top: document.body.style.top,
+            left: document.body.style.left,
+            right: document.body.style.right,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow,
+        };
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${this._savedScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
         document.body.style.overflow = 'hidden';
     }
 
     _unlockBodyScroll() {
-        if (this._savedOverflow !== null) {
-            document.body.style.overflow = this._savedOverflow;
-            this._savedOverflow = null;
-        }
+        if (!this._savedBodyStyle) return;
+        Object.assign(document.body.style, this._savedBodyStyle);
+        window.scrollTo(0, this._savedScrollY);
+        this._savedBodyStyle = null;
+        this._savedScrollY = 0;
     }
 
     // ── Listener management ─────────────────────────────────────

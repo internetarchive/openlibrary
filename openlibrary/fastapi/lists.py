@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Path, Query
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 
 from openlibrary.plugins.openlibrary.lists import get_list, get_list_subjects
+from infogami.infobase import client
+from openlibrary.accounts import get_current_user
+from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.plugins.openlibrary.lists import get_list
+from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
+from openlibrary.utils.request_context import site, web_ctx_ip
 
-router = APIRouter()
+router = APIRouter(tags=["lists"])
 
 
 def _get_list_or_404(key: str, raw: bool) -> dict:
@@ -15,6 +20,30 @@ def _get_list_or_404(key: str, raw: bool) -> dict:
     if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
         raise HTTPException(status_code=404, detail="List not found")
     return lst
+
+
+def _process_list_delete(key: str) -> dict:
+    """Shared delete logic for both route variants."""
+
+    user = get_current_user()
+
+    if user and not user.is_admin() and (user.key and not key.startswith(user.key)):
+        raise HTTPException(status_code=403, detail="Permission denied.")
+
+    doc = site.get().get(key)
+    if doc is None or doc.type.key != "/type/list":
+        raise HTTPException(status_code=404, detail="Not found.")
+
+    try:
+        with web_ctx_ip():
+            _LegacyListsDelete.process_delete(doc, key)
+    except client.ClientException as e:
+        raise HTTPException(
+            status_code=int(e.status.split()[0]),
+            detail=e.json.decode("utf-8") if isinstance(e.json, bytes) else e.json,
+        )
+
+    return {"status": "ok"}
 
 
 UsernamePath = Annotated[str, Path(description="The patron's username")]
@@ -41,9 +70,10 @@ def list_view_json_user(
     return _get_list_or_404(key, raw=raw)
 
 
-@router.get("/{category}/{list_id}.json")
+@router.get("/lists/{list_id}.json")
+@router.get("/series/{list_id}.json")
 def list_view_json_public(
-    category: ListCategory,
+    request: Request,
     list_id: ListOLID,
     raw: RawFlag = False,
 ) -> dict:
@@ -54,12 +84,28 @@ def list_view_json_public(
     /lists/OL456L.json
     /series/OL789L.json
     """
+    category = request.url.path.split("/")[1]
     key = f"/{category}/{list_id}"
     return _get_list_or_404(key, raw=raw)
 
 
-async def lists_delete(filename: Annotated[str, Path()]) -> Response:
-    return Response(status_code=200)
+@router.post("/people/{username}/lists/{list_id}/delete.json")
+def lists_delete(
+    username: UsernamePath,
+    list_id: ListOLID,
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    """Delete a list owned by the given user."""
+    return _process_list_delete(f"/people/{username}/lists/{list_id}")
+
+
+@router.post("/lists/{list_id}/delete.json")
+def lists_delete_no_prefix(
+    list_id: ListOLID,
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    """Delete a list (legacy path without username prefix)."""
+    return _process_list_delete(f"/lists/{list_id}")
 
 
 async def lists_json():
