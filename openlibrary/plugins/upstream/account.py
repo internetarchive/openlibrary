@@ -8,10 +8,9 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -20,6 +19,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -478,12 +478,15 @@ class account_login_otp_issue(delegate.page):
         return delegate.RawText(json.dumps({"error": result.get("error", "otp_issue_failed")}))
 
 
+_OTP_REDIRECT_BLACKLIST = ["/account/login", "/account/create"]
+
+
 class account_login_otp_redeem(delegate.page):
     path = "/account/login/otp/redeem"
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        i = web.input(email="", otp="")
+        i = web.input(email="", otp="", redirect="")
         if not i.email or not i.otp:
             return delegate.RawText(json.dumps({"error": "missing_fields"}))
         originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
@@ -491,12 +494,16 @@ class account_login_otp_redeem(delegate.page):
         if not result.get("success"):
             return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
         s3 = result.get("values", {}).get("s3", {})
+        access = s3.get("access")
+        secret = s3.get("secret")
+        if not access or not secret:
+            return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
         audit = audit_accounts(
             None,
             None,
             require_link=True,
-            s3_access_key=s3.get("access"),
-            s3_secret_key=s3.get("secret"),
+            s3_access_key=access,
+            s3_secret_key=secret,
         )
         if error := audit.get("error"):
             return delegate.RawText(json.dumps({"error": error}))
@@ -505,7 +512,10 @@ class account_login_otp_redeem(delegate.page):
         email = audit.get("ia_email") or audit.get("ol_email")
         if ol_account := OpenLibraryAccount.get_by_email(email):
             _set_account_cookies(ol_account, expires="")
-        return delegate.RawText(json.dumps({"success": True}))
+        redirect = i.redirect
+        if not redirect or any(path in redirect for path in _OTP_REDIRECT_BLACKLIST):
+            redirect = "/account/books"
+        return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
 
 
 class account_login(delegate.page):

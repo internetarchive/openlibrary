@@ -9,13 +9,13 @@ import '@internetarchive/elements/ia-otp-form/ia-otp-form';
  *   1. Enter email  → POST /account/login/otp/issue
  *   2. Enter code   → POST /account/login/otp/redeem  (via ia-otp-form)
  *
- * On success the page reloads to `redirect` (defaults to /account/books).
+ * On success the page navigates to the server-sanitized redirect URL.
  *
  * Usage:
  *   <ol-otp-login></ol-otp-login>
  *   <ol-otp-login redirect="/account/books"></ol-otp-login>
  *
- * @prop {String} redirect - URL to navigate to on successful login
+ * @prop {String} redirect - Hint for post-login destination; sanitized server-side
  */
 export class OpenLibraryOTP extends LitElement {
     static properties = {
@@ -39,6 +39,7 @@ export class OpenLibraryOTP extends LitElement {
         this._issueError = '';
         this._validationStatus = 'ready';
         this._newCodeSending = false;
+        this._previousFocus = null;
     }
 
     static styles = css`
@@ -155,6 +156,16 @@ export class OpenLibraryOTP extends LitElement {
             --link-color: #4b4bdf;
             margin-top: 0.5rem;
         }
+
+        /* Visually-hidden focus sentinels used for focus-trapping */
+        .focus-sentinel {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
     `;
 
     render() {
@@ -166,12 +177,23 @@ export class OpenLibraryOTP extends LitElement {
             <div
                 class="overlay"
                 ?open=${this._open}
-                role="dialog"
-                aria-modal="true"
-                aria-label="Sign in with a one-time code"
                 @click=${this._handleOverlayClick}
+                @keydown=${this._handleKeydown}
             >
-                <div class="dialog">
+                <div
+                    class="dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="Sign in with a one-time code"
+                    tabindex="-1"
+                >
+                    <!-- Focus sentinel: catches Shift+Tab past the first element -->
+                    <div
+                        class="focus-sentinel"
+                        tabindex="0"
+                        @focus=${this._focusLast}
+                    ></div>
+
                     <button
                         class="close-btn"
                         @click=${this._closeModal}
@@ -182,6 +204,13 @@ export class OpenLibraryOTP extends LitElement {
                     ${this._step === 'email'
         ? this._emailTemplate
         : this._codeTemplate}
+
+                    <!-- Focus sentinel: catches Tab past the last element -->
+                    <div
+                        class="focus-sentinel"
+                        tabindex="0"
+                        @focus=${this._focusFirst}
+                    ></div>
                 </div>
             </div>
         `;
@@ -230,7 +259,24 @@ export class OpenLibraryOTP extends LitElement {
         `;
     }
 
+    updated(changedProperties) {
+        if (!changedProperties.has('_open')) return;
+        if (this._open) {
+            // Focus the first interactive element once the dialog renders
+            requestAnimationFrame(() => {
+                const first = this.shadowRoot.querySelector(
+                    '.dialog input, .dialog button:not(.close-btn)'
+                );
+                (first || this.shadowRoot.querySelector('.dialog')).focus();
+            });
+        } else if (this._previousFocus) {
+            this._previousFocus.focus();
+            this._previousFocus = null;
+        }
+    }
+
     _openModal() {
+        this._previousFocus = document.activeElement;
         this._open = true;
         this._step = 'email';
         this._issueError = '';
@@ -243,6 +289,26 @@ export class OpenLibraryOTP extends LitElement {
 
     _handleOverlayClick(e) {
         if (e.target === e.currentTarget) this._closeModal();
+    }
+
+    _handleKeydown(e) {
+        if (e.key === 'Escape') this._closeModal();
+    }
+
+    /** Redirect Tab-past-end back to the first focusable element */
+    _focusFirst() {
+        const el = this.shadowRoot.querySelector(
+            '.dialog button.close-btn, .dialog input, .dialog button:not([disabled])'
+        );
+        el?.focus();
+    }
+
+    /** Redirect Shift+Tab-past-start back to the last focusable element */
+    _focusLast() {
+        const candidates = this.shadowRoot.querySelectorAll(
+            '.dialog button:not([disabled]), .dialog input:not([disabled])'
+        );
+        candidates[candidates.length - 1]?.focus();
     }
 
     async _handleEmailSubmit(e) {
@@ -285,12 +351,14 @@ export class OpenLibraryOTP extends LitElement {
                 body: new URLSearchParams({
                     email: this._email,
                     otp: e.detail,
+                    redirect: this.redirect,
                 }),
             });
             const data = await resp.json();
             if (data.success) {
                 this._validationStatus = 'success';
-                window.location.href = this.redirect;
+                // Navigate to server-sanitized redirect (never raw this.redirect)
+                window.location.href = data.redirect;
             } else {
                 this._validationStatus = 'error';
             }
