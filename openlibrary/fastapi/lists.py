@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Query
 from fastapi.responses import Response
@@ -20,38 +20,41 @@ def _get_list_or_404(key: str, raw: bool) -> dict:
 UsernamePath = Annotated[str, Path(description="The patron's username")]
 RawFlag = Annotated[bool, Query(alias="_raw", description="Return raw database record")]
 ListOLID = Annotated[str, Path(description="The OLID, e.g. OL123L", pattern=r"OL\d+L")]
+ListCategory = Annotated[Literal["lists", "series"], Path(description="List category")]
 
 
-@router.get("/people/{username}/lists/{list_id}.json")
-def list_view_json_user(username: UsernamePath, list_id: ListOLID, raw: RawFlag = False) -> dict:
+@router.get("/people/{username}/{category}/{list_id}.json")
+def list_view_json_user(
+    username: UsernamePath,
+    category: ListCategory,
+    list_id: ListOLID,
+    raw: RawFlag = False,
+) -> dict:
     """
-    Returns JSON metadata for a user-owned list.
+    Returns JSON metadata for a user-owned list or series.
 
-    Example: /people/mekBot/lists/OL123L.json
+    Examples:
+    /people/mekBot/lists/OL123L.json
+    /people/mekBot/series/OL123L.json
     """
-    key = f"/people/{username}/lists/{list_id}"
+    key = f"/people/{username}/{category}/{list_id}"
     return _get_list_or_404(key, raw=raw)
 
 
-@router.get("/lists/{list_id}.json")
-def list_view_json_public(list_id: ListOLID, raw: RawFlag = False) -> dict:
+@router.get("/{category}/{list_id}.json")
+def list_view_json_public(
+    category: ListCategory,
+    list_id: ListOLID,
+    raw: RawFlag = False,
+) -> dict:
     """
-    Returns JSON metadata for a public (non-user) list.
+    Returns JSON metadata for a public list or series.
 
-    Example: /lists/OL456L.json
+    Examples:
+    /lists/OL456L.json
+    /series/OL789L.json
     """
-    key = f"/lists/{list_id}"
-    return _get_list_or_404(key, raw=raw)
-
-
-@router.get("/series/{list_id}.json")
-def list_view_json_series(list_id: ListOLID, raw: RawFlag = False) -> dict:
-    """
-    Returns JSON metadata for a series.
-
-    Example: /series/OL789L.json
-    """
-    key = f"/series/{list_id}"
+    key = f"/{category}/{list_id}"
     return _get_list_or_404(key, raw=raw)
 
 
