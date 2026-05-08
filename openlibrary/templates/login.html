@@ -95,6 +95,6 @@ $if "dev" in ctx.features:
         </form>
 
         <div class="ol-signup-form__big-or">$_('OR')</div>
-        <ol-otp-login redirect="$form.redirect.value or '/account/books'"></ol-otp-login>
+        <ol-otp-login redirect="$(form.redirect.value or '/account/books')"></ol-otp-login>
     </div>
 </div>

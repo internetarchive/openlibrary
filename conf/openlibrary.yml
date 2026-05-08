@@ -167,6 +167,7 @@ ia_ol_xauth_s3:
 
 ia_loan_api_url: http://web:8080/internal/fake/loans
 ia_xauth_api_url: http://web:8080/internal/fake/xauth
+ia_s3_auth_url: http://web:8080/internal/fake/s3auth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/

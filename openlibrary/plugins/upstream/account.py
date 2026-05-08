@@ -8,9 +8,10 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -19,7 +20,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -115,7 +115,12 @@ class xauth(delegate.page):
         service. This service is spoofable to return successful and
         unsuccessful login attempts depending on the provided GET parameters
         """
-        i = web.input(email="", op=None)
+        i = web.input(email="", op=None, password="")
+        # xauth() sends JSON body; web.input() only reads query params + form bodies
+        try:
+            body = json.loads(web.data() or "{}")
+        except (json.JSONDecodeError, ValueError):
+            body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
             result = {
@@ -138,7 +143,53 @@ class xauth(delegate.page):
                 },
                 "version": 1,
             }
+        elif i.op == "issue_otp":
+            # Pretend to send an OTP email; accept any email in dev
+            result = {"success": True, "version": 1}
+        elif i.op == "redeem_otp":
+            # Accept "123456" as the dev OTP code
+            if body.get("password") == "123456":
+                result = {
+                    "success": True,
+                    "version": 1,
+                    "values": {
+                        "email": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    },
+                }
+            else:
+                result = {
+                    "success": False,
+                    "version": 1,
+                    "error": "invalid_otp",
+                }
         return delegate.RawText(json.dumps(result), content_type="application/json")
+
+
+class s3auth(delegate.page):
+    path = "/internal/fake/s3auth"
+
+    def GET(self):
+        """Fake S3 auth endpoint for local dev. Accepts the dummy keys
+        issued by the fake xauth so the OTP redeem flow can complete."""
+        auth = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+        # Fake keys are "foo:foo" — accept them
+        if "LOW foo:foo" in auth:
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        "authorized": True,
+                        "username": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    }
+                ),
+                content_type="application/json",
+            )
+        return delegate.RawText(json.dumps({"authorized": False}), content_type="application/json")
 
 
 class internal_audit(delegate.page):
