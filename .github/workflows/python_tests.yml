@@ -59,6 +59,6 @@ jobs:
           git fetch --no-tags --prune --depth=1 origin master
           make test-py
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
