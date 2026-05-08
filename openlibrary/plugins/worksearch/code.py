@@ -13,12 +13,12 @@ from unicodedata import normalize
 
 import httpx
 import web
+from requests import Response
+
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
-from requests import Response
-
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability, add_availability_async
@@ -1136,7 +1136,8 @@ class edition_search(delegate.page):
     ):
         extra_params = []
         if work_key:
-            extra_params.append(("fq", f'work_key:"{work_key}"'))
+            safe_key = work_key.replace('\\', '\\\\').replace('"', '\\"')
+            extra_params.append(('fq', f'work_key:"{safe_key}"'))
 
         return run_solr_query(
             EditionSearchScheme(),

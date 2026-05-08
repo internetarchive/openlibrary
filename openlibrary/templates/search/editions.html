@@ -15,7 +15,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
     </form>
   </div>
 
-    $if q and results and results.error:
+    $if results and results.error:
         <strong>
             $for line in results.error.splitlines():
                 $line
@@ -23,7 +23,7 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
                     <br>
         </strong>
 
-    $if q and results and not results.error:
+    $if results and not results.error:
         $if results.num_found:
             <div class="search-results-stats">$ungettext('%(count)s edition', '%(count)s editions', results.num_found, count=commify(results.num_found))
             </div>
@@ -46,12 +46,14 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
             $ subtitle_text = doc.get('subtitle', '')
             $ publishers = doc.get('publisher', [])
             $ publisher_str = ', '.join(publishers[:2])
-            $ publish_date = doc.get('publish_date', '')
+            $ _publish_dates = doc.get('publish_date', [])
+            $ publish_date = _publish_dates[0] if _publish_dates else ''
             $ languages = doc.get('language', [])
             $ language_str = ', '.join(languages[:2])
             $ isbns = doc.get('isbn', [])
             $ ebook_access = doc.get('ebook_access', '')
-            $ work_key = doc.get('work_key', '')
+            $ _work_keys = doc.get('work_key', [])
+            $ work_key = _work_keys[0] if _work_keys else ''
             <li class="searchResultItem">
               <a href="$edition_key">
                 <img src="$cover_url" alt="$_('Cover of %(title)s', title=title_text)" class="cover book">

@@ -152,7 +152,7 @@ def _default_search_response():
 def mock_run_solr_query_async():
     """Mock run_solr_query_async to avoid actual Solr calls.
 
-    Used by FastAPI search/editions, search/authors, search/subjects tests.
+    Used by FastAPI search/editions tests.
     """
     with patch("openlibrary.fastapi.search.run_solr_query_async", autospec=True) as mock:
         mock.return_value = _default_edition_solr_response()
@@ -199,8 +199,8 @@ def _default_edition_solr_response():
             {
                 "key": "/books/OL1M",
                 "title": "Test Edition 1",
-                "work_key": "/works/OL1W",
-                "publish_date": "2023",
+                "work_key": ["/works/OL1W"],
+                "publish_date": ["2023"],
             }
         ],
         num_found=1,
@@ -213,8 +213,8 @@ def _default_edition_solr_response():
                     {
                         "key": "/books/OL1M",
                         "title": "Test Edition 1",
-                        "work_key": "/works/OL1W",
-                        "publish_date": "2023",
+                        "work_key": ["/works/OL1W"],
+                        "publish_date": ["2023"],
                     }
                 ],
             }

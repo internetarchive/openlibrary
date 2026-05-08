@@ -380,7 +380,8 @@ async def search_editions_json(
     """
     extra_params = []
     if params.work_key:
-        extra_params.append(('fq', f'work_key:"{params.work_key}"'))
+        safe_key = params.work_key.replace("\\", "\\\\").replace('"', '\\"')
+        extra_params.append(("fq", f'work_key:"{safe_key}"'))
 
     response = await run_solr_query_async(
         EditionSearchScheme(),

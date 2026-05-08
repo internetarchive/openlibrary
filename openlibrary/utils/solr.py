@@ -43,6 +43,8 @@ SolrRequestLabel = Literal[
     "SUBJECT_SEARCH_API",
     "AUTHOR_SEARCH",
     "AUTHOR_SEARCH_API",
+    "EDITION_SEARCH",
+    "EDITION_SEARCH_API",
 ]
 
 

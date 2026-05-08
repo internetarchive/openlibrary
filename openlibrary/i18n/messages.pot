@@ -1072,7 +1072,8 @@ msgstr ""
 msgid "Add a new book?"
 msgstr ""
 
-#: search/authors.html search/lists.html search/subjects.html work_search.html
+#: search/authors.html search/editions.html search/lists.html
+#: search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
 msgstr ""
 
@@ -3531,7 +3532,7 @@ msgid "Select this book"
 msgstr ""
 
 #: SearchResultsWork.html books/check.html merge/authors.html
-#: publishers/view.html
+#: publishers/view.html search/editions.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -6328,7 +6329,7 @@ msgstr ""
 msgid "Full Text Search?"
 msgstr ""
 
-#: search/authors.html
+#: search/authors.html search/editions.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
 msgstr ""
@@ -6347,6 +6348,40 @@ msgstr ""
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
+msgstr ""
+
+#: search/editions.html
+msgid "Search Editions"
+msgstr ""
+
+#: search/editions.html
+msgid "No <strong>editions</strong> directly matched your search"
+msgstr ""
+
+#: search/editions.html
+msgid "Untitled"
+msgstr ""
+
+#: search/editions.html
+#, python-format
+msgid "Cover of %(title)s"
+msgstr ""
+
+#: search/editions.html
+#, python-format
+msgid "ISBN: %(isbn)s"
+msgstr ""
+
+#: search/editions.html
+msgid "See work"
+msgstr ""
+
+#: search/editions.html
+msgid "Freely Available"
+msgstr ""
+
+#: search/editions.html
+msgid "Borrowable"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
@@ -8016,6 +8051,10 @@ msgstr ""
 
 #: ReturnForm.html
 msgid "Return book"
+msgstr ""
+
+#: SearchNavigation.html
+msgid "Editions"
 msgstr ""
 
 #: SearchResultsWork.html
