@@ -515,13 +515,13 @@ class lists_delete(delegate.page):
         return delegate.RawText('{"status": "ok"}')
 
     @staticmethod
-    def process_delete(doc, key):
+    def process_delete(doc, key: str):
         # Deletes list preview from memcache, if it exists
         cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
         cache.memcache_cache.delete(cache_key)
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
-        web.ctx.site.save(delete_doc, action="delete-list", comment="Deleted list.")
+        site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
 class lists_json(delegate.page):

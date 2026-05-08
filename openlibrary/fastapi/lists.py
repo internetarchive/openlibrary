@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-import web
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from infogami.infobase import client
@@ -32,16 +31,7 @@ def _process_list_delete(key: str) -> dict:
         raise HTTPException(status_code=404, detail="Not found.")
 
     try:
-        had_site = "site" in web.ctx
-        previous_site = web.ctx.get("site") if had_site else None
-        web.ctx.site = site.get()
-        try:
-            _LegacyListsDelete.process_delete(doc, key)
-        finally:
-            if had_site:
-                web.ctx.site = previous_site
-            else:
-                web.ctx.pop("site", None)
+        _LegacyListsDelete.process_delete(doc, key)
     except client.ClientException as e:
         raise HTTPException(
             status_code=int(e.status.split()[0]),
