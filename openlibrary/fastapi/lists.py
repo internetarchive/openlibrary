@@ -31,7 +31,11 @@ async def list_editions_json():
 
 
 @router.get("/people/{username}/lists/{list_id}/subjects.json")
-def list_subjects_json_user(username: str, list_id: str, limit: int = 20) -> dict:
+def list_subjects_json_user(
+    username: str, 
+    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
+    limit: int = 20
+) -> dict:
     key = f"/people/{username}/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
@@ -39,7 +43,10 @@ def list_subjects_json_user(username: str, list_id: str, limit: int = 20) -> dic
 
 
 @router.get("/lists/{list_id}/subjects.json")
-def list_subjects_json_public(list_id: str, limit: int = 20) -> dict:
+def list_subjects_json_public(
+    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
+    limit: int = 20
+) -> dict:
     key = f"/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
@@ -47,7 +54,10 @@ def list_subjects_json_public(list_id: str, limit: int = 20) -> dict:
 
 
 @router.get("/series/{list_id}/subjects.json")
-def list_subjects_json_series(list_id: str, limit: int = 20) -> dict:
+def list_subjects_json_series(
+    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
+    limit: int = 20
+) -> dict:
     key = f"/series/{list_id}"
     if data := get_list_subjects(key, limit):
         return data

@@ -860,14 +860,14 @@ class list_subjects_json(delegate.page):
         text = formats.dump(data, self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
 
-
-def _process_subject(s):
-    key = s["key"]
-    if key.startswith("subject:"):
-        key = "/subjects/" + key.removeprefix("subject:")
-    else:
-        key = "/subjects/" + key
-    return {"name": s["name"], "count": s["count"], "url": key}
+    @staticmethod
+    def _process_subject(s):
+        key = s["key"]
+        if key.startswith("subject:"):
+            key = "/subjects/" + key.removeprefix("subject:")
+        else:
+            key = "/subjects/" + key
+        return {"name": s["name"], "count": s["count"], "url": key}
 
 
 def get_list_subjects(key: str, limit: int = 20) -> dict | None:
@@ -877,7 +877,7 @@ def get_list_subjects(key: str, limit: int = 20) -> dict | None:
 
     data = lst.get_subjects(limit=limit)
     for sub_key, subjects_ in data.items():
-        data[sub_key] = [_process_subject(s) for s in subjects_]
+        data[sub_key] = [list_subjects_json._process_subject(s) for s in subjects_]  
     data = dict(data)
     data["links"] = {"self": key + "/subjects", "list": key}
     return data
