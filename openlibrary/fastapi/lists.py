@@ -5,6 +5,7 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 
 from infogami.infobase import client
+from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary.lists import get_list
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
@@ -23,7 +24,9 @@ def _get_list_or_404(key: str, raw: bool) -> dict:
 def _process_list_delete(key: str) -> dict:
     """Shared delete logic for both route variants."""
 
-    if not site.get().can_write(key):
+    user = get_current_user()
+
+    if user and not user.is_admin() and (user.key and not key.startswith(user.key)):
         raise HTTPException(status_code=403, detail="Permission denied.")
 
     doc = site.get().get(key)
@@ -86,7 +89,7 @@ def list_view_json_public(
 def lists_delete(
     username: UsernamePath,
     list_id: ListOLID,
-    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     """Delete a list owned by the given user."""
     return _process_list_delete(f"/people/{username}/lists/{list_id}")
@@ -95,7 +98,7 @@ def lists_delete(
 @router.post("/lists/{list_id}/delete.json")
 def lists_delete_no_prefix(
     list_id: ListOLID,
-    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     """Delete a list (legacy path without username prefix)."""
     return _process_list_delete(f"/lists/{list_id}")
