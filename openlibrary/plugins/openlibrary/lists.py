@@ -595,7 +595,9 @@ class lists_json(delegate.page):
         return delegate.RawText(self.dumps(lists))
 
     @staticmethod
-    def get_lists_data(doc, path, limit=50, offset=0, query=None, query_path: str | None = None):
+    def get_lists_data(
+        doc, path, limit=50, offset=0, query=None, query_path: str | None = None
+    ):
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 

@@ -1,6 +1,6 @@
 import json
-from urllib.parse import parse_qs, urlsplit
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
@@ -162,10 +162,7 @@ class FakePreviewList:
 
 class FakeListsDoc:
     def __init__(self, count):
-        self._lists = [
-            FakePreviewList(f"/people/alice/lists/OL{index}L")
-            for index in range(count)
-        ]
+        self._lists = [FakePreviewList(f"/people/alice/lists/OL{index}L") for index in range(count)]
 
     def get_lists(self, limit=50, offset=0):
         return self._lists[offset : offset + limit]
