@@ -209,9 +209,8 @@ def render_component(
             val = urllib.parse.quote(val)
         attrs_str += f' {key}="{val}"'
     html = ""
-    included = web.ctx.setdefault("included-components", [])
 
-    if name not in included:
+    if name not in (included := web.ctx.setdefault("included-components", [])):
         url = static_url("build/components/production/ol-%s.js" % name)
         script_attrs = "" if not asyncDefer else "async defer"
         html += f'<script type="module" {script_attrs} src="{url}"></script>'
