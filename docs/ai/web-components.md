@@ -2,6 +2,24 @@
 
 Guidelines for building Lit web components in Open Library. Components live in `openlibrary/components/lit/` and are registered in `openlibrary/components/lit/index.js`.
 
+## When to Build a Component
+
+Not every interactive element needs a web component.
+
+**Build a Lit web component when:**
+- The UI is interactive and benefits from encapsulation (its own styles, state, events)
+- The element will be reused across multiple pages or contexts
+- The behavior is complex enough to warrant a clean API (attributes, events, slots)
+
+**Use vanilla JavaScript when:**
+- The interaction is a one-off page enhancement (e.g., toggling a section)
+- The behavior is simple DOM manipulation tied to a specific template
+
+**Use a template change when:**
+- The change is purely visual or structural with no client-side interactivity
+
+**Vue** is reserved for a few specialized, JavaScript-heavy tools (librarian merge UI, reading stats, library explorer). It is not the default for new UI.
+
 Build and watch with:
 
 ```bash
@@ -76,6 +94,34 @@ Use compound components when a component has multiple related parts that need to
 - Use `aria-expanded`, `aria-selected`, `aria-current`, etc. to reflect interactive state.
 - Support translatable labels via attribute overrides (see the `label-*` props on `OlPagination` for the pattern).
 
+```js
+// aria-live for dynamic content
+html`
+  <div aria-live="polite" aria-atomic="true">
+    ${this.results.length} results found
+  </div>
+`;
+
+// aria-expanded for toggleable sections
+html`
+  <button
+    aria-expanded=${this.isOpen}
+    aria-controls="panel"
+    @click=${() => this.isOpen = !this.isOpen}
+  >${this.heading}</button>
+  <div id="panel" ?hidden=${!this.isOpen}>${this.content}</div>
+`;
+
+// aria-busy during loading
+html`
+  <div aria-busy=${this.loading}>
+    ${this.loading
+      ? html`<span>Loading...</span>`
+      : html`<ul>${this.items.map(item => html`<li>${item}</li>`)}</ul>`}
+  </div>
+`;
+```
+
 ## Keyboard
 
 - Tab order must match visual order.
@@ -85,10 +131,39 @@ Use compound components when a component has multiple related parts that need to
 - Visible `:focus-visible` indicators on all interactive elements.
 - Trap focus inside modals.
 
+```js
+// Escape to close — clean up listeners properly
+connectedCallback() {
+  super.connectedCallback();
+  this._handleKeydown = (e) => {
+    if (e.key === 'Escape' && this.open) {
+      this.open = false;
+    }
+  };
+  document.addEventListener('keydown', this._handleKeydown);
+}
+
+disconnectedCallback() {
+  super.disconnectedCallback();
+  document.removeEventListener('keydown', this._handleKeydown);
+}
+```
+
+```css
+/* Visible focus for keyboard users */
+button:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+
+/* Never remove focus outline without an alternative */
+```
+
 ## Styling
 
 - Scope all styles via Lit's `static styles` (Shadow DOM).
 - Use OL design tokens where possible. Token files live in `static/css/tokens/`.
+- Avoid outer margins on reusable components — spacing between elements is the parent's responsibility.
 
 ## Lifecycle and Performance
 
@@ -102,6 +177,30 @@ Use compound components when a component has multiple related parts that need to
 - Event names: kebab-case, `ol-<component>-<action>` format (e.g., `ol-pagination-change`).
 - Set `bubbles: true` and `composed: true` so events cross Shadow DOM boundaries.
 - Document every emitted event in the class JSDoc with `@fires`.
+
+## Slots
+
+Named slots let consumers inject content without the component needing to know about it:
+
+```js
+render() {
+  return html`
+    <div class="card">
+      <header><slot name="header"></slot></header>
+      <div class="content"><slot></slot></div>
+      <footer><slot name="footer"></slot></footer>
+    </div>
+  `;
+}
+```
+
+```html
+<ol-card>
+  <h3 slot="header">Book Title</h3>
+  <p>Description in the default slot.</p>
+  <button slot="footer">Borrow</button>
+</ol-card>
+```
 
 ## New Component Checklist
 

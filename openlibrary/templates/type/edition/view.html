@@ -180,7 +180,6 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
 $ component_times['affiliate_links component'] = time()
 $ prices = edition.key.startswith('/books/')
 
-$ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ isbn_13 = edition.get_isbn13() or None
 $ isbn_10 = edition.get_isbn10() or None
 
@@ -195,7 +194,8 @@ $if isbn_10 and not asin:
 $ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
-$ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+$ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
+$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
@@ -207,7 +207,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -310,7 +310,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <div class="Tools">
         <div class="panel mobile-vendor">
           <div class="btn-notice">
-            $:worldcat_links
+            $:worldcat_link
 
             <div class="cta-section">
               <p class="cta-section-title">$_('Buy this book')</p>

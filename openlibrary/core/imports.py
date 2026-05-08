@@ -57,7 +57,7 @@ class Batch(web.storage):
             items = [line.strip() for line in file if line.strip()]
         self.add_items(items)
 
-    def dedupe_items(self, items):
+    def dedupe_items(self, items: list[dict]) -> list[dict]:
         ia_ids = [item.get("ia_id") for item in items if item.get("ia_id")]
         already_present = {
             row.ia_id
@@ -82,7 +82,7 @@ class Batch(web.storage):
         # Those unique items whose ia_id's aren't already present
         return [item for item in items if item.get("ia_id") not in already_present]
 
-    def normalize_items(self, items):
+    def normalize_items(self, items: list[str] | list[dict]) -> list[dict]:
         return [
             (
                 {"batch_id": self.id, "ia_id": item}

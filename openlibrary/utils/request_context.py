@@ -27,7 +27,7 @@ class RequestContextVars:
     x_forwarded_for: str | None
     user_agent: str | None
     lang: str | None
-    solr_editions: bool | None
+    solr_editions: bool
     print_disabled: bool
     sfw: bool = False
     is_recognized_bot: bool = False
@@ -227,4 +227,23 @@ def set_context_from_fastapi(request: Request) -> None:
             sfw=bool(request.cookies.get("sfw", "")),
             is_bot=is_bot,
         )
+    )
+
+
+def create_context_for_script() -> RequestContextVars:
+    """
+    These are the defaults we will use when executing from scripts.
+    Why not set these as default all the time?
+    Because we still run many things on threads and we don't want to
+    silently have it using defaults we don't expect. It's better to have it loudly fail,
+    like it has with scripts. See #12249
+    """
+    return RequestContextVars(
+        x_forwarded_for=None,
+        user_agent=None,
+        lang=None,
+        solr_editions=True,
+        print_disabled=False,
+        sfw=False,
+        is_bot=False,
     )

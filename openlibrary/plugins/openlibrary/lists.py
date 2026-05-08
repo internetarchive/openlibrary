@@ -648,7 +648,8 @@ class lists_yaml(lists_json):
 
 
 def get_list(key: str, raw: bool = False) -> dict | None:
-    lst = web.ctx.site.get(key)
+    lst = site.get().get(key)
+
     if not lst:
         return None
 
@@ -679,6 +680,7 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     }
 
 
+@deprecated("migrated to fastapi")
 class list_view_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
     encoding = "json"
