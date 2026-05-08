@@ -2,14 +2,10 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Path
-from fastapi.responses import Response
-
-from openlibrary.plugins.openlibrary.lists import get_list_subjects
 from fastapi import APIRouter, HTTPException, Path, Query
 from fastapi.responses import Response
 
-from openlibrary.plugins.openlibrary.lists import get_list
+from openlibrary.plugins.openlibrary.lists import get_list, get_list_subjects
 
 router = APIRouter()
 
@@ -79,11 +75,7 @@ async def list_editions_json():
 
 
 @router.get("/people/{username}/lists/{list_id}/subjects.json")
-def list_subjects_json_user(
-    username: str, 
-    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
-    limit: int = 20
-) -> dict:
+def list_subjects_json_user(username: str, list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
     key = f"/people/{username}/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
@@ -91,10 +83,7 @@ def list_subjects_json_user(
 
 
 @router.get("/lists/{list_id}/subjects.json")
-def list_subjects_json_public(
-    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
-    limit: int = 20
-) -> dict:
+def list_subjects_json_public(list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
     key = f"/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
@@ -102,10 +91,7 @@ def list_subjects_json_public(
 
 
 @router.get("/series/{list_id}/subjects.json")
-def list_subjects_json_series(
-    list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], 
-    limit: int = 20
-) -> dict:
+def list_subjects_json_series(list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
     key = f"/series/{list_id}"
     if data := get_list_subjects(key, limit):
         return data

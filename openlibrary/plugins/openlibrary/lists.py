@@ -879,7 +879,7 @@ def get_list_subjects(key: str, limit: int = 20) -> dict | None:
 
     data = lst.get_subjects(limit=limit)
     for sub_key, subjects_ in data.items():
-        data[sub_key] = [list_subjects_json._process_subject(s) for s in subjects_]  
+        data[sub_key] = [list_subjects_json._process_subject(s) for s in subjects_]
     data = dict(data)
     data["links"] = {"self": key + "/subjects", "list": key}
     return data
