@@ -17,12 +17,13 @@ def _get_list_or_404(key: str, raw: bool) -> dict:
     return lst
 
 
+UsernamePath = Annotated[str, Path(description="The patron's username")]
+RawFlag = Annotated[bool, Query(alias="_raw", description="Return raw database record")]
+ListOLID = Annotated[str, Path(description="The OLID, e.g. OL123L", pattern=r"OL\d+L")]
+
+
 @router.get("/people/{username}/lists/{list_id}.json")
-def list_view_json_user(
-    username: Annotated[str, Path(description="The patron's username")],
-    list_id: Annotated[str, Path(description="The list OLID, e.g. OL123L", pattern=r"OL\d+L")],
-    raw: Annotated[bool, Query(alias="_raw", description="Return raw database record")] = False,
-) -> dict:
+def list_view_json_user(username: UsernamePath, list_id: ListOLID, raw: RawFlag = False) -> dict:
     """
     Returns JSON metadata for a user-owned list.
 
@@ -33,10 +34,7 @@ def list_view_json_user(
 
 
 @router.get("/lists/{list_id}.json")
-def list_view_json_public(
-    list_id: Annotated[str, Path(description="The list OLID, e.g. OL456L", pattern=r"OL\d+L")],
-    raw: Annotated[bool, Query(alias="_raw", description="Return raw database record")] = False,
-) -> dict:
+def list_view_json_public(list_id: ListOLID, raw: RawFlag = False) -> dict:
     """
     Returns JSON metadata for a public (non-user) list.
 
@@ -47,10 +45,7 @@ def list_view_json_public(
 
 
 @router.get("/series/{list_id}.json")
-def list_view_json_series(
-    list_id: Annotated[str, Path(description="The series OLID, e.g. OL789L", pattern=r"OL\d+L")],
-    raw: Annotated[bool, Query(alias="_raw", description="Return raw database record")] = False,
-) -> dict:
+def list_view_json_series(list_id: ListOLID, raw: RawFlag = False) -> dict:
     """
     Returns JSON metadata for a series.
 
@@ -58,11 +53,6 @@ def list_view_json_series(
     """
     key = f"/series/{list_id}"
     return _get_list_or_404(key, raw=raw)
-
-
-# ---------------------------------------------------------------------------
-# Stubs — other contributors' endpoints (not yet implemented)
-# ---------------------------------------------------------------------------
 
 
 async def lists_delete(filename: Annotated[str, Path()]) -> Response:
