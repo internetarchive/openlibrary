@@ -13,6 +13,13 @@ def mock_site():
 
 
 @pytest.fixture
+def mock_site_for_get_list():
+    """Mock out the site ContextVar used in get_list function."""
+    with patch("openlibrary.plugins.openlibrary.lists.site") as mock:
+        yield mock
+
+
+@pytest.fixture
 def mock_process_delete():
     """Mock out the legacy process_delete method."""
     with patch(
@@ -146,3 +153,57 @@ class TestListsDelete:
         # testuser.key is "/people/testuser" so key.startswith(user.key) is False
         response = fastapi_client.post("/lists/OL1L/delete.json")
         assert response.status_code == 403
+
+
+class TestListViewGet:
+    """Tests for GET /people/{username}/{category}/{list_id}.json endpoints."""
+
+    def test_get_deleted_list_returns_404(self, fastapi_client, mock_site_for_get_list):
+        """GET request for a deleted list should return 404, not 500.
+
+        This is a regression test for a bug where deleted lists caused
+        PydanticSerializationError due to Nothing values in the response dict.
+        """
+        # Mock a deleted list - type is /type/delete but the doc still exists
+        deleted_doc = MagicMock()
+        deleted_doc.type.key = "/type/delete"
+        deleted_doc.key = "/people/testuser/lists/OL1L"
+        deleted_doc.name = MagicMock()  # This returns Nothing for deleted docs
+        deleted_doc.seed_count = MagicMock()  # This returns Nothing for deleted docs
+        mock_site_for_get_list.get.return_value.get.return_value = deleted_doc
+
+        response = fastapi_client.get("/people/testuser/lists/OL1L.json")
+        # Should be 404, not 500
+        assert response.status_code == 404
+
+    def test_get_deleted_list_via_public_route_returns_404(self, fastapi_client, mock_site_for_get_list):
+        """GET request for a deleted list via /lists/{list_id}.json should return 404."""
+        deleted_doc = MagicMock()
+        deleted_doc.type.key = "/type/delete"
+        deleted_doc.key = "/lists/OL1L"
+        deleted_doc.name = MagicMock()
+        deleted_doc.seed_count = MagicMock()
+        mock_site_for_get_list.get.return_value.get.return_value = deleted_doc
+
+        response = fastapi_client.get("/lists/OL1L.json")
+        assert response.status_code == 404
+
+    def test_get_existing_list_returns_200(self, fastapi_client, mock_site_for_get_list):
+        """GET request for an existing list should return 200 with JSON data."""
+        existing_doc = MagicMock()
+        existing_doc.type.key = "/type/list"
+        existing_doc.key = "/people/testuser/lists/OL1L"
+        existing_doc.name = "My Test List"
+        existing_doc.description = None
+        existing_doc.seed_count = 5
+        existing_doc.revision = 1
+        existing_doc.created = MagicMock()
+        existing_doc.created.isoformat.return_value = "2024-01-01T00:00:00"
+        existing_doc.last_modified = MagicMock()
+        existing_doc.last_modified.isoformat.return_value = "2024-01-01T00:00:00"
+        mock_site_for_get_list.get.return_value.get.return_value = existing_doc
+
+        response = fastapi_client.get("/people/testuser/lists/OL1L.json")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["name"] == "My Test List"

@@ -654,6 +654,10 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     if not lst:
         return None
 
+    # Check for delete type before accessing properties that return Nothing
+    if lst.type.key == "/type/delete":
+        return None
+
     if raw:
         return lst.dict()
     return {
