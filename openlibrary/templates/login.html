@@ -93,5 +93,8 @@ $if "dev" in ctx.features:
             </div>
             <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
         </form>
+
+        <div class="ol-signup-form__big-or">$_('OR')</div>
+        <ol-otp-login redirect="$form.redirect.value or '/account/books'"></ol-otp-login>
     </div>
 </div>

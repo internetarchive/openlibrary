@@ -130,5 +130,8 @@
     "Safari >= 11.1",
     "iOS >= 11.3",
     "Android >= 5"
-  ]
+  ],
+  "dependencies": {
+    "@internetarchive/elements": "^0.2.5"
+  }
 }

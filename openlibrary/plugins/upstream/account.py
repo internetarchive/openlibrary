@@ -8,10 +8,9 @@ from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -20,6 +19,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -406,6 +406,55 @@ class otp_service_redeem(delegate.page):
         if OTP.is_valid(i.email, i.ip, i.service_ip, i.otp):
             return delegate.RawText(json.dumps({"success": "redeemed"}))
         return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
+
+
+class account_login_otp_issue(delegate.page):
+    path = "/account/login/otp/issue"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="")
+        if not i.email:
+            return delegate.RawText(json.dumps({"error": "missing_email"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.issue_otp(i.email, originating_ip=originating_ip)
+        if result.get("success"):
+            return delegate.RawText(json.dumps({"success": True}))
+        code = result.get("code", 200)
+        if code == 429:
+            web.ctx.status = "429 Too Many Requests"
+            return delegate.RawText(json.dumps({"error": "rate_limited"}))
+        return delegate.RawText(json.dumps({"error": result.get("error", "otp_issue_failed")}))
+
+
+class account_login_otp_redeem(delegate.page):
+    path = "/account/login/otp/redeem"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="", otp="")
+        if not i.email or not i.otp:
+            return delegate.RawText(json.dumps({"error": "missing_fields"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
+        if not result.get("success"):
+            return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
+        s3 = result.get("values", {}).get("s3", {})
+        audit = audit_accounts(
+            None,
+            None,
+            require_link=True,
+            s3_access_key=s3.get("access"),
+            s3_secret_key=s3.get("secret"),
+        )
+        if error := audit.get("error"):
+            return delegate.RawText(json.dumps({"error": error}))
+        web.setcookie("pd", int(audit.get("special_access") or 0) or "")
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+        email = audit.get("ia_email") or audit.get("ol_email")
+        if ol_account := OpenLibraryAccount.get_by_email(email):
+            _set_account_cookies(ol_account, expires="")
+        return delegate.RawText(json.dumps({"success": True}))
 
 
 class account_login(delegate.page):
