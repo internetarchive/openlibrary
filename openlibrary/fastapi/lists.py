@@ -2,14 +2,14 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary.lists import get_list
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
-from openlibrary.utils.request_context import site
+from openlibrary.utils.request_context import site, web_ctx_ip
 
 router = APIRouter(tags=["lists"])
 
@@ -34,7 +34,8 @@ def _process_list_delete(key: str) -> dict:
         raise HTTPException(status_code=404, detail="Not found.")
 
     try:
-        _LegacyListsDelete.process_delete(doc, key)
+        with web_ctx_ip():
+            _LegacyListsDelete.process_delete(doc, key)
     except client.ClientException as e:
         raise HTTPException(
             status_code=int(e.status.split()[0]),
@@ -68,9 +69,10 @@ def list_view_json_user(
     return _get_list_or_404(key, raw=raw)
 
 
-@router.get("/{category}/{list_id}.json")
+@router.get("/lists/{list_id}.json")
+@router.get("/series/{list_id}.json")
 def list_view_json_public(
-    category: ListCategory,
+    request: Request,
     list_id: ListOLID,
     raw: RawFlag = False,
 ) -> dict:
@@ -81,6 +83,7 @@ def list_view_json_public(
     /lists/OL456L.json
     /series/OL789L.json
     """
+    category = request.url.path.split("/")[1]
     key = f"/{category}/{list_id}"
     return _get_list_or_404(key, raw=raw)
 

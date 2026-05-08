@@ -5,6 +5,7 @@ This module provides utilities for managing request-scoped context variables
 and parsing request data for both web.py and FastAPI frameworks.
 """
 
+from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from urllib.parse import unquote
@@ -247,3 +248,26 @@ def create_context_for_script() -> RequestContextVars:
         sfw=False,
         is_bot=False,
     )
+
+
+@contextmanager
+def web_ctx_ip(ip: str = "127.0.0.1"):
+    """
+    Context manager that temporarily sets web.ctx.ip for legacy code that needs it.
+
+    This is a workaround for threadpool threads where web.ctx.ip may not be set
+    by the web server. The legacy database audit fields require an IP address.
+
+    Usage:
+        with web_ctx_ip('192.168.1.1'):
+            legacy_save_operation(doc)
+
+    Args:
+        ip: The IP address to use during the context. Defaults to '127.0.0.1'.
+    """
+    original_ip = getattr(web.ctx, "ip", None)
+    web.ctx.ip = ip
+    try:
+        yield
+    finally:
+        web.ctx.ip = original_ip
