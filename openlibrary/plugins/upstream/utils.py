@@ -211,19 +211,10 @@ def render_component(
     html = ""
     included = web.ctx.setdefault("included-components", [])
 
-    if not included:
-        # Support for legacy browsers (see vite.config.mjs)
-        polyfills_url = static_url("build/components/production/ol-polyfills-legacy.js")
-        html += f'<script nomodule src="{polyfills_url}" defer></script>'
-
     if name not in included:
         url = static_url("build/components/production/ol-%s.js" % name)
         script_attrs = "" if not asyncDefer else "async defer"
         html += f'<script type="module" {script_attrs} src="{url}"></script>'
-
-        legacy_url = static_url("build/components/production/ol-%s-legacy.js" % name)
-        html += f'<script nomodule src="{legacy_url}" defer></script>'
-
         included.append(name)
 
     html += f"<ol-{kebab_case(name)} {attrs_str}></ol-{kebab_case(name)}>"
