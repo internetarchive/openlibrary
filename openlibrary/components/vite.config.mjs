@@ -3,7 +3,6 @@
  */
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import legacy from '@vitejs/plugin-legacy';
 import { writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
@@ -18,8 +17,7 @@ componentNames.forEach(name => { buildInput[name] = getTemporaryVueInputPath(nam
 
 export default defineConfig({
     plugins: [
-        vue({ customElement: true }),
-        legacy({ targets: ['defaults', 'not IE 11'] })
+        vue({ customElement: true })
     ],
     build: {
         outDir: join(BUILD_DIR, '/production'),

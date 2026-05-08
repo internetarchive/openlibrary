@@ -4,8 +4,6 @@ import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
-// polyfill Promise support for IE11
-import Promise from 'promise-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -13,8 +11,6 @@ exposeGlobally();
 
 window.jQuery = jQuery;
 window.$ = jQuery;
-
-window.Promise = Promise;
 
 // Init the service worker first since it does caching
 initServiceWorker();
@@ -25,31 +21,6 @@ initAnalytics();
 
 // Initialise some things
 jQuery(function() {
-    // conditionally load polyfill for <details> tags (IE11)
-    // See http://diveintohtml5.info/everything.html#details
-    if (!('open' in document.createElement('details'))) {
-        import(/* webpackChunkName: "details-polyfill" */ 'details-polyfill');
-    }
-
-    // Polyfill for .matches()
-    if (!Element.prototype.matches) {
-        Element.prototype.matches =
-          Element.prototype.msMatchesSelector ||
-          Element.prototype.webkitMatchesSelector;
-    }
-
-    // Polyfill for .closest()
-    if (!Element.prototype.closest) {
-        Element.prototype.closest = function(s) {
-            let el = this;
-            do {
-                if (Element.prototype.matches.call(el, s)) return el;
-                el = el.parentElement || el.parentNode;
-            } while (el !== null && el.nodeType === 1);
-            return null;
-        };
-    }
-
     const $tabs = $('.ol-tabs');
     if ($tabs.length) {
         import(/* webpackChunkName: "tabs" */ './tabs')
