@@ -580,23 +580,23 @@ msgstr "আপনার প্রশ্ন"
 
 #: support.html:50
 msgid "Note: our staff will likely only be able respond in English."
-msgstr "ध्यान दें: हमारे कर्मचारी संभवतः केवल अंग्रेजी में जवाब दे सकेंगे।"
+msgstr "বিজ্ঞপ্তি: আমাদের কর্মচারীরা খুব সম্ভবত কেবল ইংরেজিতেই জবাব দিতে সক্ষম।"
 
 #: support.html:54
 msgid ""
 "If you encounter an error message, please include it. For questions about our books, please provide "
 "the title/author or Open Library ID."
 msgstr ""
-"अगर आपको कोई गड़बड़ी का मैसेज मिलता है, तो कृपया उसे शामिल करें। हमारी पुस्तकों के बारे में प्रश्नों के लिए, कृपया शीर्षक/"
-"लेखक या ओपन लाइब्रेरी आईडी प्रदान करें।"
+"যদি আপনি কোনো ত্রূটির বার্তা পান, অনুগ্রহ করে সেটি অন্তর্ভুক্ত করুন। আমাদের বই সম্পর্কিত প্রশ্নের জন্য, দয়া করে শিরোনাম/"
+"লেখক বা ওপেন লাইব্রেরি আইডি প্রদান করুন।"
 
 #: support.html:58
 msgid "Which page were you looking at?"
-msgstr "आप कौन सा पेज देख रहे थे?"
+msgstr "আপনি কোন পৃষ্ঠা দেখছিলেন?"
 
 #: support.html:69
 msgid "Send"
-msgstr "भेजें"
+msgstr "পাঠান"
 
 #: EditButtons.html:23 EditButtonsMacros.html:26 ReadingLogDropper.html:167 account/create.html:90
 #: account/notifications.html:59 account/password/reset.html:24 account/privacy.html:56
@@ -604,139 +604,139 @@ msgstr "भेजें"
 #: books/edit/addfield.html:177 covers/add.html:79 covers/manage.html:52 databarAuthor.html:66
 #: databarEdit.html:13 merge/authors.html:109 support.html:71
 msgid "Cancel"
-msgstr "रद्द करें"
+msgstr "রদ করুন"
 
 #: trending.html:10
 msgid "Now"
-msgstr "अब"
+msgstr "এখন"
 
 #: admin/graphs.html:47 check_ins/check_in_form.html:71 check_ins/check_in_prompt.html:36
 #: trending.html:10
 msgid "Today"
-msgstr "आज"
+msgstr "আজ"
 
 #: admin/graphs.html:48 trending.html:10
 msgid "This Week"
-msgstr "इस सप्ताह"
+msgstr "এই সপ্তাহে"
 
 #: stats/readinglog.html:20 stats/readinglog.html:37 stats/readinglog.html:54 trending.html:10
 msgid "This Month"
-msgstr "इस महीने"
+msgstr "এই মাসে"
 
 #: trending.html:10
 msgid "This Year"
-msgstr "यह साल"
+msgstr "এই বছরে"
 
 #: trending.html:10
 msgid "All Time"
-msgstr "पूरे समय"
+msgstr "সবসময়ের"
 
 #: home/index.html:27 trending.html:11
 msgid "Trending Books"
-msgstr "ट्रेंडिंग बुक्स"
+msgstr "ট্রেন্ডিং বই"
 
 #: trending.html:12
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr "देखें कि समुदाय के पाठक अपने बुकशेल्फ़ में क्या जोड़ रहे हैं"
+msgstr "এই সম্প্রদায়ের পাঠকেরা তাদের বুকশেল্ফে কি কি যোগ করছেন তা দেখুন"
 
 #: ReadingLogDropper.html:27 ReadingLogDropper.html:66 ReadingLogDropper.html:189 account/mybooks.html:75
 #: account/sidebar.html:26 trending.html:23
 msgid "Want to Read"
-msgstr "पढ़ने में रुचि"
+msgstr "পড়তে চান"
 
 #: ReadingLogDropper.html:25 ReadingLogDropper.html:74 account/books.html:33 account/mybooks.html:74
 #: account/readinglog_shelf_name.html:8 account/sidebar.html:25 trending.html:23
 msgid "Currently Reading"
-msgstr "फ़िलहाल पढ़ रहे हैं"
+msgstr "বর্তমানে পাঠরত"
 
 #: LoanReadForm.html:9 ReadButton.html:19 book_providers/gutenberg_read_button.html:15
 #: book_providers/openstax_read_button.html:15 book_providers/standard_ebooks_read_button.html:15
 #: books/edit/edition.html:665 books/show.html:34 trending.html:23 type/list/embed.html:69 widget.html:34
 msgid "Read"
-msgstr "पढ़ें"
+msgstr "পড়ুন"
 
 #: trending.html:24
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr "किसी ने %(shelf)s %(k_hours_ago)s के रूप में चिह्नित किया"
+msgstr "কেউ %(shelf)s %(k_hours_ago)s রূপে চিহ্নিত করেছেন"
 
 #: trending.html:26
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr "%(count)i बार %(time_unit)s लॉग इन किया गया"
+msgstr "%(count)i বার %(time_unit)s লগ ইন করা হয়েছে"
 
 #: viewpage.html:13
 msgid "Revert to this revision?"
-msgstr "इस संशोधन पर वापस जाएँ?"
+msgstr "এই সংশোধনে ফেরত যান?"
 
 #: viewpage.html:16
 msgid "Revert to this revision"
-msgstr "इस संशोधन पर वापस जाएँ"
+msgstr "এই সংশোধনে ফেরত যান"
 
 #: widget.html:34
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr "\"%(title)s\" पढ़ें"
+msgstr "\"%(title)s\" পড়ুন"
 
 #: widget.html:39
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr "\"%(title)s\" उधार लें"
+msgstr "\"%(title)s\" ধার করুন"
 
 #: ReadButton.html:15 books/edit/edition.html:668 type/list/embed.html:80 widget.html:39
 msgid "Borrow"
-msgstr "उधार"
+msgstr "ঋণ গ্রহণ"
 
 #: widget.html:45
 #, python-format
 msgid "Join waitlist for &quot;%(title)s&quot;"
-msgstr "\"%(title)s \"के लिए प्रतीक्षा सूची में शामिल हों;"
+msgstr "\"%(title)s \"এর জন্য প্রতীক্ষাসূচিতে শামিল হন;"
 
 #: LoanStatus.html:112 widget.html:45
 msgid "Join Waitlist"
-msgstr "वेटलिस्ट में शामिल हों"
+msgstr "প্রতীক্ষাসূচিতে অংশগ্রহণ করুন"
 
 #: widget.html:49
 #, python-format
 msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
-msgstr "OpenLibrary पर \"%(title)s \"के बारे में और जानें"
+msgstr "OpenLibrary তে \"%(title)s\"এর ব্যাপারে আরো জানুন"
 
 #: widget.html:49
 msgid "Learn More"
-msgstr "अधिक जानें"
+msgstr "আরো জানুন"
 
 #: widget.html:51
 msgid "on "
-msgstr "पर "
+msgstr "তে "
 
 #: work_search.html:68
 msgid "Search Books"
-msgstr "किताबों के लिए खोज करें"
+msgstr "বই খুঁজুন"
 
 #: work_search.html:72
 msgid "eBook?"
-msgstr "ई - बुक?"
+msgstr "ই-বুক?"
 
 #: type/edition/view.html:246 type/work/view.html:246 work_search.html:73
 msgid "Language"
-msgstr "भाषा"
+msgstr "ভাষা"
 
 #: books/add.html:42 books/edit.html:92 books/edit/edition.html:245 lib/nav_head.html:93
 #: merge_queue/merge_queue.html:77 search/advancedsearch.html:24 work_search.html:74 work_search.html:164
 msgid "Author"
-msgstr "लेखक"
+msgstr "লেখক"
 
 #: work_search.html:76
 msgid "First published"
-msgstr "पहली बार प्रकाशित"
+msgstr "প্রথম প্রকাশিত"
 
 #: search/advancedsearch.html:44 type/edition/view.html:231 type/work/view.html:231 work_search.html:77
 msgid "Publisher"
-msgstr "प्रकाशक"
+msgstr "প্রকাশক"
 
 #: work_search.html:81
 msgid "Classic eBooks"
-msgstr "क्लासिक ई - बुक्स"
+msgstr "ক্লাসিক ই-বুক সমূহ"
 
 #: work_search.html:89
 msgid "Keywords"
@@ -744,11 +744,11 @@ msgstr "Keywords"
 
 #: recentchanges/index.html:60 work_search.html:94
 msgid "Everything"
-msgstr "सभी"
+msgstr "সমস্ত"
 
 #: work_search.html:96
 msgid "Ebooks"
-msgstr "ई - बुक्स"
+msgstr "ই-বুক"
 
 #: work_search.html:98
 msgid "Print Disabled"
@@ -756,48 +756,48 @@ msgstr "Print Disabled"
 
 #: work_search.html:101
 msgid "This is only visible to super librarians."
-msgstr "यह केवल सुपर लाइब्रेरियन को दिखाई देता है।"
+msgstr "এটি কেবলমাত্র সুপার লাইব্রেরিয়ানদের কাছেই দৃশ্যমান।"
 
 #: work_search.html:107
 msgid "Solr Editions"
-msgstr "सोलर एडिशन"
+msgstr "সোলার সংস্করণ"
 
 #: work_search.html:124
 msgid "eBook"
-msgstr "ई - बुक"
+msgstr "ই-বুক"
 
 #: work_search.html:127
 msgid "Classic eBook"
-msgstr "क्लासिक ई - बुक"
+msgstr "ক্লাসিক ই-বুক"
 
 #: work_search.html:146
 msgid "Explore Classic eBooks"
-msgstr "क्लासिक ई - बुक्स का जायज़ा लें"
+msgstr "ক্লাসিক এ-বুক এর ব্যাপারে অনুসন্ধান করুন"
 
 #: work_search.html:146
 msgid "Only Classic eBooks"
-msgstr "केवल क्लासिक ई - बुक्स"
+msgstr "কেবলমাত্র ক্লাসিক ই-বুক"
 
 #: work_search.html:150 work_search.html:152 work_search.html:154 work_search.html:156
 #, python-format
 msgid "Explore books about %(subject)s"
-msgstr "%(subject)s के बारे में किताबों का जायज़ा लें"
+msgstr "%(subject)s বিষয় সম্পর্কিত বইয়ের ব্যাপারে অনুসন্ধান করুন"
 
 #: merge/authors.html:88 work_search.html:158
 msgid "First published in"
-msgstr "पहली बार में प्रकाशित"
+msgstr "তে সর্বপ্রথম প্রকাশিত"
 
 #: work_search.html:160
 msgid "Written in"
-msgstr "में लिखा गया"
+msgstr "তে রচিত"
 
 #: work_search.html:162
 msgid "Published by"
-msgstr "प्रकाशक"
+msgstr "প্রকাশক"
 
 #: work_search.html:165
 msgid "Click to remove this facet"
-msgstr "इस पहलू को हटाने के लिए क्लिक करें"
+msgstr "এই পার্থক্যটি মোছার জন্য ক্লিক করুন"
 
 #: work_search.html:167
 #, python-format

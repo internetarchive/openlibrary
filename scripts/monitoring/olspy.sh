@@ -117,6 +117,7 @@ classify_workers_cur_fn() {
         else if ($0 ~ / run \(asyncio\/runners\.py/) print "uvicorn.run";
         else if ($0 ~ / readline \(memcache\.py/) print "memcache.readline";
         else if ($0 ~ / _recv_value \(memcache\.py/) print "memcache._recv_value";
+        else if ($2 ~ /\(memcache\.py/) print "memcache.other";
         else if ($0 ~ /info \(openlibrary\/core\/models\.py/) print "covers.info";
         else if ($0 ~ /GET \(openlibrary\/plugins\/worksearch\/code\.py/) print "ol.worksearch_GET";
         else if ($0 ~ /GET \(openlibrary\/views\/showmarc\.py/) print "ol.showmarc_GET";

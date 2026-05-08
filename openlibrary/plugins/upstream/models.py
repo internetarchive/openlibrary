@@ -290,6 +290,9 @@ class Edition(models.Edition):
 
                 id = id_map.get(name) or web.storage(name=name, label=name, url_format=None)
                 for v in value:
+                    if v is None:
+                        continue
+
                     d[id.name] = web.storage(
                         name=id.name,
                         label=id.label,

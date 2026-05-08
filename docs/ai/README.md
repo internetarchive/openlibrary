@@ -149,6 +149,10 @@ Open Library uses a wiki-style versioned data store (Infobase) via the `vendor/i
 
 A Work has many Editions. This is the central relationship in the data model.
 
+## Pull Requests
+
+When creating PRs, use the template in `.github/pull_request_template.md` for the PR body. Before pushing code, run `npm run lint` to catch issues early.
+
 ## Code Style
 
 - **Python:** Ruff linter, Black formatter. Line length 162. Target Python 3.12.
@@ -160,8 +164,9 @@ A Work has many Editions. This is the central relationship in the data model.
 
 These companion docs cover specific areas in depth:
 
-- [Design](design.md) — UI design patterns: typography, layout shift prevention, animations
-- [Web Component Standards](web-components.md) — Lit component conventions, naming, accessibility, events
+- [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
+- [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations
+- [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events
 
 ## Key File Locations
 
