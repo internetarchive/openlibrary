@@ -174,12 +174,12 @@ def fix_table_of_contents(table_of_contents: list[str | dict]) -> list:
         if isinstance(r, str):
             level = 0
             label = ""
-            title = web.safeunicode(r)
+            title = str(r)
             pagenum = ""
         elif "value" in r:
             level = 0
             label = ""
-            title = web.safeunicode(r["value"])
+            title = str(r["value"])
             pagenum = ""
         else:
             level = safeint(r.get("level", "0"), 0)

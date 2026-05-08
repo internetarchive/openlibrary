@@ -31,6 +31,7 @@ class TestListsJsonGet:
             limit=100,
             offset=0,
             query={"limit": "500", "offset": "-10"},
+            query_path="/people/alice/lists.json",
         )
 
     def test_work_lists_uses_legacy_safeint_defaults(self, fastapi_client):
@@ -56,6 +57,7 @@ class TestListsJsonGet:
             limit=50,
             offset=0,
             query={"limit": "not-a-number", "offset": "still-not-a-number"},
+            query_path="/works/OL42W/lists.json",
         )
 
     def test_subject_lists_reconstructs_subject_path(self, fastapi_client):
@@ -77,6 +79,7 @@ class TestListsJsonGet:
             limit=50,
             offset=0,
             query={},
+            query_path="/subjects/person:tolkien/lists.json",
         )
 
     def test_missing_doc_returns_404(self, fastapi_client):

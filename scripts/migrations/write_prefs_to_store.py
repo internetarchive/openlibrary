@@ -4,15 +4,13 @@ Copies all patrons' preferences to the `store` tables.
 """
 
 import argparse
-from pathlib import Path
 
 from psycopg2 import DatabaseError
 
-import infogami
 from openlibrary.accounts import RunAs
 from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.setup import setup_for_script
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
@@ -21,10 +19,7 @@ PREFERENCE_TYPE = "preferences"
 
 def setup(config_path):
     init_signal_handler()
-    if not Path(config_path).exists():
-        raise FileNotFoundError(f"no config file at {config_path}")
-    load_config(config_path)
-    infogami._setup()
+    setup_for_script(config_path)
 
 
 def copy_preferences_to_store(keys, verbose: bool = False) -> list[str]:

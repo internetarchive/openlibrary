@@ -5,7 +5,6 @@ from collections.abc import Iterable
 import web
 
 from infogami.utils import delegate
-from infogami.utils.view import public
 
 from .. import app
 from ..core import cache
@@ -48,8 +47,7 @@ def reading_log_summary():
     return stats
 
 
-@public
-def get_trending_books(
+async def get_trending_books(
     since_days=1,
     since_hours=0,
     limit=18,
@@ -69,7 +67,7 @@ def get_trending_books(
             minimum=minimum,
         )
     )
-    Bookshelves.add_solr_works(logged_books, fields=fields)
+    await Bookshelves.add_solr_works_async(logged_books, fields=fields)
 
     return [book["work"] for book in logged_books if book.get("work")]
 

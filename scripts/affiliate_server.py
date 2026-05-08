@@ -57,7 +57,11 @@ from infogami import config
 from openlibrary.config import load_config as openlibrary_load_config
 from openlibrary.core import cache, stats
 from openlibrary.core.imports import Batch, ImportItem
-from openlibrary.core.vendors import AmazonAPI, clean_amazon_metadata_for_load
+from openlibrary.core.vendors import (
+    AmazonAPI,
+    AmazonCreatorsAPI,
+    clean_amazon_metadata_for_load,
+)
 from openlibrary.plugins.upstream.utils import setup_requests
 from openlibrary.utils.dateutil import WEEK_SECS
 from openlibrary.utils.isbn import (
@@ -635,20 +639,42 @@ def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
     http_proxy_url = config.get("http_proxy")
+    http_proxy_creds = config.get("http_proxy_creds")
 
     stats.client = stats.create_stats_client(cfg=config)
 
     web.amazon_api = None
-    args = [
-        config.amazon_api.get("key"),
-        config.amazon_api.get("secret"),
-        config.amazon_api.get("id"),
+
+    # Prefer the new Creators API if credentials are configured; fall back to
+    # legacy PA-API (amazon_api) for side-by-side comparison during migration.
+    creators_cfg = config.get("amazon_creators_api") or {}
+    creators_args = [
+        creators_cfg.get("key"),
+        creators_cfg.get("secret"),
+        creators_cfg.get("id"),
     ]
-    if all(args):
-        web.amazon_api = AmazonAPI(*args, throttling=0.9, proxy_url=http_proxy_url)
-        logger.info("AmazonAPI Initialized")
+    creators_version = creators_cfg.get("version", "3.1")
+    legacy_cfg = config.get("amazon_api") or {}
+    legacy_args = [
+        legacy_cfg.get("key"),
+        legacy_cfg.get("secret"),
+        legacy_cfg.get("id"),
+    ]
+
+    if all(creators_args):
+        web.amazon_api = AmazonCreatorsAPI(
+            *creators_args,
+            version=creators_version,
+            throttling=0.9,
+            proxy_url=http_proxy_url,
+            proxy_creds=http_proxy_creds,
+        )
+        logger.info("AmazonCreatorsAPI Initialized")
+    elif all(legacy_args):
+        web.amazon_api = AmazonAPI(*legacy_args, throttling=0.9, proxy_url=http_proxy_url)
+        logger.info("AmazonAPI (legacy PA-API) Initialized")
     else:
-        raise RuntimeError(f"{configfile} is missing required keys.")
+        raise RuntimeError(f"{configfile} is missing required amazon_creators_api or amazon_api keys.")
 
 
 def setup_env():

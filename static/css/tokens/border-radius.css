@@ -4,9 +4,9 @@
  * Rarely used directly in components - use semantic tokens instead
  */
 :root {
-  --border-radius-sm: 2px;
-  --border-radius-md: 4px;
-  --border-radius-lg: 8px;
+  --border-radius-sm: 3px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 9px;
   --border-radius-xl: 12px;
   --border-radius-xxl: 24px;
   --border-radius-pill: 9999px;

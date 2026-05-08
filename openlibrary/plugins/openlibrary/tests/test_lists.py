@@ -1,8 +1,10 @@
 import json
+from urllib.parse import parse_qs, urlsplit
 from unittest.mock import patch
 
 import pytest
 
+from openlibrary.plugins.openlibrary import lists as legacy_lists
 from openlibrary.plugins.openlibrary.lists import ListRecord
 
 
@@ -148,3 +150,43 @@ class TestListRecord:
             # Blank keys should now raise ValueError during normalization
             with pytest.raises(ValueError, match="Seed key cannot be empty"):
                 ListRecord.from_input()
+
+
+class FakePreviewList:
+    def __init__(self, key):
+        self.key = key
+
+    def preview(self):
+        return {"key": self.key}
+
+
+class FakeListsDoc:
+    def __init__(self, count):
+        self._lists = [
+            FakePreviewList(f"/people/alice/lists/OL{index}L")
+            for index in range(count)
+        ]
+
+    def get_lists(self, limit=50, offset=0):
+        return self._lists[offset : offset + limit]
+
+
+def test_get_lists_data_uses_lists_json_path_for_pagination_links():
+    doc = FakeListsDoc(60)
+
+    data = legacy_lists.lists_json.get_lists_data(
+        doc,
+        "/people/alice",
+        limit=50,
+        offset=0,
+        query={"foo": "bar"},
+        query_path="/people/alice/lists.json",
+    )
+
+    assert data["links"]["self"] == "/people/alice"
+    assert data["links"]["next"].startswith("/people/alice/lists.json?")
+    assert parse_qs(urlsplit(data["links"]["next"]).query) == {
+        "foo": ["bar"],
+        "limit": ["50"],
+        "offset": ["50"],
+    }

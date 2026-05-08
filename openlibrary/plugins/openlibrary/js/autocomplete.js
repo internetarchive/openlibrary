@@ -79,7 +79,7 @@ export function init() {
              * @param {Event} _event (unused)
              * @param {Object} ui containing item key
              */
-            focus: function (_event, ui) {
+            focus: function(_event, ui) {
                 const $list = $(_this).data('list');
                 if ($list) {
                     $list.find('li')
@@ -89,7 +89,7 @@ export function init() {
                 }
                 return ac_opts.autoFill;
             },
-            select: function (_event, ui) {
+            select: function(_event, ui) {
                 var item = ui.item;
                 var $this = $(this);
                 $this.closest('.ac-input').find('.ac-input__value').val(item.key);
@@ -121,7 +121,7 @@ export function init() {
             }
         });
         const options = $.extend(default_ac_opts, ac_opts);
-        options.source = function (q, response) {
+        options.source = function(q, response) {
             const term = options.termPreprocessor(q.term);
             const params = {
                 q: term,
@@ -189,7 +189,7 @@ export function init() {
 
         function update_indices() {
             container.find('.mia__input').each(function(index) {
-                $(this).find('.mia__index').each(function () {
+                $(this).find('.mia__index').each(function() {
                     $(this).text($(this).text().replace(/\d+/, index + 1));
                 });
                 $(this).find('[name]').each(function() {
@@ -350,7 +350,7 @@ export function init() {
                 ui.content.splice(0, ui.content.length,
                     ...ui.content.filter(record => !terms.includes(record.value)));
             },
-        }
+        };
 
         container.find(autocomplete_selector).each(function() {
             const options = $.extend(default_ac_opts, ac_opts);

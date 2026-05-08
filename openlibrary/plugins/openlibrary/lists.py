@@ -8,6 +8,7 @@ from typing import Literal, cast
 from urllib.parse import parse_qs, urlencode
 
 import web
+from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
@@ -238,7 +239,6 @@ def get_seed_info(doc):
     }
 
 
-@public
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -529,7 +529,7 @@ def get_lists_json_doc(path: str, current_site):
     return current_site.get(path)
 
 
-def _changequery(path: str, query=None, **kw):
+def _changequery(path: str, query=None, query_path: str | None = None, **kw):
     if query is None:
         return web.changequery(**kw)
 
@@ -540,7 +540,7 @@ def _changequery(path: str, query=None, **kw):
         else:
             query[k] = v
 
-    out = path
+    out = query_path or path
     if query:
         out += "?" + urlencode(query, doseq=True)
     return out
@@ -552,6 +552,7 @@ def get_lists_json_data(
     limit: int = 50,
     offset: int = 0,
     query=None,
+    query_path: str | None = None,
 ):
     if not (doc := get_lists_json_doc(path, current_site)):
         return None
@@ -566,6 +567,7 @@ def get_lists_json_data(
             limit=limit,
             offset=offset,
             query=query,
+            query_path=query_path,
         )
     finally:
         if had_site:
@@ -593,7 +595,7 @@ class lists_json(delegate.page):
         return delegate.RawText(self.dumps(lists))
 
     @staticmethod
-    def get_lists_data(doc, path, limit=50, offset=0, query=None):
+    def get_lists_data(doc, path, limit=50, offset=0, query=None, query_path: str | None = None):
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 
@@ -610,6 +612,7 @@ class lists_json(delegate.page):
             d["links"]["next"] = _changequery(
                 path,
                 query=query,
+                query_path=query_path,
                 limit=limit,
                 offset=offset + limit,
             )
@@ -619,6 +622,7 @@ class lists_json(delegate.page):
             d["links"]["prev"] = _changequery(
                 path,
                 query=query,
+                query_path=query_path,
                 limit=limit,
                 offset=offset,
             )
@@ -704,7 +708,8 @@ class lists_yaml(lists_json):
 
 
 def get_list(key: str, raw: bool = False) -> dict | None:
-    lst = web.ctx.site.get(key)
+    lst = site.get().get(key)
+
     if not lst:
         return None
 
@@ -735,6 +740,7 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     }
 
 
+@deprecated("migrated to fastapi")
 class list_view_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
     encoding = "json"
@@ -755,7 +761,6 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 
-@public
 def get_list_seeds(key):
     if lst := web.ctx.site.get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
