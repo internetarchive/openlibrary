@@ -210,7 +210,7 @@ def get_loan_changes(
                     defaults to config_ia_ol_metadata_write_s3.
     """
     url = S3_LOAN_URL % config_bookreader_host
-    params = {"action": "changes", "after_uid": after_uid, "limit": limit}
+    params: dict[str, str] = {"action": "changes", "after_uid": str(after_uid), "limit": str(limit)}
 
     if s3_keys:
         auth = "LOW {access}:{secret}".format(**s3_keys)

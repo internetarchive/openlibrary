@@ -51,7 +51,12 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     Uses limit=1 probes. Returns 0 if the API has no history or all history
     is newer than target_age_days.
     """
-    resp = lending.get_loan_changes(after_uid=0, limit=1)
+    try:
+        resp = lending.get_loan_changes(after_uid=0, limit=1)
+    except Exception:
+        logger.exception("Loan changes API unreachable on startup probe; starting from uid 0")
+        return 0
+
     if resp.get("status") != "OK":
         logger.warning("Loan changes API non-OK on startup probe; starting from uid 0")
         return 0
@@ -67,7 +72,12 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
         if high - low <= 1000:
             break
         mid = (low + high) // 2
-        rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
+        try:
+            rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
+        except Exception:
+            logger.exception("Binary-search probe failed at uid %d; shrinking window", mid)
+            high = mid
+            continue
         if not rows:
             high = mid
             continue
@@ -116,9 +126,10 @@ def resolve_work_keys(identifiers: list[str]) -> dict[str, str]:
     """Batch-resolve IA identifiers to Solr work keys via the ia field."""
     if not identifiers:
         return {}
-    # ia:(a b c) is an implicit OR in Solr
+    # Quote each term so identifiers with special characters are treated literally
+    quoted = " ".join(f'"{id_}"' for id_ in identifiers)
     result = get_solr().select(
-        query=f"ia:({' '.join(identifiers)})",
+        query=f"ia:({quoted})",
         fields=["key", "ia"],
         rows=len(identifiers) * 2,
     )
@@ -134,13 +145,11 @@ def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) ->
         if not work_key:
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
-            updates.append(
-                {
-                    "key": work_key,
-                    "ebook_availability": {"set": "unavailable"},
-                    "ebook_becomes_available": {"set": ia_until_to_solr_date(state["until"])},
-                }
-            )
+            update: dict = {"key": work_key, "ebook_availability": {"set": "unavailable"}}
+            solr_until = ia_until_to_solr_date(state["until"])
+            if solr_until is not None:
+                update["ebook_becomes_available"] = {"set": solr_until}
+            updates.append(update)
         elif state["event_type"] in LOAN_ENDED_EVENTS:
             updates.append(
                 {
@@ -194,6 +203,7 @@ def main(
     logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
 
     load_config(ol_config)
+    lending.setup(infogami.config)
     init_sentry(getattr(infogami.config, "sentry", {}))
 
     state_path = Path(state_file)
@@ -246,8 +256,6 @@ def main(
                 did_updates = True
 
             last_uid = new_uid
-            if not dry_run:
-                write_state(state_path, last_uid)
 
         try:
             evictions = build_eviction_updates()
@@ -262,7 +270,14 @@ def main(
             did_updates = True
 
         if did_updates and not dry_run:
-            get_solr().update_in_place([], commit=True)
+            try:
+                get_solr().update_in_place([], commit=True)
+            except Exception:
+                logger.exception("Solr commit failed; state not advanced")
+                time.sleep(poll_interval)
+                continue
+        if not dry_run:
+            write_state(state_path, last_uid)
 
         if len(rows) >= BATCH_SIZE:
             continue
