@@ -106,6 +106,14 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
     )
     sort: str | None = Field(None, description="The sort order of results.")
+    cursor: str | None = Field(
+        None,
+        description="Cursor for efficient deep pagination through large result sets. "
+        "Use '*' for the first page; subsequent pages use the 'next_cursor' "
+        "value returned by the previous response. Cannot be combined with "
+        "'offset'. The sort must include a unique tiebreaker field (e.g. "
+        "'key asc' is appended automatically when cursor is used).",
+    )
     spellcheck_count: int | None = Field(
         default_spellcheck_count,
         description="The number of spellcheck suggestions.",
@@ -146,6 +154,12 @@ class SearchResponse(BaseModel):
     documentation_url: str = "https://openlibrary.org/dev/docs/api/search"
     q: str
     offset: int | None
+    next_cursor: str | None = Field(
+        None,
+        description="Pass as 'cursor' in the next request to fetch the next page. "
+        "Absent when cursor pagination was not used, or when the result "
+        "set is exhausted.",
+    )
 
     # Defined last so it renders at the bottom.
     # We use dict[str, Any] to avoid documenting the internal book fields.
@@ -176,6 +190,7 @@ async def search_json(
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,
         solr_internals_params=solr_internals_params,
+        cursor=params.cursor,
     )
 
     raw_response["q"] = params.q
