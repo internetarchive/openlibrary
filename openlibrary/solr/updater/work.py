@@ -46,6 +46,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         await super().preload_keys(keys)
         self.data_provider.preload_editions_of_works(keys)
         self.data_provider.preload_reading_logs(keys)
+        self.data_provider.preload_ratings(keys)
 
     async def update_key(self, work: dict) -> tuple[SolrUpdateRequest, list[str]]:
         """

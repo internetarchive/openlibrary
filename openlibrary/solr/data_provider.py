@@ -230,6 +230,13 @@ class DataProvider:
         """
         pass
 
+    def preload_ratings(self, work_keys: Iterable[str]) -> None:
+        """
+        Preload ratings summaries for the provided works in one batch DB query.
+        Should make subsequent calls to get_work_ratings faster.
+        """
+        pass
+
     def find_redirects(self, key):
         """
         Returns keys of all things which redirect to this one.
@@ -272,6 +279,7 @@ class LegacyDataProvider(DataProvider):
         self._query_iter = query_iter
         self._withKey = withKey
         self._reading_log_cache: dict[str, WorkReadingLogSolrSummary] = {}
+        self._ratings_cache: dict[str, WorkRatingsSummary | None] = {}
 
     def find_redirects(self, key):
         """Returns keys of all things which are redirected to this one."""
@@ -287,10 +295,6 @@ class LegacyDataProvider(DataProvider):
     async def get_document(self, key):
         logger.info("get_document %s", key)
         return self._withKey(key)
-
-    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
-        work_id = int(work_key[len("/works/OL") : -len("W")])
-        return Ratings.get_work_ratings_summary(work_id)
 
     def preload_reading_logs(self, work_keys: Iterable[str]) -> None:
         keys = list(work_keys)
@@ -332,6 +336,30 @@ class LegacyDataProvider(DataProvider):
                 **{f"{shelf}_count": count for shelf, count in counts.items()},
             },
         )
+
+    def preload_ratings(self, work_keys: Iterable[str]) -> None:
+        keys = list(work_keys)
+        if not keys:
+            return
+        id_map: dict[int, str] = {}
+        for k in keys:
+            wid = extract_numeric_id_from_olid(k)
+            if wid is not None:
+                id_map[int(wid)] = k
+
+        if not id_map:
+            return
+
+        ratings_by_id = Ratings.get_works_ratings_summary_batch(list(id_map))
+        for work_id, work_key in id_map.items():
+            # Store None for unrated works so fallback query is never triggered
+            self._ratings_cache[work_key] = ratings_by_id.get(work_id)
+
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        if work_key in self._ratings_cache:
+            return self._ratings_cache[work_key]
+        work_id = int(work_key[len("/works/OL") : -len("W")])
+        return Ratings.get_work_ratings_summary(work_id)
 
     def clear_cache(self):
         # Nothing's cached, so nothing to clear!
