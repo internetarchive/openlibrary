@@ -37,7 +37,11 @@ async def get_top_languages(
     return results[:limit]
 
 
-@cache.memoize("memcache", key="get_all_language_counts", expires=60 * 60)
+@cache.memoize(
+    "memcache",
+    key=lambda solr_type, ebook_access=None: f"get_all_language_counts-{solr_type}-{ebook_access}",
+    expires=60 * 60,
+)
 async def get_all_language_counts(
     solr_type: Literal["work", "edition"],
     ebook_access: str | None = None,

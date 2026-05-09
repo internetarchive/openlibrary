@@ -586,7 +586,7 @@ class WorkSearchScheme(SearchScheme):
                 # NOTE: This only applies to the work, really
                 new_params.append(('hl.fl', ','.join(highlight_fields)))
                 new_params.append(('hl.q', str(highlight_query)))
-                new_params.append(('hl.snippets', '10'))
+                new_params.append(('hl.snippets', '5'))
                 # we can't trim e.g. chapter since it has a specific structure with the pipes
                 new_params.append(('hl.fragsize', '0'))
             except EmptyTreeError:
