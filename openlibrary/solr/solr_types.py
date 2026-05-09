@@ -49,6 +49,8 @@ class SolrDocument(TypedDict):
     discovery_score_normalized: Optional[int]
     evaluation_score: Optional[int]
     evaluation_score_normalized: Optional[int]
+    ebook_availability: Optional[Literal['available', 'unavailable']]
+    ebook_becomes_available: Optional[str]  # ISO 8601 UTC timestamp
     lexile: Optional[list[int]]
     lcc: Optional[list[str]]
     lcc_sort: Optional[str]
