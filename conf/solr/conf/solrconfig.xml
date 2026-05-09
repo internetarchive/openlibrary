@@ -533,54 +533,24 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!-- Work search -->
+        <!-- Lightweight filter-cache anchoring only. newSearcher fires on every
+             soft commit (~60s in production), so these must complete in <10ms.
+             Expensive query warming belongs in firstSearcher (cold start only). -->
         <lst>
-          <str name="userWorkQuery">harry potter</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="q">*:*</str>
           <str name="fq">type:work</str>
-          <str name="rows">20</str>
-          <str name="facet">true</str>
-          <str name="facet.field">author_facet</str>
-          <str name="facet.field">first_publish_year</str>
-          <str name="facet.field">has_fulltext</str>
-          <str name="facet.field">language</str>
-          <str name="facet.field">person_facet</str>
-          <str name="facet.field">place_facet</str>
-          <str name="facet.field">publisher_facet</str>
-          <str name="facet.field">subject_facet</str>
-          <str name="facet.field">time_facet</str>
+          <str name="rows">0</str>
         </lst>
-        <!-- Author works search -->
         <lst>
-          <str name="userWorkQuery">*:*</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="q">*:*</str>
           <str name="fq">type:work</str>
-          <str name="fq">author_key:OL2162284A</str>
-          <str name="sort">edition_count desc</str>
-          <str name="rows">20</str>
-          <str name="facet">true</str>
-          <str name="facet.limit">25</str>
-          <str name="facet.field">person_facet</str>
-          <str name="facet.field">place_facet</str>
-          <str name="facet.field">subject_facet</str>
-          <str name="facet.field">time_facet</str>
+          <str name="fq">ebook_access:[borrowable TO *]</str>
+          <str name="rows">0</str>
         </lst>
-        <!-- Ebook only search for carousel -->
         <lst>
-          <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
-          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
-          <str name="fq">type:work</str>
-          <str name="fq">ebook_access:[printdisabled TO *]</str>
-          <str name="rows">20</str>
-          <str name="facet">true</str>
-          <str name="facet.field">author_facet</str>
-          <str name="facet.field">first_publish_year</str>
-          <str name="facet.field">language</str>
-          <str name="facet.field">person_facet</str>
-          <str name="facet.field">place_facet</str>
-          <str name="facet.field">publisher_facet</str>
-          <str name="facet.field">subject_facet</str>
-          <str name="facet.field">time_facet</str>
+          <str name="q">*:*</str>
+          <str name="fq">type:edition</str>
+          <str name="rows">0</str>
         </lst>
       </arr>
     </listener>
