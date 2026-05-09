@@ -13,10 +13,6 @@ from scripts.solr_updater.loan_availability_updater import (
     write_state,
 )
 
-# ---------------------------------------------------------------------------
-# State file helpers
-# ---------------------------------------------------------------------------
-
 
 def test_read_state_missing(tmp_path):
     assert read_state(tmp_path / "nonexistent.state") == 0
@@ -34,11 +30,6 @@ def test_read_write_state_roundtrip(tmp_path):
     assert read_state(p) == 42000
 
 
-# ---------------------------------------------------------------------------
-# ia_until_to_solr_date
-# ---------------------------------------------------------------------------
-
-
 def test_ia_until_to_solr_date_valid():
     assert ia_until_to_solr_date("2026-05-01 15:42:43") == "2026-05-01T15:42:43Z"
 
@@ -50,10 +41,6 @@ def test_ia_until_to_solr_date_none():
 def test_ia_until_to_solr_date_invalid():
     assert ia_until_to_solr_date("not-a-date") is None
 
-
-# ---------------------------------------------------------------------------
-# process_changes
-# ---------------------------------------------------------------------------
 
 BORROW_ROW = {
     "identifier": "bookabc",
@@ -79,6 +66,7 @@ EXPIRE_ROW = {
     "event_type": "expire_browse",
     "extra": "{}",
 }
+ID_TO_WORK = {"bookabc": "/works/OL1W", "bookxyz": "/works/OL2W"}
 
 
 def test_process_changes_single_borrow():
@@ -88,15 +76,13 @@ def test_process_changes_single_borrow():
     assert result["bookabc"]["uid"] == 100
 
 
-def test_process_changes_latest_wins():
-    """When the same identifier appears twice, the higher-uid event wins."""
+def test_process_changes_latest_uid_wins():
     result = process_changes([BORROW_ROW, RETURN_ROW])
     assert result["bookabc"]["event_type"] == "return"
     assert result["bookabc"]["until"] is None
 
 
-def test_process_changes_latest_wins_reverse_order():
-    """Order in the list doesn't matter; uid comparison decides."""
+def test_process_changes_latest_uid_wins_reverse_order():
     result = process_changes([RETURN_ROW, BORROW_ROW])
     assert result["bookabc"]["event_type"] == "return"
 
@@ -107,64 +93,44 @@ def test_process_changes_multiple_identifiers():
     assert result["bookxyz"]["event_type"] == "expire_browse"
 
 
-def test_process_changes_until_not_set_for_ended_events():
-    result = process_changes([RETURN_ROW])
-    assert result["bookabc"]["until"] is None
+def test_process_changes_no_until_for_ended_events():
+    assert process_changes([RETURN_ROW])["bookabc"]["until"] is None
 
 
 def test_process_changes_bad_extra_json():
-    row = dict(BORROW_ROW, extra="not-json")
-    result = process_changes([row])
+    result = process_changes([dict(BORROW_ROW, extra="not-json")])
     assert result["bookabc"]["until"] is None
 
 
-# ---------------------------------------------------------------------------
-# build_solr_updates
-# ---------------------------------------------------------------------------
-
-ID_TO_WORK = {"bookabc": "/works/OL1W", "bookxyz": "/works/OL2W"}
-
-
 def test_build_solr_updates_borrow():
-    id_state = process_changes([BORROW_ROW])
-    updates = build_solr_updates(id_state, ID_TO_WORK)
+    updates = build_solr_updates(process_changes([BORROW_ROW]), ID_TO_WORK)
     assert len(updates) == 1
-    u = updates[0]
-    assert u["key"] == "/works/OL1W"
-    assert u["ebook_availability"] == {"set": "unavailable"}
-    assert u["ebook_becomes_available"] == {"set": "2026-05-15T10:00:00Z"}
+    assert updates[0] == {
+        "key": "/works/OL1W",
+        "ebook_availability": {"set": "unavailable"},
+        "ebook_becomes_available": {"set": "2026-05-15T10:00:00Z"},
+    }
 
 
 def test_build_solr_updates_return():
-    id_state = process_changes([RETURN_ROW])
-    updates = build_solr_updates(id_state, ID_TO_WORK)
+    updates = build_solr_updates(process_changes([RETURN_ROW]), ID_TO_WORK)
     assert len(updates) == 1
-    u = updates[0]
-    assert u["key"] == "/works/OL1W"
-    assert u["ebook_availability"] == {"set": "available"}
-    assert u["ebook_becomes_available"] == {"set": None}
+    assert updates[0] == {
+        "key": "/works/OL1W",
+        "ebook_availability": {"set": "available"},
+        "ebook_becomes_available": {"set": None},
+    }
 
 
 def test_build_solr_updates_unknown_identifier_skipped():
-    id_state = process_changes([BORROW_ROW])
-    updates = build_solr_updates(id_state, {})  # no mapping
-    assert updates == []
+    assert build_solr_updates(process_changes([BORROW_ROW]), {}) == []
 
 
 def test_build_solr_updates_mixed():
-    id_state = process_changes([BORROW_ROW, BROWSE_ROW, RETURN_ROW, EXPIRE_ROW])
-    updates = build_solr_updates(id_state, ID_TO_WORK)
-    keys = {u["key"] for u in updates}
-    assert "/works/OL1W" in keys
-    assert "/works/OL2W" in keys
-    for u in updates:
-        if u["key"] == "/works/OL1W" or u["key"] == "/works/OL2W":
-            assert u["ebook_availability"] == {"set": "available"}
-
-
-# ---------------------------------------------------------------------------
-# build_eviction_updates
-# ---------------------------------------------------------------------------
+    updates = build_solr_updates(process_changes([BORROW_ROW, BROWSE_ROW, RETURN_ROW, EXPIRE_ROW]), ID_TO_WORK)
+    by_key = {u["key"]: u for u in updates}
+    assert by_key["/works/OL1W"]["ebook_availability"] == {"set": "available"}
+    assert by_key["/works/OL2W"]["ebook_availability"] == {"set": "available"}
 
 
 def test_build_eviction_updates():
@@ -175,34 +141,19 @@ def test_build_eviction_updates():
         mock_get_solr.return_value.select.return_value = mock_result
         updates = build_eviction_updates()
 
-    assert len(updates) == 2
-    assert updates[0]["key"] == "/works/OL99W"
-    assert updates[0]["ebook_availability"] == {"set": "available"}
-    assert updates[0]["ebook_becomes_available"] == {"set": None}
-
-    # Confirm the Solr query targets past-expiry docs
-    call_kwargs = mock_get_solr.return_value.select.call_args
-    assert "ebook_becomes_available:[* TO NOW]" in str(call_kwargs)
+    assert updates == [
+        {"key": "/works/OL99W", "ebook_availability": {"set": "available"}, "ebook_becomes_available": {"set": None}},
+        {"key": "/works/OL100W", "ebook_availability": {"set": "available"}, "ebook_becomes_available": {"set": None}},
+    ]
+    assert "ebook_becomes_available:[* TO NOW]" in str(mock_get_solr.return_value.select.call_args)
 
 
 def test_build_eviction_updates_empty():
     mock_result = MagicMock()
     mock_result.docs = []
-
     with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
         mock_get_solr.return_value.select.return_value = mock_result
-        updates = build_eviction_updates()
-
-    assert updates == []
-
-
-# ---------------------------------------------------------------------------
-# find_start_uid (binary search)
-# ---------------------------------------------------------------------------
-
-
-def _make_loan_changes_response(rows, latest_uid=500_000):
-    return {"status": "OK", "latest_uid": latest_uid, "rows": rows}
+        assert build_eviction_updates() == []
 
 
 def _ts(days_ago: float) -> str:
@@ -213,33 +164,27 @@ def _ts(days_ago: float) -> str:
 def test_find_start_uid_no_history():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
         mock_lending.get_loan_changes.return_value = {"status": "OK", "latest_uid": 0, "rows": []}
-        uid = find_start_uid()
-    assert uid == 0
+        assert find_start_uid() == 0
 
 
 def test_find_start_uid_api_error():
     with patch("scripts.solr_updater.loan_availability_updater.lending") as mock_lending:
         mock_lending.get_loan_changes.return_value = {"status": "error"}
-        uid = find_start_uid()
-    assert uid == 0
+        assert find_start_uid() == 0
 
 
 def test_find_start_uid_converges():
-    """Binary search should converge to a uid where records are ~14 days old."""
+    """Binary search converges to a uid where the next record is ~14 days old."""
     call_count = 0
 
     def fake_changes(after_uid, limit):
         nonlocal call_count
         call_count += 1
-        # Simulate: uid=0→500k, newer rows have higher uids.
-        # Each unit of uid ≈ 1 minute of wall-clock time (roughly).
-        # latest_uid = 500_000 ≈ 347 days of events at 1 uid/minute.
         latest = 500_000
         if after_uid >= latest:
             return {"status": "OK", "latest_uid": latest, "rows": []}
-        # Approximate: uid 0 is 20 days ago, uid=latest is now.
-        fraction = after_uid / latest
-        days_ago = 20 * (1 - fraction)
+        # uid 0 → 20 days ago, uid latest → now (linear approximation)
+        days_ago = 20 * (1 - after_uid / latest)
         return {
             "status": "OK",
             "latest_uid": latest,
@@ -250,8 +195,6 @@ def test_find_start_uid_converges():
         mock_lending.get_loan_changes.side_effect = fake_changes
         uid = find_start_uid(target_age_days=14)
 
-    # The binary search should have converged reasonably quickly
-    assert call_count <= 42  # initial probe + BINARY_SEARCH_ITERS
-    # uid should correspond to roughly 14 days ago in our fake universe
-    # (latest * (20-14)/20 = 500_000 * 0.3 = 150_000)
+    assert call_count <= 41  # 1 initial probe + up to 40 binary-search iterations
+    # uid=150_000 is the exact 14-day boundary (500_000 * (20-14)/20 = 150_000)
     assert 100_000 < uid < 200_000
