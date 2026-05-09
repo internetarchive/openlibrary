@@ -127,7 +127,8 @@ class WorkSearchScheme(SearchScheme):
             "person_facet",
             "place_facet",
             "time_facet",
-            "public_scan_b",
+            # public_scan_b is intentionally excluded: the sidebar template
+            # unconditionally skips it, so fetching it from Solr is pure waste.
         }
     )
     field_name_map = MappingProxyType(
