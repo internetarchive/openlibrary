@@ -9,6 +9,7 @@ from scripts.solr_updater.loan_availability_updater import (
     find_start_uid,
     ia_until_to_solr_date,
     process_changes,
+    query_solr_uid,
     read_state,
     resolve_work_keys,
     write_state,
@@ -110,6 +111,7 @@ def test_build_solr_updates_borrow():
         "key": "/works/OL1W",
         "ebook_availability": {"set": "unavailable"},
         "ebook_becomes_available": {"set": "2026-05-15T10:00:00Z"},
+        "loan_uid": {"set": 100},
     }
 
 
@@ -120,6 +122,7 @@ def test_build_solr_updates_return():
         "key": "/works/OL1W",
         "ebook_availability": {"set": "available"},
         "ebook_becomes_available": {"set": None},
+        "loan_uid": {"set": 200},
     }
 
 
@@ -132,6 +135,26 @@ def test_build_solr_updates_mixed():
     by_key = {u["key"]: u for u in updates}
     assert by_key["/works/OL1W"]["ebook_availability"] == {"set": "available"}
     assert by_key["/works/OL2W"]["ebook_availability"] == {"set": "available"}
+    assert by_key["/works/OL1W"]["loan_uid"] == {"set": 200}
+    assert by_key["/works/OL2W"]["loan_uid"] == {"set": 300}
+
+
+def test_query_solr_uid_with_data():
+    mock_result = MagicMock()
+    mock_result.docs = [{"loan_uid": 42000}]
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
+        mock_get_solr.return_value.select.return_value = mock_result
+        assert query_solr_uid() == 42000
+    call_args = str(mock_get_solr.return_value.select.call_args)
+    assert "loan_uid desc" in call_args
+
+
+def test_query_solr_uid_empty():
+    mock_result = MagicMock()
+    mock_result.docs = []
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
+        mock_get_solr.return_value.select.return_value = mock_result
+        assert query_solr_uid() == 0
 
 
 def test_resolve_work_keys_empty():

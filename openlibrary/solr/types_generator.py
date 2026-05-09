@@ -30,6 +30,7 @@ def generate():
         type_map = {
             "pdate": "str",
             "pint": "int",
+            "plong": "int",
             "string": "str",
             "text_en_splitting": "str",
             "text_general": "str",
