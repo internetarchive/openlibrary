@@ -336,7 +336,7 @@ class Bookshelves(db.CommonExtras):
                 )
 
     @classmethod
-    def get_users_logged_books(
+    async def get_users_logged_books(
         cls,
         username: str,
         bookshelf_id: int = 0,
@@ -405,7 +405,7 @@ class Bookshelves(db.CommonExtras):
 
             return solr_docs
 
-        def get_filtered_reading_log_books(
+        async def get_filtered_reading_log_books(
             q: str,
             query_params: dict[str, str | int | None],
             filter_book_limit: int,
@@ -451,7 +451,7 @@ class Bookshelves(db.CommonExtras):
             )
             total_results = solr_resp.num_found
             solr_docs = solr_resp.docs
-            edition_data = get_solr().get_many(
+            edition_data = await get_solr().get_many_async(
                 [work_to_edition_keys[work["key"]] for work in solr_resp.docs],
                 fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
@@ -472,7 +472,7 @@ class Bookshelves(db.CommonExtras):
                 docs=solr_docs,
             )
 
-        def get_sorted_reading_log_books(
+        async def get_sorted_reading_log_books(
             query_params: dict[str, str | int | None],
             sort: Literal["created asc", "created desc"],
             checkin_year: int | None,
@@ -516,7 +516,7 @@ class Bookshelves(db.CommonExtras):
                 for i in reading_log_books
             ]
 
-            solr_docs = get_solr().get_many(
+            solr_docs = await get_solr().get_many_async(
                 [key for key in flatten(reading_log_keys) if key],
                 fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
@@ -540,14 +540,14 @@ class Bookshelves(db.CommonExtras):
 
         if q or fq:
             # checkin_year ignored :(
-            return get_filtered_reading_log_books(
+            return await get_filtered_reading_log_books(
                 q=q,
                 query_params=query_params,
                 filter_book_limit=FILTER_BOOK_LIMIT,
                 fq=fq,
             )
         else:
-            return get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
+            return await get_sorted_reading_log_books(query_params=query_params, sort=sort, checkin_year=checkin_year)
 
     @classmethod
     def iterate_users_logged_books(cls, username: str) -> Iterable[dict]:
