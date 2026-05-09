@@ -586,11 +586,55 @@
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
+        <!-- Warm filterCache, queryResultCache and documentCache on cold start.
+             Mirrors newSearcher queries so the first real user request hits warm caches
+             rather than cold Lucene I/O. Critical after deployments and reindexes. -->
         <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
+          <str name="userWorkQuery">harry potter</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">has_fulltext</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
         </lst>
-        -->
+        <lst>
+          <str name="userWorkQuery">*:*</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">author_key:OL2162284A</str>
+          <str name="sort">edition_count desc</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.limit">25</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
+        <lst>
+          <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">ebook_access:[printdisabled TO *]</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
       </arr>
     </listener>
 
