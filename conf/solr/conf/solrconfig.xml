@@ -388,9 +388,9 @@
                       to occupy. Note that when this option is specified, the size
                       and initialSize parameters are ignored.
       -->
-    <filterCache size="512"
+    <filterCache size="1024"
                  initialSize="512"
-                 autowarmCount="128"/>
+                 autowarmCount="256"/>
 
     <!-- Query Result Cache
 
@@ -400,9 +400,9 @@
             maxRamMB - the maximum amount of RAM (in MB) that this cache is allowed
                        to occupy
       -->
-    <queryResultCache size="512"
+    <queryResultCache size="1024"
                       initialSize="512"
-                      autowarmCount="128"/>
+                      autowarmCount="256"/>
 
     <!-- Document Cache
 
@@ -410,8 +410,8 @@
          document).  Since Lucene internal document ids are transient,
          this cache will not be autowarmed.
       -->
-    <documentCache size="512"
-                   initialSize="512"
+    <documentCache size="4096"
+                   initialSize="1024"
                    autowarmCount="0"/>
 
     <!-- custom cache currently used by block join -->
@@ -477,9 +477,7 @@
          frequently get the same search repeatedly with different sort
          options, and none of them ever use "score"
       -->
-    <!--
-       <useFilterForSortedQuery>true</useFilterForSortedQuery>
-      -->
+    <useFilterForSortedQuery>true</useFilterForSortedQuery>
 
     <!-- Result Window Size
 
@@ -490,7 +488,7 @@
          then documents 0 through 49 will be collected and cached.  Any further
          requests in that range can be satisfied via the cache.
       -->
-    <queryResultWindowSize>20</queryResultWindowSize>
+    <queryResultWindowSize>50</queryResultWindowSize>
 
     <!-- Maximum number of documents to cache for any entry in the
          queryResultCache.
@@ -636,10 +634,8 @@
      check for "Circuit Breakers tripped" in logs and the corresponding error message should tell
      you what transpired (if the failure was caused by tripped circuit breakers).
     -->
-    <!--
     <str name="memEnabled">true</str>
     <str name="memThreshold">75</str>
-    -->
 
     <!-- CPU Circuit Breaker Configuration
 
