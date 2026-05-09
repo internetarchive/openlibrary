@@ -698,6 +698,30 @@ class Bookshelves(db.CommonExtras):
         return {i["bookshelf_id"]: i["user_count"] for i in result} if result else {}
 
     @classmethod
+    def get_works_reading_log_batch(cls, work_ids: list[int]) -> dict[int, dict[int, int]]:
+        """Batch fetch reading log counts for multiple works in one query.
+
+        Returns {work_id: {bookshelf_id: user_count}}.  Works with no readers
+        are absent from the result (not present with zero counts).
+        """
+        if not work_ids:
+            return {}
+        oldb = db.get_db()
+        ids_str = ",".join(str(int(wid)) for wid in work_ids)
+        result = oldb.query(
+            "SELECT work_id, bookshelf_id, count(DISTINCT username) AS user_count "
+            f"FROM bookshelves_books WHERE work_id IN ({ids_str}) "
+            "GROUP BY work_id, bookshelf_id"
+        )
+        out: dict[int, dict[int, int]] = {}
+        for row in result:
+            wid = row["work_id"]
+            if wid not in out:
+                out[wid] = {}
+            out[wid][row["bookshelf_id"]] = row["user_count"]
+        return out
+
+    @classmethod
     def get_work_summary(cls, work_id: str) -> WorkReadingLogSummary:
         shelf_id_to_count = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
 

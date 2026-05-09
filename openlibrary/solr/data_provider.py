@@ -223,6 +223,13 @@ class DataProvider:
         """
         pass
 
+    def preload_reading_logs(self, work_keys: Iterable[str]) -> None:
+        """
+        Preload reading log counts for the provided works in one batch DB query.
+        Should make subsequent calls to get_work_reading_log faster.
+        """
+        pass
+
     def find_redirects(self, key):
         """
         Returns keys of all things which redirect to this one.
@@ -264,6 +271,7 @@ class LegacyDataProvider(DataProvider):
         super().__init__()
         self._query_iter = query_iter
         self._withKey = withKey
+        self._reading_log_cache: dict[str, WorkReadingLogSolrSummary] = {}
 
     def find_redirects(self, key):
         """Returns keys of all things which are redirected to this one."""
@@ -284,7 +292,37 @@ class LegacyDataProvider(DataProvider):
         work_id = int(work_key[len("/works/OL") : -len("W")])
         return Ratings.get_work_ratings_summary(work_id)
 
+    def preload_reading_logs(self, work_keys: Iterable[str]) -> None:
+        keys = list(work_keys)
+        if not keys:
+            return
+        id_map: dict[int, str] = {}
+        for k in keys:
+            wid = extract_numeric_id_from_olid(k)
+            if wid is not None:
+                id_map[int(wid)] = k
+
+        if not id_map:
+            return
+
+        shelf_by_work = Bookshelves.get_works_reading_log_batch(list(id_map))
+        for work_id, work_key in id_map.items():
+            shelf_counts = shelf_by_work.get(work_id, {})
+            shelf_result = {
+                shelf_name: shelf_counts.get(shelf_id, 0)
+                for shelf_name, shelf_id in Bookshelves.PRESET_BOOKSHELVES_JSON.items()
+            }
+            self._reading_log_cache[work_key] = cast(
+                WorkReadingLogSolrSummary,
+                {
+                    "readinglog_count": sum(shelf_result.values()),
+                    **{f"{shelf_name}_count": count for shelf_name, count in shelf_result.items()},
+                },
+            )
+
     def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
+        if work_key in self._reading_log_cache:
+            return self._reading_log_cache[work_key]
         work_id = extract_numeric_id_from_olid(work_key)
         counts = Bookshelves.get_work_summary(work_id)
         return cast(

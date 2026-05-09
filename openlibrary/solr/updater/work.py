@@ -42,8 +42,10 @@ class WorkSolrUpdater(AbstractSolrUpdater):
     thing_type = "/type/work"
 
     async def preload_keys(self, keys: Iterable[str]):
+        keys = list(keys)
         await super().preload_keys(keys)
         self.data_provider.preload_editions_of_works(keys)
+        self.data_provider.preload_reading_logs(keys)
 
     async def update_key(self, work: dict) -> tuple[SolrUpdateRequest, list[str]]:
         """
