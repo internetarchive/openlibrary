@@ -165,6 +165,9 @@
     <field name="isbn" type="string" multiValued="true"/>
     <field name="ebook_access" type="ebookAccessLevel" multiValued="false"/>
     <field name="ebook_provider" type="string" multiValued="true"/>
+    <!-- Near-realtime loan availability, updated by loan_availability_updater -->
+    <field name="ebook_availability" type="string" multiValued="false" docValues="true"/>
+    <field name="ebook_becomes_available" type="pdate" multiValued="false"/>
 
     <!-- Reading Levels -->
     <field name="lexile" type="pint" multiValued="true"/>
