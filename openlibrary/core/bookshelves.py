@@ -248,7 +248,7 @@ class Bookshelves(db.CommonExtras):
         return linked_docs
 
     @classmethod
-    def add_storage_items_for_redirects(cls, reading_log_keys, solr_docs: list[web.Storage]):
+    async def add_storage_items_for_redirects(cls, reading_log_keys, solr_docs: list[web.Storage]):
         """
         Use reading_log_keys to fill in missing redirected items in the
         the solr_docs query results.
@@ -260,7 +260,7 @@ class Bookshelves(db.CommonExtras):
         dummy works, albeit with the correct work_id.
         """
 
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query_async
 
         fetched_keys = {doc["key"] for doc in solr_docs}
         missing_keys = {work for (work, _) in reading_log_keys} - fetched_keys
@@ -285,7 +285,7 @@ class Bookshelves(db.CommonExtras):
         if not edition_keys_to_query:
             return
 
-        solr_resp = run_solr_query(
+        solr_resp = await run_solr_query_async(
             scheme=WorkSearchScheme(),
             param={"q": "*:*"},
             rows=len(edition_keys_to_query),
@@ -361,7 +361,7 @@ class Bookshelves(db.CommonExtras):
         :param q: an optional query string to filter the results.
         """
         from openlibrary.core.models import LoggedBooksData
-        from openlibrary.plugins.worksearch.code import run_solr_query
+        from openlibrary.plugins.worksearch.code import run_solr_query_async
 
         shelf_totals = cls.count_total_books_logged_by_user_per_shelf(username)
         oldb = db.get_db()
@@ -436,7 +436,7 @@ class Bookshelves(db.CommonExtras):
             # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
             filter_query = "key:(%s)" % " OR ".join('"%s"' % key for key in work_to_edition_keys)
 
-            solr_resp = run_solr_query(
+            solr_resp = await run_solr_query_async(
                 scheme=WorkSearchScheme(),
                 param={"q": q or "*:*"},
                 offset=query_params["offset"],
@@ -521,7 +521,7 @@ class Bookshelves(db.CommonExtras):
                 fields=WorkSearchScheme.default_fetched_fields | {"subject", "person", "place", "time", "edition_key"},
             )
 
-            cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
+            await cls.add_storage_items_for_redirects(reading_log_keys, solr_docs)
             if len(solr_docs) < len(reading_log_keys):
                 cls.add_storage_items_for_deletes(reading_log_keys, solr_docs)
 
