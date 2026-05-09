@@ -351,10 +351,8 @@
     <copyField source="alternative_subtitle" dest="text"/>
     <copyField source="edition_key" dest="text"/>
     <copyField source="by_statement" dest="text"/>
-    <copyField source="lccn" dest="text"/>
-    <copyField source="ia" dest="text"/>
-    <copyField source="oclc" dest="text"/>
-    <copyField source="isbn" dest="text"/>
+    <!-- lccn/ia/oclc/isbn are in the eDisMax qf list and are searched directly;
+         copying to the text catch-all is redundant and inflates the index. -->
     <copyField source="contributor" dest="text"/>
     <copyField source="publisher" dest="text"/>
     <copyField source="first_sentence" dest="text"/>
