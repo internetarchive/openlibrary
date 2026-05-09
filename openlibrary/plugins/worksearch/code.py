@@ -61,13 +61,13 @@ re_olid = re.compile(r'^OL\d+([AMW])$')
 
 plurals = {f + 's': f for f in ('publisher', 'author')}
 
-default_spellcheck_count = 10
+default_spellcheck_count = 0
 if hasattr(config, 'plugin_worksearch'):
     solr_select_url = (
         config.plugin_worksearch.get('solr_base_url', 'localhost') + '/select'
     )
 
-    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
+    default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 0)
 
 
 def compute_work_search_html_fields(sort: str | None, sfw: bool) -> list[str]:
@@ -776,7 +776,6 @@ class search(delegate.page):
                 rows=rows,
                 page=page,
                 sort=sort,
-                spellcheck_count=3,
                 fields=compute_work_search_html_fields(sort, req_context.get().sfw),
                 facet=False,
                 highlight=True,
