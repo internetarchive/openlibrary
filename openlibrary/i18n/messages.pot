@@ -7897,10 +7897,6 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html
-msgid "Fetching prices"
-msgstr ""
-
-#: AffiliateLinks.html
 msgid "Better World Books"
 msgstr ""
 
@@ -7920,6 +7916,10 @@ msgstr ""
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: AffiliateLinksLoadingIndicator.html
+msgid "Fetching prices"
 msgstr ""
 
 #: BatchImportNavigation.html
