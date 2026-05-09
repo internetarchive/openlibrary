@@ -38,6 +38,8 @@ class SolrDocument(TypedDict):
     isbn: Optional[list[str]]
     ebook_access: Optional[Literal['no_ebook', 'unclassified', 'printdisabled', 'borrowable', 'public']]
     ebook_provider: Optional[list[str]]
+    ebook_availability: Optional[Literal['available', 'unavailable']]
+    ebook_becomes_available: Optional[str]  # ISO 8601 UTC timestamp
     lexile: Optional[list[int]]
     lcc: Optional[list[str]]
     lcc_sort: Optional[str]
