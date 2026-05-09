@@ -1,7 +1,9 @@
+import asyncio
 import copy
 import functools
 import itertools
 import logging
+import random
 import re
 import time
 import urllib
@@ -207,22 +209,25 @@ async def execute_solr_query_async(
     _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     _pass_time_allowed: bool = DEFAULT_PASS_TIME_ALLOWED,
 ) -> httpx.Response | None:
-    url = solr_path
-    if params:
-        url += '&' if '?' in url else '?'
-        url += urlencode(params)
-
-    try:
-        response = await get_solr().raw_request(
-            solr_path,
-            urlencode(params),
-            _timeout=_timeout,
-            _pass_time_allowed=_pass_time_allowed,
-        )
-    except httpx.HTTPError:
-        logger.exception("Failed solr query")
-        return None
-    return response
+    for attempt in range(2):
+        try:
+            return await get_solr().raw_request(
+                solr_path,
+                urlencode(params),
+                _timeout=_timeout,
+                _pass_time_allowed=_pass_time_allowed,
+            )
+        except (httpx.ConnectError, httpx.RemoteProtocolError) as e:
+            if attempt == 0:
+                logger.warning("Solr connection error, retrying: %s", e)
+                await asyncio.sleep(random.uniform(0.05, 0.15))
+            else:
+                logger.exception("Solr connection error after retry")
+                return None
+        except httpx.HTTPError:
+            logger.exception("Failed solr query")
+            return None
+    return None
 
 
 execute_solr_query = async_bridge.wrap(execute_solr_query_async)
