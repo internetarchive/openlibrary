@@ -53,3 +53,6 @@ manifest-checksum.txt
 
 # Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
 docs/wiki/
+
+# Local Solr tuning overlay (machine-specific heap settings)
+compose.solr-tuning.yaml
