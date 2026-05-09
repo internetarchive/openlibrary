@@ -1,39 +1,16 @@
 """Near-realtime loan availability updater for Solr.
 
-Polls IA's loan changes API (action=changes) and atomically updates two fields
-on work documents in Solr:
+Polls IA's loan changes API and atomically updates ebook_availability and
+ebook_becomes_available on work documents so search results reflect borrowing
+status within one poll interval.
 
-  ebook_availability      "available" | "unavailable"
-  ebook_becomes_available  ISO-8601 UTC timestamp (loan expiry), or null
-
-Design goals
-------------
-* Simple: a single while-True loop, a state file, no scheduler.
-* Self-healing: binary-searches for the ~14-day-old uid on first run (or when
-  explicitly reset), so a full Solr re-index or a prolonged outage is handled
-  automatically.
-* Safe: processes events strictly in uid order; idempotent per-identifier
-  because it keeps only the latest event per identifier per batch.
-
-Startup / re-index recovery
-----------------------------
-On first run (state file absent or uid=0) the script binary-searches for the
-uid that corresponds to approximately LOAN_MAX_AGE_DAYS ago.  Loans cannot be
-older than that, so processing all events from that uid forward reconstructs
-the complete picture of currently-active loans.
-
-After catching up the loop sleeps POLL_INTERVAL seconds then fetches the next
-batch.  If a full batch (=BATCH_SIZE) is returned the loop continues without
-sleeping, burning through the backlog as fast as possible.
-
-Eviction
---------
-Once per cycle the script queries Solr for documents whose
-ebook_becomes_available timestamp is already in the past and marks them
-available.  This is the safety net for any return/expire events that were
-missed.
+On first run (or --reset), binary-searches for the uid ~14 days ago so that
+all currently-active loans are reflected after a full Solr re-index or outage.
+Once per cycle, expired loans are evicted via a Solr range query on
+ebook_becomes_available as a safety net for missed return/expire events.
 """
 
+import contextlib
 import datetime
 import json
 import logging
@@ -48,20 +25,12 @@ from openlibrary.utils.sentry import init_sentry
 
 logger = logging.getLogger("openlibrary.loan-availability-updater")
 
-# Event types that indicate an item is actively loaned out
 LOAN_ACTIVE_EVENTS = frozenset({"borrow", "browse", "renew_borrow", "renew_browse"})
-# Event types that indicate an item has been returned or expired
 LOAN_ENDED_EVENTS = frozenset({"return", "expire_borrow", "expire_browse"})
 
 LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
 POLL_INTERVAL = 30  # seconds between polls when caught up
-BINARY_SEARCH_ITERS = 40  # max iterations for startup uid search
-
-
-# ---------------------------------------------------------------------------
-# State helpers
-# ---------------------------------------------------------------------------
 
 
 def read_state(path: Path) -> int:
@@ -76,61 +45,47 @@ def write_state(path: Path, uid: int) -> None:
     path.write_text(str(uid))
 
 
-# ---------------------------------------------------------------------------
-# Startup recovery: binary-search for the right starting uid
-# ---------------------------------------------------------------------------
-
-
 def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     """Binary-search for the uid whose next event is ~target_age_days old.
 
-    Uses limit=1 probes to minimise API load.  Returns 0 if the API returns
-    no history or if the entire history is within target_age_days.
+    Uses limit=1 probes. Returns 0 if the API has no history or all history
+    is newer than target_age_days.
     """
-    # A single probe to learn the current latest_uid.
     resp = lending.get_loan_changes(after_uid=0, limit=1)
     if resp.get("status") != "OK":
         logger.warning("Loan changes API non-OK on startup probe; starting from uid 0")
         return 0
 
-    latest_uid: int = resp.get("latest_uid") or 0
+    latest_uid = resp.get("latest_uid") or 0
     if not latest_uid:
         return 0
 
     target_time = datetime.datetime.utcnow() - datetime.timedelta(days=target_age_days)
     low, high = 0, latest_uid
 
-    for _ in range(BINARY_SEARCH_ITERS):
+    for _ in range(40):
         if high - low <= 1000:
             break
         mid = (low + high) // 2
-        probe = lending.get_loan_changes(after_uid=mid, limit=1)
-        rows = probe.get("rows", [])
+        rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
         if not rows:
-            # No events above mid — mid is beyond all existing events; go lower.
             high = mid
             continue
         row_time = datetime.datetime.strptime(rows[0]["time"], "%Y-%m-%d %H:%M:%S")
         if row_time < target_time:
-            low = mid  # too old, need a more-recent starting uid
+            low = mid
         else:
-            high = mid  # within window, see if we can start even earlier
+            high = mid
 
-    logger.info("find_start_uid: binary search complete, starting from uid %d", low)
+    logger.info("Starting from uid %d", low)
     return low
-
-
-# ---------------------------------------------------------------------------
-# Core processing helpers (pure / easily testable)
-# ---------------------------------------------------------------------------
 
 
 def process_changes(rows: list[dict]) -> dict[str, dict]:
     """Reduce a batch of rows to the latest event per identifier.
 
     Returns {identifier: {"event_type": str, "uid": int, "until": str|None}}
-    where "until" is the loan-expiry datetime string from the 'extra' field
-    (only set for LOAN_ACTIVE_EVENTS).
+    where "until" is the loan-expiry string from 'extra', set only for active loans.
     """
     latest: dict[str, dict] = {}
     for row in rows:
@@ -140,16 +95,9 @@ def process_changes(rows: list[dict]) -> dict[str, dict]:
             continue
         until = None
         if row["event_type"] in LOAN_ACTIVE_EVENTS:
-            try:
-                extra = json.loads(row.get("extra") or "{}")
-                until = extra.get("until")
-            except (json.JSONDecodeError, TypeError):
-                pass
-        latest[identifier] = {
-            "event_type": row["event_type"],
-            "uid": uid,
-            "until": until,
-        }
+            with contextlib.suppress(json.JSONDecodeError, TypeError):
+                until = json.loads(row.get("extra") or "{}").get("until")
+        latest[identifier] = {"event_type": row["event_type"], "uid": uid, "until": until}
     return latest
 
 
@@ -158,43 +106,28 @@ def ia_until_to_solr_date(until: str | None) -> str | None:
     if not until:
         return None
     try:
-        dt = datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S")
-        return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+        return datetime.datetime.strptime(until, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%dT%H:%M:%SZ")
     except ValueError:
         logger.debug("Could not parse 'until' value: %r", until)
         return None
 
 
 def resolve_work_keys(identifiers: list[str]) -> dict[str, str]:
-    """Batch-resolve IA identifiers → Solr work keys.
-
-    Queries Solr using the ia field.  Returns {ia_identifier: work_key}.
-    Identifiers with no matching work are omitted from the result.
-    """
+    """Batch-resolve IA identifiers to Solr work keys via the ia field."""
     if not identifiers:
         return {}
-    # Solr `ia:(a b c)` is an implicit OR across values
-    ia_filter = " ".join(identifiers)
-    result_obj = get_solr().select(
-        query=f"ia:({ia_filter})",
+    # ia:(a b c) is an implicit OR in Solr
+    result = get_solr().select(
+        query=f"ia:({' '.join(identifiers)})",
         fields=["key", "ia"],
         rows=len(identifiers) * 2,
     )
-    id_to_work: dict[str, str] = {}
     id_set = set(identifiers)
-    for doc in result_obj.docs:
-        work_key = doc["key"]
-        for ia_id in doc.get("ia", []):
-            if ia_id in id_set:
-                id_to_work[ia_id] = work_key
-    return id_to_work
+    return {ia_id: doc["key"] for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
 
 
-def build_solr_updates(
-    id_state: dict[str, dict],
-    id_to_work: dict[str, str],
-) -> list[dict]:
-    """Produce a list of Solr atomic-update documents from the latest per-identifier state."""
+def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) -> list[dict]:
+    """Build Solr atomic-update documents from the latest per-identifier loan state."""
     updates = []
     for identifier, state in id_state.items():
         work_key = id_to_work.get(identifier)
@@ -220,11 +153,11 @@ def build_solr_updates(
 
 
 def build_eviction_updates() -> list[dict]:
-    """Query Solr for loans whose expiry has passed; return clear-availability docs.
+    """Clear availability for works whose loan expiry has already passed.
 
-    Safety net for missed return/expire events (e.g. during an outage).
+    Safety net for return/expire events missed during an outage.
     """
-    result_obj = get_solr().select(
+    result = get_solr().select(
         query="ebook_becomes_available:[* TO NOW]",
         fields=["key"],
         rows=10000,
@@ -235,13 +168,8 @@ def build_eviction_updates() -> list[dict]:
             "ebook_availability": {"set": "available"},
             "ebook_becomes_available": {"set": None},
         }
-        for doc in result_obj.docs
+        for doc in result.docs
     ]
-
-
-# ---------------------------------------------------------------------------
-# Main loop
-# ---------------------------------------------------------------------------
 
 
 def main(
@@ -260,12 +188,9 @@ def main(
     :param state_file: Path to state file storing last processed uid (integer).
     :param poll_interval: Seconds to sleep when caught up with the event stream.
     :param dry_run: Fetch and log updates but do not write to Solr.
-    :param reset: Ignore existing state file and binary-search for the start uid.
+    :param reset: Ignore existing state and binary-search for the start uid.
     """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)-15s %(levelname)s %(message)s",
-    )
+    logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
     logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
 
     load_config(ol_config)
@@ -282,7 +207,6 @@ def main(
         logger.info("Starting from uid %d", last_uid)
 
     while True:
-        # ---- Fetch next batch of changes ----
         try:
             resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
@@ -295,11 +219,11 @@ def main(
             time.sleep(poll_interval)
             continue
 
-        rows: list[dict] = resp.get("rows", [])
+        rows = resp.get("rows", [])
         did_updates = False
 
-        # ---- Apply loan events ----
         if rows:
+            new_uid = max(r["uid"] for r in rows)
             id_state = process_changes(rows)
             try:
                 id_to_work = resolve_work_keys(list(id_state.keys()))
@@ -315,18 +239,16 @@ def main(
                     len(updates),
                     len(rows),
                     last_uid,
-                    max(r["uid"] for r in rows),
+                    new_uid,
                 )
                 if not dry_run:
                     get_solr().update_in_place(updates, commit=False)
                 did_updates = True
 
-            new_uid = max(r["uid"] for r in rows)
             last_uid = new_uid
             if not dry_run:
                 write_state(state_path, last_uid)
 
-        # ---- Evict expired loans ----
         try:
             evictions = build_eviction_updates()
         except Exception:
@@ -339,13 +261,10 @@ def main(
                 get_solr().update_in_place(evictions, commit=False)
             did_updates = True
 
-        # ---- Commit once per cycle ----
         if did_updates and not dry_run:
             get_solr().update_in_place([], commit=True)
 
-        # ---- Sleep only when fully caught up ----
         if len(rows) >= BATCH_SIZE:
-            logger.debug("Full batch received (uid=%d); continuing without sleep", last_uid)
             continue
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
