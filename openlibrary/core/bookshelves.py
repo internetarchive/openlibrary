@@ -444,8 +444,9 @@ class Bookshelves(db.CommonExtras):
 
             work_to_edition_keys = {"/works/OL%sW" % i["work_id"]: "/books/OL%sM" % i["edition_id"] for i in reading_log_books}
 
-            # Separating out the filter query from the call allows us to cleanly edit it, if editions are required.
-            filter_query = "key:(%s)" % " OR ".join('"%s"' % key for key in work_to_edition_keys)
+            # {!terms f=key} uses Solr's TermsQuery which is O(n) vs BooleanQuery's
+            # O(n log n) rewriting at 20k+ clauses. Keys are "/works/OL{n}W" — no commas.
+            filter_query = "{!terms f=key}" + ",".join(work_to_edition_keys)
 
             solr_resp = run_solr_query(
                 scheme=WorkSearchScheme(),
@@ -454,8 +455,6 @@ class Bookshelves(db.CommonExtras):
                 rows=limit,
                 facet=False,
                 extra_params=[
-                    # Putting these in fq allows them to avoid user-query processing, which
-                    # can be (surprisingly) slow if we have ~20k OR clauses.
                     ("fq", filter_query),
                     *[("fq", f) for f in (fq or [])],
                 ],
