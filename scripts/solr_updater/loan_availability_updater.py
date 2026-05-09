@@ -137,6 +137,22 @@ def resolve_work_keys(identifiers: list[str]) -> dict[str, str]:
     return {ia_id: doc["key"] for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
 
 
+def query_solr_uid() -> int:
+    """Return the highest loan_uid written to Solr, or 0 if none."""
+    try:
+        result = get_solr().select(
+            query="loan_uid:[* TO *]",
+            fields=["loan_uid"],
+            rows=1,
+            sort="loan_uid desc",
+        )
+        if result.docs:
+            return result.docs[0].get("loan_uid") or 0
+    except Exception:
+        logger.exception("Failed to query Solr for max loan_uid; will fall back to binary search")
+    return 0
+
+
 def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) -> list[dict]:
     """Build Solr atomic-update documents from the latest per-identifier loan state."""
     updates = []
@@ -145,7 +161,11 @@ def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) ->
         if not work_key:
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
-            update: dict = {"key": work_key, "ebook_availability": {"set": "unavailable"}}
+            update: dict = {
+                "key": work_key,
+                "ebook_availability": {"set": "unavailable"},
+                "loan_uid": {"set": state["uid"]},
+            }
             solr_until = ia_until_to_solr_date(state["until"])
             if solr_until is not None:
                 update["ebook_becomes_available"] = {"set": solr_until}
@@ -156,6 +176,7 @@ def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) ->
                     "key": work_key,
                     "ebook_availability": {"set": "available"},
                     "ebook_becomes_available": {"set": None},
+                    "loan_uid": {"set": state["uid"]},
                 }
             )
     return updates
@@ -210,11 +231,14 @@ def main(
     last_uid = 0 if reset else read_state(state_path)
 
     if last_uid == 0:
-        logger.info("No prior state; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
-        last_uid = find_start_uid()
+        last_uid = query_solr_uid()
+        if last_uid:
+            logger.info("Resuming from Solr loan_uid=%d", last_uid)
+        else:
+            logger.info("No Solr uid; binary-searching for uid ~%d days ago", LOAN_MAX_AGE_DAYS)
+            last_uid = find_start_uid()
         if not dry_run:
             write_state(state_path, last_uid)
-        logger.info("Starting from uid %d", last_uid)
 
     while True:
         try:
