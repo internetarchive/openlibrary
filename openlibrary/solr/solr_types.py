@@ -40,6 +40,7 @@ class SolrDocument(TypedDict):
     ebook_provider: Optional[list[str]]
     ebook_availability: Optional[str]
     ebook_becomes_available: Optional[str]
+    loan_uid: Optional[int]
     lexile: Optional[list[int]]
     lcc: Optional[list[str]]
     lcc_sort: Optional[str]
