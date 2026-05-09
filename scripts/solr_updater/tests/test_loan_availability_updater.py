@@ -10,6 +10,7 @@ from scripts.solr_updater.loan_availability_updater import (
     ia_until_to_solr_date,
     process_changes,
     read_state,
+    resolve_work_keys,
     write_state,
 )
 
@@ -131,6 +132,27 @@ def test_build_solr_updates_mixed():
     by_key = {u["key"]: u for u in updates}
     assert by_key["/works/OL1W"]["ebook_availability"] == {"set": "available"}
     assert by_key["/works/OL2W"]["ebook_availability"] == {"set": "available"}
+
+
+def test_resolve_work_keys_empty():
+    assert resolve_work_keys([]) == {}
+
+
+def test_resolve_work_keys_basic():
+    mock_result = MagicMock()
+    mock_result.docs = [
+        {"key": "/works/OL1W", "ia": ["bookabc", "bookdef"]},
+        {"key": "/works/OL2W", "ia": ["bookxyz"]},
+    ]
+    with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
+        mock_get_solr.return_value.select.return_value = mock_result
+        result = resolve_work_keys(["bookabc", "bookxyz"])
+
+    assert result == {"bookabc": "/works/OL1W", "bookxyz": "/works/OL2W"}
+    # Identifiers must be quoted in the Solr query
+    call_args = str(mock_get_solr.return_value.select.call_args)
+    assert '"bookabc"' in call_args
+    assert '"bookxyz"' in call_args
 
 
 def test_build_eviction_updates():
