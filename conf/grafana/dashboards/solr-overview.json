@@ -1,0 +1,291 @@
+{
+  "title": "Solr — Open Library Overview",
+  "uid": "ol-solr-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "tags": ["solr", "openlibrary"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Heap Usage %",
+      "type": "gauge",
+      "gridPos": { "h": 8, "w": 4, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 60 },
+              { "color": "red", "value": 80 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "100 * solr_metrics_jvm_memory_heap_bytes{item=\"used\"} / solr_metrics_jvm_memory_heap_bytes{item=\"max\"}",
+          "legendFormat": "heap %",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Heap Used / Max",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 10, "x": 4, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_memory_heap_bytes{item=\"used\"}",
+          "legendFormat": "used"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_memory_heap_bytes{item=\"max\"}",
+          "legendFormat": "max"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_memory_heap_bytes{item=\"committed\"}",
+          "legendFormat": "committed"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Free Physical Memory",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_memory_bytes{item=\"freePhysicalMemorySize\"}",
+          "legendFormat": "free RAM (OS page cache proxy)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_memory_bytes{item=\"totalPhysicalMemorySize\"}",
+          "legendFormat": "total RAM"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "GC Events / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "rate(solr_metrics_jvm_gc_total[1m])",
+          "legendFormat": "{{item}} events/s"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "GC Time / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "rate(solr_metrics_jvm_gc_seconds_total[1m]) * 1000",
+          "legendFormat": "{{item}} ms/s"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Cache Hit Ratio (cumulative)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_searcher_cumulative_cache_ratio",
+          "legendFormat": "{{type}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Cache Evictions / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "rate(solr_metrics_core_searcher_cumulative_cache_total{item=\"cumulative_evictions\"}[1m])",
+          "legendFormat": "{{type}} evictions/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "rate(solr_metrics_core_searcher_cumulative_cache_total{item=\"cumulative_hits\"}[1m])",
+          "legendFormat": "{{type}} hits/s"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Query Rate (/select, req/s)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_1minRate{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "req/s (1min)"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_mean_rate{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "req/s (mean)"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Query Latency (/select, ms)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_median_ms{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "p50"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_p95_ms{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "p95"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_p99_ms{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "p99"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Query Errors & Timeouts / sec",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_errors_1minRate{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "errors/s"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_query_client_errors_1minRate{searchHandler=\"/select\",internal=\"false\"}",
+          "legendFormat": "client errors/s"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "OS CPU Load",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_cpu_load{item=\"systemCpuLoad\"}",
+          "legendFormat": "system CPU"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_cpu_load{item=\"processCpuLoad\"}",
+          "legendFormat": "Solr process CPU"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Num Docs",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_searcher_documents{item=\"numDocs\"}",
+          "legendFormat": "numDocs",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Index Size",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_core_index_size_bytes",
+          "legendFormat": "index size",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "OS Load Average",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_load_average{item=\"systemLoadAverage\"}",
+          "legendFormat": "load avg",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Open File Descriptors",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 40 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "Prometheus" },
+          "expr": "solr_metrics_jvm_os_file_descriptors{item=\"openFileDescriptorCount\"}",
+          "legendFormat": "open FDs",
+          "instant": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: solr
+    static_configs:
+      - targets: ["solr-exporter:9854"]
+    metrics_path: /metrics
+
+  # HAProxy exposes prometheus metrics at :8405/metrics when stats socket is configured.
+  # Uncomment if running with the haproxy service (production profile).
+  # - job_name: haproxy
+  #   static_configs:
+  #     - targets: ["haproxy:8405"]
