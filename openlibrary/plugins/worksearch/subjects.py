@@ -334,7 +334,7 @@ class SubjectEngine:
             return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             engine = next((d for d in SUBJECTS if d.facet == facet), None)
-            assert engine is not None, "Invalid subject facet: {facet}"
+            assert engine is not None, f"Invalid subject facet: {facet}"
             return web.storage(
                 key=engine.prefix + Tag.normalize(value),
                 name=value,
