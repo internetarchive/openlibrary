@@ -1,6 +1,7 @@
 import { getJsonFromUrl } from './Browser';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
+import { initSearchModal } from './search-modal/SearchModal';
 import { SearchModeSelector, mode as searchMode } from './SearchUtils';
 
 /*
@@ -15,7 +16,9 @@ export default function init() {
     if (urlParams.mode) {
         searchMode.write(urlParams.mode);
     }
-    new SearchBar($('header#header-bar .search-component'), urlParams);
+    const $searchComponent = $('header#header-bar .search-component');
+    new SearchBar($searchComponent, urlParams, { disableAutocomplete: true });
+    initSearchModal($searchComponent.find('form.search-bar-input input[type="text"]')[0]);
 
     if ($('.siteSearch.olform').length) {
         // Only applies to search results page (as of writing)
