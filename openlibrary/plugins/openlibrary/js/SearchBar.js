@@ -72,8 +72,12 @@ export class SearchBar {
     /**
      * @param {JQuery} $component
      * @param {Object?} urlParams
+     * @param {Object?} options
+     * @param {Boolean} [options.disableAutocomplete] Skip the legacy inline
+     *     autocomplete dropdown. Set when SearchModal is taking over
+     *     autocomplete duties for this trigger.
      */
-    constructor($component, urlParams={}) {
+    constructor($component, urlParams={}, options={}) {
         /** UI Elements */
         this.$component = $component;
         this.$form = this.$component.find('form.search-bar-input');
@@ -166,7 +170,9 @@ export class SearchBar {
             }
         });
 
-        this.initAutocompletionLogic();
+        if (!options.disableAutocomplete) {
+            this.initAutocompletionLogic();
+        }
     }
 
     /** @type {String} The endpoint of the active facet */

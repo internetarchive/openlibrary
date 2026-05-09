@@ -9,8 +9,10 @@
 export { OLReadMore } from './OLReadMore.js';
 export { OlPagination } from './OlPagination.js';
 export { OLMarkdownEditor } from './OLMarkdownEditor.js';
+export { OlDialog } from './OlDialog.js';
 export { OlPopover } from './OlPopover.js';
 export { OlSelectPopover } from './OlSelectPopover.js';
+export { OlOptionsPopover } from './OlOptionsPopover.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 export { OLButton } from './OLButton.js';

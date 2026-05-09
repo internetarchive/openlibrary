@@ -609,4 +609,6 @@ export class OlSelectPopover extends LitElement {
     }
 }
 
-customElements.define('ol-select-popover', OlSelectPopover);
+if (!customElements.get('ol-select-popover')) {
+    customElements.define('ol-select-popover', OlSelectPopover);
+}
