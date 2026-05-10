@@ -200,9 +200,9 @@ class TestParse:
             ("zxx", []),
             ("n/a", []),
             # Short 008 — truncated slice must be rejected (not a valid 3-char code)
-            ("en", []),   # 2-char slice from a 37-char 008
-            ("e", []),    # 1-char slice from a 36-char 008
-            ("", []),     # empty slice
+            ("en", []),  # 2-char slice from a 37-char 008
+            ("e", []),  # 1-char slice from a 36-char 008
+            ("", []),  # empty slice
         ],
     )
     def test_read_languages_008_code_validation(self, lang_008, expected):
