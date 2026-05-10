@@ -432,6 +432,42 @@ def test_matched_edition_with_new_language_is_added_even_if_no_existing_language
     assert updated_languages == ["/languages/eng"]
 
 
+def test_invalid_language_in_rec_does_not_abort_other_field_updates(mock_site, add_languages, ia_writeback):
+    """
+    When rec contains an invalid language code, the InvalidLanguage exception
+    should NOT abort the rest of update_edition_with_rec_data(). Other list
+    fields (e.g. oclc_numbers) that appear in edition_list_fields after
+    'languages' must still be updated.
+
+    Regression test for https://github.com/internetarchive/openlibrary/issues/12698
+    """
+    rec = {
+        "title": "Test Invalid Lang Book",
+        "source_records": ["ia:test_invalid_lang"],
+        "isbn_13": ["9780000000002"],
+    }
+    reply = load(rec)
+    assert reply["success"] is True
+    assert reply["edition"]["status"] == "created"
+
+    update_rec = {
+        "title": "Test Invalid Lang Book",
+        "source_records": ["marc:test.mrc:0:100"],
+        "isbn_13": ["9780000000002"],
+        # "xx" is not a valid MARC or ISO language code
+        "languages": ["xx"],
+        "oclc_numbers": ["12345678"],
+    }
+    reply = load(update_rec)
+    assert reply["success"] is True
+    assert reply["edition"]["status"] == "modified"
+    updated = mock_site.get(reply["edition"]["key"])
+    # Language should be absent (bad code skipped)
+    assert not updated.get("languages"), "Invalid language code should have been skipped"
+    # But the oclc_numbers update must still have gone through
+    assert updated.oclc_numbers == ["12345678"], "oclc_numbers update should not have been aborted"
+
+
 def test_marc_update_adds_language_to_edition_without_language(mock_site, add_languages, ia_writeback):
     """
     When a MARC record is imported (rec has language codes as strings, as

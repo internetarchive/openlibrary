@@ -13,6 +13,7 @@ from openlibrary.catalog.marc.parse import (
     SeeAlsoAsTitle,
     read_author_person,
     read_edition,
+    read_languages,
 )
 
 collection_tag = "{http://www.loc.gov/MARC21/slim}collection"
@@ -184,3 +185,45 @@ class TestParse:
         assert result["death_date"] == "1865"
         assert result["entity_type"] == "person"
         assert result["remote_ids"] == {"lc_naf": "no2003007242"}
+
+    @pytest.mark.parametrize(
+        ("lang_008", "expected"),
+        [
+            # Normal valid 3-letter codes
+            ("eng", ["eng"]),
+            ("fre", ["fre"]),
+            # Filtered-out placeholder codes
+            ("   ", []),
+            ("###", []),
+            ("|||", []),
+            ("???", []),
+            ("zxx", []),
+            ("n/a", []),
+            # Short 008 — truncated slice must be rejected (not a valid 3-char code)
+            ("en", []),   # 2-char slice from a 37-char 008
+            ("e", []),    # 1-char slice from a 36-char 008
+            ("", []),     # empty slice
+        ],
+    )
+    def test_read_languages_008_code_validation(self, lang_008, expected):
+        """
+        read_languages() must only accept lang_008 values that are exactly 3
+        characters long and not a known placeholder/invalid pattern.
+
+        A truncated 008 field (< 38 chars) produces a 1- or 2-char slice at
+        [35:38]; those must be silently discarded rather than forwarded
+        downstream where they would cause InvalidLanguage errors.
+
+        Regression test for https://github.com/internetarchive/openlibrary/issues/12698
+        """
+        # Use a minimal MarcXml record with no 041 field so only lang_008 matters.
+        xml = """<record xmlns="http://www.loc.gov/MARC21/slim">
+          <leader>00000cam a2200000 a 4500</leader>
+          <controlfield tag="001">test</controlfield>
+          <datafield tag="245" ind1="1" ind2="0">
+            <subfield code="a">Test Title</subfield>
+          </datafield>
+        </record>"""
+        rec = MarcXml(etree.fromstring(xml, parser=lxml.etree.XMLParser(resolve_entities=False)))
+        result = read_languages(rec, lang_008=lang_008)
+        assert result == expected

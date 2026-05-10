@@ -862,7 +862,12 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
             try:
                 formatted_languages = format_languages(languages=rec_values)
             except InvalidLanguage as e:
-                logger.warning("Skipping unrecognized language code during edition update: %s", e)
+                logger.warning(
+                    "Skipping unrecognized language code during edition update: %s (edition=%s, source_records=%s)",
+                    e,
+                    edition.key,
+                    rec.get("source_records"),
+                )
                 continue
             supplemented_values = existing_values + [lang for lang in formatted_languages if lang not in existing_values]
         else:
