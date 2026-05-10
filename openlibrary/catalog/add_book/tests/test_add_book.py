@@ -1451,6 +1451,86 @@ def test_add_identifiers_to_edition(mock_site) -> None:
     assert e.identifiers._data == {"goodreads": ["1234"], "librarything": ["5678"]}
 
 
+def test_null_identifiers_stripped_on_new_edition(mock_site) -> None:
+    """
+    Ensure that None values in identifiers are stripped when creating a new edition,
+    so that null identifiers are never persisted to the database.
+    """
+    rec = {
+        "source_records": ["non-marc:null-id-test"],
+        "title": "Book With Null Identifier",
+        "authors": [{"name": "Test Author"}],
+        "publishers": ["Test Publisher"],
+        "publish_date": "2020",
+        "isbn_10": ["0000000001"],
+        "identifiers": {"amazon": [None], "goodreads": ["1234", None]},
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    e = mock_site.get(reply["edition"]["key"])
+    assert None not in e.identifiers._data.get("amazon", [])
+    assert None not in e.identifiers._data.get("goodreads", [])
+    assert e.identifiers._data.get("goodreads") == ["1234"]
+    # amazon list should be empty (all values were None) so the key may be absent or empty
+    assert not e.identifiers._data.get("amazon")
+
+
+def test_null_identifiers_stripped_on_edition_update(mock_site) -> None:
+    """
+    Ensure that None values in identifiers are stripped when updating an existing edition,
+    so that null identifiers are never merged into the database.
+    """
+    author = {
+        "type": {"key": "/type/author"},
+        "name": "Jane Doe",
+        "key": "/authors/OL21A",
+    }
+
+    existing_work = {
+        "authors": [{"author": "/authors/OL21A", "type": {"key": "/type/author_role"}}],
+        "key": "/works/OL20W",
+        "title": "Book With Null Update",
+        "type": {"key": "/type/work"},
+    }
+
+    existing_edition = {
+        "key": "/books/OL20M",
+        "title": "Book With Null Update",
+        "publishers": ["Test Publisher"],
+        "type": {"key": "/type/edition"},
+        "source_records": ["non-marc:null-update-test"],
+        "publish_date": "2020",
+        "isbn_10": ["0000000002"],
+        "works": [{"key": "/works/OL20W"}],
+        "identifiers": {"amazon": [None], "goodreads": ["existing"]},
+    }
+
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    mock_site.save(existing_edition)
+
+    rec = {
+        "source_records": "non-marc:null-update-test",
+        "title": "Book With Null Update",
+        "authors": [{"name": "Jane Doe"}],
+        "publishers": ["Test Publisher"],
+        "publish_date": "2020",
+        "isbn_10": ["0000000002"],
+        "identifiers": {"amazon": [None, "B0001"], "goodreads": [None, "newval"]},
+    }
+
+    reply = load(rec)
+    assert reply["success"] is True
+    e = mock_site.get(reply["edition"]["key"])
+    # None values must be absent; real values must be present
+    assert None not in e.identifiers._data.get("amazon", [])
+    assert "B0001" in e.identifiers._data.get("amazon", [])
+    assert None not in e.identifiers._data.get("goodreads", [])
+    assert "existing" in e.identifiers._data.get("goodreads", [])
+    assert "newval" in e.identifiers._data.get("goodreads", [])
+
+
 def test_adding_list_field_items_to_edition_deduplicates_input(mock_site) -> None:
     """
     Ensure a rec's edition_list_fields that are not present in a matched

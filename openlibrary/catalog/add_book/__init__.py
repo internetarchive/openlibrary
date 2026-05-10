@@ -885,9 +885,15 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
 
     # Add new identifiers (dict values, so different treatment from lists above.)
     if "identifiers" in rec:
-        identifiers = defaultdict(list, edition.dict().get("identifiers", {}))
+        identifiers = defaultdict(
+            list,
+            {
+                k: [v for v in vals if v is not None]
+                for k, vals in edition.dict().get("identifiers", {}).items()
+            },
+        )
         for k, vals in rec["identifiers"].items():
-            identifiers[k].extend(vals)
+            identifiers[k].extend(v for v in vals if v is not None)
             identifiers[k] = list(set(identifiers[k]))
         if edition.dict().get("identifiers") != identifiers:
             edition["identifiers"] = identifiers
