@@ -887,10 +887,7 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
     if "identifiers" in rec:
         identifiers = defaultdict(
             list,
-            {
-                k: [v for v in vals if v is not None]
-                for k, vals in edition.dict().get("identifiers", {}).items()
-            },
+            {k: [v for v in vals if v is not None] for k, vals in edition.dict().get("identifiers", {}).items()},
         )
         for k, vals in rec["identifiers"].items():
             identifiers[k].extend(v for v in vals if v is not None)

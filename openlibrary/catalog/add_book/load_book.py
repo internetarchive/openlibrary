@@ -373,10 +373,7 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
             continue
 
         if k == "identifiers":
-            book[k] = {
-                id_k: [val for val in id_vals if val is not None]
-                for id_k, id_vals in v.items()
-            }
+            book[k] = {id_k: [val for val in id_vals if val is not None] for id_k, id_vals in v.items()}
             continue
 
         if k in type_map:
