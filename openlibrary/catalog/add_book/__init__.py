@@ -859,7 +859,11 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
 
         # Languages in `rec` are ['eng'], etc., but import requires dict-style.
         if field == "languages":
-            formatted_languages = format_languages(languages=rec_values)
+            try:
+                formatted_languages = format_languages(languages=rec_values)
+            except InvalidLanguage as e:
+                logger.warning("Skipping unrecognized language code during edition update: %s", e)
+                continue
             supplemented_values = existing_values + [lang for lang in formatted_languages if lang not in existing_values]
         else:
             case_folded_values = [v.casefold() for v in existing_values]

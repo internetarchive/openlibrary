@@ -432,6 +432,43 @@ def test_matched_edition_with_new_language_is_added_even_if_no_existing_language
     assert updated_languages == ["/languages/eng"]
 
 
+def test_marc_update_adds_language_to_edition_without_language(mock_site, add_languages, ia_writeback):
+    """
+    When a MARC record is imported (rec has language codes as strings, as
+    returned by read_edition()) and matches an existing edition that has no
+    language field, the language from the MARC 008 field should be added.
+
+    Regression test for https://github.com/internetarchive/openlibrary/issues/12698
+    """
+    # Create an existing edition without language (simulating an Amazon import)
+    existing = {
+        "title": "Test MARC Book",
+        "source_records": ["amazon:9780000000001"],
+        "isbn_13": ["9780000000001"],
+    }
+    reply = load(existing)
+    assert reply["success"] is True
+    assert reply["edition"]["status"] == "created"
+    e = mock_site.get(reply["edition"]["key"])
+    assert not e.get("languages"), "Edition should initially have no language"
+
+    # Simulate what read_edition() returns for a MARC record:
+    # languages are 3-letter MARC codes (strings), not dicts.
+    marc_rec = {
+        "title": "Test MARC Book",
+        "source_records": ["marc:marc_columbia/test.mrc:0:1000"],
+        "isbn_13": ["9780000000001"],
+        "languages": ["eng"],  # as extracted from MARC 008 by read_edition()
+    }
+    reply = load(marc_rec)
+    assert reply["success"] is True
+    assert reply["edition"]["status"] == "modified"
+
+    updated = mock_site.get(reply["edition"]["key"])
+    assert updated.languages, "Language from MARC 008 should have been added"
+    assert [lang["key"] for lang in updated.languages] == ["/languages/eng"]
+
+
 def test_matched_edition_properly_updates_non_language_fields(mock_site, add_languages, ia_writeback):
     """
     Ensure a new language is added even if the existing edition has no language

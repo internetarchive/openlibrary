@@ -369,7 +369,9 @@ def read_languages(rec: MarcBase, lang_008: str | None = None) -> list[str]:
     found = []
     if lang_008:
         lang_008 = lang_008.lower()
-        if lang_008 not in ("   ", "###", "|||", "", "???", "zxx", "n/a"):
+        # MARC 008 language code must be exactly 3 characters; short 008 fields
+        # (< 38 chars) may produce truncated codes that are invalid.
+        if len(lang_008) == 3 and lang_008 not in ("   ", "###", "|||", "???", "zxx", "n/a"):
             found.append(lang_008)
 
     for f in rec.get_fields("041"):
