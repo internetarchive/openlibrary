@@ -14,11 +14,11 @@ from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
+from validate_email import validate_email
+
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
-from validate_email import validate_email
-
 from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
@@ -882,10 +882,10 @@ class InternetArchiveAccount(web.storage):
         return response
 
     @classmethod
-    def issue_otp(cls, email, service='ol', originating_ip=None):
-        headers = {'X-Originating-IP': originating_ip} if originating_ip else None
+    def issue_otp(cls, email, service="ol", originating_ip=None):
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
         return cls.xauth(
-            'issue_otp',
+            "issue_otp",
             email=email.strip().lower(),
             service=service,
             headers=headers,
@@ -893,9 +893,9 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def redeem_otp(cls, email, password, originating_ip=None):
-        headers = {'X-Originating-IP': originating_ip} if originating_ip else None
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
         return cls.xauth(
-            'redeem_otp',
+            "redeem_otp",
             email=email.strip().lower(),
             password=password,
             headers=headers,
