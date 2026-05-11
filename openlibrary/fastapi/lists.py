@@ -1,14 +1,16 @@
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+
+if TYPE_CHECKING:
+    from fastapi.datastructures import URL
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
-from openlibrary.core import formats
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.plugins.openlibrary.lists import get_list
+from openlibrary.plugins.openlibrary.lists import get_list, get_list_editions
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -116,115 +118,84 @@ async def list_seeds():
     pass
 
 
-def fastapi_make_collection(
-    request: Request,
-    size: int,
-    entries: list,
-    limit: int,
-    offset: int,
-    key: str | None = None,
-) -> dict[str, Any]:
-    def _get_relative_url(url: Any) -> str:
-        return f"{url.path}?{url.query}" if url.query else url.path
+def _get_editions_response(request_url: URL, key: str, limit: int, offset: int) -> Response:
+    """
+    Helper function to fetch list or series editions and return them as a JSON-friendly dict.
+    Utilizes the underlying `get_list_editions` method to ensure consistent behavior
+    with the legacy API, passing the FastAPI `request.url` for pagination link generation.
+    """
+    response_data = get_list_editions(key=key, offset=offset, limit=limit, api=True, request_url=request_url)
+    if not response_data:
+        raise HTTPException(status_code=404, detail="Editions not found")
 
-    links: dict[str, str] = {
-        "self": _get_relative_url(request.url),
-    }
-
-    d: dict[str, Any] = {
-        "size": size,
-        "start": offset,
-        "end": offset + limit,
-        "entries": entries,
-        "links": links,
-    }
-
-    if offset + len(entries) < size:
-        next_url = request.url.include_query_params(limit=limit, offset=offset + limit)
-        links["next"] = _get_relative_url(next_url)
-
-    if offset > 0:
-        prev_url = request.url.include_query_params(limit=limit, offset=max(0, offset - limit))
-        links["prev"] = _get_relative_url(prev_url)
-
-    if key:
-        links["list"] = key
-
-    return d
+    return response_data
 
 
-def _get_editions_response(request: Request, key: str, ext: str, limit: int, offset: int) -> Response:
-    lst = site.get().get(key)
-    if not lst:
-        raise HTTPException(status_code=404)
+class EditionsPaginationParams:
+    """Shared dependency for parsing limit, offset, and the request object."""
 
-    all_editions = list(lst.get_editions())
-    editions = all_editions[offset : offset + limit]
-
-    response_data = fastapi_make_collection(
-        request=request,
-        size=len(all_editions),
-        entries=[e.dict() for e in editions],
-        limit=limit,
-        offset=offset,
-        key=key,
-    )
-
-    encoding: Literal["json", "yml"] = "yml" if ext in ("yml", "yaml") else "json"
-    content_type = 'text/yaml; charset="utf-8"' if encoding == "yml" else "application/json"
-
-    content = formats.dump(response_data, encoding)
-    return Response(content=content, media_type=content_type)
+    def __init__(
+        self,
+        request: Request,
+        limit: Annotated[int, Query(ge=1, description="Number of items to return")] = 50,
+        offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    ):
+        self.request = request
+        self.limit = limit
+        self.offset = offset
 
 
-@router.get("/lists/{olid}/editions.{ext}")
+CommonPagination = Annotated[EditionsPaginationParams, Depends()]
+
+
+@router.get("/lists/{olid}/editions.json")
 def read_list_editions(
-    request: Request,
-    olid: Annotated[str, Path(pattern=r"^OL\d+L$")],
-    ext: Annotated[Literal["json", "yml", "yaml"], Path()],
-    limit: Annotated[int, Query(ge=1, description="Number of editions to return")] = 50,
-    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    olid: Annotated[str, Path(pattern=r"^OL\d+L$", description="The list or series OLID")],
+    params: CommonPagination,
 ):
+    """
+    Get paginated editions for a public list.
+    """
     key = f"/lists/{olid}"
-    return _get_editions_response(request, key, ext, limit, offset)
+    return _get_editions_response(params.request.url, key, params.limit, params.offset)
 
 
-@router.get("/people/{username}/lists/{olid}/editions.{ext}")
+@router.get("/people/{username}/lists/{olid}/editions.json")
 def read_people_list_editions(
-    request: Request,
     username: Annotated[str, Path()],
-    olid: Annotated[str, Path(pattern=r"^OL\d+L$")],
-    ext: Annotated[Literal["json", "yml", "yaml"], Path()],
-    limit: Annotated[int, Query(ge=1)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    olid: Annotated[str, Path(pattern=r"^OL\d+L$", description="The list or series OLID")],
+    params: CommonPagination,
 ):
+    """
+    Get paginated editions for a specific user's list.
+    """
     key = f"/people/{username}/lists/{olid}"
-    return _get_editions_response(request, key, ext, limit, offset)
+    return _get_editions_response(params.request.url, key, params.limit, params.offset)
 
 
-@router.get("/series/{olid}/editions.{ext}")
+@router.get("/series/{olid}/editions.json")
 def read_series_editions(
-    request: Request,
-    olid: Annotated[str, Path(pattern=r"^OL\d+L$")],
-    ext: Annotated[Literal["json", "yml", "yaml"], Path()],
-    limit: Annotated[int, Query(ge=1)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    olid: Annotated[str, Path(pattern=r"^OL\d+L$", description="The list or series OLID")],
+    params: CommonPagination,
 ):
+    """
+    Get paginated editions for a specific series.
+    """
     key = f"/series/{olid}"
-    return _get_editions_response(request, key, ext, limit, offset)
+    return _get_editions_response(params.request.url, key, params.limit, params.offset)
 
 
-@router.get("/people/{username}/series/{olid}/editions.{ext}")
+@router.get("/people/{username}/series/{olid}/editions.json")
 def read_people_series_editions(
-    request: Request,
     username: Annotated[str, Path()],
-    olid: Annotated[str, Path(pattern=r"^OL\d+L$")],
-    ext: Annotated[Literal["json", "yml", "yaml"], Path()],
-    limit: Annotated[int, Query(ge=1)] = 50,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    olid: Annotated[str, Path(pattern=r"^OL\d+L$", description="The list or series OLID")],
+    params: CommonPagination,
 ):
+    """
+    Get paginated editions for a specific user's series.
+    """
     key = f"/people/{username}/series/{olid}"
-    return _get_editions_response(request, key, ext, limit, offset)
+    return _get_editions_response(params.request.url, key, params.limit, params.offset)
 
 
 async def list_subjects_json():

@@ -792,8 +792,12 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def get_list_editions(key, offset=0, limit=50, api=False):
-    if lst := cast(List | None, web.ctx.site.get(key)):
+def get_list_editions(key, offset=0, limit=50, api=False, request_url=None):
+    if request_url:
+        lst = site.get().get(key)
+    else:
+        lst = web.ctx.site.get(key)
+    if lst:
         offset = offset or 0  # enforce sane int defaults
         all_editions = list(lst.get_editions())
         editions = all_editions[offset : offset + limit]
@@ -804,6 +808,7 @@ def get_list_editions(key, offset=0, limit=50, api=False):
                 limit=limit,
                 offset=offset,
                 key=key,
+                request_url=request_url,
             )
         return editions
 
@@ -827,29 +832,42 @@ class list_editions_json(delegate.page):
         )
 
 
-@deprecated("migrated to fastapi")
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def make_collection(size, entries, limit, offset, key=None):
+def make_collection(size, entries, limit, offset, key=None, request_url=None):
+    def get_url(**kwargs):
+        """
+        Generates a relative URL with updated query parameters for pagination.
+
+        Args:
+            **kwargs: Query parameters to update or append (e.g., limit, offset).
+
+        Returns:
+            str: The relative URL string (path + query). Uses `request_url`
+                 if provided, otherwise falls back to `web.changequery`.
+        """
+        if request_url:
+            url = request_url.include_query_params(**kwargs) if kwargs else request_url
+            return f"{url.path}?{url.query}" if url.query else url.path
+        return web.changequery(**kwargs)
+
     d = {
         "size": size,
         "start": offset,
         "end": offset + limit,
         "entries": entries,
         "links": {
-            "self": web.changequery(),
+            "self": get_url(),
         },
     }
 
     if offset + len(entries) < size:
-        d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
-
+        d["links"]["next"] = get_url(limit=limit, offset=offset + limit)
     if offset:
-        d["links"]["prev"] = web.changequery(limit=limit, offset=max(0, offset - limit))
-
+        d["links"]["prev"] = get_url(limit=limit, offset=max(0, offset - limit))
     if key:
         d["links"]["list"] = key
 
