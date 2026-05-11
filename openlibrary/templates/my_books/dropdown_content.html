@@ -47,7 +47,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="4"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
-      <button class="nostyle-btn $(btn_visibilities[4])" type="submit">$_('Stopped Reading')</button>
+      <button class="nostyle-btn $(btn_visibilities[4])" type="submit" data-ol-link-track="ReadingLog|StoppedReading">$_('Stopped Reading')</button>
     </form>
   </div>
 
