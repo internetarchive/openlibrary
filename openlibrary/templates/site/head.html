@@ -12,7 +12,7 @@ $def with (title)
 
     <link rel="canonical" href="$request.canonical_url" />
 
-    $if not is_bot():
+    $if not is_bot() and not ctx.get('disable_analytics'):
         <link rel="preconnect" href="https://athena.archive.org">
         <link rel="preconnect" href="https://apollo.archive.org">
 
@@ -69,7 +69,7 @@ $def with (title)
       </style>
     </noscript>
  <script>
- $if not is_bot():
+ $if not is_bot() and not ctx.get('disable_analytics'):
    // Dimension 1 (visit-scoped): "Days Since Registration" — ID must match Matomo admin config (issue #12144)
    var _paq = window._paq = window._paq || [];
    _paq.push(['setCustomDimension', 1, $:dumps(get_days_registered(ctx.user))]);

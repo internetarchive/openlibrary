@@ -163,6 +163,7 @@ def create_app() -> FastAPI | None:
         version="0.0.1",
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
+        strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )
 
     app.add_middleware(

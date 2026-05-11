@@ -279,7 +279,9 @@ class EditionSolrBuilder(AbstractSolrBuilder):
                 logger.warning(f'Bad identifier on {self.key}: "{key}"')
                 continue
 
-            identifiers[f"id_{solr_key}"] = uniq(v.strip() for v in id_list)
+            # Sometimes v can be None? So filter that out
+            if values := uniq(v.strip() for v in id_list if v):
+                identifiers[f"id_{solr_key}"] = values
         return identifiers
 
     @cached_property

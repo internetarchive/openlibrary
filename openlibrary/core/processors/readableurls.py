@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import urllib
 from urllib.parse import quote_plus
 
@@ -114,7 +115,7 @@ def _get_object(site, key):
 
     # Disabled temporarily as the index is not ready the db
 
-    # if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
+    # if obj is None and re.compile(r"/.*/OL\d+[A-Z]"):
     #    olid = web.safestr(key).split("/")[-1]
     #    key = site._request("/olid_to_key", data={"olid": olid}).key
     #    obj = key and site.get(key)
@@ -130,7 +131,7 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     def match(path):
         for pat, _type, _property, default_title in patterns:
-            m = web.re_compile("^" + pat).match(path)
+            m = re.compile("^" + pat).match(path)
             if m:
                 prefix = m.group()
                 extra = path.removeprefix(prefix)

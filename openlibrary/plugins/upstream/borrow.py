@@ -305,7 +305,6 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(json.dumps(d), content_type="application/json")
 
 
-@public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
 
@@ -369,7 +368,6 @@ def datetime_from_utc_timestamp(seconds):
     return datetime.utcfromtimestamp(seconds)
 
 
-@public
 def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + "/" + itemid
 

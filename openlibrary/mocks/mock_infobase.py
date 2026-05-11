@@ -233,7 +233,7 @@ class MockSite:
             "=": lambda i, value: i.value == value,
         }
         pattern = ".*([%s])$" % "".join(operations)
-        rx = web.re_compile(pattern)
+        rx = re.compile(pattern)
 
         if m := rx.match(name):
             op = m.group(1)

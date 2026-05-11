@@ -6,6 +6,7 @@ import hashlib
 import json
 import os.path
 import random
+import re
 
 import web
 
@@ -69,7 +70,7 @@ class edit(core.edit):
 
     def GET(self, key):
         page = web.ctx.site.get(key)
-        editable_keys_re = web.re_compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
+        editable_keys_re = re.compile(r"/(authors|books|works|tags|lists|series|people/[^/]+/lists)/OL.*")
         if editable_keys_re.match(key):
             if page is None:
                 return web.seeother(key)
@@ -79,7 +80,7 @@ class edit(core.edit):
             return core.edit.GET(self, key)
 
     def POST(self, key):
-        if web.re_compile("/(people/[^/]+)").match(key) and spamcheck.is_spam():
+        if re.compile("/(people/[^/]+)").match(key) and spamcheck.is_spam():
             return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
         return core.edit.POST(self, key)
 

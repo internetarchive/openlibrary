@@ -44,7 +44,7 @@ jobs:
       exit_code: ${{ steps.run_bot.outputs.exit_code }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - run: pip install requests
@@ -89,7 +89,7 @@ jobs:
     if: ${{ needs.new_comment_digest.outputs.exit_code == 30 }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.x
       - run: pip install slack-sdk

@@ -421,7 +421,7 @@ class MyBooksTemplate:
         self.user = web.ctx.site.get("/people/%s" % self.username)
 
         if not self.user:
-            raise render.notfound("User %s" % self.username, create=False)
+            raise web.notfound("User %s" % self.username)
 
         self.is_public = self.user.preferences().get("public_readlog", "no") == "yes"
         self.user_itemname = self.user.get_account().get("internetarchive_itemname")

@@ -54,6 +54,7 @@ __version__ = "0.3"
 """
 
 import json
+import re
 
 import web
 from web.template import (
@@ -175,7 +176,7 @@ class JSNode:
         a = a[len("for") : -len("in")].strip()  # strip `for` and `in`
 
         b = node.stmt[tok.index : -1].strip()  # rest of for stmt excluding :
-        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
+        b = re.compile(r"loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
         text += indent + f"foreach({py2js(b)}, loop, function(loop, {a}) {{\n"

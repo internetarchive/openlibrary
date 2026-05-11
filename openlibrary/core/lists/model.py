@@ -99,7 +99,7 @@ class List(Thing):
         return self.name or "unnamed"
 
     def get_owner(self) -> User | None:
-        if match := web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
+        if match := re.compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key):
             key = match.group(1)
             return cast(User, self._site.get(key))
         else:

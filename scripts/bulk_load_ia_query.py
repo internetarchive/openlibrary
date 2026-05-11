@@ -19,9 +19,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry  # Correct import path
 
-import infogami
 from infogami import config
-from openlibrary.config import load_config
+from openlibrary.setup import setup_for_script
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
 spec = importlib.util.spec_from_file_location("openlibrary", "scripts/manage-imports.py")
@@ -203,8 +202,7 @@ def main(
     idfile: str | None = None,
     test: bool = True,
 ):
-    load_config(ol_config)
-    infogami._setup()
+    setup_for_script(ol_config)
     s3_keys = config.get("ia_ol_metadata_write_s3")
     if idfile and os.path.exists(idfile):
         with open(idfile) as fin:

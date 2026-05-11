@@ -1,9 +1,8 @@
 import json
+import re
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Required, TypedDict, TypeVar
-
-import web
 
 from infogami.infobase.client import Nothing, Thing
 from openlibrary.core.models import ThingReferenceDict
@@ -106,8 +105,11 @@ class TocEntry:
         (0, '1.1', 'Apple', None)
         """
 
-        RE_LEVEL = web.re_compile(r"(\**)(.*)")
-        level, text = RE_LEVEL.match(line.strip()).groups()
+        RE_LEVEL = re.compile(r"(\**)(.*)")
+        if match := RE_LEVEL.match(line.strip()):
+            level, text = match.groups()
+        else:
+            level, text = "", ""
 
         if "|" in text:
             tokens = text.split("|", 3)

@@ -29,8 +29,6 @@ $if author_names:
 $else:
   $ byline = ''
 
-$ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_key')
-
 <div class="book carousel__item">
   <div class="book-cover">
     <a href="$(url)" data-ol-link-track="BookCarousel|CoverClick|$key">
@@ -51,5 +49,5 @@ $ work_key = book['key'] if book['key'].startswith('/work') else book.get('work_
         </div>
     </a>
   </div>
-  $:macros.LoanStatus(book, work_key=work_key, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
+  $:macros.LoanStatus(book, work_key=url, listen=False, secondary_action=secondary_action, analytics_override="BookCarousel|CTAClick|%s" % key)
 </div>

@@ -185,7 +185,7 @@ class has_user:
         i = server.input("username")
 
         # Don't allows OLIDs to be usernames
-        if web.re_compile(r"OL\d+[A-Z]").match(i.username.upper()):
+        if re.compile(r"OL\d+[A-Z]").match(i.username.upper()):
             return True
 
         key = "/user/" + i.username.lower()
