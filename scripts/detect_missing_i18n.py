@@ -21,6 +21,12 @@ EXCLUDE_LIST = {
     "openlibrary/templates/design.html",
 }
 
+# Path prefixes whose contents are intentionally excluded from the i18n process.
+EXCLUDE_DIRS = (
+    # Design library partials with demo content that doesn't need translation.
+    "openlibrary/templates/design/",
+)
+
 default_directories = ("openlibrary/templates/", "openlibrary/macros/")
 
 
@@ -179,7 +185,8 @@ def main(files: list[Path], skip_excluded: bool = True):
     warnings: int = 0
 
     for file in files:
-        if skip_excluded and file.as_posix() in EXCLUDE_LIST:
+        posix = file.as_posix()
+        if skip_excluded and (posix in EXCLUDE_LIST or posix.startswith(EXCLUDE_DIRS)):
             print_analysis(ErrorLevel.SKIP, file, "", spacing_base)
             continue
 

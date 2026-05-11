@@ -871,28 +871,22 @@ class unlink_ia_ol(delegate.page):
         ocaid, _ts = parts
 
         # Fetch affected editions
-        if not (
-            edition_keys := web.ctx.site.things(
-                {"type": "/type/edition", "ocaid": ocaid}
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})
+        edition_keys.extend(
+            web.ctx.site.things(
+                {"type": "/type/edition", "source_records": f"ia:{ocaid}"}
             )
-        ):
+        )
+        edition_keys = list(set(edition_keys))
+        if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                {"Content-Type": "application/json"},
-                data=json.dumps(
-                    {"error": "Multiple editions associated with given ocaid"}
-                ),
-            )
-
-        edition = editions[0]
 
         # Update records
         try:
-            self.make_dark(edition, ocaid)
+            for edition in editions:
+                self.make_dark(edition, ocaid)
         except ClientException as e:
             logger.error(
                 f"Failed to disassociate record with key {edition.key}", exc_info=True
@@ -908,7 +902,8 @@ class unlink_ia_ol(delegate.page):
     @staticmethod
     def make_dark(edition, ocaid):
         data = edition.dict()
-        del data["ocaid"]
+        if "ocaid" in data and data["ocaid"] == ocaid:
+            del data["ocaid"]
         source_records = data.get("source_records", [])
         data["source_records"] = [rec for rec in source_records if rec != f"ia:{ocaid}"]
         if not data["source_records"]:
@@ -919,6 +914,63 @@ class unlink_ia_ol(delegate.page):
                 data,
                 "Remove OCAID: Item no longer available to borrow.",
                 action="edit-edition-ocaid",
+            )
+
+
+class link_ia_ol(delegate.page):
+    path = "/api/link"
+    encoding = "json"
+
+    def POST(self):
+        i = web.input(digest="", msg="")
+        digest = i.digest
+        msg = i.msg
+
+        try:
+            if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
+                raise web.HTTPError(
+                    "401 Unauthorized", {"Content-Type": "application/json"}
+                )
+        except (ValueError, ExpiredTokenError):
+            raise web.HTTPError(
+                "401 Unauthorized", {"Content-Type": "application/json"}
+            )
+
+        parts = msg.split("|", maxsplit=2)
+        if len(parts) != 3 or not all(parts):
+            raise web.HTTPError(
+                "400 Bad Request",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": "Invalid inputs"}),
+            )
+        ocaid, olid, _ts = parts
+
+        # Fetch affected edition
+        edition = web.ctx.site.get(f'/books/{olid}')
+        if not edition:
+            raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
+
+        # Update record
+        try:
+            self.link(edition, ocaid)
+        except ClientException as e:
+            logger.error(f"Failed to associate {ocaid} with {olid}", exc_info=True)
+            raise web.HTTPError(
+                "500 Internal Server Error",
+                {"Content-Type": "application/json"},
+                data=json.dumps({"error": str(e)}),
+            )
+
+        return delegate.RawText(json.dumps({"status": "ok"}))
+
+    @staticmethod
+    def link(edition, ocaid):
+        data = edition.dict()
+        data["ocaid"] = ocaid
+        with accounts.RunAs("ImportBot"):
+            web.ctx.ip = web.ctx.ip or '127.0.0.1'
+            web.ctx.site.save(
+                data, "Associate OCAID with record", action="edit-edition-ocaid"
             )
 
 

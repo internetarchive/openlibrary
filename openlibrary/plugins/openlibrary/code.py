@@ -29,6 +29,7 @@ from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
+    site,
 )
 
 # make sure infogami.config.features is set
@@ -133,7 +134,9 @@ logger = logging.getLogger('openlibrary')
 
 class hooks(client.hook):
     def before_new_version(self, page):
-        user = web.ctx.site.get_user()
+        s = site.get()
+
+        user = get_current_user()
         account = user and user.get_account()
         if account and account.is_blocked():
             raise ValidationException(
@@ -144,8 +147,8 @@ class hooks(client.hook):
             if page.type.key == '/type/author':
                 return
 
-            books = web.ctx.site.things({'type': '/type/edition', 'authors': page.key})
-            books = books or web.ctx.site.things(
+            books = s.things({'type': '/type/edition', 'authors': page.key})
+            books = books or s.things(
                 {'type': '/type/work', 'authors': {'author': {'key': page.key}}}
             )
             if page.type.key == '/type/delete' and books:

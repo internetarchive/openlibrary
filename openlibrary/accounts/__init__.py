@@ -99,15 +99,16 @@ def get_days_registered(user) -> str:
 
 def find(username: str | None = None, lusername: str | None = None, email: str | None = None) -> Account | None:
     """Finds an account by username, email or lowercase username."""
+    site_ctx = site.get()
 
     def query(name, value):
         try:
-            return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
+            return site_ctx.store.values(type="account", name=name, value=value, limit=1)[0]
         except IndexError:
             return None
 
     if username:
-        doc = web.ctx.site.store.get("account/" + username)
+        doc = site_ctx.store.get("account/" + username)
     elif lusername:
         doc = query("lusername", lusername)
     elif email:
@@ -118,8 +119,8 @@ def find(username: str | None = None, lusername: str | None = None, email: str |
         #
         # There are accounts with case-variation of emails. To handle those,
         # searching with the original case and using lower case if that fails.
-        email_doc = web.ctx.site.store.get("account-email/" + email) or web.ctx.site.store.get("account-email/" + email.lower())
-        doc = email_doc and web.ctx.site.store.get("account/" + email_doc["username"])
+        email_doc = site_ctx.store.get("account-email/" + email) or site_ctx.store.get("account-email/" + email.lower())
+        doc = email_doc and site_ctx.store.get("account/" + email_doc["username"])
     else:
         doc = None
 

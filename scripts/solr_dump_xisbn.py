@@ -34,7 +34,7 @@ from typing import Literal
 
 import httpx
 
-# EG http://localhost:8984/solr/openlibrary/select?editions.fl=key%2Cisbn&editions.q=(%7B!terms%20f%3D_root_%20v%3D%24row.key%7D)%20AND%20language%3Aeng%20AND%20isbn%3A*%20AND%20type%3Aedition&editions.rows=1000000&fl=key%2Ceditions%3A%5Bsubquery%5D&fq=type%3Awork&indent=true&q=isbn%3A*%20AND%20NOT%20subject%3Atextbook%20AND%20_query_%3A(%7B!parent%20which%3Dtype%3Awork%20v%3D%22language%3Aeng%20AND%20ia_box_id%3A*%22%20filters%3D%22type%3Aedition%22%7D)&sort=key%20asc&wt=json
+# EG http://localhost:8983/solr/openlibrary/select?editions.fl=key%2Cisbn&editions.q=(%7B!terms%20f%3D_root_%20v%3D%24row.key%7D)%20AND%20language%3Aeng%20AND%20isbn%3A*%20AND%20type%3Aedition&editions.rows=1000000&fl=key%2Ceditions%3A%5Bsubquery%5D&fq=type%3Awork&indent=true&q=isbn%3A*%20AND%20NOT%20subject%3Atextbook%20AND%20_query_%3A(%7B!parent%20which%3Dtype%3Awork%20v%3D%22language%3Aeng%20AND%20ia_box_id%3A*%22%20filters%3D%22type%3Aedition%22%7D)&sort=key%20asc&wt=json
 
 
 async def fetch_docs(
@@ -114,7 +114,7 @@ async def stream_bounds(
 
 
 async def main(
-    solr_base="http://localhost:8984/solr/openlibrary",
+    solr_base="http://localhost:8983/solr/openlibrary",
     workers=10,
     page_size=100,
     id_field: Literal["isbn", "lccn"] = "isbn",
