@@ -949,7 +949,7 @@ msgstr "সাইন আপ"
 
 #: account/create.html:21
 msgid "Complete the form below to create a new Internet Archive account."
-msgstr "নতুন ওপেন লাইব্রেরির একাউন্ট খুলতে নিচের ফর্মটি পূরণ করুন।"
+msgstr "নতুন ইন্টারনেট আর্কাইভ একাউন্ট খুলতে নিচের ফর্মটি পূরণ করুন।"
 
 #: account/create.html:22
 msgid "Each field is required"
