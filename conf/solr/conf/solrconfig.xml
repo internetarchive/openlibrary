@@ -786,6 +786,20 @@
     </lst>
   </requestHandler>
 
+  <requestHandler name="/replication" class="solr.ReplicationHandler">
+    <lst name="leader">
+      <str name="enable">${ol.replication.role.leader:false}</str>
+      <str name="replicateAfter">commit</str>
+      <str name="replicateAfter">startup</str>
+      <str name="confFiles">schema.xml,stopwords.txt,synonyms.txt</str>
+    </lst>
+    <lst name="follower">
+      <str name="enable">${ol.replication.role.follower:false}</str>
+      <str name="leaderUrl">http://${ol.replication.leader:localhost}/solr/openlibrary</str>
+      <str name="pollInterval">00:00:60</str>
+    </lst>
+  </requestHandler>
+
   <!-- Shared parameters for multiple Request Handlers -->
   <initParams path="/update/**,/query,/select,/spell">
     <lst name="defaults">

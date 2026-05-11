@@ -1,0 +1,49 @@
+##
+## Near-Production server config (wip)
+##
+## This file enables more of the architecture that runs on production in order to make changes
+## testable locally. It does *not* enable things like increased memory usage/etc, so it should
+## run on a typical development machine, but will create more containers indicatave of production.
+##
+## Currently supported features:
+## - Solr replication with 1 leader and 1 follower
+##
+## You probably want to run:
+## COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" docker compose up -d
+##
+
+services:
+  solr:
+    environment:
+      # See compose.yaml for docs
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=dev
+        -Dol.replication.role.leader=true
+
+  solr_replica:
+    extends:
+      file: compose.yaml
+      service: solr
+    environment:
+      # See compose.yaml for docs
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=dev
+        -Dol.replication.role.follower=true
+        -Dol.replication.leader=solr:8983
+        -Dsolr.allowUrls=http://solr:8983
+    ports:
+      - 8984:8983
+    volumes:
+      # Override with own copy of solr data
+      - solr-replica-data:/var/solr
+
+volumes:
+  solr-replica-data:
