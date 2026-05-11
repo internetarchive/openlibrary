@@ -4,11 +4,9 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
 
-from openlibrary.core import formats
-from openlibrary.utils.request_context import site
-
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
+from openlibrary.core import formats
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary.lists import get_list
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
