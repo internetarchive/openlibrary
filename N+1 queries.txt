@@ -1,0 +1,33 @@
+openlibrary/accounts/__init__.py:23:    return web.ctx.site.get(f"/usergroup/{name}")
+Type: Single call
+
+openlibrary/accounts/__init__.py:62:    return site.get().get_user()
+Type: Single call
+
+openlibrary/accounts/model.py:377:        return web.ctx.site.get(key)
+Type: Single call
+
+openlibrary/accounts/model.py:381:        doc = web.ctx.site.get(key)
+Type: Single call
+
+openlibrary/catalog/add_book/__init__.py:212:            w = web.ctx.site.get(wkey
+Type:loop
+
+openlibrary/catalog/add_book/__init__.py:392:        ed = web.ctx.site.get(f'/books/{edition_id}')
+Type: Single call
+
+openlibrary/catalog/add_book/__init__.py:567:                thing = web.ctx.site.get(edition_key)
+Type:loop
+
+openlibrary/catalog/add_book/__init__.py:714:        work = web.ctx.site.get(work_key)
+Type: Single call
+
+openlibrary/catalog/add_book/__init__.py:1051:    existing_edition: Edition = web.ctx.site.get(match)
+Type: Single call
+
+openlibrary/catalog/add_book/__init__.py:1058:            a = web.ctx.site.get(a.location)
+Type:loop
+
+openlibrary/catalog/add_book/load_book.py:177:            obj = web.ctx.site.get(obj["location"])
+: Type:loop
+:

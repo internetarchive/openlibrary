@@ -74,10 +74,13 @@ class mybooks_home(delegate.page):
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
             loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
-            for loan in myloans:
+
+            book_keys = [loan["book"] for loan in myloans]
+            books = web.ctx.site.get_many(book_keys)
+            
+            for loan, book in zip(myloans, books):
                 # Book will be None if no OL edition exists for the book
-                if book := web.ctx.site.get(loan["book"]):
+                if book:
                     book.loan = loan
                     loans.docs.append(book)
             docs["loans"] = loans
