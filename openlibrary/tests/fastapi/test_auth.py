@@ -10,7 +10,6 @@ from fastapi.security import APIKeyCookie
 from fastapi.testclient import TestClient
 
 from infogami import config
-
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     authenticate_user_from_cookie,
@@ -18,7 +17,6 @@ from openlibrary.fastapi.auth import (
     require_authenticated_user,
     session_cookie,
 )
-
 
 # ---------------------------------------------------------------------------
 # Tests for the session_cookie security scheme object
@@ -66,27 +64,21 @@ def test_authenticate_user_from_cookie_returns_none_for_bad_format():
 
 def test_authenticate_user_from_cookie_returns_none_for_invalid_hash():
     """A cookie with a structurally valid format but wrong hash returns None."""
-    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch(
-        "openlibrary.fastapi.auth.verify_hash", return_value=False
-    ):
+    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch("openlibrary.fastapi.auth.verify_hash", return_value=False):
         result = authenticate_user_from_cookie("/people/testuser,2026-01-01T00:00:00,badsalt$badhash")
     assert result is None
 
 
 def test_authenticate_user_from_cookie_returns_none_for_missing_people_prefix():
     """A cookie whose user_key doesn't start with /people/ is rejected."""
-    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch(
-        "openlibrary.fastapi.auth.verify_hash", return_value=True
-    ):
+    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch("openlibrary.fastapi.auth.verify_hash", return_value=True):
         result = authenticate_user_from_cookie("badkey,2026-01-01T00:00:00,salt$hash")
     assert result is None
 
 
 def test_authenticate_user_from_cookie_returns_user_for_valid_cookie():
     """A structurally valid cookie with a passing hash returns an AuthenticatedUser."""
-    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch(
-        "openlibrary.fastapi.auth.verify_hash", return_value=True
-    ):
+    with patch("openlibrary.fastapi.auth.get_secret_key", return_value="secret"), patch("openlibrary.fastapi.auth.verify_hash", return_value=True):
         result = authenticate_user_from_cookie("/people/testuser,2026-01-01T00:00:00,salt$hash")
 
     assert isinstance(result, AuthenticatedUser)
