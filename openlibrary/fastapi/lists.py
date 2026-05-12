@@ -141,7 +141,7 @@ CommonPagination = Annotated[GetListEditionsParams, Depends()]
 
 
 @router.get("/lists/{olid}/editions.json", response_model=ListEditionsModel)
-def read_list_editions(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+def list_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a public list.
     """
@@ -150,7 +150,7 @@ def read_list_editions(olid: ListOLID, params: CommonPagination) -> ListEditions
 
 
 @router.get("/people/{username}/lists/{olid}/editions.json", response_model=ListEditionsModel)
-def read_people_list_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+def list_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's list.
     """
@@ -159,7 +159,7 @@ def read_people_list_editions(username: UsernamePath, olid: ListOLID, params: Co
 
 
 @router.get("/series/{olid}/editions.json", response_model=ListEditionsModel)
-def read_series_editions(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific series.
     """
@@ -168,7 +168,7 @@ def read_series_editions(olid: ListOLID, params: CommonPagination) -> ListEditio
 
 
 @router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
-def read_people_series_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's series.
     """
