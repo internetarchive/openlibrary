@@ -34,7 +34,7 @@ class Recaptcha(web.form.Input):
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
         i = web.input()
-        url = "https://www.google.com/recaptcha/api/siteverify"
+        url = "https://www.recaptcha.net/recaptcha/api/siteverify"
         params = {
             "secret": self._private_key,
             "response": i.get("g-recaptcha-response"),

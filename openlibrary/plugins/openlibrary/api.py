@@ -871,28 +871,22 @@ class unlink_ia_ol(delegate.page):
         ocaid, _ts = parts
 
         # Fetch affected editions
-        if not (
-            edition_keys := web.ctx.site.things(
-                {"type": "/type/edition", "ocaid": ocaid}
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaid})
+        edition_keys.extend(
+            web.ctx.site.things(
+                {"type": "/type/edition", "source_records": f"ia:{ocaid}"}
             )
-        ):
+        )
+        edition_keys = list(set(edition_keys))
+        if not edition_keys:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                {"Content-Type": "application/json"},
-                data=json.dumps(
-                    {"error": "Multiple editions associated with given ocaid"}
-                ),
-            )
-
-        edition = editions[0]
 
         # Update records
         try:
-            self.make_dark(edition, ocaid)
+            for edition in editions:
+                self.make_dark(edition, ocaid)
         except ClientException as e:
             logger.error(
                 f"Failed to disassociate record with key {edition.key}", exc_info=True
@@ -908,7 +902,8 @@ class unlink_ia_ol(delegate.page):
     @staticmethod
     def make_dark(edition, ocaid):
         data = edition.dict()
-        del data["ocaid"]
+        if "ocaid" in data and data["ocaid"] == ocaid:
+            del data["ocaid"]
         source_records = data.get("source_records", [])
         data["source_records"] = [rec for rec in source_records if rec != f"ia:{ocaid}"]
         if not data["source_records"]:

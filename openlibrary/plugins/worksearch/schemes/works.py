@@ -259,6 +259,12 @@ class WorkSearchScheme(SearchScheme):
         }
     )
 
+    solr_editions: bool = True
+
+    def __init__(self, lang: str | None = None, solr_editions: bool = True):
+        self.solr_editions = solr_editions
+        super().__init__(lang=lang)
+
     def is_search_field(self, field: str):
         # New variable introduced to prevent rewriting the input.
         if field.startswith(('work.', 'edition.')):
@@ -376,7 +382,7 @@ class WorkSearchScheme(SearchScheme):
         ed_q = None
         full_ed_query = None
         editions_fq = []
-        if req_context.get().solr_editions and 'editions:[subquery]' in solr_fields:
+        if self.solr_editions and 'editions:[subquery]' in solr_fields:
             WORK_FIELD_TO_ED_FIELD: dict[str, str | Callable[[str], str]] = {
                 # Internals
                 'edition_key': 'key',

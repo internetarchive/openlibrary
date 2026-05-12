@@ -51,7 +51,7 @@ services:
     restart: unless-stopped
 
   solr_haproxy:
-    profiles: ["ol-solr0"]
+    profiles: ["ol-home0"]
     image: haproxy:2.9.15
     restart: unless-stopped
     networks:
@@ -281,7 +281,7 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
+      - OL_SOLR_BASE_URL=http://ol-solr0:8983/solr/openlibrary
       - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
@@ -304,7 +304,7 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
+      - OL_SOLR_BASE_URL=http://ol-solr1:8983/solr/openlibrary
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset

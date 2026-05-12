@@ -134,7 +134,7 @@ async def get_solr_works_async(
     if editions:
         # To get the top matching edition, need to do a proper query
         resp = await run_solr_query_async(
-            WorkSearchScheme(),
+            WorkSearchScheme(solr_editions=editions),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
             fields=list(fields),
@@ -385,7 +385,7 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
-def run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -423,7 +423,7 @@ def run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = execute_solr_query(solr_select_url, params)
+    response = await execute_solr_query_async(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -432,25 +432,7 @@ def run_solr_query(
     )
 
 
-async def run_solr_query_async(
-    scheme: SearchScheme,
-    param: dict | None = None,
-    **kwargs,
-) -> 'SearchResponse':
-    """
-    Builds and executes an asynchronous Solr query.
-    """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
-
-    url = f'{solr_select_url}?{urlencode(params)}'
-    start_time = time.time()
-    response = await execute_solr_query_async(solr_select_url, params)
-    end_time = time.time()
-    duration = end_time - start_time
-
-    return _process_solr_response_and_enrich(
-        response, scheme, fields, kwargs.get('sort'), url, duration
-    )
+run_solr_query = async_bridge.wrap(run_solr_query_async)
 
 
 @functools.cache
@@ -789,7 +771,7 @@ class search(delegate.page):
 
         if param:
             search_response = run_solr_query(
-                WorkSearchScheme(),
+                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
                 param,
                 rows=rows,
                 page=page,
@@ -1160,7 +1142,7 @@ async def work_search_async(
     solr_internals_params: 'SolrInternalsParams | None' = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
-    scheme = WorkSearchScheme(lang=lang)
+    scheme = WorkSearchScheme(lang=lang, solr_editions=req_context.get().solr_editions)
     resp = await run_solr_query_async(
         scheme,
         prepared.query,
