@@ -796,23 +796,21 @@ def get_list_editions(
     key: str,
     offset: int = 0,
     limit: int = 50,
-    api: bool = False,
     request_url=None,
-):
+) -> dict | None:
     if lst := site.get().get(key):
         offset = offset or 0  # enforce sane int defaults
         all_editions = list(lst.get_editions())
         editions = all_editions[offset : offset + limit]
-        if api:
-            return make_collection(
-                size=len(all_editions),
-                entries=[e.dict() for e in editions],
-                limit=limit,
-                offset=offset,
-                key=key,
-                request_url=request_url,
-            )
-        return editions
+        return make_collection(
+            size=len(all_editions),
+            entries=[e.dict() for e in editions],
+            limit=limit,
+            offset=offset,
+            key=key,
+            request_url=request_url,
+        )
+    return None
 
 
 @deprecated("migrated to fastapi")
@@ -826,7 +824,7 @@ class list_editions_json(delegate.page):
         i = web.input(limit=50, offset=0)
         limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-        editions = get_list_editions(key, offset=offset, limit=limit, api=True)
+        editions = get_list_editions(key, offset=offset, limit=limit)
         if not editions:
             raise web.notfound()
         return delegate.RawText(
@@ -839,7 +837,7 @@ class list_editions_yaml(list_editions_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def make_collection(size, entries, limit, offset, key=None, request_url=None):
+def make_collection(size, entries, limit, offset, key=None, request_url=None) -> dict:
     def get_url(**kwargs):
         """
         Generates a relative URL with updated query parameters for pagination.

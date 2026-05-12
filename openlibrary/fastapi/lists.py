@@ -136,7 +136,7 @@ def _get_editions_response(key: str, params: GetListEditionsParams) -> dict:
     Utilizes the underlying `get_list_editions` method to ensure consistent behavior
     with the legacy API, passing the FastAPI `request.url` for pagination link generation.
     """
-    response_data = get_list_editions(key=key, offset=params.offset, limit=params.limit, api=True, request_url=params.url)
+    response_data = get_list_editions(key=key, offset=params.offset, limit=params.limit, request_url=params.url)
     if not response_data:
         raise HTTPException(status_code=404, detail="Editions not found")
 
