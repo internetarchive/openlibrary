@@ -47,7 +47,8 @@ $def list_card(list, owner, own_list):
                 <div class="list-follow-card__follow-button">
                     $if not own_list:
                         $ owner_account = get_user_object(owner_username)
-                        $ is_subscribed = ctx.user and ctx.user.is_subscribed_user(owner_username)
+                        $ user = get_current_user()
+                        $ is_subscribed = user and user.is_subscribed_user(owner_username)
                         $ settings = owner_account.get_users_settings()
                         $ is_public = settings and settings.get('public_readlog', 'no') == "yes"
                         $if is_public:
