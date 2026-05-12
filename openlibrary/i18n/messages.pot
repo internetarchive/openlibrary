@@ -6350,40 +6350,6 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
-#: search/editions.html
-msgid "Search Editions"
-msgstr ""
-
-#: search/editions.html
-msgid "No <strong>editions</strong> directly matched your search"
-msgstr ""
-
-#: search/editions.html
-msgid "Untitled"
-msgstr ""
-
-#: search/editions.html
-#, python-format
-msgid "Cover of %(title)s"
-msgstr ""
-
-#: search/editions.html
-#, python-format
-msgid "ISBN: %(isbn)s"
-msgstr ""
-
-#: search/editions.html
-msgid "See work"
-msgstr ""
-
-#: search/editions.html
-msgid "Freely Available"
-msgstr ""
-
-#: search/editions.html
-msgid "Borrowable"
-msgstr ""
-
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "All books"
 msgstr ""
@@ -6394,6 +6360,41 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Borrow online"
+msgstr ""
+
+#: search/editions.html
+msgid "Search Editions"
+msgstr ""
+
+#: search/editions.html
+msgid "No <strong>editions</strong> directly matched your search"
+msgstr ""
+
+#: search/editions.html search/search_modal_i18n.html
+#: type/work/editions_search.html
+msgid "Untitled"
+msgstr ""
+
+#: search/editions.html type/work/editions_search.html
+#, python-format
+msgid "Cover of %(title)s"
+msgstr ""
+
+#: search/editions.html type/work/editions_search.html
+#, python-format
+msgid "ISBN: %(isbn)s"
+msgstr ""
+
+#: search/editions.html
+msgid "See work"
+msgstr ""
+
+#: search/editions.html type/work/editions_search.html
+msgid "Freely Available"
+msgstr ""
+
+#: search/editions.html type/work/editions_search.html
+msgid "Borrowable"
 msgstr ""
 
 #: search/inside.html
@@ -6509,10 +6510,6 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "Top results"
-msgstr ""
-
-#: search/search_modal_i18n.html
-msgid "Untitled"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -7721,6 +7718,45 @@ msgstr ""
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
+msgstr ""
+
+#: type/work/editions_datatable.html
+msgid "Search editions"
+msgstr ""
+
+#: type/work/editions_search.html
+#, python-format
+msgid "Editions of %(work_title)s"
+msgstr ""
+
+#: type/work/editions_search.html
+msgid "Edition Search"
+msgstr ""
+
+#: type/work/editions_search.html
+#, python-format
+msgid "%(count)s edition total"
+msgid_plural "%(count)s editions total"
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/work/editions_search.html
+msgid "Filter by language, ISBN, publisher…"
+msgstr ""
+
+#: type/work/editions_search.html
+msgid "Examples:"
+msgstr ""
+
+#: type/work/editions_search.html
+#, python-format
+msgid "%(count)s matching edition"
+msgid_plural "%(count)s matching editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: type/work/editions_search.html
+msgid "No editions matched your filter"
 msgstr ""
 
 #: AffiliateLinks.html.jinja

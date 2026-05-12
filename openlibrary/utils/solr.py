@@ -45,6 +45,7 @@ SolrRequestLabel = Literal[
     "AUTHOR_SEARCH_API",
     "EDITION_SEARCH",
     "EDITION_SEARCH_API",
+    "WORK_EDITION_SEARCH",
 ]
 
 

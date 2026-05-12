@@ -6,6 +6,8 @@ from openlibrary.plugins.worksearch.schemes import SearchScheme
 
 logger = logging.getLogger("openlibrary.worksearch")
 
+_EDITION_QF = "title^40 alternative_title^20 author_name^20 isbn^10 publisher^5"
+
 
 class EditionSearchScheme(SearchScheme):
     universe = frozenset(["type:edition"])
@@ -21,6 +23,7 @@ class EditionSearchScheme(SearchScheme):
             "ebook_access",
             "publish_date",
             "lccn",
+            "oclc",
             "ia",
             "ia_collection",
             "isbn",
@@ -30,6 +33,9 @@ class EditionSearchScheme(SearchScheme):
             "publish_year",
             "language",
             "publisher_facet",
+            "author_name",
+            "author_key",
+            "edition_name",
         }
     )
     non_solr_fields = frozenset()
@@ -37,8 +43,6 @@ class EditionSearchScheme(SearchScheme):
     field_name_map = MappingProxyType(
         {
             "publishers": "publisher",
-            "subtitle": "alternative_subtitle",
-            "title": "alternative_title",
         }
     )
     sorts = MappingProxyType(
@@ -80,3 +84,11 @@ class EditionSearchScheme(SearchScheme):
 
     def is_search_field(self, field: str):
         return super().is_search_field(field) or field.startswith("id_")
+
+    def q_to_solr_params(self, q, solr_fields, cur_solr_params, highlight=False, solr_internals_params=None):
+        return [
+            ("q", q),
+            ("defType", "edismax"),
+            ("qf", _EDITION_QF),
+            ("q.op", "AND"),
+        ]

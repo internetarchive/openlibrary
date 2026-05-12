@@ -1,20 +1,23 @@
-$def with (q, page, results_per_page, sort, results, work_key=None)
+$def with (work, q, page, results_per_page, sort, results)
 
-$var title: $_('Search Open Library for "%(query)s"', query=q)
+$var title: $_('Editions of %(work_title)s', work_title=work.title)
 
 <div id="contentHead">
-    <h1>$_("Search Editions")</h1>
+    <h1>
+        <a href="$work.key">$work.title</a> &mdash; $_("Edition Search")
+    </h1>
+    $if work.edition_count:
+        <p class="small sansserif">$ungettext('%(count)s edition total', '%(count)s editions total', work.edition_count, count=commify(work.edition_count))</p>
 </div>
 
 <div id="contentBody">
-  $:macros.SearchNavigation()
-
   <div class="section">
     <form class="siteSearch olform" action="">
-        $:render_template("search/searchbox", q=q)
-        $if work_key:
-            <input type="hidden" name="work_key" value="$work_key">
+        $:render_template("search/searchbox", q=q, placeholder=_("Filter by language, ISBN, publisher…"))
     </form>
+    <p class="small sansserif">
+        $_("Examples:") <code>language:eng</code>, <code>isbn:9780743273565</code>, <code>publisher:penguin</code>
+    </p>
   </div>
 
     $if results and results.error:
@@ -27,16 +30,13 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
 
     $if results and not results.error:
         $if results.num_found:
-            <div class="search-results-stats">$ungettext('%(count)s edition', '%(count)s editions', results.num_found, count=commify(results.num_found))
+            <div class="search-results-stats">
+                $ungettext('%(count)s matching edition', '%(count)s matching editions', results.num_found, count=commify(results.num_found))
             </div>
         $else:
             <center>
-                <div class="red">$:_('No <strong>editions</strong> directly matched your search')</div>
-                <hr>
+                <div class="red">$:_('No editions matched your filter')</div>
             </center>
-            <div id="fulltext-search-suggestion" data-query="$q">
-                $:macros.LoadingIndicator(_("Checking Search Inside matches"))
-            </div>
 
     $if results and results.num_found:
         <ul class="list-books searchResultsList">
@@ -54,8 +54,6 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
             $ language_str = ', '.join(languages[:2])
             $ isbns = doc.get('isbn', [])
             $ ebook_access = doc.get('ebook_access', '')
-            $ _work_keys = doc.get('work_key', [])
-            $ work_key = _work_keys[0] if _work_keys else ''
             <li class="searchResultItem">
               <a href="$edition_key">
                 <img src="$cover_url" alt="$_('Cover of %(title)s', title=title_text)" class="cover book">
@@ -73,8 +71,6 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
                     <span class="language small grey">$language_str</span>
                 $if isbns:
                     <span class="isbn small grey">$_('ISBN: %(isbn)s', isbn=isbns[0])</span>
-                $if work_key:
-                    <br><a href="$work_key" class="small sansserif">$_("See work")</a>
                 $if ebook_access == 'public':
                     <span class="read-status small green">$_("Freely Available")</span>
                 $elif ebook_access == 'borrowable':
@@ -85,5 +81,3 @@ $var title: $_('Search Open Library for "%(query)s"', query=q)
 
         $:macros.OlPagination(page, ceil(results.num_found / results_per_page))
   </div>
-
-</div>

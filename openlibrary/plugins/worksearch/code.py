@@ -1122,12 +1122,20 @@ class edition_search(delegate.page):
             if q or work_key
             else None
         )
-        return render_template("search/editions", q, page, results_per_page, sort, results)
+        return render_template(
+            "search/editions",
+            q,
+            page,
+            results_per_page,
+            sort,
+            results,
+            work_key=work_key,
+        )
 
     def get_results(
         self,
         q,
-        request_label: Literal["EDITION_SEARCH", "EDITION_SEARCH_API"],
+        request_label: Literal["EDITION_SEARCH", "EDITION_SEARCH_API", "WORK_EDITION_SEARCH"],
         work_key=None,
         offset=0,
         limit=20,
@@ -1136,8 +1144,8 @@ class edition_search(delegate.page):
     ):
         extra_params = []
         if work_key:
-            safe_key = work_key.replace('\\', '\\\\').replace('"', '\\"')
-            extra_params.append(('fq', f'work_key:"{safe_key}"'))
+            safe_key = work_key.replace("\\", "\\\\").replace('"', '\\"')
+            extra_params.append(("fq", f'work_key:"{safe_key}"'))
 
         return run_solr_query(
             EditionSearchScheme(),
@@ -1149,6 +1157,46 @@ class edition_search(delegate.page):
             facet=False,
             extra_params=extra_params or None,
             request_label=request_label,
+        )
+
+
+class work_edition_search(delegate.page):
+    """Searchable edition browser scoped to a single work.
+
+    Accessible at /works/OLxxxW/Title/editions with optional ?q= for additional filters.
+    """
+
+    path = r"(/works/OL\d+W)/[^/]+/editions"
+
+    def GET(self, work_key):
+        work_olid = work_key.split("/")[-1]
+        work = web.ctx.site.get(work_key)
+        if not work or work.type.key != "/type/work":
+            raise web.notfound()
+
+        i = web.input(q="", page=None, sort=None)
+        q = i.q.strip()
+        results_per_page = 20
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or "new"
+
+        results = edition_search().get_results(
+            q,
+            work_key=work_olid,
+            offset=offset,
+            limit=results_per_page,
+            sort=sort,
+            request_label="WORK_EDITION_SEARCH",
+        )
+        return render_template(
+            "type/work/editions_search",
+            work,
+            q,
+            page,
+            results_per_page,
+            sort,
+            results,
         )
 
 
