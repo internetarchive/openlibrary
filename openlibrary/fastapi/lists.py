@@ -1,15 +1,19 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary.lists import get_list, get_list_subjects
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, get_list, get_list_editions
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
+
+if TYPE_CHECKING:
+    from starlette.datastructures import URL
 
 router = APIRouter(tags=["lists"])
 
@@ -115,8 +119,62 @@ async def list_seeds():
     pass
 
 
-async def list_editions_json():
-    pass
+class GetListEditionsParams:
+    def __init__(
+        self,
+        request: Request,
+        limit: Annotated[int, Query(ge=0, description="Number of items to return")] = 50,
+        offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    ):
+        self.url: URL = request.url
+        self.limit: int = limit
+        self.offset: int = offset
+
+
+def _get_editions_response(key: str, params: GetListEditionsParams) -> ListEditionsModel:
+    if response_data := get_list_editions(key=key, url=params.url, offset=params.offset, limit=params.limit):
+        return response_data
+
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Editions not found")
+
+
+CommonPagination = Annotated[GetListEditionsParams, Depends()]
+
+
+@router.get("/lists/{olid}/editions.json", response_model=ListEditionsModel)
+def list_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+    """
+    Get paginated editions for a public list.
+    """
+    key = f"/lists/{olid}"
+    return _get_editions_response(key, params)
+
+
+@router.get("/people/{username}/lists/{olid}/editions.json", response_model=ListEditionsModel)
+def list_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+    """
+    Get paginated editions for a specific user's list.
+    """
+    key = f"/people/{username}/lists/{olid}"
+    return _get_editions_response(key, params)
+
+
+@router.get("/series/{olid}/editions.json", response_model=ListEditionsModel)
+def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+    """
+    Get paginated editions for a specific series.
+    """
+    key = f"/series/{olid}"
+    return _get_editions_response(key, params)
+
+
+@router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
+def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
+    """
+    Get paginated editions for a specific user's series.
+    """
+    key = f"/people/{username}/series/{olid}"
+    return _get_editions_response(key, params)
 
 
 @router.get("/people/{username}/lists/{list_id}/subjects.json")

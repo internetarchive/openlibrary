@@ -60,6 +60,8 @@ services:
     image: solr:9.9.0
     expose:
       - 8983
+    ports:
+      - 8983:8983
     environment:
       # Keep in sync with compose.production.yaml
       - SOLR_OPTS=
@@ -85,22 +87,6 @@ services:
         max-file: "4"
     # Create (or use if already existing) a core called "openlibrary" with our config & schema
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
-
-  haproxy:
-    profiles:
-      - production
-    image: haproxy:2.9.15
-    restart: unless-stopped
-    volumes:
-      - ../../conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    ports:
-      - 8984:8984
-    networks:
-      - solr-access
-    logging:
-      options:
-        max-size: "512m"
-        max-file: "4"
 
   # We need ability to use openlibrary code
   ol:

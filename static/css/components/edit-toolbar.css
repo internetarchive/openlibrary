@@ -28,11 +28,11 @@ div#editInfo > div {
 }
 
 div#editInfo .smallest {
-  padding-top: 0.3rem;
+  padding-top: var(--spacing-inset-xs);
 }
 
 div#editTools {
   white-space: nowrap;
-  padding: 0 0 1rem;
+  padding: 0 0 var(--spacing-inset-md);
 }
 /* stylelint-enable selector-max-specificity */

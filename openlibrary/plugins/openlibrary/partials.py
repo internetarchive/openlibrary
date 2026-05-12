@@ -240,7 +240,6 @@ class AffiliateLinksPartial:
         macro = web.template.Template.globals["macros"].AffiliateLinks(
             title,
             opts,
-            async_load=False,
             bwb_metadata=bwb_metadata,
             amz_metadata=amz_metadata,
         )

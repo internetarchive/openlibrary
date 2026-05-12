@@ -101,6 +101,12 @@ check_for_local_changes() {
         return
     fi
 
+    # Not a git repo yet (e.g. partial failure before git init) -- skip check
+    if ! ssh $SERVER "test -d $REPO_DIR/.git"; then
+        echo "✓ ($REPO_DIR exists but is not a git repo yet)"
+        return
+    fi
+
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
     if [ -z "$OUTPUT" ]; then
@@ -314,22 +320,40 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    # Check if tag does NOT exist
-    if ! git -C "${DEPLOY_DIR}/openlibrary" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        local HEAD_SHA
+        HEAD_SHA="$(git -C "$REPO_DIR" rev-parse --short HEAD)"
+        echo "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR"
+        echo "          Local HEAD is $HEAD_SHA — confirm this matches what was deployed."
+        read -p "Tag production as $HEAD_SHA from the local repo? [y/N]..." confirm
+        confirm=${confirm:-N}
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            echo "[Abort] Cancelled. Verify the correct commit is checked out before re-running."
+            return 1
+        fi
+    fi
+    if ! git -C "$REPO_DIR" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" tag "$DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        git -C "$REPO_DIR" tag "$DEPLOY_TAG"
+        git -C "$REPO_DIR" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
         echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
-    git -C "${DEPLOY_DIR}/openlibrary" tag -f production
-    git -C "${DEPLOY_DIR}/openlibrary" push -f git@github.com:internetarchive/openlibrary.git production
+    git -C "$REPO_DIR" tag -f production
+    git -C "$REPO_DIR" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 tag_release() {
-    LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
+    fi
+    LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
     echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
 }
 
@@ -412,35 +436,41 @@ deploy_openlibrary() {
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
-    if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+
+    if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
+        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
+        echo ""
+        # Fix file ownership + Make into a git repo so can easily track local mods
+        for SERVER in $FQDNS; do
+            ssh $SERVER "
+                set -e
+                sudo chown -R root:staff /opt/openlibrary
+                sudo chmod -R g+rwX /opt/openlibrary
+                cd /opt/openlibrary
+                sudo git init 2>&1 > /dev/null
+                sudo git add . > /dev/null
+                sudo git commit -m 'Deployed openlibrary' > /dev/null
+            "
+        done
+
+        if ! prune_docker image; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
     fi
-    echo ""
 
-    # Fix file ownership + Make into a git repo so can easily track local mods
-    for SERVER in $FQDNS; do
-        ssh $SERVER "
-            set -e
-            sudo chown -R root:staff /opt/openlibrary
-            sudo chmod -R g+rwX /opt/openlibrary
-            cd /opt/openlibrary
-            sudo git init 2>&1 > /dev/null
-            sudo git add . > /dev/null
-            sudo git commit -m 'Deployed openlibrary' > /dev/null
-        "
-    done
-
-    if ! prune_docker image; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+    if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
+        echo ""
+        echo "Pull the latest docker images..."
+        deploy_images
     fi
 
-    echo ""
-    echo "Pull the latest docker images..."
-    deploy_images
-
-
+    if [[ "$TAG_DEPLOY" == "1" ]]; then
+        tag_deploy
+    fi
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -651,9 +681,21 @@ deploy_wizard() {
     read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
-    read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
+    read -p "[Now] Run openlibrary deploy? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
+        read -p "[Now] Transfer codebase to servers? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_CODE=1
+
+        read -p "[Now] Deploy Docker Images? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_IMAGES=1
+
+        read -p "[Now] Tag deploy? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Yy]$ ]] && TAG_DEPLOY=1
+
         time deploy_openlibrary
         echo ""
         time check_servers_in_sync
@@ -666,9 +708,6 @@ deploy_wizard() {
             echo ""
         fi
     fi
-
-    echo "Creating git tag for deploy... "
-    tag_deploy
 
     read -p "[Now] Restart services? [N/y]..." answer
     answer=${answer:-N}
@@ -683,7 +722,6 @@ deploy_wizard() {
         time tag_release
         read -p "Press Enter to continue..."
 
-        LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
         echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
@@ -721,6 +759,9 @@ elif [ "$1" == "" ]; then  # If this works to detect empty
 else
     echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
+    echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
+    echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
+    echo "          TAG_DEPLOY=1              tag this commit as the deploy (set automatically by wizard)"
     exit 1
 fi
 

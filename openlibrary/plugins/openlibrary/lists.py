@@ -8,6 +8,8 @@ from typing import Literal, cast
 from urllib.parse import parse_qs
 
 import web
+from pydantic import BaseModel
+from starlette.datastructures import URL
 from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
@@ -792,22 +794,67 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def get_list_editions(key, offset=0, limit=50, api=False):
-    if lst := cast(List | None, web.ctx.site.get(key)):
-        offset = offset or 0  # enforce sane int defaults
-        all_editions = list(lst.get_editions())
-        editions = all_editions[offset : offset + limit]
-        if api:
-            return make_collection(
-                size=len(all_editions),
-                entries=[e.dict() for e in editions],
-                limit=limit,
-                offset=offset,
-                key=key,
-            )
-        return editions
+def _pagination_url(url: URL, **kwargs) -> str:
+    u = url.include_query_params(**kwargs)
+    return f"{u.path}?{u.query}" if u.query else u.path
 
 
+class ListEditionsLinks(BaseModel):
+    self: str
+    next: str | None = None
+    prev: str | None = None
+    list: str | None = None
+
+
+class ListEditionsModel(BaseModel):
+    size: int
+    start: int
+    end: int
+    entries: list[dict]
+    links: ListEditionsLinks
+
+
+def get_list_editions(
+    key: str,
+    url: URL,
+    offset: int = 0,
+    limit: int = 50,
+) -> ListEditionsModel | None:
+    if not (lst := site.get().get(key)):
+        return None
+
+    all_editions = list(lst.get_editions())
+    editions = all_editions[offset : offset + limit]
+
+    entries = [e.dict() for e in editions]
+    size = len(all_editions)
+    end = offset + limit
+
+    links = ListEditionsLinks(
+        self=_pagination_url(url),
+        next=(
+            _pagination_url(url, limit=limit, offset=end)
+            if offset + len(editions) < size
+            else None
+        ),
+        prev=(
+            _pagination_url(url, limit=limit, offset=max(0, offset - limit))
+            if offset
+            else None
+        ),
+        list=key or None,
+    )
+
+    return ListEditionsModel(
+        size=size,
+        start=offset,
+        end=end,
+        entries=entries,
+        links=links,
+    )
+
+
+@deprecated("migrated to fastapi")
 class list_editions_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/editions"
     encoding = "json"
@@ -818,11 +865,16 @@ class list_editions_json(delegate.page):
         i = web.input(limit=50, offset=0)
         limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-        editions = get_list_editions(key, offset=offset, limit=limit, api=True)
+        editions = get_list_editions(
+            key,
+            url=URL(web.ctx.fullpath),
+            offset=offset,
+            limit=limit,
+        )
         if not editions:
             raise web.notfound()
         return delegate.RawText(
-            formats.dump(editions, self.encoding), content_type=self.content_type
+            formats.dump(editions.dict(), self.encoding), content_type=self.content_type
         )
 
 
@@ -831,30 +883,6 @@ class list_editions_yaml(list_editions_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def make_collection(size, entries, limit, offset, key=None):
-    d = {
-        "size": size,
-        "start": offset,
-        "end": offset + limit,
-        "entries": entries,
-        "links": {
-            "self": web.changequery(),
-        },
-    }
-
-    if offset + len(entries) < size:
-        d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
-
-    if offset:
-        d["links"]["prev"] = web.changequery(limit=limit, offset=max(0, offset - limit))
-
-    if key:
-        d["links"]["list"] = key
-
-    return d
-
-
-@deprecated("migrated to fastapi")
 class list_subjects_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/subjects"
     encoding = "json"
