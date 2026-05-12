@@ -792,12 +792,14 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def get_list_editions(key, offset=0, limit=50, api=False, request_url=None):
-    if request_url:
-        lst = site.get().get(key)
-    else:
-        lst = web.ctx.site.get(key)
-    if lst:
+def get_list_editions(
+    key: str,
+    offset: int = 0,
+    limit: int = 50,
+    api: bool = False,
+    request_url=None,
+):
+    if lst := site.get().get(key):
         offset = offset or 0  # enforce sane int defaults
         all_editions = list(lst.get_editions())
         editions = all_editions[offset : offset + limit]
