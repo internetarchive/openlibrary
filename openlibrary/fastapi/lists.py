@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
@@ -10,6 +10,9 @@ from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_us
 from openlibrary.plugins.openlibrary.lists import get_list, get_list_editions
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
+
+if TYPE_CHECKING:
+    from starlette.datastructures import URL
 
 router = APIRouter(tags=["lists"])
 
@@ -122,7 +125,7 @@ class GetListEditionsParams:
         limit: Annotated[int, Query(ge=0, description="Number of items to return")] = 50,
         offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
     ):
-        self.url = request.url
+        self.url: URL = request.url
         self.limit: int = limit
         self.offset: int = offset
 
