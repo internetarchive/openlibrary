@@ -7,7 +7,7 @@ ENV MODSECURITY_TAG=${MODSECURITY_TAG}
 COPY scripts/build_modsecurity.sh /tmp/build_modsecurity.sh
 RUN bash /tmp/build_modsecurity.sh
 
-FROM python:3.12-slim-bookworm
+FROM python:3.12.13-slim-trixie
 
 ENV LANG=en_US.UTF-8
 
