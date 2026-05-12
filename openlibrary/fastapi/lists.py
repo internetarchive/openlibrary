@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 
@@ -10,9 +10,6 @@ from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_us
 from openlibrary.plugins.openlibrary.lists import get_list, get_list_editions
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
-
-if TYPE_CHECKING:
-    from fastapi.datastructures import URL
 
 router = APIRouter(tags=["lists"])
 
@@ -125,18 +122,18 @@ class GetListEditionsParams:
         limit: Annotated[int, Query(ge=0, description="Number of items to return")] = 50,
         offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
     ):
-        self.url: URL = request.url
+        self.url = request.url
         self.limit: int = limit
         self.offset: int = offset
 
 
 def _get_editions_response(key: str, params: GetListEditionsParams) -> dict:
-    """
-    Helper function to fetch list or series editions and return them as a JSON-friendly dict.
-    Utilizes the underlying `get_list_editions` method to ensure consistent behavior
-    with the legacy API, passing the FastAPI `request.url` for pagination link generation.
-    """
-    response_data = get_list_editions(key=key, offset=params.offset, limit=params.limit, request_url=params.url)
+    response_data = get_list_editions(
+        key=key,
+        offset=params.offset,
+        limit=params.limit,
+        url=params.url,
+    )
     if not response_data:
         raise HTTPException(status_code=404, detail="Editions not found")
 

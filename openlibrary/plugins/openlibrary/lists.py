@@ -8,6 +8,7 @@ from typing import Literal, cast
 from urllib.parse import parse_qs
 
 import web
+from starlette.datastructures import URL
 from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
@@ -794,9 +795,9 @@ class list_seed_yaml(list_seeds):
 
 def get_list_editions(
     key: str,
+    url: URL,
     offset: int = 0,
     limit: int = 50,
-    request_url=None,
 ) -> dict | None:
     if lst := site.get().get(key):
         offset = offset or 0  # enforce sane int defaults
@@ -808,7 +809,7 @@ def get_list_editions(
             limit=limit,
             offset=offset,
             key=key,
-            request_url=request_url,
+            url=url,
         )
     return None
 
@@ -824,7 +825,12 @@ class list_editions_json(delegate.page):
         i = web.input(limit=50, offset=0)
         limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-        editions = get_list_editions(key, offset=offset, limit=limit)
+        editions = get_list_editions(
+            key,
+            offset=offset,
+            limit=limit,
+            url=URL(web.ctx.fullpath),
+        )
         if not editions:
             raise web.notfound()
         return delegate.RawText(
@@ -837,41 +843,39 @@ class list_editions_yaml(list_editions_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def make_collection(size, entries, limit, offset, key=None, request_url=None) -> dict:
-    def get_url(**kwargs):
-        """
-        Generates a relative URL with updated query parameters for pagination.
+def _pagination_url(url: URL, **kwargs) -> str:
+    remove = [k for k, v in kwargs.items() if v is None]
+    include = {k: v for k, v in kwargs.items() if v is not None}
+    u = url
+    if remove:
+        u = u.remove_query_params(*remove)
+    if include:
+        u = u.include_query_params(**include)
+    return f"{u.path}?{u.query}" if u.query else u.path
 
-        Args:
-            **kwargs: Query parameters to update or append (e.g., limit, offset).
 
-        Returns:
-            str: The relative URL string (path + query). Uses `request_url`
-                 if provided, otherwise falls back to `web.changequery`.
-        """
-        if request_url:
-            url = request_url.include_query_params(**kwargs) if kwargs else request_url
-            return f"{url.path}?{url.query}" if url.query else url.path
-        return web.changequery(**kwargs)
-
-    d = {
+def make_collection(
+    size: int,
+    entries: list[dict],
+    limit: int,
+    offset: int,
+    url: URL,
+    key: str | None = None,
+) -> dict:
+    links = {"self": _pagination_url(url)}
+    if offset + len(entries) < size:
+        links["next"] = _pagination_url(url, limit=limit, offset=offset + limit)
+    if offset:
+        links["prev"] = _pagination_url(url, limit=limit, offset=max(0, offset - limit))
+    if key:
+        links["list"] = key
+    return {
         "size": size,
         "start": offset,
         "end": offset + limit,
         "entries": entries,
-        "links": {
-            "self": get_url(),
-        },
+        "links": links,
     }
-
-    if offset + len(entries) < size:
-        d["links"]["next"] = get_url(limit=limit, offset=offset + limit)
-    if offset:
-        d["links"]["prev"] = get_url(limit=limit, offset=max(0, offset - limit))
-    if key:
-        d["links"]["list"] = key
-
-    return d
 
 
 class list_subjects_json(delegate.page):
