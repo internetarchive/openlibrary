@@ -1,16 +1,16 @@
 /* Page layout */
 .librarian-queue-page {
-  padding: 0 10px 10px;
+  padding: 0 var(--spacing-inset-sm) var(--spacing-inset-sm);
 }
 
 .librarian-queue-page .description {
   display: flex;
   flex-direction: column;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .librarian-queue-page .description .reviewer-filter {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 /* Table wrapper */
@@ -32,7 +32,7 @@
   background-color: var(--grey-f4f4f4);
   font-size: 13px;
   box-sizing: border-box;
-  padding-left: 15px;
+  padding-left: var(--spacing-inset-md);
   padding-right: 27px;
 }
 
@@ -82,7 +82,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 8px 10px 15px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
+    var(--spacing-inset-sm) var(--spacing-inset-md);
   height: 34px;
   border-width: 1px 0;
   border-style: solid;
@@ -108,9 +109,9 @@
 }
 
 .mr-dropdown-menu input {
-  margin: 7px;
+  margin: var(--spacing-stack-sm) var(--spacing-inline-sm);
   height: 31px;
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
 }
 
 .mr-dropdown-menu a {
@@ -119,9 +120,9 @@
 }
 
 .mr-dropdown-menu .dropdown-item {
-  gap: 11px;
+  gap: var(--spacing-inline-lg);
   display: flex;
-  padding: 7.5px;
+  padding: var(--spacing-inset-sm);
   border-width: 1px 0;
   border-style: solid;
   border-color: var(--light-grey);
@@ -155,7 +156,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   border-top: 1px solid var(--lighter-grey);
   border-bottom: 1px solid var(--lighter-grey);
   background: var(--grey-fafafa);
@@ -175,7 +176,7 @@
 .mr-info {
   display: flex;
   align-items: center;
-  margin-left: 14px;
+  margin-left: var(--spacing-inline-lg);
   width: 60%;
 }
 
@@ -215,7 +216,7 @@
 }
 
 .mr-details__comment-preview {
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .mr-details__opened-by .mr-close-link {
@@ -231,7 +232,7 @@
   border: 1px solid var(--light-grey);
   background-color: var(--white);
   border-radius: 5px;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-stack-sm);
   overflow: auto;
   overflow-y: scroll;
   min-width: 400px;
@@ -239,28 +240,28 @@
 }
 
 .comment-panel__comment {
-  padding-top: 7px;
-  padding-left: 8px;
+  padding-top: var(--spacing-inset-sm);
+  padding-left: var(--spacing-inset-sm);
 }
 
 .comment-panel__input {
   display: flex;
   align-items: center;
-  margin-top: 6px;
-  margin-bottom: 17px;
+  margin-top: var(--spacing-stack-sm);
+  margin-bottom: var(--spacing-stack-md);
   height: 27px;
 }
 
 .comment-panel__input textarea {
   flex-grow: 1;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   font-size: inherit;
   min-width: 337px;
   height: 100%;
   resize: none;
   border: 1px solid var(--light-grey);
   border-radius: var(--border-radius-input);
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
 }
 
 .comment-panel__input .comment-panel__reply-btn {
@@ -273,7 +274,7 @@
   height: 100%;
   font-weight: bold;
   font-size: 13px;
-  margin-left: 10px;
+  margin-left: var(--spacing-inline-lg);
   width: 60px;
 }
 
@@ -292,14 +293,14 @@
 }
 
 .mr-review-actions__unassign {
-  margin-left: 3px;
+  margin-left: var(--spacing-inline-xs);
   color: var(--red);
   cursor: pointer;
 }
 
 .mr-review-actions__checkmark {
   height: 10px;
-  margin-left: 3px;
+  margin-left: var(--spacing-inline-xs);
   color: var(--open-green);
 }
 
@@ -316,7 +317,7 @@
   font-weight: 700;
   line-height: normal;
   text-align: center;
-  margin-top: 23px;
+  margin-top: var(--spacing-stack-lg);
 }
 
 /* Toggle comment button */
@@ -338,7 +339,7 @@
   background-color: var(--grey-f4f4f4);
   border: 1px solid var(--lighter-grey);
   border-radius: 5px;
-  margin-top: 23px;
+  margin-top: var(--spacing-stack-lg);
 }
 
 .mr-comment-toggle__comment-expand--active.cta-btn {
@@ -347,7 +348,7 @@
 
 .mr-comment-toggle__comment-count {
   font-weight: bold;
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
   color: var(--black);
 }
 

@@ -1,12 +1,12 @@
 .right.illustration {
-  margin: 0 0 30px 30px;
+  margin: 0 0 var(--spacing-stack-xl) 30px;
 }
 .left.illustration {
-  margin: 0 30px 30px 0;
+  margin: 0 30px var(--spacing-stack-xl) 0;
 }
 .illustration {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
   position: relative;
   z-index: var(--z-index-level-1);
 }
@@ -21,7 +21,7 @@
   height: 225px;
   min-width: 175px;
   min-height: 250px;
-  padding: 15px;
+  padding: var(--spacing-inset-md);
   text-align: center;
   background: var(--lighter-grey);
   font-size: 1em;
@@ -69,13 +69,13 @@
 .illustration .Author {
   color: var(--grey);
   font-style: italic;
-  padding: 4px 4px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   font-size: var(--font-size-label-small);
 }
 .illustration .edition {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
-  margin: 10px auto;
+  margin: var(--spacing-stack-sm) auto;
 }
 .editionCover .SRPCoverBlank {
   width: auto;

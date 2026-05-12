@@ -18,7 +18,7 @@
 
 .ac_results li {
   margin: 0;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   display: block;
   font-family: var(--font-family-body);
   font-size: var(--font-size-label-medium);
@@ -90,7 +90,7 @@
 
 .ac_work .cover {
   float: left;
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
   width: 5em;
   height: 5em;
   overflow: hidden;
