@@ -19,8 +19,9 @@ RUN \
     curl -fsSL ${DOCKER_KEY_URL} -o /etc/apt/keyrings/docker.asc && \
     chmod a+r /etc/apt/keyrings/docker.asc && \
     # Add the repository to Apt sources:
+    . /etc/os-release && \
     echo \
-    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] ${DOCKER_REPOSITORY_URL} trixie stable" > /etc/apt/sources.list.d/docker.list
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] ${DOCKER_REPOSITORY_URL} ${VERSION_CODENAME} stable" > /etc/apt/sources.list.d/docker.list
 # Only apt-update the docker source list, to avoid checking the others which might not be accessible
 RUN apt-get update -o Dir::Etc::sourcelist="sources.list.d/docker.list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0" && \
     # We just need the CLI since we're running in a container with socket access
@@ -30,9 +31,10 @@ RUN apt-get update -o Dir::Etc::sourcelist="sources.list.d/docker.list" -o Dir::
 # Install netcat
 RUN if [ -n "$APT_MIRROR" ]; \
     then \
-        echo "deb $APT_MIRROR/debian trixie main contrib non-free" > /etc/apt/sources.list && \
-        echo "deb $APT_MIRROR/debian trixie-updates main contrib non-free" >> /etc/apt/sources.list && \
-        echo "deb $APT_MIRROR/debian-security trixie-security main contrib non-free" >> /etc/apt/sources.list && \
+        . /etc/os-release && \
+        echo "deb $APT_MIRROR/debian ${VERSION_CODENAME} main contrib non-free" > /etc/apt/sources.list && \
+        echo "deb $APT_MIRROR/debian ${VERSION_CODENAME}-updates main contrib non-free" >> /etc/apt/sources.list && \
+        echo "deb $APT_MIRROR/debian-security ${VERSION_CODENAME}-security main contrib non-free" >> /etc/apt/sources.list && \
         # Debian repositories with frequent updates e.g.,
         # ${distro}-security, ${distro}-updates, and ${distro}-backports
         # have a short (one week) Valid-Until expiry
