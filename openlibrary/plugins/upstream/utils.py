@@ -1623,6 +1623,37 @@ def setup_requests(config=config) -> None:
     logger.info("Requests set up")
 
 
+def get_proxy_params(service_tag: str) -> dict[str, str] | None:
+    """Return a requests-compatible proxies dict for a service requiring proxy auth.
+
+    Reads from the ``http_proxies`` config section. Each entry may have:
+      url: proxy base URL
+      user: proxy username
+      password: proxy password
+
+    Returns None when no service-specific config exists so that callers can
+    pass the result directly as ``proxies=`` to requests — None means requests
+    will fall back to the global HTTP_PROXY/HTTPS_PROXY env vars set by
+    setup_requests().
+    """
+    service = config.get("http_proxies", {}).get(service_tag)
+    if not service:
+        return None
+
+    proxy_url = service.get("url", "")
+    user = service.get("user", "")
+    password = service.get("password", "")
+
+    if user and password and proxy_url:
+        parsed = urlparse(proxy_url)
+        netloc = f"{user}:{password}@{parsed.hostname}"
+        if parsed.port:
+            netloc += f":{parsed.port}"
+        proxy_url = urlunparse(parsed._replace(netloc=netloc))
+
+    return {"http": proxy_url, "https": proxy_url} if proxy_url else None
+
+
 def setup() -> None:
     """Do required initialization"""
     # monkey-patch get_markdown to use OL Flavored Markdown

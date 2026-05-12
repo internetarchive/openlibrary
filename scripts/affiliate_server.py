@@ -638,8 +638,15 @@ class Submit:
 def load_config(configfile):
     # This loads openlibrary.yml + infobase.yml
     openlibrary_load_config(configfile)
-    http_proxy_url = config.get("http_proxy")
-    http_proxy_creds = config.get("http_proxy_creds")
+
+    # Prefer per-service proxy config under http_proxies.amazon; fall back to the
+    # legacy flat keys http_proxy / http_proxy_creds for backward compatibility.
+    amazon_proxy_cfg = config.get("http_proxies", {}).get("amazon", {})
+    http_proxy_url = amazon_proxy_cfg.get("url") or config.get("http_proxy")
+    if amazon_proxy_cfg.get("user"):
+        http_proxy_creds = f"{amazon_proxy_cfg['user']}:{amazon_proxy_cfg.get('password', '')}"
+    else:
+        http_proxy_creds = config.get("http_proxy_creds", "")
 
     stats.client = stats.create_stats_client(cfg=config)
 
