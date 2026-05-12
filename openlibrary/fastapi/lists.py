@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
@@ -128,16 +128,10 @@ class GetListEditionsParams:
 
 
 def _get_editions_response(key: str, params: GetListEditionsParams) -> dict:
-    response_data = get_list_editions(
-        key=key,
-        offset=params.offset,
-        limit=params.limit,
-        url=params.url,
-    )
-    if not response_data:
-        raise HTTPException(status_code=404, detail="Editions not found")
+    if response_data := get_list_editions(key=key, url=params.url, offset=params.offset, limit=params.limit):
+        return response_data
 
-    return response_data
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Editions not found")
 
 
 CommonPagination = Annotated[GetListEditionsParams, Depends()]

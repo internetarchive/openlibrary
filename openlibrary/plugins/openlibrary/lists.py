@@ -793,25 +793,41 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
+def _pagination_url(url: URL, **kwargs) -> str:
+    u = url.include_query_params(**kwargs)
+    return f"{u.path}?{u.query}" if u.query else u.path
+
+
 def get_list_editions(
     key: str,
     url: URL,
     offset: int = 0,
     limit: int = 50,
 ) -> dict | None:
-    if lst := site.get().get(key):
-        offset = offset or 0  # enforce sane int defaults
-        all_editions = list(lst.get_editions())
-        editions = all_editions[offset : offset + limit]
-        return make_collection(
-            size=len(all_editions),
-            entries=[e.dict() for e in editions],
-            limit=limit,
-            offset=offset,
-            key=key,
-            url=url,
-        )
-    return None
+    if not (lst := site.get().get(key)):
+        return None
+
+    all_editions = list(lst.get_editions())
+    editions = all_editions[offset : offset + limit]
+
+    entries = [e.dict() for e in editions]
+    size = len(all_editions)
+    end = offset + limit
+
+    links = {"self": _pagination_url(url)}
+    if offset + len(entries) < size:
+        links["next"] = _pagination_url(url, limit=limit, offset=end)
+    if offset:
+        links["prev"] = _pagination_url(url, limit=limit, offset=max(0, offset - limit))
+    if key:
+        links["list"] = key
+    return {
+        "size": size,
+        "start": offset,
+        "end": end,
+        "entries": entries,
+        "links": links,
+    }
 
 
 @deprecated("migrated to fastapi")
@@ -827,9 +843,9 @@ class list_editions_json(delegate.page):
         offset = h.safeint(i.offset, 0)
         editions = get_list_editions(
             key,
+            url=URL(web.ctx.fullpath),
             offset=offset,
             limit=limit,
-            url=URL(web.ctx.fullpath),
         )
         if not editions:
             raise web.notfound()
@@ -841,41 +857,6 @@ class list_editions_json(delegate.page):
 class list_editions_yaml(list_editions_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
-
-
-def _pagination_url(url: URL, **kwargs) -> str:
-    remove = [k for k, v in kwargs.items() if v is None]
-    include = {k: v for k, v in kwargs.items() if v is not None}
-    u = url
-    if remove:
-        u = u.remove_query_params(*remove)
-    if include:
-        u = u.include_query_params(**include)
-    return f"{u.path}?{u.query}" if u.query else u.path
-
-
-def make_collection(
-    size: int,
-    entries: list[dict],
-    limit: int,
-    offset: int,
-    url: URL,
-    key: str | None = None,
-) -> dict:
-    links = {"self": _pagination_url(url)}
-    if offset + len(entries) < size:
-        links["next"] = _pagination_url(url, limit=limit, offset=offset + limit)
-    if offset:
-        links["prev"] = _pagination_url(url, limit=limit, offset=max(0, offset - limit))
-    if key:
-        links["list"] = key
-    return {
-        "size": size,
-        "start": offset,
-        "end": offset + limit,
-        "entries": entries,
-        "links": links,
-    }
 
 
 class list_subjects_json(delegate.page):
