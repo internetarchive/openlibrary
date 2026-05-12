@@ -7,8 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, sta
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.plugins.openlibrary.lists import get_list, get_list_subjects
-from openlibrary.plugins.openlibrary.lists import ListEditionsModel, get_list, get_list_editions
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, get_list, get_list_editions, get_list_subjects
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
