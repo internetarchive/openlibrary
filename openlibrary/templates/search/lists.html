@@ -2,6 +2,8 @@ $def with (search_request, search_response, lists)
 
 $var title: $_('Search results for Lists')
 
+$ layout = get_remembered_layout()
+
 <div id="contentHead">
   <h1>$_("Search Lists")</h1>
 </div>
@@ -27,6 +29,14 @@ $var title: $_('Search results for Lists')
     $if search_response.num_found:
       <div class="search-results-stats">
         $ungettext('%(count)s hit', '%(count)s hits', search_response.num_found, count=commify(search_response.num_found))
+
+        $if search_response.num_found > 1:
+            $code:
+                s_sort = search_request.sort
+                if isinstance(s_sort, tuple):
+                  s_sort = s_sort[0] if s_sort else 'index'
+
+            $:render_template("search/sort_options", s_sort, None, "index", "lists_seeds")
       </div>
 
       <div class="mybooks-list">
