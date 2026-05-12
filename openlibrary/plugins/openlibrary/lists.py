@@ -8,6 +8,7 @@ from typing import Literal, cast
 from urllib.parse import parse_qs
 
 import web
+from pydantic import BaseModel
 from starlette.datastructures import URL
 from typing_extensions import deprecated
 
@@ -798,12 +799,27 @@ def _pagination_url(url: URL, **kwargs) -> str:
     return f"{u.path}?{u.query}" if u.query else u.path
 
 
+class ListEditionsLinks(BaseModel):
+    self: str
+    next: str | None = None
+    prev: str | None = None
+    list: str | None = None
+
+
+class ListEditionsModel(BaseModel):
+    size: int
+    start: int
+    end: int
+    entries: list[dict]
+    links: ListEditionsLinks
+
+
 def get_list_editions(
     key: str,
     url: URL,
     offset: int = 0,
     limit: int = 50,
-) -> dict | None:
+) -> ListEditionsModel | None:
     if not (lst := site.get().get(key)):
         return None
 
@@ -814,20 +830,28 @@ def get_list_editions(
     size = len(all_editions)
     end = offset + limit
 
-    links = {"self": _pagination_url(url)}
-    if offset + len(entries) < size:
-        links["next"] = _pagination_url(url, limit=limit, offset=end)
-    if offset:
-        links["prev"] = _pagination_url(url, limit=limit, offset=max(0, offset - limit))
-    if key:
-        links["list"] = key
-    return {
-        "size": size,
-        "start": offset,
-        "end": end,
-        "entries": entries,
-        "links": links,
-    }
+    links = ListEditionsLinks(
+        self=_pagination_url(url),
+        next=(
+            _pagination_url(url, limit=limit, offset=end)
+            if offset + len(editions) < size
+            else None
+        ),
+        prev=(
+            _pagination_url(url, limit=limit, offset=max(0, offset - limit))
+            if offset
+            else None
+        ),
+        list=key or None,
+    )
+
+    return ListEditionsModel(
+        size=size,
+        start=offset,
+        end=end,
+        entries=entries,
+        links=links,
+    )
 
 
 @deprecated("migrated to fastapi")
@@ -850,7 +874,7 @@ class list_editions_json(delegate.page):
         if not editions:
             raise web.notfound()
         return delegate.RawText(
-            formats.dump(editions, self.encoding), content_type=self.content_type
+            formats.dump(editions.dict(), self.encoding), content_type=self.content_type
         )
 
 

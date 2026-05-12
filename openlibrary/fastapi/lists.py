@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, sta
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.plugins.openlibrary.lists import get_list, get_list_editions
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, get_list, get_list_editions
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -130,7 +130,7 @@ class GetListEditionsParams:
         self.offset: int = offset
 
 
-def _get_editions_response(key: str, params: GetListEditionsParams) -> dict:
+def _get_editions_response(key: str, params: GetListEditionsParams) -> ListEditionsModel:
     if response_data := get_list_editions(key=key, url=params.url, offset=params.offset, limit=params.limit):
         return response_data
 
@@ -140,8 +140,8 @@ def _get_editions_response(key: str, params: GetListEditionsParams) -> dict:
 CommonPagination = Annotated[GetListEditionsParams, Depends()]
 
 
-@router.get("/lists/{olid}/editions.json")
-def read_list_editions(olid: ListOLID, params: CommonPagination):
+@router.get("/lists/{olid}/editions.json", response_model=ListEditionsModel)
+def read_list_editions(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a public list.
     """
@@ -149,8 +149,8 @@ def read_list_editions(olid: ListOLID, params: CommonPagination):
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/lists/{olid}/editions.json")
-def read_people_list_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination):
+@router.get("/people/{username}/lists/{olid}/editions.json", response_model=ListEditionsModel)
+def read_people_list_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's list.
     """
@@ -158,8 +158,8 @@ def read_people_list_editions(username: UsernamePath, olid: ListOLID, params: Co
     return _get_editions_response(key, params)
 
 
-@router.get("/series/{olid}/editions.json")
-def read_series_editions(olid: ListOLID, params: CommonPagination):
+@router.get("/series/{olid}/editions.json", response_model=ListEditionsModel)
+def read_series_editions(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific series.
     """
@@ -167,8 +167,8 @@ def read_series_editions(olid: ListOLID, params: CommonPagination):
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/series/{olid}/editions.json")
-def read_people_series_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination):
+@router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
+def read_people_series_editions(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's series.
     """
