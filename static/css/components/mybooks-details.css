@@ -52,6 +52,10 @@
   z-index: var(--z-index-level-2);
 }
 
+.disguised-select:focus-visible {
+  opacity: 1;
+}
+
 .dropdown {
   box-shadow: 0 0 0 1px var(--lightest-grey);
   border-radius: var(--border-radius-button);
