@@ -10,6 +10,9 @@ import web
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
+from typing_extensions import deprecated
+from web.template import TemplateResult
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
@@ -237,12 +240,18 @@ class mybooks_readinglog(delegate.page):
     def GET(self, username, key="want-to-read"):
         mb = MyBooksTemplate(username, key)
         if mb.is_my_page or mb.is_public:
+            # NOTE: Page title for the "Currently Reading" shelf page.
+            # NOTE: Example: "Currently Reading (42)". %(count)d is the number of books on this shelf.
             KEYS_TITLES = {
                 "currently-reading": _(
                     "Currently Reading (%(count)d)",
                     count=mb.counts["currently-reading"],
                 ),
+                # NOTE: Page title for the "Want to Read" shelf page.
+                # NOTE: Example: "Want to Read (17)". %(count)d is the number of books on this shelf.
                 "want-to-read": _("Want to Read (%(count)d)", count=mb.counts["want-to-read"]),
+                # NOTE: Page title for the "Already Read" shelf page.
+                # NOTE: Example: "Already Read (203)". %(count)d is the number of books on this shelf.
                 "already-read": _("Already Read (%(count)d)", count=mb.counts["already-read"]),
                 "stopped-reading": _("Stopped Reading (%(count)d)", count=mb.counts["stopped-reading"]),
             }
