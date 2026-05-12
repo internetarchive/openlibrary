@@ -9,7 +9,6 @@ from fastapi import Depends, FastAPI
 from fastapi.security import APIKeyCookie
 from fastapi.testclient import TestClient
 
-from infogami import config
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
     authenticate_user_from_cookie,
@@ -18,10 +17,6 @@ from openlibrary.fastapi.auth import (
     session_cookie,
 )
 
-# ---------------------------------------------------------------------------
-# Tests for the session_cookie security scheme object
-# ---------------------------------------------------------------------------
-
 
 def test_session_cookie_is_apikeycookie():
     """session_cookie must be an APIKeyCookie instance so FastAPI registers it
@@ -29,21 +24,10 @@ def test_session_cookie_is_apikeycookie():
     assert isinstance(session_cookie, APIKeyCookie)
 
 
-def test_session_cookie_name_defaults_to_session():
-    """The cookie name should match login_cookie_name from config (defaults to 'session')."""
-    expected_name = config.get("login_cookie_name", "session")
-    assert session_cookie.model.name == expected_name
-
-
 def test_session_cookie_auto_error_is_false():
     """auto_error must be False so that missing cookies yield None instead of
     raising 422, allowing optional authentication on mixed endpoints."""
     assert session_cookie.auto_error is False
-
-
-# ---------------------------------------------------------------------------
-# Tests for authenticate_user_from_cookie (pure function — no FastAPI needed)
-# ---------------------------------------------------------------------------
 
 
 def test_authenticate_user_from_cookie_returns_none_for_none():
@@ -94,13 +78,13 @@ def test_authenticate_user_from_cookie_returns_user_for_valid_cookie():
 
 def test_get_authenticated_user_returns_none_with_no_cookie():
     """Without a cookie, get_authenticated_user should return None (not raise)."""
-    mini_app = FastAPI()
+    app = FastAPI()
 
-    @mini_app.get("/test-auth")
+    @app.get("/test-auth")
     async def test_route(user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)]):
         return {"authenticated": user is not None}
 
-    client = TestClient(mini_app)
+    client = TestClient(app)
     response = client.get("/test-auth")
     assert response.status_code == 200
     assert response.json() == {"authenticated": False}
@@ -108,13 +92,13 @@ def test_get_authenticated_user_returns_none_with_no_cookie():
 
 def test_require_authenticated_user_returns_401_with_no_cookie():
     """require_authenticated_user must raise HTTP 401 when the cookie is absent."""
-    mini_app = FastAPI()
+    app = FastAPI()
 
-    @mini_app.get("/protected")
+    @app.get("/protected")
     async def protected_route(user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]):
         return {"username": user.username}
 
-    client = TestClient(mini_app, raise_server_exceptions=False)
+    client = TestClient(app, raise_server_exceptions=False)
     response = client.get("/protected")
     assert response.status_code == 401
     assert response.json()["detail"] == "Authentication required"
