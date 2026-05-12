@@ -1644,9 +1644,9 @@ def get_proxy_params(service_tag: str) -> dict[str, str] | None:
     user = service.get("user", "")
     password = service.get("password", "")
 
-    if user and password and proxy_url:
+    if user and proxy_url:
         parsed = urlparse(proxy_url)
-        netloc = f"{user}:{password}@{parsed.hostname}"
+        netloc = f"{quote(user, safe='')}:{quote(password, safe='')}@{parsed.hostname}"
         if parsed.port:
             netloc += f":{parsed.port}"
         proxy_url = urlunparse(parsed._replace(netloc=netloc))
