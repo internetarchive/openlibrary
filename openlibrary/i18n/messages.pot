@@ -4945,122 +4945,8 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: design/button.html
-#, python-format
-msgid ""
-"The %(component)s component is a presentation-only button primitive. It "
-"renders a real %(button)s into the light DOM, so styles apply pre-"
-"hydration without a flash. It carries no application logic — variants, "
-"sizes, and a loading state only."
-msgstr ""
-
-#: design/button.html
-msgid "Variants"
-msgstr ""
-
 #: design/button.html merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
-msgstr ""
-
-#: design/button.html
-msgid "Secondary"
-msgstr ""
-
-#: design/button.html
-msgid "Destructive"
-msgstr ""
-
-#: design/button.html
-msgid "Sizes"
-msgstr ""
-
-#: design/button.html
-msgid "Small"
-msgstr ""
-
-#: design/button.html
-msgid "Medium"
-msgstr ""
-
-#: design/button.html
-msgid "Large"
-msgstr ""
-
-#: design/button.html
-msgid "Disabled"
-msgstr ""
-
-#: design/button.html my_books/dropdown_content.html
-msgid "Loading"
-msgstr ""
-
-#: design/button.html
-#, python-format
-msgid ""
-"Toggle the %(loading)s attribute to show a spinner and prevent "
-"interaction. The label is hidden but kept in the DOM so the button's "
-"width doesn't shift."
-msgstr ""
-
-#: design/button.html
-msgid "Interactive loading demo"
-msgstr ""
-
-#: design/button.html
-msgid ""
-"Click the button to trigger a 1.5s fake request. The button disables "
-"itself while loading."
-msgstr ""
-
-#: design/button.html
-msgid "Full width"
-msgstr ""
-
-#: design/button.html
-msgid "Form submission"
-msgstr ""
-
-#: design/button.html
-#, python-format
-msgid ""
-"Set %(type)s and place the button inside a %(form)s. The component "
-"renders a real %(native_submit)s, so native validation, the form's "
-"%(submit_event)s event, and Enter-to-submit from input fields all work "
-"without any extra wiring."
-msgstr ""
-
-#: design/button.html
-msgid "Your name"
-msgstr ""
-
-#: design/button.html
-msgid "Last submitted:"
-msgstr ""
-
-#: design/button.html
-msgid "Events"
-msgstr ""
-
-#: design/button.html
-#, python-format
-msgid ""
-"No custom events. Use the native %(click)s event; it bubbles from the "
-"inner %(button)s."
-msgstr ""
-
-#: design/button.html
-msgid "Rendering notes"
-msgstr ""
-
-#: design/button.html
-#, python-format
-msgid ""
-"The component uses light DOM — there is no shadow root. Styles live in a "
-"plain stylesheet (components/ol-button.css) that is loaded render-"
-"blocking by every page entry point that uses the button. Pre-upgrade the "
-"host element is styled via attribute selectors so the button is visible "
-"immediately; once upgraded, the component inserts a real %(button)s child"
-" and the host collapses to a transparent wrapper."
 msgstr ""
 
 #: design/popover.html
@@ -6313,6 +6199,10 @@ msgstr ""
 
 #: my_books/dropdown_content.html
 msgid "My Reading Lists:"
+msgstr ""
+
+#: my_books/dropdown_content.html
+msgid "Loading"
 msgstr ""
 
 #: my_books/dropdown_content.html
