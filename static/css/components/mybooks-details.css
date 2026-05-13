@@ -52,15 +52,16 @@
   z-index: var(--z-index-level-2);
 }
 
-/* When the hidden select is focused with a keyboard, draw the official OL focus ring on the visible dropdown */
-.crumbicon:has(.disguised-select:focus-visible) .dropdown {
-  box-shadow: var(--box-shadow-focus);
-}
-
 .dropdown {
   box-shadow: 0 0 0 1px var(--lightest-grey);
   border-radius: var(--border-radius-button);
 }
+
+/* stylelint-disable selector-max-specificity */
+.crumbicon:has(.disguised-select:focus-visible) .dropdown {
+  box-shadow: var(--box-shadow-focus);
+}
+/* stylelint-enable selector-max-specificity */
 
 .down-chevron {
   margin: 6px 10px 0 3px;
