@@ -52,8 +52,9 @@
   z-index: var(--z-index-level-2);
 }
 
-.disguised-select:focus-visible {
-  opacity: 1;
+/* When the hidden select is focused with a keyboard, draw the official OL focus ring on the visible dropdown */
+.crumbicon:has(.disguised-select:focus-visible) .dropdown {
+  box-shadow: var(--box-shadow-focus);
 }
 
 .dropdown {
