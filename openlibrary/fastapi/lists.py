@@ -1,24 +1,17 @@
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import parse_qs
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from fastapi.responses import Response
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client
-from openlibrary.core import formats
-from openlibrary.plugins.openlibrary import lists as legacy_lists
-from openlibrary.utils.request_context import site
-
-from typing import TYPE_CHECKING, Annotated, Literal
-
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
-
-from infogami.infobase import client
 from openlibrary.accounts import get_current_user
+from openlibrary.core import formats
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.plugins.openlibrary import lists as legacy_lists
 from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_subjects
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
