@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
-from urllib.parse import parse_qs, quote
+from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from pydantic import BaseModel
@@ -10,8 +10,10 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
+    BetterWorldBooksMetadata,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
@@ -217,33 +219,102 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
+@dataclass(frozen=True, slots=True)
+class AffiliateStoreBuildContext:
+    title: str
+    isbn: str | None
+    asin: str | None
+    bwb_metadata: BetterWorldBooksMetadata | None
+    amz_metadata: dict | None
+
+
+@dataclass(frozen=True, slots=True)
+class AffiliateStore:
+    key: str
+    analytics_key: str
+    name: str
+    link: str
+    price: str | None = None
+    price_note: str = ""
+
+
+def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
+    """Build affiliate store data for rendering in AffiliateLinks.html."""
+
+    bwb_link = f"https://www.betterworldbooks.com/search/results?q={quote_plus(ctx.title)}"
+    if ctx.isbn:
+        bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
+
+    bwb_market_price = ctx.bwb_metadata.get("market_price") if ctx.bwb_metadata else None
+    bwb_price = ctx.bwb_metadata.get("price") if ctx.bwb_metadata else None
+    amz_price = ctx.amz_metadata.get("price") if ctx.amz_metadata else None
+
+    primary_stores: list[AffiliateStore] = [
+        AffiliateStore(
+            key="betterworldbooks",
+            analytics_key="BetterWorldBooks",
+            name=_("Better World Books"),
+            link=bwb_link,
+            price=bwb_price,
+            price_note=_(" - includes shipping"),
+        )
+    ]
+
+    if ctx.asin or ctx.isbn:
+        primary_stores.append(
+            AffiliateStore(
+                key="amazon",
+                analytics_key="Amazon",
+                name=_("Amazon"),
+                link=f"https://www.amazon.com/dp/{ctx.asin or ctx.isbn}/?tag={affiliate_id('amazon')}",
+                price=bwb_market_price or amz_price,
+            )
+        )
+
+    return primary_stores
+
+
+def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
+    """Build list of additional affiliate store data for rendering in AffiliateLinks.html."""
+    if not ctx.isbn:
+        return []
+
+    return [
+        AffiliateStore(
+            key="bookshop-org",
+            analytics_key="BookshopOrg",
+            name=_("Bookshop.org"),
+            link=f"https://bookshop.org/a/{affiliate_id('bookshop-org')}/{ctx.isbn}",
+        ),
+    ]
+
+
 class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
-    @classmethod
-    async def generate_async(cls, data: dict) -> dict:
-        args = data.get("args", [])
-
-        if len(args) < 2:
-            raise ValueError("Unexpected amount of arguments")
-
-        title, opts = args[0], args[1]
-        isbn = opts.get("isbn", "")
-
+    @staticmethod
+    async def generate_async(
+        title: str,
+        isbn: str | None,
+        asin: str | None,
+        prices: bool,
+    ) -> dict:
         bwb_metadata = None
         amz_metadata = None
-        if not is_bot() and opts.get("prices") and isbn:
+        should_fetch_prices = not is_bot() and prices
+        if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
-            if not (bwb_metadata and bwb_metadata.get("market_price")):
+            if not bwb_metadata or not bwb_metadata.get("market_price"):
                 amz_metadata = get_amazon_metadata(isbn, resources="prices")
 
-        macro = web.template.Template.globals["macros"].AffiliateLinks(
-            title,
-            opts,
-            async_load=False,
-            bwb_metadata=bwb_metadata,
-            amz_metadata=amz_metadata,
-        )
+        if bwb_metadata and "error" in bwb_metadata:
+            bwb_metadata = None
+
+        ctx = AffiliateStoreBuildContext(title, isbn, asin, bwb_metadata, amz_metadata)
+
+        primary_stores = build_primary_stores(ctx)
+        more_stores = build_more_stores(ctx)
+        macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
         return {"partials": str(macro)}
 
 

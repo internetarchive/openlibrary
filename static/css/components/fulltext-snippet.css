@@ -1,7 +1,7 @@
 .fsi-snippet {
   display: inline;
   width: 60%;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   margin: 0;
   font-size: small;
 }
@@ -19,8 +19,8 @@
   }
 }
 .fsi-snippet__main {
-  padding: 5px;
-  margin: 0 5px;
+  padding: var(--spacing-inset-xs);
+  margin: 0 var(--spacing-inline-sm);
   line-height: 1.6em;
 }
 .fsi-snippet__main__page-num a {

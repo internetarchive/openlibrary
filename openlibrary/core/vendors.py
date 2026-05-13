@@ -794,7 +794,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
 class BetterWorldBooksMetadata(TypedDict):
     url: str
     isbn: str
-    market_price: list[str] | None
+    market_price: str | None
     price: str | None
     price_amt: str | None
     qlt: str | None
@@ -872,7 +872,7 @@ def betterworldbooks_fmt(
     isbn: str,
     qlt: str | None = None,
     price: str | None = None,
-    market_price: list[str] | None = None,
+    market_price: str | None = None,
 ) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 
