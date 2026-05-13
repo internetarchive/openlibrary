@@ -1,30 +1,28 @@
-$def with (title, opts, bwb_metadata=None, amz_metadata=None)
+$def with (primary_stores, more_stores)
 
-$def affiliate_link(key, analytics_key, name, link, price='', price_note=''):
-  <li class="prices-$key">
-      <a href="$link"
-         title="$_('Look for this edition for sale at %(store)s', store=name)"
-         data-ol-link-track="BuyLink|$analytics_key"
-         target="_blank" rel="noopener noreferrer">$name</a>
+$def affiliate_link(store):
+  <li class="prices-$store.key">
+      <a href="$store.link"
+         title="$_('Look for this edition for sale at %(store)s', store=store.name)"
+         data-ol-link-track="BuyLink|$store.analytics_key"
+         target="_blank" rel="noopener noreferrer">$store.name</a>
 
-      $if price:
+      $if store.price:
         <br>
-        <span name="price">$price$price_note</span>
+        <span name="price">$store.price$store.price_note</span>
   </li>
 
-$ stores = build_affiliate_stores(title, opts, bwb_metadata, amz_metadata)
-
-<span class="affiliate-links-section" data-title="$title" data-opts="$json_encode(opts)">
+<span class="affiliate-links-section">
   <ul class="buy-options-table">
-      $for store in stores['primary_stores']:
-        $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
-      $if stores['more_stores']:
+      $for store in primary_stores:
+        $:affiliate_link(store)
+      $if more_stores:
         <li class="more">
           <details>
             <summary>$_('More')</summary>
             <ul>
-              $for store in stores['more_stores']:
-                $:affiliate_link(store['key'], store['analytics_key'], store['name'], store['link'], store.get('price', ''), store.get('price_note', ''))
+              $for store in more_stores:
+                $:affiliate_link(store)
             </ul>
           </details>
         </li>

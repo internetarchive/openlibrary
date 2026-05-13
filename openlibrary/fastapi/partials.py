@@ -66,7 +66,17 @@ async def affiliate_links_partial(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return await AffiliateLinksPartial.generate_async(data=parsed_data)
+    args = parsed_data.get("args", [])
+    if len(args) < 2:
+        raise HTTPException(status_code=400, detail="Expected at least 2 arguments")
+
+    title, opts = args[0], args[1]
+    return await AffiliateLinksPartial.generate_async(
+        title=title,
+        isbn=opts.get("isbn", None),
+        asin=opts.get("asin", None),
+        prices=opts.get("prices", False),
+    )
 
 
 @router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
