@@ -179,33 +179,33 @@ def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: 
 CommonSubjectsLimit = Annotated[int, Query(ge=0, description="Number of subjects to return")]
 
 
-@router.get("/people/{username}/lists/{list_id}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_user(username: UsernamePath, list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/people/{username}/lists/{list_id}"
+@router.get("/people/{username}/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
+    key = f"/people/{username}/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/people/{username}/series/{list_id}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_user_series(username: UsernamePath, list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/people/{username}/series/{list_id}"
+@router.get("/people/{username}/series/{olid}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_user_series(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
+    key = f"/people/{username}/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/lists/{list_id}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_public(list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/lists/{list_id}"
+@router.get("/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_public(olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
+    key = f"/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/series/{list_id}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_series(list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/series/{list_id}"
+@router.get("/series/{olid}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_series(olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
+    key = f"/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")

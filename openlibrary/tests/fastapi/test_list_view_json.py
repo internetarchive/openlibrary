@@ -108,3 +108,136 @@ def test_list_view_json_raw_param(client, monkeypatch):
     assert resp.status_code == 200
     assert captured["raw"] is True
     assert captured["key"] == "/people/testuser/lists/OL123L"
+
+
+FAKE_SUBJECTS = {
+    "subjects": [{"name": "Science", "count": 10, "url": "/subjects/science"}],
+    "places": [],
+    "people": [],
+    "times": [],
+    "links": {
+        "self": "/people/testuser/lists/OL123L/subjects",
+        "list": "/people/testuser/lists/OL123L",
+    },
+}
+
+
+def test_list_subjects_json_user_returns_subjects(client, monkeypatch):
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_subjects",
+        lambda key, limit=20: FAKE_SUBJECTS,
+    )
+    resp = client.get("/people/testuser/lists/OL123L/subjects.json")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["subjects"][0]["name"] == "Science"
+    assert data["subjects"][0]["count"] == 10
+    assert data["subjects"][0]["url"] == "/subjects/science"
+    assert "self" in data["links"]
+    assert "list" in data["links"]
+
+
+def test_list_subjects_json_user_not_found(client, monkeypatch):
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_subjects",
+        lambda key, limit=20: None,
+    )
+    resp = client.get("/people/testuser/lists/OL999L/subjects.json")
+    assert resp.status_code == 404
+
+
+def test_list_subjects_json_public_list(client, monkeypatch):
+    subjects = {**FAKE_SUBJECTS, "links": {"self": "/lists/OL456L/subjects", "list": "/lists/OL456L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_subjects",
+        lambda key, limit=20: subjects,
+    )
+    resp = client.get("/lists/OL456L/subjects.json")
+    assert resp.status_code == 200
+    assert resp.json()["links"]["self"] == "/lists/OL456L/subjects"
+
+
+def test_list_subjects_json_series(client, monkeypatch):
+    subjects = {**FAKE_SUBJECTS, "links": {"self": "/series/OL789L/subjects", "list": "/series/OL789L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_subjects",
+        lambda key, limit=20: subjects,
+    )
+    resp = client.get("/series/OL789L/subjects.json")
+    assert resp.status_code == 200
+
+
+def test_list_subjects_json_user_series(client, monkeypatch):
+    subjects = {**FAKE_SUBJECTS, "links": {"self": "/people/testuser/series/OL123L/subjects", "list": "/people/testuser/series/OL123L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_subjects",
+        lambda key, limit=20: subjects,
+    )
+    resp = client.get("/people/testuser/series/OL123L/subjects.json")
+    assert resp.status_code == 200
+
+
+FAKE_EDITIONS = {
+    "size": 1,
+    "start": 0,
+    "end": 1,
+    "entries": [{"key": "/books/OL1M", "title": "Test Book"}],
+    "links": {
+        "self": "/people/testuser/lists/OL123L/editions",
+        "next": None,
+        "prev": None,
+        "list": "/people/testuser/lists/OL123L",
+    },
+}
+
+
+def test_list_editions_json_returns_editions(client, monkeypatch):
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_editions",
+        lambda key, url, offset=0, limit=50: FAKE_EDITIONS,
+    )
+    resp = client.get("/people/testuser/lists/OL123L/editions.json")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["size"] == 1
+    assert data["entries"][0]["key"] == "/books/OL1M"
+    assert "links" in data
+
+
+def test_list_editions_json_not_found(client, monkeypatch):
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_editions",
+        lambda key, url, offset=0, limit=50: None,
+    )
+    resp = client.get("/people/testuser/lists/OL999L/editions.json")
+    assert resp.status_code == 404
+
+
+def test_list_editions_json_public_list(client, monkeypatch):
+    editions = {**FAKE_EDITIONS, "links": {**FAKE_EDITIONS["links"], "self": "/lists/OL456L/editions", "list": "/lists/OL456L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_editions",
+        lambda key, url, offset=0, limit=50: editions,
+    )
+    resp = client.get("/lists/OL456L/editions.json")
+    assert resp.status_code == 200
+
+
+def test_list_editions_json_series(client, monkeypatch):
+    editions = {**FAKE_EDITIONS, "links": {**FAKE_EDITIONS["links"], "self": "/series/OL789L/editions", "list": "/series/OL789L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_editions",
+        lambda key, url, offset=0, limit=50: editions,
+    )
+    resp = client.get("/series/OL789L/editions.json")
+    assert resp.status_code == 200
+
+
+def test_list_editions_json_user_series(client, monkeypatch):
+    editions = {**FAKE_EDITIONS, "links": {**FAKE_EDITIONS["links"], "self": "/people/testuser/series/OL123L/editions", "list": "/people/testuser/series/OL123L"}}
+    monkeypatch.setattr(
+        "openlibrary.fastapi.lists.get_list_editions",
+        lambda key, url, offset=0, limit=50: editions,
+    )
+    resp = client.get("/people/testuser/series/OL123L/editions.json")
+    assert resp.status_code == 200
