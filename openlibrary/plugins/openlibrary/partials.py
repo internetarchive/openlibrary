@@ -10,6 +10,7 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     get_amazon_metadata,
@@ -215,6 +216,65 @@ class CarouselCardPartial:
             request_label="BOOK_CAROUSEL",
         )
         return subject.get("works", [])
+
+
+def build_affiliate_stores(
+    title: str,
+    opts: dict,
+    bwb_metadata: dict | None = None,
+    amz_metadata: dict | None = None,
+) -> dict:
+    """Build affiliate store data for rendering in AffiliateLinks.html.
+
+    Accepts title, opts, and optional price metadata.
+    Returns a dict with primary_stores and more_stores lists.
+    """
+    isbn = opts.get('isbn', '')
+    asin = opts.get('asin', '')
+
+    bwb: dict = {
+        'key': 'betterworldbooks',
+        'analytics_key': 'BetterWorldBooks',
+        'name': _('Better World Books'),
+        'link': 'https://www.betterworldbooks.com/%s' % (
+            ('product/detail/-%s' % isbn)
+            if isbn
+            else ('search/results?q=' + title.replace(' ', '%20'))
+        ),
+        'price_note': _(' - includes shipping'),
+        'price': bwb_metadata and bwb_metadata.get('price'),
+    }
+
+    amazon: dict | None = (
+        {
+            'key': 'amazon',
+            'analytics_key': 'Amazon',
+            'name': _('Amazon'),
+            'link': 'https://www.amazon.com/dp/%s/?tag=%s'
+            % (asin or isbn, affiliate_id('amazon')),
+            'price': (bwb_metadata and bwb_metadata.get('market_price'))
+            or (amz_metadata and amz_metadata.get('price')),
+        }
+        if (asin or isbn)
+        else None
+    )
+
+    bookshop: dict | None = (
+        {
+            'key': 'bookshop-org',
+            'analytics_key': 'BookshopOrg',
+            'name': _('Bookshop.org'),
+            'link': 'https://bookshop.org/a/%s/%s'
+            % (affiliate_id('bookshop-org'), isbn),
+        }
+        if isbn
+        else None
+    )
+
+    return {
+        'primary_stores': [s for s in [bwb, amazon] if s],
+        'more_stores': [s for s in [bookshop] if s],
+    }
 
 
 class AffiliateLinksPartial:
@@ -469,6 +529,7 @@ gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "
 
 # Expose this publicly for the template
 public(gather_lazy_carousel_data)
+public(build_affiliate_stores)
 
 
 def setup():
