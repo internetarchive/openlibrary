@@ -229,31 +229,25 @@ def build_affiliate_stores(
     Accepts title, opts, and optional price metadata.
     Returns a dict with primary_stores and more_stores lists.
     """
-    isbn = opts.get('isbn', '')
-    asin = opts.get('asin', '')
+    isbn = opts.get("isbn", "")
+    asin = opts.get("asin", "")
 
     bwb: dict = {
-        'key': 'betterworldbooks',
-        'analytics_key': 'BetterWorldBooks',
-        'name': _('Better World Books'),
-        'link': 'https://www.betterworldbooks.com/%s' % (
-            ('product/detail/-%s' % isbn)
-            if isbn
-            else ('search/results?q=' + title.replace(' ', '%20'))
-        ),
-        'price_note': _(' - includes shipping'),
-        'price': bwb_metadata and bwb_metadata.get('price'),
+        "key": "betterworldbooks",
+        "analytics_key": "BetterWorldBooks",
+        "name": _("Better World Books"),
+        "link": "https://www.betterworldbooks.com/%s" % (("product/detail/-%s" % isbn) if isbn else ("search/results?q=" + title.replace(" ", "%20"))),
+        "price_note": _(" - includes shipping"),
+        "price": bwb_metadata and bwb_metadata.get("price"),
     }
 
     amazon: dict | None = (
         {
-            'key': 'amazon',
-            'analytics_key': 'Amazon',
-            'name': _('Amazon'),
-            'link': 'https://www.amazon.com/dp/%s/?tag=%s'
-            % (asin or isbn, affiliate_id('amazon')),
-            'price': (bwb_metadata and bwb_metadata.get('market_price'))
-            or (amz_metadata and amz_metadata.get('price')),
+            "key": "amazon",
+            "analytics_key": "Amazon",
+            "name": _("Amazon"),
+            "link": "https://www.amazon.com/dp/%s/?tag=%s" % (asin or isbn, affiliate_id("amazon")),
+            "price": (bwb_metadata and bwb_metadata.get("market_price")) or (amz_metadata and amz_metadata.get("price")),
         }
         if (asin or isbn)
         else None
@@ -261,19 +255,18 @@ def build_affiliate_stores(
 
     bookshop: dict | None = (
         {
-            'key': 'bookshop-org',
-            'analytics_key': 'BookshopOrg',
-            'name': _('Bookshop.org'),
-            'link': 'https://bookshop.org/a/%s/%s'
-            % (affiliate_id('bookshop-org'), isbn),
+            "key": "bookshop-org",
+            "analytics_key": "BookshopOrg",
+            "name": _("Bookshop.org"),
+            "link": "https://bookshop.org/a/%s/%s" % (affiliate_id("bookshop-org"), isbn),
         }
         if isbn
         else None
     )
 
     return {
-        'primary_stores': [s for s in [bwb, amazon] if s],
-        'more_stores': [s for s in [bookshop] if s],
+        "primary_stores": [s for s in [bwb, amazon] if s],
+        "more_stores": [s for s in [bookshop] if s],
     }
 
 

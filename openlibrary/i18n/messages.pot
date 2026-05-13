@@ -7899,22 +7899,6 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html
-msgid "Better World Books"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid " - includes shipping"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Amazon"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Bookshop.org"
-msgstr ""
-
-#: AffiliateLinks.html
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
@@ -8651,6 +8635,22 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid " - includes shipping"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Bookshop.org"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py
