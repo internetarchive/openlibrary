@@ -236,8 +236,7 @@ def build_affiliate_stores(
         "key": "betterworldbooks",
         "analytics_key": "BetterWorldBooks",
         "name": _("Better World Books"),
-        "link": "https://www.betterworldbooks.com/%s"
-        % (("product/detail/-%s" % isbn) if isbn else ("search/results?q=" + quote_plus(title))),
+        "link": "https://www.betterworldbooks.com/%s" % (("product/detail/-%s" % isbn) if isbn else ("search/results?q=" + quote_plus(title))),
         "price_note": _(" - includes shipping"),
         "price": bwb_metadata and bwb_metadata.get("price"),
     }
