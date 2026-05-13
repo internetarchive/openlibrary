@@ -29,7 +29,8 @@ $var title: $_("Add a book")
                             $for a in work.authors:
                                 $a.name$cond(not loop.last, ',')
                         </span>
-                        <span class="resultPublisher">$ungettext('%(count)s edition', '%(count)s editions', work.edition_count or 0, count=commify(work.edition_count))
+                        $ edition_count = work.get('edition_count', 0)
+                        <span class="resultPublisher">$ungettext('%(count)s edition', '%(count)s editions', edition_count, count=commify(edition_count))
                         $if work.first_publish_year:
                             <span class="smallest">&bull;</span> $_('First published in %(year)d', year=work.first_publish_year)
                         </span>
