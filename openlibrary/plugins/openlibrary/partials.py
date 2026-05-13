@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
-from urllib.parse import parse_qs, quote
+from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from pydantic import BaseModel
@@ -236,7 +236,8 @@ def build_affiliate_stores(
         "key": "betterworldbooks",
         "analytics_key": "BetterWorldBooks",
         "name": _("Better World Books"),
-        "link": "https://www.betterworldbooks.com/%s" % (("product/detail/-%s" % isbn) if isbn else ("search/results?q=" + title.replace(" ", "%20"))),
+        "link": "https://www.betterworldbooks.com/%s"
+        % (("product/detail/-%s" % isbn) if isbn else ("search/results?q=" + quote_plus(title))),
         "price_note": _(" - includes shipping"),
         "price": bwb_metadata and bwb_metadata.get("price"),
     }
