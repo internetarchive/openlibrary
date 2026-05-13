@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, sta
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.plugins.openlibrary.lists import ListEditionsModel, get_list, get_list_editions, get_list_subjects
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_subjects
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -176,25 +176,36 @@ def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: 
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/lists/{list_id}/subjects.json")
-def list_subjects_json_user(username: str, list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
+CommonSubjectsLimit = Annotated[int, Query(ge=0, description="Number of subjects to return")]
+
+
+@router.get("/people/{username}/lists/{list_id}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_user(username: UsernamePath, list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/people/{username}/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=404, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/lists/{list_id}/subjects.json")
-def list_subjects_json_public(list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
+@router.get("/people/{username}/series/{list_id}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_user_series(username: UsernamePath, list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
+    key = f"/people/{username}/series/{list_id}"
+    if data := get_list_subjects(key, limit):
+        return data
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+
+
+@router.get("/lists/{list_id}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_public(list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/lists/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=404, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/series/{list_id}/subjects.json")
-def list_subjects_json_series(list_id: Annotated[str, Path(pattern=r"^OL[0-9]+L$")], limit: int = 20) -> dict:
+@router.get("/series/{list_id}/subjects.json", response_model=ListSubjectsModel)
+def list_subjects_json_series(list_id: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/series/{list_id}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=404, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
