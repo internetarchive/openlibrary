@@ -590,14 +590,19 @@ class PatronBooknotes:
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         observations = Observations.get_observations_grouped_by_work(self.username, limit=limit, page=page)
 
-        for entry in observations:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in observations]
+        works = web.ctx.site.get_many(work_keys)
+
+        for entry, work_key, work in zip(observations, work_keys, works):
+            entry["work_key"] = work_key
+            entry["work"] = work
+            entry["work_details"] = self._get_work_details(work)
+
             ids = {}
             for item in entry["observations"]:
                 ids[item["observation_type"]] = item["observation_values"]
             entry["observations"] = convert_observation_ids(ids)
+
         return observations
 
     def _get_work(self, work_key: str) -> "Work | None":
