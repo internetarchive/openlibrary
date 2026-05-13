@@ -862,11 +862,11 @@ msgid "Filter results for %(facet)s"
 msgstr "%(facet)s এর জন্য ফিল্টার এর ফলাফল"
 
 #: search/facet_section.html:42 work_search.html:260
-msgid "more"
+msgid "More"
 msgstr "অধিক"
 
 #: search/facet_section.html:46 work_search.html:264
-msgid "less"
+msgid "Less"
 msgstr "কম"
 
 #: account/books.html:27 account/sidebar.html:24 type/user/view.html:50 type/user/view.html:55
