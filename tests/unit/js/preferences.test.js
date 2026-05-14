@@ -170,34 +170,34 @@ describe('resetGlobalPreferences', () => {
 });
 
 describe('mapPreferencesToBackend', () => {
-    it('transforms mode "fulltext" to formats "has_fulltext"', () => {
+    it('transforms mode "fulltext" to ebook_access "borrowable"', () => {
         const result = mapPreferencesToBackend({ mode: 'fulltext', language: 'all', date: [1900, 2025] });
 
-        expect(result.formats).toBe('has_fulltext');
+        expect(result.ebook_access).toBe('borrowable');
     });
 
-    it('transforms mode "preview" to formats "ebook_access"', () => {
+    it('transforms mode "preview" to ebook_access "printdisabled"', () => {
         const result = mapPreferencesToBackend({ mode: 'preview', language: 'all', date: [1900, 2025] });
 
-        expect(result.formats).toBe('ebook_access');
+        expect(result.ebook_access).toBe('printdisabled');
     });
 
-    it('transforms mode "all" to formats null', () => {
+    it('transforms mode "all" to ebook_access null', () => {
         const result = mapPreferencesToBackend({ mode: 'all', language: 'all', date: [1900, 2025] });
 
-        expect(result.formats).toBe(null);
+        expect(result.ebook_access).toBe(null);
     });
 
-    it('omits languages when language is "all"', () => {
+    it('omits language when language is "all"', () => {
         const result = mapPreferencesToBackend({ mode: 'all', language: 'all', date: [1900, 2025] });
 
-        expect(result).not.toHaveProperty('languages');
+        expect(result).not.toHaveProperty('language');
     });
 
     it('wraps specific language in array', () => {
         const result = mapPreferencesToBackend({ mode: 'all', language: 'es', date: [1900, 2025] });
 
-        expect(result.languages).toEqual(['es']);
+        expect(result.language).toEqual(['es']);
     });
 
     it('passes date range through unchanged', () => {
@@ -209,27 +209,27 @@ describe('mapPreferencesToBackend', () => {
     it('handles missing/null properties gracefully', () => {
         expect(() => {
             const result = mapPreferencesToBackend({ mode: 'fulltext', language: undefined, date: [2000, 2020] });
-            expect(result.formats).toBe('has_fulltext');
-            expect(result).not.toHaveProperty('languages');
+            expect(result.ebook_access).toBe('borrowable');
+            expect(result).not.toHaveProperty('language');
         }).not.toThrow();
 
         expect(() => {
             const result = mapPreferencesToBackend({ mode: null, language: 'en', date: [2000, 2020] });
-            expect(result.formats).toBe(null);
-            expect(result.languages).toEqual(['en']);
+            expect(result.ebook_access).toBe(null);
+            expect(result.language).toEqual(['en']);
         }).not.toThrow();
 
         expect(() => {
             const result = mapPreferencesToBackend({ mode: 'fulltext', language: 'es' });  // no date
-            expect(result.formats).toBe('has_fulltext');
+            expect(result.ebook_access).toBe('borrowable');
             expect(result.first_publish_year).toBeUndefined();
         }).not.toThrow();
 
         expect(() => {
             const result = mapPreferencesToBackend({ mode: 'preview' });
-            expect(result.formats).toBe('ebook_access');
+            expect(result.ebook_access).toBe('printdisabled');
             expect(result.first_publish_year).toBeUndefined();
-            expect(result).not.toHaveProperty('languages');
+            expect(result).not.toHaveProperty('language');
         }).not.toThrow();
     });
 });
