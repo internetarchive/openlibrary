@@ -1173,7 +1173,7 @@ async def get_lists_async(keys: list[str]):
     )
     lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
 
-    return [get_list_data(lst, None) for lst in lists]
+    return [get_list_data(lst, None, include_cover_url=False) for lst in lists]
 
 
 class lists_preview(delegate.page):
