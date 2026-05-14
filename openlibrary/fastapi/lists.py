@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import parse_qs
 
+import web
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from fastapi.responses import Response
 
@@ -12,7 +13,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import formats
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary import lists as legacy_lists
-from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_subjects
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list_editions, get_list_subjects
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -221,8 +222,12 @@ def lists_json_post(
 
     data = formats.load(body, "json")
 
+    had_site = "site" in web.ctx
+    previous_site = web.ctx.get("site") if had_site else None
+    web.ctx.site = current_site
     try:
-        result = legacy_lists.lists_json.process_new_list(user, data, current_site)
+        with web_ctx_ip():
+            result = legacy_lists.lists_json.process_new_list(user, data, current_site)
     except ValueError as e:
         if str(e) == "Spam list":
             return _json_response({"message": "Permission denied."}, status_code=403)
@@ -232,6 +237,11 @@ def lists_json_post(
             {"message": str(e)},
             status_code=_status_code(e.status),
         )
+    finally:
+        if had_site:
+            web.ctx.site = previous_site
+        else:
+            web.ctx.pop("site", None)
 
     return _json_response(result)
 

@@ -608,13 +608,14 @@ class lists_json(delegate.page):
             # There could be more lists than len(lists)
             size = len(doc.get_lists(limit=1000))
 
+        links = {"self": path}
         d = {
-            "links": {"self": path},
+            "links": links,
             "size": size,
             "entries": [lst.preview() for lst in lists],
         }
         if offset + len(lists) < size:
-            d["links"]["next"] = _changequery(
+            links["next"] = _changequery(
                 path,
                 query=query,
                 query_path=query_path,
@@ -624,7 +625,7 @@ class lists_json(delegate.page):
 
         if offset:
             offset = max(0, offset - limit)
-            d["links"]["prev"] = _changequery(
+            links["prev"] = _changequery(
                 path,
                 query=query,
                 query_path=query_path,

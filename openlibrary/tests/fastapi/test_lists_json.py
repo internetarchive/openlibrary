@@ -2,6 +2,8 @@
 
 from unittest.mock import Mock, patch
 
+import web
+
 from infogami.infobase import client as infobase_client
 from openlibrary.core import formats
 
@@ -102,9 +104,13 @@ class TestListsJsonPost:
         current_site.get.return_value = user
         current_site.can_write.return_value = True
 
+        def process_new_list(user_arg, data_arg, site_arg):
+            assert web.ctx.site is current_site
+            return expected
+
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
-            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.process_new_list", return_value=expected) as mock_process,
+            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.process_new_list", side_effect=process_new_list) as mock_process,
         ):
             mock_site_context.get.return_value = current_site
 
