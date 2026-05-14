@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import os
 from typing import Annotated
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
@@ -24,6 +24,14 @@ from openlibrary.plugins.upstream.account import get_login_error
 router = APIRouter()
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+
+
+def _safe_redirect(url: str, default: str = "/") -> str:
+    """Return url only if it is a same-origin path; fall back to default."""
+    parsed = urlparse(url)
+    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
+        return default
+    return url
 
 
 class AuthTestResponse(BaseModel):
@@ -203,7 +211,7 @@ async def login(
     # Create response with redirect
     response = Response(
         status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": form_data.redirect},
+        headers={"Location": _safe_redirect(form_data.redirect)},
     )
 
     # Set session cookie (same as web.py)
@@ -212,7 +220,8 @@ async def login(
         login_code,
         max_age=expires,
         httponly=True,
-        secure=False,
+        secure=request.url.scheme == "https",
+        samesite="lax",
     )
 
     # Set print disability flag if user has special access
