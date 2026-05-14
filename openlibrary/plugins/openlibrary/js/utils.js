@@ -82,7 +82,14 @@ export function buildPartialsUrl(component, params = {}) {
     }
 
     for (const key in params) {
-        url.searchParams.set(key, params[key]);
+        const value = params[key];
+        if (Array.isArray(value)) {
+            for (const item of value) {
+                url.searchParams.append(key, item);
+            }
+        } else if (value !== null && value !== undefined) {
+            url.searchParams.set(key, value);
+        }
     }
 
     return url;

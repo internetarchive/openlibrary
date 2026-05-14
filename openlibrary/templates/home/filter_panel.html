@@ -1,0 +1,49 @@
+<div class="home-filter-section">
+  <div class="home-filter-bar">
+    <div class="home-filter-title">FILTER</div>
+
+    <div class="home-filter-row home-filter-row-top">
+      <label class="filter-toggle">
+        <input type="checkbox" id="readable-toggle" checked>
+        <span>$_('Readable Only')</span>
+      </label>
+    </div>
+
+    <div class="home-filter-row home-filter-row-main">
+      <div class="home-filter-field">
+        <label for="language-select" class="filter-label">$_('Language')</label>
+        <select id="language-select" class="dropdown-menu">
+          $:render_template('languages/language_select_options', include_all=True, selected='all')
+        </select>
+      </div>
+
+      <div class="home-filter-field home-filter-field-inline">
+        <label for="global-date-start" class="filter-label">$_('From')</label>
+        <input
+          type="number"
+          id="global-date-start"
+          min="1800"
+          max="2025"
+        />
+      </div>
+
+      <div class="home-filter-field home-filter-field-inline">
+        <label for="global-date-end" class="filter-label">$_('To')</label>
+        <input
+          type="number"
+          id="global-date-end"
+          min="1800"
+          max="2025"
+        />
+      </div>
+    </div>
+
+    <div class="home-filter-row home-filter-row-bottom">
+      <button id="save-preferences-btn" class="save-btn">$_('Save')</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import '/static/js/preferences-handler.js';
+</script>

@@ -1,10 +1,11 @@
+import re
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
@@ -106,6 +107,43 @@ class CarouselLoadMoreParams(BaseModel):
     key: str = ""
     layout: str | None = None
     published_in: str = ""
+    language: list[str] = Field(default_factory=list)
+    first_publish_year: list[int] = Field(default_factory=list)
+    ebook_access: str | None = None  # 'borrowable', 'printdisabled', or None
+
+    @field_validator("language")
+    @classmethod
+    def validate_language_codes(cls, v: list[str]) -> list[str]:
+        """Validate language codes."""
+        for lang in v:
+            # Allow ISO 639-1 (2 letters), ISO 639-3 (3 letters), with optional script
+            if not re.match(r"^[a-z]{2,3}(?:-[a-z]{4})?(?:-[A-Z]{2})?$", lang):
+                raise ValueError(f'Invalid language code: {lang}. Expected ISO 639-1 (e.g., "en", "fr") or ISO 639-3 (e.g., "eng", "fra").')
+        return v
+
+    @field_validator("first_publish_year")
+    @classmethod
+    def validate_year_range(cls, v: list[int]) -> list[int]:
+        """Validate year values are in reasonable range."""
+        for year in v:
+            if not isinstance(year, int):
+                raise ValueError(f"Year must be integer, got {type(year).__name__}")
+            if year < 1000 or year > 2100:
+                raise ValueError(f"Year {year} out of valid range (1000-2100)")
+        # Ensure list has at most 2 elements and they're sorted
+        if len(v) > 2:
+            raise ValueError(f"Expected 1 or 2 years, got {len(v)}")
+        if len(v) == 2 and v[0] > v[1]:
+            v = sorted(v)
+        return v
+
+    @field_validator("ebook_access")
+    @classmethod
+    def validate_ebook_access(cls, v: str | None) -> str | None:
+        """Validate ebook_access is a known value."""
+        if v is not None and v not in ("borrowable", "printdisabled"):
+            raise ValueError(f'Invalid ebook_access value: {v}. Expected "borrowable" or "printdisabled".')
+        return v
 
 
 class CarouselCardPartial:
@@ -158,6 +196,13 @@ class CarouselCardPartial:
 
     @classmethod
     async def _do_search_query(cls, params: CarouselLoadMoreParams) -> list:
+        """Execute a search query with global filters applied.
+
+        Supported filters:
+        - language: language codes (e.g., 'eng', 'fra')
+        - first_publish_year: 1 or 2-element year range (e.g., [2000,2000] or [2000, 2025])
+        - ebook_access: 'borrowable' or 'printdisabled'
+        """
         fields = [
             "key",
             "title",
@@ -174,8 +219,33 @@ class CarouselCardPartial:
             "editions",
         ]
         query_params: dict = {"q": params.q}
-        if params.hasFulltextOnly:
-            query_params["has_fulltext"] = "true"
+
+        # Build filter queries
+        filter_queries = []
+
+        if params.language:
+            for lang in params.language:
+                filter_queries.append(f'language:"{lang}"')
+
+        if params.first_publish_year:
+            if len(params.first_publish_year) == 2:
+                start_year, end_year = params.first_publish_year
+                filter_queries.append(f"first_publish_year:[{start_year} TO {end_year}]")
+            elif len(params.first_publish_year) == 1:
+                year = params.first_publish_year[0]
+                filter_queries.append(f"first_publish_year:{year}")
+
+        if params.ebook_access:
+            if params.ebook_access == "borrowable":
+                filter_queries.append("ebook_access:[borrowable TO *]")
+            elif params.ebook_access == "printdisabled":
+                filter_queries.append("ebook_access:[printdisabled TO *]")
+
+        elif params.hasFulltextOnly:
+            filter_queries.append("ebook_access:[borrowable TO *]")
+
+        if filter_queries:
+            query_params["fq"] = filter_queries
 
         results = await work_search_async(
             query_params,

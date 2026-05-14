@@ -24,12 +24,12 @@ export function getGlobalPreferences() {
 
 export function mapPreferencesToBackend(prefs) {
     const params = {
-        formats: prefs.mode === 'fulltext' ? 'has_fulltext' : prefs.mode === 'preview' ? 'ebook_access' : null,
+        ebook_access: prefs.mode === 'fulltext' ? 'borrowable' : prefs.mode === 'preview' ? 'printdisabled' : null,
         first_publish_year: prefs.date
     };
 
     if (prefs.language && prefs.language !== 'all') {
-        params.languages = [prefs.language];
+        params.language = [prefs.language];
     }
 
     return params;
