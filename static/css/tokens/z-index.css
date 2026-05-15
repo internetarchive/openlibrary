@@ -55,7 +55,7 @@
   *   ╠══════════════════════╣  base lift              1
   *   ╚══════════════════════╝  behind parent          -1
   */
-  
+
   --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
   --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. cover fan ordinals, chevrons) */
   --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. middle cover in fan, page-banner) */
