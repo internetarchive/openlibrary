@@ -578,13 +578,41 @@ class PatronBooknotes:
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
+        if not notes:
+            return notes
 
-        for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = web.ctx.site.get_many(work_keys)
+        works_by_key = {work.key: work for work in works}
+        author_keys = list(dict.fromkeys(a.author.key for work in works for a in work.get("authors", [])))
+        authors_by_key = {author.key: author for author in web.ctx.site.get_many(author_keys)} if author_keys else {}
+        work_details_by_key = {
+            work.key: {
+                "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
+                "title": work.get("title"),
+                "authors": [authors_by_key[a.author.key].name for a in work.get("authors", []) if a.author.key in authors_by_key],
+                "first_publish_year": work.first_publish_year or None,
+            }
+            for work in works
+        }
+
+        edition_ids = list(
+            dict.fromkeys(
+                note["edition_id"]
+                for entry in notes
+                for note in entry["notes"]
+                if note["edition_id"] != Booknotes.NULL_EDITION_VALUE
+            )
+        )
+        edition_keys_by_id = {edition_id: f"/books/OL{edition_id}M" for edition_id in edition_ids}
+        editions_by_key = {edition.key: edition for edition in web.ctx.site.get_many(list(edition_keys_by_id.values()))} if edition_keys_by_id else {}
+
+        for entry, work_key in zip(notes, work_keys):
+            entry["work_key"] = work_key
+            entry["work"] = works_by_key[work_key]
+            entry["work_details"] = work_details_by_key[work_key]
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: web.ctx.site.get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+            entry["editions"] = {k: editions_by_key[edition_keys_by_id[k]] for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
