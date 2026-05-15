@@ -1,7 +1,6 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
-from starlette.datastructures import URL
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
@@ -121,7 +120,7 @@ class GetListEditionsParams:
         limit: Annotated[int, Query(ge=0, description="Number of items to return")] = 50,
         offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
     ):
-        self.url: URL = request.url
+        self.url = request.url
         self.limit: int = limit
         self.offset: int = offset
 
