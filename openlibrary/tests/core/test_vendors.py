@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass, field
 from unittest.mock import patch
 
@@ -815,7 +814,7 @@ def test_creators_serialize_does_not_load_dvds(product_group, expected) -> None:
 # importable directly without triggering the partials circular import.
 # ---------------------------------------------------------------------------
 
-from openlibrary.core.affiliate_links import amazon_affiliate_url  # noqa: E402
+from openlibrary.core.affiliate_links import amazon_affiliate_url
 
 
 def test_amazon_affiliate_url_978_isbn_uses_dp_route() -> None:
@@ -848,5 +847,3 @@ def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
 def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
     """Without isbn or asin, function returns None."""
     assert amazon_affiliate_url(None, None, "test-tag") is None
-
-

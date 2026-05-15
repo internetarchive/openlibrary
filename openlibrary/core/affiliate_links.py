@@ -27,7 +27,7 @@ def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | 
     Returns:
         A fully-formed Amazon URL, or None if neither isbn nor asin provided.
     """
-    from openlibrary.utils.isbn import isbn_13_to_isbn_10  # noqa: PLC0415
+    from openlibrary.utils.isbn import isbn_13_to_isbn_10
 
     effective_asin = asin or (isbn and isbn_13_to_isbn_10(isbn))
     if effective_asin:

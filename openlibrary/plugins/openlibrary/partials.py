@@ -261,7 +261,7 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
     ]
 
     if ctx.asin or ctx.isbn:
-        from openlibrary.core.affiliate_links import amazon_affiliate_url  # noqa: PLC0415
+        from openlibrary.core.affiliate_links import amazon_affiliate_url
 
         amazon_link = amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"))
         if amazon_link:
@@ -274,7 +274,6 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
                     price=bwb_market_price or amz_price,
                 )
             )
-
 
     return primary_stores
 
