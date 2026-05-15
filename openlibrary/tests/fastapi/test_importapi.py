@@ -106,9 +106,7 @@ class TestImportPreviewAuth:
     def test_get_allows_super_librarian(self, client, monkeypatch):
         monkeypatch.setattr(
             "openlibrary.fastapi.importapi.get_current_user",
-            lambda: _make_mock_user(
-                is_admin=False, is_librarian=False, is_super_librarian=True
-            ),
+            lambda: _make_mock_user(is_admin=False, is_librarian=False, is_super_librarian=True),
         )
         mock_req = MagicMock()
         mock_req.metadata_provider.do_import.return_value = FAKE_IMPORT_RESULT
@@ -198,9 +196,7 @@ class TestImportPreviewGet:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             fake_from_input,
         )
-        response = client.get(
-            "/import/preview?provider=amazon&identifier=1234567890"
-        )
+        response = client.get("/import/preview?provider=amazon&identifier=1234567890")
         assert response.status_code == 200
         assert captured["params"]["provider"] == "amazon"
         assert captured["params"]["identifier"] == "1234567890"
@@ -234,9 +230,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             lambda i: mock_req,
         )
-        response = client.post(
-            "/import/preview", data={"source": "amazon:ASIN123"}
-        )
+        response = client.post("/import/preview", data={"source": "amazon:ASIN123"})
         assert response.status_code == 200
 
     def test_post_can_save(self, client, monkeypatch):
@@ -282,9 +276,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             fake_from_input,
         )
-        response = client.post(
-            "/import/preview", data={"source": "amazon:ASIN123"}
-        )
+        response = client.post("/import/preview", data={"source": "amazon:ASIN123"})
         assert response.status_code == 200
         assert captured["save"] == "false"
 
@@ -297,9 +289,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             lambda i: _raise(ValueError("Invalid source provided")),
         )
-        response = client.post(
-            "/import/preview", data={"source": "invalid"}
-        )
+        response = client.post("/import/preview", data={"source": "invalid"})
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is False

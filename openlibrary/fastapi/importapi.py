@@ -37,12 +37,14 @@ def _build_preview_response(
 ) -> dict:
     """Shared logic for GET and POST import preview handlers."""
     try:
-        req = ImportPreviewRequest.from_input({
-            "source": source,
-            "provider": provider,
-            "identifier": identifier,
-            "save": "true" if save else "false",
-        })
+        req = ImportPreviewRequest.from_input(
+            {
+                "source": source,
+                "provider": provider,
+                "identifier": identifier,
+                "save": "true" if save else "false",
+            }
+        )
     except ValueError as e:
         return {"success": False, "error": str(e)}
 
@@ -51,15 +53,24 @@ def _build_preview_response(
 
 @router.get("/import/preview")
 def import_preview_json_get(
-    source: Annotated[str | None, Query(
-        description="Source in format 'provider:identifier' (e.g. 'amazon:ASIN')",
-    )] = None,
-    provider: Annotated[str | None, Query(
-        description="Metadata provider: amazon, ia, or marc",
-    )] = None,
-    identifier: Annotated[str | None, Query(
-        description="Identifier for the given provider",
-    )] = None,
+    source: Annotated[
+        str | None,
+        Query(
+            description="Source in format 'provider:identifier' (e.g. 'amazon:ASIN')",
+        ),
+    ] = None,
+    provider: Annotated[
+        str | None,
+        Query(
+            description="Metadata provider: amazon, ia, or marc",
+        ),
+    ] = None,
+    identifier: Annotated[
+        str | None,
+        Query(
+            description="Identifier for the given provider",
+        ),
+    ] = None,
     _: Annotated[None, Depends(check_import_permission)] = None,
 ) -> dict:
     """
