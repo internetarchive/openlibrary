@@ -51,7 +51,7 @@ def _build_preview_response(
     return dict(req.metadata_provider.do_import(req.identifier, req.save))
 
 
-@router.get("/import/preview")
+@router.get("/import/preview.json")
 def import_preview_json_get(
     source: Annotated[
         str | None,
@@ -81,7 +81,7 @@ def import_preview_json_get(
     return _build_preview_response(source, provider, identifier, save=False)
 
 
-@router.post("/import/preview")
+@router.post("/import/preview.json")
 def import_preview_json_post(
     source: Annotated[str | None, Form()] = None,
     provider: Annotated[str | None, Form()] = None,
