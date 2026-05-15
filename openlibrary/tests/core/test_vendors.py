@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from unittest.mock import patch
 
@@ -805,3 +806,47 @@ def test_creators_serialize_does_not_load_dvds(product_group, expected) -> None:
     item.item_info.classifications.product_group = CDisplayVal(product_group)
     item.item_info.classifications.binding = CDisplayVal(product_group)
     assert AmazonCreatorsAPI.serialize(item) == expected
+
+
+# ---------------------------------------------------------------------------
+# Regression tests for amazon_affiliate_url() (issue #6572)
+#
+# Logic is in openlibrary.core.affiliate_links — no plugin dependencies,
+# importable directly without triggering the partials circular import.
+# ---------------------------------------------------------------------------
+
+from openlibrary.core.affiliate_links import amazon_affiliate_url  # noqa: E402
+
+
+def test_amazon_affiliate_url_978_isbn_uses_dp_route() -> None:
+    """978-prefix ISBN-13 converts to ISBN-10 -> /dp/ link is used."""
+    url = amazon_affiliate_url("9780590353427", None, "test-tag")  # -> 059035342X
+    assert url is not None
+    assert "/dp/059035342X/" in url
+    assert "/s?k=" not in url
+
+
+def test_amazon_affiliate_url_979_isbn_falls_back_to_search_url() -> None:
+    """979-prefix ISBN-13 has no ISBN-10 -> Amazon search URL is used (fix for #6572).
+
+    'Pickleball Soap Opera' (ISBN-13 9798776159572) previously produced a
+    broken /dp/ link because Amazon does not resolve 979-prefix ISBNs via /dp/.
+    """
+    url = amazon_affiliate_url("9798776159572", None, "test-tag")
+    assert url is not None
+    assert "/s?k=9798776159572" in url
+    assert "/dp/" not in url
+
+
+def test_amazon_affiliate_url_explicit_asin_overrides_isbn_conversion() -> None:
+    """Explicit ASIN takes priority over isbn_13_to_isbn_10 conversion."""
+    url = amazon_affiliate_url("9798776159572", "B09MJ3TKX3", "test-tag")
+    assert url is not None
+    assert "/dp/B09MJ3TKX3/" in url
+
+
+def test_amazon_affiliate_url_no_identifiers_returns_none() -> None:
+    """Without isbn or asin, function returns None."""
+    assert amazon_affiliate_url(None, None, "test-tag") is None
+
+
