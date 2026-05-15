@@ -4,6 +4,7 @@ from typing import Literal, cast, override
 
 import requests
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
@@ -62,6 +63,7 @@ class import_preview(delegate.page):
             )
 
 
+@deprecated("migrated to fastapi")
 class import_preview_json(delegate.page):
     path = "/import/preview"
     encoding = "json"
