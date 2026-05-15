@@ -57,6 +57,12 @@
   border-radius: var(--border-radius-button);
 }
 
+/* stylelint-disable selector-max-specificity */
+.crumbicon:has(.disguised-select:focus-visible) .dropdown {
+  box-shadow: var(--box-shadow-focus);
+}
+/* stylelint-enable selector-max-specificity */
+
 .down-chevron {
   margin: 6px 10px 0 3px;
   display: inline-block;
