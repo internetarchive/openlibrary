@@ -8,7 +8,7 @@
 }
 
 .olform .formBack {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   background-color: var(--lightest-grey);
 }
 
@@ -18,11 +18,11 @@
 
 .olform > label {
   display: inline-block;
-  padding: 10px 0 2px;
+  padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 
 .olform .label {
-  padding: 10px 0 var(--spacing-stack-xs);
+  padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 
 .olform .label label {
@@ -54,7 +54,7 @@
 }
 
 .olform .mia__input + .mia__input {
-  margin-top: 3px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 .olform .mia__input .ac-input__visible {
@@ -89,14 +89,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 5px;
+  gap: var(--spacing-inline-sm);
   padding-bottom: 20px;
 }
 
 .olform .links-form .links-form__inputs {
   display: flex;
   flex-flow: row wrap;
-  gap: 5px;
+  gap: var(--spacing-inline-sm);
   width: 100%;
 }
 
@@ -111,7 +111,7 @@
 .olform input[type="password"],
 .olform input[type="url"],
 .olform input[type="email"] {
-  margin: 0 10px 5px 0;
+  margin: 0 var(--spacing-inline-lg) var(--spacing-stack-xs) 0;
 }
 
 .olform input[type="number"],
@@ -122,7 +122,7 @@
 .olform textarea {
   font-size: 1em;
   font-family: var(--font-family-body);
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
   max-width: 100%;
   resize: vertical;
 }
@@ -132,16 +132,16 @@
 }
 
 .olform input[type="submit"] {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 .olform .required {
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
 }
 
 .olform select {
   font-family: var(--font-family-body);
-  padding: 3px;
+  padding: var(--spacing-inset-xs);
 }
 
 .olform .minor input {
@@ -269,7 +269,7 @@
   left: 3px;
   font-size: 11px;
   background: var(--white);
-  padding: 0 4px;
+  padding: 0 var(--spacing-inset-xs);
   white-space: nowrap;
 }
 

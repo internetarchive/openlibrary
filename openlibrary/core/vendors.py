@@ -601,16 +601,6 @@ def get_amazon_metadata(
     )
 
 
-def search_amazon(title: str = "", author: str = "") -> dict:  # type: ignore[empty-body]
-    """Uses the Amazon Product Advertising API ItemSearch operation to search for
-    books by author and/or title.
-    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
-    XXX! Broken while migrating from paapi 4.0 to 5.0
-    :return: dict of "results", a list of one or more found books, with metadata.
-    """
-    pass
-
-
 def _get_amazon_metadata(
     id_: str,
     id_type: Literal["asin", "isbn"] = "isbn",
@@ -794,7 +784,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
 class BetterWorldBooksMetadata(TypedDict):
     url: str
     isbn: str
-    market_price: list[str] | None
+    market_price: str | None
     price: str | None
     price_amt: str | None
     qlt: str | None
@@ -872,7 +862,7 @@ def betterworldbooks_fmt(
     isbn: str,
     qlt: str | None = None,
     price: str | None = None,
-    market_price: list[str] | None = None,
+    market_price: str | None = None,
 ) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 

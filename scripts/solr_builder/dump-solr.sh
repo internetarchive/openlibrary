@@ -116,7 +116,7 @@ ssh $SOLR_SERVER "
 echo "Committing any transient changes into solr before dumping... (takes ~30s)"
 time ssh $SOLR_SERVER "
     set -e
-    curl -s 'http://localhost:8984/solr/openlibrary/update?commit=true'
+    curl -s 'http://localhost:8983/solr/openlibrary/update?commit=true'
     sleep 15  # Just in case
 "
 

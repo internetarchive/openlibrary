@@ -7,7 +7,7 @@
     "additionalProperties": false,
     "required": [ "key" ],
     "properties": {
-      "key": { "$ref": "#author_key" }
+      "key": { "$ref": "#/author_key" }
     }
   },
   "author_key": {

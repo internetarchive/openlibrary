@@ -11,7 +11,7 @@
 
 .link-box h3 {
   color: var(--grey);
-  margin: 0 0 6px;
+  margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   text-transform: uppercase;
   display: inline;

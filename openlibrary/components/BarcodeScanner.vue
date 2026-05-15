@@ -50,9 +50,16 @@ export default {
     components: { LazyBookCard, SettingsIcon },
     data() {
         let returnTo = new URLSearchParams(location.search).get('returnTo');
-        // Only allow absolute URLs or root-relative URLs to prevent XSS
-        if (!/^(https?:\/\/|\/)/.test(returnTo)) {
-            returnTo = null;
+        // Only allow same-origin redirects to prevent open redirect attacks.
+        // Guard for null first: new URL(null, base) coerces to the string "null"
+        // and would create a same-origin URL https://<origin>/null.
+        if (returnTo) {
+            try {
+                const url = new URL(returnTo, window.location.origin);
+                returnTo = url.origin === window.location.origin ? url.href : null;
+            } catch (_) {
+                returnTo = null;
+            }
         }
         return {
             disableISBNTextButton: false,
@@ -217,12 +224,7 @@ export default {
             if (this.seenISBN.has(isbn)) return;
 
             if (this.returnTo) {
-                // Check if domain is the same as the current domain to prevent
-                // open redirects.
-                if (!this.returnTo.startsWith('/')) {
-                    window.alert(`Redirecting to ${this.returnTo.replace('$$$', isbn)}`);
-                }
-                location = this.returnTo.replace('$$$', isbn);
+                location.href = this.returnTo.replace('$$$', isbn);
             }
             this.isbnList.unshift({isbn: isbn, cover: tentativeCoverUrl});
             this.seenISBN.add(isbn);
