@@ -4,6 +4,7 @@ This should go into infogami.
 """
 
 import json
+import math
 
 import web
 import yaml
@@ -203,8 +204,9 @@ class history(delegate.mode):
         i = web.input(page=1)
         limit = 20
         # Clamp so legacy ?page=0 links resolve to the first page instead of a negative offset.
-        offset = limit * max(0, safeint(i.page) - 1)
-        # Fetch one extra item so has_next can be computed without a separate count query.
-        history = get_changes({"key": path, "limit": limit + 1, "offset": offset})
-        has_next = len(history) > limit
-        return render.history(page, history[:limit], has_next)
+        page_num = max(1, safeint(i.page))
+        offset = (page_num - 1) * limit
+        history = get_changes({"key": path, "limit": limit, "offset": offset})
+        # page.revision is the total number of saved revisions (infogami bumps it on every save).
+        total_pages = math.ceil(page.revision / limit)
+        return render.history(page, history, page_num, total_pages)

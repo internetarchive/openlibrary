@@ -593,7 +593,9 @@ msgstr ""
 #: design.html
 msgid ""
 "The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that"
-" outputs Markdown. It syncs its content to a hidden target textarea."
+" outputs Markdown. It syncs its content to a hidden target textarea. A "
+"'View source' toolbar toggle is always available so editors can drop into"
+" a raw markdown textarea when WYSIWYG round-trips are awkward."
 msgstr ""
 
 #: design.html
@@ -5559,11 +5561,23 @@ msgid "Bluesky"
 msgstr ""
 
 #: lib/nav_foot.html
+msgid "Open Library on Bluesky"
+msgstr ""
+
+#: lib/nav_foot.html
 msgid "Twitter"
 msgstr ""
 
 #: lib/nav_foot.html
+msgid "Open Library on Twitter"
+msgstr ""
+
+#: lib/nav_foot.html
 msgid "GitHub"
+msgstr ""
+
+#: lib/nav_foot.html
+msgid "Open Library on GitHub"
 msgstr ""
 
 #: lib/nav_foot.html site/alert.html
@@ -7885,29 +7899,13 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html
-msgid "Fetching prices"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Better World Books"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid " - includes shipping"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Amazon"
-msgstr ""
-
-#: AffiliateLinks.html
-msgid "Bookshop.org"
-msgstr ""
-
-#: AffiliateLinks.html
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+
+#: AffiliateLinksLoadingIndicator.html
+msgid "Fetching prices"
 msgstr ""
 
 #: BatchImportNavigation.html
@@ -8637,6 +8635,22 @@ msgstr ""
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Better World Books"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid " - includes shipping"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Amazon"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/partials.py
+msgid "Bookshop.org"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/partials.py

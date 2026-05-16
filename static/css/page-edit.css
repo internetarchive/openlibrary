@@ -51,7 +51,7 @@ div#revertLink {
   color: var(--darker-grey);
 }
 .label {
-  padding: 10px 0 5px;
+  padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 .label label {
   font-size: 1em;
@@ -65,7 +65,7 @@ div#revertLink {
 textarea {
   font-family: var(--font-family-code);
   font-size: 0.875em;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   resize: vertical;
 }
 .formElement input[type="text"],
@@ -73,7 +73,7 @@ textarea {
   font-size: 1em;
   font-family: var(--font-family-body);
   color: var(--dark-grey);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 table.code {
   border: 1px solid var(--grey-e7e7e7);
@@ -86,11 +86,11 @@ table.code td {
   vertical-align: top;
   font-family: var(--font-family-code);
   font-size: 0.875em;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 /* stylelint-disable selector-max-specificity */
 div#databar {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   margin: 20px 20px 0;
   background-color: var(--light-yellow);
 }
@@ -101,12 +101,12 @@ div#databar a {
 /* stylelint-disable selector-max-specificity */
 #editHead {
   background: url(/static/images/logo_OL-sm.png) 20px 15px no-repeat;
-  padding: 25px 0 45px 140px;
+  padding: var(--spacing-inset-lg) 0 45px 140px;
   white-space: nowrap;
   clear: left;
 }
 #editHead h2 {
-  margin: 0 0 5px;
+  margin: 0 0 var(--spacing-stack-xs);
 }
 #editHead h2 a {
   font-family: var(--font-family-body);

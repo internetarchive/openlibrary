@@ -36,7 +36,7 @@
   font-size: 0.6875em;
   color: var(--grey);
   line-height: 1.5em;
-  margin: 3px 0;
+  margin: var(--spacing-stack-xs) 0;
 }
 
 /* --width-breakpoint-tablet: 768px */

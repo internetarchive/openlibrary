@@ -31,7 +31,7 @@ div.nav {
 /* Specific to borrowTable component */
 
 .borrow-table {
-  margin: 60px 0 25px;
+  margin: 60px 0 var(--spacing-stack-lg);
 }
 
 .borrow-table p {
@@ -68,7 +68,8 @@ div.nav {
 }
 
 div.message {
-  padding: 25px 25px 25px 55px;
+  padding: var(--spacing-inset-lg) var(--spacing-inset-lg)
+    var(--spacing-inset-lg) 55px;
   margin-bottom: 50px;
   background: var(--light-yellow) url(/static/images/icons/icon_lock-msg.png)
     no-repeat 15px 50%;
@@ -110,7 +111,7 @@ p.help {
 div.alert {
   background: var(--light-yellow) url(/static/images/icons/icon_alert-gold.png)
     no-repeat 15px 50% !important;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
   margin-top: 20px;
 }
 div.stop {
@@ -127,10 +128,10 @@ div.info {
 }
 h1 {
   font-size: 1.5em;
-  margin: 0 0 15px;
+  margin: 0 0 var(--spacing-stack-md);
 }
 div.navBorrow {
-  margin: 50px 0 10px;
+  margin: 50px 0 var(--spacing-stack-sm);
   font-size: 0.75em;
 }
 .panel {
@@ -177,7 +178,7 @@ div.navBorrow {
 div#listsWork p {
   font-size: 0.75em;
   padding-left: 0;
-  margin-bottom: 5px !important;
+  margin-bottom: var(--spacing-stack-xs) !important;
 }
 
 /* Import all common components */

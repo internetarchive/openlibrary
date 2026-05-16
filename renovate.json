@@ -2,6 +2,9 @@
   "extends": [
     "config:recommended"
   ],
+  "minimumReleaseAge": "7 days",
+  "schedule": ["before 9am on Monday"],
+  "prConcurrentLimit": 10,
   "git-submodules": {
     "enabled": true
   },
@@ -11,6 +14,26 @@
     ]
   },
   "packageRules": [
+    {
+      "matchCategories": ["security"],
+      "minimumReleaseAge": "0 days",
+      "schedule": ["at any time"],
+      "prConcurrentLimit": 0
+    },
+    {
+      "matchManagers": ["pip_requirements"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "Python dependencies (non-major)",
+      "groupSlug": "python-non-major",
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "JS dependencies (non-major)",
+      "groupSlug": "js-non-major",
+      "minimumReleaseAge": "7 days"
+    },
     {
       "matchPackageNames": [
         "eslint",

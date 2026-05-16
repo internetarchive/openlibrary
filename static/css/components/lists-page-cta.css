@@ -9,11 +9,11 @@
   font-family: var(--font-family-title);
   font-weight: normal;
   color: var(--dark-grey);
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
 }
 .lists-page-cta p {
   font-size: 0.875em;
-  margin: 0 0 30px;
+  margin: 0 0 var(--spacing-stack-xl);
 }
 /* @width-breakpoint-desktop */
 @media all and (min-width: 960px) {

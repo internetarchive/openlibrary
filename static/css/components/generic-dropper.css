@@ -145,7 +145,7 @@
   position: absolute;
   /* align dropper menu with buttons */
   right: 0;
-  margin-top: 6px;
+  margin-top: var(--spacing-stack-xs);
   width: 100%;
   max-width: 200px;
 }
@@ -157,7 +157,7 @@
   color: var(--black);
   text-align: left;
   text-decoration: none;
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   border-radius: 0;
   margin: 0;
 }
@@ -196,7 +196,7 @@
 .dropper-menu .btn-icon {
   display: inline-block;
   filter: invert(1);
-  margin-right: 5px;
+  margin-right: var(--spacing-inline-sm);
   width: 1.25em;
   height: 1.25em;
 }

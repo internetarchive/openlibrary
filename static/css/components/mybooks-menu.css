@@ -44,7 +44,7 @@
 
 /* all uls */
 .mybooks-menu .sidebar-section {
-  padding: 0 0 10px;
+  padding: 0 0 var(--spacing-inset-sm);
   border-bottom: 1px solid var(--lightest-grey);
 }
 
@@ -64,8 +64,8 @@
 .mybooks-menu ul li a.selected {
   background-color: var(--grey-blue);
   border-radius: 4px;
-  padding: 5px 11px;
-  margin: 2px 4px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+  margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
   font-weight: bold;
 }
 
@@ -95,20 +95,20 @@
   border: 1px solid var(--lighter-grey);
   border-left: 0;
   border-right: 0;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* 'create a list' within sidebar */
 .mybooks-menu ul li.create-new-list {
   text-align: center;
-  padding: 6px 0;
+  padding: var(--spacing-inset-sm) 0;
 }
 
 .mybooks-menu ul li.create-new-list > a {
   display: inline-block;
   border-radius: 5px;
   cursor: pointer;
-  padding: 2px 5%;
+  padding: var(--spacing-inset-xs) 5%;
   font-size: 0.96em;
   background-color: var(--background-grey);
   border: 1px solid var(--lighter-grey);
@@ -139,7 +139,7 @@
 /* stylelint-enable selector-max-specificity */
 
 .mybooks-menu hr {
-  margin: 4px 14px;
+  margin: var(--spacing-stack-xs) var(--spacing-inline-xl);
   border-bottom: var(--border-divider);
 }
 
@@ -149,13 +149,13 @@
   font-size: 0.9em;
   margin-top: 1px;
   color: var(--count-blue-grey);
-  margin-left: 4px;
+  margin-left: var(--spacing-inline-sm);
 }
 
 /* stylelint-disable selector-max-specificity */
 .mybooks-menu .li-count.chevron:after {
   content: "\203A";
-  margin: 0 5px;
+  margin: 0 var(--spacing-inline-sm);
   position: absolute;
   font-size: 1.5em;
   font-weight: normal;
@@ -213,8 +213,8 @@
   .mybooks-menu-mobile ul li a.selected {
     background-color: var(--grey-blue);
     border-radius: 4px;
-    padding: 5px 11px;
-    margin: 2px 4px;
+    padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
+    margin: var(--spacing-stack-xs) var(--spacing-inline-sm);
     font-weight: bold;
   }
 
@@ -245,7 +245,7 @@
     border: 1px solid var(--lighter-grey);
     border-left: 0;
     border-right: 0;
-    margin-bottom: 5px;
+    margin-bottom: var(--spacing-stack-xs);
   }
 
   /* stylelint-disable selector-max-specificity */
@@ -273,7 +273,7 @@
 
   .mybooks-menu-mobile hr {
     height: 0;
-    margin: 4px 14px;
+    margin: var(--spacing-stack-xs) var(--spacing-inline-xl);
     border-bottom: 1px solid var(--lighter-grey);
   }
 
@@ -282,7 +282,7 @@
     font-size: 0.9em;
     margin-top: 1px;
     color: var(--count-blue-grey);
-    margin-left: 4px;
+    margin-left: var(--spacing-inline-sm);
   }
 
   .li-title-desktop {

@@ -570,7 +570,7 @@ async def add_availability_async(
     return items
 
 
-add_availability = async_bridge.wrap(add_availability_async)
+add_availability = async_bridge.wrap(add_availability_async, "add_availability")
 public(add_availability)
 
 

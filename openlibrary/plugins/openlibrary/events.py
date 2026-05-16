@@ -3,9 +3,9 @@
 import logging
 
 import eventer
-import web
 
 from infogami.infobase import client
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.events")
 
@@ -21,7 +21,7 @@ class EditHook(client.hook):
         """Fires page.edit event using msg broker."""
         # The argument passes by Infobase is not a thing object.
         # Create a thing object to pass to event listeners.
-        page = web.ctx.site.get(page["key"])
+        page = site.get().get(page["key"])
         eventer.trigger("page.edit", page)
 
 
