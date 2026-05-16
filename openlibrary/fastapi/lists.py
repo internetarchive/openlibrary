@@ -208,7 +208,7 @@ def _get_editions_response(key: str, params: GetListEditionsParams) -> ListEditi
 CommonPagination = Annotated[GetListEditionsParams, Depends()]
 
 
-@router.get("/lists/{olid}/editions.json", response_model=ListEditionsModel)
+@router.get("/lists/{olid}/editions.json")
 def list_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a public list.
@@ -217,7 +217,7 @@ def list_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditions
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/lists/{olid}/editions.json", response_model=ListEditionsModel)
+@router.get("/people/{username}/lists/{olid}/editions.json")
 def list_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's list.
@@ -226,7 +226,7 @@ def list_editions_json_people(username: UsernamePath, olid: ListOLID, params: Co
     return _get_editions_response(key, params)
 
 
-@router.get("/series/{olid}/editions.json", response_model=ListEditionsModel)
+@router.get("/series/{olid}/editions.json")
 def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific series.
@@ -235,7 +235,7 @@ def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditio
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
+@router.get("/people/{username}/series/{olid}/editions.json")
 def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
     """
     Get paginated editions for a specific user's series.
@@ -247,7 +247,7 @@ def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: 
 CommonSubjectsLimit = Annotated[int, Query(ge=0, description="Number of subjects to return")]
 
 
-@router.get("/people/{username}/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
+@router.get("/people/{username}/lists/{olid}/subjects.json")
 def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/people/{username}/lists/{olid}"
     if data := get_list_subjects(key, limit):
@@ -255,7 +255,7 @@ def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: Commo
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/people/{username}/series/{olid}/subjects.json", response_model=ListSubjectsModel)
+@router.get("/people/{username}/series/{olid}/subjects.json")
 def list_subjects_json_user_series(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/people/{username}/series/{olid}"
     if data := get_list_subjects(key, limit):
@@ -263,7 +263,7 @@ def list_subjects_json_user_series(username: UsernamePath, olid: ListOLID, limit
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
+@router.get("/lists/{olid}/subjects.json")
 def list_subjects_json_public(olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/lists/{olid}"
     if data := get_list_subjects(key, limit):
@@ -271,7 +271,7 @@ def list_subjects_json_public(olid: ListOLID, limit: CommonSubjectsLimit = 20) -
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
 
 
-@router.get("/series/{olid}/subjects.json", response_model=ListSubjectsModel)
+@router.get("/series/{olid}/subjects.json")
 def list_subjects_json_series(olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/series/{olid}"
     if data := get_list_subjects(key, limit):
