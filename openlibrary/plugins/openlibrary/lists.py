@@ -707,7 +707,7 @@ class list_view_yaml(list_view_json):
     encoding = "yml"
     content_type = "text/yaml"
 
-deprecated("migrated to fastapi")
+
 def get_list_seeds(key):
     if lst := site.get().get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
@@ -716,6 +716,7 @@ def get_list_seeds(key):
             "size": len(seeds),
             "entries": seeds,
         }
+
 
 @deprecated("migrated to fastapi")
 class list_seeds(delegate.page):
