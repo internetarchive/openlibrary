@@ -709,7 +709,7 @@ class list_view_yaml(list_view_json):
 
 
 def get_list_seeds(key):
-    if lst := web.ctx.site.get(key):
+    if lst := site.get().get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
             "links": {"self": key + "/seeds", "list": key},
