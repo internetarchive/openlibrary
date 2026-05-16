@@ -32,7 +32,7 @@
 
 .sponsor th {
   background-color: var(--grey-fafafa);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border-bottom: 1px solid var(--light-mid-grey);
   text-transform: uppercase;
   font-size: 0.65em;
@@ -53,7 +53,7 @@ table.services th {
   color: var(--dark-grey);
 }
 table.services td {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   border-right: 1px solid var(--white);
   border-bottom: 1px solid var(--white);
 }
@@ -74,11 +74,11 @@ table.services td.node {
   color: var(--grey);
   font-size: 0.8675em;
   font-weight: 700;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
 }
 #adminHistory td {
   border-bottom: 1px solid var(--admin-table-border);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   font-size: 0.75em;
 }
 #adminHistory td.number {
@@ -131,7 +131,7 @@ div#background {
   width: 100%;
   /* desaturate(@beige, 100): hsl(48, 33%, 83%) fully desaturated */
   background-color: hsl(0, 0%, 83%);
-  padding-bottom: 15px;
+  padding-bottom: var(--spacing-inset-md);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */

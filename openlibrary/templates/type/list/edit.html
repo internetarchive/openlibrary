@@ -153,10 +153,10 @@ $jsdef lazy_thing_preview(key, render_fn_name):
         <div>
             <textarea
                 placeholder="$_('Description (optional)')"
-                class="markdown"
                 name="description"
-                rows="3" cols="30"
+                id="list-description"
             >$lst.description</textarea>
+            <ol-markdown-editor target-id="list-description"></ol-markdown-editor>
         </div>
 
         <hr />

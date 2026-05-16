@@ -52,7 +52,7 @@ div.message {
   float: left;
   clear: both;
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
   background: var(--light-yellow);
 }
 div.message p {
@@ -113,10 +113,10 @@ th.toggle-all {
   border: 2px;
 }
 .import-table th {
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 .import-table td {
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 .import-table thead th {
   position: sticky;
@@ -141,7 +141,7 @@ th.toggle-all {
 }
 
 #myProgress {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   border-radius: var(--border-radius-card);
   width: 100%;
   background-color: var(--lightest-grey);
@@ -150,7 +150,7 @@ th.toggle-all {
 #myBar {
   width: 0%;
   border-radius: var(--border-radius-card);
-  padding: 4px;
+  padding: var(--spacing-inset-xs);
   background-color: var(--green);
   text-align: center;
   color: var(--white);
@@ -188,7 +188,7 @@ tr.table-row.selected {
 .login-big-or {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
   max-width: 600px;
 }
 

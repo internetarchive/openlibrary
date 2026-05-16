@@ -21,7 +21,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
-from openlibrary.core.lending import add_availability
+from openlibrary.core.lending import add_availability, add_availability_async
 from openlibrary.core.models import Edition
 from openlibrary.fastapi.models import SolrInternalsParams
 from openlibrary.i18n import gettext as _
@@ -38,7 +38,6 @@ from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
-    has_solr_editions_enabled,
 )
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
@@ -71,6 +70,39 @@ if hasattr(config, 'plugin_worksearch'):
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 
+def compute_work_search_html_fields(sort: str | None, sfw: bool) -> list[str]:
+    """
+    Compute the Solr fields needed for rendering work search HTML.
+
+    HTML require additional fields beyond the default search results to display
+    rich metadata like edition counts, ratings, and availability. This function extends
+    the base WorkSearchScheme fields with HTML-specific display fields.
+
+    Base fields (from WorkSearchScheme.default_fetched_fields) include core metadata
+    like title, author, and publish year needed for all work search results.
+
+    :param sort: Sort string, checked for 'trending' to add trending fields
+    :param sfw: Safe mode flag, adds subject field when True
+    :return: List of Solr field names to fetch
+    """
+    extra_fields = {
+        'editions',
+        'providers',
+        'ratings_average',
+        'ratings_count',
+        'want_to_read_count',
+    }
+    if sort and 'trending' in sort:
+        extra_fields.add('trending_*')
+
+    fields = WorkSearchScheme.default_fetched_fields | extra_fields
+
+    if sfw:
+        fields |= {'subject'}
+
+    return list(fields)
+
+
 @public
 def get_facet_map() -> tuple[tuple[str, str]]:
     return (
@@ -87,8 +119,7 @@ def get_facet_map() -> tuple[tuple[str, str]]:
     )
 
 
-@public
-def get_solr_works(
+async def get_solr_works_async(
     work_keys: set[str], fields: Iterable[str] | None = None, editions=False
 ) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
@@ -102,8 +133,8 @@ def get_solr_works(
 
     if editions:
         # To get the top matching edition, need to do a proper query
-        resp = run_solr_query(
-            WorkSearchScheme(),
+        resp = await run_solr_query_async(
+            WorkSearchScheme(solr_editions=editions),
             {'q': 'key:(%s)' % ' OR '.join(work_keys)},
             rows=len(work_keys),
             fields=list(fields),
@@ -115,7 +146,15 @@ def get_solr_works(
             for doc in resp.docs
         }
     else:
-        return {doc['key']: doc for doc in get_solr().get_many(work_keys, fields)}
+        return {
+            doc['key']: doc
+            for doc in await get_solr().get_many_async(work_keys, fields)
+        }
+
+
+# Create a sync wrapper for backward compatibility
+get_solr_works = async_bridge.wrap(get_solr_works_async, "get_solr_works")
+public(get_solr_works)
 
 
 def read_author_facet(author_facet: str) -> tuple[str, str]:
@@ -187,9 +226,6 @@ async def execute_solr_query_async(
 
 
 execute_solr_query = async_bridge.wrap(execute_solr_query_async)
-
-# Expose this publicly
-public(has_solr_editions_enabled)
 
 
 @public
@@ -349,7 +385,7 @@ def _process_solr_response_and_enrich(
     return SearchResponse.from_solr_result(solr_result, sort, url, time=duration)
 
 
-def run_solr_query(
+async def run_solr_query_async(
     scheme: SearchScheme,
     param: dict | None = None,
     rows=100,
@@ -387,7 +423,7 @@ def run_solr_query(
 
     url = f'{solr_select_url}?{urlencode(params)}'
     start_time = time.time()
-    response = execute_solr_query(solr_select_url, params)
+    response = await execute_solr_query_async(solr_select_url, params)
     end_time = time.time()
     duration = end_time - start_time
 
@@ -396,25 +432,7 @@ def run_solr_query(
     )
 
 
-async def run_solr_query_async(
-    scheme: SearchScheme,
-    param: dict | None = None,
-    **kwargs,
-) -> 'SearchResponse':
-    """
-    Builds and executes an asynchronous Solr query.
-    """
-    params, fields = _prepare_solr_query_params(scheme, param, **kwargs)
-
-    url = f'{solr_select_url}?{urlencode(params)}'
-    start_time = time.time()
-    response = await execute_solr_query_async(solr_select_url, params)
-    end_time = time.time()
-    duration = end_time - start_time
-
-    return _process_solr_response_and_enrich(
-        response, scheme, fields, kwargs.get('sort'), url, duration
-    )
+run_solr_query = async_bridge.wrap(run_solr_query_async)
 
 
 @functools.cache
@@ -542,56 +560,6 @@ class SearchResponse:
                 del highlighting[key]
 
         return highlighting or None
-
-
-async def do_search_async(
-    param: dict,
-    sort: str | None,
-    page=1,
-    rows=100,
-    facet=False,
-    highlight=False,
-    spellcheck_count=None,
-    request_label: SolrRequestLabel = 'UNLABELLED',
-    sfw: bool = False,
-    solr_internals_params: 'SolrInternalsParams | None' = None,
-):
-    """
-    :param param: dict of search url parameters
-    :param sort: csv sort ordering
-    :param spellcheck_count: Not really used; should probably drop
-    """
-    # If you want work_search page html to extend default_fetched_fields:
-    extra_fields = {
-        'editions',
-        'providers',
-        'ratings_average',
-        'ratings_count',
-        'want_to_read_count',
-    }
-    if sort and 'trending' in sort:
-        extra_fields.add('trending_*')
-    fields = WorkSearchScheme.default_fetched_fields | extra_fields
-
-    if sfw:
-        fields |= {'subject'}
-
-    return await run_solr_query_async(
-        WorkSearchScheme(),
-        param,
-        rows=rows,
-        page=page,
-        sort=sort,
-        spellcheck_count=spellcheck_count,
-        fields=list(fields),
-        facet=facet,
-        highlight=highlight,
-        request_label=request_label,
-        solr_internals_params=solr_internals_params,
-    )
-
-
-do_search = async_bridge.wrap(do_search_async)
 
 
 def get_doc(doc: SolrDocument):
@@ -802,21 +770,24 @@ class search(delegate.page):
             solr_internals_params = None
 
         if param:
-            search_response = do_search(
+            search_response = run_solr_query(
+                WorkSearchScheme(solr_editions=req_context.get().solr_editions),
                 param,
-                sort,
-                page,
                 rows=rows,
-                highlight=True,
+                page=page,
+                sort=sort,
                 spellcheck_count=3,
+                fields=compute_work_search_html_fields(sort, req_context.get().sfw),
+                facet=False,
+                highlight=True,
                 request_label='BOOK_SEARCH',
-                sfw=web.cookies(sfw="").sfw == 'yes',
                 solr_internals_params=solr_internals_params,
             )
         else:
             search_response = SearchResponse(
                 facet_counts=None, sort='', docs=[], num_found=0, solr_select=''
             )
+
         return render.work_search(
             ' '.join(q_list),
             search_response,
@@ -824,6 +795,7 @@ class search(delegate.page):
             param,
             page,
             rows,
+            has_solr_editions_enabled=req_context.get().solr_editions,
         )
 
 
@@ -961,10 +933,19 @@ class subject_search(delegate.page):
     path = '/search/subjects'
 
     def GET(self):
-        get_results = functools.partial(
-            self.get_results, request_label='SUBJECT_SEARCH'
+        i = web.input(q='', page=None)
+        q = i.q.strip()
+        results_per_page = 100
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        response = (
+            self.get_results(
+                q, offset=offset, limit=results_per_page, request_label='SUBJECT_SEARCH'
+            )
+            if q
+            else None
         )
-        return render_template('search/subjects', get_results)
+        return render_template('search/subjects', q, page, results_per_page, response)
 
     def get_results(
         self,
@@ -989,8 +970,26 @@ class author_search(delegate.page):
     path = '/search/authors'
 
     def GET(self):
-        get_results = functools.partial(self.get_results, request_label='AUTHOR_SEARCH')
-        return render_template('search/authors', get_results)
+        i = web.input(q='', page=None, sort=None)
+        q = i.q.strip()
+        results_per_page = 100
+        page = safeint(i.page, 1) if i.page else 1
+        offset = (page - 1) * results_per_page
+        sort = i.sort or ''
+        results = (
+            self.get_results(
+                q,
+                offset=offset,
+                limit=results_per_page,
+                sort=sort,
+                request_label='AUTHOR_SEARCH',
+            )
+            if q
+            else None
+        )
+        return render_template(
+            'search/authors', q, page, results_per_page, sort, results
+        )
 
     def get_results(
         self,
@@ -1077,7 +1076,7 @@ class PreparedQuery:
     limit: int
 
 
-def _process_solr_search_response(response: SearchResponse, fields: str) -> dict:
+async def _process_solr_search_response(response: SearchResponse, fields: str) -> dict:
     """
     Handles the post-processing of the Solr response, which is common
     to both sync and async versions.
@@ -1099,7 +1098,7 @@ def _process_solr_search_response(response: SearchResponse, fields: str) -> dict
             )
             for work in processed_response.get('docs', [])
         ]
-        add_availability(docs_for_availability)
+        await add_availability_async(docs_for_availability)
 
     return processed_response
 
@@ -1129,47 +1128,11 @@ def _prepare_work_search_query(
     )
 
 
-# Note: these could share an "implementation" to keep a common interface but it creates a lot more complexity
-# Warning: when changing this please also change the async version
-@public
-def work_search(
-    query: dict,
-    sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
-    limit: int = 100,
-    fields: str = '*',
-    facet: bool = True,
-    highlight: bool = False,
-    spellcheck_count: int | None = None,
-    request_label: SolrRequestLabel = 'UNLABELLED',
-) -> dict:
-    prepared = _prepare_work_search_query(query, page, offset, limit)
-
-    resp = run_solr_query(
-        WorkSearchScheme(),
-        prepared.query,
-        rows=prepared.limit,
-        page=prepared.page,
-        sort=sort,
-        offset=prepared.offset,
-        fields=fields,
-        facet=facet,
-        highlight=highlight,
-        spellcheck_count=spellcheck_count,
-        request_label=request_label,
-    )
-
-    return _process_solr_search_response(resp, fields)
-
-
-# Warning: when changing this please also change the sync version
-@public
 async def work_search_async(
     query: dict,
     sort: str | None = None,
-    page: int = 1,
-    offset: int = 0,
+    page: int | None = 1,
+    offset: int | None = 0,
     limit: int = 100,
     fields: str | list[str] = '*',
     facet: bool = True,
@@ -1179,7 +1142,7 @@ async def work_search_async(
     solr_internals_params: 'SolrInternalsParams | None' = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
-    scheme = WorkSearchScheme(lang=lang)
+    scheme = WorkSearchScheme(lang=lang, solr_editions=req_context.get().solr_editions)
     resp = await run_solr_query_async(
         scheme,
         prepared.query,
@@ -1194,7 +1157,7 @@ async def work_search_async(
         solr_internals_params=solr_internals_params,
     )
 
-    return _process_solr_search_response(resp, fields)
+    return await _process_solr_search_response(resp, fields)
 
 
 def validate_search_json_query(q: str | None) -> str | None:

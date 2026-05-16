@@ -54,6 +54,7 @@ __version__ = "0.3"
 """
 
 import json
+import re
 
 import web
 from web.template import (
@@ -81,7 +82,7 @@ def extension(parser):
     <BLANKLINE>
 
     """
-    parser.statement_nodes['jsdef'] = JSDefNode
+    parser.statement_nodes["jsdef"] = JSDefNode
     return parser
 
 
@@ -104,7 +105,7 @@ class JSNode:
         if web.__version__ < "0.34":
             return indent[4:] + 'yield "", %s\n' % repr(self.jsemit(self.node, ""))
         else:
-            return indent[4:] + 'self.extend(%s)\n' % repr(self.jsemit(self.node, ""))
+            return indent[4:] + "self.extend(%s)\n" % repr(self.jsemit(self.node, ""))
 
     def jsemit(self, node, indent):
         r"""Emit Javascript for given node.::
@@ -170,12 +171,12 @@ class JSNode:
 
     def jsemit_ForNode(self, node, indent):
         tok = PythonTokenizer(node.stmt)
-        tok.consume_till('in')
+        tok.consume_till("in")
         a = node.stmt[: tok.index].strip()  # for i in
         a = a[len("for") : -len("in")].strip()  # strip `for` and `in`
 
         b = node.stmt[tok.index : -1].strip()  # rest of for stmt excluding :
-        b = web.re_compile(r"loop.setup\((.*)\)").match(b).group(1)
+        b = re.compile(r"loop.setup\((.*)\)").match(b).group(1)
 
         text = ""
         text += indent + f"foreach({py2js(b)}, loop, function(loop, {a}) {{\n"
@@ -188,7 +189,7 @@ class JSNode:
         text += '<script type="text/javascript"><!--\n'
 
         text += node.stmt.replace("def ", "function ").strip(": ") + "{\n"
-        text += '    var self = [], loop;\n'
+        text += "    var self = [], loop;\n"
         text += self.jsemit(node.suite, indent + INDENT)
         text += '    return self.join("");\n'
         text += "}\n"
@@ -210,7 +211,7 @@ def tokenize(code):
             x = next(tok)
             begin = x.begin[1]
             if begin > end:
-                yield ' ' * (begin - end)
+                yield " " * (begin - end)
             if x.value:
                 yield x.value
             end = x.end[1]

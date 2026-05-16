@@ -9,10 +9,6 @@
       "maxSize": "19KB"
     },
     {
-      "path": "static/build/js/markdown-editor.*.js",
-      "maxSize": "13KB"
-    },
-    {
       "path": "static/build/js/carousel.*.js",
       "maxSize": "6KB"
     },
@@ -62,12 +58,12 @@
     },
     {
       "path": "static/build/css/page-admin.css",
-      "maxSize": "26KB"
+      "maxSize": "27KB"
 
     },
     {
       "path": "static/build/css/page-book.css",
-      "maxSize": "15.7KB"
+      "maxSize": "16KB"
     },
     {
       "path": "static/build/css/page-edit.css",

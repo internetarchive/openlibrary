@@ -20,11 +20,12 @@ $jsdef render_subject_autocomplete_item(item):
 <fieldset class="major">
     <div class="formElement">
         <div class="label">
-            <label for="about-about">$_("How would you describe this book?")</label>
+            <label for="work--description">$_("How would you describe this book?")</label>
             <span class="tip">$_("There's no wrong answer here.")</span>
         </div>
         <div class="input">
-            <textarea name="work--description" id="about-about" class="markdown" cols="55" rows="5" tabindex="0">$work.description</textarea>
+            <textarea name="work--description" id="work--description">$work.description</textarea>
+            <ol-markdown-editor target-id="work--description"></ol-markdown-editor>
         </div>
     </div>
 

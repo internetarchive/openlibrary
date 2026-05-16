@@ -98,7 +98,7 @@ async function fetchRecords(olids) {
     };
     const params = new URLSearchParams({query: JSON.stringify(query)});
 
-    return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json()
+    return (await fetchWithRetry(`${CONFIGS.OL_BASE_BOOKS}/query.json?${params}`)).json();
 }
 
 export default {
@@ -131,13 +131,13 @@ export default {
                 ['desc', 'asc'],
             );
 
-            let masterIndex = 0
+            let masterIndex = 0;
             if (this.primary) {
-                const primaryKey = `/works/${this.primary}`
-                masterIndex = records.findIndex(elem => elem.key === primaryKey)
+                const primaryKey = `/works/${this.primary}`;
+                masterIndex = records.findIndex(elem => elem.key === primaryKey);
             }
 
-            this.master_key = records[masterIndex].key
+            this.master_key = records[masterIndex].key;
             this.selected = _.fromPairs(records.map(record => [record.key, record.type.key.includes('work')]));
 
             return records;
@@ -155,7 +155,7 @@ export default {
                 console.error('Error creating enhancedRecords:', error);
             }
 
-            const enhanced_records = _.cloneDeep(this.records)
+            const enhanced_records = _.cloneDeep(this.records);
 
             for (const record of enhanced_records) {
                 for (const entry of (record.authors || [])) {
@@ -165,7 +165,7 @@ export default {
                     entry.name = author_names[authorKey.slice('/authors/'.length)];
                 }
             }
-            return enhanced_records
+            return enhanced_records;
         },
 
         async editions() {

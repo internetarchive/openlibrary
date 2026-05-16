@@ -2,8 +2,8 @@
 div#editTools,
 div.editButton,
 div#editHistory {
-  padding: var(--spacing-stack-xs) var(--spacing-inline-sm) 0
-    var(--spacing-inline-md);
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0
+    var(--spacing-inset-sm);
   margin-top: -5px;
   float: right;
 }

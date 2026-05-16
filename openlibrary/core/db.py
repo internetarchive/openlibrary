@@ -4,16 +4,18 @@ import functools
 import sqlite3
 from datetime import datetime
 from sqlite3 import IntegrityError
+from typing import cast
 
 import web
 from psycopg2.errors import UniqueViolation
+from web.db import PostgresDB
 
 from infogami.utils import stats
 
 
 @functools.cache
 def _get_db():
-    return web.database(**web.config.db_parameters)
+    return cast(PostgresDB, web.database(**web.config.db_parameters))
 
 
 def get_db():

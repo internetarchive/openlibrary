@@ -197,7 +197,7 @@ export class ShowcaseItem {
  */
 let i18nStrings;
 
-const DEFAULT_COVER_URL = '/images/icons/avatar_book-sm.png';
+const DEFAULT_COVER_URL = '/static/images/icons/avatar_book-sm.png';
 
 /**
  * Returns the inferred type of the given seed key.

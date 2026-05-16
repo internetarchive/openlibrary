@@ -12,7 +12,8 @@ from openlibrary.plugins.openlibrary.lists import (
 )
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url, str_to_key
+from openlibrary.solr.utils import SolrUpdateRequest, get_solr_base_url
+from openlibrary.utils import normalize_subject_name
 
 
 class ListSolrUpdater(AbstractSolrUpdater):
@@ -91,7 +92,7 @@ class ListSolrBuilder(AbstractSolrBuilder):
             doc |= {
                 subject_type: subjects,
                 f"{subject_type}_facet": subjects,
-                f"{subject_type}_key": [str_to_key(s) for s in subjects],
+                f"{subject_type}_key": [normalize_subject_name(s) for s in subjects],
             }
         return doc
 

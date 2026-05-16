@@ -32,6 +32,7 @@ from openlibrary.core import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
+from openlibrary.utils.request_context import req_context
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -304,7 +305,6 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(json.dumps(d), content_type="application/json")
 
 
-@public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
 
@@ -358,16 +358,6 @@ def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=N
 
 # ######### Public Functions
 @public
-def is_loan_available(edition, type) -> bool:
-    resource_id = edition.get_lending_resource_id(type)
-
-    if not resource_id:
-        return False
-
-    return not is_loaned_out(resource_id)
-
-
-@public
 def datetime_from_isoformat(expiry):
     """Returns datetime object, or None"""
     return None if expiry is None else parse_datetime(expiry)
@@ -378,20 +368,8 @@ def datetime_from_utc_timestamp(seconds):
     return datetime.utcfromtimestamp(seconds)
 
 
-@public
-def can_return_resource_type(resource_type: str) -> bool:
-    """Returns true if this resource can be returned from the OL site."""
-    return resource_type.startswith("bookreader")
-
-
-@public
 def get_bookreader_stream_url(itemid: str) -> str:
     return bookreader_stream_base + "/" + itemid
-
-
-@public
-def get_bookreader_host() -> str:
-    return bookreader_host
 
 
 # ######### Helper Functions
@@ -497,7 +475,7 @@ def user_can_borrow_edition(user, edition) -> Literal["borrow", "browse", False]
     user_is_below_loan_limit = user.get_loan_count() < user_max_loans
 
     if book_is_lendable:
-        if web.cookies().get("pd", False):
+        if req_context.get().print_disabled:
             return "borrow"
         elif user_is_below_loan_limit:
             if lending_st.get("available_to_browse"):

@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
@@ -37,6 +38,7 @@ from openlibrary.core.auth import ExpiredTokenError, HMACToken, MissingKeyError
 from openlibrary.core.auth import TimedOneTimePassword as OTP
 from openlibrary.core.booknotes import Booknotes
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.db import get_db
 from openlibrary.core.follows import PubSub
 from openlibrary.core.lending import (
     get_items_and_add_availability,
@@ -90,6 +92,15 @@ def get_login_error(error_key):
         "security_error": _("Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"),
     }
     return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
+
+
+def is_safe_redirect(url: str) -> bool:
+    parsed = urlparse(url)
+    if parsed.netloc or parsed.scheme:
+        return False
+    if not re.match(r"^/[^/\\]", parsed.path):  # noqa: SIM103
+        return False
+    return True
 
 
 class availability(delegate.page):
@@ -571,7 +582,7 @@ class account_login(delegate.page):
         if flash_message := self.perform_post_login_action(i, ol_account):
             add_flash_message("note", _(flash_message))
 
-        if i.redirect == "" or any(path in i.redirect for path in blacklist):
+        if not is_safe_redirect(i.redirect) or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         stats.increment("ol.account.xauth.login")
         raise web.seeother(i.redirect)
@@ -1411,3 +1422,25 @@ def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
         "limit": limit,
         "page": page,
     }
+
+
+class account_security_check(delegate.page):
+    path = "/account/security/2026-04-28T18"
+    AFFECTED_ACCOUNTS_THRESHOLD = 51085470
+
+    @classmethod
+    def is_affected_account(cls, email: str) -> bool:
+        rows = list(
+            get_db().query(
+                "SELECT 1 FROM account WHERE email=$email AND thing_id <= $threshold LIMIT 1",
+                vars={"email": email.lower().strip(), "threshold": cls.AFFECTED_ACCOUNTS_THRESHOLD},
+            )
+        )
+        return bool(rows)
+
+    def GET(self):
+        if user := accounts.get_current_user():
+            email = user.get_email()
+            affected = self.is_affected_account(email) if email else False
+            return render["account/security/check_email"](affected=affected)
+        return render["account/security/check_email"](affected=None)

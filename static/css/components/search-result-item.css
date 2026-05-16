@@ -309,7 +309,7 @@
 
 .listDelete a span {
   margin-right: var(--spacing-inline-sm);
-  background-image: url(/images/back_list-trash.png);
+  background-image: url(/static/images/back_list-trash.png);
   background-repeat: no-repeat;
   background-position: 0 0;
   height: 28px;
@@ -358,4 +358,18 @@
     width: 175px;
     text-align: right;
   }
+}
+
+/* Normalize cover image height so CTA buttons align across all cards in a row. */
+.list-books--grid .searchResultItem:not(.sri--w-main),
+.list-books--grid .searchResultItem .sri__main {
+  height: 100%;
+}
+
+.list-books--grid .searchResultItem .bookcover :where(img) {
+  height: 180px;
+  object-fit: contain;
+  object-position: bottom;
+  display: block;
+  margin-bottom: var(--spacing-stack-sm);
 }

@@ -2,6 +2,7 @@
 
 import functools
 import logging
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -33,7 +34,7 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
-from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
@@ -263,7 +264,7 @@ class Edition(Thing):
 
     def get_publish_year(self) -> int | None:
         if self.publish_date:
-            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
+            m = re.compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
         return None
 
@@ -447,7 +448,7 @@ class Edition(Thing):
             # is staged in `import_item`.
             try:
                 id_ = asin or book_ids[0]
-                id_type = "asin" if asin else "isbn"
+                id_type: Literal['asin', 'isbn'] = "asin" if asin else "isbn"
                 get_amazon_metadata(
                     id_=id_, id_type=id_type, high_priority=high_priority
                 )
@@ -659,7 +660,7 @@ class Work(Thing):
         }
 
     def _make_subject_link(self, title, prefix=""):
-        slug = web.safestr(title.lower().replace(' ', '_').replace(',', ''))
+        slug = normalize_subject_name(title)
         key = f"/subjects/{prefix}{slug}"
         return web.storage(key=key, title=title, slug=slug)
 
@@ -1049,7 +1050,12 @@ class User(Thing):
         return lists
 
     @classmethod
-    # @cache.memoize(engine="memcache", key="user-avatar")
+    @cache.memoize(
+        engine="memcache",
+        key=lambda cls, username: f"user-avatar-{username}",
+        expires=24 * 3600,
+        cacheable=lambda key, value: not value.endswith('/None'),
+    )
     def get_avatar_url(cls, username: str) -> str:
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
@@ -1290,10 +1296,19 @@ class Tag(Thing):
     def get_url_suffix(self):
         return self.name or "unnamed"
 
+    @staticmethod
+    def normalize(name: str) -> str:
+        """Normalize a tag/subject name to a URL-safe lowercase slug.
+
+        Canonical form for stored tag names and subject URL keys.
+        Delegates to normalize_subject_name.
+        """
+        return normalize_subject_name(name)
+
     @classmethod
     def find(cls, tag_name, tag_type=None):
-        """Returns a list of keys for Tags that match the search criteria."""
-        q = {'type': '/type/tag', 'name': tag_name}
+        """Returns a list of keys for Tags whose slugs contain the normalized tag_name."""
+        q = {'type': '/type/tag', 'slugs': cls.normalize(tag_name)}
         if tag_type:
             q['tag_type'] = tag_type
         matches = list(web.ctx.site.things(q))

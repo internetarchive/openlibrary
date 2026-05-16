@@ -9,9 +9,9 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import os
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, Form, Path, Query
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.core import lending, models
@@ -25,6 +25,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.plugins.openlibrary.api import get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -83,7 +84,7 @@ class AvailabilityRequest(BaseModel):
     response_model=dict[str, AvailabilityStatusV2],
     description="Returns availability status for one or more books",
 )
-def get_book_availability(
+async def get_book_availability(
     id_type: Annotated[AvailabilityIDType, Query(alias="type", description="Type of the identifiers")],
     ids: Annotated[
         list[str],
@@ -91,7 +92,7 @@ def get_book_availability(
         Query(min_length=1, description="Comma-separated list of IDs (e.g. OL123W, ISBN, ocaid)"),
     ],
 ) -> dict:
-    return lending.get_availability(id_type, ids)
+    return await lending.get_availability_async(id_type, ids)
 
 
 @router.post(
@@ -99,11 +100,11 @@ def get_book_availability(
     response_model=dict[str, AvailabilityStatusV2],
     description="Returns availability status for one or more books",
 )
-def post_book_availability(
+async def post_book_availability(
     id_type: Annotated[AvailabilityIDType, Query(alias="type")],
     request: AvailabilityRequest,
 ) -> dict:
-    return lending.get_availability(id_type, request.ids)
+    return await lending.get_availability_async(id_type, request.ids)
 
 
 class TrendingRequestParams(Pagination):
@@ -139,7 +140,7 @@ class TrendingResponse(BaseModel):
     response_model_exclude_none=True,
     description="Returns works sorted by recent activity (reads, loans, etc.)",
 )
-def trending_books_api(
+async def trending_books_api(
     period: Annotated[TrendingPeriod, Path(description="The time period for trending books")],
     params: Annotated[TrendingRequestParams, Query()],
 ) -> TrendingResponse:
@@ -147,7 +148,7 @@ def trending_books_api(
     # ``period`` is always a key in SINCE_DAYS — guaranteed by the Literal type above.
     since_days: int | None = SINCE_DAYS.get(period, params.days)
 
-    works = get_trending_books(
+    works = await get_trending_books(
         since_days=since_days,
         since_hours=params.hours,
         limit=params.limit,
@@ -186,7 +187,7 @@ async def browse(
         sorts=sorts,
     )
 
-    works = lending.get_available(url=url) if url else []
+    works = await lending.get_available_async(url=url) if url else []
     return {"query": url, "works": [work.dict() for work in works]}
 
 
@@ -269,8 +270,39 @@ async def author_works():
     pass
 
 
-async def price_api():
-    pass
+class PriceResponse(BaseModel):
+    """Response model for the /prices.json endpoint."""
+
+    amazon: dict[str, Any] = Field(default_factory=dict, description="Amazon pricing data")
+    betterworldbooks: dict[str, Any] = Field(default_factory=dict, description="BetterWorldBooks pricing data")
+    key: str | None = Field(None, description="Open Library edition key, if found")
+    ocaid: str | None = Field(None, description="Internet Archive OCAID, if available")
+    error: str | None = Field(None, description="Error message if request is invalid")
+
+    model_config = {"extra": "allow"}
+
+
+@router.get(
+    "/prices.json",
+    response_model=PriceResponse,
+    response_model_exclude_none=True,
+    description="Returns pricing data for a book from Amazon and BetterWorldBooks.",
+)
+async def price_api(
+    isbn: Annotated[str | None, Query(description="ISBN-10 or ISBN-13", min_length=10, max_length=13)] = None,
+    asin: Annotated[str | None, Query(description="Amazon ASIN", min_length=10, max_length=10)] = None,
+) -> dict:
+    """
+    Returns pricing metadata from Amazon and BetterWorldBooks for a given book.
+    Requires either an `isbn` or `asin` query parameter.
+    """
+    if not (isbn or asin):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="isbn or asin required",
+        )
+
+    return await get_price_data_async(isbn or "", asin or "")
 
 
 async def patrons_follows_json():

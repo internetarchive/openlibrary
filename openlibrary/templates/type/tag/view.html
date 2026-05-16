@@ -31,8 +31,10 @@ $code:
     $if tag.tag_type in get_subject_tag_types():
         $ subject_key = derive_subject_key(tag)
         <footer>
-            <a href="$subject_key">
-                $_('View subject page for %(name)s.', name=title)
-            </a>
+            <ol-chip-group gap="small">
+                <ol-chip size="small" href="$subject_key">
+                    $_('View subject page for %(name)s.', name=title)
+                </ol-chip>
+            </ol-chip-group>
         </footer>
 </div>

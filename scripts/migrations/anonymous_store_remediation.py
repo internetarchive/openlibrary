@@ -5,23 +5,17 @@ with anonymized accounts.
 """
 
 import argparse
-from pathlib import Path
 
 import web
 
-import infogami
-from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.setup import setup_for_script
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 def setup(config_path):
-    if not Path(config_path).exists():
-        raise FileNotFoundError(f"no config file at {config_path}")
-
-    load_config(config_path)
-    infogami._setup()
+    setup_for_script(config_path)
 
 
 def remediate(test=False):

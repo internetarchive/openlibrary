@@ -1,0 +1,50 @@
+$def with (tags, page, has_next, tag_type)
+
+$var title: $_("Tags")
+
+$code:
+    def subject_url(tag):
+        slugs = tag.get("slugs") or []
+        slug = slugs[0] if slugs else tag.name.lower().replace(" ", "_")
+        if tag.tag_type == "subject":
+            return "/subjects/" + slug
+        return "/subjects/%s:%s" % (tag.tag_type, slug)
+
+    def page_url(p, t):
+        url = "/tags?page=%d" % p
+        if t:
+            url += "&type=" + t
+        return url
+
+<div id="contentHead">
+    <h1>$_("Tags")</h1>
+    <p>$_("Tags curated by Open Library librarians.")</p>
+    <nav class="tag-type-filter">
+        $ all_types = get_tag_types()
+        <a href="/tags" class="$('selected' if not tag_type else '')">$_("All")</a>
+        $for t in all_types:
+            <a href="/tags?type=$t" class="$('selected' if tag_type == t else '')">$t</a>
+    </nav>
+</div>
+
+<div id="contentBody">
+    $if tags:
+        <ul class="tag-list">
+            $for tag in tags:
+                <li class="tag-list__item">
+                    <a class="tag-list__name" href="$tag.key">$tag.name</a>
+                    <span class="tag-list__type">($tag.tag_type)</span>
+                    $if tag.tag_type in get_subject_tag_types():
+                        &mdash;
+                        <a class="tag-list__subject-link" href="$subject_url(tag)">$_("View subject page")</a>
+                </li>
+        </ul>
+        <div class="tag-list__pagination">
+            $if page > 1:
+                <a href="$page_url(page - 1, tag_type)">&laquo; $_("Previous")</a>
+            $if has_next:
+                <a href="$page_url(page + 1, tag_type)">$_("Next") &raquo;</a>
+        </div>
+    $else:
+        <p>$_("No tags found.")</p>
+</div>

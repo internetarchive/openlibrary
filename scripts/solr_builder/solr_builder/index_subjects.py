@@ -5,13 +5,14 @@ from typing import Literal
 
 import httpx
 
-from openlibrary.solr.utils import solr_insert_documents, str_to_key
+from openlibrary.solr.utils import solr_insert_documents
+from openlibrary.utils import normalize_subject_name
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 from scripts.solr_builder.solr_builder.solr_builder import safeget
 
 
 def subject_name_to_key(subject_type: Literal["subject", "person", "place", "time"], subject_name: str) -> str:
-    escaped_subject_name = str_to_key(subject_name)
+    escaped_subject_name = normalize_subject_name(subject_name)
     if subject_type == "subject":
         return f"/subjects/{escaped_subject_name}"
     else:

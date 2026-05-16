@@ -112,6 +112,9 @@ export class ReadingLogForms {
      * If dropper is disabled, no event listeners will be added.
      */
     initialize() {
+        if (this.primaryButton) {
+            this.primaryButton.removeAttribute('disabled')
+        }
         if (!this.isDropperDisabled) {
             if (this.readingLogForms.length) {
                 for (const form of this.readingLogForms) {
