@@ -77,7 +77,7 @@ class mybooks_home(delegate.page):
 
             book_keys = [loan["book"] for loan in myloans]
             books = web.ctx.site.get_many(book_keys)
-            
+
             for loan, book in zip(myloans, books):
                 # Book will be None if no OL edition exists for the book
                 if book:
@@ -596,14 +596,7 @@ class PatronBooknotes:
             for work in works
         }
 
-        edition_ids = list(
-            dict.fromkeys(
-                note["edition_id"]
-                for entry in notes
-                for note in entry["notes"]
-                if note["edition_id"] != Booknotes.NULL_EDITION_VALUE
-            )
-        )
+        edition_ids = list(dict.fromkeys(note["edition_id"] for entry in notes for note in entry["notes"] if note["edition_id"] != Booknotes.NULL_EDITION_VALUE))
         edition_keys_by_id = {edition_id: f"/books/OL{edition_id}M" for edition_id in edition_ids}
         editions_by_key = {edition.key: edition for edition in web.ctx.site.get_many(list(edition_keys_by_id.values()))} if edition_keys_by_id else {}
 
