@@ -92,6 +92,12 @@ class SearchScheme:
             # This is a special solr syntax; don't process
             return q_param
 
+        # Strip leading wildcards — e.g. "**foo" forces a full term-dictionary scan.
+        # Trailing wildcards like "foo*" are fine and preserved.
+        q_param = q_param.lstrip("*")
+        if not q_param:
+            return "*:*"
+
         try:
             q_param = escape_unknown_fields(
                 (

@@ -1,0 +1,84 @@
+# compose.monitoring.yaml — Prometheus + Grafana monitoring overlay
+#
+# Usage (with default Solr):
+#   docker compose -f compose.yaml -f compose.monitoring.yaml up -d solr solr-exporter prometheus grafana
+#
+# Usage (with perf-test Solr):
+#   docker compose -f compose.yaml -f compose.solr-perf.yaml -f compose.monitoring.yaml up -d solr solr-exporter prometheus grafana
+#
+# Access:
+#   Grafana:    http://localhost:3000  (admin/admin — change on first login)
+#   Prometheus: http://localhost:9090
+#   Exporter:   http://localhost:9854/metrics
+
+services:
+  solr-exporter:
+    image: solr:9.9.0
+    entrypoint: ["/opt/solr/prometheus-exporter/bin/solr-exporter"]
+    command:
+      - "-p"
+      - "9854"
+      - "-b"
+      - "http://solr:8983/solr"
+      - "-f"
+      - "/opt/solr/prometheus-exporter/conf/solr-exporter-config.xml"
+      - "-n"
+      - "8"
+    ports:
+      - "9854:9854"
+    networks:
+      - webnet
+    depends_on:
+      - solr
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "64m"
+        max-file: "2"
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./conf/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - webnet
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=7d"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "64m"
+        max-file: "2"
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/solr-overview.json
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./conf/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./conf/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - webnet
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "64m"
+        max-file: "2"
+
+volumes:
+  prometheus-data:
+  grafana-data:

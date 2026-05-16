@@ -23,7 +23,6 @@ from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_list
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
 from openlibrary.plugins.worksearch.code import (
-    compute_work_search_html_fields,
     run_solr_query_async,
     work_search_async,
 )
@@ -318,6 +317,31 @@ class AffiliateLinksPartial:
         return {"partials": str(macro)}
 
 
+@cache.memoize(
+    "memcache",
+    key=lambda param: "book_search_facets:" + md5(json.dumps(param, sort_keys=True).encode()).hexdigest(),
+    expires=60,
+)
+async def _get_facet_counts_cached(param: dict) -> dict | None:
+    """Fetch facet counts for the search sidebar with a 60s memcache TTL.
+
+    Broad popular queries (history, medicine, science fiction) hit this path
+    repeatedly; caching avoids redundant Solr facet computation across users.
+    """
+    search_response = await run_solr_query_async(
+        WorkSearchScheme(),
+        param,
+        rows=0,
+        sort=None,
+        fields=["key"],
+        facet=True,
+        highlight=False,
+        request_label="BOOK_SEARCH_FACETS",
+        extra_params=[("timeAllowed", "5000")],
+    )
+    return search_response.facet_counts
+
+
 class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
@@ -331,34 +355,26 @@ class SearchFacetsPartial:
         parsed_qs = parse_qs(query.replace("?", ""))
         param = data.get("param", {})
 
-        sort = None
-        search_response = await run_solr_query_async(
-            WorkSearchScheme(),
-            param,
-            rows=0,
-            page=1,
-            sort=sort,
-            spellcheck_count=3,
-            fields=compute_work_search_html_fields(sort, sfw),
-            facet=True,
-            highlight=False,
-            request_label="BOOK_SEARCH_FACETS",
-        )
+        facet_counts = await _get_facet_counts_cached(param)
 
         sidebar = render_template(
             "search/work_search_facets",
             param,
-            facet_counts=search_response.facet_counts,
+            facet_counts=facet_counts,
             async_load=False,
             path=path,
             query=parsed_qs,
             show_merge_authors=show_merge_authors,
         )
 
+        facet_response = types.SimpleNamespace(
+            error=facet_counts is None,
+            facet_counts=facet_counts or {},
+        )
         active_facets = render_template(
             "search/work_search_selected_facets",
             param,
-            search_response,
+            facet_response,
             param.get("q", ""),
             path=path,
             query=parsed_qs,

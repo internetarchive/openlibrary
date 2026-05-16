@@ -44,10 +44,13 @@ services:
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=prod
-      # More memory for production
+        -XX:G1HeapRegionSize=32m
+        -XX:InitiatingHeapOccupancyPercent=25
+        -XX:G1ReservePercent=20
+      # 10 GB heap for production.
+      # NOTE: Do NOT also set SOLR_HEAP — it overrides SOLR_JAVA_MEM in Solr's
+      # startup scripts, which previously caused production to run at 8 GB.
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
-      # This might overwrite the above?
-      - SOLR_HEAP=8g
     restart: unless-stopped
 
   solr_haproxy:

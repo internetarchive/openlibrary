@@ -304,7 +304,7 @@
       -->
 
     <autoSoftCommit>
-      <maxTime>${solr.autoSoftCommit.maxTime:-1}</maxTime>
+      <maxTime>${solr.autoSoftCommit.maxTime:5000}</maxTime>
     </autoSoftCommit>
 
     <!-- Update Related Event Listeners
@@ -388,9 +388,9 @@
                       to occupy. Note that when this option is specified, the size
                       and initialSize parameters are ignored.
       -->
-    <filterCache size="512"
+    <filterCache size="1024"
                  initialSize="512"
-                 autowarmCount="128"/>
+                 autowarmCount="256"/>
 
     <!-- Query Result Cache
 
@@ -400,9 +400,9 @@
             maxRamMB - the maximum amount of RAM (in MB) that this cache is allowed
                        to occupy
       -->
-    <queryResultCache size="512"
+    <queryResultCache size="1024"
                       initialSize="512"
-                      autowarmCount="128"/>
+                      autowarmCount="256"/>
 
     <!-- Document Cache
 
@@ -410,8 +410,8 @@
          document).  Since Lucene internal document ids are transient,
          this cache will not be autowarmed.
       -->
-    <documentCache size="512"
-                   initialSize="512"
+    <documentCache size="4096"
+                   initialSize="1024"
                    autowarmCount="0"/>
 
     <!-- custom cache currently used by block join -->
@@ -477,9 +477,7 @@
          frequently get the same search repeatedly with different sort
          options, and none of them ever use "score"
       -->
-    <!--
-       <useFilterForSortedQuery>true</useFilterForSortedQuery>
-      -->
+    <useFilterForSortedQuery>true</useFilterForSortedQuery>
 
     <!-- Result Window Size
 
@@ -490,7 +488,7 @@
          then documents 0 through 49 will be collected and cached.  Any further
          requests in that range can be satisfied via the cache.
       -->
-    <queryResultWindowSize>20</queryResultWindowSize>
+    <queryResultWindowSize>50</queryResultWindowSize>
 
     <!-- Maximum number of documents to cache for any entry in the
          queryResultCache.
@@ -535,7 +533,32 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!-- Work search -->
+        <!-- Lightweight filter-cache anchoring only. newSearcher fires on every
+             soft commit (~60s in production), so these must complete in <10ms.
+             Expensive query warming belongs in firstSearcher (cold start only). -->
+        <lst>
+          <str name="q">*:*</str>
+          <str name="fq">type:work</str>
+          <str name="rows">0</str>
+        </lst>
+        <lst>
+          <str name="q">*:*</str>
+          <str name="fq">type:work</str>
+          <str name="fq">ebook_access:[borrowable TO *]</str>
+          <str name="rows">0</str>
+        </lst>
+        <lst>
+          <str name="q">*:*</str>
+          <str name="fq">type:edition</str>
+          <str name="rows">0</str>
+        </lst>
+      </arr>
+    </listener>
+    <listener event="firstSearcher" class="solr.QuerySenderListener">
+      <arr name="queries">
+        <!-- Warm filterCache, queryResultCache and documentCache on cold start.
+             Mirrors newSearcher queries so the first real user request hits warm caches
+             rather than cold Lucene I/O. Critical after deployments and reindexes. -->
         <lst>
           <str name="userWorkQuery">harry potter</str>
           <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
@@ -552,7 +575,6 @@
           <str name="facet.field">subject_facet</str>
           <str name="facet.field">time_facet</str>
         </lst>
-        <!-- Author works search -->
         <lst>
           <str name="userWorkQuery">*:*</str>
           <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
@@ -567,7 +589,6 @@
           <str name="facet.field">subject_facet</str>
           <str name="facet.field">time_facet</str>
         </lst>
-        <!-- Ebook only search for carousel -->
         <lst>
           <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
           <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
@@ -584,15 +605,6 @@
           <str name="facet.field">subject_facet</str>
           <str name="facet.field">time_facet</str>
         </lst>
-      </arr>
-    </listener>
-    <listener event="firstSearcher" class="solr.QuerySenderListener">
-      <arr name="queries">
-        <!--
-        <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
-        </lst>
-        -->
       </arr>
     </listener>
 
@@ -636,10 +648,8 @@
      check for "Circuit Breakers tripped" in logs and the corresponding error message should tell
      you what transpired (if the failure was caused by tripped circuit breakers).
     -->
-    <!--
     <str name="memEnabled">true</str>
     <str name="memThreshold">75</str>
-    -->
 
     <!-- CPU Circuit Breaker Configuration
 

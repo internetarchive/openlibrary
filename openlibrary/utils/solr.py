@@ -116,11 +116,13 @@ class Solr:
         self,
         request,
         commit: bool = False,
+        soft_commit: bool = False,
         _timeout: int | None = DEFAULT_SOLR_TIMEOUT_SECONDS,
     ):
+        commit_param = "&softCommit=true" if soft_commit else f"&commit={str(commit).lower()}"
         resp = (
             await self.async_session.post(
-                f"{self.base_url}/update?update.partial.requireInPlace=true&commit={commit}",
+                f"{self.base_url}/update?update.partial.requireInPlace=true{commit_param}",
                 json=request,
                 timeout=_timeout,
             )

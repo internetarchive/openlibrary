@@ -245,7 +245,7 @@ class SubjectEngine:
                     {"name": "author_facet", "sort": "count"},
                     "language",
                     "publisher_facet",
-                    {"name": "publish_year", "limit": -1},
+                    {"name": "publish_year", "limit": 200},
                     "subject_facet",
                     "person_facet",
                     "place_facet",

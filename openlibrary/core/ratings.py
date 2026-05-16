@@ -79,6 +79,33 @@ class Ratings(db.CommonExtras):
         return result[0] if result else {}
 
     @classmethod
+    def get_works_ratings_summary_batch(cls, work_ids: list[int]) -> dict[int, WorkRatingsSummary]:
+        """Batch version of get_work_ratings_summary for multiple work IDs.
+
+        Returns a dict keyed by work_id.  Work IDs with no ratings are absent
+        from the result (not present with zero counts).
+        """
+        if not work_ids:
+            return {}
+        oldb = db.get_db()
+        ids_str = ",".join(str(int(wid)) for wid in work_ids)
+        result = oldb.query(
+            "SELECT work_id, "
+            "sum(CASE WHEN rating = 1 THEN 1 ELSE 0 END) AS ratings_count_1, "
+            "sum(CASE WHEN rating = 2 THEN 1 ELSE 0 END) AS ratings_count_2, "
+            "sum(CASE WHEN rating = 3 THEN 1 ELSE 0 END) AS ratings_count_3, "
+            "sum(CASE WHEN rating = 4 THEN 1 ELSE 0 END) AS ratings_count_4, "
+            "sum(CASE WHEN rating = 5 THEN 1 ELSE 0 END) AS ratings_count_5 "
+            f"FROM ratings WHERE work_id IN ({ids_str}) GROUP BY work_id"
+        )
+        return {
+            row["work_id"]: cls.work_ratings_summary_from_counts(
+                [row[f"ratings_count_{i}"] for i in range(1, 6)]
+            )
+            for row in result
+        }
+
+    @classmethod
     def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
         oldb = db.get_db()
         # NOTE: Using some old postgres syntax here :/ for modern postgres syntax,

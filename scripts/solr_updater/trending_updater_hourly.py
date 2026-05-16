@@ -328,6 +328,6 @@ def run_hourly_update(timestamp: str | None = None, dry_run: bool = False):
     if dry_run:
         print("Dry run mode enabled, not sending updates to Solr.")
     else:
-        resp = get_solr().update_in_place(request_body, commit=True, _timeout=None)
+        resp = get_solr().update_in_place(request_body, soft_commit=True, _timeout=None)
         print(resp)
     print("Hourly update completed.")
