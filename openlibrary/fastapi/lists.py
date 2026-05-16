@@ -1,14 +1,13 @@
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status, Body
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
-from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_subjects
+from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_subjects, get_list_seeds
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
+from openlibrary.plugins.openlibrary.lists import list_seeds as _LegacyListSeeds
 from openlibrary.utils.request_context import site, web_ctx_ip
 
 if TYPE_CHECKING:
@@ -114,8 +113,90 @@ async def lists_json():
     pass
 
 
-async def list_seeds():
-    pass
+def _get_list_seeds_or_404(key: str) -> dict:
+    lst = get_list_seeds(key)
+    if lst is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
+    return lst
+
+
+def _update_list_seeds(key: str, payload: dict) -> dict:
+    s = site.get()
+    lst = s.get(key)
+    
+    if lst is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
+
+    if not s.can_write(key):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied.")
+
+    try:
+        # Pass the payload safely directly to the legacy processor
+        data = {
+            "add": payload.get("add", []),
+            "remove": payload.get("remove", [])
+        }
+        return _LegacyListSeeds.process_seeds_update(lst, data, key)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/people/{username}/lists/{olid}/seeds.json")
+def list_seeds_json_user(username: UsernamePath, olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/people/{username}/lists/{olid}")
+
+
+@router.get("/people/{username}/series/{olid}/seeds.json")
+def series_seeds_json_user(username: UsernamePath, olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/people/{username}/series/{olid}")
+
+
+@router.get("/lists/{olid}/seeds.json")
+def list_seeds_json_public(olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/lists/{olid}")
+
+
+@router.get("/series/{olid}/seeds.json")
+def series_seeds_json_public(olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/series/{olid}")
+
+
+@router.post("/people/{username}/lists/{olid}/seeds.json")
+def update_list_seeds_json_user(
+    username: UsernamePath, 
+    olid: ListOLID, 
+    payload: Annotated[dict, Body(...)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/people/{username}/lists/{olid}", payload)
+
+
+@router.post("/people/{username}/series/{olid}/seeds.json")
+def update_series_seeds_json_user(
+    username: UsernamePath, 
+    olid: ListOLID, 
+    payload: Annotated[dict, Body(...)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/people/{username}/series/{olid}", payload)
+
+
+@router.post("/lists/{olid}/seeds.json")
+def update_list_seeds_json_public(
+    olid: ListOLID, 
+    payload: Annotated[dict, Body(...)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/lists/{olid}", payload)
+
+
+@router.post("/series/{olid}/seeds.json")
+def update_series_seeds_json_public(
+    olid: ListOLID, 
+    payload: Annotated[dict, Body(...)],
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/series/{olid}", payload)
 
 
 class GetListEditionsParams:
