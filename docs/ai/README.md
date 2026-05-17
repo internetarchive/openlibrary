@@ -167,6 +167,7 @@ These companion docs cover specific areas in depth:
 - [CSS](css.md) — BEM naming, selector rules, tokens in practice, bundle sizes, CSS-to-template wiring
 - [Design](design.md) — UI design patterns: typography, layout shift prevention, design tokens, animations
 - [Web Component Standards](web-components.md) — When to build a component, Lit conventions, accessibility, events
+- [Front-End Dev Environment](front-end.md) — Build commands, Lit/jQuery timing trap, Colima LAN access, Playwright setup, known flaky tests, pre-commit.ci squash procedure
 
 ## Key File Locations
 
