@@ -905,3 +905,30 @@ div.search-facet:focus-within {
     padding: var(--spacing-inset-sm) 0;
   }
 }
+
+/* ── ol-search-bar integration ────────────────────────────────────────────── */
+
+/* LightDOM component is transparent to layout */
+ol-search-bar {
+  display: contents;
+}
+
+/* Mirror legacy .search-facet behavior: hidden by default on mobile */
+.header-bar .search-component ol-facet-select {
+  display: none;
+  height: 100%;
+  align-self: stretch;
+}
+
+/* Show when the search bar is expanded (mobile tap-to-expand) */
+/* stylelint-disable-next-line selector-max-specificity */
+.header-bar .search-component.expanded ol-facet-select {
+  display: inline-flex;
+}
+
+/* Show on 568px+ — same breakpoint OlSearchBar uses for its collapse logic */
+@media only screen and (min-width: 35.5em) {
+  .header-bar .search-component ol-facet-select {
+    display: inline-flex;
+  }
+}

@@ -86,42 +86,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   </ul>
 
   <div class="search-component">
-    <div class="search-bar-component">
-      <div class="search-bar">
-        <div class="search-facet">
-          <label class="search-facet-selector">
-            <span aria-hidden="true" class="search-facet-value">$_("All")</span>
-            <select aria-label="Search by">
-              <option value="all">$_("All")</option>
-              <option value="title">$_("Title")</option>
-              <option value="author">$_("Author")</option>
-              <option value="text">$_("Text")</option>
-              <option value="subject">$_("Subject")</option>
-              <option value="lists">$_("Lists")</option>
-              <option value="advanced">$_("Advanced")</option>
-            </select>
-          </label>
-        </div>
-        <form class="search-bar-input" action="/search" method="get" role="search">
-          <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
-          <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
-          <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
-          <div class="vertical-separator"></div>
-          <a
-            id="barcode_scanner_link"
-            class="search-by-barcode-submit"
-            aria-label="$_('Search by barcode')"
-            title="$_('Search by barcode')"
-            href="/barcodescanner?returnTo=/isbn/$$$$$$"
-          >
-          </a>
-        </form>
-      </div>
-      <div class="search-dropdown">
-        <ul class="search-results">
-        </ul>
-      </div>
-    </div>
+    <ol-search-bar facet="all"></ol-search-bar>
   </div>
 
   $if not ctx.user:

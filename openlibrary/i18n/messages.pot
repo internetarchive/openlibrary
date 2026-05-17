@@ -1113,13 +1113,13 @@ msgstr ""
 msgid "PR"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr ""
 
-#: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
+#: books/add.html books/edit.html books/edit/edition.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/work_search_selected_facets.html status.html
 msgid "Author"
@@ -1458,7 +1458,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html lib/nav_head.html type/tag/index.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -3419,7 +3419,7 @@ msgstr ""
 msgid "Search for an Author"
 msgstr ""
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: authors/index.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
 #: search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
@@ -5660,22 +5660,6 @@ msgstr ""
 msgid "The Internet Archive's Open Library: One page for every book"
 msgstr ""
 
-#: lib/nav_head.html
-msgid "Text"
-msgstr ""
-
-#: lib/nav_head.html search/advancedsearch.html
-msgid "Subject"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Advanced"
-msgstr ""
-
-#: lib/nav_head.html
-msgid "Search by barcode"
-msgstr ""
-
 #: lib/not_logged.html
 msgid ""
 "<strong>You are not <a href=\"/account/login\" title=\"Log in "
@@ -6614,6 +6598,10 @@ msgstr ""
 
 #: search/advancedsearch.html
 msgid "ISBN"
+msgstr ""
+
+#: search/advancedsearch.html
+msgid "Subject"
 msgstr ""
 
 #: search/advancedsearch.html
