@@ -77,6 +77,12 @@ export class SearchBar {
         /** UI Elements */
         this.$component = $component;
 
+        // When ol-search-bar[show-facets] is present the new component is fully
+        // self-contained (panel, facets, autocomplete, submit). Skip all legacy init.
+        if (this.$component.find('ol-search-bar[show-facets]').length) {
+            return;
+        }
+
         // Detect whether the new OlSearchBar LIT component is present.
         // When it is, we defer all DOM-dependent initialization until after
         // the component's firstUpdated() fires and the light DOM is queryable.

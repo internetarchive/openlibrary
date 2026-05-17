@@ -12,6 +12,8 @@ export { OLMarkdownEditor } from './OLMarkdownEditor.js';
 export { OlPopover } from './OlPopover.js';
 export { OlSelectPopover } from './OlSelectPopover.js';
 export { OlFacetSelect } from './OlFacetSelect.js';
+export { OlFacetDrop } from './OlFacetDrop.js';
+export { OlHowtoModal } from './OlHowtoModal.js';
 export { OlSearchBar } from './OlSearchBar.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
