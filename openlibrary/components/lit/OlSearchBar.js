@@ -418,7 +418,7 @@ export class OlSearchBar extends LitElement {
     }
 
     static styles = css`
-        :host { display: block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        :host { display: block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; text-align: left; }
 
         .search-outer { position: relative; }
 
