@@ -645,6 +645,18 @@ def set_share_links(url: str = "#", title: str = "", view_context: InfogamiConte
         view_context.share_links = links
 
 
+@public
+def get_preserve_intent_attrs(action: str, title: str, item_type: str = "book", resume_url: str = "") -> str:
+    """
+    Generates data attributes for login-intent buttons.
+    Used for intent-preservation across login redirects.
+    """
+    attr = f'data-action="{web.websafe(action)}" data-title="{web.websafe(title)}" data-type="{web.websafe(item_type)}"'
+    if resume_url:
+        attr += f' data-resumeurl="{web.websafe(resume_url)}"'
+    return attr
+
+
 def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     TODO: DRY with solrbuilder copy

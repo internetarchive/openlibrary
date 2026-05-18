@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
@@ -464,6 +465,41 @@ class MyBooksTemplate:
         render the template.
         """
         return render["account/view"](mb=self, template=template, header_title=header_title, page=page)
+
+    def get_pending_action_banner(self) -> str:
+        cookie = web.cookies().get("pending_action")
+        if not cookie or cookie in ("1"):
+            return ""
+
+        try:
+            data = json.loads(urllib.parse.unquote(cookie))
+            action = data.get("action")
+            name = data.get("name", "")
+            url = data.get("url")
+            page_type = data.get("type", "item")
+
+            if not action or not url:
+                return ""
+
+            action_translated = _(action)
+            type_translated = _(page_type.lower())
+
+            msg_template = _(
+                'You were trying to <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s">'
+                "<strong>%(action)s</strong> for the %(type)s <em>%(name)s</em></a>. Click the link to resume."
+            )
+
+            msg = msg_template % {
+                "url": web.net.websafe(url),
+                "raw_action": web.net.websafe(action),
+                "action": action_translated,
+                "type": type_translated,
+                "name": web.net.websafe(name),
+            }
+            return msg
+
+        except json.JSONDecodeError:
+            return ""
 
 
 class ReadingLog:

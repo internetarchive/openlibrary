@@ -8860,6 +8860,14 @@ msgstr ""
 msgid "Choose a password"
 msgstr ""
 
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid ""
+"You were trying to <a href=\"%(url)s\" class=\"pending-action-link\" "
+"data-action=\"%(raw_action)s\"><strong>%(action)s</strong> for the "
+"%(type)s <em>%(name)s</em></a>. Click the link to resume."
+msgstr ""
+
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
 msgstr ""

@@ -87,3 +87,15 @@ export function buildPartialsUrl(component, params = {}) {
 
     return url;
 }
+
+export function queueAction(actionName, itemName, targetUrl, itemType) {
+    const data = {
+        name: itemName,
+        url: targetUrl,
+        action: actionName,
+        type: itemType || 'item'
+    };
+
+    const cookieValue = encodeURIComponent(JSON.stringify(data));
+    document.cookie = `pending_action=${cookieValue}; path=/; max-age=3600; samesite=lax`;
+}

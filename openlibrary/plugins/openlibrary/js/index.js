@@ -6,6 +6,7 @@ import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
+import { queueAction } from './utils';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -16,8 +17,46 @@ window.$ = jQuery;
 
 window.Promise = Promise;
 
+// Global listener for login intent buttons
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-login-intent');
+    if (btn) {
+        const action = btn.dataset.action;
+        const title = btn.dataset.title;
+        const type = btn.dataset.type || 'item';
+        const targetUrl = btn.dataset.resumeurl || (window.location.pathname + window.location.search);
+        if (action && title) {
+            queueAction(action, title, targetUrl, type);
+        }
+        if (btn.tagName !== 'A') {
+            e.preventDefault();
+            window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
+    }
+});
+
 // Init the service worker first since it does caching
 initServiceWorker();
+
+// Auto-resume user intent if redirected
+document.addEventListener('DOMContentLoaded', function() {
+    const actionToResume = sessionStorage.getItem('resume_action');
+    if (actionToResume) {
+        sessionStorage.removeItem('resume_action');
+    }
+
+    if (actionToResume) {
+        let attempts = 0;
+        const interval = setInterval(function() {
+            attempts++;
+            if (window.__modalsLoaded || attempts > 20) {
+                clearInterval(interval);
+                const btn = document.querySelector(`[data-action="${actionToResume}"]`);
+                if (btn) btn.click();
+            }
+        }, 100);
+    }
+});
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
@@ -248,7 +287,10 @@ jQuery(function() {
                 if ($shareModalLinks.length) {
                     module.initShareModal($shareModalLinks);
                 }
+                window.__modalsLoaded = true;
             });
+    } else {
+        window.__modalsLoaded = true;
     }
 
 
