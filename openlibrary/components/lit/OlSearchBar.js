@@ -423,7 +423,7 @@ export class OlSearchBar extends LitElement {
         .search-outer { position: relative; }
 
         .input-row {
-            display: flex; align-items: center;
+            display: flex; align-items: center; gap: 6px;
             background: white; border: 1.5px solid hsl(0,0%,78%); border-radius: 8px;
             padding: 6px 8px; transition: border-color .15s, box-shadow .15s;
             cursor: text;
