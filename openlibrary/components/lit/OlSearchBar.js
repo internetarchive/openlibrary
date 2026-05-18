@@ -754,7 +754,7 @@ export class OlSearchBar extends LitElement {
                         placeholder="Filter languages…"
                         selected-heading="Selected"
                         suggestions-heading="Languages"
-                        clear-label="Clear"
+                        clear-label="Clear selections"
                         @ol-select-popover-change=${e => this._emitFilter('languages', e.detail.selected)}
                     >
                         <button slot="trigger" type="button"

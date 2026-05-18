@@ -251,12 +251,13 @@ export class OlFacetDrop extends LitElement {
 
         .footer {
             border-top: 1px solid hsl(0,0%,90%); background: white;
-            padding: 5px 10px; display: flex; justify-content: flex-end;
+            padding: 5px 10px; display: flex; justify-content: center;
         }
         .clear {
+            width: 100%;
             font-size: 11px; color: hsl(0,72%,38%); background: none; border: none;
-            cursor: pointer; padding: 3px 8px; border-radius: 4px; font-family: inherit;
-            font-weight: 500; transition: background .1s;
+            cursor: pointer; padding: 6px 8px; border-radius: 4px; font-family: inherit;
+            font-weight: 500; transition: background .1s; text-align: center;
         }
         .clear:hover { background: hsl(0,72%,95%); }
     `;

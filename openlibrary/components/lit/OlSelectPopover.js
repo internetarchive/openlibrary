@@ -312,6 +312,7 @@ export class OlSelectPopover extends LitElement {
         }
 
         .clear-button {
+            width: 100%;
             padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             background: transparent;
             border: 1px solid transparent;
@@ -321,6 +322,7 @@ export class OlSelectPopover extends LitElement {
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
+            text-align: center;
         }
 
         @media (hover: hover) and (pointer: fine) {
