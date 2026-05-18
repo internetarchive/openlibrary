@@ -540,8 +540,10 @@ export class OlSearchBar extends LitElement {
         .pf-bar {
             display:flex; border-bottom:1px solid hsl(0,0%,90%);
             background:hsl(0,0%,98.5%);
+            overflow-x: auto; scrollbar-width: none;
         }
-        .pf-wrap { flex:1; position:relative; display:flex; }
+        .pf-bar::-webkit-scrollbar { display: none; }
+        .pf-wrap { flex:1; min-width: max-content; position:relative; display:flex; }
         .pf-wrap + .pf-wrap { border-left:1px solid hsl(0,0%,90%); }
         .pf-wrap--cog { flex:0 0 38px; }
         .pf-wrap--first { border-bottom-left-radius:9px; }
@@ -713,8 +715,6 @@ export class OlSearchBar extends LitElement {
         .mob-back-btn:hover { color: hsl(202,96%,28%); }
 
         @media (max-width: 600px) {
-            .pf-bar { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
-            .pf-bar::-webkit-scrollbar { display: none; }
             .pf-btn { font-size: 10px; padding: 11px 4px; }
             .submit { padding: 6px 10px; }
             :host(:not(.mobile-exp)) .ac-scroll { max-height: 40vh; }
