@@ -7,7 +7,6 @@ import web
 
 from infogami import config
 
-
 logger = logging.getLogger("openlibrary")
 
 INVALIDATING_ERRORS = [
