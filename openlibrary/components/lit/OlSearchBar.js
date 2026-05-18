@@ -552,7 +552,7 @@ export class OlSearchBar extends LitElement {
         .pf-wrap--last  .pf-btn { border-bottom-right-radius:9px; }
         .pf-btn {
             flex:1; padding:7px 4px; border:none; background:transparent;
-            font-size:11px; font-family:inherit; color:hsl(0,0%,35%);
+            font-size:11px; font-weight:500; font-family:inherit; color:hsl(0,0%,35%);
             cursor:pointer; display:flex; align-items:center; justify-content:center;
             gap:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
             transition:background .08s;
