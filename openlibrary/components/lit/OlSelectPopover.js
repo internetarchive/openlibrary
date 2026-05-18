@@ -90,6 +90,13 @@ export class OlSelectPopover extends LitElement {
             font-family: var(--font-family-body);
         }
 
+        /* When the host is overridden to flex (e.g. in facet bar), let the inner
+           ol-popover stretch to fill the full container width/height. */
+        ol-popover {
+            flex: 1;
+            align-self: stretch;
+        }
+
         /* ── Default trigger ─────────────────────────────────────── */
 
         .default-trigger {
