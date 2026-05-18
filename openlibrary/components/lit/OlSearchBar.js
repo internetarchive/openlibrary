@@ -1,13 +1,15 @@
 import { LitElement, html, css, nothing } from 'lit';
 import {
-    POPULAR_AUTHORS, POPULAR_SUBJECTS,
+    POPULAR_AUTHORS, POPULAR_SUBJECTS, AVAILABILITY_OPTIONS, LANGUAGE_OPTIONS, SORT_OPTIONS,
     EMPTY_FILTERS, shufflePick, bestEdition,
-    getSortLabel, buildChips,
+    buildChips,
 } from './search/filters.js';
 import { BREAKPOINTS } from './search/breakpoints.js';
 import { fetchAuthorSuggestions, fetchSubjectSuggestions } from './search/facets.js';
 import './OlHowtoModal.js';
 import './OlFacetDrop.js';
+import './OlFacetSelect.js';
+import './OlSelectPopover.js';
 
 /**
  * Unified search bar used in two modes:
@@ -578,7 +580,26 @@ export class OlSearchBar extends LitElement {
         .pf-btn:hover  { background:hsl(0,0%,95%); color:hsl(202,96%,28%); }
         .pf-btn.active { color:hsl(202,96%,28%); font-weight:600; }
         .pf-caret { font-size:10px; opacity:.5; flex-shrink:0; }
-        .pf-sort-icon { font-size:11px; opacity:.7; flex-shrink:0; }
+
+        /* OL primitive selectors within the facet bar — match pf-btn visual style */
+        .pf-wrap > ol-facet-select {
+            flex:1; align-self:stretch;
+            --ol-trigger-bg: transparent;
+            --ol-trigger-border-right: none;
+            --ol-trigger-border-radius: 0;
+            --ol-trigger-padding: 7px 4px;
+            --ol-trigger-font-size: 11px;
+            --ol-trigger-min-height: 0;
+            color: hsl(0,0%,35%);
+            font-family: inherit;
+        }
+        .pf-wrap > ol-facet-select:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
+        .pf-wrap > ol-select-popover {
+            flex:1; align-self:stretch;
+        }
+        .pf-wrap > ol-select-popover > [slot="trigger"] {
+            width: 100%; height: 100%;
+        }
 
         .clear-btn {
             flex-shrink:0; background:none; border:none; cursor:pointer;
@@ -645,7 +666,8 @@ export class OlSearchBar extends LitElement {
         .ac-see-all:hover { background:hsl(202,96%,28%); }
 
         @media (max-width: 785px) {
-            .search-outer { display: flex; justify-content: flex-end; }
+            :host { height: 100%; }
+            .search-outer { display: flex; justify-content: flex-end; align-items: center; height: 100%; }
             .input-row,
             .input-row:focus-within,
             .search-outer.open .input-row {
@@ -653,7 +675,8 @@ export class OlSearchBar extends LitElement {
                 padding: 0; border-radius: 8px; flex: none; gap: 6px;
             }
             .input-row .trigger-btn { display: none; }
-            .input-row .submit { margin-left: 0; }
+            .input-row .submit { margin-left: 0; padding: 6px 8px; }
+            .scan-sep { display: none; }
         }
 
         :host(.mobile-exp) {
@@ -702,37 +725,31 @@ export class OlSearchBar extends LitElement {
     _facetLabel(name) {
         const f = this._localFilters;
         switch (name) {
-        case 'sort':    return getSortLabel(f.sort ?? '');
-        case 'avail':   return 'Availability';
-        case 'lang':    return f.languages?.length  ? `Language (${f.languages.length})`  : 'Language';
         case 'genre': {
             const total = (f.genres?.length ?? 0) + (f.fictionFilter ? 1 : 0);
             return total ? `Genre (${total})` : 'Genre';
         }
-        case 'author':  return f.authors?.length    ? `Author (${f.authors.length})`    : 'Author';
-        case 'subject': return f.subjects?.length   ? `Subject (${f.subjects.length})`  : 'Subject';
+        case 'author':  return f.authors?.length  ? `Author (${f.authors.length})`   : 'Author';
+        case 'subject': return f.subjects?.length ? `Subject (${f.subjects.length})` : 'Subject';
         }
     }
 
     _isFacetActive(name) {
         const f = this._localFilters;
         switch (name) {
-        case 'sort':    return !!f.sort;
-        case 'avail':   return !!f.availability;
-        case 'lang':    return f.languages?.length  > 0;
         case 'genre':   return (f.genres?.length > 0) || !!f.fictionFilter;
-        case 'author':  return f.authors?.length    > 0;
-        case 'subject': return f.subjects?.length   > 0;
+        case 'author':  return f.authors?.length  > 0;
+        case 'subject': return f.subjects?.length > 0;
         }
     }
 
-    _renderFacetBtn(name, right = false, extraClass = '') {
+    _renderFacetBtn(name, right = false) {
         return html`
-            <div class="pf-wrap ${extraClass}">
+            <div class="pf-wrap">
                 <button class="pf-btn ${this._isFacetActive(name) ? 'active' : ''}"
                         aria-expanded=${this._openFacet === name ? 'true' : 'false'}
                         @click=${e => this._toggleFacet(name, e)}>
-                    ${name === 'sort' ? html`<span class="pf-sort-icon" aria-hidden="true">⇅</span>` : ''}${this._facetLabel(name)}<span class="pf-caret" aria-hidden="true">▾</span>
+                    ${this._facetLabel(name)}<span class="pf-caret" aria-hidden="true">▾</span>
                 </button>
                 ${this._openFacet === name ? html`
                     <ol-facet-drop
@@ -755,11 +772,48 @@ export class OlSearchBar extends LitElement {
     }
 
     _renderFacetBar() {
-        const facets = ['avail', 'lang', 'genre', 'subject', 'author', 'sort'];
-        const mid    = Math.floor((facets.length - 1) / 2);
+        const f = this._localFilters;
         return html`
             <div class="pf-bar">
-                ${facets.map((name, i) => this._renderFacetBtn(name, i > mid, i === 0 ? 'pf-wrap--first' : ''))}
+                <div class="pf-wrap pf-wrap--first">
+                    <ol-facet-select
+                        accessible-label="Availability"
+                        .options=${AVAILABILITY_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+                        .value=${f.availability ?? ''}
+                        @ol-facet-select-change=${e => this._emitFilter('availability', e.detail.value)}
+                    ></ol-facet-select>
+                </div>
+                <div class="pf-wrap">
+                    <ol-select-popover
+                        label="Language"
+                        .items=${LANGUAGE_OPTIONS}
+                        .selected=${f.languages ?? []}
+                        placeholder="Filter languages…"
+                        selected-heading="Selected"
+                        suggestions-heading="Languages"
+                        clear-label="Clear"
+                        @ol-select-popover-change=${e => this._emitFilter('languages', e.detail.selected, true)}
+                    >
+                        <button slot="trigger" type="button"
+                                class="pf-btn ${(f.languages ?? []).length ? 'active' : ''}">
+                            ${(f.languages ?? []).length
+        ? `Language (${f.languages.length})`
+        : 'Language'}
+                            <span class="pf-caret" aria-hidden="true">▾</span>
+                        </button>
+                    </ol-select-popover>
+                </div>
+                ${this._renderFacetBtn('genre', false)}
+                ${this._renderFacetBtn('subject', true)}
+                ${this._renderFacetBtn('author', true)}
+                <div class="pf-wrap">
+                    <ol-facet-select
+                        accessible-label="Sort by"
+                        .options=${SORT_OPTIONS}
+                        .value=${f.sort ?? ''}
+                        @ol-facet-select-change=${e => this._emitFilter('sort', e.detail.value)}
+                    ></ol-facet-select>
+                </div>
                 <div class="pf-wrap pf-wrap--cog pf-wrap--last">
                     <button class="pf-btn" title="Search help"
                             @click=${e => { e.stopPropagation(); this._howtoOpen = true; }}>⚙️</button>

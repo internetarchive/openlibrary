@@ -52,15 +52,16 @@ export class OlFacetSelect extends LitElement {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 0 8px;
+            padding: var(--ol-trigger-padding, 0 8px);
             height: 100%;
-            min-height: 34px;
-            background: transparent;
+            min-height: var(--ol-trigger-min-height, 34px);
+            background: var(--ol-trigger-bg, transparent);
             border: none;
-            border-right: 1px solid var(--color-border-subtle, #ddd);
+            border-right: var(--ol-trigger-border-right, 1px solid var(--color-border-subtle, #ddd));
+            border-radius: var(--ol-trigger-border-radius, 0);
             color: var(--darker-grey, #333);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--ol-trigger-font-size, 14px);
             font-weight: 500;
             line-height: 1.4;
             cursor: pointer;
@@ -70,7 +71,7 @@ export class OlFacetSelect extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .trigger:hover {
-                background: var(--lightest-grey, #f5f5f5);
+                background: var(--ol-trigger-bg-hover, var(--lightest-grey, #f5f5f5));
             }
         }
 

@@ -1,7 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 import {
-    SORT_OPTIONS, AVAILABILITY_OPTIONS, LANGUAGE_OPTIONS, GENRE_OPTIONS, FICTION_OPTIONS,
+    GENRE_OPTIONS, FICTION_OPTIONS,
     toggleArrayValue,
 } from './search/filters.js';
 
@@ -10,7 +10,7 @@ import {
  *
  * @element ol-facet-drop
  *
- * @prop {String}  name            - 'sort'|'avail'|'lang'|'genre'|'author'|'subject'
+ * @prop {String}  name            - 'genre'|'author'|'subject'
  * @prop {Boolean} right           - align dropdown to right edge
  * @prop {Object}  filters         - current filter state
  * @prop {Array}   authorResults   - author search results from parent
@@ -36,7 +36,6 @@ export class OlFacetDrop extends LitElement {
         defaultSubjects: { type: Array },
         facetsLoading: { type: Boolean },
 
-        _langSearch: { state: true },
         _genreSearch: { state: true },
         _authorSearch: { state: true },
         _subjectSearch: { state: true },
@@ -52,7 +51,6 @@ export class OlFacetDrop extends LitElement {
         this.defaultAuthors  = [];
         this.defaultSubjects = [];
         this.facetsLoading   = false;
-        this._langSearch    = '';
         this._genreSearch   = '';
         this._authorSearch  = '';
         this._subjectSearch = '';
@@ -94,7 +92,6 @@ export class OlFacetDrop extends LitElement {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         }
         :host([right]) { left: auto; right: 0; }
-        :host([name="avail"]) { min-width: 300px; }
 
         .section-hdr {
             padding: 5px 12px 4px;
@@ -144,11 +141,6 @@ export class OlFacetDrop extends LitElement {
         .fiction-section { background: hsl(270,20%,97%); padding: 2px 0; }
         .fiction-sep { height: 1px; background: hsl(0,0%,88%); }
 
-        .avail-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-        .avail-sub { font-size: 11px; color: hsl(0,0%,55%); font-weight: normal; line-height: 1.35; }
-        .avail-sub a { color: hsl(202,96%,37%); text-decoration: none; }
-        .avail-sub a:hover { text-decoration: underline; }
-
         .scroll { max-height: 220px; overflow-y: auto; }
 
         .item {
@@ -161,8 +153,7 @@ export class OlFacetDrop extends LitElement {
         .item.sel    { background: hsl(202,96%,97%); font-weight: 600; color: hsl(202,96%,28%); }
         :host([name="avail"]) .item { padding: 10px 14px; align-items: flex-start; }
         :host([name="avail"]) .scroll { max-height: none; }
-        .item input[type="checkbox"],
-        .item input[type="radio"] { accent-color: hsl(202,96%,37%); flex-shrink: 0; cursor: pointer; }
+        .item input[type="checkbox"] { accent-color: hsl(202,96%,37%); flex-shrink: 0; cursor: pointer; }
         .count { margin-left: auto; font-size: 11px; color: hsl(0,0%,55%); }
         .empty { padding: 10px 12px; font-size: 12px; color: hsl(0,0%,55%); text-align: center; }
         .hint  { padding: 6px 12px; font-size: 11px; color: hsl(0,0%,55%); font-style: italic; }
@@ -194,83 +185,6 @@ export class OlFacetDrop extends LitElement {
         return html`<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
         </svg>`;
-    }
-
-    _renderSort(f) {
-        return html`
-            <div class="section-hdr">Sort by</div>
-            <div class="scroll">
-                ${SORT_OPTIONS.map(o => html`
-                    <button class="item ${f.sort === o.value ? 'sel' : ''}"
-                            @click=${() => this._change('sort', o.value)}>
-                        <input type="radio" .checked=${f.sort === o.value} readonly> ${o.label}
-                    </button>`)}
-            </div>`;
-    }
-
-    _renderAvail(f) {
-        return html`
-            <div class="section-hdr">Availability</div>
-            <div class="scroll">
-                ${AVAILABILITY_OPTIONS.map(o => html`
-                    <button class="item ${f.availability === o.value ? 'sel' : ''}"
-                            @click=${() => this._change('availability', o.value)}>
-                        <input type="radio" .checked=${f.availability === o.value} readonly>
-                        <span class="avail-body">
-                            <span>${o.label}</span>
-                            <span class="avail-sub">
-                                ${(o.subParts ?? []).map(p => p.href
-        ? html`<a href=${p.href} target="_blank" rel="noopener"
-                                               @click=${e => e.stopPropagation()}>${p.text}</a>`
-        : p.text)}
-                            </span>
-                        </span>
-                        <span class="count">${o.staticCount}</span>
-                    </button>`)}
-            </div>`;
-    }
-
-    _renderLang(f) {
-        const selected     = f.languages ?? [];
-        const selOpts      = LANGUAGE_OPTIONS.filter(o => selected.includes(o.value));
-        const unselVisible = LANGUAGE_OPTIONS.filter(o =>
-            !selected.includes(o.value) &&
-            (!this._langSearch || o.label.toLowerCase().includes(this._langSearch.toLowerCase()))
-        );
-        return html`
-            <div class="search-wrap">
-                <span class="search-icon">${this._searchSvg}</span>
-                <input class="search-input" placeholder="Filter languages…" .value=${this._langSearch}
-                       @input=${e => { this._langSearch = e.target.value; }}
-                       @click=${e => e.stopPropagation()}>
-            </div>
-            ${selOpts.length ? html`
-                <div class="section-hdr">Selected</div>
-                ${selOpts.map(o => html`
-                    <button class="item sel"
-                            @click=${() => this._change('languages', toggleArrayValue(selected, o.value), true)}>
-                        <input type="checkbox" .checked=${true} readonly> ${o.label}
-                    </button>`)}
-                <div class="section-sep"></div>
-            ` : ''}
-            <div class="section-hdr">${selOpts.length ? 'Suggestions' : 'Languages'}</div>
-            <div class="scroll">
-                ${unselVisible.length === 0
-        ? html`<div class="empty">${this._langSearch ? 'No matches' : 'All selected'}</div>`
-        : ''}
-                ${repeat(unselVisible, o => o.value, o => html`
-                    <button class="item"
-                            @click=${() => this._change('languages', toggleArrayValue(selected, o.value), true)}>
-                        <input type="checkbox" .checked=${false} readonly> ${o.label}
-                    </button>`)}
-            </div>
-            ${selected.length ? html`
-                <div class="footer">
-                    <button class="clear"
-                            @click=${e => { e.stopPropagation(); this._change('languages', []); }}>
-                        Clear selections
-                    </button>
-                </div>` : ''}`;
     }
 
     _renderGenre(f) {
@@ -433,9 +347,6 @@ export class OlFacetDrop extends LitElement {
     render() {
         const f = this.filters ?? {};
         switch (this.name) {
-        case 'sort':    return this._renderSort(f);
-        case 'avail':   return this._renderAvail(f);
-        case 'lang':    return this._renderLang(f);
         case 'genre':   return this._renderGenre(f);
         case 'author':  return this._renderAuthor(f);
         case 'subject': return this._renderSubject(f);
