@@ -4,7 +4,7 @@ import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', function(e) {
             handleRatingSubmission(e, form);
         });
     }
