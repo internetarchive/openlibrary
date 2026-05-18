@@ -7214,6 +7214,14 @@ msgstr ""
 msgid "Review"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "Add a review"
+msgstr ""
+
+#: type/edition/modal_links.html
+msgid "Add a note"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -8289,6 +8297,26 @@ msgstr ""
 
 #: ShareModal.html
 msgid "QR Code"
+msgstr ""
+
+#: StarRatings.html
+msgid "Rate 1 star"
+msgstr ""
+
+#: StarRatings.html
+msgid "Rate 2 stars"
+msgstr ""
+
+#: StarRatings.html
+msgid "Rate 3 stars"
+msgstr ""
+
+#: StarRatings.html
+msgid "Rate 4 stars"
+msgstr ""
+
+#: StarRatings.html
+msgid "Rate 5 stars"
 msgstr ""
 
 #: StarRatings.html

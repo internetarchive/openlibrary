@@ -18,7 +18,7 @@ $var title: $header_title
     $if ctx.user:
       $ pending_action_msg = mb.get_pending_action_banner()
       $if pending_action_msg:
-        <div id="pending-action-container">
+        <div id="pending-action-container" class="pending-action-container">
           $:render_template('site/banner', pending_action_msg, 'pending_action', cookie_duration_days=1)
         </div>
         <script>
