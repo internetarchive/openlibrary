@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlPopover.js';
@@ -17,8 +17,12 @@ let _idCounter = 0;
  *
  * @element ol-facet-select
  *
- * @prop {Array}  options         - List of `{ value, label }` objects.
+ * @prop {Array}  options         - List of `{ value, label, count?, subParts? }` objects.
+ *     `count` (String)  — shown after the label (e.g. "~50M").
+ *     `subParts` (Array) — description parts: `[{ text, href? }]`.
  * @prop {String} value           - Currently selected value.
+ * @prop {String} triggerLabel    - Fixed text for the trigger button. When set,
+ *     the trigger always shows this text instead of the selected option's label.
  * @prop {String} accessibleLabel - Accessible label forwarded to the popover dialog.
  *
  * @fires ol-facet-select-change - Fired when the user picks an option.
@@ -35,6 +39,7 @@ export class OlFacetSelect extends LitElement {
     static properties = {
         options: { type: Array },
         value: { type: String },
+        triggerLabel: { type: String, attribute: 'trigger-label' },
         accessibleLabel: { type: String, attribute: 'accessible-label' },
         _isOpen: { state: true },
     };
@@ -116,7 +121,7 @@ export class OlFacetSelect extends LitElement {
         /* ── Panel ──────────────────────────────────────────────── */
 
         .panel {
-            min-width: 130px;
+            min-width: 220px;
         }
 
         ul {
@@ -157,6 +162,48 @@ export class OlFacetSelect extends LitElement {
             background: hsla(202, 96%, 37%, 0.08);
             color: var(--link-blue, #0070b8);
             font-weight: 600;
+        }
+
+        li button {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 2px;
+        }
+
+        .opt-main {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .opt-count {
+            font-size: 12px;
+            color: var(--accessible-grey, #666);
+            font-weight: 400;
+            flex-shrink: 0;
+        }
+
+        li[aria-selected="true"] .opt-count {
+            color: inherit;
+            opacity: 0.75;
+        }
+
+        .opt-desc {
+            font-size: 11px;
+            color: var(--accessible-grey, #666);
+            font-weight: 400;
+            line-height: 1.3;
+        }
+
+        li[aria-selected="true"] .opt-desc {
+            color: inherit;
+            opacity: 0.75;
+        }
+
+        .opt-desc a {
+            color: inherit;
+            text-decoration: underline;
         }
     `;
 
@@ -201,7 +248,7 @@ export class OlFacetSelect extends LitElement {
         ? `${this.accessibleLabel}: ${this._selectedLabel}`
         : undefined)}
                 >
-                    ${this._selectedLabel}
+                    ${this.triggerLabel || this._selectedLabel}
                     ${OlFacetSelect._chevronIcon}
                 </button>
 
@@ -219,7 +266,18 @@ export class OlFacetSelect extends LitElement {
                                     type="button"
                                     data-value=${o.value}
                                     @click=${this._onSelect}
-                                >${o.label}</button>
+                                >
+                                    <span class="opt-main">
+                                        ${o.label}
+                                        ${o.count ? html`<span class="opt-count">${o.count}</span>` : nothing}
+                                    </span>
+                                    ${o.subParts?.length ? html`
+                                        <span class="opt-desc">
+                                            ${o.subParts.map(p => p.href
+        ? html`<a href=${p.href} target="_blank" rel="noopener">${p.text}</a>`
+        : p.text)}
+                                        </span>` : nothing}
+                                </button>
                             </li>
                         `)}
                     </ul>

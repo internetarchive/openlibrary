@@ -731,7 +731,11 @@ export class OlSearchBar extends LitElement {
                 <div class="pf-wrap pf-wrap--first">
                     <ol-facet-select
                         accessible-label="Availability"
-                        .options=${AVAILABILITY_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
+                        trigger-label="Availability"
+                        .options=${AVAILABILITY_OPTIONS.map(o => ({
+        value: o.value, label: o.label,
+        count: o.staticCount, subParts: o.subParts,
+    }))}
                         .value=${f.availability ?? ''}
                         @ol-facet-select-change=${e => this._emitFilter('availability', e.detail.value)}
                     ></ol-facet-select>
