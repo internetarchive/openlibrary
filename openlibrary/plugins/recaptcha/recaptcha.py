@@ -5,6 +5,9 @@ import logging
 import requests
 import web
 
+from infogami import config
+
+
 logger = logging.getLogger("openlibrary")
 
 INVALIDATING_ERRORS = [
@@ -34,7 +37,7 @@ class Recaptcha(web.form.Input):
             return not any(error in INVALIDATING_ERRORS for error in error_codes)
 
         i = web.input()
-        url = "https://www.recaptcha.net/recaptcha/api/siteverify"
+        url = config.get("recaptcha_url")
         params = {
             "secret": self._private_key,
             "response": i.get("g-recaptcha-response"),
