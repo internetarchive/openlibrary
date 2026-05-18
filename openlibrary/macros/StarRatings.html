@@ -14,23 +14,30 @@ $ form_id = "ratingsForm%s" % id
   <div class="review" id="starRatingSection$id">
     <div class="stars" data-ol-link-track="StarRating|BookRated">
       $ NUM_STARS = 5
-      $for star in range(1, NUM_STARS + 1)
+      $for star in range(1, NUM_STARS + 1):
+        $ title = work.title if work else (edition.get('title', '') if edition else '')
+        $ s1, s2 = _("Rate 1 star"), _("Rate 2 stars")
+        $ s3, s4 = _("Rate 3 stars"), _("Rate 4 stars")
+        $ actions = [None, s1, s2, s3, s4, _("Rate 5 stars")]
+        $ data_attr = get_preserve_intent_attrs(actions[star], title, "book")
+
         <input type="submit" value="$star" name="rating"
           $if rating == star:
             class="star-$star star-selected"
           $else:
             class="star-$star"
           id="star-$star$id" />
-        <label class="star star-$star $('star-selected' if rating==star else '')"
+        <label class="star star-$star $('star-selected' if rating==star else '') $('js-login-intent' if not ctx.user else '')"
           $ properties = []
           $if star == rating:
-            $ properties.append("ratingValue")
+            $ _dummy = properties.append("ratingValue")
           $if star == 1:
-            $ properties.append("worstRating")
-          $elif (star == NUM_STARS):
-            $ properties.append("bestRating")
+            $ _dummy = properties.append("worstRating")
+          $if star == NUM_STARS:
+            $ _dummy = properties.append("bestRating")
           $if properties:
             property="$(' '.join(properties))"
+          $:data_attr
           for="star-$star$id">$star</label>
       $# Empty span is necessary. It displays the filled stars.
       <span></span>

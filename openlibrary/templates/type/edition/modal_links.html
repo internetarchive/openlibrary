@@ -1,27 +1,33 @@
 $def with (work, edition, page_url, mobile=False)
 
-$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None):
+$def icon_link(link_class, img_src, link_text, login_redirect=True, ga_data=None, action_name=None):
   $ href = 'javascript:;'
+  $ data_attr = ''
+
+  $ title = work.title if work else edition.get('title', '')
+  $ action = action_name if action_name else link_text
+  $ data_attr = get_preserve_intent_attrs(action, title, "book")
+
   $if not ctx.user and login_redirect:
-    $# Change classname to avoid adding click listeners and redirect to login page:
+    $ link_class = '%s--redirect js-login-intent' % link_class
     $ href = '/account/login?redirect=%s' % ctx.path
-    $ link_class = '%s--redirect' % link_class
 
   $ ga_attr = 'data-ol-link-track=%s' % ga_data if ga_data else ''
-  <a href="$href" class="$link_class icon-link" $ga_attr>
+
+  <a href="$href" class="$link_class icon-link" $ga_attr $:data_attr>
     <img class="icon-link__image" src="$img_src" alt="">
     <div class="icon-link__text">$link_text</div>
   </a>
 
 <div class="modal-links $('mobile' if mobile else 'desktop')">
   $if work and work.get('key', ''):
-    $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon")
+    $ review_content = icon_link("observations-modal-link", "/static/images/icons/reviews.svg", _("Review"), ga_data="ModalLinkClick|ReviewIcon", action_name=_("Add a review"))
     $:macros.ObservationsModal(work, review_content, 'sidebar-review')
 
     $if mobile:
       $:macros.StarRatings(work, edition, id="--mobile")
 
-    $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon")
+    $ notes_content = icon_link("notes-modal-link", "/static/images/icons/notes.svg", _("Notes"), ga_data="ModalLinkClick|NoteIcon", action_name=_("Add a note"))
     $:macros.NotesModal(work, edition, notes_content, 'sidebar-notes')
 
   $if ctx.get('share_links'):

@@ -4,7 +4,7 @@ import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             handleRatingSubmission(e, form);
         });
     }
@@ -33,7 +33,8 @@ function handleRatingSubmission(event, form) {
         })
             .then((response) => {
                 if (response.status === 401) {
-                    throw new Error('You must be logged in to rate books');
+                    window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                    return;
                 }
                 if (!response.ok) {
                     throw new Error('Ratings update failed');
