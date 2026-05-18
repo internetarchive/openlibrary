@@ -267,10 +267,10 @@ class Cache:
 
 class MemoryCache(Cache):
     """Cache implementation in memory.
-    
-    Note: expires is ignored. Values stay until deleted or cleared. 
+
+    Note: expires is ignored. Values stay until deleted or cleared.
     Use MemcacheCache if you need expiration.
-"""
+    """
 
     def __init__(self):
         self.d = {}
@@ -355,7 +355,6 @@ class MemcacheCache(Cache):
         value = self.memcache.delete(key)
         stats.end()
         return value
-
 
 
 memory_cache = MemoryCache()
