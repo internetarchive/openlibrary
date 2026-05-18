@@ -3,7 +3,7 @@
 ##
 ## This file enables more of the architecture that runs on production in order to make changes
 ## testable locally. It does *not* enable things like increased memory usage/etc, so it should
-## run on a typical development machine, but will create more containers indicatave of production.
+## run on a typical development machine, but will create more containers indicative of production.
 ##
 ## Currently supported features:
 ## - Solr replication with 1 leader and 1 follower

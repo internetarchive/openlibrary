@@ -791,6 +791,7 @@
       <str name="enable">${ol.replication.role.leader:false}</str>
       <str name="replicateAfter">commit</str>
       <str name="replicateAfter">startup</str>
+      <!-- Not used/tested; will likely need to include files like: managed-schema.xml,stopwords.txt,synonyms.txt,protwords.txt,wordtypes.txt,enumsConfig.xml,lang/* -->
       <str name="confFiles">schema.xml,stopwords.txt,synonyms.txt</str>
     </lst>
     <lst name="follower">
