@@ -30,13 +30,14 @@ $ rev = page.latest_revision or page.revision
                 <th class="historyheader">$_("When")</th>
                 <th class="historyheader">$_("Who")</th>
                 <th class="historyheader">$_("Comment")</th>
-                <th class="historyheader" colspan="2" style="text-align:center;">$_("Diff")</th>
+                <th class="historyheader" style="text-align:center;">$_("Compare Against...")</th>
+                <th class="historyheader" style="text-align:center;">$_("Pick (A/B)")</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td colspan="4"></td>
-                <td colspan="1" style="text-align:center;">
+                <td colspan="5"></td>
+                <td style="text-align:center;">
                     <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
                 </td>
             </tr>
@@ -51,23 +52,38 @@ $ rev = page.latest_revision or page.revision
                     $else:
                         <td class="history" style="vertical-align: top;">$v.ip</td>
                     <td class="comment">$:render_template("history/comment", v)</td>
-                    <td class="compare" style="text-align:center;">
-                        <input type="radio" id="a$v.revision" name="a" title="$_('Compare this version...')" value="$v.revision"
-                        $if v.revision == rev - 1:
-                            checked
-                        $elif v.revision == rev:
-                            checked
-                        />
-                        &nbsp;&nbsp;&nbsp;
-                        <input type="radio" id="b$v.revision" name="b" title="$_('...to this version')" value="$v.revision"
+                    <td class="compare-against" style="text-align:center;">
+                        $if v.revision > 1:
+                            <a href="$page.key?m=diff&b=$v.revision">$_("previous")</a>
+                        $else:
+                            <span>$_("previous")</span>
+                        &nbsp;
                         $if v.revision == rev:
-                            checked
-                        />
+                            <span>$_("current")</span>
+                        $else:
+                            <a href="$page.key?m=diff&b=$rev&a=$v.revision">$_("current")</a>
+                    </td>
+                    <td class="pick-ab">
+                        <fieldset>
+                            <legend class="shift">
+                                $_("Pick revision %s as A or B for comparison", v.revision)
+                            </legend>
+                            <label><input type="radio" name="a" value="$v.revision"
+                                $if v.revision == rev - 1:
+                                    checked
+                                $elif v.revision == rev:
+                                checked
+                            /> A</label>
+                            <label><input type="radio" name="b" value="$v.revision"
+                                $if v.revision == rev:
+                                checked
+                            /> B</label>
+                        </fieldset>
                     </td>
                 </tr>
             <tr>
-                <td colspan="4"></td>
-                <td colspan="1" style="text-align:center;">
+                <td colspan="5"></td>
+                <td style="text-align:center;">
                     <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
                 </td>
             </tr>
