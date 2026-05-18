@@ -575,6 +575,12 @@ export class OlSearchBar extends LitElement {
         .pf-wrap > ol-facet-drop:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
         .pf-wrap > ol-select-popover {
             flex:1; align-self:stretch;
+            /* ol-select-popover is inline-block, which makes its flex-stretched
+               cross-size non-definite for child % resolution (unlike inline-flex).
+               Overriding display to inline-flex matches ol-facet-drop/:host behavior
+               and makes height:100% on the slotted trigger resolve correctly. */
+            display: inline-flex; align-items: stretch;
+            --ol-popover-trigger-align: stretch;
         }
         .pf-wrap > ol-select-popover > [slot="trigger"] {
             width: 100%; height: 100%;

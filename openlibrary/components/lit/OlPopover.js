@@ -73,7 +73,7 @@ export class OlPopover extends LitElement {
     static styles = css`
         :host {
             display: inline-flex;
-            align-items: center;
+            align-items: var(--ol-popover-trigger-align, center);
             position: relative;
         }
 
