@@ -1,4 +1,4 @@
-$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None)
+$def with(ocaid, analytics_attr, borrow=False, listen=False, loan=None, label='', printdisabled=False, edition_key=None, book_title='')
 
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
@@ -18,12 +18,17 @@ $else:
   $ title = _("Read ebook from Internet Archive")
   $ analytics_action = "Read"
 
+$ user = get_current_user()
+$ data_attr = get_preserve_intent_attrs(label, book_title, "book") if (not user and book_title and action == 'borrow') else ""
+$ login_class = "js-login-intent" if data_attr else ""
+
 $ menu_items = [listen, edition_key]
 $ is_carousel = "BookCarousel" in str(analytics_attr(analytics_action))
 $if any(menu_items) and not is_carousel:
   <div class="cta-dropper cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
         $:analytics_attr(analytics_action)
+        $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
@@ -49,8 +54,9 @@ $if any(menu_items) and not is_carousel:
   </div>
 $else:
   <div class="cta-button-group">
-    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action)"
+    <a href="$(stream_url)" title="$title" class="cta-btn cta-btn--ia cta-btn--available cta-btn--$(action) $(login_class)"
         $:analytics_attr(analytics_action)
+        $:data_attr
         $if loan:
           data-userid="$(loan['userid'])"
         >$label</a>
