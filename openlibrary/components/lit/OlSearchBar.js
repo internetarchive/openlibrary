@@ -40,7 +40,6 @@ export class OlSearchBar extends LitElement {
         _loading: { state: true },
         _total: { state: true },
         _localFilters: { state: true },
-        _openFacet: { state: true },
         _howtoOpen: { state: true },
         _authorResults: { state: true },
         _subjectResults: { state: true },
@@ -70,7 +69,6 @@ export class OlSearchBar extends LitElement {
         this._timer         = null;
         this._localFilters  = { ...EMPTY_FILTERS };
 
-        this._openFacet       = null;
         this._howtoOpen       = false;
         this._authorResults   = [];
         this._subjectResults  = [];
@@ -84,7 +82,6 @@ export class OlSearchBar extends LitElement {
         this._acAbort         = null;
         this._authorAbort     = null;
         this._subjectAbort    = null;
-        this._lastFacetBtn    = null;
 
         this._onWinResize = () => {
             if (!this._open) return;
@@ -101,13 +98,7 @@ export class OlSearchBar extends LitElement {
 
         this._onDoc = e => {
             const path = e.composedPath();
-            if (!path.includes(this)) {
-                this._closePanel();
-            } else if (this._openFacet !== null) {
-                const inFacetDrop = path.some(el => el?.tagName === 'OL-FACET-DROP');
-                const inFacetBtn  = path.some(el => el?.classList?.contains?.('pf-btn'));
-                if (!inFacetDrop && !inFacetBtn) this._openFacet = null;
-            }
+            if (!path.includes(this)) this._closePanel();
         };
     }
 
@@ -140,9 +131,6 @@ export class OlSearchBar extends LitElement {
         }
         if (!this.showFacets && changed.has('filters') && this.filters) {
             this._localFilters = { ...this.filters };
-        }
-        if (changed.has('_openFacet') && changed.get('_openFacet') !== null && this._openFacet === null) {
-            this._lastFacetBtn?.focus();
         }
         this.classList.toggle('mobile-exp', this._mobileExpanded);
         if (changed.has('_open')) {
@@ -203,14 +191,12 @@ export class OlSearchBar extends LitElement {
         if (window.matchMedia(`(max-width: ${BREAKPOINTS.mobile}px)`).matches) {
             this._mobileExpanded = true;
         }
-        this._openFacet = null;
     }
 
     _closePanel() {
-        this._open          = false;
+        this._open           = false;
         this._mobileExpanded = false;
-        this._openFacet     = null;
-        this._acFocusIdx    = -1;
+        this._acFocusIdx     = -1;
     }
 
     _onInput(e) {
@@ -343,9 +329,8 @@ export class OlSearchBar extends LitElement {
             for (const [field, empty] of fields) {
                 const cur = f[field];
                 const isDiff = Array.isArray(cur) ? cur.length > 0 : cur !== empty;
-                if (isDiff) this._emitFilter(field, empty, true);
+                if (isDiff) this._emitFilter(field, empty);
             }
-            this._openFacet = null;
         } else {
             this.dispatchEvent(new CustomEvent('ol-clear-all-filters', {
                 bubbles: true, composed: true,
@@ -379,26 +364,19 @@ export class OlSearchBar extends LitElement {
         }
     }
 
-    _emitFilter(filter, value, keepOpen = false) {
+    _emitFilter(filter, value) {
         this._localFilters = { ...this._localFilters, [filter]: value };
         this.dispatchEvent(new CustomEvent('ol-filter-change', {
             detail: { filter, value }, bubbles: true, composed: true,
         }));
-        if (!keepOpen) this._openFacet = null;
         this._open = true;
         clearTimeout(this._timer);
         this._loading = true;
         this._timer = setTimeout(() => this._fetchAutocomplete(), 150);
     }
 
-    _toggleFacet(name, e) {
-        e.stopPropagation();
-        if (this._openFacet !== name) this._lastFacetBtn = e.currentTarget;
-        this._openFacet = this._openFacet === name ? null : name;
-    }
-
     _onDropFacetChange(e) {
-        this._emitFilter(e.detail.filter, e.detail.value, e.detail.keepOpen);
+        this._emitFilter(e.detail.filter, e.detail.value);
     }
 
     _onDropAuthorSearch(e) {
@@ -579,10 +557,10 @@ export class OlSearchBar extends LitElement {
         }
         .pf-btn:hover  { background:hsl(0,0%,95%); color:hsl(202,96%,28%); }
         .pf-btn.active { color:hsl(202,96%,28%); font-weight:600; }
-        .pf-caret { font-size:10px; opacity:.5; flex-shrink:0; }
 
         /* OL primitive selectors within the facet bar — match pf-btn visual style */
-        .pf-wrap > ol-facet-select {
+        .pf-wrap > ol-facet-select,
+        .pf-wrap > ol-facet-drop {
             flex:1; align-self:stretch;
             --ol-trigger-bg: transparent;
             --ol-trigger-border-right: none;
@@ -590,15 +568,31 @@ export class OlSearchBar extends LitElement {
             --ol-trigger-padding: 7px 4px;
             --ol-trigger-font-size: 11px;
             --ol-trigger-min-height: 0;
-            color: hsl(0,0%,35%);
+            --darker-grey: hsl(0,0%,35%);
             font-family: inherit;
         }
-        .pf-wrap > ol-facet-select:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
+        .pf-wrap > ol-facet-select:hover,
+        .pf-wrap > ol-facet-drop:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
         .pf-wrap > ol-select-popover {
             flex:1; align-self:stretch;
         }
         .pf-wrap > ol-select-popover > [slot="trigger"] {
             width: 100%; height: 100%;
+        }
+
+        /* SVG chevron for Language slot="trigger" button */
+        .pf-chevron {
+            display: inline-block;
+            width: 12px; height: 12px;
+            flex-shrink: 0;
+            opacity: .55;
+            transition: transform 150ms ease-out;
+        }
+        .pf-wrap > ol-select-popover[data-open] > [slot="trigger"] .pf-chevron {
+            transform: rotate(180deg);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .pf-chevron { transition: none; }
         }
 
         .clear-btn {
@@ -616,6 +610,7 @@ export class OlSearchBar extends LitElement {
         .ac-error {
             padding:16px; text-align:center; font-size:13px;
             color:hsl(0,72%,40%); background:hsl(0,72%,97%);
+            border-bottom-left-radius: 6.5px; border-bottom-right-radius: 6.5px;
         }
         .ac-row {
             display:flex; align-items:center; gap:12px; padding:10px 14px;
@@ -672,11 +667,10 @@ export class OlSearchBar extends LitElement {
             .input-row:focus-within,
             .search-outer.open .input-row {
                 border: none; box-shadow: none; background: transparent;
-                padding: 0; border-radius: 8px; flex: none; gap: 6px;
+                padding: 0; border-radius: 8px; flex: none;
             }
             .input-row .trigger-btn { display: none; }
             .input-row .submit { margin-left: 0; padding: 6px 8px; }
-            .scan-sep { display: none; }
         }
 
         :host(.mobile-exp) {
@@ -722,57 +716,16 @@ export class OlSearchBar extends LitElement {
         }
     `;
 
-    _facetLabel(name) {
-        const f = this._localFilters;
-        switch (name) {
-        case 'genre': {
-            const total = (f.genres?.length ?? 0) + (f.fictionFilter ? 1 : 0);
-            return total ? `Genre (${total})` : 'Genre';
-        }
-        case 'author':  return f.authors?.length  ? `Author (${f.authors.length})`   : 'Author';
-        case 'subject': return f.subjects?.length ? `Subject (${f.subjects.length})` : 'Subject';
-        }
-    }
-
-    _isFacetActive(name) {
-        const f = this._localFilters;
-        switch (name) {
-        case 'genre':   return (f.genres?.length > 0) || !!f.fictionFilter;
-        case 'author':  return f.authors?.length  > 0;
-        case 'subject': return f.subjects?.length > 0;
-        }
-    }
-
-    _renderFacetBtn(name, right = false) {
-        return html`
-            <div class="pf-wrap">
-                <button class="pf-btn ${this._isFacetActive(name) ? 'active' : ''}"
-                        aria-expanded=${this._openFacet === name ? 'true' : 'false'}
-                        @click=${e => this._toggleFacet(name, e)}>
-                    ${this._facetLabel(name)}<span class="pf-caret" aria-hidden="true">▾</span>
-                </button>
-                ${this._openFacet === name ? html`
-                    <ol-facet-drop
-                        .name=${name}
-                        ?right=${right}
-                        .filters=${this._localFilters}
-                        .authorResults=${this._authorResults}
-                        .subjectResults=${this._subjectResults}
-                        .defaultAuthors=${this._defaultAuthors}
-                        .defaultSubjects=${this._defaultSubjects}
-                        .facetsLoading=${this._facetsLoading}
-                        @ol-facet-change=${this._onDropFacetChange}
-                        @ol-facet-search-authors=${this._onDropAuthorSearch}
-                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
-                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
-                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
-                    ></ol-facet-drop>
-                ` : ''}
-            </div>`;
-    }
-
     _renderFacetBar() {
         const f = this._localFilters;
+        const facetDropProps = {
+            filters: this._localFilters,
+            authorResults: this._authorResults,
+            subjectResults: this._subjectResults,
+            defaultAuthors: this._defaultAuthors,
+            defaultSubjects: this._defaultSubjects,
+            facetsLoading: this._facetsLoading,
+        };
         return html`
             <div class="pf-bar">
                 <div class="pf-wrap pf-wrap--first">
@@ -792,20 +745,71 @@ export class OlSearchBar extends LitElement {
                         selected-heading="Selected"
                         suggestions-heading="Languages"
                         clear-label="Clear"
-                        @ol-select-popover-change=${e => this._emitFilter('languages', e.detail.selected, true)}
+                        @ol-select-popover-change=${e => this._emitFilter('languages', e.detail.selected)}
                     >
                         <button slot="trigger" type="button"
                                 class="pf-btn ${(f.languages ?? []).length ? 'active' : ''}">
                             ${(f.languages ?? []).length
         ? `Language (${f.languages.length})`
         : 'Language'}
-                            <span class="pf-caret" aria-hidden="true">▾</span>
+                            <svg class="pf-chevron" xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                 aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
                     </ol-select-popover>
                 </div>
-                ${this._renderFacetBtn('genre', false)}
-                ${this._renderFacetBtn('subject', true)}
-                ${this._renderFacetBtn('author', true)}
+                <div class="pf-wrap">
+                    <ol-facet-drop
+                        name="genre"
+                        placement="bottom-start"
+                        .filters=${facetDropProps.filters}
+                        .authorResults=${facetDropProps.authorResults}
+                        .subjectResults=${facetDropProps.subjectResults}
+                        .defaultAuthors=${facetDropProps.defaultAuthors}
+                        .defaultSubjects=${facetDropProps.defaultSubjects}
+                        .facetsLoading=${facetDropProps.facetsLoading}
+                        @ol-facet-change=${this._onDropFacetChange}
+                        @ol-facet-search-authors=${this._onDropAuthorSearch}
+                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
+                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
+                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
+                    ></ol-facet-drop>
+                </div>
+                <div class="pf-wrap">
+                    <ol-facet-drop
+                        name="subject"
+                        placement="bottom-end"
+                        .filters=${facetDropProps.filters}
+                        .authorResults=${facetDropProps.authorResults}
+                        .subjectResults=${facetDropProps.subjectResults}
+                        .defaultAuthors=${facetDropProps.defaultAuthors}
+                        .defaultSubjects=${facetDropProps.defaultSubjects}
+                        .facetsLoading=${facetDropProps.facetsLoading}
+                        @ol-facet-change=${this._onDropFacetChange}
+                        @ol-facet-search-authors=${this._onDropAuthorSearch}
+                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
+                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
+                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
+                    ></ol-facet-drop>
+                </div>
+                <div class="pf-wrap">
+                    <ol-facet-drop
+                        name="author"
+                        placement="bottom-end"
+                        .filters=${facetDropProps.filters}
+                        .authorResults=${facetDropProps.authorResults}
+                        .subjectResults=${facetDropProps.subjectResults}
+                        .defaultAuthors=${facetDropProps.defaultAuthors}
+                        .defaultSubjects=${facetDropProps.defaultSubjects}
+                        .facetsLoading=${facetDropProps.facetsLoading}
+                        @ol-facet-change=${this._onDropFacetChange}
+                        @ol-facet-search-authors=${this._onDropAuthorSearch}
+                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
+                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
+                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
+                    ></ol-facet-drop>
+                </div>
                 <div class="pf-wrap">
                     <ol-facet-select
                         accessible-label="Sort by"

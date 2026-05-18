@@ -4,14 +4,16 @@ import {
     GENRE_OPTIONS, FICTION_OPTIONS,
     toggleArrayValue,
 } from './search/filters.js';
+import './OlPopover.js';
 
 /**
- * Single facet dropdown panel — shared by the header search bar and search-page filter bar.
+ * Multi-select facet dropdown for genre, author, and subject.
+ * Composes `<ol-popover>` for animation, focus trap, and dismissal.
  *
  * @element ol-facet-drop
  *
  * @prop {String}  name            - 'genre'|'author'|'subject'
- * @prop {Boolean} right           - align dropdown to right edge
+ * @prop {String}  placement       - OlPopover placement (default 'bottom-start')
  * @prop {Object}  filters         - current filter state
  * @prop {Array}   authorResults   - author search results from parent
  * @prop {Array}   subjectResults  - subject search results from parent
@@ -27,8 +29,8 @@ import {
  */
 export class OlFacetDrop extends LitElement {
     static properties = {
-        name: { type: String,  reflect: true },
-        right: { type: Boolean, reflect: true },
+        name: { type: String },
+        placement: { type: String },
         filters: { type: Object },
         authorResults: { type: Array },
         subjectResults: { type: Array },
@@ -36,6 +38,7 @@ export class OlFacetDrop extends LitElement {
         defaultSubjects: { type: Array },
         facetsLoading: { type: Boolean },
 
+        _isOpen: { state: true },
         _genreSearch: { state: true },
         _authorSearch: { state: true },
         _subjectSearch: { state: true },
@@ -44,16 +47,40 @@ export class OlFacetDrop extends LitElement {
     constructor() {
         super();
         this.name            = '';
-        this.right           = false;
+        this.placement       = 'bottom-start';
         this.filters         = {};
         this.authorResults   = [];
         this.subjectResults  = [];
         this.defaultAuthors  = [];
         this.defaultSubjects = [];
         this.facetsLoading   = false;
+        this._isOpen        = false;
         this._genreSearch   = '';
         this._authorSearch  = '';
         this._subjectSearch = '';
+    }
+
+    get _label() {
+        const f = this.filters ?? {};
+        switch (this.name) {
+        case 'genre': {
+            const total = (f.genres?.length ?? 0) + (f.fictionFilter ? 1 : 0);
+            return total ? `Genre (${total})` : 'Genre';
+        }
+        case 'author':  return f.authors?.length  ? `Author (${f.authors.length})`   : 'Author';
+        case 'subject': return f.subjects?.length ? `Subject (${f.subjects.length})` : 'Subject';
+        default: return this.name;
+        }
+    }
+
+    get _isActive() {
+        const f = this.filters ?? {};
+        switch (this.name) {
+        case 'genre':   return (f.genres?.length > 0) || !!f.fictionFilter;
+        case 'author':  return f.authors?.length  > 0;
+        case 'subject': return f.subjects?.length > 0;
+        default: return false;
+        }
     }
 
     _change(filter, value, keepOpen = false) {
@@ -76,22 +103,88 @@ export class OlFacetDrop extends LitElement {
         }));
     }
 
+    _onOpen() {
+        this._isOpen = true;
+        this.setAttribute('data-open', '');
+        requestAnimationFrame(() => {
+            const input = this.shadowRoot?.querySelector('.search-input, .search-inline');
+            input?.focus();
+        });
+    }
+
+    _onClose() {
+        this._isOpen = false;
+        this.removeAttribute('data-open');
+    }
+
     static styles = css`
         :host {
-            display: block;
-            position: absolute;
-            top: calc(100% + 2px);
-            left: 0;
-            min-width: 210px;
-            background: white;
-            border: 1px solid hsl(0,0%,82%);
-            border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0,0,0,.14);
-            z-index: 700;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            display: inline-flex;
+            align-items: stretch;
+            font-family: var(--font-family-body, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
         }
-        :host([right]) { left: auto; right: 0; }
+
+        /* stretch ol-popover to fill the host */
+        ol-popover {
+            flex: 1;
+            align-self: stretch;
+        }
+
+        /* ── Trigger button (matches OlFacetSelect) ─────────────── */
+
+        .trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: var(--ol-trigger-padding, 0 8px);
+            height: 100%;
+            min-height: var(--ol-trigger-min-height, 34px);
+            flex: 1;
+            background: var(--ol-trigger-bg, transparent);
+            border: none;
+            border-right: var(--ol-trigger-border-right, 1px solid var(--color-border-subtle, #ddd));
+            border-radius: var(--ol-trigger-border-radius, 0);
+            color: var(--darker-grey, #333);
+            font: inherit;
+            font-size: var(--ol-trigger-font-size, 14px);
+            font-weight: 500;
+            line-height: 1.4;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 100ms ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .trigger:hover {
+                background: var(--ol-trigger-bg-hover, var(--lightest-grey, #f5f5f5));
+            }
+        }
+
+        .trigger:active { transform: scale(0.97); }
+        .trigger:focus { outline: none; }
+        .trigger:focus-visible {
+            outline: 2px solid var(--color-focus-ring, #0070b8);
+            outline-offset: -2px;
+        }
+
+        .trigger-chevron {
+            display: inline-block;
+            width: 14px; height: 14px;
+            flex-shrink: 0;
+            color: var(--accessible-grey, #666);
+            transition: transform 150ms ease-out;
+        }
+
+        :host([data-open]) .trigger-chevron { transform: rotate(180deg); }
+
+        @media (prefers-reduced-motion: reduce) {
+            .trigger-chevron { transition: none; }
+        }
+
+        /* ── Panel content ──────────────────────────────────────── */
+
+        .panel { min-width: 210px; }
 
         .section-hdr {
             padding: 5px 12px 4px;
@@ -151,8 +244,6 @@ export class OlFacetDrop extends LitElement {
         }
         .item:hover  { background: hsl(202,96%,96%); color: hsl(202,96%,28%); }
         .item.sel    { background: hsl(202,96%,97%); font-weight: 600; color: hsl(202,96%,28%); }
-        :host([name="avail"]) .item { padding: 10px 14px; align-items: flex-start; }
-        :host([name="avail"]) .scroll { max-height: none; }
         .item input[type="checkbox"] { accent-color: hsl(202,96%,37%); flex-shrink: 0; cursor: pointer; }
         .count { margin-left: auto; font-size: 11px; color: hsl(0,0%,55%); }
         .empty { padding: 10px 12px; font-size: 12px; color: hsl(0,0%,55%); text-align: center; }
@@ -168,18 +259,15 @@ export class OlFacetDrop extends LitElement {
             font-weight: 500; transition: background .1s;
         }
         .clear:hover { background: hsl(0,72%,95%); }
-
-        @media (max-width: 600px) {
-            :host { max-width: calc(100vw - 8px); left: 0; right: auto; }
-            :host([right]) { left: auto; right: 0; }
-            .item { padding: 11px 14px; }
-        }
     `;
 
-    firstUpdated() {
-        const input = this.shadowRoot?.querySelector('input[type="text"], .search-input, .search-inline');
-        input?.focus();
-    }
+    static _chevronIcon = html`
+        <svg class="trigger-chevron" xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+             aria-hidden="true">
+            <path d="m6 9 6 6 6-6"/>
+        </svg>`;
 
     get _searchSvg() {
         return html`<svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
@@ -346,12 +434,33 @@ export class OlFacetDrop extends LitElement {
 
     render() {
         const f = this.filters ?? {};
+        let panelContent;
         switch (this.name) {
-        case 'genre':   return this._renderGenre(f);
-        case 'author':  return this._renderAuthor(f);
-        case 'subject': return this._renderSubject(f);
-        default: return html``;
+        case 'genre':   panelContent = this._renderGenre(f);   break;
+        case 'author':  panelContent = this._renderAuthor(f);  break;
+        case 'subject': panelContent = this._renderSubject(f); break;
+        default: panelContent = html``;
         }
+
+        return html`
+            <ol-popover
+                placement=${this.placement}
+                aria-label=${`Filter by ${this.name}`}
+                @ol-popover-open=${this._onOpen}
+                @ol-popover-close=${this._onClose}
+            >
+                <button
+                    slot="trigger"
+                    type="button"
+                    class="trigger"
+                    aria-haspopup="dialog"
+                >
+                    ${this._label}
+                    ${OlFacetDrop._chevronIcon}
+                </button>
+                <div class="panel">${panelContent}</div>
+            </ol-popover>
+        `;
     }
 }
 

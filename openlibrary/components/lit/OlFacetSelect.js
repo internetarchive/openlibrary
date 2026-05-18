@@ -46,15 +46,23 @@ export class OlFacetSelect extends LitElement {
             font-family: var(--font-family-body);
         }
 
+        /* stretch ol-popover to fill the host */
+        ol-popover {
+            flex: 1;
+            align-self: stretch;
+        }
+
         /* ── Trigger button ─────────────────────────────────────── */
 
         .trigger {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 4px;
             padding: var(--ol-trigger-padding, 0 8px);
             height: 100%;
             min-height: var(--ol-trigger-min-height, 34px);
+            flex: 1;
             background: var(--ol-trigger-bg, transparent);
             border: none;
             border-right: var(--ol-trigger-border-right, 1px solid var(--color-border-subtle, #ddd));
