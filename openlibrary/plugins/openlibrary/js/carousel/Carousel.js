@@ -169,6 +169,10 @@ export class Carousel {
                 }
                 loadMore.locked = false;
             })
+            .fail(() => {
+                this.removeLoadingSlide();
+                loadMore.locked = false;
+            })
     }
 
     clearCarousel() {
