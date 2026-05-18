@@ -565,6 +565,13 @@ export class OlPopover extends LitElement {
             top = pad;
         }
 
+        // For bottom placement: never let the panel slide up over the trigger button.
+        // If the panel is too tall for the available space, it will overflow the
+        // viewport bottom — the panel's internal scroll handles the remainder.
+        if (side === 'bottom') {
+            top = Math.max(top, anchor.bottom + gap);
+        }
+
         // Compute transform-origin so the animation radiates from the trigger.
         // The origin is expressed relative to the panel's top-left corner.
         const originY = side === 'bottom' ? 'top' : 'bottom';
