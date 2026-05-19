@@ -30,10 +30,12 @@ document.addEventListener('click', function(e) {
         }
         if (btn.tagName !== 'A') {
             e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
             window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
         }
     }
-});
+}, true);
 
 // Init the service worker first since it does caching
 initServiceWorker();
