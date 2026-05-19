@@ -15,7 +15,7 @@ export class OlHowtoModal extends LitElement {
     constructor() {
         super();
         this.open = false;
-        this._onKey = e => { if (e.key === 'Escape') this._close(); };
+        this._onKey = e => { if (this.open && e.key === 'Escape') this._close(); };
     }
 
     connectedCallback() {
@@ -75,7 +75,7 @@ export class OlHowtoModal extends LitElement {
                         <button class="close-btn" @click=${this._close} aria-label="Close">×</button>
                     </div>
                     <iframe
-                        src="https://openlibrary.org/search/howto"
+                        src="/search/howto"
                         title="Open Library Search Help"
                         loading="lazy">
                     </iframe>

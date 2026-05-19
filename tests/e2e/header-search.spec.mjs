@@ -92,13 +92,18 @@ test.describe('Header Search — Desktop', () => {
 
     test('autocomplete: shows results after 3+ characters', async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('header#header-bar input[name="q"]');
+        await expect(page.locator('ol-search-bar')).toBeVisible({ timeout: 5000 });
 
-        const input = page.locator('header#header-bar input[name="q"]').first();
+        // Open the panel, then type into the panel input (shadow DOM)
+        await page.locator('ol-search-bar .trigger-btn').first().click();
+        const input = page.locator('ol-search-bar .panel-input').first();
+        await expect(input).toBeVisible();
         await input.fill('dune');
 
-        // Wait for autocomplete results to appear (debounced at 500ms)
-        await page.waitForSelector('header#header-bar .search-results li', { timeout: 5000 }).catch(() => null);
+        // Results are inside shadow DOM; debounce is 300ms + network
+        const results = page.locator('ol-search-bar .suggestion-row');
+        await expect(results.first()).toBeVisible({ timeout: 8000 });
+
         await page.screenshot({ path: screenshotPath('05-autocomplete-results'), clip: { x: 0, y: 0, width: 600, height: 400 } });
     });
 });

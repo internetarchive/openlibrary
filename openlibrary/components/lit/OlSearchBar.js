@@ -145,8 +145,8 @@ export class OlSearchBar extends LitElement {
             this._localFilters = { ...this.filters };
         }
         this.classList.toggle('mobile-exp', this._mobileExpanded);
-        if (changed.has('_open')) {
-            const shouldLock = this._open && this.showFacets;
+        if (changed.has('_open') || changed.has('_mobileExpanded')) {
+            const shouldLock = this._mobileExpanded;
             if (shouldLock && !this._scrollLockActive) {
                 this._prevBodyOverflow            = document.body.style.overflow;
                 this._prevDocumentOverflow        = document.documentElement.style.overflow;
@@ -161,7 +161,7 @@ export class OlSearchBar extends LitElement {
                 this._prevDocumentOverflow  = undefined;
             }
         }
-        if (changed.has('_open') && this._open && this.showFacets) {
+        if ((changed.has('_open') || changed.has('_mobileExpanded')) && this._open && this.showFacets) {
             if (!this._mobileExpanded) this._positionPanel();
             requestAnimationFrame(() => this.shadowRoot?.querySelector('.panel-input')?.focus());
         }
@@ -237,6 +237,7 @@ export class OlSearchBar extends LitElement {
             // OL search API: /search.json with OL-specific param names
             const p = new URLSearchParams({ limit: 5 });
             p.set('fields', 'key,title,author_name,cover_i,first_publish_year,ratings_average,ebook_access,editions');
+            p.set('mode', this._readMode());
             if (q)               p.set('q', q);
             if (f.availability)  p.set('availability', f.availability);
             // OL uses 'subject' for fiction, genres, and subjects (all map to subject param)
@@ -295,6 +296,10 @@ export class OlSearchBar extends LitElement {
         if (e.key === 'Enter') this._submit();
     }
 
+    _readMode() {
+        try { return localStorage.getItem('mode') || 'everything'; } catch { return 'everything'; }
+    }
+
     _buildSearchUrl(q, f = {}) {
         const p = new URLSearchParams();
         if (q) p.set('q', q);
@@ -305,6 +310,7 @@ export class OlSearchBar extends LitElement {
         (f.genres    ?? []).forEach(g => p.append('subject', g));
         (f.authors   ?? []).forEach(a => p.append('author', a));
         (f.subjects  ?? []).forEach(s => p.append('subject', s));
+        p.set('mode', this._readMode());
         // siteBase may be '' in OL — fall back to origin for URL construction
         const base = this.siteBase || window.location.origin;
         const url = new URL('/search', base);
@@ -813,7 +819,8 @@ export class OlSearchBar extends LitElement {
                     ></ol-facet-select>
                 </div>
                 <div class="facet-item facet-item--cog facet-item--last">
-                    <button class="facet-btn" title="Search help"
+                    <button class="facet-btn" type="button"
+                            aria-label="Search help" title="Search help"
                             @click=${this._openHowto}>⚙️</button>
                 </div>
             </div>
@@ -854,7 +861,6 @@ export class OlSearchBar extends LitElement {
                             <a class="suggestion-row ${this._acFocusIdx === idx ? 'focused' : ''}"
                                id="ac-opt-${idx}"
                                href="${this.siteBase}${linkKey}"
-                               target="_blank" rel="noopener"
                                role="option"
                                @click=${() => this._closePanel()}>
                                 ${cover
