@@ -882,16 +882,6 @@ class unlink_ia_ol(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = web.ctx.site.get_many(edition_keys)
-        if len(editions) > 1:
-            raise web.HTTPError(
-                "409 Conflict",
-                {"Content-Type": "application/json"},
-                data=json.dumps(
-                    {"error": "Multiple editions associated with given ocaid"}
-                ),
-            )
-
-        edition = editions[0]
 
         # Update records
         try:
