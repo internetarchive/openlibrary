@@ -36,7 +36,12 @@ function handleRatingSubmission(event, form) {
                 if (response.status === 401) {
                     if (event.submitter && event.submitter.id) {
                         const label = form.querySelector(`label[for="${event.submitter.id}"]`);
-                        queueAction(label.dataset.action, label.dataset.title, window.location.pathname + window.location.search, label.dataset.type);
+                        if (label) {
+                            const { action, title, type } = label.dataset;
+                            if (action && title && type) {
+                                queueAction(action, title, window.location.pathname + window.location.search, type);
+                            }
+                        }
                     }
                     window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
                     return;

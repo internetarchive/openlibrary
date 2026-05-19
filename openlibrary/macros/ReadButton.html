@@ -19,7 +19,7 @@ $else:
   $ analytics_action = "Read"
 
 $ user = get_current_user()
-$ data_attr = get_preserve_intent_attrs(label, book_title, "book") if (action == 'borrow') else ""
+$ data_attr = get_preserve_intent_attrs(label, book_title, "book", "/books/%s" % edition_key) if (action == 'borrow') else ""
 $ login_class = "js-login-intent" if (data_attr and not user) else ""
 
 $ menu_items = [listen, edition_key]
