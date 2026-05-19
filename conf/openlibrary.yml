@@ -172,6 +172,8 @@ internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
 
+recaptcha_url: "https://www.recaptcha.net/recaptcha/api/siteverify"
+
 sentry:
     enabled: false
     # Dummy endpoint; where sentry logs are sent to
