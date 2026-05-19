@@ -1,10 +1,11 @@
 import { FadingToast } from '../Toast.js';
 import { findDropperForWork } from '../my-books';
 import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
+import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
-        form.addEventListener('submit', function (e) {
+        form.addEventListener('submit', function(e) {
             handleRatingSubmission(e, form);
         });
     }
@@ -33,6 +34,10 @@ function handleRatingSubmission(event, form) {
         })
             .then((response) => {
                 if (response.status === 401) {
+                    if (event.submitter && event.submitter.id) {
+                        const label = form.querySelector(`label[for="${event.submitter.id}"]`);
+                        queueAction(label.dataset.action, label.dataset.title, window.location.pathname + window.location.search, label.dataset.type);
+                    }
                     window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
                     return;
                 }

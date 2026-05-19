@@ -28,6 +28,7 @@ from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -468,11 +469,14 @@ class MyBooksTemplate:
 
     def get_pending_action_banner(self) -> str:
         cookie = web.cookies().get("pending_action")
-        if not cookie or cookie in ("1"):
+        if not cookie or cookie == "1":
             return ""
 
         try:
             data = json.loads(urllib.parse.unquote(cookie))
+            if not isinstance(data, dict):
+                return ""
+
             action = data.get("action")
             name = data.get("name", "")
             url = data.get("url")
@@ -490,10 +494,10 @@ class MyBooksTemplate:
             )
 
             msg = msg_template % {
-                "url": web.net.websafe(url),
+                "url": web.net.websafe(url if is_safe_redirect(url) else "/"),
                 "raw_action": web.net.websafe(action),
-                "action": action_translated,
-                "type": type_translated,
+                "action": web.net.websafe(action_translated),
+                "type": web.net.websafe(type_translated),
                 "name": web.net.websafe(name),
             }
             return msg

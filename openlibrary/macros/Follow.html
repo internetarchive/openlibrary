@@ -10,7 +10,7 @@ $ user = get_current_user()
 $ subscriber = user and user.key
 $ custom_request_path = request_path if request_path != '' else request.fullpath
 $ link_track_attr = 'data-ol-link-track="%s"' % link_track.replace('"', '&quot;') if link_track else ''
-$ data_attr = get_preserve_intent_attrs(_("Follow"), publisher, "patron", custom_request_path)
+$ data_attr = get_preserve_intent_attrs(_("Follow"), publisher, "patron", custom_request_path) if not following else ''
 
 <div>
   $if user:

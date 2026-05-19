@@ -775,6 +775,19 @@ def get_abbrev_from_full_lang_name(input_lang_name: str, languages=None) -> str:
     return target_abbrev
 
 
+def is_safe_redirect(url: str) -> bool:
+    if not url:
+        return False
+    parsed = urlparse(url)
+    if parsed.netloc or parsed.scheme:
+        return False
+    if not url.startswith("/"):
+        return False
+    if url.startswith("//") or url.startswith("/\\"):
+        return False
+    return True
+
+
 def get_language(lang_or_key: str) -> "None | Thing | Nothing":
     if isinstance(lang_or_key, str):
         return get_languages().get(lang_or_key)

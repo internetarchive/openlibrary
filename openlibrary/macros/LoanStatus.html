@@ -13,7 +13,7 @@ $ loanstatus_start_time = time()
 $ availability = (doc.availability or {}) if hasattr(doc, 'availability') else doc.get('availability', {})
 $ ocaid = doc.get('ocaid') or availability.get('identifier')
 $ work_key = work_key or (doc.get('works') and doc.works[0]['key'])
-$ book_title = doc.title
+$ book_title = doc.get('title') if hasattr(doc, 'get') else getattr(doc, 'title', None)
 
 $ waiting_loan_start_time = time()
 $ user = get_current_user()
@@ -103,7 +103,7 @@ $elif availability.get('is_lendable'):
     $else:
       $# "JOIN-WAITLIST" button
       $ wlsize = availability.get('users_on_waitlist') or availability.get('num_waitlist')
-      $ data_attr = get_preserve_intent_attrs(_('Join Waitlist'), book_title, "book") if not user else ""
+      $ data_attr = get_preserve_intent_attrs(_('Join Waitlist'), book_title, "book")
       $ login_class = "js-login-intent" if not user else ""
       <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
         <input type="hidden" name="action" value="join-waitinglist"/>
