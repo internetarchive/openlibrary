@@ -783,9 +783,7 @@ def is_safe_redirect(url: str) -> bool:
         return False
     if not url.startswith("/"):
         return False
-    if url.startswith("//") or url.startswith("/\\"):
-        return False
-    return True
+    return not url.startswith(("//", "/\\"))
 
 
 def get_language(lang_or_key: str) -> "None | Thing | Nothing":
