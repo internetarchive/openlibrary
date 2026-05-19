@@ -19,6 +19,8 @@
  */
 import { Octokit } from "@octokit/action";
 
+const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i
+
 console.log('Script starting....')
 const octokit = new Octokit()
 await main()
@@ -112,8 +114,6 @@ function parseArgs() {
         prBody: prBody
     }
 }
-
-const CLOSES_REGEX = /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved):?\s+#(\d+)/i
 
 /**
  * Finds first "Closes" statement in the given pull request body, then

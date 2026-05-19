@@ -1,13 +1,15 @@
 """Admin functionality."""
 
 import calendar
-import datetime
+from datetime import date, datetime, timedelta
 
 import requests
 import web
 
 from infogami import config
 from openlibrary.core import cache
+
+from . import db
 
 
 class Stats:
@@ -42,18 +44,13 @@ class Stats:
         def _convert_to_milli_timestamp(d):
             """Uses the `_id` of the document `d` to create a UNIX
             timestamp and converts it to milliseconds"""
-            t = datetime.datetime.strptime(d, "counts-%Y-%m-%d")
+            t = datetime.strptime(d, "counts-%Y-%m-%d")
             return calendar.timegm(t.timetuple()) * 1000
 
         if times:
-            return [
-                [_convert_to_milli_timestamp(x['_key']), x.get(self.key, 0)]
-                for x in self.docs[-ndays:]
-            ]
+            return [[_convert_to_milli_timestamp(x["_key"]), x.get(self.key, 0)] for x in self.docs[-ndays:]]
         else:
-            return zip(
-                range(0, ndays * 5, 5), (x.get(self.key, 0) for x in self.docs[-ndays:])
-            )  # The *5 and 5 are for the bar widths
+            return zip(range(0, ndays * 5, 5), (x.get(self.key, 0) for x in self.docs[-ndays:]))  # The *5 and 5 are for the bar widths
 
     def get_summary(self, ndays=28):
         """Returns the summary of counts for past n days.
@@ -64,21 +61,19 @@ class Stats:
         return sum(x[1] for x in self.get_counts(ndays))
 
 
-@cache.memoize(
-    engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60
-)
+@cache.memoize(engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60)
 def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
     try:
         r = requests.get(
-            'http://graphite.us.archive.org/render',
+            "http://graphite.us.archive.org/render",
             params={
-                'target': 'hitcount(stats.ol.loans.bookreader, "1d")',
-                'from': '-%ddays' % ndays,
-                'tz': 'UTC',
-                'format': 'json',
+                "target": 'hitcount(stats.ol.loans.bookreader, "1d")',
+                "from": "-%ddays" % ndays,
+                "tz": "UTC",
+                "format": "json",
             },
         )
-        return r.json()[0]['datapoints']
+        return r.json()[0]["datapoints"]
     except (requests.exceptions.RequestException, ValueError, AttributeError):
         return None
 
@@ -93,7 +88,7 @@ class LoanStats(Stats):
 
     def get_counts(self, ndays=28, times=False):
         # Let dev.openlibrary.org show the true state of things
-        if 'dev' in config.features:
+        if "dev" in config.features:
             return Stats.get_counts(self, ndays, times)
 
         if graphite_data := _get_loan_counts_from_graphite(ndays):
@@ -103,9 +98,7 @@ class LoanStats(Stats):
             return Stats.get_counts(self, ndays, times)
 
 
-@cache.memoize(
-    engine="memcache", key="admin._get_visitor_counts_from_graphite", expires=5 * 60
-)
+@cache.memoize(engine="memcache", key="admin._get_visitor_counts_from_graphite", expires=5 * 60)
 def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
     """
     Read the unique visitors (IP addresses) per day for the last ndays from graphite.
@@ -123,7 +116,7 @@ def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
             },
         )
         response.raise_for_status()
-        visitors = response.json()[0]['datapoints']
+        visitors = response.json()[0]["datapoints"]
     except requests.exceptions.RequestException:
         visitors = []
     return visitors
@@ -133,9 +126,7 @@ class VisitorStats(Stats):
     def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
         visitors = _get_visitor_counts_from_graphite(ndays)
         # Flip the order, convert timestamp to msec, and convert count==None to zero
-        return [
-            (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
-        ]
+        return [(int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors]
 
 
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)
@@ -144,8 +135,8 @@ def _get_count_docs(ndays):
 
     This function is memoized to avoid accessing the db for every request.
     """
-    today = datetime.datetime.utcnow().date()
-    dates = [today - datetime.timedelta(days=i) for i in range(ndays)]
+    today = date.today()
+    dates = [today - timedelta(days=i) for i in range(ndays)]
 
     # we want the dates in reverse order
     dates.reverse()
@@ -160,19 +151,52 @@ def get_stats(ndays=30, use_mock_data=False):
         return mock_get_stats()
     docs = _get_count_docs(ndays)
     return {
-        'human_edits': Stats(docs, "human_edits", "human_edits"),
-        'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
-        'lists': Stats(docs, "lists", "total_lists"),
-        'visitors': VisitorStats(docs, "visitors", "visitors"),
-        'loans': LoanStats(docs, "loans", "loans"),
-        'members': Stats(docs, "members", "total_members"),
-        'works': Stats(docs, "works", "total_works"),
-        'editions': Stats(docs, "editions", "total_editions"),
-        'ebooks': Stats(docs, "ebooks", "total_ebooks"),
-        'covers': Stats(docs, "covers", "total_covers"),
-        'authors': Stats(docs, "authors", "total_authors"),
-        'subjects': Stats(docs, "subjects", "total_subjects"),
+        "human_edits": Stats(docs, "human_edits", "human_edits"),
+        "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+        "lists": Stats(docs, "lists", "total_lists"),
+        "visitors": VisitorStats(docs, "visitors", "visitors"),
+        "loans": LoanStats(docs, "loans", "loans"),
+        "members": Stats(docs, "members", "total_members"),
+        "works": Stats(docs, "works", "total_works"),
+        "editions": Stats(docs, "editions", "total_editions"),
+        "ebooks": Stats(docs, "ebooks", "total_ebooks"),
+        "covers": Stats(docs, "covers", "total_covers"),
+        "authors": Stats(docs, "authors", "total_authors"),
+        "subjects": Stats(docs, "subjects", "total_subjects"),
     }
+
+
+def get_unique_logins_since(since_days=30):
+    since_date = datetime.now() - timedelta(days=since_days)
+    date_str = since_date.strftime("%Y-%m-%d")
+
+    query = """
+        SELECT COUNT(id) FROM store_index
+            WHERE type = 'account'
+            AND name = 'last_login'
+            AND value > $date
+    """
+
+    oldb = db.get_db()
+    results = list(oldb.query(query, vars={"date": date_str}))
+
+    if not results:
+        return 0
+    return results[0].get("count", 0)
+
+
+def get_cached_unique_logins_since(since_days=30):
+    from openlibrary.plugins.openlibrary.home import caching_prethread
+
+    twelve_hours = 60 * 60 * 12
+    key_prefix = "logins_since"
+    mc = cache.memcache_memoize(
+        get_unique_logins_since,
+        key_prefix=key_prefix,
+        timeout=twelve_hours,
+        prethread=caching_prethread(),
+    )
+    return mc(since_days=since_days)
 
 
 def mock_get_stats():
@@ -190,27 +214,23 @@ def mock_get_stats():
         "authors",
         "subjects",
     ]
-    mockKeyValues = [[(1 + x) * y for x in range(len(keyNames))] for y in range(28)][
-        ::-1
-    ]
+    mockKeyValues = [[(1 + x) * y for x in range(len(keyNames))] for y in range(28)][::-1]
 
     docs = [dict(zip(keyNames, mockKeyValues[x])) for x in range(len(mockKeyValues))]
-    today = datetime.date.today()
+    today = date.today()
     for x in range(28):
-        docs[x]["_key"] = (today - datetime.timedelta(days=x + 1)).strftime(
-            'counts-%Y-%m-%d'
-        )
+        docs[x]["_key"] = (today - timedelta(days=x + 1)).strftime("counts-%Y-%m-%d")
     return {
-        'human_edits': Stats(docs, "human_edits", "human_edits"),
-        'bot_edits': Stats(docs, "bot_edits", "bot_edits"),
-        'lists': Stats(docs, "lists", "total_lists"),
-        'visitors': Stats(docs, "visitors", "visitors"),
-        'loans': Stats(docs, "loans", "loans"),
-        'members': Stats(docs, "members", "total_members"),
-        'works': Stats(docs, "works", "total_works"),
-        'editions': Stats(docs, "editions", "total_editions"),
-        'ebooks': Stats(docs, "ebooks", "total_ebooks"),
-        'covers': Stats(docs, "covers", "total_covers"),
-        'authors': Stats(docs, "authors", "total_authors"),
-        'subjects': Stats(docs, "subjects", "total_subjects"),
+        "human_edits": Stats(docs, "human_edits", "human_edits"),
+        "bot_edits": Stats(docs, "bot_edits", "bot_edits"),
+        "lists": Stats(docs, "lists", "total_lists"),
+        "visitors": Stats(docs, "visitors", "visitors"),
+        "loans": Stats(docs, "loans", "loans"),
+        "members": Stats(docs, "members", "total_members"),
+        "works": Stats(docs, "works", "total_works"),
+        "editions": Stats(docs, "editions", "total_editions"),
+        "ebooks": Stats(docs, "ebooks", "total_ebooks"),
+        "covers": Stats(docs, "covers", "total_covers"),
+        "authors": Stats(docs, "authors", "total_authors"),
+        "subjects": Stats(docs, "subjects", "total_subjects"),
     }

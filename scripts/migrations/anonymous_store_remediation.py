@@ -3,24 +3,19 @@
 Identifies and deletes any remaining `account-email` store entries that are associated
 with anonymized accounts.
 """
+
 import argparse
-from pathlib import Path
 
 import web
 
-import infogami
-from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.setup import setup_for_script
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 
 def setup(config_path):
-    if not Path(config_path).exists():
-        raise FileNotFoundError(f'no config file at {config_path}')
-
-    load_config(config_path)
-    infogami._setup()
+    setup_for_script(config_path)
 
 
 def remediate(test=False):
@@ -40,7 +35,7 @@ def remediate(test=False):
     def fetch_store_key(_username):
         oldb = db.get_db()
         data = {
-            'username': _username,
+            "username": _username,
         }
         query = """
             SELECT s2.value as key_value
@@ -55,7 +50,7 @@ def remediate(test=False):
             """
 
         result = list(oldb.query(query, vars=data))
-        return (result and result[0]['key_value']) or ''
+        return (result and result[0]["key_value"]) or ""
 
     def is_account_active(store_key: str) -> bool:
         """
@@ -63,7 +58,7 @@ def remediate(test=False):
         """
         oldb = db.get_db()
         data = {
-            'key': store_key,
+            "key": store_key,
         }
         query = "SELECT id FROM store WHERE key = $key"
         result = list(oldb.query(query, vars=data))
@@ -73,9 +68,7 @@ def remediate(test=False):
     usernames = fetch_usernames()
 
     for record in usernames:
-        if not is_account_active(f"account/{record['username']}") and (
-            key := fetch_store_key(record['username'])
-        ):
+        if not is_account_active(f"account/{record['username']}") and (key := fetch_store_key(record["username"])):
             print(f"Found affected record with key: {key}")
             if not test:
                 web.ctx.site.store.delete(key)
@@ -107,6 +100,6 @@ def _parse_args():
     return _parser.parse_args()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     _args = _parse_args()
     _args.func(_args)

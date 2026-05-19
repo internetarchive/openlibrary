@@ -20,7 +20,7 @@ def _monkeypatch_web(monkeypatch):
     monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
     _load_fake_context()
-    web.ctx.lang = 'en'
+    web.ctx.lang = "en"
     web.ctx.site = MockSite()
 
 
@@ -36,22 +36,16 @@ def test_sanitize():
     assert h.sanitize('<p class="foo">hello</p>') == '<p class="foo">hello</p>'
 
     # style attribute must be stripped
-    assert h.sanitize('<p style="color: red">hello</p>') == '<p>hello</p>'
+    assert h.sanitize('<p style="color: red">hello</p>') == "<p>hello</p>"
 
     # style tags must be stripped
-    assert (
-        h.sanitize('<style type="text/css">p{color: red;}</style><p>hello</p>')
-        == '<p>hello</p>'
-    )
+    assert h.sanitize('<style type="text/css">p{color: red;}</style><p>hello</p>') == "<p>hello</p>"
 
     # script tags must be stripped
-    assert h.sanitize('<script>alert("dhoom")</script>hello') == 'hello'
+    assert h.sanitize('<script>alert("dhoom")</script>hello') == "hello"
 
     # rel="nofollow" must be added absolute links
-    assert (
-        h.sanitize('<a href="https://example.com">hello</a>')
-        == '<a href="https://example.com" rel="nofollow">hello</a>'
-    )
+    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="nofollow">hello</a>'
     # relative links should pass through
     assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
 
@@ -91,12 +85,12 @@ def test_datestr(monkeypatch):
     assert h.datestr(then, datetime(2010, 1, 2, 0, 0, 1)) == "1 day ago"
 
     assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1)) == "January 1, 2010"
-    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1), lang='fr') == '1 janvier 2010'
+    assert h.datestr(then, datetime(2010, 1, 9, 0, 0, 1), lang="fr") == "1 janvier 2010"
 
 
 def test_sprintf():
-    assert h.sprintf('hello %s', 'python') == 'hello python'
-    assert h.sprintf('hello %(name)s', name='python') == 'hello python'
+    assert h.sprintf("hello %s", "python") == "hello python"
+    assert h.sprintf("hello %(name)s", name="python") == "hello python"
 
 
 def test_commify():

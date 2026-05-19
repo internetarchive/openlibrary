@@ -7,6 +7,9 @@ services:
   web:
     volumes:
       - ./vendor/infogami:/openlibrary/vendor/infogami
+  fast_web:
+    volumes:
+      - ./vendor/infogami:/openlibrary/vendor/infogami
   covers:
     volumes:
       - ./vendor/infogami:/openlibrary/vendor/infogami

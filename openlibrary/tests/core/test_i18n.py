@@ -1,3 +1,4 @@
+import pytest
 import web
 
 # The i18n module should be moved to core.
@@ -25,6 +26,11 @@ class MockLoadTranslations(dict):
 
 
 class Test_ungettext:
+    @pytest.fixture(autouse=True)
+    def setup_context(self, request_context_fixture):
+        """Auto-use fixture to set up request context for all tests."""
+        pass
+
     def setup_monkeypatch(self, monkeypatch):
         self.d = MockLoadTranslations()
         ctx = web.storage()
@@ -34,7 +40,7 @@ class Test_ungettext:
         monkeypatch.setattr(web.webapi, "ctx", web.ctx)
 
         self._load_fake_context()
-        web.ctx.lang = 'en'
+        web.ctx.lang = "en"
         web.ctx.site = MockSite()
 
     def _load_fake_context(self):
@@ -45,40 +51,40 @@ class Test_ungettext:
         }
         self.app.load(self.env)
 
-    def test_ungettext(self, monkeypatch):
+    def test_ungettext(self, monkeypatch, request_context_fixture):
         self.setup_monkeypatch(monkeypatch)
 
         assert i18n.ungettext("book", "books", 1) == "book"
         assert i18n.ungettext("book", "books", 2) == "books"
 
-        web.ctx.lang = 'fr'
+        request_context_fixture(lang="fr")
         self.d.init(
-            'fr',
+            "fr",
             {
-                'book': 'libre',
-                'books': 'libres',
+                "book": "libre",
+                "books": "libres",
             },
         )
 
         assert i18n.ungettext("book", "books", 1) == "libre"
         assert i18n.ungettext("book", "books", 2) == "libres"
 
-        web.ctx.lang = 'te'
+        request_context_fixture(lang="te")
         assert i18n.ungettext("book", "books", 1) == "book"
         assert i18n.ungettext("book", "books", 2) == "books"
 
-    def test_ungettext_with_args(self, monkeypatch):
+    def test_ungettext_with_args(self, monkeypatch, request_context_fixture):
         self.setup_monkeypatch(monkeypatch)
 
         assert i18n.ungettext("one book", "%(n)d books", 1, n=1) == "one book"
         assert i18n.ungettext("one book", "%(n)d books", 2, n=2) == "2 books"
 
-        web.ctx.lang = 'fr'
+        request_context_fixture(lang="fr")
         self.d.init(
-            'fr',
+            "fr",
             {
-                'one book': 'un libre',
-                '%(n)d books': '%(n)d libres',
+                "one book": "un libre",
+                "%(n)d books": "%(n)d libres",
             },
         )
 

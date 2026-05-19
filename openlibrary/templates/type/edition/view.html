@@ -91,7 +91,7 @@ $# Only display the first / primary author
 $ title_suffix = "by " + authors[0].name if authors else ""
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
-$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+$ meta_cover_url = item_image((edition or work).get_cover_url("L"), default="https://openlibrary.org/static/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('cssfile', 'book')
 
 $var title: $title
@@ -180,7 +180,6 @@ $ component_times['get_observation_metrics'] = time() - component_times['get_obs
 $ component_times['affiliate_links component'] = time()
 $ prices = edition.key.startswith('/books/')
 
-$ oclc_numbers = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ isbn_13 = edition.get_isbn13() or None
 $ isbn_10 = edition.get_isbn10() or None
 
@@ -192,10 +191,11 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
+$ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
-$ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+$ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
+$ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
@@ -207,7 +207,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
-      $:macros.databarWork(edition or work, worldcat_links, affiliate_links, editions_page=True, render_times=component_times)
+      $:macros.databarWork(edition or work, worldcat_link, affiliate_links, editions_page=True, render_times=component_times)
     </div>
 
     <div class="editionAbout">
@@ -236,12 +236,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
           $ overview_desc = edition.description
         $else:
           $ overview_desc = work.description
-        <div class="book-description read-more">
-            <div class="read-more__content markdown-content" style="max-height:81px">
-                $:sanitize(format(overview_desc))
-            </div>
-            $:macros.ReadMore()
-        </div>
+        <ol-read-more class="book-description" more-text="$_('Read More')" less-text="$_('Read Less')">
+          $:sanitize(format(overview_desc))
+        </ol-read-more>
       $elif edition:
         <div class="book-description">
             <div class="book-description-content">
@@ -313,7 +310,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       <div class="Tools">
         <div class="panel mobile-vendor">
           <div class="btn-notice">
-            $:worldcat_links
+            $:worldcat_link
 
             <div class="cta-section">
               <p class="cta-section-title">$_('Buy this book')</p>
@@ -327,16 +324,17 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
       $if previews and any([len(e.languages) for e in previews]):
         <p class="preview-languages">
           Previews available in:
+          $ user_lang = get_lang() or 'en'
           $for e in previews:
             $if e.languages[0].name not in seen:
               $ seen.add(e.languages[0].name)
-              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key)</a>
+              <a href="$work.key?edition=$(e.ocaid)">$get_language_name(e.languages[0].key, user_lang)</a>
         </p>
 
     <div class="subjects">
       <div class="subjects-content">
         $ component_times['SubjectsTags'] = time()
-        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"])
+        $:macros.SubjectTags(work, ["Subjects", "People", "Places", "Times"], edit_mode=is_librarian or is_privileged_user)
         $ component_times['SubjectsTags'] = time() - component_times['SubjectsTags']
       </div>
     </div>
@@ -361,12 +359,13 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
           $ table_of_contents = edition.get_table_of_contents()
           $if table_of_contents and len(table_of_contents.entries) > 1:
-            <div class="section read-more">
+            <div class="section">
               <h3>$_("Table of Contents")</h3>
               $ component_times['TableOfContents'] = time()
-              $:macros.TableOfContents(table_of_contents, ocaid, cls='read-more__content', attrs='style="max-height:350px"')
+              <ol-read-more max-height="200px" style="min-height: 241px" more-text="$_('Read More')" less-text="$_('Read Less')">
+                $:macros.TableOfContents(table_of_contents, ocaid)
+              </ol-read-more>
               $ component_times['TableOfContents'] = time() - component_times['TableOfContents']
-              $:macros.ReadMore()
             </div>
 
           $if edition.notes or edition.publish_places or edition.series or edition.volume or edition.genres or edition.other_titles or edition.copyright_date or edition.translation_of or edition.translated_from:
@@ -451,7 +450,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
                 $ is_viewable_book = edition["availability"].get("is_readable", False) or edition["availability"].get("is_lendable", False)
                 $for name, values in edition.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
-                    $if identifier_label != "Internet Archive" or is_viewable_book:
+                    $if identifier_label != "Internet Archive" or is_viewable_book or is_librarian or is_privileged_user:
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             $:display_goodreads("Open Library", [storage(url=None, value=edition.key.split("/")[-1])])
             $for name, values in edition.get_identifiers().multi_items():
@@ -482,12 +481,9 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
 
             $if work.description and work.description != overview_desc:
               <h4>$_("Work Description")</h4>
-              <div class="work-description read-more">
-                <div class="read-more__content" style="max-height:81px">
-                  $:sanitize(format(work.description))
-                </div>
-                $:macros.ReadMore()
-              </div>
+              <ol-read-more more-text="$_('Read More')" less-text="$_('Read Less')">
+                $:sanitize(format(work.description))
+              </ol-read-more>
 
             $if work.original_languages:
               <div class="sansserif smallest">$_("Original languages")</div>
@@ -498,7 +494,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
               <h4>$_("Excerpts")</h4>
               <div class="section">
                 $for excerpt in work.excerpts:
-                  <div class="excerpt addReadMore showlesscontent">
+                  <div class="excerpt">
                     <div class="text">
                       $for line in excerpt.excerpt.split('\n'):
                         $line<br/>
@@ -565,11 +561,7 @@ $ worldcat_links = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_numbers=ocl
     $:render_template("books/RelatedWorksCarousel", work)
   </div>
   $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
-
-  $ component_times['HistoryTable'] = time()
-  $:render_template("lib/history", page)
-  $ component_times['HistoryTable'] = time() - component_times['HistoryTable']
-
+  $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
   $if query_param('debug'):

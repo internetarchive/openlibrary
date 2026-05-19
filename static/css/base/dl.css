@@ -1,0 +1,28 @@
+/**
+ * Definition Lists
+ */
+dd,
+dt {
+  float: left;
+}
+dt {
+  clear: both;
+}
+dl {
+  margin: var(--spacing-stack-sm) 0;
+}
+dl:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+dl dt {
+  padding: 0 var(--spacing-inset-md) var(--spacing-inset-sm) 0;
+  width: 120px;
+}
+dd {
+  max-width: 270px;
+}
+dd + dd {
+  padding-left: var(--spacing-inset-sm);
+}

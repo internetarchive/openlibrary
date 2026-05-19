@@ -33,7 +33,7 @@ $def with (page)
           <li><a href="/developers" title="$_('Explore Open Library Developer Center')">$_("Developer Center")</a></li>
           <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_("API Documentation")</a></li>
           <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_("Bulk Data Dumps")</a></li>
-          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_("Writing Bots")</a></li>
+          <li><a href="https://docs.openlibrary.org/developers/backend/writing-bots.html" title="$_('Write a bot')">$_("Writing Bots")</a></li>
         </ul>
       </div>
       <div>
@@ -44,12 +44,11 @@ $def with (page)
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_("Suggesting Edits")</a></li>
           <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
           <li><a href="https://github.com/internetarchive/openlibrary/releases" title="$_('Release Notes')">$_("Release Notes")</a></li>
-          $# detect-missing-i18n-skip-line
-          <li><a href="$changequery(dict(show_page_status=1))" style="color:transparent;position:absolute;pointer-events:none;" tabindex="-1">Page Status</a></li>
         </ul>
         <aside>
-          <a class="footer-icon" title="$_('Twitter')" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="" loading="lazy"></a>
-          <a class="footer-icon" title="$_('GitHub')" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="" loading="lazy"></a>
+          <a class="footer-icon" title="$_('Bluesky')" href="https://bsky.app/profile/openlibrary.org"><img src="/static/images/bsky.svg" alt="$_('Open Library on Bluesky')" loading="lazy"></a>
+          <a class="footer-icon" title="$_('Twitter')" href="https://twitter.com/OpenLibrary"><img src="/static/images/tweet.svg" alt="$_('Open Library on Twitter')" loading="lazy"></a>
+          <a class="footer-icon" title="$_('GitHub')" href="https://github.com/internetarchive/openlibrary"><img src="/static/images/github.svg" alt="$_('Open Library on GitHub')" loading="lazy"></a>
         </aside>
       </div>
       <div>

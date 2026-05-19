@@ -8,6 +8,7 @@ default_language_version:
 
 ci:
   submodules: true
+  autoupdate_schedule: "monthly"
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -17,7 +18,7 @@ repos:
       - id: check-yaml
       - id: detect-private-key
       - id: end-of-file-fixer
-        types_or: [python]
+        exclude: ^.*\.(po|pot|type|svg|ini|mr|mrc|pg_dump)$
       - id: mixed-line-ending
         args:
           - --fix=lf
@@ -27,36 +28,71 @@ repos:
           - --markdown-linebreak-ext=md
 
   - repo: https://github.com/MarcoGorelli/auto-walrus
-    rev: 0.3.4
+    rev: 0.4.1
     hooks:
       - id: auto-walrus
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.12
-    hooks:
-      - id: ruff-check
-        args: [ --fix ]
-
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-      - id: black  # See pyproject.toml for args
-
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell  # See pyproject.toml for args
         additional_dependencies:
           - tomli
         args: ["--skip", "*.mjs"]
+        exclude: ^(openlibrary/plugins/upstream/utils\.py|openlibrary/catalog/marc/parse\.py|openlibrary/catalog/add_book/match\.py)$
+
+  - repo: https://github.com/abravalheri/validate-pyproject
+    rev: v0.25
+    hooks:
+      - id: validate-pyproject
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
+        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
+        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
+        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
+        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
+        # so the leading | on each line works correctly as an alternation operator.
+        exclude: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+          )$
+
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.3.1
+    hooks:
+      - id: black  # See pyproject.toml for args
+        # Complement to ruff-format above: black runs ONLY on files in active open PRs
+        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
+        files: |
+          (?x)^(
+            openlibrary/accounts/model\.py
+            |openlibrary/core/models\.py
+            |openlibrary/plugins/openlibrary/api\.py
+            |openlibrary/plugins/openlibrary/code\.py
+            |openlibrary/plugins/openlibrary/lists\.py
+            |openlibrary/plugins/worksearch/code\.py
+            |openlibrary/plugins/worksearch/schemes/works\.py
+          )$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.7
+    rev: v0.19.0
     hooks:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.20.2
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -65,38 +101,35 @@ repos:
           - types-python-dateutil
           - types-requests
           - types-simplejson
+          - fastapi
 
-  - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.24.1
+  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
+    rev: 0.0.2
     hooks:
-      - id: validate-pyproject
+      - id: stylelint
+        files: \.css$
+        additional_dependencies:
+          - stylelint@16.22.0
+          - stylelint-declaration-strict-value@1.11.1
+          - stylelint-prettier@5.0.3
+        args: [--fix]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.35.0
+    rev: v9.9.1
     hooks:
       - id: eslint
         types: [file]
         types_or: [javascript, vue]
         additional_dependencies:
-          - eslint@8.49.0
-          - eslint-plugin-no-jquery@2.6.0
-          - eslint-plugin-vue@9.17.0
-          - "@babel/eslint-parser@7.22.15"
-          - "@babel/plugin-syntax-dynamic-import@7.8.3"
-          - "@babel/preset-env@7.22.20"
+          - eslint@9.39.4
+          - "@eslint/js@9.39.4"
+          - eslint-plugin-no-jquery@3.1.1
+          - eslint-plugin-vue@9.32.0
+          - globals@15.14.0
+          - "@babel/eslint-parser@7.24.7"
+          - "@babel/core@7.24.7"
+          - "@babel/preset-env@7.24.7"
         args: [--fix]
-
-  - repo: https://github.com/awebdeveloper/pre-commit-stylelint
-    rev: 0.0.2
-    hooks:
-    - id: stylelint
-      files: \.(css|less)$
-      additional_dependencies:
-        - stylelint@16.19.1
-        - stylelint-declaration-strict-value@1.10.11
-        - postcss-less@6.0.0
-        - stylelint-prettier@5.0.3
-      args: [--fix]
 
   - repo: local
     hooks:
@@ -112,6 +145,9 @@ repos:
         - Babel==2.12.1
         - multipart==0.2.4
         - "git+https://github.com/webpy/webpy.git@d3649322b85777b291ac2b7b3699fb6fc839e382"
+        - fastapi==0.119.0 # annoyingly, these three needed to be added when we started using contextvars in i18n files
+        - simplejson==3.19.1
+        - requests==2.32.4
 
   - repo: local
     hooks:
@@ -121,5 +157,19 @@ repos:
       entry: python ./scripts/detect_missing_i18n.py
       types: [html]
       language: python
-      verbose: true
       require_serial: true
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.1.0
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+        files: \.sql$
+        # Rule exclusions and their rationale are documented in pyproject.toml
+        # under [tool.sqlfluff.core].
+        # patron_data.sql contains raw PostgreSQL COPY data rows with tab-separated
+        # values and \N nulls which sqlfluff cannot parse.
+        # import-partial.sql uses a psql variable placeholder (:source) in a COPY
+        # command which sqlfluff cannot parse.
+        # See: https://github.com/internetarchive/openlibrary/issues/12245
+        exclude: ^(scripts/dev-instance/patron_data\.sql|scripts/solr_builder/sql/import-partial\.sql)$

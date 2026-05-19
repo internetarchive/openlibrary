@@ -1,0 +1,188 @@
+$def with()
+
+<article class="design-pattern" id="select-popover">
+    <h2 class="design-pattern__title">Select Popover</h2>
+    <p class="design-pattern__description">The ol-select-popover component pairs a trigger button with a popover containing a multi-select list and an optional filter input. Selected items group above unselected ones; group order stays stable while open and re-sorts when reopened.</p>
+
+    <section class="example">
+      <h3 class="example__title">Default usage with auto-search (12 items)</h3>
+      <p>With more than <code>8</code> items, a filter input renders automatically. Selected items move to a SELECTED group on next open.</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-select-popover
+  label="Language"
+  placeholder="Filter languages…"
+  unselected-heading="LANGUAGES"
+  items='[{"value":"en","label":"English"}, ...]'&gt;
+&lt;/ol-select-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-select-popover
+          id="demo-select-langs"
+          label="Language"
+          placeholder="Filter languages…"
+          unselected-heading="LANGUAGES"
+          aria-label="Language filter"
+        ></ol-select-popover>
+        <p style="margin-top: 12px; font-size: 13px;">
+          Selected: <strong id="demo-select-langs-out">(none)</strong>
+        </p>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-select-langs');
+          var out = document.getElementById('demo-select-langs-out');
+          el.items = [
+            { value: 'en', label: 'English' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'fr', label: 'French' },
+            { value: 'de', label: 'German' },
+            { value: 'it', label: 'Italian' },
+            { value: 'pt', label: 'Portuguese' },
+            { value: 'zh', label: 'Chinese' },
+            { value: 'ja', label: 'Japanese' },
+            { value: 'ru', label: 'Russian' },
+            { value: 'ar', label: 'Arabic' },
+            { value: 'hi', label: 'Hindi' },
+            { value: 'ko', label: 'Korean' }
+          ];
+          el.addEventListener('ol-select-popover-change', function(e) {
+            out.textContent = e.detail.selected.length === 0
+              ? '(none)'
+              : e.detail.selected.join(', ');
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Small list, no search input</h3>
+      <p>With <code>8</code> items or fewer, the filter input is hidden by default. Set <code>search-threshold</code> to a different number to override (use <code>0</code> to always show, a large value to always hide).</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-select-popover
+  label="Layout"
+  unselected-heading="LAYOUTS"
+  items='[{"value":"grid","label":"Grid"}, ...]'&gt;
+&lt;/ol-select-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-select-popover
+          id="demo-select-layout"
+          label="Layout"
+          unselected-heading="LAYOUTS"
+          aria-label="Layout filter"
+        ></ol-select-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-select-layout');
+          el.items = [
+            { value: 'grid', label: 'Grid' },
+            { value: 'list', label: 'List' },
+            { value: 'compact', label: 'Compact' }
+          ];
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Custom trigger via slot</h3>
+      <p>Provide your own trigger element with <code>slot="trigger"</code>. The component handles open/close and ARIA wiring.</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-select-popover label="Genre" items="..."&gt;
+  &lt;a slot="trigger" href="#"&gt;Pick a genre&lt;/a&gt;
+&lt;/ol-select-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-select-popover
+          id="demo-select-custom"
+          label="Genre"
+          unselected-heading="GENRES"
+          aria-label="Genre filter"
+        >
+          <a
+            slot="trigger"
+            href="#"
+            role="button"
+            style="color: var(--link-blue); text-decoration: underline; cursor: pointer; font: inherit;"
+            onclick="event.preventDefault();"
+          >Pick a genre</a>
+        </ol-select-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-select-custom');
+          el.items = [
+            { value: 'fic', label: 'Fiction' },
+            { value: 'nf', label: 'Non-fiction' },
+            { value: 'sci', label: 'Science' },
+            { value: 'his', label: 'History' },
+            { value: 'bio', label: 'Biography' }
+          ];
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">With ol-chip-group showing selections</h3>
+      <p>Selected items render as chips in an ol-chip-group next to the trigger. Clicking a chip's close icon removes that selection from the popover.</p>
+      <pre class="example__code"><code class="language-html">&lt;div class="row"&gt;
+  &lt;ol-select-popover label="Language" ...&gt;&lt;/ol-select-popover&gt;
+  &lt;ol-chip-group&gt;
+    &lt;ol-chip selected&gt;English&lt;/ol-chip&gt;
+  &lt;/ol-chip-group&gt;
+&lt;/div&gt;</code></pre>
+      <div class="example__output">
+        <div id="demo-select-chips-row" style="display: flex; align-items: center; flex-wrap: wrap; gap: 12px;">
+          <ol-select-popover
+            id="demo-select-chips"
+            label="Language"
+            placeholder="Filter languages…"
+            unselected-heading="LANGUAGES"
+            aria-label="Language filter"
+          ></ol-select-popover>
+          <ol-chip-group id="demo-select-chips-group" gap="small"></ol-chip-group>
+        </div>
+      </div>
+      <script>
+        (function() {
+          var popover = document.getElementById('demo-select-chips');
+          var chipGroup = document.getElementById('demo-select-chips-group');
+          var items = [
+            { value: 'en', label: 'English' },
+            { value: 'es', label: 'Spanish' },
+            { value: 'fr', label: 'French' },
+            { value: 'de', label: 'German' },
+            { value: 'it', label: 'Italian' },
+            { value: 'pt', label: 'Portuguese' },
+            { value: 'zh', label: 'Chinese' },
+            { value: 'ja', label: 'Japanese' },
+            { value: 'ru', label: 'Russian' }
+          ];
+          popover.items = items;
+
+          var labelByValue = {};
+          items.forEach(function(it) { labelByValue[it.value] = it.label; });
+
+          function renderChips(selected) {
+            chipGroup.innerHTML = '';
+            selected.forEach(function(value) {
+              var chip = document.createElement('ol-chip');
+              chip.setAttribute('selected', '');
+              chip.setAttribute('size', 'small');
+              chip.dataset.value = value;
+              chip.textContent = labelByValue[value] || value;
+              chipGroup.appendChild(chip);
+            });
+          }
+
+          popover.addEventListener('ol-select-popover-change', function(e) {
+            renderChips(e.detail.selected);
+          });
+
+          // Clicking a selected chip's close icon fires ol-chip-select with
+          // detail.selected = false. Remove that value from the popover.
+          chipGroup.addEventListener('ol-chip-select', function(e) {
+            if (e.detail.selected !== false) return;
+            var value = e.target.dataset.value;
+            var next = (popover.selected || []).filter(function(v) { return v !== value; });
+            popover.selected = next;
+            renderChips(next);
+          });
+        })();
+      </script>
+    </section>
+  </article>

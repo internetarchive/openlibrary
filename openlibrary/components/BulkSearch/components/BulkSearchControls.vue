@@ -4,6 +4,9 @@
       <p v-if="showColumnHint">
         Please include a header row. Supported columns include: "Title", "Author", "ISBN".
       </p>
+      <p class="bulk-search-instructions">
+        <strong>Enter your books below</strong> - one per line, or paste from a spreadsheet.
+      </p>
 
       <select
         v-model="selectedValue"
@@ -23,7 +26,11 @@
       />
       <br>
       <div class="progressCarousel">
-        <div class="progressCard">
+        <div
+          ref="step1"
+          class="progressCard"
+          :class="{ activeStep: activeStep === 1 }"
+        >
           <div class="numeral">
             1
           </div>
@@ -63,8 +70,9 @@
           </div>
         </div>
         <div
+          ref="step2"
           class="progressCard"
-          :class="{ progressCardDisabled: matchBooksDisabled}"
+          :class="{ progressCardDisabled: matchBooksDisabled, activeStep: activeStep === 2 }"
         >
           <div class="numeral">
             2
@@ -90,8 +98,9 @@
           </div>
         </div>
         <div
+          ref="step3"
           class="progressCard"
-          :class="{ progressCardDisabled: createListDisabled }"
+          :class="{ progressCardDisabled: createListDisabled, activeStep: activeStep === 3 }"
         >
           <div class="numeral">
             3
@@ -145,7 +154,7 @@
 <script>
 import {sampleData} from '../utils/samples.js';
 import { BulkSearchState} from '../utils/classes.js';
-import { buildSearchUrl } from '../utils/searchUtils.js'
+import { buildSearchUrl } from '../utils/searchUtils.js';
 export default {
 
     props: {
@@ -160,24 +169,33 @@ export default {
             loadingMatchedBooks: false,
             matchBooksDisabled: true,
             createListDisabled: true,
-        }
+        };
     },
     computed: {
+        activeStep() {
+            if (!this.createListDisabled) {
+                return 3;
+            } else if (!this.matchBooksDisabled) {
+                return 2;
+            } else {
+                return 1;
+            }
+        },
         showApiKey(){
-            if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor
-            return false
+            if (this.bulkSearchState.activeExtractor) return 'model' in this.bulkSearchState.activeExtractor;
+            return false;
         },
         extractBooksText(){
-            if (this.loadingExtractedBooks) return 'Loading...'
-            return 'Extract Books'
+            if (this.loadingExtractedBooks) return 'Loading...';
+            return 'Extract Books';
         },
         matchBooksText(){
-            if (this.loadingMatchedBooks) return 'Loading...'
-            return 'Match Books'
+            if (this.loadingMatchedBooks) return 'Loading...';
+            return 'Match Books';
         },
         showColumnHint(){
-            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor'
-            return false
+            if (this.bulkSearchState.activeExtractor) return this.bulkSearchState.activeExtractor.name === 'table_extractor';
+            return false;
         },
     },
     watch: {
@@ -185,45 +203,61 @@ export default {
             if (newValue!==''){
                 this.bulkSearchState.inputText = newValue;
             }
+        },
+        activeStep(newValue) {
+            this.$nextTick(() => {
+                this.$refs[`step${newValue}`]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            });
         }
     },
     methods: {
         togglePasswordVisibility(){
-            this.showPassword= !this.showPassword
+            this.showPassword= !this.showPassword;
         },
         async extractBooks() {
-            this.loadingExtractedBooks = true
-            const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText)
-            this.bulkSearchState.matchedBooks = extractedData
-            this.loadingExtractedBooks = false
+            this.loadingExtractedBooks = true;
+            const extractedData = await this.bulkSearchState.activeExtractor.run(this.bulkSearchState.extractionOptions, this.bulkSearchState.inputText);
+            this.bulkSearchState.matchedBooks = extractedData;
+            this.loadingExtractedBooks = false;
             this.matchBooksDisabled = false;
             this.createListDisabled = true;
         },
         async matchBooks() {
-            const fetchSolrBook = async function (book, matchOptions) {
+            const fetchSolrBook = async function(book, matchOptions) {
                 try {
-                    const data = await fetch(buildSearchUrl(book, matchOptions, true))
-                    return await data.json()
+                    const data = await fetch(buildSearchUrl(book, matchOptions, true));
+                    return await data.json();
                 }
-                catch (error) {}
-            }
-            this.loadingMatchedBooks = true
+                catch (error) {
+                    // Silence errors - failing to match a book is expected
+                }
+            };
+            this.loadingMatchedBooks = true;
             for (const bookMatch of this.bulkSearchState.matchedBooks) {
-                bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions)
+                bookMatch.solrDocs = await fetchSolrBook(bookMatch.extractedBook, this.bulkSearchState.matchOptions);
             }
-            this.loadingMatchedBooks = false
-            this.createListDisabled = false
+            this.loadingMatchedBooks = false;
+            this.createListDisabled = false;
         },
 
     }
-}
+};
 </script>
 
-<style lang="less">
+<style>
 
 .bulk-search-controls{
     padding:20px;
 }
+
+.bulk-search-instructions {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background-color: #f0f7ff;
+    border-left: 4px solid #0376B8;
+    border-radius: 4px;
+}
+
 label input {
     flex: 1;
 }
@@ -253,59 +287,64 @@ textarea {
     display:flex;
     column-gap:16px;
     flex-shrink:0;
-    .info{
-        display:flex;
-        flex-direction:column;
-        row-gap:10px;
-        .heading{
-            color:#0376B8;
-            h3{
-                margin:0px;
-            }
-            p{
-                margin:0px;
-            }
-        }
-        select{
-            width: 100%;
-        }
-        button{
-            background-color:#0376B8;
-            color:white;
-            border-radius:4px;
-            box-shadow: none;
-            border:none;
-            padding: 0.5rem;
-            transition:  background-color 0.2s;
-            min-width:140px;
-            align-self:center;
-            &:not([disabled]) {
-                cursor:pointer;
-                &:hover{
-                    background-color:#014c78;
-                }
-            }
-        }
-    }
-    .numeral{
-        border-radius: 50%;
-        height:48px;
-        width:48px;
-        background-color:white;
-        color:#0376B8;
-        font-weight:bold;
-        justify-content:center;
-        flex-shrink: 0;
-        display:flex;
-        align-items:center;
-        font-size:24px;
-    }
+    border: 1px solid transparent;
+    border-bottom: 5px solid transparent;
+}
+
+.progressCard.activeStep {
+    border-color: #0376B8;
+}
+.progressCard .info{
+    display:flex;
+    flex-direction:column;
+    row-gap:10px;
+}
+.progressCard .info .heading{
+    color:#0376B8;
+}
+.progressCard .info .heading h3{
+    margin:0px;
+}
+.progressCard .info .heading p{
+    margin:0px;
+}
+.progressCard .info select{
+    width: 100%;
+}
+.progressCard .info button{
+    background-color:#0376B8;
+    color:white;
+    border-radius:4px;
+    box-shadow: none;
+    border:none;
+    padding: 0.5rem;
+    transition: background-color 0.2s;
+    min-width:140px;
+    align-self:center;
+}
+.progressCard .info button:not([disabled]) {
+    cursor:pointer;
+}
+.progressCard .info button:not([disabled]):hover{
+    background-color:#014c78;
+}
+.progressCard .numeral{
+    border-radius: 50%;
+    height:48px;
+    width:48px;
+    background-color:white;
+    color:#0376B8;
+    font-weight:bold;
+    justify-content:center;
+    flex-shrink: 0;
+    display:flex;
+    align-items:center;
+    font-size:24px;
 }
 
 .progressCardDisabled{
     opacity:50%;
 }
-
 
 .api-key-bar{
     width:100%;

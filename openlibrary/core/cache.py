@@ -2,6 +2,7 @@
 
 import functools
 import hashlib
+import inspect
 import json
 import random
 import string
@@ -24,7 +25,6 @@ __all__ = [
     "Cache",
     "MemcacheCache",
     "MemoryCache",
-    "RequestCache",
     "get_memcache",
     "memcache_memoize",
     "memoize",
@@ -32,8 +32,8 @@ __all__ = [
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class memcache_memoize[**P, T]:
@@ -80,9 +80,7 @@ class memcache_memoize[**P, T]:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug(
-                    "Could not find memcache_servers in the configuration. Used dummy memcache."
-                )
+                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
                 from pymemcache.test.utils import MockMemcacheClient
 
                 self._memcache = MockMemcacheClient()
@@ -184,9 +182,7 @@ class memcache_memoize[**P, T]:
     def compute_key(self, args: tuple, kw: dict) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "$" + self.encode_args(args, kw)
-        return key.replace(
-            " ", "_"
-        )  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value: Any) -> str:
         """json.dumps without extra spaces.
@@ -270,7 +266,11 @@ class Cache:
 
 
 class MemoryCache(Cache):
-    """Cache implementation in memory."""
+    """Cache implementation in memory.
+
+    Note: expires is ignored. Values stay until deleted or cleared.
+    Use MemcacheCache if you need expiration.
+    """
 
     def __init__(self):
         self.d = {}
@@ -304,9 +304,7 @@ class MemcacheCache(Cache):
         if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
-            web.debug(
-                "Could not find memcache_servers in the configuration. Used dummy memcache."
-            )
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
             from pymemcache.test.utils import MockMemcacheClient
 
             return MockMemcacheClient()
@@ -359,32 +357,8 @@ class MemcacheCache(Cache):
         return value
 
 
-class RequestCache(Cache):
-    """Request-Local cache.
-
-    The values are cached only in the context of the current request.
-    """
-
-    @property
-    def d(self):
-        return web.ctx.setdefault("request-local-cache", {})
-
-    def get(self, key):
-        return self.d.get(key)
-
-    def set(self, key, value, expires=0):
-        self.d[key] = value
-
-    def add(self, key, value, expires=0):
-        return self.d.setdefault(key, value) is value
-
-    def delete(self, key):
-        return self.d.pop(key, None) is not None
-
-
 memory_cache = MemoryCache()
 memcache_cache = MemcacheCache()
-request_cache = RequestCache()
 
 
 def get_memcache():
@@ -395,8 +369,6 @@ def _get_cache(engine):
     d = {
         "memory": memory_cache,
         "memcache": memcache_cache,
-        "memcache+memory": memcache_cache,
-        "request": request_cache,
     }
     return d.get(engine)
 
@@ -416,7 +388,6 @@ class memoize:
         Engine to store the results. Available options are:
             * memory: stores the result in memory.
             * memcache: stores the result in memcached.
-            * request: stores the result only in the context of the current request.
 
     * key:
         key to be used in the cache. If this is a string, arguments are append
@@ -458,37 +429,54 @@ class memoize:
 
     def __init__(
         self,
-        engine: Literal["memory", "memcache", "request"],
+        engine: Literal["memory", "memcache"],
         key: str | Callable[..., str | tuple],
         expires: int = 0,
         background: bool = False,
         cacheable: Callable | None = None,
     ):
         self.cache = _get_cache(engine)
-        self.keyfunc = (
-            key if callable(key) else functools.partial(build_memcache_key, key)
-        )
+        self.keyfunc = key if callable(key) else functools.partial(build_memcache_key, key)
         self.cacheable = cacheable
         self.expires = expires
 
     def __call__(self, f):
         """Returns the memoized version of f."""
 
-        @functools.wraps(f)
-        def func(*args, **kwargs):
-            """The memoized function.
+        if inspect.iscoroutinefunction(f):
+            # Async function - return async wrapper
+            @functools.wraps(f)
+            async def async_func(*args, **kwargs):
+                """The memoized async function.
 
-            If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
-            Otherwise, value from the cache is returned.
-            """
-            key = self.keyfunc(*args, **kwargs)
-            value = self.cache_get(key)
-            if value is None:
-                value = f(*args, **kwargs)
-                self.cache_set(key, value)
-            return value
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = await f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
 
-        return func
+            return async_func
+        else:
+            # Sync function - return sync wrapper (existing behavior)
+            @functools.wraps(f)
+            def func(*args, **kwargs):
+                """The memoized function.
+
+                If this is the first call with these arguments, function :attr:`f` is called and the return value is cached.
+                Otherwise, value from the cache is returned.
+                """
+                key = self.keyfunc(*args, **kwargs)
+                value = self.cache_get(key)
+                if value is None:
+                    value = f(*args, **kwargs)
+                    self.cache_set(key, value)
+                return value
+
+            return func
 
     def cache_get(self, key: str | tuple):
         """Reads value of a key from the cache.
@@ -543,28 +531,3 @@ def build_memcache_key(prefix: str, *args, **kw) -> str:
         key += "-" + json.dumps(kw, separators=(",", ":"), sort_keys=True)
 
     return key
-
-
-def method_memoize(f):
-    """
-    object-local memoize.
-    Works only for functions with simple arguments; i.e. JSON serializeable
-    """
-
-    @functools.wraps(f)
-    def g(self, *args, **kwargs):
-        cache = self.__dict__.setdefault('_memoize_cache', {})
-        key = json.dumps(
-            {
-                'function': f.__name__,
-                'args': args,
-                'kwargs': kwargs,
-            },
-            sort_keys=True,
-        )
-
-        if key not in cache:
-            cache[key] = f(self, *args, **kwargs)
-        return cache[key]
-
-    return g
