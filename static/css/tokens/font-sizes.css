@@ -1,0 +1,72 @@
+/**
+ * Font Size Primitives
+ * ====================
+ * A 9-step t-shirt scale covering ~95% of OL's current usage.
+ * Rarely used directly in components — use semantic tokens instead.
+ *
+ * rem-based so sizes scale with user preferences.
+ */
+:root {
+  --font-size-2xs:  0.6875rem; /* 11px */
+  --font-size-xs:   0.75rem;   /* 12px */
+  --font-size-sm:   0.875rem;  /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-md:   1.125rem;  /* 18px */
+  --font-size-lg:   1.5rem;    /* 24px */
+  --font-size-xl:   1.75rem;   /* 28px */
+  --font-size-2xl:  2rem;      /* 32px */
+  --font-size-3xl:  2.25rem;   /* 36px */
+}
+
+/**
+ * Font Size Semantic Tokens
+ * =========================
+ * Reference these throughout the app. Pick by role, not HTML element —
+ * --font-size-heading-* is a visual style, not a claim about <h1>/<h2>/etc.
+ * Choose the heading HTML element based on document outline; choose the
+ * token based on visual weight.
+ */
+:root {
+  /* Headings — visual hierarchy, decoupled from HTML element */
+  --font-size-heading-xs:  var(--font-size-sm);   /* 14px — card titles, tiny section labels */
+  --font-size-heading-sm:  var(--font-size-md);   /* 18px — small section headings */
+  --font-size-heading-md:  var(--font-size-lg);   /* 24px — section headings */
+  --font-size-heading-lg:  var(--font-size-xl);   /* 28px — page section headers */
+  --font-size-heading-xl:  var(--font-size-2xl);  /* 32px — large page headings */
+  --font-size-heading-xxl: var(--font-size-3xl);  /* 36px — hero / banner */
+
+  /* Reading / content */
+  --font-size-body:       var(--font-size-sm);    /* 14px — default paragraph */
+  --font-size-body-large: var(--font-size-base);  /* 16px — lead paragraph */
+  --font-size-body-small: var(--font-size-xs);    /* 12px — small print */
+
+  /* UI */
+  --font-size-meta:   var(--font-size-xs);        /* 12px — bylines, counts, timestamps */
+  --font-size-label:  var(--font-size-sm);        /* 14px — form labels */
+  --font-size-button: var(--font-size-sm);        /* 14px */
+  --font-size-code:   var(--font-size-sm);        /* 14px */
+  --font-size-chip:   var(--font-size-xs);        /* 12px */
+}
+
+/**
+ * Deprecated Aliases (Material 3 vocabulary)
+ * ==========================================
+ * Kept so existing consumers (~150 references) keep working during migration.
+ * Do NOT use in new code. Will be removed once all usages are migrated.
+ */
+:root {
+  --font-size-display-large:    3.5625rem;             /* 57px — no primitive; one-off */
+  --font-size-display-medium:   2.8125rem;             /* 45px — no primitive; one-off */
+  --font-size-display-small:    var(--font-size-3xl);  /* 36px → --font-size-heading-xxl */
+  --font-size-headline-large:   var(--font-size-2xl);  /* 32px → --font-size-heading-xl */
+  --font-size-headline-medium:  var(--font-size-xl);   /* 28px → --font-size-heading-lg */
+  --font-size-headline-small:   var(--font-size-lg);   /* 24px → --font-size-heading-md */
+  --font-size-title-large:      1.375rem;              /* 22px — no primitive; round to --font-size-heading-md (24px) on migration */
+  --font-size-title-medium:     var(--font-size-base); /* 16px → --font-size-body-large */
+  --font-size-title-small:      var(--font-size-sm);   /* 14px → --font-size-body */
+  --font-size-label-large:      var(--font-size-sm);   /* 14px → --font-size-label */
+  --font-size-label-medium:     var(--font-size-xs);   /* 12px → --font-size-meta or --font-size-body-small */
+  --font-size-label-small:      var(--font-size-2xs);  /* 11px → --font-size-2xs (primitive, no semantic) */
+  --font-size-body-large:       var(--font-size-base); /* 16px → --font-size-body-large (same name, now sourced from semantic layer) */
+  --font-size-body-medium:      var(--font-size-sm);   /* 14px → --font-size-body */
+}
