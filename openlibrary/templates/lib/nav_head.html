@@ -87,6 +87,12 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
   <div class="search-component">
     <ol-search-bar show-facets></ol-search-bar>
+    <noscript>
+      <form class="search-bar-input" action="/search" method="get" role="search">
+        <input type="text" name="q" placeholder="$_('Search')" aria-label="$_('Search')" autocomplete="off">
+        <input type="submit" value="$_('Search')" class="search-bar-submit" aria-label="$_('Search')">
+      </form>
+    </noscript>
   </div>
 
   $if not ctx.user:

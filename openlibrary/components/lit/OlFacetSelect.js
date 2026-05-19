@@ -317,9 +317,15 @@ export class OlFacetSelect extends LitElement {
             detail: { value: opt.value, label: opt.label },
         }));
 
-        // Close the popover
+        // Close the popover. Set open=false directly rather than going through
+        // _requestClose so we avoid a cancelable event that callers could prevent.
+        // Because setting open=false bypasses the ol-popover-close event path,
+        // sync local state explicitly so _isOpen/data-open don't stay stuck.
         const popover = this.shadowRoot?.querySelector('ol-popover');
-        if (popover) popover.open = false;
+        if (popover) {
+            popover.open = false;
+            this._onClose();
+        }
     }
 
     _onKeydown(e) {

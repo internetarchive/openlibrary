@@ -48,9 +48,7 @@ test.describe('Header Search — Desktop', () => {
 
     test('facet selector: ol-facet-select opens popover on click', async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('ol-facet-select', { timeout: 5000 }).catch(() => {
-            test.skip(true, 'ol-facet-select not yet in page (pre-migration)');
-        });
+        await expect(page.locator('ol-facet-select')).toBeVisible({ timeout: 5000 });
 
         const trigger = page.locator('ol-facet-select .trigger').first();
         await trigger.click();
@@ -64,11 +62,7 @@ test.describe('Header Search — Desktop', () => {
 
     test('facet selector: selecting Title closes popover and updates trigger', async ({ page }) => {
         await page.goto('/');
-        const facetSelectEl = await page.locator('ol-facet-select').first().elementHandle();
-        if (!facetSelectEl) {
-            test.skip(true, 'ol-facet-select not in page');
-            return;
-        }
+        await expect(page.locator('ol-facet-select')).toBeVisible({ timeout: 5000 });
 
         const trigger = page.locator('ol-facet-select .trigger').first();
         await trigger.click();

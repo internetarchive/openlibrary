@@ -196,8 +196,10 @@ export class SearchBar {
                 // On tab, always go to the next selector (instead of next result), like wikipedia
                 this.clearAutocompletionResults();
                 if (e.shiftKey) {
-                    // Focus the facet selector: try new OlFacetSelect trigger or legacy select
-                    const olFacetTrigger = this.$component.find('ol-facet-select .trigger')[0];
+                    // Focus the facet selector: try new OlFacetSelect trigger or legacy select.
+                    // .trigger lives inside ol-facet-select's shadow root; jQuery can't pierce it.
+                    const olFacetSelect = this.$component.find('ol-facet-select')[0];
+                    const olFacetTrigger = olFacetSelect?.shadowRoot?.querySelector('.trigger');
                     if (olFacetTrigger) {
                         $(olFacetTrigger).trigger('focus');
                     } else {

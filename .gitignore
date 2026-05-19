@@ -1,5 +1,9 @@
 storybook-static/
 openlibrary/components/dev/_dev.js
+tests/e2e/reports/
+tests/e2e/screenshots/
+playwright-report/
+test-results/
 *venv
 *.pyc
 *~
