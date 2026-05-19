@@ -211,23 +211,22 @@ textarea.toc-editor {
   box-sizing: border-box;
 }
 
-table.classifications.identifiers` {
-  @media only screen and (max-width: var(--width-breakpoint-tablet)) {
-    tr {
-      display: flex;
-      flex-wrap: wrap;
-      border-bottom: 1px solid var(--lightest-grey);
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-    }
+@media only screen and (max-width: 768px) {
+  /* --width-breakpoint-tablet */
+  table.classifications.identifiers tr {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--lightest-grey);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
 
-    td:first-child {
-      width: 100%;
-      text-align: left !important;
-      font-weight: bold;
-      color: var(--grey-555);
-      margin-bottom: 4px;
-    }
+  table.classifications.identifiers td:first-child {
+    width: 100%;
+    text-align: left !important;
+    font-weight: bold;
+    color: var(--grey-555);
+    margin-bottom: 4px;
   }
 }
 
