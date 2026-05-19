@@ -484,6 +484,7 @@ $ })
                     </tr>
                     <tbody id="classifications-display">
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
+                            $# TODO: Move JS out of template
                             <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").attr("data-full-label")}}</strong></td>
                             <td>{{value}}
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
