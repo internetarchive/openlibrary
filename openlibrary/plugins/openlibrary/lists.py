@@ -276,7 +276,10 @@ def get_user_lists(seed_info):
         return []
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
-    return [get_list_data(user_list, seed) for user_list in user_lists]
+    return [
+        get_list_data(user_list, seed, include_cover_url=False)
+        for user_list in user_lists
+    ]
 
 
 @public
