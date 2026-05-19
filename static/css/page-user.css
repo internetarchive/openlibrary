@@ -211,7 +211,7 @@ textarea.toc-editor {
   box-sizing: border-box;
 }
 
-`table.classifications.identifiers` {
+table.classifications.identifiers` {
   @media only screen and (max-width: var(--width-breakpoint-tablet)) {
     tr {
       display: flex;
