@@ -83,35 +83,14 @@ export class SearchBar {
             return;
         }
 
-        // Detect whether the new OlSearchBar LIT component is present.
-        // When it is, we defer all DOM-dependent initialization until after
-        // the component's firstUpdated() fires and the light DOM is queryable.
-        this._olSearchBar = this.$component.find('ol-search-bar')[0] || null;
-
-        if (this._olSearchBar) {
-            // New path: facet changes come from ol-facet-select via OlSearchBar events.
-            // Use an empty jQuery set so legacy code that calls this.$facetSelect.val()
-            // or .trigger() is a no-op rather than an error.
-            this.$facetSelect = $();
-            this._olSearchBar.addEventListener('ol-facet-change', (e) => {
-                const { facet } = e.detail;
-                if (facet === 'advanced') {
-                    this.navigateTo('/advancedsearch');
-                    return;
-                }
-                this.facet.write(facet);
-            });
-        } else {
-            // Legacy path: native <select> for facet.
-            this.$facetSelect = this.$component.find('.search-facet-selector select');
-            this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
-            // Shift+Tab out of facet clears autocomplete results
-            this.$facetSelect.on('keydown', (e) => {
-                if (e.key === 'Tab' && e.shiftKey) {
-                    this.clearAutocompletionResults();
-                }
-            });
-        }
+        this.$facetSelect = this.$component.find('.search-facet-selector select');
+        this.$facetSelect.on('change', this.handleFacetSelectChange.bind(this));
+        // Shift+Tab out of facet clears autocomplete results
+        this.$facetSelect.on('keydown', (e) => {
+            if (e.key === 'Tab' && e.shiftKey) {
+                this.clearAutocompletionResults();
+            }
+        });
 
         /** State */
         /** Whether the bar is in collapsible mode */
@@ -131,21 +110,11 @@ export class SearchBar {
         SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
         this.facet.sync(this.handleFacetValueChange.bind(this));
 
-        if (this._olSearchBar) {
-            // Defer all DOM-dependent setup until LIT's firstUpdated() fires and
-            // the light DOM (form, input, results) has been rendered into the page.
-            this._olSearchBar.addEventListener('ol-search-bar-ready', () => {
-                this._initDomHandlers(urlParams);
-            }, { once: true });
-        } else {
-            this._initDomHandlers(urlParams);
-        }
+        this._initDomHandlers(urlParams);
     }
 
     /**
      * Initializes all DOM-dependent state and event handlers.
-     * Called immediately in the legacy (non-LIT) path, or deferred until the
-     * ol-search-bar-ready event fires in the LIT path.
      * @param {Object} urlParams
      */
     _initDomHandlers(urlParams) {
@@ -156,10 +125,7 @@ export class SearchBar {
         this.$searchSubmit = this.$component.find('.search-bar-submit');
 
         this.initFromUrlParams(urlParams);
-        // OlSearchBar handles its own collapse; skip initCollapsibleMode when present.
-        if (!this._olSearchBar) {
-            this.initCollapsibleMode();
-        }
+        this.initCollapsibleMode();
 
         this.$form.on('submit', this.submitForm.bind(this));
 
@@ -436,20 +402,10 @@ export class SearchBar {
      * @param {String} newFacet
      */
     handleFacetValueChange(newFacet) {
-        if (this._olSearchBar) {
-            // New path: update ol-facet-select's value attribute so it reflects the
-            // new facet even if the element hasn't upgraded to a LIT component yet.
-            const olFacetSelect = this.$component.find('ol-facet-select')[0];
-            if (olFacetSelect) olFacetSelect.setAttribute('value', newFacet);
-            return;
-        }
-        // Legacy path: update native select and the visible facet-value span.
         this.$facetSelect.val(newFacet);
         const text = this.$facetSelect.find('option:selected').text();
         $('header#header-bar .search-facet-value').html(text);
 
-        // Add immediate refresh when input has value and focus is on the facet selector.
-        // this.$input may not be initialised yet if _initDomHandlers is still deferred.
         if (this.$input && this.$input.val() && this.$facetSelect.is(':focus')) {
             this.renderAutocompletionResults();
         }

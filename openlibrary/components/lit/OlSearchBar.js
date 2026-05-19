@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { repeat } from 'lit/directives/repeat.js';
 import {
     POPULAR_AUTHORS, POPULAR_SUBJECTS, AVAILABILITY_OPTIONS, LANGUAGE_OPTIONS, SORT_OPTIONS,
     EMPTY_FILTERS, shufflePick, bestEdition,
@@ -11,17 +12,28 @@ import './OlFacetDrop.js';
 import './OlFacetSelect.js';
 import './OlSelectPopover.js';
 
+/** Facet drop configs — drives the repeated ol-facet-drop blocks in the facet bar */
+const DROPS = [
+    { name: 'genre',   placement: 'bottom-start' },
+    { name: 'subject', placement: 'bottom-end' },
+    { name: 'author',  placement: 'bottom-end' },
+];
+
 /**
  * Unified search bar used in two modes:
  *
- *   showFacets=true  ("droppable" / header mode)
+ *   showFacets=true  ("header" mode)
  *     - owns local filter state (_localFilters)
  *     - chips shown in input row, always visible
  *     - panel opens on focus: facets + autocomplete cards
  *
- *   showFacets=false (embedded / search-page mode)
+ *   showFacets=false ("search-page" mode)
  *     - chips and filters passed as props, shown in input row
  *     - NO panel — just a query input; submit triggers ol-search
+ *
+ * Uses Shadow DOM (LitElement default) — intentional: keeps styles and
+ * structure self-contained so the component is droppable on any page
+ * without style leakage in either direction.
  *
  * @element ol-search-bar
  */
@@ -276,7 +288,7 @@ export class OlSearchBar extends LitElement {
             }
             if (e.key === 'Enter' && this._acFocusIdx >= 0) {
                 e.preventDefault();
-                this.shadowRoot?.querySelectorAll('.ac-row')?.[this._acFocusIdx]?.click();
+                this.shadowRoot?.querySelectorAll('.suggestion-row')?.[this._acFocusIdx]?.click();
                 return;
             }
         }
@@ -417,6 +429,11 @@ export class OlSearchBar extends LitElement {
         }, 250);
     }
 
+    _shuffleAuthors()  { this._defaultAuthors  = shufflePick(POPULAR_AUTHORS,  6); }
+    _shuffleSubjects() { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }
+    _openHowto(e)      { e.stopPropagation(); this._howtoOpen = true; }
+    _closeHowto()      { this._howtoOpen = false; }
+
     static styles = css`
         :host { display: block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; text-align: left; }
 
@@ -537,32 +554,32 @@ export class OlSearchBar extends LitElement {
             z-index:500; overflow:visible;
         }
 
-        .pf-bar {
+        .facet-bar {
             display:flex; border-bottom:1px solid hsl(0,0%,90%);
             background:hsl(0,0%,98.5%);
             overflow-x: auto; scrollbar-width: none;
         }
-        .pf-bar::-webkit-scrollbar { display: none; }
-        .pf-wrap { flex:1; min-width: max-content; position:relative; display:flex; }
-        .pf-wrap + .pf-wrap { border-left:1px solid hsl(0,0%,90%); }
-        .pf-wrap--cog { flex:0 0 38px; }
-        .pf-wrap--first { border-bottom-left-radius:9px; }
-        .pf-wrap--first .pf-btn { border-bottom-left-radius:9px; }
-        .pf-wrap--last  { border-bottom-right-radius:9px; }
-        .pf-wrap--last  .pf-btn { border-bottom-right-radius:9px; }
-        .pf-btn {
+        .facet-bar::-webkit-scrollbar { display: none; }
+        .facet-item { flex:1; min-width: max-content; position:relative; display:flex; }
+        .facet-item + .facet-item { border-left:1px solid hsl(0,0%,90%); }
+        .facet-item--cog { flex:0 0 38px; }
+        .facet-item--first { border-bottom-left-radius:9px; }
+        .facet-item--first .facet-btn { border-bottom-left-radius:9px; }
+        .facet-item--last  { border-bottom-right-radius:9px; }
+        .facet-item--last  .facet-btn { border-bottom-right-radius:9px; }
+        .facet-btn {
             flex:1; padding:7px 4px; border:none; background:transparent;
             font-size:11px; font-weight:500; font-family:inherit; color:hsl(0,0%,35%);
             cursor:pointer; display:flex; align-items:center; justify-content:center;
             gap:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
             transition:background .08s;
         }
-        .pf-btn:hover  { background:hsl(0,0%,95%); color:hsl(202,96%,28%); }
-        .pf-btn.active { color:hsl(202,96%,28%); font-weight:600; }
+        .facet-btn:hover  { background:hsl(0,0%,95%); color:hsl(202,96%,28%); }
+        .facet-btn.active { color:hsl(202,96%,28%); font-weight:600; }
 
-        /* OL primitive selectors within the facet bar — match pf-btn visual style */
-        .pf-wrap > ol-facet-select,
-        .pf-wrap > ol-facet-drop {
+        /* OL primitive selectors within the facet bar — match facet-btn visual style */
+        .facet-item > ol-facet-select,
+        .facet-item > ol-facet-drop {
             flex:1; align-self:stretch;
             --ol-trigger-bg: transparent;
             --ol-trigger-border-right: none;
@@ -573,9 +590,9 @@ export class OlSearchBar extends LitElement {
             --darker-grey: hsl(0,0%,35%);
             font-family: inherit;
         }
-        .pf-wrap > ol-facet-select:hover,
-        .pf-wrap > ol-facet-drop:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
-        .pf-wrap > ol-select-popover {
+        .facet-item > ol-facet-select:hover,
+        .facet-item > ol-facet-drop:hover { --ol-trigger-bg-hover: hsl(0,0%,95%); }
+        .facet-item > ol-select-popover {
             flex:1; align-self:stretch;
             /* ol-select-popover is inline-block, which makes its flex-stretched
                cross-size non-definite for child % resolution (unlike inline-flex).
@@ -584,23 +601,23 @@ export class OlSearchBar extends LitElement {
             display: inline-flex; align-items: stretch;
             --ol-popover-trigger-align: stretch;
         }
-        .pf-wrap > ol-select-popover > [slot="trigger"] {
+        .facet-item > ol-select-popover > [slot="trigger"] {
             width: 100%; height: 100%;
         }
 
         /* SVG chevron for Language slot="trigger" button */
-        .pf-chevron {
+        .facet-chevron {
             display: inline-block;
             width: 12px; height: 12px;
             flex-shrink: 0;
             opacity: .55;
             transition: transform 150ms ease-out;
         }
-        .pf-wrap > ol-select-popover[data-open] > [slot="trigger"] .pf-chevron {
+        .facet-item > ol-select-popover[data-open] > [slot="trigger"] .facet-chevron {
             transform: rotate(180deg);
         }
         @media (prefers-reduced-motion: reduce) {
-            .pf-chevron { transition: none; }
+            .facet-chevron { transition: none; }
         }
 
         .clear-btn {
@@ -611,62 +628,62 @@ export class OlSearchBar extends LitElement {
         }
         .clear-btn:hover { color:hsl(0,0%,20%); background:hsl(0,0%,93%); }
 
-        .ac-scroll { max-height:280px; overflow-y:auto; }
-        .ac-spin, .ac-hint-msg, .ac-empty {
+        .suggestion-list { max-height:280px; overflow-y:auto; }
+        .suggestion-loading, .suggestion-hint, .suggestion-empty {
             padding:16px; text-align:center; font-size:13px; color:hsl(0,0%,55%);
         }
-        .ac-error {
+        .suggestion-error {
             padding:16px; text-align:center; font-size:13px;
             color:hsl(0,72%,40%); background:hsl(0,72%,97%);
             border-bottom-left-radius: 6.5px; border-bottom-right-radius: 6.5px;
         }
-        .ac-row {
+        .suggestion-row {
             display:flex; align-items:center; gap:12px; padding:10px 14px;
             text-decoration:none; border-bottom:1px solid hsl(0,0%,94%);
             transition:background .1s; cursor:pointer; color:inherit;
         }
-        .ac-row:hover, .ac-row.focused { background:hsl(0,0%,97%); }
-        .ac-row.focused { outline:2px solid hsl(202,96%,37%); outline-offset:-2px; }
-        .ac-row:last-of-type { border-bottom:none; }
-        .ac-cover {
+        .suggestion-row:hover, .suggestion-row.focused { background:hsl(0,0%,97%); }
+        .suggestion-row.focused { outline:2px solid hsl(202,96%,37%); outline-offset:-2px; }
+        .suggestion-row:last-of-type { border-bottom:none; }
+        .suggestion-cover {
             width:36px; height:54px; object-fit:cover; border-radius:3px;
             background:hsl(0,0%,90%); flex-shrink:0; display:block;
             box-shadow:1px 1px 3px rgba(0,0,0,.15);
         }
-        .ac-blank {
+        .suggestion-blank {
             width:36px; height:54px; flex-shrink:0; border-radius:3px;
             background:hsl(48,20%,88%); display:flex;
             align-items:center; justify-content:center; font-size:18px;
         }
-        .ac-body { flex:1; min-width:0; text-align:left; }
-        .ac-title {
+        .suggestion-body { flex:1; min-width:0; text-align:left; }
+        .suggestion-title {
             font-family:Georgia,serif; font-size:14px; font-weight:600;
             color:hsl(202,96%,22%); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
         }
-        .ac-author { font-size:12px; color:hsl(0,0%,45%); margin-top:2px; }
-        .ac-year   { font-size:11px; color:hsl(0,0%,58%); }
-        .ac-meta   { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
-        .ac-badge  { font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px; white-space:nowrap; }
-        .ac-badge--readable { background:hsl(142,50%,91%); color:hsl(142,50%,22%); }
-        .ac-badge--catalog  { background:hsl(0,0%,92%); color:hsl(0,0%,42%); }
-        .ac-star   { font-size:11px; color:hsl(40,80%,38%); white-space:nowrap; }
-        .ac-foot {
+        .suggestion-author { font-size:12px; color:hsl(0,0%,45%); margin-top:2px; }
+        .suggestion-year   { font-size:11px; color:hsl(0,0%,58%); }
+        .suggestion-meta   { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+        .suggestion-badge  { font-size:10px; font-weight:600; padding:2px 6px; border-radius:3px; white-space:nowrap; }
+        .suggestion-badge--readable { background:hsl(142,50%,91%); color:hsl(142,50%,22%); }
+        .suggestion-badge--catalog  { background:hsl(0,0%,92%); color:hsl(0,0%,42%); }
+        .suggestion-star   { font-size:11px; color:hsl(40,80%,38%); white-space:nowrap; }
+        .suggestion-footer {
             display:flex; align-items:center; justify-content:space-between;
             padding:10px 14px; border-top:1px solid hsl(0,0%,92%);
         }
-        .ac-add-book {
+        .suggestion-add-book {
             font-size:12px; color:hsl(202,96%,37%); text-decoration:none;
             font-weight:500; padding:5px 10px; border-radius:5px;
             border:1px solid hsl(202,96%,80%); transition:background .1s; white-space:nowrap;
         }
-        .ac-add-book:hover { background:hsl(202,96%,96%); }
-        .ac-see-all {
+        .suggestion-add-book:hover { background:hsl(202,96%,96%); }
+        .suggestion-see-all {
             background:hsl(202,96%,37%); color:white; border:none;
             border-radius:6px; padding:7px 18px; font-size:13px;
             font-weight:500; font-family:inherit; cursor:pointer;
             white-space:nowrap; transition:background .12s;
         }
-        .ac-see-all:hover { background:hsl(202,96%,28%); }
+        .suggestion-see-all:hover { background:hsl(202,96%,28%); }
 
         @media (max-width: 785px) {
             :host { height: 100%; }
@@ -699,25 +716,25 @@ export class OlSearchBar extends LitElement {
             border-top: none;
         }
         :host(.mobile-exp) .panel-chips { max-height: none; }
-        :host(.mobile-exp) .ac-scroll { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
-        :host(.mobile-exp) .pf-bar { overflow: visible; flex-wrap: wrap; }
+        :host(.mobile-exp) .suggestion-list { flex: 1; min-height: 0; max-height: none; overflow-y: auto; }
+        :host(.mobile-exp) .facet-bar { overflow: visible; flex-wrap: wrap; }
 
-        .mob-back-bar {
+        .mobile-header {
             padding: 8px 12px 4px;
             border-bottom: 1px solid hsl(0,0%,92%);
             background: hsl(0,0%,98.5%);
         }
-        .mob-back-btn {
+        .mobile-back-btn {
             background: none; border: none; cursor: pointer;
             font-size: 14px; font-family: inherit; color: hsl(202,96%,37%);
             padding: 4px 0; font-weight: 500;
         }
-        .mob-back-btn:hover { color: hsl(202,96%,28%); }
+        .mobile-back-btn:hover { color: hsl(202,96%,28%); }
 
         @media (max-width: 600px) {
-            .pf-btn { font-size: 10px; padding: 11px 4px; }
+            .facet-btn { font-size: 10px; padding: 11px 4px; }
             .submit { padding: 6px 10px; }
-            :host(:not(.mobile-exp)) .ac-scroll { max-height: 40vh; }
+            :host(:not(.mobile-exp)) .suggestion-list { max-height: 40vh; }
             .panel-chips { max-height: 72px; overflow-y: auto; }
         }
     `;
@@ -733,8 +750,8 @@ export class OlSearchBar extends LitElement {
             facetsLoading: this._facetsLoading,
         };
         return html`
-            <div class="pf-bar">
-                <div class="pf-wrap pf-wrap--first">
+            <div class="facet-bar">
+                <div class="facet-item facet-item--first">
                     <ol-facet-select
                         accessible-label="Availability"
                         trigger-label="Availability"
@@ -746,7 +763,7 @@ export class OlSearchBar extends LitElement {
                         @ol-facet-select-change=${e => this._emitFilter('availability', e.detail.value)}
                     ></ol-facet-select>
                 </div>
-                <div class="pf-wrap">
+                <div class="facet-item">
                     <ol-select-popover
                         label="Language"
                         .items=${LANGUAGE_OPTIONS}
@@ -758,21 +775,22 @@ export class OlSearchBar extends LitElement {
                         @ol-select-popover-change=${e => this._emitFilter('languages', e.detail.selected)}
                     >
                         <button slot="trigger" type="button"
-                                class="pf-btn ${(f.languages ?? []).length ? 'active' : ''}">
+                                class="facet-btn ${(f.languages ?? []).length ? 'active' : ''}">
                             ${(f.languages ?? []).length
         ? `Language (${f.languages.length})`
         : 'Language'}
-                            <svg class="pf-chevron" xmlns="http://www.w3.org/2000/svg"
+                            <svg class="facet-chevron" xmlns="http://www.w3.org/2000/svg"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
                                  aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
                     </ol-select-popover>
                 </div>
-                <div class="pf-wrap">
+                ${repeat(DROPS, d => d.name, d => html`
+                <div class="facet-item">
                     <ol-facet-drop
-                        name="genre"
-                        placement="bottom-start"
+                        name=${d.name}
+                        placement=${d.placement}
                         .filters=${facetDropProps.filters}
                         .authorResults=${facetDropProps.authorResults}
                         .subjectResults=${facetDropProps.subjectResults}
@@ -782,45 +800,11 @@ export class OlSearchBar extends LitElement {
                         @ol-facet-change=${this._onDropFacetChange}
                         @ol-facet-search-authors=${this._onDropAuthorSearch}
                         @ol-facet-search-subjects=${this._onDropSubjectSearch}
-                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
-                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
+                        @ol-facet-shuffle-authors=${this._shuffleAuthors}
+                        @ol-facet-shuffle-subjects=${this._shuffleSubjects}
                     ></ol-facet-drop>
-                </div>
-                <div class="pf-wrap">
-                    <ol-facet-drop
-                        name="subject"
-                        placement="bottom-end"
-                        .filters=${facetDropProps.filters}
-                        .authorResults=${facetDropProps.authorResults}
-                        .subjectResults=${facetDropProps.subjectResults}
-                        .defaultAuthors=${facetDropProps.defaultAuthors}
-                        .defaultSubjects=${facetDropProps.defaultSubjects}
-                        .facetsLoading=${facetDropProps.facetsLoading}
-                        @ol-facet-change=${this._onDropFacetChange}
-                        @ol-facet-search-authors=${this._onDropAuthorSearch}
-                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
-                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
-                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
-                    ></ol-facet-drop>
-                </div>
-                <div class="pf-wrap">
-                    <ol-facet-drop
-                        name="author"
-                        placement="bottom-end"
-                        .filters=${facetDropProps.filters}
-                        .authorResults=${facetDropProps.authorResults}
-                        .subjectResults=${facetDropProps.subjectResults}
-                        .defaultAuthors=${facetDropProps.defaultAuthors}
-                        .defaultSubjects=${facetDropProps.defaultSubjects}
-                        .facetsLoading=${facetDropProps.facetsLoading}
-                        @ol-facet-change=${this._onDropFacetChange}
-                        @ol-facet-search-authors=${this._onDropAuthorSearch}
-                        @ol-facet-search-subjects=${this._onDropSubjectSearch}
-                        @ol-facet-shuffle-authors=${() => { this._defaultAuthors = shufflePick(POPULAR_AUTHORS, 6); }}
-                        @ol-facet-shuffle-subjects=${() => { this._defaultSubjects = shufflePick(POPULAR_SUBJECTS, 6); }}
-                    ></ol-facet-drop>
-                </div>
-                <div class="pf-wrap">
+                </div>`)}
+                <div class="facet-item">
                     <ol-facet-select
                         accessible-label="Sort by"
                         .options=${SORT_OPTIONS}
@@ -828,12 +812,12 @@ export class OlSearchBar extends LitElement {
                         @ol-facet-select-change=${e => this._emitFilter('sort', e.detail.value)}
                     ></ol-facet-select>
                 </div>
-                <div class="pf-wrap pf-wrap--cog pf-wrap--last">
-                    <button class="pf-btn" title="Search help"
-                            @click=${e => { e.stopPropagation(); this._howtoOpen = true; }}>⚙️</button>
+                <div class="facet-item facet-item--cog facet-item--last">
+                    <button class="facet-btn" title="Search help"
+                            @click=${this._openHowto}>⚙️</button>
                 </div>
             </div>
-            <ol-howto-modal .open=${this._howtoOpen} @close=${() => this._howtoOpen = false}></ol-howto-modal>`;
+            <ol-howto-modal .open=${this._howtoOpen} @close=${this._closeHowto}></ol-howto-modal>`;
     }
 
     _renderChipItems(chips) {
@@ -847,13 +831,13 @@ export class OlSearchBar extends LitElement {
 
     _renderResults(q) {
         const showResults = q.length >= 2 || this._hasActiveFilters();
-        if (this._loading) return html`<div class="ac-spin" role="status" aria-live="polite">Searching…</div>`;
-        if (this._acError) return html`<div class="ac-error" role="alert">Search is unavailable — check your connection and try again.</div>`;
-        if (!showResults)  return html`<div class="ac-hint-msg" aria-live="polite">Start typing to search, or pick a filter above…</div>`;
+        if (this._loading) return html`<div class="suggestion-loading" role="status" aria-live="polite">Searching…</div>`;
+        if (this._acError) return html`<div class="suggestion-error" role="alert">Search is unavailable — check your connection and try again.</div>`;
+        if (!showResults)  return html`<div class="suggestion-hint" aria-live="polite">Start typing to search, or pick a filter above…</div>`;
         return html`
-            <div class="ac-scroll" id="ac-listbox" role="listbox" aria-label="Search suggestions">
+            <div class="suggestion-list" id="ac-listbox" role="listbox" aria-label="Search suggestions">
                 ${this._suggestions.length === 0
-        ? html`<div class="ac-empty" aria-live="polite">No results</div>`
+        ? html`<div class="suggestion-empty" aria-live="polite">No results</div>`
         : this._suggestions.map((w, idx) => {
             const ed = bestEdition(w.editions);
             const coverId = ed?.cover_i ?? w.cover_i;
@@ -867,35 +851,35 @@ export class OlSearchBar extends LitElement {
                         : null;
             const isReadable = access === 'public' || access === 'borrowable';
             return html`
-                            <a class="ac-row ${this._acFocusIdx === idx ? 'focused' : ''}"
+                            <a class="suggestion-row ${this._acFocusIdx === idx ? 'focused' : ''}"
                                id="ac-opt-${idx}"
                                href="${this.siteBase}${linkKey}"
                                target="_blank" rel="noopener"
                                role="option"
                                @click=${() => this._closePanel()}>
                                 ${cover
-        ? html`<img class="ac-cover" src=${cover} alt="" loading="lazy">`
-        : html`<div class="ac-blank">📖</div>`}
-                                <div class="ac-body">
-                                    <div class="ac-title">${ed?.title ?? w.title}</div>
-                                    <div class="ac-author">${(w.author_name ?? []).slice(0, 2).join(', ')}</div>
-                                    ${w.first_publish_year ? html`<div class="ac-year">${w.first_publish_year}</div>` : ''}
+        ? html`<img class="suggestion-cover" src=${cover} alt="" loading="lazy">`
+        : html`<div class="suggestion-blank">📖</div>`}
+                                <div class="suggestion-body">
+                                    <div class="suggestion-title">${ed?.title ?? w.title}</div>
+                                    <div class="suggestion-author">${(w.author_name ?? []).slice(0, 2).join(', ')}</div>
+                                    ${w.first_publish_year ? html`<div class="suggestion-year">${w.first_publish_year}</div>` : ''}
                                 </div>
-                                <div class="ac-meta">
-                                    <span class="ac-badge ${isReadable ? 'ac-badge--readable' : 'ac-badge--catalog'}">
+                                <div class="suggestion-meta">
+                                    <span class="suggestion-badge ${isReadable ? 'suggestion-badge--readable' : 'suggestion-badge--catalog'}">
                                         ${isReadable ? 'Readable' : 'Catalog'}
                                     </span>
                                     ${w.ratings_average
-        ? html`<span class="ac-star">★ ${w.ratings_average.toFixed(1)}</span>`
+        ? html`<span class="suggestion-star">★ ${w.ratings_average.toFixed(1)}</span>`
         : ''}
                                 </div>
                             </a>`;})}
             </div>
-            <div class="ac-foot">
-                <a class="ac-add-book" href="${this.siteBase}/books/add"
+            <div class="suggestion-footer">
+                <a class="suggestion-add-book" href="${this.siteBase}/books/add"
                    target="_blank" rel="noopener"
                    @click=${e => e.stopPropagation()}>+ Add Book</a>
-                <button class="ac-see-all" @click=${() => {
+                <button class="suggestion-see-all" @click=${() => {
         this._closePanel();
         if (!q && !this._hasActiveFilters()) return;
         const event = new CustomEvent('ol-search', {
@@ -909,49 +893,45 @@ export class OlSearchBar extends LitElement {
             </div>`;
     }
 
-    render() {
-        const q        = this._q.trim();
-        const chips    = this.showFacets ? buildChips(this._localFilters) : (this.chips ?? []);
-        const chipItems = this._renderChipItems(chips);
-
-        if (!this.showFacets) {
-            return html`
-                <div class="search-outer" role="search">
-                    <div class="input-row">
-                        <div class="input-controls">
-                            <input class="text-input" type="text" autocomplete="off"
-                                   placeholder="${this.placeholder}" .value=${this._q}
-                                   @input=${this._onInput}
-                                   @keydown=${this._onKeyDown}>
-                            ${this._q ? html`
-                                <button class="clear-btn" aria-label="Clear search"
-                                        @click=${e => { e.stopPropagation(); this._clearInput(); }}>✕</button>
-                            ` : ''}
-                            <button class="submit" @click=${() => this._submit()} aria-label="Search">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
-                                    <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                                </svg>
-                            </button>
-                            <span class="scan-sep"></span>
-                            <a class="scan-btn" title="Scan ISBN barcode"
-                               href="/barcodescanner?returnTo=/isbn/$$$"
-                               target="_blank" rel="noopener"
-                               @click=${e => e.stopPropagation()}>
-                                <img src="/static/images/icons/barcode_scanner.svg"
-                                     alt="Scan barcode" width="18" height="18">
-                            </a>
-                        </div>
+    _renderSearchPageMode(chips, chipItems) {
+        return html`
+            <div class="search-outer" role="search">
+                <div class="input-row">
+                    <div class="input-controls">
+                        <input class="text-input" type="text" autocomplete="off"
+                               placeholder="${this.placeholder}" .value=${this._q}
+                               @input=${this._onInput}
+                               @keydown=${this._onKeyDown}>
+                        ${this._q ? html`
+                            <button class="clear-btn" aria-label="Clear search"
+                                    @click=${e => { e.stopPropagation(); this._clearInput(); }}>✕</button>
+                        ` : ''}
+                        <button class="submit" @click=${() => this._submit()} aria-label="Search">
+                            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                            </svg>
+                        </button>
+                        <span class="scan-sep"></span>
+                        <a class="scan-btn" title="Scan ISBN barcode"
+                           href="/barcodescanner?returnTo=/isbn/$$$"
+                           target="_blank" rel="noopener"
+                           @click=${e => e.stopPropagation()}>
+                            <img src="/static/images/icons/barcode_scanner.svg"
+                                 alt="Scan barcode" width="18" height="18">
+                        </a>
                     </div>
-                    ${chips.length ? html`
-                        <div class="chip-bar">
-                            ${chipItems}
-                            ${this._hasActiveFilters() ? html`<button class="clear-all-btn"
-                                    aria-label="Clear all filters"
-                                    @click=${e => { e.stopPropagation(); this._clearAllFilters(); }}>Clear all</button>` : ''}
-                        </div>` : ''}
-                </div>`;
-        }
+                </div>
+                ${chips.length ? html`
+                    <div class="chip-bar">
+                        ${chipItems}
+                        ${this._hasActiveFilters() ? html`<button class="clear-all-btn"
+                                aria-label="Clear all filters"
+                                @click=${e => { e.stopPropagation(); this._clearAllFilters(); }}>Clear all</button>` : ''}
+                    </div>` : ''}
+            </div>`;
+    }
 
+    _renderHeaderMode(q, chips, chipItems) {
         return html`
             <div class="search-outer ${this._open ? 'open' : ''}" role="search">
 
@@ -982,8 +962,8 @@ export class OlSearchBar extends LitElement {
                 ${this._open ? html`
                     <div class="panel" id="search-panel" role="dialog" aria-modal=${this._mobileExpanded ? 'true' : 'false'} aria-label="${this.placeholder}">
                         ${this._mobileExpanded ? html`
-                            <div class="mob-back-bar">
-                                <button class="mob-back-btn" aria-label="Close search"
+                            <div class="mobile-header">
+                                <button class="mobile-back-btn" aria-label="Close search"
                                         @click=${e => { e.stopPropagation(); this._closePanel(); }}>
                                     ← Back
                                 </button>
@@ -1031,6 +1011,15 @@ export class OlSearchBar extends LitElement {
                         ${this._renderResults(q)}
                     </div>` : ''}
             </div>`;
+    }
+
+    render() {
+        const q        = this._q.trim();
+        const chips    = this.showFacets ? buildChips(this._localFilters) : (this.chips ?? []);
+        const chipItems = this._renderChipItems(chips);
+        return this.showFacets
+            ? this._renderHeaderMode(q, chips, chipItems)
+            : this._renderSearchPageMode(chips, chipItems);
     }
 }
 
