@@ -5,11 +5,11 @@ from logging import getLogger
 
 import requests
 import web
+from infogami.utils import delegate
+from infogami.utils.view import safeint
 from PIL import Image as PILImage
 from PIL import UnidentifiedImageError
 
-from infogami.utils import delegate
-from infogami.utils.view import safeint
 from openlibrary import accounts
 from openlibrary.plugins.upstream.models import Image
 from openlibrary.plugins.upstream.utils import (
@@ -193,7 +193,8 @@ class manage_covers(delegate.page):
             self.save_images(book, images)
             return render_template("covers/saved", self.get_image(book), showinfo=False)
         else:
-            # ERROR
+            # FIX: Prevent silent failure by raising a 400 Bad Request error
+            raise web.badrequest("Invalid image format. Expected a '-' separator.")
             pass
 
 
