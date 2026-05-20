@@ -189,6 +189,10 @@ class ListRecord:
         }
 
 
+class SpamListError(ValueError):
+    """Raised when a list is detected as spam."""
+
+
 class lists_home(delegate.page):
     path = "/lists"
 
@@ -671,7 +675,7 @@ class lists_json(delegate.page):
         )
 
         if spamcheck.is_spam(lst):
-            raise ValueError("Spam list")
+            raise SpamListError
 
         return site.save(
             lst.dict(),

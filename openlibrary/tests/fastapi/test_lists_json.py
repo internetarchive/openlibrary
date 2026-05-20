@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 from infogami.infobase import client as infobase_client
+from openlibrary.plugins.openlibrary.lists import SpamListError
 
 
 class TestListsJsonGet:
@@ -188,7 +189,7 @@ class TestListsJsonPost:
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
             patch(
                 "openlibrary.fastapi.lists.legacy_lists.lists_json.process_new_list",
-                side_effect=ValueError("Spam list"),
+                side_effect=SpamListError(),
             ),
         ):
             mock_site_context.get.return_value = current_site
@@ -202,7 +203,7 @@ class TestListsJsonPost:
         assert response.status_code == 403
         assert response.json() == {"detail": "Permission denied."}
 
-    def test_client_exception_returns_conflict(self, fastapi_client, mock_authenticated_user):
+    def test_client_exception_preserves_status_code(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         current_site.get.return_value = object()
         current_site.can_write.return_value = True
@@ -225,5 +226,5 @@ class TestListsJsonPost:
                 headers={"content-type": "application/json"},
             )
 
-        assert response.status_code == 500
+        assert response.status_code == 409
         assert response.json() == {"detail": "Duplicate list"}

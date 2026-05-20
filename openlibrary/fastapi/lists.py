@@ -9,7 +9,13 @@ from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary import lists as legacy_lists
-from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list_editions, get_list_subjects
+from openlibrary.plugins.openlibrary.lists import (
+    ListEditionsModel,
+    ListSubjectsModel,
+    SpamListError,
+    get_list_editions,
+    get_list_subjects,
+)
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
@@ -201,16 +207,15 @@ def lists_json_post(
     try:
         with web_ctx_ip():
             result = legacy_lists.lists_json.process_new_list(user, body.model_dump(), current_site)
-    except ValueError as e:
-        if str(e) == "Spam list":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Permission denied.",
-            )
-        raise
-    except client.ClientException as e:
+    except SpamListError:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied.",
+        )
+    except client.ClientException as e:
+        status_code = int(e.status.split()[0])
+        raise HTTPException(
+            status_code=status_code,
             detail=str(e),
         )
 
