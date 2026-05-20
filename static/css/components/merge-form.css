@@ -7,12 +7,12 @@ div.merge {
   font-family: var(--font-family-body);
   width: 100%;
   float: left;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
 }
 
 div.merge .entry {
   width: 100%;
-  padding: 10px 0;
+  padding: var(--spacing-inset-sm) 0;
   float: left;
   clear: right;
   border-bottom: 1px solid var(--lighter-grey);
@@ -27,7 +27,7 @@ div.merge .header {
 }
 
 div.merge .header div {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 
 div.merge .master {
@@ -42,14 +42,14 @@ div.merge .mouseoverHighlight {
 }
 
 div.merge .data {
-  padding: 0 5px;
+  padding: 0 var(--spacing-inset-xs);
 }
 
 div.merge .input {
   width: 37px;
   float: left;
   text-align: center;
-  padding: 3px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
 }
 
 div.merge .record ul {
@@ -69,7 +69,7 @@ div.merge .record label {
 div.merge .metaDate {
   color: var(--brown);
   font-size: 0.8125em;
-  padding-left: 10px;
+  padding-left: var(--spacing-inset-sm);
 }
 
 div.merge .metaSubject {

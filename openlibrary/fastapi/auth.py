@@ -11,7 +11,8 @@ import logging
 from typing import Annotated
 from urllib.parse import unquote
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -38,6 +39,14 @@ class AuthenticatedUser(BaseModel):
             ]
         }
     }
+
+
+# Define the session cookie as a FastAPI security scheme so it appears
+# in the auto-generated OpenAPI/Swagger documentation.
+session_cookie = APIKeyCookie(
+    name=config.get("login_cookie_name", "session"),
+    auto_error=False,
+)
 
 
 def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser | None:
@@ -88,7 +97,7 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
 
 async def get_authenticated_user(
-    session: Annotated[str | None, Cookie(alias=config.get("login_cookie_name", "session"))] = None,
+    session: Annotated[str | None, Depends(session_cookie)],
 ) -> AuthenticatedUser | None:
     """FastAPI dependency to get the authenticated user from the session cookie.
 

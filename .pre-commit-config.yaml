@@ -61,15 +61,10 @@ repos:
         exclude: |
           (?x)^(
             openlibrary/accounts/model\.py
-            |openlibrary/catalog/add_book/__init__\.py
             |openlibrary/core/models\.py
-            |openlibrary/core/vendors\.py
-            |openlibrary/fastapi/search\.py
-            |openlibrary/plugins/admin/code\.py
             |openlibrary/plugins/openlibrary/api\.py
             |openlibrary/plugins/openlibrary/code\.py
             |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/upstream/utils\.py
             |openlibrary/plugins/worksearch/code\.py
             |openlibrary/plugins/worksearch/schemes/works\.py
           )$
@@ -83,15 +78,10 @@ repos:
         files: |
           (?x)^(
             openlibrary/accounts/model\.py
-            |openlibrary/catalog/add_book/__init__\.py
             |openlibrary/core/models\.py
-            |openlibrary/core/vendors\.py
-            |openlibrary/fastapi/search\.py
-            |openlibrary/plugins/admin/code\.py
             |openlibrary/plugins/openlibrary/api\.py
             |openlibrary/plugins/openlibrary/code\.py
             |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/upstream/utils\.py
             |openlibrary/plugins/worksearch/code\.py
             |openlibrary/plugins/worksearch/schemes/works\.py
           )$
@@ -102,7 +92,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.1
+    rev: v1.20.2
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:

@@ -23,9 +23,8 @@ from pathlib import Path
 
 import web
 
-import infogami
 from openlibrary.accounts import RunAs
-from openlibrary.config import load_config
+from openlibrary.setup import setup_for_script
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 # Matches:
@@ -121,10 +120,7 @@ def setup(config_path: str) -> None:
         FileNotFoundError: If the config file does not exist.
     """
     init_signal_handler()
-    if not Path(config_path).exists():
-        raise FileNotFoundError(f"No config file found at {config_path}")
-    load_config(config_path)
-    infogami._setup()
+    setup_for_script(config_path)
 
 
 def fix_records(keys_path: str, config_path: str, dry_run: bool = False) -> None:

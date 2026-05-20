@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 4 --timeout 300 --max-requests 1500
+      - GUNICORN_OPTS= --workers 4 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../booklending_utils:/booklending_utils
@@ -36,6 +36,8 @@ services:
 
   solr:
     profiles: ["ol-solr0"]
+    ports:
+      - 8983:8983
     environment:
       # See compose.yaml for docs
       # Keep SOLR_OPTS in sync with other instances of solr in compose files
@@ -44,14 +46,40 @@ services:
         -Dsolr.autoCommit.maxTime=120000
         -Dsolr.max.booleanClauses=30000
         -Dsolr.environment=prod
+        -Dol.replication.role.leader=true
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?
       - SOLR_HEAP=8g
     restart: unless-stopped
 
+  solr_replica:
+    profiles: ["ol-solr2"]
+    extends:
+      file: compose.yaml
+      service: solr
+    ports:
+      - 8983:8983
+    environment:
+      # See compose.yaml for docs
+      # Keep SOLR_OPTS in sync with other instances of solr in compose files
+      - SOLR_OPTS=
+        -Dsolr.autoSoftCommit.maxTime=60000
+        -Dsolr.autoCommit.maxTime=120000
+        -Dsolr.max.booleanClauses=30000
+        -Dsolr.environment=prod
+        -Dol.replication.role.follower=true
+        -Dol.replication.leader=ol-solr0.us.archive.org:8983
+        -Dsolr.allowUrls=http://ol-solr0.us.archive.org:8983
+      # More memory for production
+      - SOLR_JAVA_MEM=-Xms10g -Xmx10g
+      # This might overwrite the above?
+      - SOLR_HEAP=8g
+    restart: unless-stopped
+
+
   solr_haproxy:
-    profiles: ["ol-solr0"]
+    profiles: ["ol-home0"]
     image: haproxy:2.9.15
     restart: unless-stopped
     networks:
@@ -281,7 +309,7 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - OL_SOLR_BASE_URL=http://ol-solr0:8984/solr/openlibrary
+      - OL_SOLR_BASE_URL=http://ol-solr0:8983/solr/openlibrary
       - OL_SOLR_NEXT=false
     volumes:
       - ../olsystem:/olsystem
@@ -304,7 +332,7 @@ services:
     environment:
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       - OL_URL=https://openlibrary.org/
-      - OL_SOLR_BASE_URL=http://ol-solr1:8984/solr/openlibrary
+      - OL_SOLR_BASE_URL=http://ol-solr1:8983/solr/openlibrary
       - OL_SOLR_NEXT=true
       - STATE_FILE=solr-next-update.offset
       - TRENDING_OFFSET_FILE=trending-next-update.offset
@@ -337,7 +365,7 @@ services:
   # This job runs various monitoring/grafana checks across the entire cluster.
   # It has access to the other nodes via the docker socket.
   monitoring:
-    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-home0"]
+    profiles: ["ol-web0", "ol-web1", "ol-web2", "ol-web3", "ol-covers0", "ol-www0", "ol-solr0", "ol-solr1", "ol-solr2", "ol-home0"]
     build:
       context: .
       dockerfile: scripts/monitoring/Dockerfile

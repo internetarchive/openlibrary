@@ -2,6 +2,7 @@ import csv
 import io
 import json
 import logging
+import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
@@ -91,6 +92,15 @@ def get_login_error(error_key):
         "security_error": _("Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"),
     }
     return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
+
+
+def is_safe_redirect(url: str) -> bool:
+    parsed = urlparse(url)
+    if parsed.netloc or parsed.scheme:
+        return False
+    if not re.match(r"^/[^/\\]", parsed.path):  # noqa: SIM103
+        return False
+    return True
 
 
 class availability(delegate.page):
@@ -572,7 +582,7 @@ class account_login(delegate.page):
         if flash_message := self.perform_post_login_action(i, ol_account):
             add_flash_message("note", _(flash_message))
 
-        if i.redirect == "" or any(path in i.redirect for path in blacklist):
+        if not is_safe_redirect(i.redirect) or any(path in i.redirect for path in blacklist):
             i.redirect = "/account/books"
         stats.increment("ol.account.xauth.login")
         raise web.seeother(i.redirect)

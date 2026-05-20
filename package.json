@@ -47,7 +47,7 @@
     "concurrently": "^7.6.0",
     "core-js": "^3.37.1",
     "css-loader": "^7.1.4",
-    "css-minimizer-webpack-plugin": "^7.0.4",
+    "css-minimizer-webpack-plugin": "^8.0.0",
     "datatables.net-dt": "1.13.11",
     "details-polyfill": "1.2.0",
     "diff": "^4.0.4",
@@ -55,13 +55,14 @@
     "eslint-plugin-no-jquery": "^3.1.1",
     "eslint-plugin-vue": "^9.32.0",
     "flot": "0.8.3",
+    "glob": "^7.2.3",
     "globals": "^15.14.0",
-    "isbn3": "1.1.1",
+    "isbn3": "1.2.19",
     "jest": "^30.0.5",
     "jest-environment-jsdom": "^30.0.5",
-    "jquery": "3.6.0",
+    "jquery": "3.7.1",
     "jquery-colorbox": "1.6.4",
-    "jquery-ui": "1.13.2",
+    "jquery-ui": "1.14.2",
     "jquery-ui-touch-punch": "0.2.3",
     "lit": "^3.2.1",
     "lodash": "4.18.1",
@@ -70,10 +71,10 @@
     "prettier": "^3.5.3",
     "promise-polyfill": "8.3.0",
     "regenerator-runtime": "^0.14.1",
-    "sinon": "21.0.1",
+    "sinon": "21.1.2",
     "slick-carousel": "1.6.0",
     "style-loader": "^4.0.0",
-    "stylelint": "^16.22.0",
+    "stylelint": "^16.26.1",
     "stylelint-declaration-strict-value": "^1.11.1",
     "stylelint-prettier": "^5.0.3",
     "svgo": "4",
@@ -82,10 +83,10 @@
     "vite": "^8.0.3",
     "vue": "^3.5.13",
     "vue-async-computed": "^4.0.1",
-    "vue-multiselect": "^3.1.0",
-    "webpack": "^5.91.0",
+    "vue-multiselect": "^3.5.0",
+    "webpack": "^5.106.2",
     "webpack-cli": "^5.1.4",
-    "workbox-webpack-plugin": "^7.3.0"
+    "workbox-webpack-plugin": "^7.4.1"
   },
   "engines": {
     "node": "^24.0.0"
@@ -119,7 +120,15 @@
   "overrides": {
     "@ericblade/quagga2": {
       "form-data": "4.0.5",
-      "qs": "6.14.2"
+      "qs": "6.15.1"
     }
-  }
+  },
+  "browserslist": [
+    "Chrome > 0 and last 3 years",
+    "Edge > 0 and last 3 years",
+    "Firefox > 0 and last 3 years",
+    "Safari >= 11.1",
+    "iOS >= 11.3",
+    "Android >= 5"
+  ]
 }
