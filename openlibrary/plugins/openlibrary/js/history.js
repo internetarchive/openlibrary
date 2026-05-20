@@ -5,6 +5,10 @@
  * @param {HTMLElement} pageHistoryElement 
  */
 export function initHistory(pageHistoryElement){
+    console.log('initHistory called', pageHistoryElement);
+    console.log('pre-checked a:', pageHistoryElement.querySelector('input[name="a"]:checked'));
+    console.log('pre-checked b:', pageHistoryElement.querySelector('input[name="b"]:checked'));
+    
     const radios = pageHistoryElement.querySelectorAll('input[name="a"], input[name="b"]');
     
     function updateCompareButton() {
@@ -35,4 +39,5 @@ export function initHistory(pageHistoryElement){
     }
 
     radios.forEach(radio => radio.addEventListener('change', updateCompareButton));
+    updateCompareButton();
 }

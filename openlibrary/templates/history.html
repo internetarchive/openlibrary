@@ -26,42 +26,33 @@ $ rev = page.latest_revision or page.revision
         <table id="pageHistory">
         <thead>
             <tr>
-                <th class="numberhead" style="text-align:center;">$_("Revision")</th>
-                <th class="historyheader">$_("When")</th>
-                <th class="historyheader">$_("Who")</th>
-                <th class="historyheader">$_("Comment")</th>
-                <th class="historyheader" style="text-align:center;">$_("Compare Against...")</th>
+                <th class="numberhead" style="text-align:center;">$_("Rev")</th>
+                <th class="historyheader">$_("Edit")</th>
+                <th class="historyheader" style="text-align:center;">$_("Diff")</th>
                 <th class="historyheader" style="text-align:center;">$_("Pick (A/B)")</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td colspan="5"></td>
-                <td style="text-align:center;">
-                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
-                </td>
-            </tr>
             $for v in h:
                 <tr>
                     <td class="number">$v.revision</td>
-                    <td class="history"><a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
-                    $if v.author:
-                        <td class="displayname" style="vertical-align: top;"><div class="truncatedisplayname"><a href="$homepath()$v.author.key" class="truncate">$v.author.displayname</a></div></td>
-                    $elif v.ip and v.ip != '127.0.0.1':
-                        <td class="history" style="vertical-align: top;"><a href="/recentchanges?ip=$v.ip">$v.ip</a></td>
-                    $else:
-                        <td class="history" style="vertical-align: top;">$v.ip</td>
-                    <td class="comment">$:render_template("history/comment", v)</td>
+                    <td class="edit">
+                        <div>$:render_template("history/comment", v)</div>
+                        <div>
+                            $if v.author:
+                                <a href="$homepath()$v.author.key">$v.author.displayname</a>
+                            $elif v.ip and v.ip != '127.0.0.1':
+                                <a href="/recentchanges?ip=$v.ip">$v.ip</a>
+                            $else:
+                                $v.ip
+                            · $datestr(v.created)
+                        </div>
+                    </td>
                     <td class="compare-against" style="text-align:center;">
-                        $if v.revision > 1:
-                            <a href="$page.key?m=diff&b=$v.revision">$_("previous")</a>
-                        $else:
-                            <span>$_("previous")</span>
-                        &nbsp;
-                        $if v.revision == rev:
-                            <span>$_("current")</span>
-                        $else:
-                            <a href="$page.key?m=diff&b=$rev&a=$v.revision">$_("current")</a>
+                        <a href="$page.key?m=diff&b=$v.revision">$_("See changes")</a>
+                        $if v.revision != rev:
+                            &nbsp;
+                            <a href="$page.key?m=diff&b=$rev&a=$v.revision">$_("Compare against latest")</a>
                     </td>
                     <td class="pick-ab">
                         <fieldset>
@@ -81,12 +72,6 @@ $ rev = page.latest_revision or page.revision
                         </fieldset>
                     </td>
                 </tr>
-            <tr>
-                <td colspan="5"></td>
-                <td style="text-align:center;">
-                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
-                </td>
-            </tr>
         </tbody>
         </table>
         <input type="hidden" name="m" value="diff"/>
