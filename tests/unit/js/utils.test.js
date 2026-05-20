@@ -122,10 +122,10 @@ describe('`queueAction()` tests', () => {
         queueAction('save', 'A book & a movie?', '/path?param=1');
 
         const expectedData = {
-            name: 'Dune',
+            name: 'A book & a movie?',
             url: '/path?param=1',
             action: 'save',
-            type: 'book'
+            type: 'item'
         };
 
         const cookieAssignment = document.cookie;
