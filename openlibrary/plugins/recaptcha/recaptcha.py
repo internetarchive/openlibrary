@@ -6,7 +6,6 @@ import requests
 import web
 
 from infogami import config
-
 from openlibrary.plugins.upstream.utils import get_proxy_params
 
 logger = logging.getLogger("openlibrary")
