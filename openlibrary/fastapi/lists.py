@@ -1,12 +1,10 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, Literal
-from urllib.parse import parse_qs
 
 import web
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
-import openlibrary.core.helpers as h
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
@@ -135,16 +133,6 @@ def _lists_seed_path(
     raise ValueError("Could not determine lists path")
 
 
-def _request_query(request: Request):
-    return {
-        key: values[0] if len(values) == 1 else values
-        for key, values in parse_qs(
-            request.url.query,
-            keep_blank_values=True,
-        ).items()
-    }
-
-
 @router.get("/people/{username}/lists.json")
 @router.get("/books/OL{edition_id}M/lists.json")
 @router.get("/works/OL{work_id}W/lists.json")
@@ -157,13 +145,9 @@ def lists_json(
     work_id: int | None = None,
     author_id: int | None = None,
     subject_key: str | None = None,
+    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    limit: Annotated[int, Query(ge=0, le=100, description="Number of items to return (max 100)")] = 50,
 ) -> dict:
-    offset = h.safeint(request.query_params.get("offset", 0), 0)
-    limit = h.safeint(request.query_params.get("limit", 50), 50)
-
-    limit = min(limit, 100)
-    offset = max(offset, 0)
-
     seed_path = _lists_seed_path(
         username=username,
         edition_id=edition_id,
@@ -171,14 +155,18 @@ def lists_json(
         author_id=author_id,
         subject_key=subject_key,
     )
-    current_site = site.get()
+
+    _qp: dict[str, list[str]] = {}
+    for _k, _v in request.query_params.multi_items():
+        _qp.setdefault(_k, []).append(_v)
+
     data = legacy_lists.get_lists_json_data(
         seed_path,
-        current_site,
+        site.get(),
         limit=limit,
         offset=offset,
-        query=_request_query(request),
         query_path=request.url.path,
+        query={key: values[0] if len(values) == 1 else values for key, values in _qp.items()},
     )
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)

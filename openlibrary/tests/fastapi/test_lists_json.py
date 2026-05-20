@@ -8,7 +8,7 @@ from infogami.infobase import client as infobase_client
 
 
 class TestListsJsonGet:
-    def test_people_lists_clamps_legacy_pagination(self, fastapi_client):
+    def test_people_lists_validates_pagination_params(self, fastapi_client):
         current_site = object()
         expected = {"links": {"self": "/people/alice"}, "size": 1, "entries": []}
 
@@ -20,7 +20,7 @@ class TestListsJsonGet:
 
             response = fastapi_client.get(
                 "/people/alice/lists.json",
-                params={"limit": "500", "offset": "-10"},
+                params={"limit": "100", "offset": "0"},
             )
 
         assert response.status_code == 200
@@ -31,11 +31,32 @@ class TestListsJsonGet:
             current_site,
             limit=100,
             offset=0,
-            query={"limit": "500", "offset": "-10"},
+            query={"limit": "100", "offset": "0"},
             query_path="/people/alice/lists.json",
         )
 
-    def test_work_lists_uses_legacy_safeint_defaults(self, fastapi_client):
+    def test_people_lists_rejects_invalid_limit(self, fastapi_client):
+        response = fastapi_client.get(
+            "/people/alice/lists.json",
+            params={"limit": "500"},
+        )
+        assert response.status_code == 422
+
+    def test_people_lists_rejects_negative_offset(self, fastapi_client):
+        response = fastapi_client.get(
+            "/people/alice/lists.json",
+            params={"offset": "-10"},
+        )
+        assert response.status_code == 422
+
+    def test_people_lists_rejects_non_numeric_limit(self, fastapi_client):
+        response = fastapi_client.get(
+            "/people/alice/lists.json",
+            params={"limit": "not-a-number"},
+        )
+        assert response.status_code == 422
+
+    def test_work_lists_uses_default_pagination(self, fastapi_client):
         current_site = object()
         expected = {"links": {"self": "/works/OL42W"}, "size": 0, "entries": []}
 
@@ -45,10 +66,7 @@ class TestListsJsonGet:
         ):
             mock_site_context.get.return_value = current_site
 
-            response = fastapi_client.get(
-                "/works/OL42W/lists.json",
-                params={"limit": "not-a-number", "offset": "still-not-a-number"},
-            )
+            response = fastapi_client.get("/works/OL42W/lists.json")
 
         assert response.status_code == 200
         assert response.json() == expected
@@ -57,7 +75,7 @@ class TestListsJsonGet:
             current_site,
             limit=50,
             offset=0,
-            query={"limit": "not-a-number", "offset": "still-not-a-number"},
+            query={},
             query_path="/works/OL42W/lists.json",
         )
 

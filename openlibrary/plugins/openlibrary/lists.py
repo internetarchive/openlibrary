@@ -526,12 +526,6 @@ class lists_delete(delegate.page):
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
-def get_lists_json_doc(path: str, current_site):
-    if path.startswith("/subjects/"):
-        return subjects.get_subject(path)
-    return current_site.get(path)
-
-
 def _changequery(path: str, query=None, query_path: str | None = None, **kw):
     if query is None:
         return web.changequery(**kw)
@@ -557,7 +551,12 @@ def get_lists_json_data(
     query=None,
     query_path: str | None = None,
 ):
-    if not (doc := get_lists_json_doc(path, current_site)):
+    if path.startswith("/subjects/"):
+        doc = subjects.get_subject(path)
+    else:
+        doc = current_site.get(path)
+
+    if not doc:
         return None
 
     had_site = "site" in web.ctx
