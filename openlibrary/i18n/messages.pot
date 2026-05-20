@@ -36,7 +36,7 @@ msgid "or"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: design/popover.html my_books/check_ins/check_in_prompt.html
+#: design/popover.html history.html my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -712,25 +712,7 @@ msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
-msgstr ""
-
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "When"
-msgstr ""
-
-#: RecentChanges.html admin/history.html admin/ip/view.html
-#: admin/loans_table.html admin/people/edits.html history.html
-#: recentchanges/render.html
-msgid "Who"
-msgstr ""
-
-#: RecentChanges.html RecentChangesUsers.html admin/history.html
-#: admin/ip/view.html admin/people/edits.html history.html
-#: recentchanges/render.html recentchanges/updated_records.html
-msgid "Comment"
+msgid "Rev"
 msgstr ""
 
 #: history.html
@@ -738,24 +720,28 @@ msgid "Diff"
 msgstr ""
 
 #: history.html
-msgid "Compare"
+msgid "Pick (A/B)"
+msgstr ""
+
+#: history.html type/language/view.html
+msgid "Current"
 msgstr ""
 
 #: history.html
-msgid "See Diff"
+msgid "no comment"
 msgstr ""
 
-#: history.html lib/history.html
+#: history.html
+msgid "See changes"
+msgstr ""
+
+#: history.html
+msgid "Compare against latest"
+msgstr ""
+
+#: history.html
 #, python-format
-msgid "View revision %s"
-msgstr ""
-
-#: history.html
-msgid "Compare this version..."
-msgstr ""
-
-#: history.html
-msgid "...to this version"
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
@@ -2534,8 +2520,19 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
+#: RecentChanges.html admin/history.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
+msgid "Who"
+msgstr ""
+
 #: admin/history.html
 msgid "Page"
+msgstr ""
+
+#: RecentChanges.html RecentChangesUsers.html admin/history.html
+#: admin/ip/view.html admin/people/edits.html recentchanges/render.html
+#: recentchanges/updated_records.html
+msgid "Comment"
 msgstr ""
 
 #: admin/imports-add.html admin/imports.html admin/imports_by_date.html
@@ -3187,6 +3184,12 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Please select the changesets to revert."
+msgstr ""
+
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/ip/view.html admin/people/edits.html recentchanges/render.html
+#: recentchanges/updated_records.html
+msgid "When"
 msgstr ""
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html
@@ -5345,6 +5348,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/history.html
+#, python-format
+msgid "View revision %s"
+msgstr ""
+
+#: lib/history.html
 msgid "an anonymous user"
 msgstr ""
 
@@ -7390,10 +7398,6 @@ msgstr ""
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
-
-#: type/language/view.html
-msgid "Current"
 msgstr ""
 
 #: type/language/view.html

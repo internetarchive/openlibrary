@@ -2,15 +2,15 @@
  * Handles arbitrary A/B comparison on the history page.
  * When both an A and B radio are selected, injects a comparison link
  * into the Pick cell of the lower-numbered revision's row.
- * @param {HTMLElement} pageHistoryElement 
+ * @param {HTMLElement} pageHistoryElement
  */
 export function initHistory(pageHistoryElement){
     console.log('initHistory called', pageHistoryElement);
     console.log('pre-checked a:', pageHistoryElement.querySelector('input[name="a"]:checked'));
     console.log('pre-checked b:', pageHistoryElement.querySelector('input[name="b"]:checked'));
-    
+
     const radios = pageHistoryElement.querySelectorAll('input[name="a"], input[name="b"]');
-    
+
     function updateCompareButton() {
         const checkedRadioA = pageHistoryElement.querySelector('input[name="a"]:checked');
         const checkedRadioB = pageHistoryElement.querySelector('input[name="b"]:checked');
