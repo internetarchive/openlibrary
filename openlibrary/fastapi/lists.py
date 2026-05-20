@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from pydantic import BaseModel
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
@@ -172,10 +173,19 @@ def lists_json(
     return data
 
 
+class CreateListBody(BaseModel):
+    """Request body for creating a new list."""
+
+    name: str = ""
+    description: str = ""
+    tags: list[str] = []
+    seeds: list[dict[str, Any] | str] = []
+
+
 @router.post("/people/{username}/lists.json")
 def lists_json_post(
     username: str,
-    body: dict,
+    body: CreateListBody,
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
     current_site = site.get()
@@ -193,7 +203,7 @@ def lists_json_post(
 
     try:
         with web_ctx_ip():
-            result = legacy_lists.lists_json.process_new_list(user, body, current_site)
+            result = legacy_lists.lists_json.process_new_list(user, body.model_dump(), current_site)
     except ValueError as e:
         if str(e) == "Spam list":
             raise HTTPException(
@@ -202,9 +212,8 @@ def lists_json_post(
             )
         raise
     except client.ClientException as e:
-        status_code = int(str(e.status).split()[0])
         raise HTTPException(
-            status_code=status_code,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
 

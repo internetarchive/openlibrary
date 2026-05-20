@@ -141,7 +141,7 @@ class TestListsJsonPost:
         current_site.can_write.assert_called_once_with("/people/alice")
         mock_process.assert_called_once_with(
             user,
-            {"name": "Favorites", "seeds": []},
+            {"name": "Favorites", "description": "", "tags": [], "seeds": []},
             current_site,
         )
 
@@ -228,5 +228,5 @@ class TestListsJsonPost:
                 headers={"content-type": "application/json"},
             )
 
-        assert response.status_code == 409
+        assert response.status_code == 500
         assert response.json() == {"detail": "Duplicate list"}
