@@ -362,7 +362,7 @@ class WorkSearchScheme(SearchScheme):
             # 'text:(harry potter) OR alternative_title:(harry potter)^20 OR ...'
             # TODO: Change solr's text field to exclude first_sentence, by_statement, title, subtitle,
             # alternative_subtitle . Then can replace most of qf with just text.
-            solr_qf='alternative_title^40 author_name^40 series_name^5 chapter series_position author_alternative_name subject place person time series_key author_key ia oclc lccn isbn key edition_key publisher contributor',  # noqa: E501
+            solr_qf='alternative_title^40 author_name^40 series_name^5 text',
             # pf: phrase fields. This increases the score of documents that
             # match the query terms in close proximity to each other.
             solr_pf='alternative_title^50 author_name^50 series_name^5',
