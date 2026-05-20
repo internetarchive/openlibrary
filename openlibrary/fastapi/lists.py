@@ -5,12 +5,10 @@ from urllib.parse import parse_qs
 
 import web
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
-from fastapi.responses import Response
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
-from openlibrary.core import formats
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary import lists as legacy_lists
 from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list_editions, get_list_subjects
@@ -117,24 +115,6 @@ def lists_delete_no_prefix(
     return _process_list_delete(f"/lists/{list_id}")
 
 
-async def _raw_body(request: Request) -> bytes:
-    return await request.body()
-
-
-def _json_response(data, status_code: int = 200) -> Response:
-    return Response(
-        content=formats.dump(data, "json"),
-        media_type="application/json",
-        status_code=status_code,
-    )
-
-
-def _status_code(status: int | str) -> int:
-    if isinstance(status, int):
-        return status
-    return int(str(status).split()[0])
-
-
 def _lists_seed_path(
     username: str | None = None,
     edition_id: int | None = None,
@@ -177,7 +157,7 @@ def lists_json(
     work_id: int | None = None,
     author_id: int | None = None,
     subject_key: str | None = None,
-):
+) -> dict:
     offset = h.safeint(request.query_params.get("offset", 0), 0)
     limit = h.safeint(request.query_params.get("limit", 50), 50)
 
@@ -201,41 +181,47 @@ def lists_json(
         query_path=request.url.path,
     )
     if data is None:
-        return Response(status_code=404)
-    return _json_response(data)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return data
 
 
 @router.post("/people/{username}/lists.json")
 def lists_json_post(
     username: str,
-    body: Annotated[bytes, Depends(_raw_body)],
-):
+    body: dict,
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
     current_site = site.get()
     user_key = f"/people/{username}"
     user = current_site.get(user_key)
 
     if not user:
-        return Response(status_code=404)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
     if not current_site.can_write(user_key):
-        return _json_response({"message": "Permission denied."}, status_code=403)
-
-    data = formats.load(body, "json")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied.",
+        )
 
     had_site = "site" in web.ctx
     previous_site = web.ctx.get("site") if had_site else None
     web.ctx.site = current_site
     try:
         with web_ctx_ip():
-            result = legacy_lists.lists_json.process_new_list(user, data, current_site)
+            result = legacy_lists.lists_json.process_new_list(user, body, current_site)
     except ValueError as e:
         if str(e) == "Spam list":
-            return _json_response({"message": "Permission denied."}, status_code=403)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Permission denied.",
+            )
         raise
     except client.ClientException as e:
-        return _json_response(
-            {"message": str(e)},
-            status_code=_status_code(e.status),
+        status_code = int(str(e.status).split()[0])
+        raise HTTPException(
+            status_code=status_code,
+            detail=str(e),
         )
     finally:
         if had_site:
@@ -243,11 +229,7 @@ def lists_json_post(
         else:
             web.ctx.pop("site", None)
 
-    return _json_response(result)
-
-
-async def list_seeds():
-    pass
+    return result
 
 
 class GetListEditionsParams:

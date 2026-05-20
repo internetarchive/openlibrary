@@ -5,7 +5,6 @@ from unittest.mock import Mock, patch
 import web
 
 from infogami.infobase import client as infobase_client
-from openlibrary.core import formats
 
 
 class TestListsJsonGet:
@@ -26,7 +25,7 @@ class TestListsJsonGet:
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/json"
-        assert response.text == formats.dump(expected, "json")
+        assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/people/alice",
             current_site,
@@ -52,7 +51,7 @@ class TestListsJsonGet:
             )
 
         assert response.status_code == 200
-        assert response.text == formats.dump(expected, "json")
+        assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/works/OL42W",
             current_site,
@@ -97,7 +96,7 @@ class TestListsJsonGet:
 
 
 class TestListsJsonPost:
-    def test_create_list_uses_legacy_process_method(self, fastapi_client):
+    def test_create_list_uses_legacy_process_method(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         user = object()
         expected = {"key": "/people/alice/lists/OL1L", "revision": 1}
@@ -122,7 +121,7 @@ class TestListsJsonPost:
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "application/json"
-        assert response.text == formats.dump(expected, "json")
+        assert response.json() == expected
         current_site.get.assert_called_once_with("/people/alice")
         current_site.can_write.assert_called_once_with("/people/alice")
         mock_process.assert_called_once_with(
@@ -131,7 +130,7 @@ class TestListsJsonPost:
             current_site,
         )
 
-    def test_missing_user_returns_404(self, fastapi_client):
+    def test_missing_user_returns_404(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         current_site.get.return_value = None
 
@@ -151,7 +150,7 @@ class TestListsJsonPost:
         current_site.can_write.assert_not_called()
         mock_process.assert_not_called()
 
-    def test_permission_denied_returns_legacy_payload(self, fastapi_client):
+    def test_permission_denied_returns_forbidden(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         current_site.get.return_value = object()
         current_site.can_write.return_value = False
@@ -166,9 +165,9 @@ class TestListsJsonPost:
             )
 
         assert response.status_code == 403
-        assert response.json() == {"message": "Permission denied."}
+        assert response.json() == {"detail": "Permission denied."}
 
-    def test_spam_list_returns_legacy_forbidden_payload(self, fastapi_client):
+    def test_spam_list_returns_forbidden(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         current_site.get.return_value = object()
         current_site.can_write.return_value = True
@@ -189,9 +188,9 @@ class TestListsJsonPost:
             )
 
         assert response.status_code == 403
-        assert response.json() == {"message": "Permission denied."}
+        assert response.json() == {"detail": "Permission denied."}
 
-    def test_client_exception_returns_legacy_message_payload(self, fastapi_client):
+    def test_client_exception_returns_conflict(self, fastapi_client, mock_authenticated_user):
         current_site = Mock()
         current_site.get.return_value = object()
         current_site.can_write.return_value = True
@@ -215,4 +214,4 @@ class TestListsJsonPost:
             )
 
         assert response.status_code == 409
-        assert response.json() == {"message": "Duplicate list"}
+        assert response.json() == {"detail": "Duplicate list"}
