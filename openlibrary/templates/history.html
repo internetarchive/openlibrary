@@ -73,11 +73,11 @@ $ rev = page.latest_revision or page.revision
                                 $if v.revision == rev - 1:
                                     checked
                                 $elif v.revision == rev:
-                                checked
+                                    checked
                             /> A</label>
                             <label><input type="radio" name="b" value="$v.revision"
                                 $if v.revision == rev:
-                                checked
+                                    checked
                             /> B</label>
                         </fieldset>
                     </td>

@@ -601,7 +601,7 @@ jQuery(function() {
 
     // History page comparison
     const pageHistory = document.querySelector('#pageHistory');
-    if (pageHistory){
+    if (pageHistory) {
         import(/* webpackChunkName: "history" */ './history')
             .then(module => module.initHistory(pageHistory));
     }
