@@ -160,9 +160,9 @@ def lists_json(
     for _k, _v in request.query_params.multi_items():
         _qp.setdefault(_k, []).append(_v)
 
-    data = legacy_lists.get_lists_json_data(
+    data = legacy_lists.lists_json.get_lists_data(
         seed_path,
-        site.get(),
+        site_obj=site.get(),
         limit=limit,
         offset=offset,
         query_path=request.url.path,

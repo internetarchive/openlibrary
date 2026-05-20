@@ -1,5 +1,5 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -170,10 +170,12 @@ class FakeListsDoc:
 
 def test_get_lists_data_uses_lists_json_path_for_pagination_links():
     doc = FakeListsDoc(60)
+    mock_site = Mock()
+    mock_site.get.return_value = doc
 
     data = legacy_lists.lists_json.get_lists_data(
-        doc,
         "/people/alice",
+        site_obj=mock_site,
         limit=50,
         offset=0,
         query={"foo": "bar"},

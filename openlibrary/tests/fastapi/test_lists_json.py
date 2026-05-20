@@ -14,7 +14,7 @@ class TestListsJsonGet:
 
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
-            patch("openlibrary.fastapi.lists.legacy_lists.get_lists_json_data", return_value=expected) as mock_get_lists,
+            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.get_lists_data", return_value=expected) as mock_get_lists,
         ):
             mock_site_context.get.return_value = current_site
 
@@ -28,7 +28,7 @@ class TestListsJsonGet:
         assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/people/alice",
-            current_site,
+            site_obj=current_site,
             limit=100,
             offset=0,
             query={"limit": "100", "offset": "0"},
@@ -62,7 +62,7 @@ class TestListsJsonGet:
 
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
-            patch("openlibrary.fastapi.lists.legacy_lists.get_lists_json_data", return_value=expected) as mock_get_lists,
+            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.get_lists_data", return_value=expected) as mock_get_lists,
         ):
             mock_site_context.get.return_value = current_site
 
@@ -72,7 +72,7 @@ class TestListsJsonGet:
         assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/works/OL42W",
-            current_site,
+            site_obj=current_site,
             limit=50,
             offset=0,
             query={},
@@ -85,7 +85,7 @@ class TestListsJsonGet:
 
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
-            patch("openlibrary.fastapi.lists.legacy_lists.get_lists_json_data", return_value=expected) as mock_get_lists,
+            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.get_lists_data", return_value=expected) as mock_get_lists,
         ):
             mock_site_context.get.return_value = current_site
 
@@ -94,7 +94,7 @@ class TestListsJsonGet:
         assert response.status_code == 200
         mock_get_lists.assert_called_once_with(
             "/subjects/person:tolkien",
-            current_site,
+            site_obj=current_site,
             limit=50,
             offset=0,
             query={},
@@ -104,7 +104,7 @@ class TestListsJsonGet:
     def test_missing_doc_returns_404(self, fastapi_client):
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
-            patch("openlibrary.fastapi.lists.legacy_lists.get_lists_json_data", return_value=None),
+            patch("openlibrary.fastapi.lists.legacy_lists.lists_json.get_lists_data", return_value=None),
         ):
             mock_site_context.get.return_value = object()
 

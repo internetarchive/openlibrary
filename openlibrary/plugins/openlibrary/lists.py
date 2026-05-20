@@ -543,41 +543,6 @@ def _changequery(path: str, query=None, query_path: str | None = None, **kw):
     return out
 
 
-def get_lists_json_data(
-    path: str,
-    current_site,
-    limit: int = 50,
-    offset: int = 0,
-    query=None,
-    query_path: str | None = None,
-):
-    if path.startswith("/subjects/"):
-        doc = subjects.get_subject(path)
-    else:
-        doc = current_site.get(path)
-
-    if not doc:
-        return None
-
-    had_site = "site" in web.ctx
-    previous_site = web.ctx.get("site") if had_site else None
-    web.ctx.site = current_site
-    try:
-        return lists_json.get_lists_data(
-            doc,
-            path,
-            limit=limit,
-            offset=offset,
-            query=query,
-            query_path=query_path,
-        )
-    finally:
-        if had_site:
-            web.ctx.site = previous_site
-        else:
-            web.ctx.pop("site", None)
-
-
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
@@ -591,15 +556,30 @@ class lists_json(delegate.page):
         limit = min(limit, 100)
         offset = max(offset, 0)
 
-        lists = get_lists_json_data(path, web.ctx.site, limit=limit, offset=offset)
+        lists = self.get_lists_data(
+            path, site_obj=web.ctx.site, limit=limit, offset=offset
+        )
         if lists is None:
             raise web.notfound()
         return delegate.RawText(self.dumps(lists))
 
     @staticmethod
     def get_lists_data(
-        doc, path, limit=50, offset=0, query=None, query_path: str | None = None
+        path,
+        site_obj=None,
+        limit=50,
+        offset=0,
+        query=None,
+        query_path: str | None = None,
     ):
+        if path.startswith("/subjects/"):
+            doc = subjects.get_subject(path)
+        else:
+            doc = site_obj.get(path)
+
+        if not doc:
+            return None
+
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 
