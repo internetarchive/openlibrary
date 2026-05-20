@@ -649,20 +649,20 @@ class OpenLibraryAccount(Account):
     @property
     def pd_authority(self):
         """Return patron's requested Print Disability Authority"""
-        return self.get_user().preferences().get('pda')
+        return self.get_user().preferences().get("pda")
 
     @property
     def pd_status(self):
-        rpd = self.get_user().preferences().get('rpd')
+        rpd = self.get_user().preferences().get("rpd")
         return PDRequestStatus(int(rpd)) if rpd is not None else None
 
     def update_pd(self, pda=None, rpd=None):
         prefs = {}
         u = self.get_user()
         if pda and self.pd_authority != pda:
-            prefs['pda'] = pda
+            prefs["pda"] = pda
         if rpd is not None and self.pd_status != PDRequestStatus(int(rpd)):
-            prefs['rpd'] = rpd
+            prefs["rpd"] = rpd
         if prefs:
             u.save_preferences(prefs)
 
@@ -671,9 +671,7 @@ class OpenLibraryAccount(Account):
             if org == "unqualified":
                 org = "vtmas_disabilityresources"
             displayname = web.safestr(self.displayname)
-            msg = render_template(
-                "email/account/pd_request", displayname=displayname, org=org
-            )
+            msg = render_template("email/account/pd_request", displayname=displayname, org=org)
             web.sendmail(
                 config.from_address,
                 self.email,
@@ -881,18 +879,18 @@ class InternetArchiveAccount(web.storage):
 
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn#activate
         """
-        payload = {'token': token, 'welcome-email': welcome_email}
+        payload = {"token": token, "welcome-email": welcome_email}
 
-        response = cls.xauth(op='activate', test=test, **payload)
+        response = cls.xauth(op="activate", test=test, **payload)
 
-        if not response.get('success'):
-            reason = response.get('values', {}).get('reason') or response.get('error')
+        if not response.get("success"):
+            reason = response.get("values", {}).get("reason") or response.get("error")
             return {
-                'error': reason or 'activation_failed',
-                'code': response.get('code', 409),
+                "error": reason or "activation_failed",
+                "code": response.get("code", 409),
             }
 
-        return response.get('values', response)
+        return response.get("values", response)
 
 
 def audit_accounts(  # noqa: PLR0912
@@ -1034,7 +1032,7 @@ def audit_accounts(  # noqa: PLR0912
         ol_account.save_s3_keys(s3_keys)
 
     # Handle Print Disability Processing
-    has_special_access = getattr(ia_account, 'has_disability_access', False)
+    has_special_access = getattr(ia_account, "has_disability_access", False)
     if pda := web.cookies().get("pda"):
         if has_special_access:
             ol_account.update_pd(pda, PDRequestStatus.FULFILLED.value)
@@ -1042,11 +1040,7 @@ def audit_accounts(  # noqa: PLR0912
             ol_account.update_pd(pda, PDRequestStatus.REQUESTED.value)
         if ol_account.pd_status == PDRequestStatus.REQUESTED:
             ol_account.send_pd_email()
-    elif (
-        ol_account.pd_authority
-        and has_special_access
-        and ol_account.pd_status != PDRequestStatus.FULFILLED
-    ):
+    elif ol_account.pd_authority and has_special_access and ol_account.pd_status != PDRequestStatus.FULFILLED:
         ol_account.update_pd(rpd=PDRequestStatus.FULFILLED.value)
 
     # When a user logs in with OL credentials, the web.ctx.site.login() is called with
@@ -1060,13 +1054,13 @@ def audit_accounts(  # noqa: PLR0912
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()
     return {
-        'authenticated': True,
-        'special_access': has_special_access,
-        'ia_email': ia_account.email,
-        'ol_email': ol_account.email,
-        'ia_username': ia_account.screenname,
-        'ol_username': ol_account.username,
-        'link': ol_account.itemname,
+        "authenticated": True,
+        "special_access": has_special_access,
+        "ia_email": ia_account.email,
+        "ol_email": ol_account.email,
+        "ia_username": ia_account.screenname,
+        "ol_username": ol_account.username,
+        "link": ol_account.itemname,
     }
 
 
