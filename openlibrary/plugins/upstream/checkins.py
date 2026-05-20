@@ -38,7 +38,10 @@ def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """
     if not year:
         return False
-
+    if month is not None and not 1 <= month <= 12:
+        return False
+    if day is not None and not 1 <= day <= 31:
+        return False
     return not day or bool(month)
 
 
