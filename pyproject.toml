@@ -1,16 +1,7 @@
-# NOTE: You have to use single-quoted strings in TOML for regular expressions.
-# It's the equivalent of r-strings in Python.  Multiline strings are treated as
-# verbose regular expressions by Black.  Use [ ] to denote a significant space
-# character.
-
 [project]
 name = "openlibrary"
 version = "1.0.0"
 requires-python = ">=3.12.2,<3.12.3"
-
-[tool.black]
-skip-string-normalization = true
-target-version = ["py311"]
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
