@@ -9,7 +9,7 @@ from openlibrary.plugins.openlibrary.lists import SpamListError
 class TestListsJsonGet:
     def test_people_lists_validates_pagination_params(self, fastapi_client):
         current_site = object()
-        expected = {"links": {"self": "/people/alice", "next": None, "prev": None}, "size": 1, "entries": []}
+        expected = {"links": {"self": "/people/alice"}, "size": 1, "entries": []}
 
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,
@@ -56,7 +56,7 @@ class TestListsJsonGet:
 
     def test_work_lists_uses_default_pagination(self, fastapi_client):
         current_site = object()
-        expected = {"links": {"self": "/works/OL42W", "next": None, "prev": None}, "size": 0, "entries": []}
+        expected = {"links": {"self": "/works/OL42W"}, "size": 0, "entries": []}
 
         with (
             patch("openlibrary.fastapi.lists.site") as mock_site_context,

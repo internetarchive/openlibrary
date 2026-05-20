@@ -190,11 +190,11 @@ def _lists_seed_path(
     raise ValueError("Could not determine lists path")
 
 
-@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse)
-@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse)
-@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse)
-@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse)
-@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse)
+@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
 def lists_json(
     request: Request,
     username: str | None = None,
