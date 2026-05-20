@@ -28,6 +28,55 @@ if TYPE_CHECKING:
 router = APIRouter(tags=["lists"])
 
 
+class ListsJsonLinks(BaseModel):
+    """Pagination links for a lists.json response."""
+
+    self: str
+    next: str | None = None
+    prev: str | None = None
+
+
+class ListPreviewEntry(BaseModel):
+    """A single list entry in a lists.json response."""
+
+    url: str
+    full_url: str
+    name: str
+    seed_count: int
+    last_update: str | None = None
+
+
+class ListsJsonResponse(BaseModel):
+    """Response model for GET /<entity>/lists.json endpoints."""
+
+    links: ListsJsonLinks
+    size: int
+    entries: list[ListPreviewEntry]
+
+
+class CreateListBody(BaseModel):
+    """Request body for creating a new list."""
+
+    name: str = ""
+    description: str = ""
+    tags: list[str] = []
+    seeds: list[dict[str, Any] | str] = []
+
+
+class CreateListResponse(BaseModel):
+    """Response model for POST /people/{username}/lists.json.
+
+    Uses `extra="allow"` to preserve any additional fields returned
+    by the underlying `site.save()` call (e.g. ``type``, ``created``,
+    ``last_modified``) for backward compatibility.
+    """
+
+    key: str
+    revision: int
+
+    model_config = {"extra": "allow"}
+
+
 def _get_list_or_404(key: str, raw: bool) -> dict:
     """Fetch a list by key and raise 404 if not found or deleted."""
     if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
@@ -141,11 +190,11 @@ def _lists_seed_path(
     raise ValueError("Could not determine lists path")
 
 
-@router.get("/people/{username}/lists.json")
-@router.get("/books/OL{edition_id}M/lists.json")
-@router.get("/works/OL{work_id}W/lists.json")
-@router.get("/authors/OL{author_id}A/lists.json")
-@router.get("/subjects/{subject_key:path}/lists.json")
+@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse)
+@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse)
+@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse)
+@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse)
+@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse)
 def lists_json(
     request: Request,
     username: str | None = None,
@@ -155,7 +204,15 @@ def lists_json(
     subject_key: str | None = None,
     offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
     limit: Annotated[int, Query(ge=0, le=100, description="Number of items to return (max 100)")] = 50,
-) -> dict:
+) -> dict[str, Any]:
+    """
+    Returns paginated lists for a given entity (person, book, work, author, or subject).
+
+    Examples:
+    - /people/alice/lists.json?limit=50&offset=0
+    - /works/OL42W/lists.json
+    - /subjects/love/lists.json
+    """
     seed_path = _lists_seed_path(
         username=username,
         edition_id=edition_id,
@@ -176,21 +233,12 @@ def lists_json(
     return data
 
 
-class CreateListBody(BaseModel):
-    """Request body for creating a new list."""
-
-    name: str = ""
-    description: str = ""
-    tags: list[str] = []
-    seeds: list[dict[str, Any] | str] = []
-
-
-@router.post("/people/{username}/lists.json")
+@router.post("/people/{username}/lists.json", response_model=CreateListResponse)
 def lists_json_post(
     username: str,
     body: CreateListBody,
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-) -> dict:
+) -> dict[str, Any]:
     current_site = site.get()
     user_key = f"/people/{username}"
     user = current_site.get(user_key)
