@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import web
-
 from infogami.infobase import client as infobase_client
 
 
@@ -122,7 +120,6 @@ class TestListsJsonPost:
         current_site.can_write.return_value = True
 
         def process_new_list(user_arg, data_arg, site_arg):
-            assert web.ctx.site is current_site
             return expected
 
         with (

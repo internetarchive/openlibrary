@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, Literal
 
-import web
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
 from infogami.infobase import client
@@ -192,9 +191,6 @@ def lists_json_post(
             detail="Permission denied.",
         )
 
-    had_site = "site" in web.ctx
-    previous_site = web.ctx.get("site") if had_site else None
-    web.ctx.site = current_site
     try:
         with web_ctx_ip():
             result = legacy_lists.lists_json.process_new_list(user, body, current_site)
@@ -211,11 +207,6 @@ def lists_json_post(
             status_code=status_code,
             detail=str(e),
         )
-    finally:
-        if had_site:
-            web.ctx.site = previous_site
-        else:
-            web.ctx.pop("site", None)
 
     return result
 
