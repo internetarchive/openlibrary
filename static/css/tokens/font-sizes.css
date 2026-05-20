@@ -53,6 +53,9 @@
  * ==========================================
  * Kept so existing consumers (~150 references) keep working during migration.
  * Do NOT use in new code. Will be removed once all usages are migrated.
+ *
+ * Note: --font-size-body-large keeps its name and is defined in the semantic
+ * section above (16px); no alias needed here.
  */
 :root {
   --font-size-display-large:    3.5625rem;             /* 57px — no primitive; one-off */
@@ -67,6 +70,5 @@
   --font-size-label-large:      var(--font-size-sm);   /* 14px → --font-size-label */
   --font-size-label-medium:     var(--font-size-xs);   /* 12px → --font-size-meta or --font-size-body-small */
   --font-size-label-small:      var(--font-size-2xs);  /* 11px → --font-size-2xs (primitive, no semantic) */
-  --font-size-body-large:       var(--font-size-base); /* 16px → --font-size-body-large (same name, now sourced from semantic layer) */
   --font-size-body-medium:      var(--font-size-sm);   /* 14px → --font-size-body */
 }
