@@ -153,19 +153,11 @@ class ListRecord:
         normalized_seeds = [
             ListRecord.normalize_input_seed(seed)
             # Seeds can be a list of seeds or a CSV string of seeds.
-            for seed_list in (
-                i["seeds"] if isinstance(i["seeds"], list) else [i["seeds"]]
-            )
+            for seed_list in (i["seeds"] if isinstance(i["seeds"], list) else [i["seeds"]])
             # Each element of seeds can be a CSV string of seeds
-            for seed in (
-                seed_list.split(",") if isinstance(seed_list, str) else [seed_list]
-            )
+            for seed in (seed_list.split(",") if isinstance(seed_list, str) else [seed_list])
         ]
-        normalized_seeds = [
-            seed
-            for seed in normalized_seeds
-            if seed and (isinstance(seed, str) or seed.get("key") or seed.get("thing"))
-        ]
+        normalized_seeds = [seed for seed in normalized_seeds if seed and (isinstance(seed, str) or seed.get("key") or seed.get("thing"))]
         return ListRecord(
             key=i["key"],
             name=i["name"],
@@ -176,13 +168,7 @@ class ListRecord:
     def to_thing_json(self):
         return {
             "key": self.key,
-            "type": {
-                "key": (
-                    "/type/series"
-                    if (self.key and "/series/" in self.key)
-                    else "/type/list"
-                )
-            },
+            "type": {"key": ("/type/series" if (self.key and "/series/" in self.key) else "/type/list")},
             "name": self.name,
             "description": self.description,
             "seeds": self.seeds,
@@ -261,9 +247,7 @@ def get_list_data(list, seed, include_cover_url=True):
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
 
-        d["cover_url"] = (
-            cover and cover.url("S")
-        ) or "/static/images/icons/avatar_book-sm.png"
+        d["cover_url"] = (cover and cover.url("S")) or "/static/images/icons/avatar_book-sm.png"
         if "None" in d["cover_url"]:
             d["cover_url"] = "/static/images/icons/avatar_book-sm.png"
 
@@ -280,10 +264,7 @@ def get_user_lists(seed_info):
         return []
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
-    return [
-        get_list_data(user_list, seed, include_cover_url=False)
-        for user_list in user_lists
-    ]
+    return [get_list_data(user_list, seed, include_cover_url=False) for user_list in user_lists]
 
 
 @public
@@ -311,9 +292,7 @@ class lists(delegate.page):
             if not mb.user:
                 raise web.notfound()
 
-            template = render_template(
-                "lists/lists.html", mb.user, mb.user.get_lists(), show_header=False
-            )
+            template = render_template("lists/lists.html", mb.user, mb.user.get_lists(), show_header=False)
             return mb.render(
                 template=template,
                 header_title=_("Lists (%(count)d)", count=len(mb.lists)),
@@ -375,9 +354,7 @@ class lists_edit(delegate.page):
 
         # Block spam lists at creation time (issue #11905)
         if spamcheck.is_spam(list_record.to_thing_json()):
-            return render_template(
-                "message.html", "Oops", "Something went wrong. Please try again later."
-            )
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         # Creating a new list
         if not list_id:
@@ -393,24 +370,16 @@ class lists_edit(delegate.page):
             thing_json["seeds"] = []
 
             # Edit the works to add series edges
-            work_key_to_list_seed = {
-                seed["thing"]["key"]: seed for seed in list_record.get_annotated_seeds()
-            }
+            work_key_to_list_seed = {seed["thing"]["key"]: seed for seed in list_record.get_annotated_seeds()}
 
             works_to_remove: set[str] = set()
             if list_id:
                 old_series = cast(Series, web.ctx.site.get(list_key))
-                works_to_remove = {
-                    seed.key
-                    for seed in old_series.get_seeds()
-                    if seed.key not in work_key_to_list_seed
-                }
+                works_to_remove = {seed.key for seed in old_series.get_seeds() if seed.key not in work_key_to_list_seed}
 
             works = cast(
                 list[Work],
-                web.ctx.site.get_many(
-                    list(work_key_to_list_seed) + list(works_to_remove)
-                ),
+                web.ctx.site.get_many(list(work_key_to_list_seed) + list(works_to_remove)),
             )
             for work in works:
                 if work.key in works_to_remove:
@@ -425,9 +394,7 @@ class lists_edit(delegate.page):
                         # Note: The type is actually WorkSeriesEdgeDict, but internally inside infogami
                         # these behave sort of the same, since a full `Thing` object is replaced with
                         # a ThingReference (eg `{'key': '/works/OL123W'}`) when saved to the DB.
-                        work_series_edge = cast(
-                            WorkSeriesEdgeDB, {"series": {"key": list_key}}
-                        )
+                        work_series_edge = cast(WorkSeriesEdgeDB, {"series": {"key": list_key}})
 
                     # Update the edge with any metadata from the list seed
                     update_list_seed_metadata(work_series_edge, list_seed)
@@ -490,9 +457,7 @@ class lists_add(delegate.page):
                 f"Permission denied to edit {user_key}.",
             )
         list_record = ListRecord.from_input()
-        return render_template(
-            "type/list/edit", list_record, list_type=list_type, new=True
-        )
+        return render_template("type/list/edit", list_record, list_type=list_type, new=True)
 
     def POST(self, user_key: str | None, list_type_plural: Literal["lists", "series"]):  # type: ignore[override]
         return lists_edit().POST(user_key, list_type_plural, None)
@@ -785,9 +750,7 @@ class list_seeds(delegate.page):
         if not lst:
             raise web.notfound()
 
-        return delegate.RawText(
-            formats.dump(lst, self.encoding), content_type=self.content_type
-        )
+        return delegate.RawText(formats.dump(lst, self.encoding), content_type=self.content_type)
 
     def POST(self, key):
         site = web.ctx.site
@@ -907,16 +870,8 @@ def get_list_editions(
 
     links = ListEditionsLinks(
         self=_pagination_url(url),
-        next=(
-            _pagination_url(url, limit=limit, offset=end)
-            if offset + len(editions) < size
-            else None
-        ),
-        prev=(
-            _pagination_url(url, limit=limit, offset=max(0, offset - limit))
-            if offset
-            else None
-        ),
+        next=(_pagination_url(url, limit=limit, offset=end) if offset + len(editions) < size else None),
+        prev=(_pagination_url(url, limit=limit, offset=max(0, offset - limit)) if offset else None),
         list=key or None,
     )
 
@@ -948,9 +903,7 @@ class list_editions_json(delegate.page):
         )
         if not editions:
             raise web.notfound()
-        return delegate.RawText(
-            formats.dump(editions.dict(), self.encoding), content_type=self.content_type
-        )
+        return delegate.RawText(formats.dump(editions.dict(), self.encoding), content_type=self.content_type)
 
 
 class list_editions_yaml(list_editions_json):
@@ -1075,9 +1028,7 @@ class export(delegate.page):
 
         if not raw:
             if "editions" in export_data:
-                export_data["editions"] = [
-                    self.make_doc(e) for e in export_data["editions"]
-                ]
+                export_data["editions"] = [self.make_doc(e) for e in export_data["editions"]]
                 lst.preload_authors(export_data["editions"])
             else:
                 export_data["editions"] = []
@@ -1087,9 +1038,7 @@ class export(delegate.page):
             else:
                 export_data["works"] = []
             if "authors" in export_data:
-                export_data["authors"] = [
-                    self.make_doc(e) for e in export_data["authors"]
-                ]
+                export_data["authors"] = [self.make_doc(e) for e in export_data["authors"]]
                 lst.preload_authors(export_data["authors"])
             else:
                 export_data["authors"] = []
