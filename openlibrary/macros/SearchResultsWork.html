@@ -56,11 +56,18 @@ $code:
   $ blur_cover = "bookcover--blur" if blur else ""
   $if 'log' in doc:
     <div class="feed-item">
-      <a class="feed-item--patron" href="/people/$(doc['log']['username'])">
-        <img src="/people/$(doc['log']['username'])/avatar" class="account-avatar account-avatar--sm account-avatar-fix">
-        $doc['log']['username']
-      </a> $_("added to")
-      <a href="/people/$(doc['log']['username'])/books/$(doc['log']['shelf'].replace(' ', '-'))" class="feed-item--shelf">$doc['log']['shelf']</a> $datestr(doc['log']['updated'])
+      <div class="feed-item__info">
+        <a class="feed-item--patron" href="/people/$(doc['log']['username'])">
+          <img src="/people/$(doc['log']['username'])/avatar" class="account-avatar account-avatar--sm account-avatar-fix">
+          $doc['log']['username']
+        </a> $_("added to")
+        <a href="/people/$(doc['log']['username'])/books/$(doc['log']['shelf'].replace(' ', '-').lower())" class="feed-item--shelf">$doc['log']['shelf']</a> $datestr(doc['log']['updated'])
+      </div>
+      $# Follow button for public patrons (not shown for own entries)
+      $if doc['log'].get('is_public') and doc['log'].get('is_following') != -1:
+        <div class="feed-item__follow">
+          $:macros.Follow(doc['log']['username'], following=(doc['log'].get('is_following') == 1), request_path='/trending/now')
+        </div>
     </div>
   <div class="sri__main">
     <span class="bookcover $blur_cover">

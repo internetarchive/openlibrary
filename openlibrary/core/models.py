@@ -157,8 +157,10 @@ class Thing(client.Thing):
         preview = self.history_preview
         if preview.recent:
             return preview.recent[0]
-        else:
+        elif preview.initial:
             return preview.initial[0]
+        else:
+            return None
 
     def prefetch(self) -> None:
         """Prefetch all the anticipated data."""
@@ -1057,10 +1059,13 @@ class User(Thing):
         cacheable=lambda key, value: not value.endswith('/None'),
     )
     def get_avatar_url(cls, username: str) -> str:
+        default_avatar = '/images/icons/avatar_author.png'
         username = username.rsplit('/people/', maxsplit=1)[-1]
         user = web.ctx.site.get(f'/people/{username}')
-        itemname = user.get_account().get('internetarchive_itemname')
+        itemname = (user.get_account() or {}).get('internetarchive_itemname')
 
+        if not itemname:
+            return default_avatar
         return f'https://archive.org/services/img/{itemname}'
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))

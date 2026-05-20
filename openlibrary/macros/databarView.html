@@ -12,7 +12,8 @@ $else:
 <div id="editTools" class="edit">
     <div id="editInfo">
         $if "superfast" in ctx.features:
-            $ author = page.get_most_recent_change().author
+            $ change = page.get_most_recent_change()
+            $ author = change.author if change else None
         $else:
             $ author = get_recent_author(page)
         $if author:
