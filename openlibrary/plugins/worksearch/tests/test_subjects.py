@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import web
 
-from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
+from openlibrary.plugins.worksearch.subjects import subjects as subjects_handler
 
 
 class TestFacetWrapper:
