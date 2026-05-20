@@ -5,6 +5,7 @@ import re
 import time
 from types import MappingProxyType
 from typing import Any, Literal, TypedDict
+from urllib.parse import quote
 
 import httpx
 import requests
@@ -307,6 +308,34 @@ def is_dvd(book) -> bool:
     return "dvd" in [product_group, physical_format]
 
 
+def amazon_affiliate_url(isbn: str | None, asin: str | None, tag: str) -> str | None:
+    """Return an Amazon affiliate URL for a book, handling 979-prefix ISBNs.
+
+    Amazon's /dp/<ASIN>/ route only accepts ISBN-10 or a real ASIN.
+    For 979-prefix ISBN-13s, isbn_13_to_isbn_10() returns None because no
+    ISBN-10 equivalent exists (per @hornc: Amazon assigns an arbitrary ASIN
+    that cannot be derived programmatically).  In that case we fall back to
+    an Amazon search URL (per @mekarpeles).  We gate on isbn_13_to_isbn_10()
+    not a raw startswith('979') check so that ISBN structural knowledge stays
+    inside isbn utils (per @cdrini).  This fixes issue #6572.
+
+    Args:
+        isbn: ISBN-13 string (canonical, digits only), or None.
+        asin: Pre-resolved ASIN (e.g. from edition identifiers or ISBN-10),
+              or None.  Takes priority over isbn conversion.
+        tag:  Amazon affiliate tag.
+
+    Returns:
+        A fully-formed Amazon URL, or None if neither isbn nor asin provided.
+    """
+    effective_asin = asin or (isbn and isbn_13_to_isbn_10(isbn))
+    if effective_asin:
+        return f"https://www.amazon.com/dp/{quote(effective_asin)}/?tag={tag}"
+    if isbn:
+        return f"https://www.amazon.com/s?k={quote(isbn)}&i=stripbooks&tag={tag}"
+    return None
+
+
 class AmazonCreatorsAPI:
     """
     Amazon Creators API wrapper — replacement for AmazonAPI (PA-API 5.0).
@@ -601,16 +630,6 @@ def get_amazon_metadata(
     )
 
 
-def search_amazon(title: str = "", author: str = "") -> dict:  # type: ignore[empty-body]
-    """Uses the Amazon Product Advertising API ItemSearch operation to search for
-    books by author and/or title.
-    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
-    XXX! Broken while migrating from paapi 4.0 to 5.0
-    :return: dict of "results", a list of one or more found books, with metadata.
-    """
-    pass
-
-
 def _get_amazon_metadata(
     id_: str,
     id_type: Literal["asin", "isbn"] = "isbn",
@@ -794,7 +813,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
 class BetterWorldBooksMetadata(TypedDict):
     url: str
     isbn: str
-    market_price: list[str] | None
+    market_price: str | None
     price: str | None
     price_amt: str | None
     qlt: str | None
@@ -872,7 +891,7 @@ def betterworldbooks_fmt(
     isbn: str,
     qlt: str | None = None,
     price: str | None = None,
-    market_price: list[str] | None = None,
+    market_price: str | None = None,
 ) -> BetterWorldBooksMetadata:
     """Defines a standard interface for returning bwb price info
 

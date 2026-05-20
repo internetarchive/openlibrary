@@ -1,0 +1,4 @@
+$def with (title, opts)
+<span class="affiliate-links-section" data-title="$title" data-opts="$json_encode(opts)">
+  $:macros.LoadingIndicator(_("Fetching prices"), additional_classes="affiliate-links-loading")
+</span>

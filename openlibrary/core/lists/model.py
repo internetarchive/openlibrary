@@ -565,8 +565,11 @@ class Seed:
             return "/subjects/" + subject
 
     def get_cover(self):
-        if self.type in ["work", "edition"]:
-            doc = cast(Work | Edition, self.document)
+        if self.type == "work":
+            doc = cast(Work, self.document)
+            return doc.get_cover(use_solr=False)
+        elif self.type == "edition":
+            doc = cast(Edition, self.document)
             return doc.get_cover()
         elif self.type == "author":
             doc = cast(Author, self.document)

@@ -1,3 +1,12 @@
+# Temporary container to build ModSecurity
+FROM debian:bookworm-slim AS modsec-builder
+
+ARG MODSECURITY_TAG=v1.0.4
+ENV MODSECURITY_TAG=${MODSECURITY_TAG}
+
+COPY scripts/build_modsecurity.sh /tmp/build_modsecurity.sh
+RUN bash /tmp/build_modsecurity.sh
+
 FROM python:3.12.2-slim-bookworm
 
 ENV LANG=en_US.UTF-8
@@ -44,6 +53,10 @@ RUN ./install_nodejs.sh && rm ./install_nodejs.sh
 USER root
 COPY scripts/install_nginx.sh ./
 RUN ./install_nginx.sh && rm ./install_nginx.sh
+COPY --from=modsec-builder /out/ngx_http_modsecurity_module.so /usr/lib/nginx/modules/ngx_http_modsecurity_module.so
+RUN chmod 644 /usr/lib/nginx/modules/ngx_http_modsecurity_module.so \
+ && chown root:root /usr/lib/nginx/modules/ngx_http_modsecurity_module.so
+
 
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary \
  && mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary \

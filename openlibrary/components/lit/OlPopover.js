@@ -42,7 +42,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  * @fires ol-popover-close - Cancelable. Fired when the popover requests to
  *     close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss
  *     close fires after the gesture completes and is not cancelable.
- *     detail: { reason: 'escape' | 'outside-click' | 'swipe' }
+ *     detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' }
  *
  * @slot trigger - The trigger element (button, icon, etc.)
  * @slot - Default slot for popover content
@@ -623,7 +623,11 @@ export class OlPopover extends LitElement {
     // ── Trigger / outside click / keyboard ──────────────────────
 
     _onTriggerClick() {
-        this.open = !this.open;
+        if (this.open) {
+            this._requestClose('trigger');
+        } else {
+            this.open = true;
+        }
     }
 
     _onOutsideClick(e) {

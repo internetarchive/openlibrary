@@ -181,7 +181,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
     def get_redirected_authors(authors: list["Author"]):
         keys = [a.type.key for a in authors]
         if any(k != "/type/author" for k in keys):
-            seen: set[dict] = set()
+            seen: set[str] = set()
             all_authors = [walk_redirects(a, seen) for a in authors if a["key"] not in seen]
             return all_authors
         return authors

@@ -1,4 +1,4 @@
-aiofiles==23.2.1
+aiofiles==25.1.0
 amightygirl.paapi5-python-sdk==1.0.0
 APScheduler==3.11.2
 Babel==2.18.0
@@ -22,15 +22,15 @@ multipart==1.3.1
 Pillow==12.2.0
 prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.12
-pydantic==2.13.3
+pydantic==2.13.4
 pymarc==5.3.1
 python-amazon-paapi==6.2.0
 python-dateutil==2.9.0.post0
 python-memcached==1.62
-python-multipart==0.0.27
+python-multipart==0.0.28
 PyYAML==6.0.3
 qrcode==7.4.2
-requests==2.33.1
+requests==2.34.0
 sentry-sdk[fastapi]==2.59.0
 simplejson==3.20.2
 statsd==4.0.1

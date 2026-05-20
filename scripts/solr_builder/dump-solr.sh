@@ -166,13 +166,13 @@ time ssh -t $SOLR_SERVER "
             ia \
             --config-file=/olsystem/etc/ia.ini \
             upload ol_solr_dump \
-            --retries 300 \
-            -H x-archive-keep-old-version:0 \
             /tmp/solr/$DUMP_FILE \
             /tmp/solr/$DUMP_OFFSET_FILE \
-            --metadata 'collection:ol_exports' \
-            --metadata 'year:$(date +%Y)' \
-            --metadata 'format:Data'
+            --retries 300 \
+            --header x-archive-keep-old-version:0 \
+            --metadata collection:ol_exports \
+            --metadata year:$(date +%Y) \
+            --metadata format:Data
         '
     docker logs -f solr-dump-upload
 "
