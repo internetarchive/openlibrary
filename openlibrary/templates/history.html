@@ -34,10 +34,20 @@ $ rev = page.latest_revision or page.revision
         </thead>
         <tbody>
             $for v in h:
-                <tr>
-                    <td class="number">$v.revision</td>
+                $ row_class = "history-current-row" if v.revision == rev else ""
+                <tr class="$row_class">
+                    <td class="number">
+                        <div>$v.revision</div>
+                        $if v.revision == rev:
+                            <div class="history-current-badge">$_("Current")</div>
+                    </td>
                     <td class="edit">
-                        <div>$:render_template("history/comment", v)</div>
+                        <div>
+                            $if v.comment:
+                                $:render_template("history/comment", v)
+                            $else:
+                                <span class="history-no-comment">$_("no comment")</span>
+                        </div>
                         <div>
                             $if v.author:
                                 <a href="$homepath()$v.author.key">$v.author.displayname</a>
@@ -45,7 +55,7 @@ $ rev = page.latest_revision or page.revision
                                 <a href="/recentchanges?ip=$v.ip">$v.ip</a>
                             $else:
                                 $v.ip
-                            · $datestr(v.created)
+                            <span class="edit-date">· $datestr(v.created)</span>
                         </div>
                     </td>
                     <td class="compare-against" style="text-align:center;">

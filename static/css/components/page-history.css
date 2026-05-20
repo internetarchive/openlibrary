@@ -50,3 +50,103 @@ table.history td.detail {
   padding: 10px;
   width: 100%;
 }
+
+/* History page redesign - #12628 */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory thead tr th {
+  font-weight: bold;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tr.history-current-row {
+  background-color: var(--lighter-yellow);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody td.number {
+  font-weight: bold;
+  text-align: center;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.edit div {
+  color: var(--link-blue);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody td.number div {
+  color: var(--link-blue);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.number .history-current-badge {
+  border: 1px solid var(--brown);
+  border-radius: 3px;
+  color: var(--brown);
+  display: inline-block;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-top: 4px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-against a {
+  border: 1px solid var(--light-grey);
+  border-radius: 3px;
+  color: var(--link-blue);
+  display: inline-block;
+  font-weight: bold;
+  padding: 3px 8px;
+  text-decoration: none;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.edit a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.edit .edit-date {
+  color: var(--grey);
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.pick-ab {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.pick-ab fieldset {
+  margin: 0;
+  padding: 0;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-against a:hover {
+  background-color: var(--lightest-grey);
+}
+
+.compare-arbitrary-btn {
+  background-color: var(--dark-blue);
+  border-radius: 3px;
+  color: var(--white) !important;
+  display: inline-block;
+  font-weight: bold;
+  margin-top: 6px;
+  padding: 4px 8px;
+  text-align: center;
+  text-decoration: none !important;
+}
+
+.compare-arbitrary-btn:hover {
+  opacity: 0.85;
+}
+
+.history-no-comment {
+  color: var(--mid-grey);
+  font-style: italic;
+}
