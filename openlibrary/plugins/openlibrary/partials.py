@@ -1,9 +1,15 @@
+import logging
+import os
+import re
+import time as _time
 from dataclasses import dataclass
 from hashlib import md5
+from pathlib import Path
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 
 from infogami.utils.view import public, render_template
@@ -19,7 +25,6 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
-from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -292,6 +297,38 @@ def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
     ]
 
 
+_JINJA_ENV = Environment(
+    loader=FileSystemLoader(
+        Path(__file__).resolve().parent.parent.parent / "macros"
+    ),
+    autoescape=True,
+)
+_JINJA_ENV.globals["_"] = _
+
+logger = logging.getLogger("openlibrary.partials")
+_EXPERIMENT_LOGGER = logging.getLogger("openlibrary.jinja_experiment")
+_JINJA_EXPERIMENT_ENABLED = os.getenv("OL_JINJA_EXPERIMENT") == "1"
+
+
+def _normalize_html(html: str) -> str:
+    """Collapse all non-semantic whitespace in HTML for comparison between engines."""
+    html = re.sub(r">\s+<", "><", html)
+    html = re.sub(r"\s{2,}", " ", html)
+    return html.strip()
+
+
+def _render_affiliate_links_jinja(
+    primary_stores: list[AffiliateStore],
+    more_stores: list[AffiliateStore],
+) -> str:
+    """Render affiliate links using Jinja2 for experiment comparison."""
+    template = _JINJA_ENV.get_template("AffiliateLinks.html.jinja")
+    return template.render(
+        primary_stores=primary_stores,
+        more_stores=more_stores,
+    )
+
+
 class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
@@ -302,6 +339,8 @@ class AffiliateLinksPartial:
         asin: str | None,
         prices: bool,
     ) -> dict:
+        from openlibrary.plugins.openlibrary.code import is_bot
+
         bwb_metadata = None
         amz_metadata = None
         should_fetch_prices = not is_bot() and prices
@@ -317,8 +356,32 @@ class AffiliateLinksPartial:
 
         primary_stores = build_primary_stores(ctx)
         more_stores = build_more_stores(ctx)
+
+        t0 = _time.perf_counter()
         macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
-        return {"partials": str(macro)}
+        templetor_html = str(macro)
+        t1 = _time.perf_counter()
+
+        if _JINJA_EXPERIMENT_ENABLED:
+            t2 = _time.perf_counter()
+            try:
+                jinja2_html = _render_affiliate_links_jinja(primary_stores, more_stores)
+                t3 = _time.perf_counter()
+                match = _normalize_html(templetor_html) == _normalize_html(jinja2_html)
+                _EXPERIMENT_LOGGER.info(
+                    "Jinja2 experiment | match=%s templetor_ms=%.2f jinja2_ms=%.2f | title=%s isbn=%s",
+                    match,
+                    (t1 - t0) * 1000,
+                    (t3 - t2) * 1000,
+                    title,
+                    isbn,
+                )
+            except Exception:
+                _EXPERIMENT_LOGGER.exception(
+                    "Jinja2 experiment failed | title=%s isbn=%s", title, isbn,
+                )
+
+        return {"partials": templetor_html}
 
 
 class SearchFacetsPartial:
