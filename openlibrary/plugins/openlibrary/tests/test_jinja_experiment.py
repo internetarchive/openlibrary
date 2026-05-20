@@ -30,6 +30,7 @@ except ImportError:
     pass
 
 if WEBPY_AVAILABLE:
+
     def _gettext_stub(message, *args, **kwargs):
         if kwargs:
             return message % kwargs
@@ -137,7 +138,7 @@ class TestJinja2TemplateRendering:
             ),
         ]
         result = affiliate_links_template.render(primary_stores=stores, more_stores=[])
-        assert 'prices-amazon' in result
+        assert "prices-amazon" in result
         assert "Amazon" in result
         assert "$10.00" in result
 
@@ -156,9 +157,7 @@ class TestJinja2TemplateRendering:
 
     def test_renders_more_stores_section(self, affiliate_links_template):
         stores = [
-            _AffiliateStore(
-                key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"
-            ),
+            _AffiliateStore(key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"),
         ]
         more = [
             _AffiliateStore(
@@ -174,9 +173,7 @@ class TestJinja2TemplateRendering:
 
     def test_no_more_stores_section_when_empty(self, affiliate_links_template):
         stores = [
-            _AffiliateStore(
-                key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"
-            ),
+            _AffiliateStore(key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"),
         ]
         result = affiliate_links_template.render(primary_stores=stores, more_stores=[])
         assert "<summary>" not in result
@@ -248,9 +245,7 @@ class TestTempletorEquivalence:
 
     def _render_both(self, templetor_template, affiliate_links_template, stores, more):
         templetor_html = str(templetor_template(stores, more))
-        jinja2_html = affiliate_links_template.render(
-            primary_stores=stores, more_stores=more
-        )
+        jinja2_html = affiliate_links_template.render(primary_stores=stores, more_stores=more)
         return templetor_html, jinja2_html
 
     def test_empty_stores_match(self, templetor_template, affiliate_links_template):
@@ -281,9 +276,7 @@ class TestTempletorEquivalence:
 
     def test_primary_and_more_stores_match(self, templetor_template, affiliate_links_template):
         stores = [
-            _AffiliateStore(
-                key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"
-            ),
+            _AffiliateStore(key="amazon", analytics_key="Amazon", name="Amazon", link="https://amazon.com/dp/123"),
         ]
         more = [
             _AffiliateStore(

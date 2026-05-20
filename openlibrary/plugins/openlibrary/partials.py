@@ -298,9 +298,7 @@ def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
 
 
 _JINJA_ENV = Environment(
-    loader=FileSystemLoader(
-        Path(__file__).resolve().parent.parent.parent / "macros"
-    ),
+    loader=FileSystemLoader(Path(__file__).resolve().parent.parent.parent / "macros"),
     autoescape=True,
 )
 _JINJA_ENV.globals["_"] = _
@@ -378,7 +376,9 @@ class AffiliateLinksPartial:
                 )
             except Exception:
                 _EXPERIMENT_LOGGER.exception(
-                    "Jinja2 experiment failed | title=%s isbn=%s", title, isbn,
+                    "Jinja2 experiment failed | title=%s isbn=%s",
+                    title,
+                    isbn,
                 )
 
         return {"partials": templetor_html}
