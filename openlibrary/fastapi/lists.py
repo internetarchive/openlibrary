@@ -1,19 +1,85 @@
 from typing import TYPE_CHECKING, Annotated, Literal
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Annotated, Any, Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from pydantic import BaseModel
 
 from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubjectsModel, get_list, get_list_editions, get_list_seeds, get_list_subjects
 from openlibrary.plugins.openlibrary.lists import list_seeds as _LegacyListSeeds
+from openlibrary.plugins.openlibrary import lists as legacy_lists
+from openlibrary.plugins.openlibrary.lists import (
+    ListEditionsModel,
+    ListSubjectsModel,
+    SpamListError,
+    get_list_editions,
+    get_list_subjects,
+)
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
+
+# Exposed as a module-level alias so it can be monkeypatched by tests.
+get_list = legacy_lists.get_list
 
 if TYPE_CHECKING:
     from starlette.datastructures import URL
 
 router = APIRouter(tags=["lists"])
+
+
+class ListsJsonLinks(BaseModel):
+    """Pagination links for a lists.json response."""
+
+    self: str
+    next: str | None = None
+    prev: str | None = None
+
+
+class ListPreviewEntry(BaseModel):
+    """A single list entry in a lists.json response."""
+
+    url: str
+    full_url: str
+    name: str
+    seed_count: int
+    last_update: str | None = None
+
+
+class ListsJsonResponse(BaseModel):
+    """Response model for GET /<entity>/lists.json endpoints."""
+
+    links: ListsJsonLinks
+    size: int
+    entries: list[ListPreviewEntry]
+
+
+class CreateListBody(BaseModel):
+    """Request body for creating a new list."""
+
+    name: str = ""
+    description: str = ""
+    tags: list[str] = []
+    seeds: list[dict[str, Any] | str] = []
+
+
+class CreateListResponse(BaseModel):
+    """Response model for POST /people/{username}/lists.json.
+
+    Uses `extra="allow"` to preserve any additional fields returned
+    by the underlying `site.save()` call (e.g. ``type``, ``created``,
+    ``last_modified``) for backward compatibility.
+    """
+
+    key: str
+    revision: int
+
+    model_config = {"extra": "allow"}
 
 
 def _get_list_or_404(key: str, raw: bool) -> dict:
@@ -109,8 +175,99 @@ def lists_delete_no_prefix(
     return _process_list_delete(f"/lists/{list_id}")
 
 
-async def lists_json():
-    pass
+class ListsJsonPagination:
+    """Request + pagination dependency for lists.json endpoints."""
+
+    def __init__(
+        self,
+        request: Request,
+        offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+        limit: Annotated[int, Query(ge=0, le=100, description="Number of items to return (max 100)")] = 50,
+    ):
+        self.request: Request = request
+        self.offset: int = offset
+        self.limit: int = limit
+
+
+CommonListsJsonPagination = Annotated[ListsJsonPagination, Depends()]
+
+
+def _lists_json_data(
+    seed_path: str,
+    pagination: ListsJsonPagination,
+) -> ListsJsonResponse:
+    """Shared helper for lists.json endpoints."""
+    data = legacy_lists.lists_json.get_lists_data(
+        seed_path,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        query_path=pagination.request.url.path,
+    )
+    if data is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return ListsJsonResponse(**data)
+
+
+@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_people(username: str, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/people/{username}", pagination)
+
+
+@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_books(edition_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/books/OL{edition_id}M", pagination)
+
+
+@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_works(work_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/works/OL{work_id}W", pagination)
+
+
+@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_authors(author_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/authors/OL{author_id}A", pagination)
+
+
+@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_subjects(subject_key: str, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/subjects/{subject_key}", pagination)
+
+
+@router.post("/people/{username}/lists.json", response_model=CreateListResponse)
+def lists_json_post(
+    username: str,
+    body: CreateListBody,
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict[str, Any]:
+    current_site = site.get()
+    user_key = f"/people/{username}"
+    user = current_site.get(user_key)
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    if not current_site.can_write(user_key):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied.",
+        )
+
+    try:
+        with web_ctx_ip():
+            result = legacy_lists.lists_json.process_new_list(user, body.model_dump(), current_site)
+    except SpamListError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied.",
+        )
+    except client.ClientException as e:
+        status_code = int(e.status.split()[0])
+        raise HTTPException(
+            status_code=status_code,
+            detail=str(e),
+        )
+
+    return result
 
 
 def _get_list_seeds_or_404(key: str) -> dict:

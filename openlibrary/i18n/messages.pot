@@ -4911,7 +4911,7 @@ msgstr ""
 
 #: covers/external_image.html
 #, python-format
-msgid "Or, use a cover from %s"
+msgid "Or, use an image from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -7749,6 +7749,10 @@ msgstr ""
 
 #: type/tag/view.html
 msgid "Tag Body"
+msgstr ""
+
+#: type/tag/view.html
+msgid "URL Slugs"
 msgstr ""
 
 #: type/tag/view.html

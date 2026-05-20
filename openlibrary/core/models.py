@@ -36,6 +36,7 @@ from openlibrary.core.wikidata import WikidataEntity, get_wikidata_entity
 from openlibrary.plugins.upstream.utils import get_identifier_config
 from openlibrary.utils import extract_numeric_id_from_olid, normalize_subject_name
 from openlibrary.utils.isbn import canonical, isbn_13_to_isbn_10, to_isbn_13
+from openlibrary.utils.request_context import site
 
 from ..accounts import OpenLibraryAccount  # noqa: F401 side effects may be needed
 from ..plugins.upstream.utils import get_coverstore_public_url, get_coverstore_url
@@ -1255,8 +1256,9 @@ class Subject(web.storage):
             "limit": limit,
             "offset": offset,
         }
-        keys = web.ctx.site.things(q)
-        lists = web.ctx.site.get_many(keys)
+        current_site = site.get()
+        keys = current_site.things(q)
+        lists = current_site.get_many(keys)
         if sort:
             lists = safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists

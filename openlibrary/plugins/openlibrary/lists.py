@@ -189,6 +189,10 @@ class ListRecord:
         }
 
 
+class SpamListError(ValueError):
+    """Raised when a list is detected as spam."""
+
+
 class lists_home(delegate.page):
     path = "/lists"
 
@@ -276,7 +280,10 @@ def get_user_lists(seed_info):
         return []
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
-    return [get_list_data(user_list, seed) for user_list in user_lists]
+    return [
+        get_list_data(user_list, seed, include_cover_url=False)
+        for user_list in user_lists
+    ]
 
 
 @public
@@ -526,19 +533,44 @@ class lists_delete(delegate.page):
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
+def build_pagination_links(
+    page_url: URL,
+    total: int,
+    count: int,
+    offset: int,
+    limit: int,
+) -> dict[str, str]:
+    """Build pagination links (next and prev) for list endpoints.
+
+    Args:
+        page_url: The page URL used as the base for constructing next/prev links.
+        total: Total number of items available.
+        count: Number of items returned in the current page.
+        offset: Current pagination offset.
+        limit: Page size.
+
+    Returns:
+        Dict with optional "next" and "prev" keys containing paginated URLs.
+    """
+    links: dict[str, str] = {}
+
+    if offset + count < total:
+        next_offset = offset + limit
+        links["next"] = _pagination_url(page_url, limit=limit, offset=next_offset)
+
+    if offset:
+        prev_offset = max(0, offset - limit)
+        links["prev"] = _pagination_url(page_url, limit=limit, offset=prev_offset)
+
+    return links
+
+
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
     content_type = "application/json"
 
     def GET(self, path):
-        if path.startswith("/subjects/"):
-            doc = subjects.get_subject(path)
-        else:
-            doc = web.ctx.site.get(path)
-        if not doc:
-            raise web.notfound()
-
         i = web.input(offset=0, limit=50)
         offset = h.safeint(i.offset, 0)
         limit = h.safeint(i.limit, 50)
@@ -546,11 +578,31 @@ class lists_json(delegate.page):
         limit = min(limit, 100)
         offset = max(offset, 0)
 
-        lists = self.get_lists_data(doc, path, limit=limit, offset=offset)
+        lists = self.get_lists_data(
+            path,
+            limit=limit,
+            offset=offset,
+            query_path=web.ctx.path,
+        )
+        if lists is None:
+            raise web.notfound()
         return delegate.RawText(self.dumps(lists))
 
     @staticmethod
-    def get_lists_data(doc, path, limit=50, offset=0):
+    def get_lists_data(
+        path,
+        limit: int = 50,
+        offset: int = 0,
+        query_path: str | None = None,
+    ) -> dict | None:
+        if path.startswith("/subjects/"):
+            doc = subjects.get_subject(path)
+        else:
+            doc = site.get().get(path)
+
+        if not doc:
+            return None
+
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 
@@ -558,19 +610,23 @@ class lists_json(delegate.page):
             # There could be more lists than len(lists)
             size = len(doc.get_lists(limit=1000))
 
-        d = {
-            "links": {"self": path},
+        links = {"self": path}
+        page_url = URL(query_path or f"{path}/lists")
+        links.update(
+            build_pagination_links(
+                page_url,
+                size,
+                len(lists),
+                offset,
+                limit,
+            )
+        )
+
+        return {
+            "links": links,
             "size": size,
             "entries": [lst.preview() for lst in lists],
         }
-        if offset + len(lists) < size:
-            d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
-
-        if offset:
-            offset = max(0, offset - limit)
-            d["links"]["prev"] = web.changequery(limit=limit, offset=offset)
-
-        return d
 
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}
@@ -620,7 +676,7 @@ class lists_json(delegate.page):
         )
 
         if spamcheck.is_spam(lst):
-            raise ValueError("Spam list")
+            raise SpamListError
 
         return site.save(
             lst.dict(),

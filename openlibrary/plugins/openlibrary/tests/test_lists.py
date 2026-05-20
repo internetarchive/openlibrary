@@ -1,8 +1,10 @@
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
+from starlette.datastructures import URL
 
+from openlibrary.plugins.openlibrary import lists as legacy_lists
 from openlibrary.plugins.openlibrary.lists import ListRecord
 
 
@@ -148,3 +150,94 @@ class TestListRecord:
             # Blank keys should now raise ValueError during normalization
             with pytest.raises(ValueError, match="Seed key cannot be empty"):
                 ListRecord.from_input()
+
+
+class FakePreviewList:
+    def __init__(self, key):
+        self.key = key
+
+    def preview(self):
+        return {"key": self.key}
+
+
+class FakeListsDoc:
+    def __init__(self, count):
+        self._lists = [FakePreviewList(f"/people/alice/lists/OL{index}L") for index in range(count)]
+
+    def get_lists(self, limit=50, offset=0):
+        return self._lists[offset : offset + limit]
+
+
+class TestBuildPaginationLinks:
+    """Tests for build_pagination_links function."""
+
+    def test_first_page_has_next_no_prev(self):
+        """First page with more results should have next, no prev."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=60, count=50, offset=0, limit=50)
+        assert links == {
+            "next": "/people/alice/lists.json?limit=50&offset=50",
+        }
+
+    def test_middle_page_has_both_next_and_prev(self):
+        """A middle paginated page should have both next and prev."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=60, count=25, offset=25, limit=25)
+        assert links == {
+            "next": "/people/alice/lists.json?limit=25&offset=50",
+            "prev": "/people/alice/lists.json?limit=25&offset=0",
+        }
+
+    def test_last_page_has_prev_no_next(self):
+        """Last page should have prev, no next."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=60, count=10, offset=50, limit=50)
+        assert links == {
+            "prev": "/people/alice/lists.json?limit=50&offset=0",
+        }
+
+    def test_single_page_no_pagination(self):
+        """When results fit on one page, no pagination links."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=30, count=30, offset=0, limit=50)
+        assert links == {}
+
+    def test_empty_results_no_pagination(self):
+        """When there are no results, no pagination links."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=0, count=0, offset=0, limit=50)
+        assert links == {}
+
+    def test_prev_offset_never_negative(self):
+        """Prev offset should be 0, not negative, when offset < limit."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists.json"), total=100, count=5, offset=5, limit=50)
+        assert links["prev"] == "/people/alice/lists.json?limit=50&offset=0"
+
+    def test_works_with_custom_endpoint_path(self):
+        """Should work with any endpoint path (e.g., seed paths without .json)."""
+        links = legacy_lists.build_pagination_links(URL("/people/alice/lists"), total=60, count=50, offset=0, limit=50)
+        assert links == {
+            "next": "/people/alice/lists?limit=50&offset=50",
+        }
+
+    def test_uses_count_not_limit_for_determining_more(self):
+        """Pagination 'next' should depend on count returned, not limit."""
+        # Even with limit=50, if only 5 items returned and total=60, there's more
+        links = legacy_lists.build_pagination_links(URL("/works/OL42W/lists.json"), total=60, count=5, offset=0, limit=50)
+        assert links == {
+            "next": "/works/OL42W/lists.json?limit=50&offset=50",
+        }
+
+
+def test_get_lists_data_uses_lists_json_path_for_pagination_links():
+    doc = FakeListsDoc(60)
+    mock_site = Mock()
+    mock_site.get.return_value = doc
+
+    with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
+        mock_site_context.get.return_value = mock_site
+
+        data = legacy_lists.lists_json.get_lists_data(
+            "/people/alice",
+            limit=50,
+            offset=0,
+            query_path="/people/alice/lists.json",
+        )
+
+    assert data["links"]["self"] == "/people/alice"
+    assert data["links"]["next"] == "/people/alice/lists.json?limit=50&offset=50"
