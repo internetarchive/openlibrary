@@ -59,17 +59,27 @@ class subjects(delegate.page):
         return key
 
     def decorate_with_tags(self, subject) -> None:
-        if tag_keys := Tag.find(subject.name):
+        name = subject.name
+        # Split prefixed subjects: "genre:thriller" → tag_type="genre", slug="thriller"
+        if ":" in name:
+            tag_type, slug_raw = name.split(":", 1)
+            slug = Tag.normalize(slug_raw)
+        else:
+            tag_type = subject.subject_type
+            slug = Tag.normalize(name)
+
+        if tag_keys := Tag.find(slug):
             tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-            if filtered_tags := [tag for tag in tags if tag.tag_type == subject.subject_type]:
+            if filtered_tags := [tag for tag in tags if tag.tag_type == tag_type]:
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
 
             for tag in subject.disambiguations:
-                tag.subject_key = f"/subjects/{tag.name}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{tag.name}"
+                slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
+                tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
