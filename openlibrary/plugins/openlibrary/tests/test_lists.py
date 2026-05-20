@@ -229,13 +229,15 @@ def test_get_lists_data_uses_lists_json_path_for_pagination_links():
     mock_site = Mock()
     mock_site.get.return_value = doc
 
-    data = legacy_lists.lists_json.get_lists_data(
-        "/people/alice",
-        site_obj=mock_site,
-        limit=50,
-        offset=0,
-        query_path="/people/alice/lists.json",
-    )
+    with patch("openlibrary.plugins.openlibrary.lists.site") as mock_site_context:
+        mock_site_context.get.return_value = mock_site
+
+        data = legacy_lists.lists_json.get_lists_data(
+            "/people/alice",
+            limit=50,
+            offset=0,
+            query_path="/people/alice/lists.json",
+        )
 
     assert data["links"]["self"] == "/people/alice"
     assert data["links"]["next"] == "/people/alice/lists.json?limit=50&offset=50"
