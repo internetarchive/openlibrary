@@ -214,6 +214,9 @@ async def search_subjects_json(
         request_label="SUBJECT_SEARCH_API",
     )
 
+    if response.raw_resp is None:
+        return {"error": "Something went wrong"}
+
     # Backward compatibility
     raw_resp = response.raw_resp["response"]
     for doc in raw_resp["docs"]:
@@ -292,12 +295,17 @@ async def search_lists_json(
         request_label="LIST_SEARCH_API",
     )
 
+    if response.raw_resp is None:
+        return {"error": "Something went wrong"}
+
+    start = response.raw_resp["response"].get("start", params.offset or 0)
+
     if params.api == "next":
         # Match search.json
         return {
-            "numFound": response.num_found,
-            "num_found": response.num_found,
-            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "numFound": response.num_found or 0,
+            "num_found": response.num_found or 0,
+            "start": start,
             "q": params.q,
             "docs": response.docs,
         }
@@ -305,7 +313,7 @@ async def search_lists_json(
         # Default to the old API shape for a while, then we'll flip
         lists = web.ctx.site.get_many([doc["key"] for doc in response.docs])
         return {
-            "start": response.raw_resp["response"].get("start", params.offset or 0),
+            "start": start,
             "docs": [lst.preview() for lst in lists],
         }
 
@@ -334,9 +342,13 @@ async def search_authors_json(
         request_label="AUTHOR_SEARCH_API",
     )
 
+    if response.raw_resp is None:
+        return {"error": "Something went wrong"}
+
     # SIGH the public API exposes the key like this :(
     raw_resp = response.raw_resp["response"]
     for doc in raw_resp["docs"]:
-        doc["key"] = doc["key"].split("/")[-1]
+        if "key" in doc:
+            doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp
