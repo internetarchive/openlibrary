@@ -30,6 +30,7 @@ def test_opposite_isbn():
 
 
 def test_normalize_isbn_returns_None():
+    assert normalize_isbn(None) is None
     assert normalize_isbn("") is None
     assert normalize_isbn("a") is None
 

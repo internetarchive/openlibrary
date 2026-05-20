@@ -6,6 +6,7 @@ import pytest
 from openlibrary.core.vendors import (
     AmazonAPI,
     AmazonCreatorsAPI,
+    amazon_affiliate_url,
     betterworldbooks_fmt,
     clean_amazon_metadata_for_load,
     get_amazon_metadata,
@@ -805,16 +806,6 @@ def test_creators_serialize_does_not_load_dvds(product_group, expected) -> None:
     item.item_info.classifications.product_group = CDisplayVal(product_group)
     item.item_info.classifications.binding = CDisplayVal(product_group)
     assert AmazonCreatorsAPI.serialize(item) == expected
-
-
-# ---------------------------------------------------------------------------
-# Regression tests for amazon_affiliate_url() (issue #6572)
-#
-# Logic is in openlibrary.core.affiliate_links — no plugin dependencies,
-# importable directly without triggering the partials circular import.
-# ---------------------------------------------------------------------------
-
-from openlibrary.core.affiliate_links import amazon_affiliate_url
 
 
 def test_amazon_affiliate_url_978_isbn_uses_dp_route() -> None:
