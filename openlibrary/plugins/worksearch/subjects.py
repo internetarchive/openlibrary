@@ -5,9 +5,9 @@ from datetime import date
 from typing import cast
 
 import web
-
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
@@ -285,7 +285,7 @@ class SubjectEngine:
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
-        if details:
+        if details and result.facet_counts:
             result.facet_counts = {
                 facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()
