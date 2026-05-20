@@ -27,7 +27,6 @@ class TestListsJsonGet:
         assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/people/alice",
-            site_obj=current_site,
             limit=100,
             offset=0,
             query_path="/people/alice/lists.json",
@@ -70,7 +69,6 @@ class TestListsJsonGet:
         assert response.json() == expected
         mock_get_lists.assert_called_once_with(
             "/works/OL42W",
-            site_obj=current_site,
             limit=50,
             offset=0,
             query_path="/works/OL42W/lists.json",
@@ -91,7 +89,6 @@ class TestListsJsonGet:
         assert response.status_code == 200
         mock_get_lists.assert_called_once_with(
             "/subjects/person:tolkien",
-            site_obj=current_site,
             limit=50,
             offset=0,
             query_path="/subjects/person:tolkien/lists.json",

@@ -577,7 +577,6 @@ class lists_json(delegate.page):
 
         lists = self.get_lists_data(
             path,
-            site_obj=web.ctx.site,
             limit=limit,
             offset=offset,
             query_path=web.ctx.path,
@@ -589,7 +588,6 @@ class lists_json(delegate.page):
     @staticmethod
     def get_lists_data(
         path,
-        site_obj=None,
         limit: int = 50,
         offset: int = 0,
         query_path: str | None = None,
@@ -597,7 +595,7 @@ class lists_json(delegate.page):
         if path.startswith("/subjects/"):
             doc = subjects.get_subject(path)
         else:
-            doc = site_obj.get(path)
+            doc = site.get().get(path)
 
         if not doc:
             return None

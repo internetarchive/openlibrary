@@ -194,7 +194,6 @@ def _lists_json_data(
     """Shared helper for lists.json endpoints."""
     data = legacy_lists.lists_json.get_lists_data(
         seed_path,
-        site_obj=site.get(),
         limit=pagination.limit,
         offset=pagination.offset,
         query_path=pagination.request.url.path,
