@@ -16,6 +16,10 @@ $var title: $_("Batch Imports")
       <p>$_('Or copy/paste JSONL text:')</p>
       <textarea name="batchImportText" rows="10" cols="70"></textarea>
       <hr/>
+      <p>$_('Batch name (optional):')</p>
+      <input type="text" name="batchName" placeholder="$_('main')">
+      <p><small>$_('Records are added to your existing batch with this name, or a new one is created. Leave blank to use the default "main" batch.')</small></p>
+      <hr/>
       <button type="submit">$_('Import')</button>
     </form>
 

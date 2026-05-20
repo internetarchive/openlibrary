@@ -1,4 +1,3 @@
-import hashlib
 import json
 from dataclasses import dataclass
 from json.decoder import JSONDecodeError
@@ -16,19 +15,6 @@ from openlibrary.catalog.add_book import (
 )
 from openlibrary.core.imports import Batch
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
-
-
-def generate_hash(data: bytes, length: int = 20):
-    """
-    Generate a SHA256 hash of data and truncate it to length.
-
-    This is used to help uniquely identify a batch_import. Truncating
-    to 20 characters gives about a 50% chance of collision after 1 billion
-    hash imports. According to ChatGPT, anyway. :)
-    """
-    hash = hashlib.sha256()
-    hash.update(data)
-    return hash.hexdigest()[:length]
 
 
 @dataclass
@@ -68,7 +54,7 @@ class BatchResult:
     errors: list[BatchImportError] | None = None
 
 
-def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
+def batch_import(raw_data: bytes, import_status: str, batch_suffix: str | None = None) -> BatchResult:
     """
     This processes raw byte data from a JSONL POST to the batch import endpoint.
 
@@ -81,10 +67,15 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     The line numbers errors use 1-based counting because they are line numbers in a file.
 
     import_status: "pending", "needs_review", etc.
+    batch_suffix: optional name suffix; the batch is stored as "{username}:{batch_suffix}".
+                  Defaults to "main", so repeated submissions land in the same batch.
     """
     user = accounts.get_current_user()
-    username = user.get_username() if user else None
-    batch_name = f"batch-{generate_hash(raw_data)}"
+    username = user and user.get_username()
+    if not username:
+        raise ValueError("batch_import requires an authenticated user with a username")
+    suffix = batch_suffix.strip() if batch_suffix and batch_suffix.strip() else "main"
+    full_batch_name = f"{username}:{suffix}"
     errors: list[BatchImportError] = []
     raw_import_records: list[dict] = []
 
@@ -128,7 +119,7 @@ def batch_import(raw_data: bytes, import_status: str) -> BatchResult:
     ]
 
     # Create the batch
-    batch = Batch.find(batch_name) or Batch.new(name=batch_name, submitter=username)
+    batch = Batch.find(full_batch_name) or Batch.new(name=full_batch_name, submitter=username)
     batch.add_items(batch_data)
 
     return BatchResult(batch=batch)

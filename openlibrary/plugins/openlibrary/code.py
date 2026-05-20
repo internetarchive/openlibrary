@@ -469,14 +469,18 @@ class batch_imports(delegate.page):
         # Get the upload from web.py. See the template for the <form> used.
         batch_result = None
         form_data = web.input()
+        batch_suffix = form_data.get('batchName') or None
         if form_data.get("batchImportFile"):
             batch_result = batch_import(
-                form_data['batchImportFile'], import_status=import_status
+                form_data['batchImportFile'],
+                import_status=import_status,
+                batch_suffix=batch_suffix,
             )
         elif form_data.get("batchImportText"):
             batch_result = batch_import(
                 form_data['batchImportText'].encode("utf-8"),
                 import_status=import_status,
+                batch_suffix=batch_suffix,
             )
         else:
             add_flash_message(
