@@ -5,7 +5,7 @@ import random
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs
 
 import web
 from pydantic import BaseModel
@@ -526,21 +526,36 @@ class lists_delete(delegate.page):
         site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
-def _changequery(path: str, query=None, query_path: str | None = None, **kw):
-    if query is None:
-        return web.changequery(**kw)
+def build_pagination_links(
+    page_url: URL,
+    total: int,
+    count: int,
+    offset: int,
+    limit: int,
+) -> dict[str, str]:
+    """Build pagination links (next and prev) for list endpoints.
 
-    query = dict(query)
-    for k, v in kw.items():
-        if v is None:
-            query.pop(k, None)
-        else:
-            query[k] = v
+    Args:
+        page_url: The page URL used as the base for constructing next/prev links.
+        total: Total number of items available.
+        count: Number of items returned in the current page.
+        offset: Current pagination offset.
+        limit: Page size.
 
-    out = query_path or path
-    if query:
-        out += "?" + urlencode(query, doseq=True)
-    return out
+    Returns:
+        Dict with optional "next" and "prev" keys containing paginated URLs.
+    """
+    links: dict[str, str] = {}
+
+    if offset + count < total:
+        next_offset = offset + limit
+        links["next"] = _pagination_url(page_url, limit=limit, offset=next_offset)
+
+    if offset:
+        prev_offset = max(0, offset - limit)
+        links["prev"] = _pagination_url(page_url, limit=limit, offset=prev_offset)
+
+    return links
 
 
 class lists_json(delegate.page):
@@ -557,7 +572,11 @@ class lists_json(delegate.page):
         offset = max(offset, 0)
 
         lists = self.get_lists_data(
-            path, site_obj=web.ctx.site, limit=limit, offset=offset
+            path,
+            site_obj=web.ctx.site,
+            limit=limit,
+            offset=offset,
+            query_path=web.ctx.path,
         )
         if lists is None:
             raise web.notfound()
@@ -567,11 +586,10 @@ class lists_json(delegate.page):
     def get_lists_data(
         path,
         site_obj=None,
-        limit=50,
-        offset=0,
-        query=None,
+        limit: int = 50,
+        offset: int = 0,
         query_path: str | None = None,
-    ):
+    ) -> dict | None:
         if path.startswith("/subjects/"):
             doc = subjects.get_subject(path)
         else:
@@ -588,31 +606,22 @@ class lists_json(delegate.page):
             size = len(doc.get_lists(limit=1000))
 
         links = {"self": path}
-        d = {
+        page_url = URL(query_path or f"{path}/lists")
+        links.update(
+            build_pagination_links(
+                page_url,
+                size,
+                len(lists),
+                offset,
+                limit,
+            )
+        )
+
+        return {
             "links": links,
             "size": size,
             "entries": [lst.preview() for lst in lists],
         }
-        if offset + len(lists) < size:
-            links["next"] = _changequery(
-                path,
-                query=query,
-                query_path=query_path,
-                limit=limit,
-                offset=offset + limit,
-            )
-
-        if offset:
-            offset = max(0, offset - limit)
-            links["prev"] = _changequery(
-                path,
-                query=query,
-                query_path=query_path,
-                limit=limit,
-                offset=offset,
-            )
-
-        return d
 
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}

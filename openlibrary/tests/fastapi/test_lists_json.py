@@ -29,7 +29,6 @@ class TestListsJsonGet:
             site_obj=current_site,
             limit=100,
             offset=0,
-            query={"limit": "100", "offset": "0"},
             query_path="/people/alice/lists.json",
         )
 
@@ -73,7 +72,6 @@ class TestListsJsonGet:
             site_obj=current_site,
             limit=50,
             offset=0,
-            query={},
             query_path="/works/OL42W/lists.json",
         )
 
@@ -95,7 +93,6 @@ class TestListsJsonGet:
             site_obj=current_site,
             limit=50,
             offset=0,
-            query={},
             query_path="/subjects/person:tolkien/lists.json",
         )
 

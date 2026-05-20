@@ -13,11 +13,13 @@ from openlibrary.plugins.openlibrary.lists import ListEditionsModel, ListSubject
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
+# Exposed as a module-level alias so it can be monkeypatched by tests.
+get_list = legacy_lists.get_list
+
 if TYPE_CHECKING:
     from starlette.datastructures import URL
 
 router = APIRouter(tags=["lists"])
-get_list = legacy_lists.get_list
 
 
 def _get_list_or_404(key: str, raw: bool) -> dict:
@@ -156,17 +158,12 @@ def lists_json(
         subject_key=subject_key,
     )
 
-    _qp: dict[str, list[str]] = {}
-    for _k, _v in request.query_params.multi_items():
-        _qp.setdefault(_k, []).append(_v)
-
     data = legacy_lists.lists_json.get_lists_data(
         seed_path,
         site_obj=site.get(),
         limit=limit,
         offset=offset,
         query_path=request.url.path,
-        query={key: values[0] if len(values) == 1 else values for key, values in _qp.items()},
     )
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
@@ -218,6 +215,10 @@ def lists_json_post(
         )
 
     return result
+
+
+async def list_seeds():
+    pass
 
 
 class GetListEditionsParams:
