@@ -170,67 +170,63 @@ def lists_delete_no_prefix(
     return _process_list_delete(f"/lists/{list_id}")
 
 
-def _lists_seed_path(
-    username: str | None = None,
-    edition_id: int | None = None,
-    work_id: int | None = None,
-    author_id: int | None = None,
-    subject_key: str | None = None,
-) -> str:
-    if username is not None:
-        return f"/people/{username}"
-    if edition_id is not None:
-        return f"/books/OL{edition_id}M"
-    if work_id is not None:
-        return f"/works/OL{work_id}W"
-    if author_id is not None:
-        return f"/authors/OL{author_id}A"
-    if subject_key is not None:
-        return f"/subjects/{subject_key}"
-    raise ValueError("Could not determine lists path")
+class ListsJsonPagination:
+    """Request + pagination dependency for lists.json endpoints."""
+
+    def __init__(
+        self,
+        request: Request,
+        offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+        limit: Annotated[int, Query(ge=0, le=100, description="Number of items to return (max 100)")] = 50,
+    ):
+        self.request: Request = request
+        self.offset: int = offset
+        self.limit: int = limit
 
 
-@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
-@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
-@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
-@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
-@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
-def lists_json(
-    request: Request,
-    username: str | None = None,
-    edition_id: int | None = None,
-    work_id: int | None = None,
-    author_id: int | None = None,
-    subject_key: str | None = None,
-    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
-    limit: Annotated[int, Query(ge=0, le=100, description="Number of items to return (max 100)")] = 50,
-) -> dict[str, Any]:
-    """
-    Returns paginated lists for a given entity (person, book, work, author, or subject).
+CommonListsJsonPagination = Annotated[ListsJsonPagination, Depends()]
 
-    Examples:
-    - /people/alice/lists.json?limit=50&offset=0
-    - /works/OL42W/lists.json
-    - /subjects/love/lists.json
-    """
-    seed_path = _lists_seed_path(
-        username=username,
-        edition_id=edition_id,
-        work_id=work_id,
-        author_id=author_id,
-        subject_key=subject_key,
-    )
 
+def _lists_json_data(
+    seed_path: str,
+    pagination: ListsJsonPagination,
+) -> ListsJsonResponse:
+    """Shared helper for lists.json endpoints."""
     data = legacy_lists.lists_json.get_lists_data(
         seed_path,
         site_obj=site.get(),
-        limit=limit,
-        offset=offset,
-        query_path=request.url.path,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        query_path=pagination.request.url.path,
     )
     if data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-    return data
+    return ListsJsonResponse(**data)
+
+
+@router.get("/people/{username}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_people(username: str, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/people/{username}", pagination)
+
+
+@router.get("/books/OL{edition_id}M/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_books(edition_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/books/OL{edition_id}M", pagination)
+
+
+@router.get("/works/OL{work_id}W/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_works(work_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/works/OL{work_id}W", pagination)
+
+
+@router.get("/authors/OL{author_id}A/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_authors(author_id: int, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/authors/OL{author_id}A", pagination)
+
+
+@router.get("/subjects/{subject_key:path}/lists.json", response_model=ListsJsonResponse, response_model_exclude_none=True)
+def lists_json_subjects(subject_key: str, pagination: CommonListsJsonPagination) -> ListsJsonResponse:
+    return _lists_json_data(f"/subjects/{subject_key}", pagination)
 
 
 @router.post("/people/{username}/lists.json", response_model=CreateListResponse)
