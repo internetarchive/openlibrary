@@ -167,7 +167,12 @@ class ExperimentsProcessor:
         user = get_current_user()
         user_id = user.key if user else (web.cookies().get(config.get("login_cookie_name", "session")) or web.ctx.ip)
 
-        experiments = get_user_experiments(user_id)
+        try:
+            overrides = dict(web.input())
+        except (AttributeError, KeyError, ValueError):
+            overrides = {}
+
+        experiments = get_user_experiments(user_id, overrides=overrides)
 
         web.ctx["experiments"] = experiments
         context["experiments"] = experiments

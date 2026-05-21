@@ -28,6 +28,13 @@ def get_variant(experiment_name: str, user_identifier: str) -> str:
     return "control"
 
 
-def get_user_experiments(user_identifier: str) -> dict[str, str]:
-    """Evaluates all active experiments for a user."""
-    return {exp: get_variant(exp, user_identifier) for exp in ACTIVE_EXPERIMENTS}
+def get_user_experiments(user_identifier: str, overrides: dict[str, str] | None = None) -> dict[str, str]:
+    """Evaluates all active experiments for a user, applying optional overrides."""
+    experiments = {}
+    for exp, variants in ACTIVE_EXPERIMENTS.items():
+        override_key = f"experiment_{exp}"
+        if overrides and override_key in overrides and overrides[override_key] in variants:
+            experiments[exp] = overrides[override_key]
+        else:
+            experiments[exp] = get_variant(exp, user_identifier)
+    return experiments

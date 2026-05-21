@@ -10,6 +10,7 @@ class ABTestingMiddleware(BaseHTTPMiddleware):
         # Adjust logic to match Open Library's FastAPI authentication method - NOT a perfect match.
         user_id = request.cookies.get(config.get("login_cookie_name", "session")) or (request.client.host if request.client else "127.0.0.1")
 
-        request.state.experiments = get_user_experiments(user_id) if user_id else {}
+        query_overrides = dict(request.query_params)
+        request.state.experiments = get_user_experiments(user_id, overrides=query_overrides) if user_id else {}
 
         return await call_next(request)

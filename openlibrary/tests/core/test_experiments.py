@@ -29,3 +29,21 @@ def test_get_user_experiments():
     experiments = get_user_experiments("user_456")
     assert "AB_Testing" in experiments
     assert experiments["AB_Testing"] in ACTIVE_EXPERIMENTS["AB_Testing"]
+
+
+def test_get_user_experiments_overrides():
+    # Valid override should change the variant
+    overrides = {"experiment_AB_Testing": "b"}
+    experiments = get_user_experiments("user_456", overrides=overrides)
+    assert experiments["AB_Testing"] == "b"
+
+    # Invalid override group/variant should be ignored
+    overrides = {"experiment_AB_Testing": "invalid_group"}
+    experiments = get_user_experiments("user_456", overrides=overrides)
+    assert experiments["AB_Testing"] != "invalid_group"
+    assert experiments["AB_Testing"] in ACTIVE_EXPERIMENTS["AB_Testing"]
+
+    # Invalid override key/name format should be ignored
+    overrides = {"AB_Testing": "b"}
+    experiments = get_user_experiments("user_456", overrides=overrides)
+    assert experiments["AB_Testing"] in ACTIVE_EXPERIMENTS["AB_Testing"]
