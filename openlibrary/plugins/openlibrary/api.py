@@ -841,6 +841,7 @@ class unlink_ia_ol(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"})
 
         editions = [web.ctx.site.get(key) for key in edition_keys]
+        logger.info(f"Disassociating {ocaid} from the following editions: {', '.join(edition_keys)}")
 
         # Update records
         try:
