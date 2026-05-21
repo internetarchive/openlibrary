@@ -315,29 +315,12 @@ def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditio
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
-def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
-    """
-    Get paginated editions for a specific user's series.
-    """
-    key = f"/people/{username}/series/{olid}"
-    return _get_editions_response(key, params)
-
-
 CommonSubjectsLimit = Annotated[int, Query(ge=0, description="Number of subjects to return")]
 
 
 @router.get("/people/{username}/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
 def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/people/{username}/lists/{olid}"
-    if data := get_list_subjects(key, limit):
-        return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
-
-
-@router.get("/people/{username}/series/{olid}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_user_series(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/people/{username}/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
