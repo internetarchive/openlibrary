@@ -1,11 +1,12 @@
- | From svn.tartarus.org/snowball/trunk/website/algorithms/dutch/stop.txt
+ | From https://snowballstem.org/algorithms/dutch/stop.txt
  | This file is distributed under the BSD License.
- | See http://snowball.tartarus.org/license.php
- | Also see http://www.opensource.org/licenses/bsd-license.html
+ | See https://snowballstem.org/license.html
+ | Also see https://opensource.org/licenses/bsd-license.html
  |  - Encoding was converted to UTF-8.
  |  - This notice was added.
  |
  | NOTE: To use this file with StopFilterFactory, you must specify format="snowball"
+
 
  | A Dutch stop word list. Comments begin with vertical bar. Each stop
  | word is at the start of a line.
@@ -117,3 +118,4 @@ uw             |  your
 iemand         |  somebody
 geweest        |  been; past participle of 'be'
 andere         |  other
+
