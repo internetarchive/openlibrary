@@ -29,7 +29,7 @@ services:
   solr:
     profiles:
       - build
-    image: solr:9.10.0
+    image: solr:10.0.0
     restart: on-failure
     environment:
       # This is optimized for bulk loading, but should be shortened for production
@@ -57,7 +57,7 @@ services:
     profiles:
       - production
     restart: unless-stopped
-    image: solr:9.10.0
+    image: solr:10.0.0
     expose:
       - 8983
     ports:
