@@ -1,20 +1,28 @@
 import hashlib
+from typing import Any
 
-ACTIVE_EXPERIMENTS = {
+ACTIVE_EXPERIMENTS: dict[str, dict[str, Any]] = {
     "AB_Testing": {
-        "control": 25,
-        "a": 35,
-        "b": 35,
+        "variants": {
+            "control": 25,
+            "a": 35,
+            "b": 35,
+        },
+        "authorized_only": False,
     }
 }
 
 
-def get_variant(experiment_name: str, user_identifier: str) -> str:
+def get_variant(experiment_name: str, user_identifier: str, is_logged_in: bool = False) -> str:
     """Deterministically assigns a user to a variant based on configured weights."""
     if not user_identifier or experiment_name not in ACTIVE_EXPERIMENTS:
         return "control"
 
-    variants = ACTIVE_EXPERIMENTS[experiment_name]
+    exp_config = ACTIVE_EXPERIMENTS[experiment_name]
+    if exp_config.get("authorized_only") and not is_logged_in:
+        return "control"
+
+    variants = exp_config.get("variants", {})
 
     hash_key = f"{experiment_name}-{user_identifier}".encode()
     bucket = int(hashlib.md5(hash_key).hexdigest()[:8], 16) % 100
@@ -28,13 +36,18 @@ def get_variant(experiment_name: str, user_identifier: str) -> str:
     return "control"
 
 
-def get_user_experiments(user_identifier: str, overrides: dict[str, str] | None = None) -> dict[str, str]:
+def get_user_experiments(
+    user_identifier: str,
+    overrides: dict[str, str] | None = None,
+    is_logged_in: bool = False,
+) -> dict[str, str]:
     """Evaluates all active experiments for a user, applying optional overrides."""
     experiments = {}
-    for exp, variants in ACTIVE_EXPERIMENTS.items():
+    for exp, exp_config in ACTIVE_EXPERIMENTS.items():
+        variants = exp_config.get("variants", {})
         override_key = f"experiment_{exp}"
         if overrides and override_key in overrides and overrides[override_key] in variants:
             experiments[exp] = overrides[override_key]
         else:
-            experiments[exp] = get_variant(exp, user_identifier)
+            experiments[exp] = get_variant(exp, user_identifier, is_logged_in=is_logged_in)
     return experiments

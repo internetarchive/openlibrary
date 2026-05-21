@@ -172,7 +172,7 @@ class ExperimentsProcessor:
         except (AttributeError, KeyError, ValueError):
             overrides = {}
 
-        experiments = get_user_experiments(user_id, overrides=overrides)
+        experiments = get_user_experiments(user_id, overrides=overrides, is_logged_in=user is not None)
 
         web.ctx["experiments"] = experiments
         context["experiments"] = experiments
