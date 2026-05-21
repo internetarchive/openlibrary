@@ -168,7 +168,7 @@ class ExperimentsProcessor:
         user_id = user.key if user else (web.cookies().get(config.get("login_cookie_name", "session")) or web.ctx.ip)
 
         try:
-            overrides = dict(web.input())
+            overrides = {k: v for k, v in web.input(_method="GET").items() if k.startswith("experiment_")}
         except (AttributeError, KeyError, ValueError):
             overrides = {}
 

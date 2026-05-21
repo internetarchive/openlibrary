@@ -4,7 +4,7 @@ from openlibrary.core.experiments import ACTIVE_EXPERIMENTS, get_user_experiment
 def test_get_variant_fallback():
     # Empty or None user identifier should fall back to control
     assert get_variant("AB_Testing", "") == "control"
-    assert get_variant("AB_Testing", None) == "control"  # type: ignore[arg-type]
+    assert get_variant("AB_Testing", None) == "control"
 
     # Non-existent experiment should fall back to control
     assert get_variant("Non_Existent", "user123") == "control"

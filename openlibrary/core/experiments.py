@@ -4,7 +4,7 @@ from typing import Any
 ACTIVE_EXPERIMENTS: dict[str, dict[str, Any]] = {
     "AB_Testing": {
         "variants": {
-            "control": 25,
+            "control": 30,
             "a": 35,
             "b": 35,
         },
@@ -13,7 +13,7 @@ ACTIVE_EXPERIMENTS: dict[str, dict[str, Any]] = {
 }
 
 
-def get_variant(experiment_name: str, user_identifier: str, is_logged_in: bool = False) -> str:
+def get_variant(experiment_name: str, user_identifier: str | None, is_logged_in: bool = False) -> str:
     """Deterministically assigns a user to a variant based on configured weights."""
     if not user_identifier or experiment_name not in ACTIVE_EXPERIMENTS:
         return "control"
@@ -37,7 +37,7 @@ def get_variant(experiment_name: str, user_identifier: str, is_logged_in: bool =
 
 
 def get_user_experiments(
-    user_identifier: str,
+    user_identifier: str | None,
     overrides: dict[str, str] | None = None,
     is_logged_in: bool = False,
 ) -> dict[str, str]:

@@ -86,10 +86,13 @@ delegate.app.add_processor(
 delegate.app.add_processor(processors.PreferenceProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
-# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
-# It's added here (not as a loadhook) so it runs in the same request context
-delegate.app.add_processor(setup_contextvars)
 
+# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler.
+# The only exception is ExperimentsProcessor, which needs to run after setup_contextvars
+# so that request ContextVars (like `site` and `req_context`) are fully initialized,
+# allowing `get_current_user()` to function correctly.
+# It's added here (not as a loadhook) so it runs in the same request context.
+delegate.app.add_processor(setup_contextvars)
 delegate.app.add_processor(processors.ExperimentsProcessor())
 
 try:
