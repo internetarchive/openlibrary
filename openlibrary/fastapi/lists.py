@@ -129,22 +129,6 @@ def list_view_json_user_lists(
     return _get_list_or_404(key, raw=raw)
 
 
-@router.get("/people/{username}/series/{list_id}.json")
-def list_view_json_user_series(
-    username: UsernamePath,
-    list_id: ListOLID,
-    raw: RawFlag = False,
-) -> dict:
-    """
-    Returns JSON metadata for a user-owned series.
-
-    Example:
-    /people/mekBot/series/OL123L.json
-    """
-    key = f"/people/{username}/series/{list_id}"
-    return _get_list_or_404(key, raw=raw)
-
-
 @router.get("/lists/{list_id}.json")
 @router.get("/series/{list_id}.json")
 def list_view_json_public(
