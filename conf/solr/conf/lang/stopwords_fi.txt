@@ -93,4 +93,3 @@ yli     | over, across
 kun    | when
 nyt    | now
 itse   | self
-

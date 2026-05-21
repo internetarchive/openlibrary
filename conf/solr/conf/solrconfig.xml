@@ -957,7 +957,7 @@
       <str name="fieldType">pdoubles</str>
     </lst>
   </updateProcessor>
-  
+
 
   <!-- The update.autoCreateFields property can be turned to false to disable schemaless mode -->
   <updateRequestProcessorChain name="add-unknown-fields-to-the-schema" default="${update.autoCreateFields:true}"
