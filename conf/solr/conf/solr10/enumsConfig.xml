@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<enumsConfig>
+  <enum name="ebookAccess">
+    <value>no_ebook</value>
+    <value>unclassified</value>
+    <value>printdisabled</value>
+    <value>borrowable</value>
+    <value>public</value>
+  </enum>
+</enumsConfig>

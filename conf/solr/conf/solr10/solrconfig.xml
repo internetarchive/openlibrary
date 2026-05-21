@@ -350,7 +350,7 @@
       -->
     <filterCache size="512"
                  initialSize="512"
-                 autowarmCount="0"/>
+                 autowarmCount="128"/>
 
     <!-- Query Result Cache
 
@@ -362,7 +362,7 @@
       -->
     <queryResultCache size="512"
                       initialSize="512"
-                      autowarmCount="0"/>
+                      autowarmCount="128"/>
 
     <!-- Document Cache
 
@@ -478,10 +478,55 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
-        <!--
-           <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
-           <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
-          -->
+        <!-- Work search -->
+        <lst>
+          <str name="userWorkQuery">harry potter</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">has_fulltext</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
+        <!-- Author works search -->
+        <lst>
+          <str name="userWorkQuery">*:*</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">author_key:OL2162284A</str>
+          <str name="sort">edition_count desc</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.limit">25</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
+        <!-- Ebook only search for carousel -->
+        <lst>
+          <str name="userWorkQuery">subject:"Reading Level-Grade 6"</str>
+          <str name="q">({!edismax q.op="AND" qf="text alternative_title^20 author_name^20" bf="min(100,edition_count)" v=$userWorkQuery})</str>
+          <str name="fq">type:work</str>
+          <str name="fq">ebook_access:[printdisabled TO *]</str>
+          <str name="rows">20</str>
+          <str name="facet">true</str>
+          <str name="facet.field">author_facet</str>
+          <str name="facet.field">first_publish_year</str>
+          <str name="facet.field">language</str>
+          <str name="facet.field">person_facet</str>
+          <str name="facet.field">place_facet</str>
+          <str name="facet.field">publisher_facet</str>
+          <str name="facet.field">subject_facet</str>
+          <str name="facet.field">time_facet</str>
+        </lst>
       </arr>
     </listener>
     <listener event="firstSearcher" class="solr.QuerySenderListener">
@@ -502,7 +547,7 @@
          will block until the first searcher is done warming.
       -->
     <useColdSearcher>false</useColdSearcher>
-
+    <maxWarmingSearchers>4</maxWarmingSearchers>
   </query>
 
   <!-- Request Dispatcher
@@ -606,6 +651,8 @@
     <lst name="defaults">
       <str name="echoParams">explicit</str>
       <int name="rows">10</int>
+      <!-- Default search field -->
+      <str name="df">text</str>
     </lst>
   </requestHandler>
 
@@ -618,10 +665,25 @@
     </lst>
   </requestHandler>
 
+  <requestHandler name="/replication" class="solr.ReplicationHandler">
+    <lst name="leader">
+      <str name="enable">${ol.replication.role.leader:false}</str>
+      <str name="replicateAfter">commit</str>
+      <str name="replicateAfter">startup</str>
+      <!-- Not used/tested; will likely need to include files like: managed-schema.xml,stopwords.txt,synonyms.txt,protwords.txt,wordtypes.txt,enumsConfig.xml,lang/* -->
+      <str name="confFiles">schema.xml,stopwords.txt,synonyms.txt</str>
+    </lst>
+    <lst name="follower">
+      <str name="enable">${ol.replication.role.follower:false}</str>
+      <str name="leaderUrl">http://${ol.replication.leader:localhost}/solr/openlibrary</str>
+      <str name="pollInterval">00:00:60</str>
+    </lst>
+  </requestHandler>
+
   <!-- Shared parameters for multiple Request Handlers -->
   <initParams path="/update/**,/query,/select,/spell">
     <lst name="defaults">
-      <str name="df">_text_</str>
+      <str name="df">text</str>
     </lst>
   </initParams>
 
@@ -643,7 +705,7 @@
     <!-- a spellchecker built from a field of the main index -->
     <lst name="spellchecker">
       <str name="name">default</str>
-      <str name="field">_text_</str>
+      <str name="field">text</str>
       <str name="classname">solr.DirectSolrSpellChecker</str>
       <!-- the spellcheck distance measure used, the default is the internal levenshtein -->
       <str name="distanceMeasure">internal</str>
@@ -903,6 +965,14 @@
     <processor class="solr.LogUpdateProcessorFactory"/>
     <processor class="solr.DistributedUpdateProcessorFactory"/>
     <processor class="solr.RunUpdateProcessorFactory"/>
+  </updateRequestProcessorChain>
+
+  <!-- This makes a bulk update requests not fail if only one of the records has an issue -->
+  <updateRequestProcessorChain name="tolerant-chain">
+    <processor class="solr.TolerantUpdateProcessorFactory">
+      <int name="maxErrors">-1</int>
+    </processor>
+    <processor class="solr.RunUpdateProcessorFactory" />
   </updateRequestProcessorChain>
 
   <!-- Deduplication
