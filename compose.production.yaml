@@ -35,7 +35,8 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    profiles: ["ol-solr0"]
+    # Disabled until next solr reindex due to solr version upgrade
+    profiles: ["NEVER-ol-solr0"]
     ports:
       - 8983:8983
     environment:
@@ -54,7 +55,8 @@ services:
     restart: unless-stopped
 
   solr_replica:
-    profiles: ["ol-solr2"]
+    # Disabled until next solr reindex due to solr version upgrade
+    profiles: ["NEVER-ol-solr2"]
     extends:
       file: compose.yaml
       service: solr
@@ -70,7 +72,7 @@ services:
         -Dsolr.environment=prod
         -Dol.replication.role.follower=true
         -Dol.replication.leader=ol-solr0.us.archive.org:8983
-        -Dsolr.allowUrls=http://ol-solr0.us.archive.org:8983
+        -Dsolr.security.allow.urls=http://ol-solr0.us.archive.org:8983
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?

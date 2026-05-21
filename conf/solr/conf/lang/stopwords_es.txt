@@ -1,7 +1,7 @@
- | From svn.tartarus.org/snowball/trunk/website/algorithms/spanish/stop.txt
+ | From https://snowballstem.org/algorithms/spanish/stop.txt
  | This file is distributed under the BSD License.
- | See http://snowball.tartarus.org/license.php
- | Also see http://www.opensource.org/licenses/bsd-license.html
+ | See https://snowballstem.org/license.html
+ | Also see https://opensource.org/licenses/bsd-license.html
  |  - Encoding was converted to UTF-8.
  |  - This notice was added.
  |
