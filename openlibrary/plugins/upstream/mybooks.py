@@ -76,9 +76,10 @@ class mybooks_home(delegate.page):
             loans = web.Storage({"docs": [], "total_results": len(myloans)})
 
             book_keys = [loan["book"] for loan in myloans]
-            books = web.ctx.site.get_many(book_keys)
+            books_by_key = {book.key: book for book in web.ctx.site.get_many(book_keys) if book}
 
-            for loan, book in zip(myloans, books):
+            for loan in myloans:
+                book = books_by_key.get(loan["book"])
                 # Book will be None if no OL edition exists for the book
                 if book:
                     book.loan = loan
@@ -584,17 +585,9 @@ class PatronBooknotes:
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
         works = web.ctx.site.get_many(work_keys)
         works_by_key = {work.key: work for work in works}
-        author_keys = list(dict.fromkeys(a.author.key for work in works for a in work.get("authors", [])))
+        author_keys = list(dict.fromkeys(a.author.key for work_key in work_keys for a in works_by_key[work_key].get("authors", [])))
         authors_by_key = {author.key: author for author in web.ctx.site.get_many(author_keys)} if author_keys else {}
-        work_details_by_key = {
-            work.key: {
-                "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
-                "title": work.get("title"),
-                "authors": [authors_by_key[a.author.key].name for a in work.get("authors", []) if a.author.key in authors_by_key],
-                "first_publish_year": work.first_publish_year or None,
-            }
-            for work in works
-        }
+        work_details_by_key = {work_key: self._get_work_details(works_by_key[work_key], authors_by_key=authors_by_key) for work_key in work_keys}
 
         edition_ids = list(dict.fromkeys(note["edition_id"] for entry in notes for note in entry["notes"] if note["edition_id"] != Booknotes.NULL_EDITION_VALUE))
         edition_keys_by_id = {edition_id: f"/books/OL{edition_id}M" for edition_id in edition_ids}
