@@ -47,6 +47,11 @@ $def with (title)
         }
       </style>
     </noscript>
+
+    <script>
+      window.OL_EXPERIMENTS = $:dumps(ctx.get("experiments", {}));
+    </script>
+
  <script>
  $if not is_bot() and not ctx.get('disable_analytics'):
    // Dimension 1 (visit-scoped): "Days Since Registration" — ID must match Matomo admin config (issue #12144)

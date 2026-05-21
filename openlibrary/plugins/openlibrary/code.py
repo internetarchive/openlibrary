@@ -90,6 +90,8 @@ delegate.app.add_processor(processors.PreferenceProcessor())
 # It's added here (not as a loadhook) so it runs in the same request context
 delegate.app.add_processor(setup_contextvars)
 
+delegate.app.add_processor(processors.ExperimentsProcessor())
+
 try:
     from infogami.plugins.api import code as api
 except:

@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -178,6 +179,8 @@ def create_app() -> FastAPI | None:
 
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+    app.add_middleware(ABTestingMiddleware)
 
     @app.middleware("http")
     async def add_fastapi_header(request: Request, call_next):
