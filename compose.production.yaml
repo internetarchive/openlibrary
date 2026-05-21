@@ -70,7 +70,7 @@ services:
         -Dsolr.environment=prod
         -Dol.replication.role.follower=true
         -Dol.replication.leader=ol-solr0.us.archive.org:8983
-        -Dsolr.allowUrls=http://ol-solr0.us.archive.org:8983
+        -Dsolr.security.allow.urls=http://ol-solr0.us.archive.org:8983
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?
