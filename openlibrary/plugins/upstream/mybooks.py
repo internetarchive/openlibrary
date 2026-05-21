@@ -613,8 +613,10 @@ class PatronBooknotes:
 
         work_keys = [f"/works/OL{entry['work_id']}W" for entry in observations]
         works = web.ctx.site.get_many(work_keys)
+        works_by_key = {work.key: work for work in works}
 
-        for entry, work_key, work in zip(observations, work_keys, works):
+        for entry, work_key in zip(observations, work_keys):
+            work = works_by_key[work_key]
             entry["work_key"] = work_key
             entry["work"] = work
             entry["work_details"] = self._get_work_details(work)
@@ -626,16 +628,15 @@ class PatronBooknotes:
 
         return observations
 
-    def _get_work(self, work_key: str) -> "Work | None":
-        return web.ctx.site.get(work_key)
-
-    def _get_work_details(self, work: "Work") -> dict[str, list[str] | str | int | None]:
+    def _get_work_details(self, work: "Work", authors_by_key: dict[str, Any] | None = None) -> dict[str, list[str] | str | int | None]:
         author_keys = [a.author.key for a in work.get("authors", [])]
+        if authors_by_key is None:
+            authors_by_key = {a.key: a for a in web.ctx.site.get_many(author_keys)}
 
         return {
             "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
             "title": work.get("title"),
-            "authors": [a.name for a in web.ctx.site.get_many(author_keys)],
+            "authors": [authors_by_key[key].name for key in author_keys if key in authors_by_key],
             "first_publish_year": work.first_publish_year or None,
         }
 
