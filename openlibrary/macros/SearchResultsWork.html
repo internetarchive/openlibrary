@@ -261,8 +261,12 @@ $code:
           $elif doc_type == 'infogami_edition':
             $ edition_key = doc.key
           $elif doc_type == 'solr_work':
-            $ edition_key = doc.get('edition_key') and doc.get("edition_key")[0]
-            $ edition_key = '/books/%s' % edition_key
+            $if doc.get('logged_edition'):
+              $# Prefer logged_edition set when user added book
+              $ edition_key = doc.get('logged_edition')
+            $else:
+              $ edition_key = doc.get('edition_key') and doc.get('edition_key')[0]
+              $ edition_key = '/books/%s' % edition_key
           $:render_template('my_books/dropper', doc, edition_key=edition_key, async_load=True)
 
         $if rating:
