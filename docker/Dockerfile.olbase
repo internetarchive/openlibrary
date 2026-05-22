@@ -1,5 +1,5 @@
 # Temporary container to build ModSecurity
-FROM debian:bookworm-slim AS modsec-builder
+FROM debian:trixie-slim AS modsec-builder
 
 ARG MODSECURITY_TAG=v1.0.4
 ENV MODSECURITY_TAG=${MODSECURITY_TAG}
