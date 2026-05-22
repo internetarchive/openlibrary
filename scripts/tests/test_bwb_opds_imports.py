@@ -77,36 +77,44 @@ def test_extract_cover():
 
 
 def test_map_publication_basic_fields():
-    olbook = map_publication_to_olbook(SAMPLE_PUBLICATION, "bwb-opds-2026-05-22")
+    olbook = map_publication_to_olbook(SAMPLE_PUBLICATION)
     assert olbook is not None
     assert olbook["isbn_13"] == ["9781737408802"]
     assert olbook["local_id"] == ["urn:isbn:9781737408802"]
-    assert olbook["source_records"] == ["bwb-opds:bwb-opds-2026-05-22:9781737408802"]
+    assert olbook["source_records"] == ["bwb-opds:9781737408802"]
     assert olbook["title"] == "The Brick House Apparent Quarterly, Vol. 1"
     assert olbook["publish_date"] == "2021-08-03"
-    assert olbook["languages"] == ["en"]
+    assert olbook["languages"] == ["eng"]
     assert olbook["authors"] == [
         {"name": "The Brick House Cooperative"},
         {"name": "Maria Bustillos"},
     ]
     assert olbook["cover"] == "https://example.com/cover.jpg"
-    assert olbook["publishers"] == ["????"]
+    assert "publishers" not in olbook
 
 
 def test_map_publication_skips_missing_isbn():
     pub = {"metadata": {"title": "No ISBN"}}
-    assert map_publication_to_olbook(pub, "batch") is None
+    assert map_publication_to_olbook(pub) is None
 
 
 def test_map_publication_omits_empty_optional_fields():
     pub = {"metadata": {"identifier": "urn:isbn:9781737408802"}}
-    olbook = map_publication_to_olbook(pub, "batch")
+    olbook = map_publication_to_olbook(pub)
     assert olbook is not None
     assert "title" not in olbook
     assert "publish_date" not in olbook
     assert "languages" not in olbook
     assert "cover" not in olbook
+    assert "publishers" not in olbook
     assert olbook["authors"] == []
+
+
+def test_map_publication_drops_unmappable_language():
+    pub = {"metadata": {"identifier": "urn:isbn:9781737408802", "language": ["zz-not-real"]}}
+    olbook = map_publication_to_olbook(pub)
+    assert olbook is not None
+    assert "languages" not in olbook
 
 
 def test_parse_iso_handles_offset_and_naive():
@@ -217,7 +225,6 @@ def test_process_feed_filters_by_modified(monkeypatch):
     olbooks, max_modified = process_feed(
         feed_url="https://x/p1",
         since=cutoff,
-        batch_name="batch",
         prices_out_fh=prices_fh,
     )
     assert len(olbooks) == 1
@@ -227,7 +234,7 @@ def test_process_feed_filters_by_modified(monkeypatch):
     price_lines = [json.loads(line) for line in prices_fh.getvalue().splitlines()]
     assert price_lines == [
         {
-            "isbn": "9781737408802",
+            "isbn_13": "9781737408802",
             "price": 1.1,
             "currency": "USD",
             "modified": price_lines[0]["modified"],
@@ -236,7 +243,6 @@ def test_process_feed_filters_by_modified(monkeypatch):
 
 
 def test_process_feed_skips_publication_without_modified(monkeypatch):
-
     monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
     pub = {"metadata": {"identifier": "urn:isbn:9781737408802", "title": "x"}, "links": []}
     pages = {"https://x/p1": {"publications": [pub], "links": []}}
@@ -246,11 +252,30 @@ def test_process_feed_skips_publication_without_modified(monkeypatch):
     olbooks, max_modified = process_feed(
         feed_url="https://x/p1",
         since=EPOCH,
-        batch_name="batch",
         prices_out_fh=io.StringIO(),
     )
     assert olbooks == []
     assert max_modified == EPOCH
+
+
+def test_process_feed_advances_state_when_mapping_fails(monkeypatch):
+    """Newer publication without ISBN must still bump max_modified — otherwise
+    every future run re-scans the same record forever.
+    """
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    new_modified = "2026-05-20T00:00:00+00:00"
+    pub = {"metadata": {"title": "No ISBN here", "modified": new_modified}, "links": []}
+    pages = {"https://x/p1": {"publications": [pub], "links": []}}
+    session = FakeSession(pages)
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+
+    olbooks, max_modified = process_feed(
+        feed_url="https://x/p1",
+        since=EPOCH,
+        prices_out_fh=io.StringIO(),
+    )
+    assert olbooks == []
+    assert max_modified == _parse_iso(new_modified)
 
 
 @pytest.mark.parametrize(
@@ -258,7 +283,6 @@ def test_process_feed_skips_publication_without_modified(monkeypatch):
     ["not-a-date", "2026/05/19"],
 )
 def test_process_feed_logs_and_skips_bad_modified(monkeypatch, modified_raw):
-
     monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
     pub = {
         "metadata": {"identifier": "urn:isbn:9781737408802", "modified": modified_raw},
@@ -271,7 +295,6 @@ def test_process_feed_logs_and_skips_bad_modified(monkeypatch, modified_raw):
     olbooks, _ = process_feed(
         feed_url="https://x/p1",
         since=EPOCH,
-        batch_name="batch",
         prices_out_fh=io.StringIO(),
     )
     assert olbooks == []

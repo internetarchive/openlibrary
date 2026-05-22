@@ -2,17 +2,19 @@
 """
 Daily incremental importer for Better World Books via OPDS 2.0 feed.
 
-Replaces the monthly DailyPallets CSV import (see ``promise_batch_imports.py``)
-with a JSON-feed crawl that filters publications by ``metadata.modified``
-relative to the previous run.
+Replaces the monthly Better World Books CSV import (see
+``partner_batch_imports.py``) with a JSON-feed crawl that filters
+publications by ``metadata.modified`` relative to the previous run.
 
 Two outputs are produced per run:
 
 1. Import items written to the ``bwb-opds-YYYY-MM-DD`` batch (consumed by
    ``/api/import``).
-2. A sidecar JSONL file of ``{isbn, price, currency, modified}`` records used
+2. A per-run JSONL file of ``{isbn_13, price, currency, modified}`` rows used
    by the partial-update job that populates the Solr ``price`` field (see
-   issue #12774, sub-task 2).
+   issue #12774, sub-task 2). Each run truncates and rewrites the sidecar so
+   the Solr updater always consumes a fresh snapshot rather than an
+   ever-growing tail.
 
 Usage (on ``ol-home0`` cron container)::
 
@@ -38,6 +40,7 @@ from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import stage_bookworm_metadata
+from openlibrary.plugins.upstream.utils import get_marc21_language
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
@@ -114,7 +117,15 @@ def extract_cover(publication: dict[str, Any]) -> str | None:
     return None
 
 
-def map_publication_to_olbook(publication: dict[str, Any], batch_name: str) -> dict[str, Any] | None:
+def _publication_id(publication: dict[str, Any]) -> str:
+    """Return the publication's ``self`` link or raw identifier, for logging."""
+    for link in publication.get("links", []) or []:
+        if link.get("rel") == "self" and link.get("href"):
+            return link["href"]
+    return (publication.get("metadata") or {}).get("identifier") or "<unknown>"
+
+
+def map_publication_to_olbook(publication: dict[str, Any]) -> dict[str, Any] | None:
     """Convert an OPDS publication to an OL import record.
 
     Returns None if the publication lacks a usable ISBN-13.
@@ -122,17 +133,17 @@ def map_publication_to_olbook(publication: dict[str, Any], batch_name: str) -> d
     metadata = publication.get("metadata") or {}
     isbn_13 = extract_isbn(metadata)
     if not isbn_13:
+        logger.warning("Skipping publication with no usable ISBN: %s", _publication_id(publication))
         return None
 
     authors = [{"name": a["name"]} for a in (metadata.get("author") or []) if a.get("name")]
-    languages = [code for code in (metadata.get("language") or []) if code]
+    languages = [marc for code in (metadata.get("language") or []) if code and (marc := get_marc21_language(code))]
 
     olbook: dict[str, Any] = {
         "local_id": [f"urn:isbn:{isbn_13}"],
         "isbn_13": [isbn_13],
-        "source_records": [f"bwb-opds:{batch_name}:{isbn_13}"],
+        "source_records": [f"bwb-opds:{isbn_13}"],
         "authors": authors,
-        "publishers": ["????"],
     }
     if title := metadata.get("title"):
         olbook["title"] = title
@@ -179,14 +190,16 @@ def iter_pages(start_url: str, session: requests.Session, max_pages: int | None 
 def process_feed(
     feed_url: str,
     since: datetime.datetime,
-    batch_name: str,
     prices_out_fh,
     max_pages: int | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Crawl the OPDS feed and return (olbooks, max_modified_seen).
 
     Records are filtered to those with ``metadata.modified > since``. Price
-    rows are appended to ``prices_out_fh`` as they are encountered.
+    rows are written to ``prices_out_fh`` as they are encountered. The state
+    cursor advances on every publication that is newer than ``since``, even
+    when mapping fails — otherwise an unmappable but newer record would force
+    every subsequent run to re-scan it forever.
     """
     session = requests.Session()
     olbooks: list[dict[str, Any]] = []
@@ -205,18 +218,18 @@ def process_feed(
                 continue
             if modified <= since:
                 continue
+            max_modified = max(max_modified, modified)
 
-            olbook = map_publication_to_olbook(publication, batch_name)
+            olbook = map_publication_to_olbook(publication)
             if not olbook:
                 continue
             olbooks.append(olbook)
-            max_modified = max(max_modified, modified)
 
             if price := extract_price(publication):
                 prices_out_fh.write(
                     json.dumps(
                         {
-                            "isbn": olbook["isbn_13"][0],
+                            "isbn_13": olbook["isbn_13"][0],
                             "price": price["value"],
                             "currency": price["currency"],
                             "modified": modified.isoformat(),
@@ -253,7 +266,6 @@ def stage_incomplete_records_for_import(olbooks: list[dict[str, Any]]) -> None:
 def _run_feed(
     feed_url: str,
     cutoff: datetime.datetime,
-    batch_name: str,
     prices_out: str,
     max_pages: int | None,
     dry_run: bool,
@@ -261,11 +273,12 @@ def _run_feed(
     """Process the OPDS feed, routing price rows to disk or to a discard buffer."""
     if dry_run:
         with contextlib.nullcontext(io.StringIO()) as prices_fh:
-            return process_feed(feed_url, cutoff, batch_name, prices_fh, max_pages=max_pages)
+            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages)
     if prices_parent := os.path.dirname(prices_out):
         os.makedirs(prices_parent, exist_ok=True)
-    with open(prices_out, "a") as prices_fh:
-        return process_feed(feed_url, cutoff, batch_name, prices_fh, max_pages=max_pages)
+    # Truncate per run so the Solr updater always sees a fresh snapshot.
+    with open(prices_out, "w") as prices_fh:
+        return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages)
 
 
 def commit_batch(batch_name: str, olbooks: list[dict[str, Any]], batch_size: int = 1000) -> None:
@@ -289,7 +302,7 @@ def main(
     :param ol_config: Path to ``openlibrary.yml``.
     :param feed_url: OPDS 2.0 feed entry point.
     :param state_file: Path to file storing last successful run's max ``modified`` ts.
-    :param prices_out: Path to append-only JSONL price sidecar.
+    :param prices_out: Path to JSONL price sidecar; truncated each run.
     :param since: Optional ISO 8601 override for the incremental cutoff.
     :param max_pages: Safety cap on pagination depth (unbounded if None).
     :param dry_run: If True, print mapped records and do not touch the batch DB or state file.
@@ -301,7 +314,6 @@ def main(
     olbooks, max_modified = _run_feed(
         feed_url=feed_url,
         cutoff=cutoff,
-        batch_name=batch_name,
         prices_out=prices_out,
         max_pages=max_pages,
         dry_run=dry_run,
@@ -314,15 +326,16 @@ def main(
             print(json.dumps(book), flush=True)
         return
 
-    if not olbooks:
-        logger.info("No new records since %s; leaving state file untouched.", cutoff.isoformat())
-        return
+    if olbooks:
+        load_config(ol_config)
+        stage_incomplete_records_for_import(olbooks)
+        commit_batch(batch_name, olbooks)
 
-    load_config(ol_config)
-    stage_incomplete_records_for_import(olbooks)
-    commit_batch(batch_name, olbooks)
-    write_state(state_file, max_modified)
-    logger.info("Wrote new state: %s", max_modified.isoformat())
+    if max_modified > cutoff:
+        write_state(state_file, max_modified)
+        logger.info("Wrote new state: %s", max_modified.isoformat())
+    else:
+        logger.info("No newer publications since %s; leaving state file untouched.", cutoff.isoformat())
 
 
 if __name__ == "__main__":
