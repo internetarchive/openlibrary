@@ -75,14 +75,26 @@ class mybooks_home(delegate.page):
             myloans = get_loans_of_user(mb.me.key)
             loans = web.Storage({"docs": [], "total_results": len(myloans)})
 
-            book_keys = [loan["book"] for loan in myloans]
-            books = web.ctx.site.get_many(book_keys)
             
-            for loan, book in zip(myloans, books):
-                # Book will be None if no OL edition exists for the book
-                if book:
+            # Collect all book keys first so we can batch-load them in one call.
+            book_keys = [loan["book"] for loan in myloans]
+            
+            # Batch fetch all books instead of calling site.get(...) inside the loop.
+            books = web.ctx.site.get_many(book_keys)
+
+            # Build a mapping from book key -> book object.
+            # This avoids relying on get_many() returning results in the same order
+            # as the original book_keys / myloans list.
+            books_by_key = {book.key: book for book in books if book}
+
+            for loan in myloans:
+                 # Book will be None if no OL edition exists for the book.
+                 # Match each loan to its book using the book key, not list position.
+
+                if book := books_by_key.get(loan["book"]):
                     book.loan = loan
                     loans.docs.append(book)
+                    
             docs["loans"] = loans
 
         if mb.me or mb.is_public:
