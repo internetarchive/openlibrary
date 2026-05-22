@@ -104,6 +104,15 @@ export class ReadingLogForms {
 
         this.readingLogForms = dropper.querySelectorAll('form.reading-log');
         this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled');
+
+        const i18nInput = document.querySelector('input[name="reading-log-i18n-strings"]');
+        if (!i18nInput) {
+            // eslint-disable-next-line no-console
+            console.error('Could not find i18n strings for Reading Log forms.');
+            this.i18n = {};
+        } else {
+            this.i18n = JSON.parse(i18nInput.value);
+        }
     }
 
     /**
@@ -143,8 +152,7 @@ export class ReadingLogForms {
      */
     updateReadingLog(form) {
         let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText;
-        // XXX: Use i18n strings
-        this.updatePrimaryButtonText('saving...');
+        this.updatePrimaryButtonText(this.i18n.saving);
 
         const formData = new FormData(form);
         const url = form.getAttribute('action');
@@ -154,8 +162,7 @@ export class ReadingLogForms {
         let canUpdateShelf = true;
 
         if (!hasAddedBook && this.checkInComponents && this.checkInComponents.hasReadDate()) {
-            // XXX: Use i18n strings
-            canUpdateShelf = confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?');
+            canUpdateShelf = confirm(this.i18n.confirmRemoveWithCheckIns);
         }
 
         if (canUpdateShelf) {

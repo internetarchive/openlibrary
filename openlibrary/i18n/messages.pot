@@ -6204,6 +6204,16 @@ msgstr ""
 msgid "Create new list"
 msgstr ""
 
+#: my_books/dropdown_content.html
+msgid "saving..."
+msgstr ""
+
+#: my_books/dropdown_content.html
+msgid ""
+"Removing this book from your shelves will delete your check-ins for this "
+"work.  Continue?"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -6292,6 +6302,14 @@ msgstr ""
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to delete check-in. Please try again in a few moments."
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to submit check-in. Please try again in a few moments."
 msgstr ""
 
 #: my_books/check_ins/check_in_prompt.html
