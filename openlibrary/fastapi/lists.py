@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Any, Literal
+from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 from pydantic import BaseModel
@@ -111,24 +111,21 @@ def _process_list_delete(key: str) -> dict:
 UsernamePath = Annotated[str, Path(description="The patron's username")]
 RawFlag = Annotated[bool, Query(alias="_raw", description="Return raw database record")]
 ListOLID = Annotated[str, Path(description="The OLID, e.g. OL123L", pattern=r"OL\d+L")]
-ListCategory = Annotated[Literal["lists", "series"], Path(description="List category")]
 
 
-@router.get("/people/{username}/{category}/{list_id}.json")
-def list_view_json_user(
+@router.get("/people/{username}/lists/{list_id}.json")
+def list_view_json_user_lists(
     username: UsernamePath,
-    category: ListCategory,
     list_id: ListOLID,
     raw: RawFlag = False,
 ) -> dict:
     """
-    Returns JSON metadata for a user-owned list or series.
+    Returns JSON metadata for a user-owned list.
 
-    Examples:
+    Example:
     /people/mekBot/lists/OL123L.json
-    /people/mekBot/series/OL123L.json
     """
-    key = f"/people/{username}/{category}/{list_id}"
+    key = f"/people/{username}/lists/{list_id}"
     return _get_list_or_404(key, raw=raw)
 
 
@@ -318,29 +315,12 @@ def series_editions_json(olid: ListOLID, params: CommonPagination) -> ListEditio
     return _get_editions_response(key, params)
 
 
-@router.get("/people/{username}/series/{olid}/editions.json", response_model=ListEditionsModel)
-def series_editions_json_people(username: UsernamePath, olid: ListOLID, params: CommonPagination) -> ListEditionsModel:
-    """
-    Get paginated editions for a specific user's series.
-    """
-    key = f"/people/{username}/series/{olid}"
-    return _get_editions_response(key, params)
-
-
 CommonSubjectsLimit = Annotated[int, Query(ge=0, description="Number of subjects to return")]
 
 
 @router.get("/people/{username}/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
 def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
     key = f"/people/{username}/lists/{olid}"
-    if data := get_list_subjects(key, limit):
-        return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
-
-
-@router.get("/people/{username}/series/{olid}/subjects.json", response_model=ListSubjectsModel)
-def list_subjects_json_user_series(username: UsernamePath, olid: ListOLID, limit: CommonSubjectsLimit = 20) -> ListSubjectsModel:
-    key = f"/people/{username}/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")

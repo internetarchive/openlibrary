@@ -18,14 +18,6 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
         <ul class="link">
             <li>$_("There isn't a DAISY file available for ")<a href="$page.key">$page.title</a></li>
         </ul>
-    $elif page.is_daisy_encrypted():
-        <div class="message locked">
-            <h2 class="sansserif">$_("This DAISY file is protected.")</h2>
-            <p>$_("It can only be opened on a specialized device with a key issued by the Library of Congress.")</p>
-        </div>
-        <ul class="link">
-            <li>$:_('<a href="%(daisy_url)s"><strong>Download the DAISY.zip</strong></a> for <a href="%(url)s">%(title)s</a>', daisy_url=daisy.replace('XXX', page.ocaid), url=page.key, title=websafe(page.title))</li>
-        </ul>
     $else:
         <ul class="link">
             <li>$:_('<a href="%(daisy_url)s"><strong>Download the DAISY.zip</strong></a> for <a href="%(url)s">%(title)s</a>', daisy_url=daisy.replace('XXX', page.ocaid), url=page.key, title=websafe(page.title))</li>
@@ -34,10 +26,7 @@ $ daisy = "//archive.org/download/XXX/XXX_daisy.zip"
 
     <p class="largest" style="margin-bottom: 0;"><strong>$_("Books for people who don't read print?")</strong></p>
     <p>$:_('The <a href="//archive.org">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. ')</p>
-    $if page.is_daisy_encrypted():
-        <p>$:_('There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs like this one can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.')</p>
-    $else:
-        <p>$:_('There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.')</p>
+    <p>$:_('There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href="http://www.loc.gov/nls/">Library of Congress NLS program</a>.')</p>
     <p><b><i>$_("Enjoy!")</i></b></p>
 
     <h3 class="collapse">&nbsp;</h3>

@@ -3929,16 +3929,6 @@ msgid "There isn't a DAISY file available for "
 msgstr ""
 
 #: books/daisy.html
-msgid "This DAISY file is protected."
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"It can only be opened on a specialized device with a key issued by the "
-"Library of Congress."
-msgstr ""
-
-#: books/daisy.html
 #, python-format
 msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
@@ -3954,15 +3944,6 @@ msgid ""
 "The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"There are two types of DAISYs on Open Library: <i>open</i> and "
-"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
-"different devices. Protected DAISYs like this one can only be opened "
-"using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
-"Congress NLS program</a>."
 msgstr ""
 
 #: books/daisy.html

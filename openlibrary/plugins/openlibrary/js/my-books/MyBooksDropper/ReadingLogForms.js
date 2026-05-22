@@ -53,7 +53,7 @@ export class ReadingLogForms {
          *
          * @member {Record<string, CallableFunction>}
          */
-        this.dropperActions = dropperActionCallbacks
+        this.dropperActions = dropperActionCallbacks;
 
         /**
          * Reference to each reading log submit button.  This includes the
@@ -61,7 +61,7 @@ export class ReadingLogForms {
          *
          * @member {NodeList<HTMLElement>}
          */
-        this.submitButtons = dropper.querySelectorAll('.reading-log button')
+        this.submitButtons = dropper.querySelectorAll('.reading-log button');
 
         /**
          * Reference to this dropper's primary form.
@@ -86,25 +86,25 @@ export class ReadingLogForms {
 
         for (const button of this.submitButtons) {
             if (button.classList.contains('primary-action')) {
-                this.primaryButton = button
-                this.primaryForm = button.closest('form')
+                this.primaryButton = button;
+                this.primaryForm = button.closest('form');
             }
             else if (button.classList.contains('remove-from-list')) {  // XXX : Rename class `remove-from-shelf`?
-                this.removeButton = button
+                this.removeButton = button;
             }
         }
 
         if (!this.primaryButton) {  // This dropper only contains list affordances
-            this.primaryButton = dropper.querySelector('.primary-action')
+            this.primaryButton = dropper.querySelector('.primary-action');
         }
 
         /**
          * @member {import('./CheckInComponents') | null}
          */
-        this.checkInComponents = checkInComponents
+        this.checkInComponents = checkInComponents;
 
-        this.readingLogForms = dropper.querySelectorAll('form.reading-log')
-        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled')
+        this.readingLogForms = dropper.querySelectorAll('form.reading-log');
+        this.isDropperDisabled = dropper.classList.contains('generic-dropper--disabled');
     }
 
     /**
@@ -114,25 +114,25 @@ export class ReadingLogForms {
      */
     initialize() {
         if (this.primaryButton) {
-            this.primaryButton.removeAttribute('disabled')
+            this.primaryButton.removeAttribute('disabled');
         }
         if (!this.isDropperDisabled) {
             if (this.readingLogForms.length) {
                 for (const form of this.readingLogForms) {
-                    const submitButton = form.querySelector('button[type=submit]')
+                    const submitButton = form.querySelector('button[type=submit]');
                     submitButton.addEventListener('click', (event) => {
-                        event.preventDefault()
-                        this.updateReadingLog(form)
+                        event.preventDefault();
+                        this.updateReadingLog(form);
 
                         // Close the dropper
-                        this.dropperActions.closeDropper()
-                    })
+                        this.dropperActions.closeDropper();
+                    });
                 }
             } else {
                 // Toggle the dropper when there is no "Reading Log" primary action:
                 this.primaryButton.addEventListener('click', () => {
-                    this.dropperActions.toggleDropper()
-                })
+                    this.dropperActions.toggleDropper();
+                });
             }
         }
     }
@@ -143,20 +143,20 @@ export class ReadingLogForms {
      * @param {HTMLFormElement} form
      */
     updateReadingLog(form) {
-        let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText
+        let newPrimaryButtonText = this.primaryButton.querySelector('.btn-text').innerText;
         // XXX: Use i18n strings
-        this.updatePrimaryButtonText('saving...')
+        this.updatePrimaryButtonText('saving...');
 
-        const formData = new FormData(form)
-        const url = form.getAttribute('action')
+        const formData = new FormData(form);
+        const url = form.getAttribute('action');
 
-        const hasAddedBook = formData.get('action') === 'add'
+        const hasAddedBook = formData.get('action') === 'add';
 
-        let canUpdateShelf = true
+        let canUpdateShelf = true;
 
         if (!hasAddedBook && this.checkInComponents && this.checkInComponents.hasReadDate()) {
             // XXX: Use i18n strings
-            canUpdateShelf = confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?')
+            canUpdateShelf = confirm('Removing this book from your shelves will delete your check-ins for this work.  Continue?');
         }
 
         if (canUpdateShelf) {
@@ -167,46 +167,46 @@ export class ReadingLogForms {
                 .then(response => response.json())
                 .then((data) => {
                     if (!('error' in data)) {  // XXX: Serve correct HTTP codes to avoid this
-                        this.updateActivatedStatus(hasAddedBook)
+                        this.updateActivatedStatus(hasAddedBook);
 
                         if (hasAddedBook) {
-                            const primaryButtonClicked = form.classList.contains('primary-action')
-                            const newBookshelfId = form.querySelector('input[name=bookshelf_id]').value
+                            const primaryButtonClicked = form.classList.contains('primary-action');
+                            const newBookshelfId = form.querySelector('input[name=bookshelf_id]').value;
 
                             if (!primaryButtonClicked) {
                                 // A book has been added to a shelf chosen from the dropdown.
                                 // The primary form and dropdown selections must now be updated.
-                                const clickedButton = form.querySelector('button[type=submit]')
-                                newPrimaryButtonText = clickedButton.innerText
+                                const clickedButton = form.querySelector('button[type=submit]');
+                                newPrimaryButtonText = clickedButton.innerText;
 
-                                this.updatePrimaryBookshelfId(newBookshelfId)
+                                this.updatePrimaryBookshelfId(newBookshelfId);
 
-                                this.updateDropdownButtonVisibility(clickedButton)
+                                this.updateDropdownButtonVisibility(clickedButton);
                             }
 
                             // Update check-ins:
                             if (this.checkInComponents) {
                                 if (!this.checkInComponents.hasReadDate() && newBookshelfId === ReadingLogShelves.ALREADY_READ) {
-                                    this.checkInComponents.showCheckInPrompt()
+                                    this.checkInComponents.showCheckInPrompt();
                                 } else {
-                                    this.checkInComponents.hideCheckInPrompt()
+                                    this.checkInComponents.hideCheckInPrompt();
                                 }
                             }
 
                         } else if (this.checkInComponents) {
                             // Update check-ins:
-                            this.checkInComponents.hideCheckInPrompt()
-                            this.checkInComponents.hideCheckInDisplay()
-                            this.checkInComponents.resetForm()
+                            this.checkInComponents.hideCheckInPrompt();
+                            this.checkInComponents.hideCheckInDisplay();
+                            this.checkInComponents.resetForm();
                         }
                     }
 
                     // Remove "saving..." message from button:
-                    this.updatePrimaryButtonText(newPrimaryButtonText)
-                })
+                    this.updatePrimaryButtonText(newPrimaryButtonText);
+                });
         } else {
             // Remove "saving..." message from button if shelf cannot be updated:
-            this.updatePrimaryButtonText(newPrimaryButtonText)
+            this.updatePrimaryButtonText(newPrimaryButtonText);
         }
     }
 
@@ -223,17 +223,17 @@ export class ReadingLogForms {
      */
     updateActivatedStatus(isActivated) {
         if (isActivated) {
-            this.primaryButton.querySelector('.activated-check').classList.remove('hidden')
-            this.removeButton.classList.remove('hidden')
-            this.primaryForm.querySelector('input[name=action]').value = 'remove'
+            this.primaryButton.querySelector('.activated-check').classList.remove('hidden');
+            this.removeButton.classList.remove('hidden');
+            this.primaryForm.querySelector('input[name=action]').value = 'remove';
         } else {
-            this.primaryButton.querySelector('.activated-check').classList.add('hidden')
-            this.removeButton.classList.add('hidden')
-            this.primaryForm.querySelector('input[name=action]').value = 'add'
+            this.primaryButton.querySelector('.activated-check').classList.add('hidden');
+            this.removeButton.classList.add('hidden');
+            this.primaryForm.querySelector('input[name=action]').value = 'add';
         }
 
-        this.primaryButton.classList.toggle('activated')
-        this.primaryButton.classList.toggle('unactivated')
+        this.primaryButton.classList.toggle('activated');
+        this.primaryButton.classList.toggle('unactivated');
     }
 
     /**
@@ -242,7 +242,7 @@ export class ReadingLogForms {
      * @param {string} newText
      */
     updatePrimaryButtonText(newText) {
-        this.primaryButton.querySelector('.btn-text').innerText = newText
+        this.primaryButton.querySelector('.btn-text').innerText = newText;
     }
 
     /**
@@ -251,7 +251,7 @@ export class ReadingLogForms {
      * @param {number} newId
      */
     updatePrimaryBookshelfId(newId) {
-        this.primaryForm.querySelector('input[name=bookshelf_id]').value = newId
+        this.primaryForm.querySelector('input[name=bookshelf_id]').value = newId;
     }
 
     /**
@@ -263,10 +263,10 @@ export class ReadingLogForms {
      */
     updateDropdownButtonVisibility(transitioningButton) {
         for (const button of this.submitButtons) {
-            button.classList.remove('hidden')
+            button.classList.remove('hidden');
         }
 
-        transitioningButton.classList.add('hidden')
+        transitioningButton.classList.add('hidden');
     }
 
     /**
@@ -277,13 +277,13 @@ export class ReadingLogForms {
     getDisplayString(shelfId) {
         const matchingFormElem = Array.from(this.readingLogForms).find(elem => {
             if (elem === this.primaryForm) {
-                return false
+                return false;
             }
-            const bookshelfInput = elem.querySelector('input[name=bookshelf_id]')
-            return shelfId === bookshelfInput.value
-        })
+            const bookshelfInput = elem.querySelector('input[name=bookshelf_id]');
+            return shelfId === bookshelfInput.value;
+        });
 
-        const formButton = matchingFormElem.querySelector('button')
-        return formButton.textContent
+        const formButton = matchingFormElem.querySelector('button');
+        return formButton.textContent;
     }
 }

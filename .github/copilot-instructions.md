@@ -23,7 +23,7 @@ npm run watch               # Dev mode with hot reload
 
 ### Code Style
 
-- **Python:** Ruff + Black, line length 162
+- **Python:** Ruff for linting and `ruff format` for formatting, line length 162
 - **JS:** ESLint, single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
 - **Branches:** `{issue-number}/{type}/{slug}`
