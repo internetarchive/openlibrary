@@ -17,7 +17,7 @@ export const ReadingLogShelves = {
     CURRENTLY_READING: '2',
     ALREADY_READ: '3',
     STOPPED_READING: '4'
-}
+};
 
 /**
  * Class representing a dropper's reading log forms.
