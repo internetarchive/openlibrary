@@ -905,3 +905,23 @@ div.search-facet:focus-within {
     padding: var(--spacing-inset-sm) 0;
   }
 }
+
+/* Always hide the legacy "All ▼" facet selector */
+.header-bar .search-component .search-facet,
+.header-bar .search-component .search-facet-selector,
+.header-bar .search-component .search-facet-value {
+  display: none !important;
+}
+
+/* Remove the orphaned left-border separator now the facet is gone */
+.search-bar-input input {
+  border-left: none;
+  padding-left: var(--spacing-inset-sm);
+}
+
+/* Reclaim the space the facet held */
+@media only screen and (min-width: 35.5em) {
+  .header-bar .search-component .search-bar-component {
+    width: 240px;
+  }
+}

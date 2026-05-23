@@ -281,26 +281,30 @@ export class OlOptionsPopover extends LitElement {
         const items = this.items || [];
         const heading = this.heading || (this.label || '').toUpperCase();
 
+        // FIX (WCAG 1.3.1): role="radiogroup" must NOT be on the <ul> because
+        // that strips list semantics and makes <li> children invalid in the
+        // accessibility tree. Separate the roles: a <div> owns radiogroup +
+        // keyboard handler, the <ul> stays a pure list.
         return html`
             <div class="panel">
-                <ul
-                    class="group"
-                    id=${this._panelId}
+                <div
                     role="radiogroup"
                     aria-label=${this.label}
                     @keydown=${this._onListKeydown}
                 >
-                    ${heading ? html`<li class="group-heading" aria-hidden="true">${heading}</li>` : nothing}
-                    ${repeat(items, it => it.value, it => this._renderItem(it))}
-                </ul>
+                    ${heading ? html`<div class="group-heading" aria-hidden="true">${heading}</div>` : nothing}
+                    <ul class="group" id=${this._panelId}>${repeat(items, it => it.value, it => this._renderItem(it))}</ul>
+                </div>
             </div>
         `;
     }
 
     _renderItem(item) {
         const isSelected = item.value === this.selected;
-        return html`
-            <li class="item ${isSelected ? 'item--selected' : ''}">
+        // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
+        // template literal whitespace creates real text nodes that accesslint
+        // flags as direct text content inside <ul>.
+        return html`<li class="item ${isSelected ? 'item--selected' : ''}">
                 <label class="item-row">
                     <input
                         type="radio"
@@ -316,8 +320,7 @@ export class OlOptionsPopover extends LitElement {
                     </span>
                     ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
                 </label>
-            </li>
-        `;
+            </li>`;
     }
 
     // ── Event handlers ───────────────────────────────────────────
