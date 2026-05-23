@@ -303,7 +303,6 @@ _JINJA_ENV = Environment(
 )
 _JINJA_ENV.globals["_"] = _
 
-logger = logging.getLogger("openlibrary.partials")
 _EXPERIMENT_LOGGER = logging.getLogger("openlibrary.jinja_experiment")
 _JINJA_EXPERIMENT_ENABLED = os.getenv("OL_JINJA_EXPERIMENT") == "1"
 
