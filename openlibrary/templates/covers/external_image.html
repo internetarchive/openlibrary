@@ -3,7 +3,7 @@ $def with (action, image_urls, source_name, existing_urls)
 $if set(image_urls) - existing_urls:
     <form class="ol-cover-form ol-cover-form--external" method="post" enctype="multipart/form-data" action="$action">
         <div class="label">
-            <label>$_("Or, use a cover from %s", source_name)</label>
+            <label>$_("Or, use an image from %s", source_name)</label>
         </div>
         <div class="input-container">
             $for url in image_urls:

@@ -8996,8 +8996,6 @@ msgstr "¿Añadir otra edición?"
 #~ msgid "About"
 #~ msgstr "Acerca de"
 
-#, fuzzy
-#~| msgid "Continue"
 #~ msgid "Continue</a>."
 #~ msgstr "Continuar"
 
