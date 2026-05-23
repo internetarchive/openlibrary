@@ -18,7 +18,7 @@ export const AVAILABILITY_OPTIONS = [
     {
         value: 'borrowable',
         label: 'Borrowable',
-        description: "Borrow via Internet Archive's lending library",
+        description: 'Borrow via Internet Archive\'s lending library',
         count: '~2.7M',
     },
     {
