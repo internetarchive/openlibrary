@@ -15,14 +15,12 @@ import {
 
 const AVAILABILITY_TO_PARAMS = {
     all: {},
-    readable: { has_fulltext: 'true' },
-    borrowable: {},
-    open: { public_scan: 'true' },
+    readable: { public_scan: 'true' },
+    borrowable: { has_fulltext: 'true', public_scan: 'false' },
+    open: { print_disabled: 'true' },
 };
 
-const AVAILABILITY_TO_Q_CLAUSE = {
-    borrowable: 'ebook_access:borrowable',
-};
+const AVAILABILITY_TO_Q_CLAUSE = {};
 
 const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name'];
 
