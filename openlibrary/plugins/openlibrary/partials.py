@@ -1,7 +1,7 @@
-from datetime import datetime
+from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict
-from urllib.parse import parse_qs, quote
+from urllib.parse import parse_qs, quote, quote_plus
 
 import web
 from pydantic import BaseModel
@@ -10,8 +10,11 @@ from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
+from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
+    BetterWorldBooksMetadata,
+    amazon_affiliate_url,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
@@ -59,11 +62,8 @@ def _solr_query_to_subject_key(query: str) -> str:
 class ReadingGoalProgressPartial:
     """Handler for reading goal progress."""
 
-    def __init__(self, year: int):
-        self.year = year
-
-    def generate(self) -> dict:
-        year = self.year or datetime.now().year
+    @classmethod
+    def generate(cls, year: int) -> dict:
         goal = get_reading_goals(year=year)
         component = render_template("reading_goals/reading_goal_progress", [goal])
 
@@ -73,7 +73,8 @@ class ReadingGoalProgressPartial:
 class MyBooksDropperListsPartial:
     """Handler for the MyBooks dropper list component."""
 
-    def generate(self) -> dict:
+    @classmethod
+    def generate(cls) -> dict:
         user_lists = get_user_lists(None)
 
         dropper = render_template("lists/dropper_lists", user_lists)
@@ -111,19 +112,15 @@ class CarouselCardPartial:
 
     MAX_VISIBLE_CARDS = 5
 
-    def __init__(self, params: CarouselLoadMoreParams):
-        self.params = params
-
-    async def generate_async(self) -> dict:
-        p = self.params
-
+    @classmethod
+    async def generate_async(cls, params: CarouselLoadMoreParams) -> dict:
         # Do search
-        search_results = await self._make_book_query(p)
+        search_results = await cls._make_book_query(params)
 
         # Render cards
         cards = []
         for index, work in enumerate(search_results):
-            lazy = index > self.MAX_VISIBLE_CARDS
+            lazy = index > cls.MAX_VISIBLE_CARDS
             editions = work.get("editions", {})
             if not editions:
                 book = work
@@ -138,26 +135,28 @@ class CarouselCardPartial:
                     "books/custom_carousel_card",
                     web.storage(book),
                     lazy,
-                    p.layout,
-                    key=p.key,
+                    params.layout,
+                    key=params.key,
                 )
             )
 
         return {"partials": [str(template) for template in cards]}
 
-    async def _make_book_query(self, params: CarouselLoadMoreParams) -> list:
+    @classmethod
+    async def _make_book_query(cls, params: CarouselLoadMoreParams) -> list:
         if params.queryType == "SEARCH":
-            return await self._do_search_query(params)
+            return await cls._do_search_query(params)
         if params.queryType == "BROWSE":
-            return await self._do_browse_query(params)
+            return await cls._do_browse_query(params)
         if params.queryType == "TRENDING":
-            return await self._do_trends_query(params)
+            return await cls._do_trends_query(params)
         if params.queryType == "SUBJECTS":
-            return await self._do_subjects_query(params)
+            return await cls._do_subjects_query(params)
 
         raise ValueError("Unknown query type")
 
-    async def _do_search_query(self, params: CarouselLoadMoreParams) -> list:
+    @classmethod
+    async def _do_search_query(cls, params: CarouselLoadMoreParams) -> list:
         fields = [
             "key",
             "title",
@@ -187,7 +186,8 @@ class CarouselCardPartial:
         )
         return results.get("docs", [])
 
-    async def _do_browse_query(self, params: CarouselLoadMoreParams) -> list:
+    @classmethod
+    async def _do_browse_query(cls, params: CarouselLoadMoreParams) -> list:
         url = compose_ia_url(
             query=params.q,
             limit=params.limit,
@@ -200,10 +200,12 @@ class CarouselCardPartial:
         results = await get_available_async(url=url)
         return results if "error" not in results else []
 
-    async def _do_trends_query(self, params: CarouselLoadMoreParams) -> list:
+    @classmethod
+    async def _do_trends_query(cls, params: CarouselLoadMoreParams) -> list:
         return await get_trending_books(minimum=3, limit=params.limit, page=params.page, sort_by_count=False)
 
-    async def _do_subjects_query(self, params: CarouselLoadMoreParams) -> list:
+    @classmethod
+    async def _do_subjects_query(cls, params: CarouselLoadMoreParams) -> list:
         publish_year = date_range_to_publish_year_filter(params.published_in)
         subject_key = _solr_query_to_subject_key(params.q)
         # Convert page (1-indexed) to offset (0-indexed), ensure non-negative
@@ -218,52 +220,119 @@ class CarouselCardPartial:
         return subject.get("works", [])
 
 
+@dataclass(frozen=True, slots=True)
+class AffiliateStoreBuildContext:
+    title: str
+    isbn: str | None
+    asin: str | None
+    bwb_metadata: BetterWorldBooksMetadata | None
+    amz_metadata: dict | None
+
+
+@dataclass(frozen=True, slots=True)
+class AffiliateStore:
+    key: str
+    analytics_key: str
+    name: str
+    link: str
+    price: str | None = None
+    price_note: str = ""
+
+
+def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
+    """Build affiliate store data for rendering in AffiliateLinks.html."""
+
+    bwb_link = f"https://www.betterworldbooks.com/search/results?q={quote_plus(ctx.title)}"
+    if ctx.isbn:
+        bwb_link = f"https://www.betterworldbooks.com/product/detail/{ctx.isbn}"
+
+    bwb_market_price = ctx.bwb_metadata.get("market_price") if ctx.bwb_metadata else None
+    bwb_price = ctx.bwb_metadata.get("price") if ctx.bwb_metadata else None
+    amz_price = ctx.amz_metadata.get("price") if ctx.amz_metadata else None
+
+    primary_stores: list[AffiliateStore] = [
+        AffiliateStore(
+            key="betterworldbooks",
+            analytics_key="BetterWorldBooks",
+            name=_("Better World Books"),
+            link=bwb_link,
+            price=bwb_price,
+            price_note=_(" - includes shipping"),
+        )
+    ]
+
+    if ctx.asin or ctx.isbn:
+        amazon_link = amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"))
+        if amazon_link:
+            primary_stores.append(
+                AffiliateStore(
+                    key="amazon",
+                    analytics_key="Amazon",
+                    name=_("Amazon"),
+                    link=amazon_link,
+                    price=bwb_market_price or amz_price,
+                )
+            )
+
+    return primary_stores
+
+
+def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
+    """Build list of additional affiliate store data for rendering in AffiliateLinks.html."""
+    if not ctx.isbn:
+        return []
+
+    return [
+        AffiliateStore(
+            key="bookshop-org",
+            analytics_key="BookshopOrg",
+            name=_("Bookshop.org"),
+            link=f"https://bookshop.org/a/{affiliate_id('bookshop-org')}/{ctx.isbn}",
+        ),
+    ]
+
+
 class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
-    def __init__(self, data: dict):
-        self.data = data
-
-    async def generate_async(self) -> dict:
-        args = self.data.get("args", [])
-
-        if len(args) < 2:
-            raise ValueError("Unexpected amount of arguments")
-
-        title, opts = args[0], args[1]
-        isbn = opts.get("isbn", "")
-
+    @staticmethod
+    async def generate_async(
+        title: str,
+        isbn: str | None,
+        asin: str | None,
+        prices: bool,
+    ) -> dict:
         bwb_metadata = None
         amz_metadata = None
-        if not is_bot() and opts.get("prices") and isbn:
+        should_fetch_prices = not is_bot() and prices
+        if should_fetch_prices and isbn:
             bwb_metadata = await get_betterworldbooks_metadata(isbn)
-            if not (bwb_metadata and bwb_metadata.get("market_price")):
+            if not bwb_metadata or not bwb_metadata.get("market_price"):
                 amz_metadata = get_amazon_metadata(isbn, resources="prices")
 
-        macro = web.template.Template.globals["macros"].AffiliateLinks(
-            title,
-            opts,
-            async_load=False,
-            bwb_metadata=bwb_metadata,
-            amz_metadata=amz_metadata,
-        )
+        if bwb_metadata and "error" in bwb_metadata:
+            bwb_metadata = None
+
+        ctx = AffiliateStoreBuildContext(title, isbn, asin, bwb_metadata, amz_metadata)
+
+        primary_stores = build_primary_stores(ctx)
+        more_stores = build_more_stores(ctx)
+        macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
         return {"partials": str(macro)}
 
 
 class SearchFacetsPartial:
     """Handler for search facets sidebar and "selected facets" affordances."""
 
-    def __init__(self, data: dict, sfw: bool = False):
-        self.sfw = sfw
-        self.data = data
+    @classmethod
+    async def generate_async(cls, data: dict, sfw: bool = False) -> dict:
         user = get_current_user()
-        self.show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
+        show_merge_authors = user and (user.is_librarian() or user.is_super_librarian() or user.is_admin())
 
-    async def generate_async(self) -> dict:
-        path = self.data.get("path")
-        query = self.data.get("query", "")
+        path = data.get("path")
+        query = data.get("query", "")
         parsed_qs = parse_qs(query.replace("?", ""))
-        param = self.data.get("param", {})
+        param = data.get("param", {})
 
         sort = None
         search_response = await run_solr_query_async(
@@ -273,7 +342,7 @@ class SearchFacetsPartial:
             page=1,
             sort=sort,
             spellcheck_count=3,
-            fields=compute_work_search_html_fields(sort, self.sfw),
+            fields=compute_work_search_html_fields(sort, sfw),
             facet=True,
             highlight=False,
             request_label="BOOK_SEARCH_FACETS",
@@ -286,7 +355,7 @@ class SearchFacetsPartial:
             async_load=False,
             path=path,
             query=parsed_qs,
-            show_merge_authors=self.show_merge_authors,
+            show_merge_authors=show_merge_authors,
         )
 
         active_facets = render_template(
@@ -305,36 +374,33 @@ class SearchFacetsPartial:
         }
 
 
+@dataclass
+class FullTextSuggestionsPartialResult:
+    body: dict
+    has_error: bool = False
+
+
 class FullTextSuggestionsPartial:
     """Handler for rendering full-text search suggestions."""
 
-    def __init__(self, query: str):
-        self.query = query or ""
-        self.has_error: bool = False
-
-    async def generate_async(self) -> dict:
-        query = self.query
+    @classmethod
+    async def generate_async(cls, query: str) -> FullTextSuggestionsPartialResult:
         data = await fulltext_search_async(query)
-        # Add caching headers only if there were no errors in the search results
-        self.has_error = "error" in data
-        hits = data.get("hits", [])
-        if not hits["hits"]:
+        hits = data.get("hits", {})
+        if not hits.get("total"):
             macro = "<div></div>"
         else:
             macro = web.template.Template.globals["macros"].FulltextSearchSuggestion(query, data)
-        return {"partials": str(macro)}
+        return FullTextSuggestionsPartialResult(body={"partials": str(macro)}, has_error="error" in data)
 
 
 class BookPageListsPartial:
     """Handler for rendering the book page "Lists" section"""
 
-    def __init__(self, workId: str, editionId: str):
-        self.workId = workId
-        self.editionId = editionId
-
-    async def generate_async(self) -> dict:
+    @classmethod
+    async def generate_async(cls, workId: str, editionId: str) -> dict:
         results: dict = {"partials": []}
-        keys = [k for k in (self.workId, self.editionId) if k]
+        keys = [k for k in (workId, editionId) if k]
 
         # Do checks and render
         lists = await get_lists_async(keys)
@@ -370,33 +436,31 @@ class LazyCarouselParams(BaseModel):
 class LazyCarouselPartial:
     """Handler for lazily-loaded query carousels."""
 
-    def __init__(self, params: LazyCarouselParams):
-        self.params = params
-
-    async def generate_async(self) -> dict:
+    @classmethod
+    async def generate_async(cls, params: LazyCarouselParams) -> dict:
         books = await gather_lazy_carousel_data_async(
-            query=self.params.query,
-            sort=self.params.sort,
-            limit=self.params.limit,
-            has_fulltext_only=self.params.has_fulltext_only,
-            safe_mode=self.params.safe_mode,
+            query=params.query,
+            sort=params.sort,
+            limit=params.limit,
+            has_fulltext_only=params.has_fulltext_only,
+            safe_mode=params.safe_mode,
         )
         macro = render_macro(
             "RawQueryCarousel",
             (  # args as a tuple - will be unpacked to positional params
-                self.params.query,
+                params.query,
             ),
             lazy=False,
-            title=self.params.title,
-            sort=self.params.sort,
-            key=self.params.key,
-            limit=self.params.limit,
-            search=self.params.search,
-            has_fulltext_only=self.params.has_fulltext_only,
-            url=self.params.url,
-            layout=self.params.layout,
-            fallback=self.params.fallback,
-            safe_mode=self.params.safe_mode,
+            title=params.title,
+            sort=params.sort,
+            key=params.key,
+            limit=params.limit,
+            search=params.search,
+            has_fulltext_only=params.has_fulltext_only,
+            url=params.url,
+            layout=params.layout,
+            fallback=params.fallback,
+            safe_mode=params.safe_mode,
             books_data=books["docs"],
         )
         return {"partials": str(macro["__body__"])}
@@ -476,7 +540,7 @@ async def gather_lazy_carousel_data_async(
     return return_dict
 
 
-gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async)
+gather_lazy_carousel_data = async_bridge.wrap(gather_lazy_carousel_data_async, "gather_lazy_carousel_data")
 
 # Expose this publicly for the template
 public(gather_lazy_carousel_data)

@@ -1,7 +1,7 @@
- | From svn.tartarus.org/snowball/trunk/website/algorithms/norwegian/stop.txt
+ | From https://snowballstem.org/algorithms/norwegian/stop.txt
  | This file is distributed under the BSD License.
- | See http://snowball.tartarus.org/license.php
- | Also see http://www.opensource.org/licenses/bsd-license.html
+ | See https://snowballstem.org/license.html
+ | Also see https://opensource.org/licenses/bsd-license.html
  |  - Encoding was converted to UTF-8.
  |  - This notice was added.
  |
@@ -25,7 +25,7 @@ et             | a/an
 den            | it/this/that
 til            | to
 er             | is/am/are
-som            | who/that
+som            | who/which/that
 på             | on
 de             | they / you(formal)
 med            | with
@@ -84,7 +84,6 @@ noen           | some
 noe            | some
 ville          | would
 dere           | you
-som            | who/which/that
 deres          | their/theirs
 kun            | only/just
 ja             | yes
@@ -129,7 +128,6 @@ mange          | many
 også           | also
 slik           | just
 vært           | been
-være           | to be
 båe            | both *
 begge          | both
 siden          | since
@@ -155,7 +153,6 @@ hennar         | her/hers
 hennes         | hers
 hoss           | how *
 hossen         | how *
-ikkje          | not *
 ingi           | noone *
 inkje          | noone *
 korleis        | how *
@@ -177,7 +174,6 @@ noka           | some (fem.) *
 nokor          | some *
 noko           | some *
 nokre          | some *
-si             | his/hers *
 sia            | since *
 sidan          | since *
 so             | so *

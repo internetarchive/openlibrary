@@ -69,15 +69,23 @@ def monitor_nginx_logs():
     )
 
 
-@limit_server(["ol-solr0", "ol-solr1"], scheduler)
+@limit_server(["ol-solr0", "ol-solr1", "ol-solr2"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_solr():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.solr_logs_monitor import main
 
+    match SERVER:
+        case "ol-solr0":
+            solr_container = "openlibrary-solr-1"
+        case "ol-solr1":
+            solr_container = "solr_builder-solr_prod-1"
+        case "ol-solr2":
+            solr_container = "openlibrary-solr_replica-1"
+
     main(
-        solr_container=("solr_builder-solr_prod-1" if SERVER == "ol-solr1" else "openlibrary-solr-1"),
+        solr_container=solr_container,
         graphite_prefix=f"stats.ol.{SERVER}",
         graphite_address=GRAPHITE_URL,
     )
@@ -112,9 +120,11 @@ async def monitor_partner_useragents():
         return agent_counts
 
     known_names = extract_agent_counts("""
+   4307 Bontent/1.0 (https://bontent.app; ***@bontent.app)
     403 Research-Cover-Scraper (***@cornell.edu)
     309 BookshopLT/1.0 (***@gmail.com)
-    230 BookReadingTime/2.0 (https://bookreadingtime.com; ***@bookreadingtime.com)
+    271 BookReadingTime/2.0 (https://bookreadingtime.com; ***@bookreadingtime.com)
+    182 TooManyBooks/1.0 (***@gmail.com)
     180 CourseworkBot/1.0 (coursework@local)
     180 BookScraper/1.0 (data collection project; contact@example.com)
     180 librimondo-pim/1.0 (https://librimondo.com; ***@fkwt.pl)
@@ -122,7 +132,9 @@ async def monitor_partner_useragents():
     179 isbn-book-crawler/1.0 (educational)
     177 CourseProjectAPI/1.0 (your@email.com)
     177 Whefi/1.0 (***@whefi.com)
+    176 Tomeki/1.0 (***@yopmail.com , gzip)
     173 afin-app/1.0 (taste recommendation; ***@gmail.com)
+    165 Pinakes-POC/0.1 (SNU Library; mailto:***@library.snu.ac.kr)
     160 BookEnricher/1.0 (your@email.com)
     153 OrelhaDoLivro/1.0 (***@orelhadelivro.com.br; openlibrary-summary)
     129 TimberdoodleReading/0.1 (***@timberdoodle.com)
@@ -135,6 +147,8 @@ async def monitor_partner_useragents():
      85 Bookhives/1.0 (***@gmail.com)
      85 AliyunSecBot/Aliyun (***@service.alibaba.com)
      84 ASCENDCHESS/1.0 (Chess Training Platform; ***@ascendchess.com)
+     78 PeoopleEnrichmentBot/1.0 (contact: ***@peoople.app)
+     76 Lovvit-Archive/1.0 (https://lovvit.jp; ***@lovvit.jp)
      65 PejibooksBot/1.0
      63 knihobot.cz (***@knihobot.cz)
      62 BookHub/1.0 (***@ybookshub.com)
@@ -149,6 +163,7 @@ async def monitor_partner_useragents():
      45 PrecodeZeoos/1.0 (***@precode.com.br)
      44 ReRoll/1.0 (rating-backfill; ***@gmail.com)
      39 ReRoll/1.0 (metadata-backfill; ***@gmail.com)
+     44 UniversalHistoryBot/1.0 (contact: your@email.com)
      35 LikesnuBatch/1.0 (Contact: ***@likesnu.kr)
      32 eBookShelf/1.0 (***@gmail.com)
      28 EmberNovels/1.0 (***@embernovels.com)
@@ -166,7 +181,6 @@ async def monitor_partner_useragents():
       4 citesure/1.0 (***@citesure.com)
       4 Bibliogram (***@bibliogram.it)
       2 PERRLA/1.0 (***@perrla.com)
-      2 Tomeki/1.0 (***@yopmail.com , gzip)
       2 Snipd/1.0 (https://www.snipd.com) contact: ***@snipd.com
       2 OnTrack/1.0 (***@gmail.com)
       2 Leaders.org (leaders.org) ***@leaders.org

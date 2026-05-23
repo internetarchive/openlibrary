@@ -6,7 +6,7 @@
 
 /* Expand select to be clickable */
 .search-facet select {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   top: 2px;
   left: 2px;
 }
