@@ -9,7 +9,7 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint frontend
+.PHONY: all clean distclean git css js components lit-components i18n lint frontend check-solr
 
 all: git css js components lit-components i18n
 
@@ -74,6 +74,21 @@ reindex-solr:
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py person
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py place
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
+
+check-solr:
+	@RUNNING=$$(curl -sf http://localhost:8983/solr/admin/info/system 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['lucene']['solr-spec-version'])" 2>/dev/null) || { echo "Solr is not running or not reachable at http://localhost:8983"; exit 1; }; \
+	EXPECTED=$$(grep 'image: solr:' compose.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); \
+	RUNNING_MAJOR=$$(echo "$$RUNNING" | cut -d. -f1); \
+	EXPECTED_MAJOR=$$(echo "$$EXPECTED" | cut -d. -f1); \
+	if [ "$$RUNNING_MAJOR" != "$$EXPECTED_MAJOR" ]; then \
+		echo "⚠️  Solr version mismatch:"; \
+		echo "   Running:  $$RUNNING"; \
+		echo "   Expected: $$EXPECTED (from compose.yaml)"; \
+		echo "   Fix: docker compose down -v && docker compose up -d"; \
+		exit 1; \
+	else \
+		echo "✓ Solr version OK ($$RUNNING)"; \
+	fi
 
 lint:
 	# See the pyproject.toml file for ruff's settings
