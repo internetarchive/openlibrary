@@ -20,9 +20,7 @@ except ImportError:
 else:
     JINJA2_AVAILABLE = True
 
-pytestmark = pytest.mark.skipif(
-    not JINJA2_AVAILABLE, reason="Jinja2 is not installed"
-)
+pytestmark = pytest.mark.skipif(not JINJA2_AVAILABLE, reason="Jinja2 is not installed")
 
 WEBPY_AVAILABLE = False
 WEBPY_GETTEXT = None
