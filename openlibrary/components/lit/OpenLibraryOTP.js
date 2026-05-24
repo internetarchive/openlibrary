@@ -48,7 +48,7 @@ export class OpenLibraryOTP extends LitElement {
         }
 
         .trigger-btn {
-            background: var(--ia-button-primary-bg, #4b4bdf);
+            background: var(--primary-blue, hsl(202, 96%, 37%));
             color: var(--ia-button-primary-color, #fff);
             border: none;
             border-radius: 4px;
@@ -56,11 +56,12 @@ export class OpenLibraryOTP extends LitElement {
             font-size: 1rem;
             font-family: inherit;
             cursor: pointer;
-            width: fit-content;
+            width: 100%;
+            margin-top: 10px;
         }
         .trigger-btn:hover,
         .trigger-btn:focus {
-            background: var(--ia-button-primary-bg-hover, #3a3abf);
+            background: hsl(202, 96%, 17%);
             outline: 2px solid currentColor;
             outline-offset: 2px;
         }
@@ -288,6 +289,10 @@ export class OpenLibraryOTP extends LitElement {
     }
 
     _handleOverlayClick(e) {
+        // Keep the modal open while the user is entering their code — they are
+        // likely switching back from their email client and an accidental click
+        // should not lose their place in the flow.
+        if (this._step === 'code') return;
         if (e.target === e.currentTarget) this._closeModal();
     }
 

@@ -148,7 +148,7 @@ class xauth(delegate.page):
             result = {"success": True, "version": 1}
         elif i.op == "redeem_otp":
             # Accept "123456" as the dev OTP code
-            if body.get("password") == "123456":
+            if body.get("otp") == "123456":
                 result = {
                     "success": True,
                     "version": 1,

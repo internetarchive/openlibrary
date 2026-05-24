@@ -42,6 +42,8 @@ $if "dev" in ctx.features:
         <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 
     $else:
+        <ol-otp-login redirect="$(form.redirect.value or '/account/books')"></ol-otp-login>
+        <div class="ol-signup-form__big-or">$_('OR')</div>
         <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
             $if form.note:
                 <div class="flash-messages">
@@ -94,7 +96,5 @@ $if "dev" in ctx.features:
             <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
         </form>
 
-        <div class="ol-signup-form__big-or">$_('OR')</div>
-        <ol-otp-login redirect="$(form.redirect.value or '/account/books')"></ol-otp-login>
     </div>
 </div>

@@ -892,12 +892,12 @@ class InternetArchiveAccount(web.storage):
         )
 
     @classmethod
-    def redeem_otp(cls, email, password, originating_ip=None):
+    def redeem_otp(cls, email, otp, originating_ip=None):
         headers = {"X-Originating-IP": originating_ip} if originating_ip else None
         return cls.xauth(
             "redeem_otp",
             email=email.strip().lower(),
-            password=password,
+            otp=otp,
             headers=headers,
         )
 
