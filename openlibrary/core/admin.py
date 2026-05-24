@@ -57,14 +57,16 @@ class Stats:
                 range(0, ndays * 5, 5), (x.get(self.key, 0) for x in self.docs[-ndays:])
             )  # The *5 and 5 are for the bar widths
 
-    def get_summary(self, ndays=28):
-        """Returns the summary of counts for past n days.
-
-        Summary can be either sum or average depending on the type of stats.
-        This is used to find counts for last 7 days and last 28 days.
-        """
-        return sum(x[1] for x in self.get_counts(ndays))
-
+   def get_summary(self, ndays=28):
+    """Returns the summary of counts for past n days.
+    Summary can be either sum or average depending on the type of stats.
+    This is used to find counts for last 7 days and last 28 days.
+    Returns None if data is unavailable.
+    """
+    counts = self.get_counts(ndays)
+    if counts is None:
+        return None
+    return sum(x[1] for x in counts)
 
 @cache.memoize(
     engine="memcache", key="admin._get_loan_counts_from_graphite", expires=5 * 60
@@ -126,18 +128,19 @@ def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
         )
         response.raise_for_status()
         visitors = response.json()[0]['datapoints']
-    except requests.exceptions.RequestException:
-        visitors = []
-    return visitors
+   except requests.exceptions.RequestException:
+    return None
+return visitors
 
 
 class VisitorStats(Stats):
-    def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]]:
-        visitors = _get_visitor_counts_from_graphite(ndays)
-        # Flip the order, convert timestamp to msec, and convert count==None to zero
-        return [
-            (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
-        ]
+   def get_counts(self, ndays: int = 28, times: bool = False) -> list[tuple[int, int]] | None:
+    visitors = _get_visitor_counts_from_graphite(ndays)
+    if visitors is None:
+        return None
+    return [
+        (int(timestamp * 1000), int(count or 0)) for count, timestamp in visitors
+    ]
 
 
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5 * 60)

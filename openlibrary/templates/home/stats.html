@@ -10,7 +10,8 @@ $if stats:
         <div class="statschart">
           <div class="chartShow" onclick="window.location.href='//archive.org/stats';" title="$_('See all visitors to OpenLibrary.org')">
             <div id="visitors-graph" style="width:150px;height:60px;" title="$_('Area graph of recent unique visitors')"></div>
-            <a href="//archive.org/stats" title="$_('See all visitors to OpenLibrary.org')"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">$_('Unique Visitors')</span></a>
+            <a href="//archive.org/stats" title="$_('See all visitors to OpenLibrary.org')">$visitors_count = stats["visitors"].get_summary(28)
+<span class="ticks">$:(commify(visitors_count) if visitors_count is not None else 'N/A')</span><span class="label">$_('Unique Visitors')</span></a>
           </div>
         </div>
 
