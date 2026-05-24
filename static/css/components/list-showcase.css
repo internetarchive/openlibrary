@@ -2,7 +2,7 @@
   display: flex;
   overflow-x: auto;
   scrollbar-width: thin;
-  padding: 8px 0;
+  padding: var(--spacing-inset-sm) 0;
 }
 
 a.list-card {
@@ -36,7 +36,7 @@ a.list-card {
 
 .list-card__name-tag {
   background: var(--grey-f4f4f4);
-  padding: 7px 10px;
+  padding: var(--spacing-inset-sm);
 
   border-radius: 0 0 4px 4px;
   box-shadow: 0 0 4px hsla(0, 0%, 0%, 0.25);

@@ -25,7 +25,6 @@ __all__ = [
     "Cache",
     "MemcacheCache",
     "MemoryCache",
-    "RequestCache",
     "get_memcache",
     "memcache_memoize",
     "memoize",
@@ -33,8 +32,8 @@ __all__ = [
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
-P = ParamSpec('P')
-T = TypeVar('T')
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class memcache_memoize[**P, T]:
@@ -81,9 +80,7 @@ class memcache_memoize[**P, T]:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug(
-                    "Could not find memcache_servers in the configuration. Used dummy memcache."
-                )
+                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
                 from pymemcache.test.utils import MockMemcacheClient
 
                 self._memcache = MockMemcacheClient()
@@ -185,9 +182,7 @@ class memcache_memoize[**P, T]:
     def compute_key(self, args: tuple, kw: dict) -> str:
         """Computes memcache key for storing result of function call with given arguments."""
         key = self.key_prefix + "$" + self.encode_args(args, kw)
-        return key.replace(
-            " ", "_"
-        )  # XXX: temporary fix to handle spaces in the arguments
+        return key.replace(" ", "_")  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value: Any) -> str:
         """json.dumps without extra spaces.
@@ -271,7 +266,11 @@ class Cache:
 
 
 class MemoryCache(Cache):
-    """Cache implementation in memory."""
+    """Cache implementation in memory.
+
+    Note: expires is ignored. Values stay until deleted or cleared.
+    Use MemcacheCache if you need expiration.
+    """
 
     def __init__(self):
         self.d = {}
@@ -305,9 +304,7 @@ class MemcacheCache(Cache):
         if servers := config.get("memcache_servers", None):
             return olmemcache.Client(servers)
         else:
-            web.debug(
-                "Could not find memcache_servers in the configuration. Used dummy memcache."
-            )
+            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
             from pymemcache.test.utils import MockMemcacheClient
 
             return MockMemcacheClient()
@@ -360,32 +357,8 @@ class MemcacheCache(Cache):
         return value
 
 
-class RequestCache(Cache):
-    """Request-Local cache.
-
-    The values are cached only in the context of the current request.
-    """
-
-    @property
-    def d(self):
-        return web.ctx.setdefault("request-local-cache", {})
-
-    def get(self, key):
-        return self.d.get(key)
-
-    def set(self, key, value, expires=0):
-        self.d[key] = value
-
-    def add(self, key, value, expires=0):
-        return self.d.setdefault(key, value) is value
-
-    def delete(self, key):
-        return self.d.pop(key, None) is not None
-
-
 memory_cache = MemoryCache()
 memcache_cache = MemcacheCache()
-request_cache = RequestCache()
 
 
 def get_memcache():
@@ -396,8 +369,6 @@ def _get_cache(engine):
     d = {
         "memory": memory_cache,
         "memcache": memcache_cache,
-        "memcache+memory": memcache_cache,
-        "request": request_cache,
     }
     return d.get(engine)
 
@@ -417,7 +388,6 @@ class memoize:
         Engine to store the results. Available options are:
             * memory: stores the result in memory.
             * memcache: stores the result in memcached.
-            * request: stores the result only in the context of the current request.
 
     * key:
         key to be used in the cache. If this is a string, arguments are append
@@ -459,16 +429,14 @@ class memoize:
 
     def __init__(
         self,
-        engine: Literal["memory", "memcache", "request"],
+        engine: Literal["memory", "memcache"],
         key: str | Callable[..., str | tuple],
         expires: int = 0,
         background: bool = False,
         cacheable: Callable | None = None,
     ):
         self.cache = _get_cache(engine)
-        self.keyfunc = (
-            key if callable(key) else functools.partial(build_memcache_key, key)
-        )
+        self.keyfunc = key if callable(key) else functools.partial(build_memcache_key, key)
         self.cacheable = cacheable
         self.expires = expires
 

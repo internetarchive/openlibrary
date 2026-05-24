@@ -1,7 +1,7 @@
 .fsi-snippet {
   display: inline;
   width: 60%;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   margin: 0;
   font-size: small;
 }
@@ -19,15 +19,15 @@
   }
 }
 .fsi-snippet__main {
-  padding: 5px;
-  margin: 0 5px;
+  padding: var(--spacing-inset-xs);
+  margin: 0 var(--spacing-inline-sm);
   line-height: 1.6em;
 }
 .fsi-snippet__main__page-num a {
   color: var(--dark-grey);
   display: inline;
   text-decoration: none;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 .fsi-snippet__main a:link,
 .fsi-snippet__main a:hover,

@@ -1,6 +1,7 @@
 """Basic tests for the FastAPI search endpoint."""
 
 import json
+from urllib.parse import urlencode
 
 import pytest
 
@@ -28,8 +29,6 @@ def search(client, **params):
     This helper provides a cleaner interface for making search requests
     by accepting keyword arguments directly instead of building URL strings.
     """
-    from urllib.parse import urlencode
-
     query_string = urlencode(params, doseq=True)
     return client.get(f"/search.json?{query_string}")
 

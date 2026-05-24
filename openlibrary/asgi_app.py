@@ -163,6 +163,7 @@ def create_app() -> FastAPI | None:
         version="0.0.1",
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
+        strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )
 
     app.add_middleware(
@@ -211,7 +212,9 @@ def create_app() -> FastAPI | None:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.cdn import router as cdn_router
+    from openlibrary.fastapi.checkins import router as checkins_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.lists import router as lists_router
@@ -226,7 +229,9 @@ def create_app() -> FastAPI | None:
 
     # Include routers
     app.include_router(account_router)
+    app.include_router(books_router)
     app.include_router(cdn_router)
+    app.include_router(checkins_router)
     app.include_router(internal_router)
     app.include_router(languages_router)
     app.include_router(lists_router)

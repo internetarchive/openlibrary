@@ -17,7 +17,7 @@ from openlibrary.core.helpers import days_since
 
 logger = logging.getLogger("core.wikidata")
 
-WIKIDATA_API_URL = 'https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/'
+WIKIDATA_API_URL = "https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/"
 WIKIDATA_CACHE_TTL_DAYS = 30
 
 # TODO: Pull the icon, label, and base_url from wikidata itself
@@ -60,21 +60,21 @@ class WikidataEntity:
         This is used for storing the json in the database.
         """
         entity_dict = {
-            'id': self.id,
-            'type': self.type,
-            'labels': self.labels,
-            'descriptions': self.descriptions,
-            'aliases': self.aliases,
-            'statements': self.statements,
-            'sitelinks': self.sitelinks,
+            "id": self.id,
+            "type": self.type,
+            "labels": self.labels,
+            "descriptions": self.descriptions,
+            "aliases": self.aliases,
+            "statements": self.statements,
+            "sitelinks": self.sitelinks,
         }
         return json.dumps(entity_dict)
 
-    def get_description(self, language: str = 'en') -> str | None:
+    def get_description(self, language: str = "en") -> str | None:
         """If a description isn't available in the requested language default to English"""
-        return self.descriptions.get(language) or self.descriptions.get('en')
+        return self.descriptions.get(language) or self.descriptions.get("en")
 
-    def get_external_profiles(self, language: str = 'en') -> list[dict]:
+    def get_external_profiles(self, language: str = "en") -> list[dict]:
         """
         Get formatted social profile data for all configured social profiles.
 
@@ -90,7 +90,7 @@ class WikidataEntity:
                 [
                     {
                         "url": f"{profile_config['base_url']}{value}",
-                        "icon_url": f"/static/images/identifier_icons/{profile_config["icon_name"]}",
+                        "icon_url": f"/static/images/identifier_icons/{profile_config['icon_name']}",
                         "label": profile_config["label"],
                     }
                     for value in values
@@ -141,22 +141,20 @@ class WikidataEntity:
         """
         image_filenames = self._get_statement_values("P18")
         base_url = "https://commons.wikimedia.org/wiki/Special:FilePath/"
-        return [
-            f"{base_url}{filename.replace(' ', '_')}" for filename in image_filenames
-        ]
+        return [f"{base_url}{filename.replace(' ', '_')}" for filename in image_filenames]
 
-    def _get_wikipedia_link(self, language: str = 'en') -> tuple[str, str] | None:
+    def _get_wikipedia_link(self, language: str = "en") -> tuple[str, str] | None:
         """
         Get the Wikipedia URL and language for a given language code.
         Falls back to English if requested language is unavailable.
         """
-        requested_wiki = f'{language}wiki'
-        english_wiki = 'enwiki'
+        requested_wiki = f"{language}wiki"
+        english_wiki = "enwiki"
 
         if requested_wiki in self.sitelinks:
-            return self.sitelinks[requested_wiki]['url'], language
+            return self.sitelinks[requested_wiki]["url"], language
         elif english_wiki in self.sitelinks:
-            return self.sitelinks[english_wiki]['url'], 'en'
+            return self.sitelinks[english_wiki]["url"], "en"
         return None
 
     def _get_statement_values(self, property_id: str) -> list[str]:
@@ -167,20 +165,14 @@ class WikidataEntity:
         if property_id not in self.statements:
             return []
 
-        return [
-            statement["value"]["content"]
-            for statement in self.statements[property_id]
-            if "value" in statement and "content" in statement["value"]
-        ]
+        return [statement["value"]["content"] for statement in self.statements[property_id] if "value" in statement and "content" in statement["value"]]
 
 
 def _cache_expired(entity: WikidataEntity) -> bool:
     return days_since(entity._updated) > WIKIDATA_CACHE_TTL_DAYS
 
 
-def get_wikidata_entity(
-    qid: str, bust_cache: bool = False, fetch_missing: bool = False
-) -> WikidataEntity | None:
+def get_wikidata_entity(qid: str, bust_cache: bool = False, fetch_missing: bool = False) -> WikidataEntity | None:
     """
     This only supports QIDs, if we want to support PIDs we need to use different endpoints
     By default this will only use the cache (unless it is expired).
@@ -202,14 +194,12 @@ def get_wikidata_entity(
 
 
 def _get_from_web(id: str) -> WikidataEntity | None:
-    headers = {'User-Agent': 'OpenLibrary.org Wikidata Integration'}
+    headers = {"User-Agent": "OpenLibrary.org Wikidata Integration"}
     try:
-        response = requests.get(f'{WIKIDATA_API_URL}{id}', headers=headers)
+        response = requests.get(f"{WIKIDATA_API_URL}{id}", headers=headers)
         response.raise_for_status()
         if response.status_code == 200:
-            entity = WikidataEntity.from_dict(
-                response=response.json(), updated=datetime.now()
-            )
+            entity = WikidataEntity.from_dict(response=response.json(), updated=datetime.now())
             _add_to_cache(entity)
             return entity
     except requests.exceptions.HTTPError as err:
@@ -218,7 +208,7 @@ def _get_from_web(id: str) -> WikidataEntity | None:
         if sentry and sentry.enabled:
             sentry.capture_exception(err)
 
-        logger.error(f'Wikidata Response: {err.response.status_code}, id: {id}')
+        logger.error(f"Wikidata Response: {err.response.status_code}, id: {id}")
 
     return None
     # Responses documented here https://doc.wikimedia.org/Wikibase/master/js/rest-api/
@@ -227,13 +217,11 @@ def _get_from_web(id: str) -> WikidataEntity | None:
 def _get_from_cache_by_ids(ids: list[str]) -> list[WikidataEntity]:
     response = list(
         db.get_db().query(
-            'select * from wikidata where id IN ($ids)',
-            vars={'ids': ids},
+            "select * from wikidata where id IN ($ids)",
+            vars={"ids": ids},
         )
     )
-    return [
-        WikidataEntity.from_dict(response=r.data, updated=r.updated) for r in response
-    ]
+    return [WikidataEntity.from_dict(response=r.data, updated=r.updated) for r in response]
 
 
 def _get_from_cache(id: str) -> WikidataEntity | None:
@@ -254,7 +242,7 @@ def _add_to_cache(entity: WikidataEntity) -> None:
         return oldb.update(
             "wikidata",
             where="id=$id",
-            vars={'id': entity.id},
+            vars={"id": entity.id},
             data=json_data,
             updated=entity._updated,
         )

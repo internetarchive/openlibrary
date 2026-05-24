@@ -4,8 +4,9 @@ FastAPI account endpoints for authentication.
 
 from __future__ import annotations
 
+import os
 from typing import Annotated
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
@@ -22,6 +23,16 @@ from openlibrary.plugins.upstream.account import get_login_error
 
 router = APIRouter()
 
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+
+
+def _safe_redirect(url: str, default: str = "/") -> str:
+    """Return url only if it is a same-origin path; fall back to default."""
+    parsed = urlparse(url)
+    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
+        return default
+    return url
+
 
 class AuthTestResponse(BaseModel):
     """Response model for the auth test endpoint."""
@@ -36,8 +47,7 @@ class AuthTestResponse(BaseModel):
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/test.json", response_model=AuthTestResponse)
+@router.get("/account/test.json", response_model=AuthTestResponse, tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def check_authentication(
     request: Request,
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
@@ -91,8 +101,7 @@ async def check_authentication(
     )
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/protected.json")
+@router.get("/account/protected.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def protected_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
@@ -114,8 +123,7 @@ async def protected_endpoint(
     }
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/optional.json")
+@router.get("/account/optional.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def optional_auth_endpoint(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> dict:
@@ -203,7 +211,7 @@ async def login(
     # Create response with redirect
     response = Response(
         status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": form_data.redirect},
+        headers={"Location": _safe_redirect(form_data.redirect)},
     )
 
     # Set session cookie (same as web.py)
@@ -212,7 +220,8 @@ async def login(
         login_code,
         max_age=expires,
         httponly=True,
-        secure=False,
+        secure=request.url.scheme == "https",
+        samesite="lax",
     )
 
     # Set print disability flag if user has special access

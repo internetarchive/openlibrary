@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+import web
 from fastapi import Request
 
 from openlibrary.utils.request_context import (
@@ -84,8 +85,6 @@ def test_parse_solr_editions_from_fastapi(query_param, cookie_value, expected, d
 )
 def test_parse_solr_editions_from_web(query_param, cookie_value, http_cookie, expected, description):
     """Test _parse_solr_editions_from_web with various inputs."""
-    import web
-
     web.ctx.env = {"HTTP_COOKIE": http_cookie}
     with (
         patch.object(web, "input") as mock_input,
@@ -114,8 +113,6 @@ def test_parse_solr_editions_parity(query_param, cookie_value, expected, descrip
     Test that both implementations handle common cases the same way.
     Documents any behavioral differences between the two versions.
     """
-    import web
-
     # Test FastAPI version
     query_params = {"editions": query_param} if query_param is not None else {}
     cookies = {"SOLR_EDITIONS": cookie_value} if cookie_value is not None else {}

@@ -24,7 +24,7 @@ export default function initAnalytics() {
                 loadtime: (endTime.getTime() - startTime.getTime()),
                 cache_bust: Math.random()
             });
-        }
+        };
 
         vs = window.archive_analytics.get_data_packets();
         for (i in vs) {

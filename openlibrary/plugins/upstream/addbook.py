@@ -4,6 +4,7 @@ import csv
 import datetime
 import io
 import logging
+import re
 import urllib
 from typing import Literal, NoReturn, overload
 
@@ -25,6 +26,7 @@ from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
+from openlibrary.utils.request_context import site
 
 logger = logging.getLogger("openlibrary.book")
 
@@ -32,7 +34,7 @@ logger = logging.getLogger("openlibrary.book")
 def get_recaptcha():
     def recaptcha_exempt() -> bool:
         """Check to see if account is an admin, or more than two years old."""
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         account = user and user.get_account()
 
         if not (user and account):
@@ -62,9 +64,7 @@ def make_author(key: str, name: str) -> Author:
     <Author: '/authors/OL123A'>
     """
     key = "/authors/" + key
-    return web.ctx.site.new(
-        key, {"key": key, "type": {"key": "/type/author"}, "name": name}
-    )
+    return site.get().new(key, {"key": key, "type": {"key": "/type/author"}, "name": name})
 
 
 def make_work(doc: dict[str, str | list]) -> web.Storage:
@@ -76,14 +76,11 @@ def make_work(doc: dict[str, str | list]) -> web.Storage:
 
     w = web.storage(doc)
 
-    w.authors = [
-        make_author(key, name)
-        for key, name in zip(doc.get('author_key', []), doc.get('author_name', []))
-    ]
+    w.authors = [make_author(key, name) for key, name in zip(doc.get("author_key", []), doc.get("author_name", []))]
 
-    w.cover_url = "/images/icons/avatar_book-sm.png"
-    w.setdefault('ia', [])
-    w.setdefault('first_publish_year', None)
+    w.cover_url = "/static/images/icons/avatar_book-sm.png"
+    w.setdefault("ia", [])
+    w.setdefault("first_publish_year", None)
     return w
 
 
@@ -120,8 +117,8 @@ def new_doc(type_: str, **data) -> Author | Edition | Work | List | Series:
         key = f"/{type_.rsplit('/', maxsplit=1)[-1]}/OL{next_value}L"
     else:
         key = web.ctx.site.new_key(type_)
-    data['key'] = key
-    data['type'] = {"key": type_}
+    data["key"] = key
+    data["type"] = {"key": type_}
     return web.ctx.site.new(key, data)
 
 
@@ -142,9 +139,7 @@ class DocSaveHelper:
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
 
-    def create_authors_from_form_data(
-        self, authors: list[dict], author_names: list[str], _test: bool = False
-    ) -> bool:
+    def create_authors_from_form_data(self, authors: list[dict], author_names: list[str], _test: bool = False) -> bool:
         """
         Create any __new__ authors in the provided array. Updates the authors
         dicts _in place_ with the new key.
@@ -153,17 +148,15 @@ class DocSaveHelper:
         """
         created = False
         for author_dict, author_name in zip(authors, author_names):
-            if author_dict['author']['key'] == '__new__':
+            if author_dict["author"]["key"] == "__new__":
                 created = True
                 if not _test:
-                    doc = new_doc('/type/author', name=author_name)
+                    doc = new_doc("/type/author", name=author_name)
                     self.save(doc)
-                    author_dict['author']['key'] = doc.key
+                    author_dict["author"]["key"] = doc.key
         return created
 
-    def create_series_from_form_data(
-        self, series: list[dict], series_names: list[str], _test: bool = False
-    ) -> bool:
+    def create_series_from_form_data(self, series: list[dict], series_names: list[str], _test: bool = False) -> bool:
         """
         Create any __new__ series in the provided array. Updates the series
         dicts _in place_ with the new key.
@@ -172,12 +165,12 @@ class DocSaveHelper:
         """
         created = False
         for series_dict, series_name in zip(series, series_names):
-            if series_dict['series']['key'] == '__new__':
+            if series_dict["series"]["key"] == "__new__":
                 created = True
                 if not _test:
-                    doc = new_doc('/type/series', name=series_name)
+                    doc = new_doc("/type/series", name=series_name)
                     self.save(doc)
-                    series_dict['series']['key'] = doc.key
+                    series_dict["series"]["key"] = doc.key
         return created
 
 
@@ -227,9 +220,7 @@ class addbook(delegate.page):
         if author and author not in authors:
             authors.append(author)
 
-        return render_template(
-            'books/add', work=work, authors=authors, recaptcha=get_recaptcha()
-        )
+        return render_template("books/add", work=work, authors=authors, recaptcha=get_recaptcha())
 
     def has_permission(self) -> bool:
         """
@@ -251,43 +242,39 @@ class addbook(delegate.page):
         i.title = i.book_title
 
         if spamcheck.is_spam(i, allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
-        if not web.ctx.site.get_user():
+        if not accounts.get_current_user():
             recap = get_recaptcha()
             if recap and not recap.validate():
                 return render_template(
-                    'message.html',
-                    'Recaptcha solution was incorrect',
+                    "message.html",
+                    "Recaptcha solution was incorrect",
                     'Please <a href="javascript:history.back()">go back</a> and try again.',
                 )
 
         i = utils.unflatten(i)
         saveutil = DocSaveHelper()
-        created_author = saveutil.create_authors_from_form_data(
-            i.authors, i.author_names, _test=i._test == 'true'
-        )
+        created_author = saveutil.create_authors_from_form_data(i.authors, i.author_names, _test=i._test == "true")
         match = None if created_author else self.find_matches(i)
 
-        if i._test == 'true' and not isinstance(match, list):
+        if i._test == "true" and not isinstance(match, list):
             if match:
                 return f'Matched <a href="{match.key}">{match.key}</a>'
             else:
-                return 'No match found'
+                return "No match found"
 
         if isinstance(match, list):
             # multiple matches
-            return render_template('books/check', i, match)
+            return render_template("books/check", i, match)
 
-        elif match and match.key.startswith('/books'):
+        elif match and match.key.startswith("/books"):
             # work match and edition match, match is an Edition
             if i.web_book_url:
                 match.provider = [{"url": i.web_book_url, "format": "web"}]
             return self.work_edition_match(match)
 
-        elif match and match.key.startswith('/works'):
+        elif match and match.key.startswith("/works"):
             # work match but not edition
             work = match
             return self.work_match(saveutil, work, i)
@@ -295,9 +282,7 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(
-        self, i: web.utils.Storage
-    ) -> None | Work | Edition | list[web.utils.Storage]:
+    def find_matches(self, i: web.utils.Storage) -> None | Work | Edition | list[web.utils.Storage]:
         """
         Tries to find an edition, or work, or multiple work candidates that match the
         given input data.
@@ -316,10 +301,10 @@ class addbook(delegate.page):
         author_key = i.authors and i.authors[0].author.key
 
         # work is set from the templates/books/check.html page.
-        work_key = i.get('work')
+        work_key = i.get("work")
 
         # work_key is set to none-of-these when user selects none-of-these link.
-        if work_key == 'none-of-these':
+        if work_key == "none-of-these":
             return None  # Case 1, from check page
 
         work = work_key and web.ctx.site.get(work_key)
@@ -348,7 +333,7 @@ class addbook(delegate.page):
         solr = get_solr()
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
         result = solr.select(
-            {'title': i.title, 'author_key': author_key.split("/")[-1]},
+            {"title": i.title, "author_key": author_key.split("/")[-1]},
             doc_wrapper=make_work,
             q_op="AND",
         )
@@ -360,14 +345,14 @@ class addbook(delegate.page):
         else:
             return result.docs  # Case 4
 
-    def extract_year(self, value: str) -> str:
+    def extract_year(self, value: str) -> str | None:
         """
         Extract just the 4 digit year from a date string.
 
         :param str value: A freeform string representing a publication date.
         :return: a four digit year
         """
-        m = web.re_compile(r"(\d\d\d\d)").search(value)
+        m = re.compile(r"(\d\d\d\d)").search(value)
         return m and m.group(1)
 
     def try_edition_match(
@@ -393,23 +378,23 @@ class addbook(delegate.page):
             return None
 
         q: dict = {}
-        work and q.setdefault('key', work.key.split("/")[-1])
-        title and q.setdefault('title', title)
-        author_key and q.setdefault('author_key', author_key.split('/')[-1])
-        publisher and q.setdefault('publisher', publisher)
+        work and q.setdefault("key", work.key.split("/")[-1])
+        title and q.setdefault("title", title)
+        author_key and q.setdefault("author_key", author_key.split("/")[-1])
+        publisher and q.setdefault("publisher", publisher)
         # There are some errors indexing of publish_year. Use publish_date until it is fixed
-        publish_year and q.setdefault('publish_date', publish_year)
+        publish_year and q.setdefault("publish_date", publish_year)
 
         mapping = {
-            'isbn_10': 'isbn',
-            'isbn_13': 'isbn',
-            'lccn': 'lccn',
-            'oclc_numbers': 'oclc',
-            'ocaid': 'ia',
+            "isbn_10": "isbn",
+            "isbn_13": "isbn",
+            "lccn": "lccn",
+            "oclc_numbers": "oclc",
+            "ocaid": "ia",
         }
         if id_value and id_name in mapping:
-            if id_name.startswith('isbn'):
-                id_value = id_value.replace('-', '')
+            if id_name.startswith("isbn"):
+                id_value = id_value.replace("-", "")
             q[mapping[id_name]] = id_value
 
         solr = get_solr()
@@ -421,20 +406,13 @@ class addbook(delegate.page):
         elif len(result.docs) == 1:
             # found one work match
             work = result.docs[0]
-            publisher = publisher and fuzzy_find(
-                publisher, work.publisher, stopwords=("publisher", "publishers", "and")
-            )
+            publisher = publisher and fuzzy_find(publisher, work.publisher, stopwords=("publisher", "publishers", "and"))
 
-            editions = web.ctx.site.get_many(
-                ["/books/" + key for key in work.edition_key]
-            )
+            editions = web.ctx.site.get_many(["/books/" + key for key in work.edition_key])
             for e in editions:
                 if publisher and (not e.publishers or e.publishers[0] != publisher):
                     continue
-                if publish_year and (
-                    not e.publish_date
-                    or publish_year != self.extract_year(e.publish_date)
-                ):
+                if publish_year and (not e.publish_date or publish_year != self.extract_year(e.publish_date)):
                     continue
                 if id_value and id_name in mapping:  # noqa: SIM102
                     if id_name not in e or id_value not in e[id_name]:
@@ -444,9 +422,7 @@ class addbook(delegate.page):
 
         return None
 
-    def work_match(
-        self, saveutil: DocSaveHelper, work: Work, i: web.utils.Storage
-    ) -> NoReturn:
+    def work_match(self, saveutil: DocSaveHelper, work: Work, i: web.utils.Storage) -> NoReturn:
         """
         Action for when a work, but not edition, is matched.
         Saves a new edition of work, created form the formdata i.
@@ -503,7 +479,7 @@ class addbook(delegate.page):
             publishers=[i.publisher],
             publish_date=i.publish_date,
         )
-        if i.get('web_book_url'):
+        if i.get("web_book_url"):
             edition.set_provider_data({"url": i.web_book_url, "format": "web"})
         if i.get("id_name") and i.get("id_value"):
             edition.set_identifiers([{"name": i.id_name, "value": i.id_value}])
@@ -511,8 +487,8 @@ class addbook(delegate.page):
 
 
 # remove existing definitions of addbook and addauthor
-delegate.pages.pop('/addbook', None)
-delegate.pages.pop('/addauthor', None)
+delegate.pages.pop("/addbook", None)
+delegate.pages.pop("/addauthor", None)
 
 
 class addbook(delegate.page):  # type: ignore[no-redef] # noqa: F811
@@ -535,7 +511,7 @@ def trim_value(value):
     [1, 2]
     >>> trim_value({'x': 'a', 'y': ''})
     {'x': 'a'}
-    >>> trim_value({'x': [""]})
+    >>> print(trim_value({'x': [""]}))
     None
     """
     if isinstance(value, str):
@@ -545,9 +521,7 @@ def trim_value(value):
         value = [v2 for v in value for v2 in [trim_value(v)] if v2 is not None]
         return value or None
     elif isinstance(value, dict):
-        value = {
-            k: v2 for k, v in value.items() for v2 in [trim_value(v)] if v2 is not None
-        }
+        value = {k: v2 for k, v in value.items() for v2 in [trim_value(v)] if v2 is not None}
         return value or None
     else:
         return value
@@ -576,14 +550,10 @@ class SaveBookHelper:
         """
         Update work and edition documents according to the specified formdata.
         """
-        comment = formdata.pop('_comment', '')
+        comment = formdata.pop("_comment", "")
 
         user = accounts.get_current_user()
-        delete = (
-            user
-            and (user.is_admin() or user.is_super_librarian())
-            and formdata.pop('_delete', '')
-        )
+        delete = user and (user.is_admin() or user.is_super_librarian()) and formdata.pop("_delete", "")
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
@@ -601,59 +571,53 @@ class SaveBookHelper:
         just_editing_work = edition_data is None
         if work_data:
             # Create any new authors that were added
-            saveutil.create_authors_from_form_data(
-                work_data.get("authors") or [], formdata.get('authors') or []
-            )
+            saveutil.create_authors_from_form_data(work_data.get("authors") or [], formdata.get("authors") or [])
 
             # Ditto for series
-            saveutil.create_series_from_form_data(
-                work_data.get("series") or [], formdata.get('series') or []
-            )
+            saveutil.create_series_from_form_data(work_data.get("series") or [], formdata.get("series") or [])
 
             if not just_editing_work:
                 # Mypy misses that "not just_editing_work" means there is edition data.
                 assert self.edition
                 # Handle orphaned editions
-                new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
-                if self.work is None and (
-                    new_work_key is None or new_work_key == '__new__'
-                ):
+                new_work_key = (edition_data.get("works") or [{"key": None}])[0]["key"]
+                if self.work is None and (new_work_key is None or new_work_key == "__new__"):
                     # i.e. not moving to another work, create empty work
                     self.work = self.new_work(self.edition)
-                    edition_data.works = [{'key': self.work.key}]
+                    edition_data.works = [{"key": self.work.key}]
                     work_data.key = self.work.key
                 elif self.work is not None and new_work_key is None:
                     # we're trying to create an orphan; let's not do that
-                    edition_data.works = [{'key': self.work.key}]
+                    edition_data.works = [{"key": self.work.key}]
             if self.work is not None:
-                work_identifiers = work_data.pop('identifiers', {})
+                work_identifiers = work_data.pop("identifiers", {})
                 self.work.set_identifiers(work_identifiers)
                 self.work.update(work_data)
                 saveutil.save(self.work)
 
         if self.edition and edition_data:
             # Create a new work if so desired
-            new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+            new_work_key = (edition_data.get("works") or [{"key": None}])[0]["key"]
             if new_work_key == "__new__" and self.work is not None:
                 new_work = self.new_work(self.edition)
-                edition_data.works = [{'key': new_work.key}]
+                edition_data.works = [{"key": new_work.key}]
 
                 new_work_options = formdata.get(
-                    'new_work_options',
+                    "new_work_options",
                     {
-                        'copy_authors': 'no',
-                        'copy_subjects': 'no',
+                        "copy_authors": "no",
+                        "copy_subjects": "no",
                     },
                 )
 
-                if new_work_options.get('copy_authors') == 'yes' and self.work.authors:
+                if new_work_options.get("copy_authors") == "yes" and self.work.authors:
                     new_work.authors = self.work.authors
-                if new_work_options.get('copy_subjects') == 'yes':
+                if new_work_options.get("copy_subjects") == "yes":
                     for field in (
-                        'subjects',
-                        'subject_places',
-                        'subject_times',
-                        'subject_people',
+                        "subjects",
+                        "subject_places",
+                        "subject_times",
+                        "subject_people",
                     ):
                         if val := getattr(self.work, field, None):
                             new_work[field] = val
@@ -661,31 +625,27 @@ class SaveBookHelper:
                 self.work = new_work
                 saveutil.save(self.work)
 
-            identifiers = edition_data.pop('identifiers', [])
+            identifiers = edition_data.pop("identifiers", [])
             self.edition.set_identifiers(identifiers)
 
-            classifications = edition_data.pop('classifications', [])
+            classifications = edition_data.pop("classifications", [])
             self.edition.set_classifications(classifications)
 
-            self.edition.set_physical_dimensions(
-                edition_data.pop('physical_dimensions', None)
-            )
-            self.edition.set_weight(edition_data.pop('weight', None))
+            self.edition.set_physical_dimensions(edition_data.pop("physical_dimensions", None))
+            self.edition.set_weight(edition_data.pop("weight", None))
             try:
-                self.edition.set_toc_text(edition_data.pop('table_of_contents', None))
+                self.edition.set_toc_text(edition_data.pop("table_of_contents", None))
             except TocParseError as e:
-                raise ClientException(
-                    "400 Bad Request", f"Table of contents parse error: {e}"
-                )
+                raise ClientException("400 Bad Request", f"Table of contents parse error: {e}")
 
-            if edition_data.pop('translation', None) != 'yes':
+            if edition_data.pop("translation", None) != "yes":
                 edition_data.translation_of = None
                 edition_data.translated_from = None
 
-            if 'contributors' not in edition_data:
+            if "contributors" not in edition_data:
                 self.edition.contributors = []
 
-            providers = edition_data.pop('providers', [])
+            providers = edition_data.pop("providers", [])
             self.edition.set_providers(providers)
 
             self.edition.update(edition_data)
@@ -696,10 +656,10 @@ class SaveBookHelper:
     @staticmethod
     def new_work(edition: Edition) -> Work:
         return new_doc(
-            '/type/work',
-            title=edition.get('title'),
-            subtitle=edition.get('subtitle'),
-            covers=edition.get('covers', []),
+            "/type/work",
+            title=edition.get("title"),
+            subtitle=edition.get("subtitle"),
+            covers=edition.get("covers", []),
         )
 
     @staticmethod
@@ -708,12 +668,12 @@ class SaveBookHelper:
         doc._save(comment=comment)
 
     def process_input(self, i):
-        if 'edition' in i:
+        if "edition" in i:
             edition = self.process_edition(i.edition)
         else:
             edition = None
 
-        if 'work' in i and self.use_work_edits(i):
+        if "work" in i and self.use_work_edits(i):
             work = self.process_work(i.work)
         else:
             work = None
@@ -722,18 +682,18 @@ class SaveBookHelper:
 
     def process_edition(self, edition):
         """Process input data for edition."""
-        edition.publishers = edition.get('publishers', '').split(';')
-        edition.publish_places = edition.get('publish_places', '').split(';')
+        edition.publishers = edition.get("publishers", "").split(";")
+        edition.publish_places = edition.get("publish_places", "").split(";")
 
         edition = trim_doc(edition)
 
-        if list(edition.get('physical_dimensions', [])) == ['units']:
+        if list(edition.get("physical_dimensions", [])) == ["units"]:
             edition.physical_dimensions = None
 
-        if list(edition.get('weight', [])) == ['units']:
+        if list(edition.get("weight", [])) == ["units"]:
             edition.weight = None
 
-        for k in ['roles', 'identifiers', 'classifications']:
+        for k in ["roles", "identifiers", "classifications"]:
             edition[k] = edition.get(k) or []
 
         self._prevent_ocaid_deletion(edition)
@@ -758,31 +718,27 @@ class SaveBookHelper:
             """
             if not subjects:
                 return
-            f = io.StringIO(subjects.replace('\r\n', ''))
+            f = io.StringIO(subjects.replace("\r\n", ""))
             dedup = set()
-            for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
+            for s in next(csv.reader(f, dialect="excel", skipinitialspace=True)):
                 if s.casefold() not in dedup:
                     yield s
                     dedup.add(s.casefold())
 
-        work.subjects = list(read_subject(work.get('subjects', '')))
-        work.subject_places = list(read_subject(work.get('subject_places', '')))
-        work.subject_times = list(read_subject(work.get('subject_times', '')))
-        work.subject_people = list(read_subject(work.get('subject_people', '')))
-        if ': ' in work.get('title', ''):
-            work.title, work.subtitle = work.title.split(': ', 1)
+        work.subjects = list(read_subject(work.get("subjects", "")))
+        work.subject_places = list(read_subject(work.get("subject_places", "")))
+        work.subject_times = list(read_subject(work.get("subject_times", "")))
+        work.subject_people = list(read_subject(work.get("subject_people", "")))
+        if ": " in work.get("title", ""):
+            work.title, work.subtitle = work.title.split(": ", 1)
         else:
             work.subtitle = None
 
-        for k in ['excerpts', 'links', 'identifiers']:
+        for k in ["excerpts", "links", "identifiers"]:
             work[k] = work.get(k, {})
 
         # ignore empty authors
-        work.authors = [
-            a
-            for a in work.get('authors', [])
-            if a.get('author', {}).get('key', '').strip()
-        ]
+        work.authors = [a for a in work.get("authors", []) if a.get("author", {}).get("key", "").strip()]
 
         return trim_doc(work)
 
@@ -794,24 +750,16 @@ class SaveBookHelper:
 
         # read ocaid from form data
         ocaid = next(
-            (
-                id_['value']
-                for id_ in edition.get('identifiers', [])
-                if id_['name'] == 'ocaid'
-            ),
+            (id_["value"] for id_ in edition.get("identifiers", []) if id_["name"] == "ocaid"),
             None,
         )
 
         # 'self.edition' is the edition doc from the db and 'edition' is the doc from formdata
-        if (
-            self.edition
-            and self.edition.get('ocaid')
-            and self.edition.get('ocaid') != ocaid
-        ):
+        if self.edition and self.edition.get("ocaid") and self.edition.get("ocaid") != ocaid:
             logger.warning(
                 "Attempt to change ocaid of %s from %r to %r.",
                 self.edition.key,
-                self.edition.get('ocaid'),
+                self.edition.get("ocaid"),
                 ocaid,
             )
             raise ValidationException("Changing Internet Archive ID is not allowed.")
@@ -823,15 +771,11 @@ class SaveBookHelper:
         If they don't, then we ignore the work edits.
         :param web.storage formdata: form data (parsed into a nested dict)
         """
-        if 'edition' not in formdata:
+        if "edition" not in formdata:
             # No edition data -> just editing work, so work data matters
             return True
 
-        has_edition_work = (
-            'works' in formdata.edition
-            and formdata.edition.works
-            and formdata.edition.works[0].key
-        )
+        has_edition_work = "works" in formdata.edition and formdata.edition.works and formdata.edition.works[0].key
 
         if has_edition_work:
             old_work_key = formdata.work.key
@@ -860,25 +804,21 @@ class book_edit(delegate.page):
         if edition is None:
             raise web.notfound()
 
-        work = (
-            edition.works and edition.works[0]
-        ) or edition.make_work_from_orphaned_edition()
+        work = (edition.works and edition.works[0]) or edition.make_work_from_orphaned_edition()
 
-        return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
+        return render_template("books/edit", work, edition, recaptcha=get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, work_key=None, _method="GET")
 
         if spamcheck.is_spam(allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
         if recap and not recap.validate():
             return render_template(
                 "message.html",
-                'Recaptcha solution was incorrect',
+                "Recaptcha solution was incorrect",
                 'Please <a href="javascript:history.back()">go back</a> and try again.',
             )
         v = i.v and safeint(i.v, None)
@@ -897,17 +837,17 @@ class book_edit(delegate.page):
 
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
 
-            if i.work_key and i.work_key.startswith('/works/'):
+            if i.work_key and i.work_key.startswith("/works/"):
                 url = i.work_key
             else:
                 url = edition.url()
 
             raise safe_seeother(url)
         except ClientException as e:
-            add_flash_message('error', e.args[-1] or e.json)
+            add_flash_message("error", e.args[-1] or e.json)
             return self.GET(key)
         except ValidationException as e:
-            add_flash_message('error', str(e))
+            add_flash_message("error", str(e))
             return self.GET(key)
 
 
@@ -929,22 +869,20 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
-        return render_template('books/edit', work, recaptcha=get_recaptcha())
+        return render_template("books/edit", work, recaptcha=get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
 
         if spamcheck.is_spam(allow_privileged_edits=True):
-            return render_template(
-                "message.html", "Oops", 'Something went wrong. Please try again later.'
-            )
+            return render_template("message.html", "Oops", "Something went wrong. Please try again later.")
 
         recap = get_recaptcha()
 
         if recap and not recap.validate():
             return render_template(
                 "message.html",
-                'Recaptcha solution was incorrect',
+                "Recaptcha solution was incorrect",
                 'Please <a href="javascript:history.back()">go back</a> and try again.',
             )
 
@@ -959,7 +897,7 @@ class work_edit(delegate.page):
             add_flash_message("info", utils.get_message("flash_catalog_updated"))
             raise safe_seeother(work.url())
         except (ClientException, ValidationException) as e:
-            add_flash_message('error', str(e))
+            add_flash_message("error", str(e))
             return self.GET(key)
 
 
@@ -996,29 +934,24 @@ class author_edit(delegate.page):
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
             elif "_delete" in i:
-                author = web.ctx.site.new(
-                    key, {"key": key, "type": {"key": "/type/delete"}}
-                )
+                author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise safe_seeother(key)
         except (ClientException, ValidationException) as e:
-            add_flash_message('error', str(e))
+            add_flash_message("error", str(e))
             author.update(formdata)
-            author['comment_'] = i._comment
+            author["comment_"] = i._comment
             return render_template("type/author/edit", author)
 
     def process_input(self, i):
         i = utils.unflatten(i)
-        if 'author' in i:
+        if "author" in i:
             author = trim_doc(i.author)
-            alternate_names = author.get('alternate_names', None) or ''
+            alternate_names = author.get("alternate_names", None) or ""
             author.alternate_names = uniq(
-                [author.name]
-                + [
-                    name.strip() for name in alternate_names.split('\n') if name.strip()
-                ],
+                [author.name] + [name.strip() for name in alternate_names.split("\n") if name.strip()],
             )[1:]
-            author.links = author.get('links') or []
+            author.links = author.get("links") or []
             return author
 
 
@@ -1048,10 +981,10 @@ class work_identifiers(delegate.view):
         # Need to do some simple validation here. Perhaps just check if it's a number?
         if len(isbn) == 10:
             typ = "ISBN 10"
-            data = [{'name': 'isbn_10', 'value': isbn}]
+            data = [{"name": "isbn_10", "value": isbn}]
         elif len(isbn) == 13:
             typ = "ISBN 13"
-            data = [{'name': 'isbn_13', 'value': isbn}]
+            data = [{"name": "isbn_13", "value": isbn}]
         else:
             add_flash_message("error", "The ISBN number you entered was not valid")
             raise web.redirect(web.ctx.path)

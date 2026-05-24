@@ -117,7 +117,7 @@ const identifierPatterns  = {
     lc_naf: /^n[bors]?[0-9]+$/,
     amazon: /^B[0-9A-Za-z]{9}$/,
     youtube: /^@[A-Za-z0-9_\-.]{3,30}/,
-}
+};
 
 export default {
     // Props are for external options; if a subelement of this is modified,
@@ -178,12 +178,12 @@ export default {
             selectedIdentifier: '', // Which identifier is selected in dropdown
             inputValue: '', // What user put into input
             assignedIdentifiers: {} // IDs assigned to the entity Ex: {'viaf': '12632978'} or {'abaa': ['123456','789012']}
-        }
+        };
     },
 
     computed: {
         idConfigs: function() {
-            return JSON.parse(decodeURIComponent(this.id_config_string))
+            return JSON.parse(decodeURIComponent(this.id_config_string));
         },
         popularIds: function() {
             if (this.popular_ids) {
@@ -211,18 +211,18 @@ export default {
     watch: {
         assignedIdentifiers:
             {
-                handler: function(){this.createHiddenInputs()},
+                handler: function(){this.createHiddenInputs();},
                 deep: true
             },
         inputValue:
             {
-                handler: function(){this.selectIdentifierByInputValue()},
+                handler: function(){this.selectIdentifierByInputValue();},
             },
     },
     created: function(){
         this.assignedIdentifiers = JSON.parse(decodeURIComponent(this.assigned_ids_string));
         if (this.assignedIdentifiers.length === 0) {
-            this.assignedIdentifiers = {}
+            this.assignedIdentifiers = {};
             return;
         }
         if (this.saveIdentifiersAsList) {
@@ -231,9 +231,9 @@ export default {
                 if (!edition_identifiers[entry.name]) {
                     edition_identifiers[entry.name] = [entry.value];
                 } else {
-                    edition_identifiers[entry.name].push(entry.value)
+                    edition_identifiers[entry.name].push(entry.value);
                 }
-            })
+            });
             this.assignedIdentifiers = edition_identifiers;
         }
     },
@@ -241,10 +241,10 @@ export default {
     methods: {
         setIdentifier: function(){
             // if no identifier selected don't execute
-            if (!this.setButtonEnabled) return
+            if (!this.setButtonEnabled) return;
 
             if (this.selectedIdentifier === 'isni') {
-                this.inputValue = this.inputValue.replace(/\s/g, '')
+                this.inputValue = this.inputValue.replace(/\s/g, '');
             }
             if (this.saveIdentifiersAsList) {
                 // collect id values of matching type, or empty array if none present
@@ -259,7 +259,7 @@ export default {
                     if (!this.assignedIdentifiers[this.selectedIdentifier]) {
                         this.inputValue = [this.inputValue];
                     } else {
-                        const updateIdentifiers = this.assignedIdentifiers[this.selectedIdentifier]
+                        const updateIdentifiers = this.assignedIdentifiers[this.selectedIdentifier];
                         updateIdentifiers.push(this.inputValue);
                         this.inputValue = updateIdentifiers;
                     }
@@ -267,9 +267,9 @@ export default {
                     return;
                 }
             } else if (this.assignedIdentifiers[this.selectedIdentifier]) {
-                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector)
+                errorDisplay(`An identifier for ${this.identifierConfigsByKey[this.selectedIdentifier].label} already exists.`, this.output_selector);
                 return;
-            } else { errorDisplay('', this.output_selector) }
+            } else { errorDisplay('', this.output_selector); }
 
             this.assignedIdentifiers[this.selectedIdentifier] = this.inputValue;
             this.inputValue = '';
@@ -295,8 +295,8 @@ export default {
                 let num = 0;
                 for (const [key, value] of Object.entries(this.assignedIdentifiers)) {
                     for (const idx in value) {
-                        html += `<input type="hidden" name="${this.input_prefix}--${num}--name" value="${key}"/>`
-                        html += `<input type="hidden" name="${this.input_prefix}--${num}--value" value="${value[idx]}"/>`
+                        html += `<input type="hidden" name="${this.input_prefix}--${num}--name" value="${key}"/>`;
+                        html += `<input type="hidden" name="${this.input_prefix}--${num}--value" value="${value[idx]}"/>`;
                         num += 1;
                     }
                 }
@@ -322,7 +322,7 @@ export default {
 
         }
     }
-}
+};
 </script>
 
 <style>

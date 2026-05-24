@@ -2,6 +2,7 @@
 
 import os
 import sys
+from typing import Any
 
 import yaml
 
@@ -9,7 +10,7 @@ import infogami
 from infogami import config
 from infogami.infobase import server
 
-runtime_config = {}
+runtime_config: dict[str, Any] = {}
 
 
 def load(config_file):

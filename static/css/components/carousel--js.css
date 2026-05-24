@@ -8,6 +8,12 @@
   overflow: visible;
 }
 
+/* Contain z-index of carousel children so arrows don't escape
+   above the sticky header. */
+.carousel-container {
+  isolation: isolate;
+}
+
 .carousel .slick-prev,
 .carousel .slick-next {
   z-index: var(--z-index-level-4);
