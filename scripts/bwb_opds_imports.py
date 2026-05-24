@@ -46,10 +46,16 @@ from typing import Any
 
 import requests
 
+try:
+    import _init_path  # type: ignore[import-not-found]  # noqa: F401 side effect: add OL package root to sys.path
+except ImportError:
+    import scripts._init_path  # noqa: F401 same side effect when imported as a package
+
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from openlibrary.core.vendors import stage_bookworm_metadata
+from openlibrary.plugins.upstream.utils import get_marc21_language
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.partner_batch_imports import is_low_quality_book, is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -153,12 +159,14 @@ def map_publication_to_olbook(publication: dict[str, Any]) -> dict[str, Any] | N
         logger.warning("Skipping publication missing title/authors: %s", _publication_id(publication))
         return None
 
+    languages = [marc for code in (metadata.get("language") or []) if code and (marc := get_marc21_language(code))]
+
     olbook: dict[str, Any] = {
         "title": title,
         "isbn_13": [isbn_13],
         "source_records": [f"bwb:{isbn_13}"],
         "authors": authors,
-        "languages": [{"key": f"/languages/{code}"} for code in (metadata.get("language") or []) if code],
+        "languages": languages,
         "publish_date": metadata.get("published", ""),
         "publishers": [],  # OPDS feed does not include publisher
     }
@@ -417,6 +425,4 @@ def main(
 
 
 if __name__ == "__main__":
-    import _init_path  # noqa: F401 side-effect: add OL package root to sys.path
-
     FnToCLI(main).run()

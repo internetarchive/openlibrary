@@ -83,7 +83,7 @@ def test_map_publication_basic_fields():
     assert olbook["source_records"] == ["bwb:9781737408802"]
     assert olbook["title"] == "The Brick House Apparent Quarterly, Vol. 1"
     assert olbook["publish_date"] == "2021-08-03"
-    assert olbook["languages"] == [{"key": "/languages/en"}]
+    assert olbook["languages"] == ["eng"]
     assert olbook["authors"] == [
         {"name": "The Brick House Cooperative"},
         {"name": "Maria Bustillos"},
@@ -105,7 +105,7 @@ def test_map_publication_skips_missing_title_or_authors():
     assert map_publication_to_olbook(no_authors) is None
 
 
-def test_map_publication_languages_use_key_form():
+def test_map_publication_languages_use_marc21():
     pub = {
         "metadata": {
             "identifier": "urn:isbn:9781737408802",
@@ -116,7 +116,21 @@ def test_map_publication_languages_use_key_form():
     }
     olbook = map_publication_to_olbook(pub)
     assert olbook is not None
-    assert olbook["languages"] == [{"key": "/languages/en"}, {"key": "/languages/fr"}]
+    assert olbook["languages"] == ["eng", "fre"]
+
+
+def test_map_publication_drops_unmappable_language():
+    pub = {
+        "metadata": {
+            "identifier": "urn:isbn:9781737408802",
+            "title": "x",
+            "author": [{"name": "a"}],
+            "language": ["zz-not-real"],
+        }
+    }
+    olbook = map_publication_to_olbook(pub)
+    assert olbook is not None
+    assert olbook["languages"] == []
 
 
 def test_parse_iso_handles_offset_and_naive():
