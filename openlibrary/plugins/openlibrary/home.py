@@ -175,7 +175,7 @@ def get_ia_carousel_books(
         safe_mode=safe_mode,
     )
     formatted_books = [
-        format_book_data(book, False) for book in books if book != 'error'
+        format_book_data(book, False) for book in books if book and book != 'error'
     ]
     return formatted_books
 
