@@ -47,3 +47,5 @@ class TestAuthorUpdater:
         assert req.deletes == []
         assert len(req.adds) == 1
         assert req.adds[0]["key"] == "/authors/OL25A"
+        assert req.adds[0]["name"] == "Somebody"
+        assert req.adds[0]["name_str"] == "Somebody"

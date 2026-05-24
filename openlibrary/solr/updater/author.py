@@ -76,6 +76,10 @@ class AuthorSolrBuilder(AbstractSolrBuilder):
         return self._author.get('name')
 
     @property
+    def name_str(self) -> str | None:
+        return self.name
+
+    @property
     def alternate_names(self) -> list[str]:
         return self._author.get('alternate_names', [])
 
