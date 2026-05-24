@@ -76,8 +76,11 @@ reindex-solr:
 	PYTHONPATH=$(PWD) python ./scripts/solr_builder/solr_builder/index_subjects.py time
 
 check-solr:
-	@RUNNING=$$(curl -sf http://localhost:8983/solr/admin/info/system 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin)['lucene']['solr-spec-version'])" 2>/dev/null) || { echo "Solr is not running or not reachable at http://localhost:8983"; exit 1; }; \
+	@RUNNING=$$(curl -sf http://localhost:8983/solr/admin/info/system 2>/dev/null | python -c "import json,sys; print(json.load(sys.stdin)['lucene']['solr-spec-version'])" 2>/dev/null) || { echo "Solr is not running or not reachable at http://localhost:8983"; exit 1; }; \
 	EXPECTED=$$(grep 'image: solr:' compose.yaml | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1); \
+	if [ -z "$$EXPECTED" ]; then \
+		echo "Could not determine expected Solr version from compose.yaml"; exit 1; \
+	fi; \
 	RUNNING_MAJOR=$$(echo "$$RUNNING" | cut -d. -f1); \
 	EXPECTED_MAJOR=$$(echo "$$EXPECTED" | cut -d. -f1); \
 	if [ "$$RUNNING_MAJOR" != "$$EXPECTED_MAJOR" ]; then \
