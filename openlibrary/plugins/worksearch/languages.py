@@ -33,10 +33,11 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    
+
     if sort == "name":
         try:
             from icu import Collator, Locale
+
             collator = Collator.createInstance(Locale(user_lang or "en"))
             collator.setStrength(Collator.PRIMARY)
             results.sort(key=lambda x: collator.getSortKey(x.name or ""))
@@ -44,7 +45,7 @@ async def get_top_languages(
             results.sort(key=lambda x: (x.name or "").casefold())
     else:
         results.sort(key=lambda x: x[sort], reverse=sort in ("count", "ebook_edition_count"))
-        
+
     return results[:limit]
 
 
