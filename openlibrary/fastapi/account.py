@@ -4,10 +4,11 @@ FastAPI account endpoints for authentication.
 
 from __future__ import annotations
 
+import os
 from typing import Annotated
-from urllib.parse import unquote
+from urllib.parse import unquote, urlparse
 
-from fastapi import APIRouter, Depends, Form, Request, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
 from infogami import config
@@ -22,28 +23,31 @@ from openlibrary.plugins.upstream.account import get_login_error
 
 router = APIRouter()
 
+SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
+
+
+def _safe_redirect(url: str, default: str = "/") -> str:
+    """Return url only if it is a same-origin path; fall back to default."""
+    parsed = urlparse(url)
+    if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
+        return default
+    return url
+
 
 class AuthTestResponse(BaseModel):
     """Response model for the auth test endpoint."""
 
     username: str | None = Field(None, description="The username if authenticated")
     user_key: str | None = Field(None, description="The full user key if authenticated")
-    timestamp: str | None = Field(
-        None, description="The cookie timestamp if authenticated"
-    )
+    timestamp: str | None = Field(None, description="The cookie timestamp if authenticated")
     is_authenticated: bool = Field(..., description="Whether the user is authenticated")
-    error: str | None = Field(
-        None, description="Error message if authentication failed"
-    )
+    error: str | None = Field(None, description="Error message if authentication failed")
     cookie_name: str = Field(..., description="The name of the session cookie")
-    cookie_value: str | None = Field(
-        None, description="The raw cookie value (for debugging)"
-    )
+    cookie_value: str | None = Field(None, description="The raw cookie value (for debugging)")
     cookie_parsed: dict = Field(..., description="Parsed cookie components")
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/test.json", response_model=AuthTestResponse)
+@router.get("/account/test.json", response_model=AuthTestResponse, tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def check_authentication(
     request: Request,
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
@@ -83,27 +87,21 @@ async def check_authentication(
         if len(parts) == 3:
             cookie_parsed["user_key"] = parts[0]
             cookie_parsed["timestamp"] = parts[1]
-            cookie_parsed["hash"] = (
-                parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
-            )
+            cookie_parsed["hash"] = parts[2][:20] + "..." if len(parts[2]) > 20 else parts[2]
 
     return AuthTestResponse(
         username=user.username if user else None,
         user_key=user.user_key if user else None,
         timestamp=user.timestamp if user else None,
         is_authenticated=user is not None,
+        error=None,
         cookie_name=cookie_name,
-        cookie_value=(
-            cookie_value[:50] + "..."
-            if cookie_value and len(cookie_value) > 50
-            else cookie_value
-        ),
+        cookie_value=(cookie_value[:50] + "..." if cookie_value and len(cookie_value) > 50 else cookie_value),
         cookie_parsed=cookie_parsed,
     )
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/protected.json")
+@router.get("/account/protected.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def protected_endpoint(
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict:
@@ -125,8 +123,7 @@ async def protected_endpoint(
     }
 
 
-# TODO: Delete this before merging, it's just for local testing for now.
-@router.get("/account/optional.json")
+@router.get("/account/optional.json", tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 async def optional_auth_endpoint(
     user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
 ) -> dict:
@@ -191,16 +188,14 @@ async def login(
     )
 
     # Check for authentication errors
-    if error := audit.get('error'):
-        from fastapi import HTTPException
-
+    if error := audit.get("error"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=get_login_error(error),
         )
 
     # Extract user info from audit result
-    ol_username = audit.get('ol_username')
+    ol_username = audit.get("ol_username")
     if not ol_username:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -208,7 +203,7 @@ async def login(
         )
 
     # Determine cookie expiration
-    expires = 3600 * 24 * 365 if form_data.remember else ""
+    expires = 3600 * 24 * 365 if form_data.remember else None
 
     # Generate auth token (same way web.py does it via Account.generate_login_code())
     login_code = generate_login_code_for_user(ol_username)
@@ -216,7 +211,7 @@ async def login(
     # Create response with redirect
     response = Response(
         status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": form_data.redirect},
+        headers={"Location": _safe_redirect(form_data.redirect)},
     )
 
     # Set session cookie (same as web.py)
@@ -225,18 +220,19 @@ async def login(
         login_code,
         max_age=expires,
         httponly=True,
-        secure=False,
+        secure=request.url.scheme == "https",
+        samesite="lax",
     )
 
     # Set print disability flag if user has special access
     response.set_cookie(
         "pd",
-        str(int(audit.get('special_access', 0))) if audit.get('special_access') else "",
+        str(int(audit.get("special_access", 0))) if audit.get("special_access") else "",
         max_age=expires,
     )
 
     # Increment stats (same as web.py)
-    stats.increment('ol.account.xauth.login')
+    stats.increment("ol.account.xauth.login")
 
     return response
 

@@ -49,7 +49,7 @@ export default {
         return {
             num1: 31,
             num2: 11,
-        }
+        };
     },
 
     // Essentially getters
@@ -61,18 +61,17 @@ export default {
     methods: {
 
     },
-}
+};
 </script>
 
-<style lang="less">
+<style>
 .page {
   max-width: 800px;
   margin: 0 auto;
   margin-top: 60px;
   padding: 10px;
-
-  input[type="number"] {
-    width: 3em;
-  }
+}
+.page input[type="number"] {
+  width: 3em;
 }
 </style>

@@ -3,14 +3,16 @@ from collections.abc import Iterable
 
 import web
 
+from openlibrary.utils.request_context import site
+
 
 def get_spam_words() -> list[str]:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     return doc.get("spamwords", [])
 
 
 def get_spam_domains() -> list[str]:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     return doc.get("domains", [])
 
 
@@ -25,13 +27,13 @@ def set_spam_domains(domains: Iterable[str]) -> None:
 
 
 def _update_spam_doc(**kwargs) -> None:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     doc.update(_key="spamwords", **kwargs)
-    web.ctx.site.store["spamwords"] = doc
+    site.get().store["spamwords"] = doc
 
 
 def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
-    user = web.ctx.site.get_user()
+    user = site.get().get_user()
 
     if user:
         # Allow admins and librarians to make edits:
@@ -40,7 +42,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
         if user.is_read_only():
             return True
         # Prevent deleted users from making edits:
-        if user.type.key == '/type/delete':
+        if user.type.key == "/type/delete":
             return True
 
     email = (user and user.get_email()) or ""
@@ -50,7 +52,7 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
     # For some odd reason, blocked accounts are still allowed to make edits.
     # Hack to stop that.
     account = user and user.get_account()
-    if account and account.get('status') != 'active':
+    if account and account.get("status") != "active":
         return True
 
     spamwords = get_spam_words()
@@ -61,5 +63,5 @@ def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
 
 
 def is_spam_email(email: str) -> bool:
-    domain = email.split("@")[-1].lower()
+    domain = email.rsplit("@", maxsplit=1)[-1].lower()
     return domain in get_spam_domains()

@@ -1,0 +1,196 @@
+/**
+ * This is the entry for CSS for the style guide
+ * that lives @ /developers/design
+ * Any CSS loaded here will be render blocking.
+ */
+
+.design-pattern-library {
+  padding: var(--spacing-inset-md);
+  max-width: 860px;
+}
+
+.design-pattern-library__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* Sidebar nav: horizontal scrolling on mobile, vertical sidebar on desktop */
+.design-pattern-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-level-1);
+  margin: 0 -16px;
+  padding: 4px 16px;
+  background-color: var(--beige);
+  border-bottom: var(--border-divider);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.design-pattern-nav__title {
+  font-size: var(--font-size-body-large);
+  margin: 0 0 12px;
+  color: var(--dark-grey);
+}
+
+.design-pattern-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.design-pattern-nav__list li {
+  flex-shrink: 0;
+}
+
+.design-pattern-nav__list a {
+  display: block;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-card);
+  text-decoration: none;
+  color: var(--dark-grey);
+  font-size: var(--font-size-body-medium);
+  white-space: nowrap;
+  transition: background-color 0.15s;
+}
+
+.design-pattern-nav__list a:hover {
+  background-color: var(--lightest-grey);
+  color: var(--link-blue);
+}
+
+/* Main content area */
+.design-pattern-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.design-pattern {
+  padding-bottom: var(--spacing-inset-lg);
+  border-bottom: var(--border-divider);
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.design-pattern__title {
+  color: var(--dark-grey);
+  margin: 0 0 8px;
+}
+
+.design-pattern__description {
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: 18px;
+  color: var(--mid-grey);
+}
+
+.example {
+  margin-bottom: 48px;
+}
+
+.example__title {
+  font-size: var(--font-size-title-medium);
+  margin-top: 0;
+  margin-bottom: var(--spacing-stack-xs);
+  color: var(--dark-grey);
+}
+
+.design-pattern-library p {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* Reset Prism theme styles that leak outside code blocks */
+.design-pattern-library .tag,
+.design-pattern-library .token:not(.example__code .token) {
+  color: inherit;
+  background: none;
+}
+
+pre.example__code {
+  background-color: var(--lightest-grey);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  margin-bottom: 12px;
+  border-radius: var(--border-radius-card);
+  font-size: var(--font-size-label-medium);
+  font-family: var(--font-family-code);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+pre.example__code code[class*="language-"] {
+  font-size: var(--font-size-label-medium);
+}
+
+@media only screen and (min-width: 768px) {
+  .design-pattern-library {
+    padding: var(--spacing-inset-lg);
+  }
+
+  .design-pattern-library__layout {
+    flex-direction: row;
+    gap: 40px;
+    align-items: flex-start;
+  }
+
+  .design-pattern-nav {
+    position: sticky;
+    top: 24px;
+    flex: 0 0 200px;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border-bottom: none;
+    overflow: visible;
+  }
+
+  .design-pattern-nav__list {
+    display: block;
+  }
+
+  .design-pattern-nav__list li {
+    margin-bottom: var(--spacing-stack-xs);
+  }
+
+  .design-pattern-nav__list a {
+    padding: 6px 12px;
+  }
+
+  pre.example__code {
+    word-break: normal;
+  }
+}
+
+.example__output {
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.color-swatch {
+  display: flex;
+  gap: var(--spacing-inline-xs);
+}
+
+.color-swatch .color-block {
+  width: 1em;
+  height: 1em;
+  display: block;
+  margin: 3px;
+}
+
+.color-block-primary-cta {
+  background-color: var(--primary-blue);
+}
+.color-block-background {
+  background-color: var(--beige);
+}
+.color-block-link-clicked {
+  background-color: var(--dark-blue);
+}
+.color-block-link-unclicked {
+  background-color: var(--link-blue);
+}
+
+@import "legacy.css";

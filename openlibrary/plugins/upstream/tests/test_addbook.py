@@ -14,13 +14,13 @@ def strip_nones(d):
 
 def mock_user():
     return type(
-        'MockUser',
+        "MockUser",
         (object,),
         {
-            'is_admin': lambda slf: False,
-            'is_super_librarian': lambda slf: False,
-            'is_librarian': lambda slf: False,
-            'is_usergroup_member': lambda slf, grp: False,
+            "is_admin": lambda slf: False,
+            "is_super_librarian": lambda slf: False,
+            "is_librarian": lambda slf: False,
+            "is_usergroup_member": lambda slf, grp: False,
         },
     )()
 
@@ -525,7 +525,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [author],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }
@@ -548,7 +548,7 @@ class TestMakeWork:
                 "language": ["eng"],
                 "title": "The Celebrated Jumping Frog of Calaveras County",
                 "authors": [],
-                "cover_url": "/images/icons/avatar_book-sm.png",
+                "cover_url": "/static/images/icons/avatar_book-sm.png",
                 "ia": [],
                 "first_publish_year": None,
             }

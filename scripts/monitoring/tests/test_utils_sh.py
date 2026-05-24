@@ -10,8 +10,8 @@ def test_bash_run():
 
     # Test with sources
     with (
-        tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as source1,
-        tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as source2,
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as source1,
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as source2,
     ):
         source1.write("export VAR1=source1")
         source2.write("export VAR2=source2")
@@ -28,7 +28,7 @@ def test_bash_run():
 
 def test_log_recent_bot_traffic():
     with (
-        tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
         # alias the obfi commands to return some noise
@@ -69,7 +69,7 @@ stats.ol-covers0.bot_traffic.non_bot 5 1741054377
 
 def test_log_recent_http_statuses():
     with (
-        tempfile.NamedTemporaryFile(mode='w', delete_on_close=False) as aliases_fp,
+        tempfile.NamedTemporaryFile(mode="w", delete_on_close=False) as aliases_fp,
         tempfile.NamedTemporaryFile(delete_on_close=False) as nc_fp,
     ):
         # alias the obfi commands to return some noise

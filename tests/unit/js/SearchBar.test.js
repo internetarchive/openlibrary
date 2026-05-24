@@ -78,7 +78,7 @@ describe('SearchBar', () => {
         });
 
         test('Special inputs are added to the form on submit', () => {
-            const spy = sinon.spy(SearchUtils, 'addModeInputsToForm')
+            const spy = sinon.spy(SearchUtils, 'addModeInputsToForm');
             sb.submitForm();
             expect(spy.callCount).toBe(1);
         });

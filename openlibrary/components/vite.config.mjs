@@ -1,4 +1,3 @@
-/* eslint-env node, es6 */
 /**
  * Vite config for Vue components. (for Lit components see vite-lit.config.mjs)
  */
@@ -65,7 +64,6 @@ createWebComponentSimple(rootComponent, '${componentName}');`;
     try {
         writeFileSync(getTemporaryVueInputPath(componentName), template);
     } catch (error) {
-        // eslint-disable-next-line no-console
         console.error(`Failed to generate Vite entry file: ${error.message}`);
         process.exit(1);
     }

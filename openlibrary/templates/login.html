@@ -31,7 +31,14 @@ $if "dev" in ctx.features:
         <div class="ol-signup-form__big-or">$_('OR')</div>
 
     $if ctx.user:
-        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+        $# `ctx.user.displayname` is user-controlled and was previously
+        $# interpolated into a raw HTML <a> tag, then emitted with `$:` --
+        $# anyone who set their displayname to e.g. `</a><script>...</script>`
+        $# got XSS on this page (admins/librarians visit /account/login while
+        $# already logged in; the same payload also fires for anyone who is
+        $# tricked into setting a malicious displayname). websafe() each
+        $# user-controlled component before splicing into the i18n HTML.
+        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (websafe(ctx.user.key), websafe(ctx.user.displayname)))</p>
         <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 
     $else:
@@ -52,7 +59,7 @@ $if "dev" in ctx.features:
                 </div>
 
                 <div class="input">
-                <input type="email" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
+                <input type="email" id="username" name="username" autocomplete="email" value="$(form.username.value or query_param('username'))" placeholder="$_('Email')" autocapitalize="off" autocorrect="off" required />
                 </div>
             </div>
 
@@ -62,7 +69,7 @@ $if "dev" in ctx.features:
                     <a class="ol-signup-form__note" href="https://archive.org/forgot-password">$_("Forgot your Password?")</a>
                 </div>
                 <div class="input">
-                    <input type="password" placeholder="$_('Password')" id="password" name="password" value="$form.password.value" required />
+                    <input type="password" autocomplete="current-password" placeholder="$_('Password')" id="password" name="password" required />
                     <a href="javascript:;" class="password-visibility-toggle ol-signup-form__icon-wrap">
                         <img src="/static/images/icons/icon_eye-closed.svg" title="$_('Toggle Password Visibility')" alt="$_('Toggle Password Visibility')"/>
                     </a>

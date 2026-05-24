@@ -48,9 +48,7 @@ def print_dump(json_records, filter=None):
         key = web.safestr(d["key"])
 
         # skip user pages
-        if key.startswith("/people/") and not re.match(
-            r"^/people/[^/]+/lists/OL\d+L$", key
-        ):
+        if key.startswith("/people/") and not re.match(r"^/people/[^/]+/lists/OL\d+L$", key):
             continue
 
         # skip admin pages
@@ -80,11 +78,11 @@ def read_data_file(filename: str, max_lines: int = 0):
     Setting max_lines to 0 will processes all records.
     """
     start_time = datetime.now()
-    log(f"read_data_file({filename}, max_lines={max_lines if max_lines else 'all'})")
+    log(f"read_data_file({filename}, max_lines={max_lines or 'all'})")
     total = 0
     for i, line in enumerate(xopen(filename, "rt")):
         total += 1
-        thing_id, revision, json_data = line.strip().split("\t")
+        _thing_id, _revision, json_data = line.strip().split("\t")
         yield pgdecode(json_data)
         if max_lines and i >= max_lines:
             break
@@ -169,9 +167,7 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
 
     for fname in filenames:
         log("sort_dump", fname)
-        status = os.system(
-            "gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals()
-        )
+        status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
         if status != 0:
             raise Exception("sort failed with status %d" % status)
     minutes = (datetime.now() - start_time).seconds // 60
@@ -229,7 +225,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         "/type/list",
     )
     files = {}
-    files['other'] = xopen(format % 'other', 'wt')
+    files["other"] = xopen(format % "other", "wt")
 
     for t in types:
         tname = t.split("/")[-1] + "s"
@@ -241,11 +237,11 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
         total += 1
         if i % 1_000_000 == 0:
             log(f"split_dump {i:,}")
-        type, rest = line.split("\t", 1)
+        type, _rest = line.split("\t", 1)
         if type in files:
             files[type].write(line)
         else:
-            files['other'].write(line)
+            files["other"].write(line)
 
     for f in files.values():
         f.close()
@@ -260,7 +256,7 @@ def make_index(dump_file):
     total = 0
     for i, line in enumerate(read_tsv(dump_file)):
         total += 1
-        type, key, revision, timestamp, json_data = line
+        type, key, _revision, timestamp, json_data = line
         data = json.loads(json_data)
         if type in ("/type/edition", "/type/work"):
             title = data.get("title", "untitled")

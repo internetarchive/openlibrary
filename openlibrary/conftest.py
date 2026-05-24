@@ -3,6 +3,7 @@
 import pytest
 import web
 
+from infogami import config
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
@@ -15,12 +16,13 @@ from openlibrary.mocks.mock_infobase import (
 from openlibrary.mocks.mock_memcache import (
     mock_memcache,  # noqa: F401 side effects may be needed
 )
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     def mock_request(*args, **kwargs):
-        raise Warning('Network requests are blocked in the testing environment')
+        raise Warning("Network requests are blocked in the testing environment")
 
     monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
@@ -28,7 +30,7 @@ def no_requests(monkeypatch):
 @pytest.fixture(autouse=True)
 def no_sleep(monkeypatch):
     def mock_sleep(*args, **kwargs):
-        raise Warning('''
+        raise Warning("""
             Sleeping is blocked in the testing environment.
             Use monkeytime instead; it stubs time.time() and time.sleep().
 
@@ -39,7 +41,7 @@ def no_sleep(monkeypatch):
                     assert time.time() == 2
 
             If you need more methods stubbed, edit monkeytime in openlibrary/conftest.py
-            ''')
+            """)
 
     monkeypatch.setattr("time.sleep", mock_sleep)
 
@@ -54,16 +56,12 @@ def setup_db_config():
     which is necessary for the context variable infrastructure being added. Without this, tests may fail due to
     missing or incorrect database parameters when initializing site.
     """
-    import web
-
-    from infogami import config
-
     # Set web.config.db_parameters for OLConnection
     web.config.db_parameters = {}
 
     # Set infobase_parameters to use local connection instead of OLConnection
     # This prevents the database configuration error when tests run
-    config.infobase_parameters = {'type': 'local'}
+    config.infobase_parameters = {"type": "local"}
 
 
 @pytest.fixture
@@ -86,37 +84,45 @@ def request_context_fixture():
     """
     Set up RequestContextVars for tests that need context variables.
 
-    This fixture provides sensible defaults for all context variables and
-    allows tests to override specific values as needed.
-
-    Usage:
-        # Autouse for entire module/class (all tests get context):
-        @pytest.fixture(autouse=True)
-        def auto_context(request_context):
-            yield
-
-        # Or use directly in individual tests:
-        def test_something(request_context):
-            # Context is automatically set up
-            pass
-
-    The fixture automatically cleans up after the test completes.
+    Provides defaults and allows tests to override any subset of fields.
+    Automatically cleans up after the test.
     """
-    from openlibrary.utils.request_context import RequestContextVars, req_context
 
-    token = req_context.set(
-        RequestContextVars(
-            x_forwarded_for=None,
-            user_agent=None,
-            lang=None,
-            solr_editions=True,  # Default to True for tests (matches _parse_solr_editions_from_web)
-            print_disabled=False,
-            is_bot=False,
+    tokens = []
+
+    def set_context(**overrides):
+        current = req_context.get(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent=None,
+                lang=None,
+                solr_editions=True,
+                print_disabled=False,
+                is_bot=False,
+                sfw=False,
+            )
         )
-    )
-    yield
-    # Cleanup
-    req_context.reset(token)
+
+        new = RequestContextVars(
+            x_forwarded_for=overrides.get("x_forwarded_for", current.x_forwarded_for),
+            user_agent=overrides.get("user_agent", current.user_agent),
+            lang=overrides.get("lang", current.lang),
+            solr_editions=overrides.get("solr_editions", current.solr_editions),
+            print_disabled=overrides.get("print_disabled", current.print_disabled),
+            is_bot=overrides.get("is_bot", current.is_bot),
+            sfw=overrides.get("sfw", current.sfw),
+        )
+
+        token = req_context.set(new)
+        tokens.append(token)
+        return token
+
+    set_context()
+
+    yield set_context
+
+    for token in tokens:
+        req_context.reset(token)
 
 
 @pytest.fixture
@@ -140,12 +146,12 @@ def render_template(request):
 
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
-    from openlibrary.plugins import ol_infobase
+    from openlibrary.plugins import ol_infobase  # noqa: PLC0415
 
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
 
-    from openlibrary.plugins.openlibrary import code
+    from openlibrary.plugins.openlibrary import code  # noqa: PLC0415
 
     web.config.db_parameters = {}
     code.setup_template_globals()

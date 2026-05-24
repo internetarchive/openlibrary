@@ -28,7 +28,7 @@ export default function init() {
 
 export function initBorrowAndReadLinks() {
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
-    /* eslint-disable no-unused-vars */
+
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
     $(function(){
         $('.cta-btn--ia.cta-btn--borrow,.cta-btn--ia.cta-btn--read').on('click', function(){
@@ -41,11 +41,11 @@ export function initBorrowAndReadLinks() {
         });
     });
 
-    /* eslint-enable no-unused-vars */
+
 }
 
 export function initWebsiteTranslationOptions() {
-    $('.locale-options li a').on('click', function (event) {
+    $('.locale-options li a').on('click', function(event) {
         event.preventDefault();
         const locale = $(this).data('lang-id');
         setValueInCookie('HTTP_LANG', locale);

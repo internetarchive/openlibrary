@@ -5,6 +5,12 @@
  * Components are bundled together via Vite for production use.
  */
 
-// Import components to register them as custom elements
-import './OLReadMore.js';
-
+// Export components (importing also registers them as custom elements)
+export { OLReadMore } from './OLReadMore.js';
+export { OlPagination } from './OlPagination.js';
+export { OLMarkdownEditor } from './OLMarkdownEditor.js';
+export { OlPopover } from './OlPopover.js';
+export { OlSelectPopover } from './OlSelectPopover.js';
+export { OLChip } from './OLChip.js';
+export { OLChipGroup } from './OLChipGroup.js';
+export { OLButton } from './OLButton.js';

@@ -1,0 +1,34 @@
+/**
+ * Stylesheet entry point for pages with body-plain
+ * See
+ * - openlibrary/templates/books/daisy.html
+ */
+/* base styles */
+@import "base/helpers-common.css";
+@import "base/common.css";
+
+/* layout rules */
+@import "layout/index.css";
+
+/* Components (modules) in order of appearance on page */
+@import "components/header-bar.css";
+@import "components/buttonGhost.css";
+@import "components/iaBar.css";
+@import "components/buttonBtn.css";
+@import "components/buttonCta.css";
+@import "components/page-banner.css";
+@import "components/header.css";
+@import "components/book.css";
+@import "components/carousel.css";
+@import "components/category-item.css";
+@import "components/loading-indicator.css";
+@import "components/home.css";
+@import "components/footer.css";
+@import "components/language.css";
+
+/* Tablet: @width-breakpoint-tablet = 768px */
+@import "components/header-bar--tablet.css" only screen and (min-width: 768px);
+@import "components/page-banner--tablet.css" only screen and (min-width: 768px);
+
+/* Desktop: @width-breakpoint-desktop = 960px */
+@import "components/header-bar--desktop.css" all and (min-width: 960px);

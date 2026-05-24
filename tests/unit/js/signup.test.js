@@ -13,16 +13,20 @@ beforeEach(() => {
       <label for="password">Password</label>
       <input type="password" id="password">
       <div id="rpd-checkbox" class="ol-signup-form__checkbox">
-        <input id="pd_request" type="checkbox">
-        <label for="pd_request">PD Checkbox</label>
+        <input id="pd-request" type="checkbox">
+        <label for="pd-request">PD Checkbox</label>
       </div>
-      <div id="pda-selector" class="ol-signup-form__select hidden"></div>
+      <div id="pda-selector" class="ol-signup-form__select hidden">
+        <select id="pd_program" name="pd_program" aria-label="$_('Select qualifying program')" aria-describedby="pd-program-advisory" aria-invalid="false" aria-required="false">
+            <option value="" disabled selected>"Select qualifying program"</option>
+        </select>
+      </div>
     </form>
   `;
 });
 
 describe('Email tests', () => {
-    let emailLabel, emailField
+    let emailLabel, emailField;
 
     beforeEach(() => {
         // call the function
@@ -31,7 +35,7 @@ describe('Email tests', () => {
         //declare the elements
         emailLabel = document.querySelector('label[for="emailAddr"]');
         emailField = document.getElementById('emailAddr');
-    })
+    });
 
     test('validateEmail should update elements correctly on success', () => {
         // set the email value
@@ -95,7 +99,7 @@ describe('Email tests', () => {
 });
 
 describe('Username tests', () => {
-    let usernameLabel, usernameField
+    let usernameLabel, usernameField;
 
     beforeEach(() => {
         // call the function
@@ -104,7 +108,7 @@ describe('Username tests', () => {
         //declare the elements
         usernameLabel = document.querySelector('label[for="username"]');
         usernameField = document.getElementById('username');
-    })
+    });
 
     test('validateUsername should update elements correctly on success', () => {
         // set the username value
@@ -157,7 +161,7 @@ describe('Username tests', () => {
 
 
 describe('Password tests', () => {
-    let passwordLabel, passwordField
+    let passwordLabel, passwordField;
 
     beforeEach(() => {
         // call the function
@@ -166,7 +170,7 @@ describe('Password tests', () => {
         //declare the elements
         passwordLabel = document.querySelector('label[for="password"]');
         passwordField = document.getElementById('password');
-    })
+    });
 
     test('validatePassword should update elements correctly on success', () => {
         // set the password value
@@ -223,17 +227,17 @@ describe('Print disability tests', () => {
     beforeEach(() => {
         initSignupForm();
 
-        checkbox = document.querySelector('#pd_request');
-        selector = document.querySelector('#pda-selector')
-    })
+        checkbox = document.querySelector('#pd-request');
+        selector = document.querySelector('#pda-selector');
+    });
 
     test('Qualifying authority selector only visible when PD checkbox is checked', () => {
-        checkbox.checked = false
+        checkbox.checked = false;
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         expect(selector.classList.contains('hidden')).toBe(true);
 
-        checkbox.checked = true
+        checkbox.checked = true;
         checkbox.dispatchEvent(new Event('change', { bubbles: true }));
         expect(selector.classList.contains('hidden')).toBe(false);
-    })
-})
+    });
+});

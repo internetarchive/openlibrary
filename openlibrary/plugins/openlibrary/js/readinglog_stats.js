@@ -58,7 +58,9 @@ export function init(config) {
 
         for (const work of config.works) {
             const allKeys = getPath(work, chartConfig.key) || [];
-            const validKeys = allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key));
+            const validKeys = uniq(
+                allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key))
+            );
             if (!validKeys.length) {
                 excluded.push(work);
                 continue;
@@ -176,7 +178,7 @@ export function init(config) {
                             bindings
                                 .filter(x => x[name])
                                 .map(x => ({ [name]: x[name], [`${name}Label`]: x[`${name}Label`] })),
-                            x => x[name].value)
+                            x => x[name].value);
                         record[name] = deduped.map(x => x[name]);
                         record[`${name}Label`] = deduped.map(x => x[`${name}Label`]);
                     } else {

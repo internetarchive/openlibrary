@@ -21,14 +21,16 @@ trap 'handle_error' ERR
 trap 'handle_exit' SIGINT
 set -e
 
-# See https://github.com/internetarchive/openlibrary/wiki/Deployment-Scratchpad
+# See https://docs.openlibrary.org/advanced/deployment-scratchpad.html
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="/tmp/openlibrary_deploy"
 
 mkdir -p $DEPLOY_DIR
 
-WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2"
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 ol-solr0 ol-solr1 $WEB_HOSTNAMES"
+WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2 ol-web3"
+# Note: ol-solr0 and ol-solr2 are currently excluded due to a version
+# upgrade pending full reindex
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
@@ -94,6 +96,18 @@ check_for_local_changes() {
     REPO_DIR=$2
 
     echo -n "   $SERVER ... "
+
+    # First check if it doesn't exist
+    if ! ssh $SERVER "test -d $REPO_DIR"; then
+        echo "✓ ($REPO_DIR doesn't exist, will be created on deploy)"
+        return
+    fi
+
+    # Not a git repo yet (e.g. partial failure before git init) -- skip check
+    if ! ssh $SERVER "test -d $REPO_DIR/.git"; then
+        echo "✓ ($REPO_DIR exists but is not a git repo yet)"
+        return
+    fi
 
     OUTPUT=$(ssh $SERVER "cd $REPO_DIR; sudo git status --porcelain --untracked-files=all")
 
@@ -218,6 +232,10 @@ deploy_olsystem() {
     check_server_access
     check_crons
 
+    while ! check_server_storage; do
+        read -p "Press Enter to retry..."
+    done
+
     cd $DEPLOY_DIR
 
     CLEANUP=${CLEANUP:-1}
@@ -262,7 +280,9 @@ deploy_olsystem() {
             sudo chmod -R g+rwX /opt/$REPO_NEW
 
             sudo rm -rf /opt/$REPO_PREVIOUS || true
-            sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            if [ -d /opt/$REPO ]; then
+                sudo mv /opt/$REPO /opt/$REPO_PREVIOUS
+            fi
             sudo mv /opt/$REPO_NEW /opt/$REPO
         "); then
             echo "✓"
@@ -302,30 +322,49 @@ date_to_timestamp() {
 }
 
 tag_deploy() {
-    # Check if tag does NOT exist
-    if ! git -C "${DEPLOY_DIR}/openlibrary" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        local HEAD_SHA
+        HEAD_SHA="$(git -C "$REPO_DIR" rev-parse --short HEAD)"
+        echo "[Warning] Deploy clone not found; fallback to local repo at $REPO_DIR"
+        echo "          Local HEAD is $HEAD_SHA — confirm this matches what was deployed."
+        read -p "Tag production as $HEAD_SHA from the local repo? [y/N]..." confirm
+        confirm=${confirm:-N}
+        if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+            echo "[Abort] Cancelled. Verify the correct commit is checked out before re-running."
+            return 1
+        fi
+    fi
+    if ! git -C "$REPO_DIR" rev-parse "$DEPLOY_TAG" >/dev/null 2>&1; then
         echo "[Info] Tagging deploy as $DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" tag "$DEPLOY_TAG"
-        git -C "${DEPLOY_DIR}/openlibrary" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
+        git -C "$REPO_DIR" tag "$DEPLOY_TAG"
+        git -C "$REPO_DIR" push git@github.com:internetarchive/openlibrary.git "$DEPLOY_TAG"
     else
         echo "[Info] Tag '$DEPLOY_TAG' already exists. Skipping creation."
     fi
 
     # Always update and push the 'production' tag
-    git -C "${DEPLOY_DIR}/openlibrary" tag -f production
-    git -C "${DEPLOY_DIR}/openlibrary" push -f git@github.com:internetarchive/openlibrary.git production
+    git -C "$REPO_DIR" tag -f production
+    git -C "$REPO_DIR" push -f git@github.com:internetarchive/openlibrary.git production
 }
 
 tag_release() {
-    LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
+    local REPO_DIR="${DEPLOY_DIR}/openlibrary"
+    if [ ! -d "$REPO_DIR/.git" ]; then
+        REPO_DIR="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+        echo "[Warning] Deploy clone not found; reading tags from local repo at $REPO_DIR"
+    fi
+    LATEST_TAG_NAME=$(git -C "$REPO_DIR" describe --tags --abbrev=0)
     echo "[Now] Generate release: https://github.com/internetarchive/openlibrary/releases/new?tag=$LATEST_TAG_NAME"
 }
 
 check_olbase_image_up_to_date() {
+    local git_branch="${GIT_BRANCH:-master}"
     echo "[Now] Checking if Docker image is up-to-date"
 
     # Get latest commit timestamp from GitHub API
-    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/master"
+    GITHUB_COMMIT_API="https://api.github.com/repos/internetarchive/openlibrary/commits/$git_branch"
     GIT_LAST_UPDATED=$(curl -s "$GITHUB_COMMIT_API" | jq -r '.commit.committer.date')
     echo "Latest Git commit: $GIT_LAST_UPDATED"
 
@@ -351,6 +390,7 @@ check_olbase_image_up_to_date() {
 deploy_openlibrary() {
     HOSTNAMES=${SERVERS:-$ALL_HOSTNAMES}
     FQDNS=$(echo $HOSTNAMES | sed "s/ /$SERVER_SUFFIX /g")$SERVER_SUFFIX
+    local git_branch="${GIT_BRANCH:-master}"
 
     echo "[Now] Deploying openlibrary"
 
@@ -361,8 +401,12 @@ deploy_openlibrary() {
     if [ -d "$DEPLOY_DIR/openlibrary_new" ]; then
         cleanup "$DEPLOY_DIR/openlibrary_new"
     fi
-    echo -ne "Cloning openlibrary repo ... "
+    echo -ne "Cloning openlibrary repo (branch: $git_branch) ... "
     git clone --depth=1 "https://github.com/internetarchive/openlibrary.git" openlibrary 2> /dev/null
+    if [ -n "$git_branch" ]; then
+        git -C openlibrary fetch --depth=1 origin $git_branch
+        git -C openlibrary checkout FETCH_HEAD
+    fi
     GIT_SHA=$(git -C openlibrary rev-parse HEAD | cut -c -7)
     echo "✔ (SHA: $GIT_SHA)"
     echo ""
@@ -387,39 +431,48 @@ deploy_openlibrary() {
 
     mkdir -p openlibrary_new
     cp -r openlibrary/compose*.yaml openlibrary_new
+    # Don't copy over compose.override.yaml ; local dev only. If that file is accidentally
+    # used on our prod servers, it could result in data loss.
+    rm -f openlibrary_new/compose.override.yaml
     cp -r openlibrary/docker openlibrary_new
     cp -r openlibrary/scripts openlibrary_new
     cp -r openlibrary/conf openlibrary_new
     tar -czf openlibrary_new.tar.gz openlibrary_new
-    if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+
+    if [[ "$SKIP_OL_TRANSFER_CODE" != "1" ]]; then
+        if ! copy_to_servers "$DEPLOY_DIR/openlibrary_new.tar.gz" "/opt/openlibrary" "openlibrary_new"; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
+        echo ""
+        # Fix file ownership + Make into a git repo so can easily track local mods
+        for SERVER in $FQDNS; do
+            ssh $SERVER "
+                set -e
+                sudo chown -R root:staff /opt/openlibrary
+                sudo chmod -R g+rwX /opt/openlibrary
+                cd /opt/openlibrary
+                sudo git init 2>&1 > /dev/null
+                sudo git add . > /dev/null
+                sudo git commit -m 'Deployed openlibrary' > /dev/null
+            "
+        done
+
+        if ! prune_docker image; then
+            cleanup "${DEPLOY_DIR}/openlibrary"
+            exit 1
+        fi
     fi
-    echo ""
 
-    # Fix file ownership + Make into a git repo so can easily track local mods
-    for SERVER in $FQDNS; do
-        ssh $SERVER "
-            set -e
-            sudo chown -R root:staff /opt/openlibrary
-            sudo chmod -R g+rwX /opt/openlibrary
-            cd /opt/openlibrary
-            sudo git init 2>&1 > /dev/null
-            sudo git add . > /dev/null
-            sudo git commit -m 'Deployed openlibrary' > /dev/null
-        "
-    done
-
-    if ! prune_docker image; then
-        cleanup "${DEPLOY_DIR}/openlibrary"
-        exit 1
+    if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
+        echo ""
+        echo "Pull the latest docker images..."
+        deploy_images
     fi
 
-    echo ""
-    echo "Pull the latest docker images..."
-    deploy_images
-
-    tag_deploy
+    if [[ "$TAG_DEPLOY" == "1" ]]; then
+        tag_deploy
+    fi
 
     echo "Finished production deployment at $(date)"
     echo "To reboot the servers, please run scripts/deployments/restart_all_servers.sh"
@@ -630,9 +683,21 @@ deploy_wizard() {
     read -p "[Info] Skipping clone_booklending_utils, run manually if needed. Press Enter to continue..." answer
     echo ""
 
-    read -p "[Now] Run openlibrary deploy & audit now? [Y/n]..." answer
+    read -p "[Now] Run openlibrary deploy? [Y/n]..." answer
     answer=${answer:-Y}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
+        read -p "[Now] Transfer codebase to servers? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_CODE=1
+
+        read -p "[Now] Deploy Docker Images? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Nn]$ ]] && SKIP_OL_TRANSFER_IMAGES=1
+
+        read -p "[Now] Tag deploy? [Y/n]..." answer
+        answer=${answer:-Y}
+        [[ "$answer" =~ ^[Yy]$ ]] && TAG_DEPLOY=1
+
         time deploy_openlibrary
         echo ""
         time check_servers_in_sync
@@ -653,13 +718,12 @@ deploy_wizard() {
         echo ""
     fi
 
-    read -p "[Now] Tag and announce release? [N/y]..." answer
+    read -p "[Now] Create and announce release? [N/y]..." answer
     answer=${answer:-N}
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         time tag_release
         read -p "Press Enter to continue..."
 
-        LATEST_TAG_NAME=$(git -C "${DEPLOY_DIR}/openlibrary" describe --tags --abbrev=0)
         echo "[Now] Deploy complete, announce in #openlibrary-g, #openlibrary, and #open-librarians-g:"
         echo ""
         echo "The Open Library weekly deploy is now complete. See changes here: https://github.com/internetarchive/openlibrary/releases/tag/$LATEST_TAG_NAME. Please respond in this thread if anything seems broken or delightful!"
@@ -697,6 +761,9 @@ elif [ "$1" == "" ]; then  # If this works to detect empty
 else
     echo "Usage: $0 [olsystem|openlibrary|review|prune|rebuild|images|check_server_storage]"
     echo "e.g: time SERVER_SUFFIX='.us.archive.org' ./scripts/deployment/deploy.sh [command]"
+    echo "Env vars: SKIP_OL_TRANSFER_CODE=1  skip SCP+git-init+prune step"
+    echo "          SKIP_OL_TRANSFER_IMAGES=1 skip docker image pull step"
+    echo "          TAG_DEPLOY=1              tag this commit as the deploy (set automatically by wizard)"
     exit 1
 fi
 

@@ -4,14 +4,13 @@ Updates all legacy preferences, deleting "rpd" and "pda" values.
 """
 
 import argparse
-from pathlib import Path
 
 import web
 
 import infogami
 from openlibrary.accounts import RunAs
-from openlibrary.config import load_config
 from openlibrary.core import db
+from openlibrary.setup import setup_for_script
 from scripts.utils.graceful_shutdown import init_signal_handler, was_shutdown_requested
 
 DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
@@ -19,11 +18,8 @@ DEFAULT_CONFIG_PATH = "/olsystem/etc/openlibrary.yml"
 
 def setup(config_path):
     init_signal_handler()
-    if not Path(config_path).exists():
-        raise FileNotFoundError(f'No configuration file found at {config_path}')
-    load_config(config_path)
-    infogami._setup()
-    web.ctx.ip = web.ctx.ip or '127.0.0.1'
+    setup_for_script(config_path)
+    web.ctx.ip = web.ctx.ip or "127.0.0.1"
 
 
 def fetch_affected_keys() -> list[str]:
@@ -52,13 +48,13 @@ def update_preferences(keys: list[str]) -> list[str]:
         try:
             prefs = web.ctx.site.get(key)
             new_prefs = prefs.dict()
-            if 'pda' in new_prefs['notifications']:
-                del new_prefs['notifications']['pda']
-            if 'rpd' in new_prefs['notifications']:
-                del new_prefs['notifications']['rpd']
-            username = key.split('/')[2]
+            if "pda" in new_prefs["notifications"]:
+                del new_prefs["notifications"]["pda"]
+            if "rpd" in new_prefs["notifications"]:
+                del new_prefs["notifications"]["rpd"]
+            username = key.split("/")[2]
             with RunAs(username):
-                web.ctx.site.save(new_prefs, 'Updating preferences')
+                web.ctx.site.save(new_prefs, "Updating preferences")
         except (infogami.infobase.client.ClientException, KeyError, IndexError):
             retry_list.append(key)
 

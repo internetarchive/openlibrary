@@ -11,18 +11,18 @@ function initConfirmationDialogs() {
     const CONFIRMATION_PROMPT_DEFAULTS = { autoOpen: false, modal: true };
     $('#noMaster').dialog(CONFIRMATION_PROMPT_DEFAULTS);
 
-    const $confirmMerge = $('#confirmMerge')
+    const $confirmMerge = $('#confirmMerge');
     if ($confirmMerge.length) {
         $confirmMerge.dialog(
             $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
                 buttons: {
                     'Yes, Merge': function() {
-                        const commentInput = document.querySelector('#author-merge-comment')
+                        const commentInput = document.querySelector('#author-merge-comment');
                         if (commentInput.value) {
-                            document.querySelector('#hidden-comment-input').value = commentInput.value
+                            document.querySelector('#hidden-comment-input').value = commentInput.value;
                         }
                         $('#mergeForm').trigger('submit');
-                        $(this).parents().find('button').attr('disabled','disabled');
+                        $(this).parents().find('button').attr('disabled', 'disabled');
                     },
                     'No, Cancel': function() {
                         $(this).dialog('close');
@@ -50,11 +50,13 @@ function initConfirmationDialogs() {
 
 
 export function initPreviewDialogs() {
-    // Colorbox modal + iframe for Book Preview Button
-    const $buttons = $('.cta-btn--preview');
-    $buttons.each((i, button) => {
-        const $button = $(button);
-        $button.colorbox({
+    // Delegated click handler for Book Preview buttons.
+    // Uses event delegation so dynamically-added buttons (e.g. from
+    // lazy-loaded carousels) work without re-initialization.
+    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
+        e.preventDefault();
+        const $button = $(this);
+        $.colorbox({
             width: '100%',
             maxWidth: '640px',
             inline: true,
@@ -81,7 +83,7 @@ export function initPreviewDialogs() {
  * communicates where the HTML of that dialog lives.
  */
 export function initDialogs() {
-    $('.dialog--open').on('click', function () {
+    $('.dialog--open').on('click', function() {
         const $link = $(this),
             href = `#${$link.attr('aria-controls')}`;
 
@@ -105,6 +107,6 @@ export function initDialogs() {
  */
 export function initDialogClosers(closers) {
     closers.forEach(closer => {
-        $(closer).on('click', () => $.fn.colorbox.close())
-    })
+        $(closer).on('click', () => $.fn.colorbox.close());
+    });
 }

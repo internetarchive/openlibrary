@@ -1,7 +1,7 @@
 // @ts-check
 import $ from 'jquery';
 import { move_to_work, move_to_author } from '../ol.js';
-import './SelectionManager.less';
+import './SelectionManager.css';
 
 /**
  * The SelectionManager is responsible for making things (e.g. books in search results,
@@ -188,7 +188,7 @@ export default class SelectionManager {
         const statusParts = [];
         this.ile.$actions.empty();
         this.ile.$selectionActions.empty();
-        this.ile.bulkTagger.hideTaggingMenu()
+        this.ile.bulkTagger.hideTaggingMenu();
         SelectionManager.TYPES.forEach(type => {
             const count = this.selectedItems[type.singular].length;
             if (count) statusParts.push(`${count} ${count === 1 ? type.singular : type.plural}`);
@@ -234,7 +234,7 @@ export default class SelectionManager {
             if (sessionStorage.getItem('ile-items')) {
                 this.selectedItems = JSON.parse(sessionStorage.getItem('ile-items'));
             } else {
-                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = []});
+                SelectionManager.TYPES.forEach(type => {this.selectedItems[type.singular] = [];});
             }
         }
 
@@ -325,7 +325,7 @@ export default class SelectionManager {
  */
 function clearTextSelection() {
     const selection = window.getSelection ? window.getSelection() : document.selection ? document.selection : null;
-    if (!!selection) selection.empty ? selection.empty() : selection.removeAllRanges();
+    if (selection) selection.empty ? selection.empty() : selection.removeAllRanges();
 }
 
 /**
@@ -383,24 +383,24 @@ SelectionManager.TYPES = [
         image: olid => {
             const imgOlid = olid.split(':').pop();
             if (imgOlid.slice(-1) === 'M')
-                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/b/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
             else
-                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`
+                return `https://covers.openlibrary.org/w/olid/${imgOlid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`;
         },
     },
     {
         singular: 'edition',
         plural: 'editions',
         regex: /OL\d+M/,
-        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_book-lg.png`,
+        image: olid => `https://covers.openlibrary.org/b/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-lg.png`,
     },
     {
         singular: 'author',
         plural: 'authors',
         regex: /OL\d+A/,
-        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/images/icons/avatar_author-lg.png`,
+        image: olid => `https://covers.openlibrary.org/a/olid/${olid}-M.jpg?default=https://openlibrary.org/static/images/icons/avatar_author-lg.png`,
     }
-]
+];
 
 /**
  * Selection Providers define what is selectable on a page. E.g. the path regex
@@ -413,7 +413,7 @@ SelectionManager.SELECTION_PROVIDERS = [
     {
         path: /(\/authors\/OL\d+A.*|\/search)$/,
         selector: '.searchResultItem',
-        type: ['work','edition'],
+        type: ['work', 'edition'],
         /**
          * @param {HTMLElement} el
          * @return {import('../ol.js').WorkOLID}
@@ -480,7 +480,7 @@ SelectionManager.SELECTION_PROVIDERS = [
  */
 SelectionManager.ACTIONS = [
     {
-        applies_to_type: ['work','edition'],
+        applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: false,
         name: 'Tag Works',
@@ -494,7 +494,7 @@ SelectionManager.ACTIONS = [
         href: olids => `/account/lists/add?seeds=${olids.join(',')}`,
     },
     {
-        applies_to_type: ['work','edition'],
+        applies_to_type: ['work', 'edition'],
         requires_type: ['work'],
         multiple_only: true,
         name: 'Merge Works...',

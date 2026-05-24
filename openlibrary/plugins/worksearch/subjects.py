@@ -1,20 +1,16 @@
 """Subject pages."""
 
-import datetime
-import json
 from dataclasses import dataclass
+from datetime import date
 from typing import cast
 
 import web
-from typing_extensions import deprecated
 
-from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-from openlibrary.core.lending import add_availability
+from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
-from openlibrary.utils import str_to_key
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
@@ -26,7 +22,7 @@ MAX_RESULTS = 1000
 
 
 class subjects(delegate.page):
-    path = '(/subjects/[^/]+)'
+    path = "(/subjects/[^/]+)"
 
     def GET(self, key):
         if (nkey := self.normalize_key(key)) != key:
@@ -37,15 +33,15 @@ class subjects(delegate.page):
         subj = get_subject(
             key,
             details=True,
-            filters={'public_scan_b': 'false', 'lending_edition_s': '*'},
-            sort=web.input(sort='readinglog').sort,
-            request_label='SUBJECT_ENGINE_PAGE',
+            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+            sort=web.input(sort="readinglog").sort,
+            request_label="SUBJECT_ENGINE_PAGE",
         )
 
-        delegate.context.setdefault('cssfile', 'subject')
+        delegate.context.setdefault("cssfile", "subject")
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
-            page = render_template('subjects/notfound.tmpl', key)
+            page = render_template("subjects/notfound.tmpl", key)
         else:
             self.decorate_with_tags(subj)
             page = render_template("subjects", page=subj)
@@ -63,97 +59,40 @@ class subjects(delegate.page):
         return key
 
     def decorate_with_tags(self, subject) -> None:
-        if tag_keys := Tag.find(subject.name):
+        name = subject.name
+        # Split prefixed subjects: "genre:thriller" → tag_type="genre", slug="thriller"
+        if ":" in name:
+            tag_type, slug_raw = name.split(":", 1)
+            slug = Tag.normalize(slug_raw)
+        else:
+            tag_type = subject.subject_type
+            slug = Tag.normalize(name)
+
+        if tag_keys := Tag.find(slug):
             tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-            if filtered_tags := [
-                tag for tag in tags if tag.tag_type == subject.subject_type
-            ]:
+            if filtered_tags := [tag for tag in tags if tag.tag_type == tag_type]:
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
 
             for tag in subject.disambiguations:
-                tag.subject_key = (
-                    f"/subjects/{tag.name}"
-                    if tag.tag_type == "subject"
-                    else f"/subjects/{tag.tag_type}:{tag.name}"
-                )
-
-
-@deprecated("migrated to fastapi")
-class subjects_json(delegate.page):
-    path = '(/subjects/[^/]+)'
-    encoding = 'json'
-    solr_label: SolrRequestLabel = 'SUBJECT_ENGINE_API'
-
-    @jsonapi
-    def GET(self, key):
-        web.header('Content-Type', 'application/json')
-        # If the key is not in the normalized form, redirect to the normalized form.
-        if (nkey := self.normalize_key(key)) != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(
-            offset=0,
-            limit=DEFAULT_RESULTS,
-            details='false',
-            has_fulltext='false',
-            sort='editions',
-            available='false',
-        )
-        i.limit = safeint(i.limit, DEFAULT_RESULTS)
-        i.offset = safeint(i.offset, 0)
-        if i.limit > MAX_RESULTS:
-            msg = json.dumps(
-                {'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS}
-            )
-            raise web.HTTPError('400 Bad Request', data=msg)
-
-        filters = {}
-        if i.get('has_fulltext') == 'true':
-            filters['has_fulltext'] = 'true'
-
-        if publish_year_filter := date_range_to_publish_year_filter(
-            i.get('published_in')
-        ):
-            filters['publish_year'] = publish_year_filter
-
-        subject_results = get_subject(
-            key,
-            offset=i.offset,
-            limit=i.limit,
-            sort=i.sort,
-            details=i.details.lower() == 'true',
-            request_label='SUBJECT_ENGINE_API',
-            **filters,
-        )
-        if i.has_fulltext == 'true':
-            subject_results['ebook_count'] = subject_results['work_count']
-        return json.dumps(subject_results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
+                slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
+                tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
     if published_in:
-        if '-' in published_in:
-            begin, end = published_in.split('-', 1)
+        if "-" in published_in:
+            begin, end = published_in.split("-", 1)
             if safeint(begin, None) is not None and safeint(end, None) is not None:
-                return f'[{begin} TO {end}]'
+                return f"[{begin} TO {end}]"
         else:
             year = safeint(published_in, None)
             if year is not None:
                 return published_in
-    return ''
+    return ""
 
 
 SubjectPseudoKey = str
@@ -168,9 +107,9 @@ async def get_subject_async(
     key: SubjectPseudoKey,
     details=False,
     offset=0,
-    sort='editions',
+    sort="editions",
     limit=DEFAULT_RESULTS,
-    request_label: SolrRequestLabel = 'UNLABELLED',
+    request_label: SolrRequestLabel = "UNLABELLED",
     **filters,
 ) -> Subject:
     """Returns data related to a subject.
@@ -261,8 +200,8 @@ class SubjectEngine:
         details=False,
         offset=0,
         limit=DEFAULT_RESULTS,
-        sort='new',
-        request_label: SolrRequestLabel = 'UNLABELLED',
+        sort="new",
+        request_label: SolrRequestLabel = "UNLABELLED",
         **filters,
     ):
         # Circular imports are everywhere -_-
@@ -272,17 +211,17 @@ class SubjectEngine:
         )
 
         subject_type = self.name
-        path = web.lstrips(key, self.prefix)
+        path = key.removeprefix(self.prefix)
         name = path.replace("_", " ")
 
         unescaped_filters = {}
-        if 'publish_year' in filters:
+        if "publish_year" in filters:
             # Don't want this escaped or used in fq for perf reasons
-            unescaped_filters['publish_year'] = filters.pop('publish_year')
+            unescaped_filters["publish_year"] = filters.pop("publish_year")
         result = await run_solr_query_async(
             WorkSearchScheme(),
             {
-                'q': query_dict_to_str(
+                "q": query_dict_to_str(
                     {self.facet_key: self.normalize_key(path)},
                     unescaped=unescaped_filters,
                     phrase=True,
@@ -325,12 +264,12 @@ class SubjectEngine:
                 ]
             ),
             extra_params=[
-                ('facet.mincount', 1),
-                ('facet.limit', 25),
+                ("facet.mincount", 1),
+                ("facet.limit", 25),
             ],
             allowed_filter_params={
-                'has_fulltext',
-                'publish_year',
+                "has_fulltext",
+                "publish_year",
             },
         )
 
@@ -343,15 +282,12 @@ class SubjectEngine:
                 phrase=True,
             ),
             work_count=result.num_found,
-            works=add_availability([self.work_wrapper(d) for d in result.docs]),
+            works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
         if details:
             result.facet_counts = {
-                facet_field: [
-                    self.facet_wrapper(facet_field, key, label, count)
-                    for key, label, count in facet_counts
-                ]
+                facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()
             }
 
@@ -373,11 +309,11 @@ class SubjectEngine:
 
             subject.authors = result.facet_counts["author_key"]
             subject.publishers = result.facet_counts["publisher_facet"]
-            subject.languages = result.facet_counts['language']
+            subject.languages = result.facet_counts["language"]
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
-            current_year = datetime.datetime.utcnow().year
+            current_year = date.today().year
             subject.publishing_history = [
                 [year, count]
                 for year, count in cast(  # These are fetched in a different format, we need to fix the types
@@ -397,22 +333,20 @@ class SubjectEngine:
         return subject
 
     def normalize_key(self, key):
-        return str_to_key(key).lower()
+        return Tag.normalize(key)
 
     def facet_wrapper(self, facet: str, value: str, label: str, count: int):
         if facet == "publish_year":
             return [int(value), count]
         elif facet == "publisher_facet":
-            return web.storage(
-                name=value, count=count, key="/publishers/" + value.replace(" ", "_")
-            )
+            return web.storage(name=value, count=count, key="/publishers/" + value.replace(" ", "_"))
         elif facet == "author_key":
             return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             engine = next((d for d in SUBJECTS if d.facet == facet), None)
-            assert engine is not None, "Invalid subject facet: {facet}"
+            assert engine is not None, f"Invalid subject facet: {facet}"
             return web.storage(
-                key=engine.prefix + str_to_key(value).replace(" ", "_"),
+                key=engine.prefix + Tag.normalize(value),
                 name=value,
                 count=count,
             )
@@ -428,26 +362,23 @@ class SubjectEngine:
         These docs are weird :/ We should be using more standardized results
         across our search APIs, but that would be a big breaking change.
         """
-        ia_collection = w.get('ia_collection') or []
+        ia_collection = w.get("ia_collection") or []
         return web.storage(
-            key=w['key'],
+            key=w["key"],
             title=w["title"],
             edition_count=w["edition_count"],
-            cover_id=w.get('cover_i'),
-            cover_edition_key=w.get('cover_edition_key'),
-            subject=w.get('subject', []),
+            cover_id=w.get("cover_i"),
+            cover_edition_key=w.get("cover_edition_key"),
+            subject=w.get("subject", []),
             ia_collection=ia_collection,
-            printdisabled='printdisabled' in ia_collection,
-            lending_edition=w.get('lending_edition_s', ''),
-            lending_identifier=w.get('lending_identifier_s', ''),
-            authors=[
-                web.storage(key=f'/authors/{olid}', name=name)
-                for olid, name in zip(w.get('author_key', []), w.get('author_name', []))
-            ],
-            first_publish_year=w.get('first_publish_year'),
-            ia=w.get('ia', [None])[0],
-            public_scan=w.get('public_scan_b', bool(w.get('ia'))),
-            has_fulltext=w.get('has_fulltext', False),
+            printdisabled="printdisabled" in ia_collection,
+            lending_edition=w.get("lending_edition_s", ""),
+            lending_identifier=w.get("lending_identifier_s", ""),
+            authors=[web.storage(key=f"/authors/{olid}", name=name) for olid, name in zip(w.get("author_key", []), w.get("author_name", []))],
+            first_publish_year=w.get("first_publish_year"),
+            ia=w.get("ia", [None])[0],
+            public_scan=w.get("public_scan_b", bool(w.get("ia"))),
+            has_fulltext=w.get("has_fulltext", False),
         )
 
 
