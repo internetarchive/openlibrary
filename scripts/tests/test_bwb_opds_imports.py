@@ -80,41 +80,43 @@ def test_map_publication_basic_fields():
     olbook = map_publication_to_olbook(SAMPLE_PUBLICATION)
     assert olbook is not None
     assert olbook["isbn_13"] == ["9781737408802"]
-    assert olbook["local_id"] == ["urn:isbn:9781737408802"]
-    assert olbook["source_records"] == ["bwb-opds:9781737408802"]
+    assert olbook["source_records"] == ["bwb:9781737408802"]
     assert olbook["title"] == "The Brick House Apparent Quarterly, Vol. 1"
     assert olbook["publish_date"] == "2021-08-03"
-    assert olbook["languages"] == ["eng"]
+    assert olbook["languages"] == [{"key": "/languages/en"}]
     assert olbook["authors"] == [
         {"name": "The Brick House Cooperative"},
         {"name": "Maria Bustillos"},
     ]
     assert olbook["cover"] == "https://example.com/cover.jpg"
-    assert "publishers" not in olbook
+    assert olbook["publishers"] == []
+    assert "local_id" not in olbook
 
 
 def test_map_publication_skips_missing_isbn():
-    pub = {"metadata": {"title": "No ISBN"}}
+    pub = {"metadata": {"title": "No ISBN", "author": [{"name": "x"}]}}
     assert map_publication_to_olbook(pub) is None
 
 
-def test_map_publication_omits_empty_optional_fields():
-    pub = {"metadata": {"identifier": "urn:isbn:9781737408802"}}
-    olbook = map_publication_to_olbook(pub)
-    assert olbook is not None
-    assert "title" not in olbook
-    assert "publish_date" not in olbook
-    assert "languages" not in olbook
-    assert "cover" not in olbook
-    assert "publishers" not in olbook
-    assert olbook["authors"] == []
+def test_map_publication_skips_missing_title_or_authors():
+    no_title = {"metadata": {"identifier": "urn:isbn:9781737408802", "author": [{"name": "x"}]}}
+    no_authors = {"metadata": {"identifier": "urn:isbn:9781737408802", "title": "x"}}
+    assert map_publication_to_olbook(no_title) is None
+    assert map_publication_to_olbook(no_authors) is None
 
 
-def test_map_publication_drops_unmappable_language():
-    pub = {"metadata": {"identifier": "urn:isbn:9781737408802", "language": ["zz-not-real"]}}
+def test_map_publication_languages_use_key_form():
+    pub = {
+        "metadata": {
+            "identifier": "urn:isbn:9781737408802",
+            "title": "x",
+            "author": [{"name": "a"}],
+            "language": ["en", "fr"],
+        }
+    }
     olbook = map_publication_to_olbook(pub)
     assert olbook is not None
-    assert "languages" not in olbook
+    assert olbook["languages"] == [{"key": "/languages/en"}, {"key": "/languages/fr"}]
 
 
 def test_parse_iso_handles_offset_and_naive():
@@ -232,14 +234,7 @@ def test_process_feed_filters_by_modified(monkeypatch):
     assert max_modified > cutoff
 
     price_lines = [json.loads(line) for line in prices_fh.getvalue().splitlines()]
-    assert price_lines == [
-        {
-            "isbn_13": "9781737408802",
-            "price": 1.1,
-            "currency": "USD",
-            "modified": price_lines[0]["modified"],
-        }
-    ]
+    assert price_lines == [{"isbn_13": "9781737408802", "price": 1.1, "currency": "USD"}]
 
 
 def test_process_feed_skips_publication_without_modified(monkeypatch):
@@ -276,6 +271,118 @@ def test_process_feed_advances_state_when_mapping_fails(monkeypatch):
     )
     assert olbooks == []
     assert max_modified == _parse_iso(new_modified)
+
+
+def test_process_feed_early_stops_on_first_all_stale_page(monkeypatch):
+    """Once a whole page contains nothing newer than ``since``, stop walking."""
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    fresh = dict(SAMPLE_PUBLICATION)
+    stale = {
+        "metadata": {
+            "identifier": "urn:isbn:9780000000002",
+            "title": "Old",
+            "modified": "2026-01-01T00:00:00+00:00",
+        },
+        "links": [],
+    }
+    pages = {
+        "https://x/p1": {"publications": [fresh], "links": [{"rel": "next", "href": "https://x/p2"}]},
+        "https://x/p2": {"publications": [stale], "links": [{"rel": "next", "href": "https://x/p3"}]},
+        "https://x/p3": {"publications": [fresh], "links": []},
+    }
+    session = FakeSession(pages)
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+
+    cutoff = datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC)
+    olbooks, _ = process_feed(
+        feed_url="https://x/p1",
+        since=cutoff,
+        prices_out_fh=io.StringIO(),
+        early_stop=True,
+    )
+    # p3 must NOT be fetched.
+    assert session.calls == ["https://x/p1", "https://x/p2"]
+    assert len(olbooks) == 1
+
+
+def test_process_feed_full_traversal_is_the_default(monkeypatch):
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    stale = {
+        "metadata": {
+            "identifier": "urn:isbn:9780000000002",
+            "title": "Old",
+            "modified": "2026-01-01T00:00:00+00:00",
+        },
+        "links": [],
+    }
+    pages = {
+        "https://x/p1": {"publications": [stale], "links": [{"rel": "next", "href": "https://x/p2"}]},
+        "https://x/p2": {"publications": [stale], "links": []},
+    }
+    session = FakeSession(pages)
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+
+    process_feed(
+        feed_url="https://x/p1",
+        since=datetime.datetime(2026, 3, 1, tzinfo=datetime.UTC),
+        prices_out_fh=io.StringIO(),
+    )
+    # Default early_stop=False — both pages fetched even when first is all-stale.
+    assert session.calls == ["https://x/p1", "https://x/p2"]
+
+
+def test_process_feed_excludes_low_quality(monkeypatch):
+    """Reuse partner-import filters: independently-published 'notebook' from 2024 is dropped."""
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    junk = {
+        "metadata": {
+            "identifier": "urn:isbn:9781737408802",
+            "title": "My Notebook",
+            "modified": "2026-05-20T00:00:00+00:00",
+            "published": "2024-01-01",
+            "publisher": [{"name": "Independently Published"}],
+            "author": [{"name": "Whoever"}],
+        },
+        "links": [],
+    }
+    pages = {"https://x/p1": {"publications": [junk], "links": []}}
+    session = FakeSession(pages)
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+
+    # Patch the mapper to inject publishers (OPDS metadata doesn't always expose them
+    # under a fixed key, and we just need the filter wired correctly).
+    real_map = bwb_opds_imports.map_publication_to_olbook
+
+    def fake_map(pub):
+        olbook = real_map(pub)
+        if olbook is not None:
+            olbook["publishers"] = ["Independently Published"]
+            olbook["publish_date"] = "2024-01-01"
+        return olbook
+
+    monkeypatch.setattr(bwb_opds_imports, "map_publication_to_olbook", fake_map)
+
+    olbooks, _ = process_feed(
+        feed_url="https://x/p1",
+        since=EPOCH,
+        prices_out_fh=io.StringIO(),
+    )
+    assert olbooks == []
+
+
+def test_lazy_writer_does_not_create_file_when_unused(tmp_path: Path):
+    path = tmp_path / "subdir" / "prices.jsonl"
+    w = bwb_opds_imports._LazyWriter(str(path))
+    w.close()
+    assert not path.exists()
+
+
+def test_lazy_writer_creates_file_on_write(tmp_path: Path):
+    path = tmp_path / "subdir" / "prices.jsonl"
+    w = bwb_opds_imports._LazyWriter(str(path))
+    w.write("hello\n")
+    w.close()
+    assert path.read_text() == "hello\n"
 
 
 @pytest.mark.parametrize(
