@@ -8891,9 +8891,9 @@ msgstr ""
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid ""
-"Continue <a href=\"%(url)s\" class=\"pending-action-link\" "
-"data-action=\"%(raw_action)s\"><strong>%(action)s</strong> the "
-"%(type)s <em>%(name)s</em></a>."
+"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> the %(type)s "
+"<em>%(name)s</em></a>."
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
