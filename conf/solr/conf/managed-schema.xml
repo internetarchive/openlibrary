@@ -338,7 +338,7 @@
 
     <copyField source="name" dest="name_sort"/>
 
-    <copyField source="title" dest="title_suggest"/>
+    <copyField source="title" dest="title_suggest"/> <!-- TODO: Unused internally 3.4 GB text -->
     <copyField source="title" dest="title_sort"/>
     <copyField source="publisher" dest="publisher_facet"/>
     <copyField source="subject" dest="subject_facet"/>

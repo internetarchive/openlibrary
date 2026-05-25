@@ -4,6 +4,7 @@ from datetime import datetime
 from types import MappingProxyType
 
 from openlibrary.plugins.worksearch.schemes import SearchScheme
+from openlibrary.solr.utils import get_solr_next
 
 if typing.TYPE_CHECKING:
     from openlibrary.fastapi.models import SolrInternalsParams
@@ -31,7 +32,8 @@ class AuthorSearchScheme(SearchScheme):
     sorts = MappingProxyType(
         {
             "work_count desc": "work_count desc",
-            "name": "name_sort asc",
+            # TODO: fallback can be removed after reindex is complete
+            "name": "name_sort asc" if get_solr_next() else "name_str asc",
             # Birth Year
             "birth_date asc": "birth_date asc",
             "birth_date desc": "birth_date desc",

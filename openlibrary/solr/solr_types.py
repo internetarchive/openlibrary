@@ -118,6 +118,8 @@ class SolrDocument(TypedDict):
     text: Optional[list[str]]
     seed: Optional[list[str]]
     name: Optional[str]
+    # TODO: name_str can be removed when removed when reindex is complete
+    name_str: Optional[str]
     name_sort: Optional[str]
     alternate_names: Optional[list[str]]
     birth_date: Optional[str]
