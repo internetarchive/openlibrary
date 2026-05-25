@@ -5,12 +5,12 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import web
-from typing_extensions import deprecated
-from web.template import TemplateResult
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
+from typing_extensions import deprecated
+from web.template import TemplateResult
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,
@@ -489,8 +489,8 @@ class MyBooksTemplate:
             type_translated = _(page_type.lower())
 
             msg_template = _(
-                'You were trying to <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s">'
-                "<strong>%(action)s</strong> for the %(type)s <em>%(name)s</em></a>. Click the link to resume."
+                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s">'
+                "<strong>%(action)s</strong> the %(type)s <em>%(name)s</em></a>."
             )
 
             msg = msg_template % {

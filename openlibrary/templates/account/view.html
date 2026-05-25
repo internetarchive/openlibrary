@@ -28,11 +28,7 @@ $var title: $header_title
                   var link = container.querySelector('.pending-action-link');
                   if (link) {
                       link.addEventListener('click', function() {
-                          document.cookie = 'pending_action=1; path=/; max-age=0;';
-                          var rawAction = link.getAttribute('data-action');
-                          if (rawAction) {
-                              sessionStorage.setItem('resume_action', rawAction);
-                          }
+                          document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
                       });
                   }
               }

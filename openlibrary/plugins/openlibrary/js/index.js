@@ -40,26 +40,6 @@ document.addEventListener('click', function(e) {
 // Init the service worker first since it does caching
 initServiceWorker();
 
-// Auto-resume user intent if redirected
-document.addEventListener('DOMContentLoaded', function() {
-    const actionToResume = sessionStorage.getItem('resume_action');
-    if (actionToResume) {
-        sessionStorage.removeItem('resume_action');
-    }
-
-    if (actionToResume) {
-        let attempts = 0;
-        const interval = setInterval(function() {
-            attempts++;
-            if (window.__modalsLoaded || attempts > 20) {
-                clearInterval(interval);
-                const btn = document.querySelector(`[data-action="${actionToResume}"]`);
-                if (btn) btn.click();
-            }
-        }, 100);
-    }
-});
-
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
 initAnalytics();
@@ -289,10 +269,7 @@ jQuery(function() {
                 if ($shareModalLinks.length) {
                     module.initShareModal($shareModalLinks);
                 }
-                window.__modalsLoaded = true;
             });
-    } else {
-        window.__modalsLoaded = true;
     }
 
 
