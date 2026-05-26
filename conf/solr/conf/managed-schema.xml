@@ -260,7 +260,7 @@
 
    <!-- fields used by documents of type author -->
    <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
-   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false"/>
+   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false" docValues="true"/>
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
