@@ -50,6 +50,8 @@ def generate():
                 enumsConfig = ET.parse(os.path.join(root, "../../conf/solr/conf/", enumsConfigFile))
                 enum_values = [el.text for el in enumsConfig.findall(f".//enum[@name='{field_type.get('enumName')}']/value")]
                 python_type = f"Literal[{', '.join(map(repr, enum_values))}]"
+            elif field_class == "solr.ICUCollationField":
+                python_type = "bytes"
             else:
                 raise Exception(f"Unknown field type class {field_class}")
         else:
