@@ -14,6 +14,7 @@ from openlibrary.core.helpers import affiliate_id
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
+    amazon_affiliate_url,
     get_amazon_metadata,
     get_betterworldbooks_metadata,
 )
@@ -261,15 +262,17 @@ def build_primary_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore
     ]
 
     if ctx.asin or ctx.isbn:
-        primary_stores.append(
-            AffiliateStore(
-                key="amazon",
-                analytics_key="Amazon",
-                name=_("Amazon"),
-                link=f"https://www.amazon.com/dp/{ctx.asin or ctx.isbn}/?tag={affiliate_id('amazon')}",
-                price=bwb_market_price or amz_price,
+        amazon_link = amazon_affiliate_url(ctx.isbn, ctx.asin, affiliate_id("amazon"))
+        if amazon_link:
+            primary_stores.append(
+                AffiliateStore(
+                    key="amazon",
+                    analytics_key="Amazon",
+                    name=_("Amazon"),
+                    link=amazon_link,
+                    price=bwb_market_price or amz_price,
+                )
             )
-        )
 
     return primary_stores
 

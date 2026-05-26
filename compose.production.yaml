@@ -12,7 +12,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 28 --timeout 300 --max-requests 1500
+      - GUNICORN_OPTS= --workers 25 --timeout 300 --max-requests 1500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
       # Note this won't work with uv pip, because uv makes a network request
       - BEFORE_START=pip install -e /booklending_utils
@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     hostname: "$HOSTNAME"
     environment:
-      - GUNICORN_OPTS= --workers 4 --timeout 300 --max-requests 5000 --max-requests-jitter 500
+      - GUNICORN_OPTS= --workers 7 --timeout 300 --max-requests 5000 --max-requests-jitter 500
       - OL_CONFIG=/olsystem/etc/openlibrary.yml
     volumes:
       - ../booklending_utils:/booklending_utils
@@ -35,7 +35,8 @@ services:
       - ../olsystem/etc/ia.ini:/home/openlibrary/.config/ia.ini
 
   solr:
-    profiles: ["ol-solr0"]
+    # Disabled until next solr reindex due to solr version upgrade
+    profiles: ["NEVER-ol-solr0"]
     ports:
       - 8983:8983
     environment:
@@ -54,7 +55,8 @@ services:
     restart: unless-stopped
 
   solr_replica:
-    profiles: ["ol-solr2"]
+    # Disabled until next solr reindex due to solr version upgrade
+    profiles: ["NEVER-ol-solr2"]
     extends:
       file: compose.yaml
       service: solr
@@ -70,7 +72,7 @@ services:
         -Dsolr.environment=prod
         -Dol.replication.role.follower=true
         -Dol.replication.leader=ol-solr0.us.archive.org:8983
-        -Dsolr.allowUrls=http://ol-solr0.us.archive.org:8983
+        -Dsolr.security.allow.urls=http://ol-solr0.us.archive.org:8983
       # More memory for production
       - SOLR_JAVA_MEM=-Xms10g -Xmx10g
       # This might overwrite the above?
@@ -88,31 +90,6 @@ services:
       - ./conf/solr/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
       - 8984:8984
-    logging:
-      options:
-        max-size: "512m"
-        max-file: "4"
-
-  solr_restarter:
-    # Disabled for now ; seemed to be making things worse, and seems no longer needed
-    profiles: ["ol-never"]
-    build:
-      context: scripts/solr_restarter
-      args:
-        - APT_MIRROR=${APT_MIRROR:-}
-        - DOCKER_KEY_URL=${DOCKER_KEY_URL:-}
-        - DOCKER_REPOSITORY_URL=${DOCKER_REPOSITORY_URL:-}
-    restart: unless-stopped
-    environment:
-      - TEST_URL=http://openlibrary.org/search.json?q=hello&mode=everything&limit=0
-      - CONTAINER_NAMES=openlibrary-solr-1 openlibrary-solr_haproxy-1
-      - SEND_SLACK_MESSAGE=false
-    env_file:
-      - ../olsystem/etc/solr_restarter.env
-    volumes:
-      # Forward the docker socket, since this needs to be able to
-      # run docker commands
-      - "/var/run/docker.sock:/var/run/docker.sock"
     logging:
       options:
         max-size: "512m"

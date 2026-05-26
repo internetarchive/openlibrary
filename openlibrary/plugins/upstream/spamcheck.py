@@ -3,14 +3,16 @@ from collections.abc import Iterable
 
 import web
 
+from openlibrary.utils.request_context import site
+
 
 def get_spam_words() -> list[str]:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     return doc.get("spamwords", [])
 
 
 def get_spam_domains() -> list[str]:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     return doc.get("domains", [])
 
 
@@ -25,13 +27,13 @@ def set_spam_domains(domains: Iterable[str]) -> None:
 
 
 def _update_spam_doc(**kwargs) -> None:
-    doc = web.ctx.site.store.get("spamwords") or {}
+    doc = site.get().store.get("spamwords") or {}
     doc.update(_key="spamwords", **kwargs)
-    web.ctx.site.store["spamwords"] = doc
+    site.get().store["spamwords"] = doc
 
 
 def is_spam(i=None, allow_privileged_edits: bool = False) -> bool:
-    user = web.ctx.site.get_user()
+    user = site.get().get_user()
 
     if user:
         # Allow admins and librarians to make edits:

@@ -38,7 +38,7 @@ services:
         -Dsolr.environment=dev
         -Dol.replication.role.follower=true
         -Dol.replication.leader=solr:8983
-        -Dsolr.allowUrls=http://solr:8983
+        -Dsolr.security.allow.urls=http://solr:8983
     ports:
       - 8984:8983
     volumes:
