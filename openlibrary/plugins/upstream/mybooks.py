@@ -480,24 +480,20 @@ class MyBooksTemplate:
             action = data.get("action")
             name = data.get("name", "")
             url = data.get("url")
-            page_type = data.get("type", "item")
 
             if not action or not url:
                 return ""
 
             action_translated = _(action)
-            type_translated = _(page_type.lower())
 
             msg_template = _(
-                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s">'
-                "<strong>%(action)s</strong> the %(type)s <em>%(name)s</em></a>."
+                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>.'
             )
 
             msg = msg_template % {
                 "url": web.net.websafe(url if is_safe_redirect(url) else "/"),
                 "raw_action": web.net.websafe(action),
                 "action": web.net.websafe(action_translated),
-                "type": web.net.websafe(type_translated),
                 "name": web.net.websafe(name),
             }
             return msg
