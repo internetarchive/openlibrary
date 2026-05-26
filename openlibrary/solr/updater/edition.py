@@ -94,6 +94,21 @@ def is_sine_nomine(pub: str) -> bool:
     return re_not_az.sub("", pub).lower() == "sn"
 
 
+ARTICLE_PATTERN = re.compile(
+    "^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)",
+    flags=re.IGNORECASE,
+)
+
+
+def sort_title(title: str, subtitle: str | None) -> str:
+    """Move leading articles to the end of the title for sorting purposes."""
+    if subtitle:
+        title = title + ": " + subtitle
+    if match := ARTICLE_PATTERN.match(title):
+        return f"{match.group(2)}, {match.group(1).strip()}"
+    return title
+
+
 class EditionSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
@@ -123,6 +138,20 @@ class EditionSolrBuilder(AbstractSolrBuilder):
     @property
     def subtitle(self) -> str | None:
         return self._edition.get("subtitle")
+
+    @property
+    def title_sort(self) -> str | None:
+        """
+        Generates a formatted title string based on the ``title`` and
+        ``subtitle`` attributes with any leading article removed and
+        moved to the end of the string.
+
+        :return: A formatted title string or None if ``title`` is not set.
+        :rtype: str | None
+        """
+        if self.title:
+            return sort_title(self.title, self.subtitle)
+        return None
 
     @property
     def alternative_title(self) -> set[str]:

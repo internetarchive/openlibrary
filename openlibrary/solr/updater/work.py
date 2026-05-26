@@ -23,7 +23,7 @@ from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
 from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.updater.edition import EditionSolrBuilder
+from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
 from openlibrary.solr.utils import SolrUpdateRequest
 from openlibrary.utils import normalize_subject_name, uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
@@ -71,7 +71,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "key": wkey.replace("/books/", "/works/"),
                 "type": {"key": "/type/work"},
                 "title": work.get("title"),
-                "title_sort" : work.get("title_sort"),
+                "title_sort": work.get("title_sort"),
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
@@ -266,12 +266,6 @@ def subject_name_to_key(subject_type: str, name: str) -> SubjectPseudoKey:
     return prefix + re_subject.sub("_", name.lower()).strip("_")
 
 
-ARTICLE_PATTERN = re.compile(
-    "^(an? |the |l[aeo]s? |l'|de la |el |il |un[ae]? |du |de[imrst]? |das |ein |eine[mnrs]? |bir )(.*)",
-    flags=re.IGNORECASE,
-)
-
-
 class WorkSolrBuilder(AbstractSolrBuilder):
     def __init__(
         self,
@@ -348,14 +342,8 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         :return: A formatted title string or None if ``title`` is not set.
         :rtype: str | None
         """
-        if title := self.title:
-            if self.subtitle:
-                title = title + ': ' + self.subtitle
-            # TODO: We could use the language of the work/title to do more specific processing here
-            match = re.fullmatch(pattern=ARTICLE_PATTERN, string=title)
-            if match:
-                title = match.group(2) + ', ' + match.group(1).strip()
-            return title
+        if self.title:
+            return sort_title(self.title, self.subtitle)
         return None
 
     @property
