@@ -754,12 +754,13 @@ msgstr ""
 msgid "B"
 msgstr ""
 
-#: history.html type/language/view.html
-msgid "Current"
+#: history.html lib/history.html
+#, python-format
+msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "See changes"
+msgid "Changes"
 msgstr ""
 
 #: history.html
@@ -5348,11 +5349,6 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/history.html
-#, python-format
-msgid "View revision %s"
-msgstr ""
-
-#: lib/history.html
 msgid "an anonymous user"
 msgstr ""
 
@@ -7412,6 +7408,10 @@ msgstr ""
 
 #: type/language/view.html
 msgid "Code"
+msgstr ""
+
+#: type/language/view.html
+msgid "Current"
 msgstr ""
 
 #: type/language/view.html
