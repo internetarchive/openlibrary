@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Literal, override
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.plugins.upstream.utils import get_language_name
@@ -19,9 +20,7 @@ async def get_top_languages(
     sort: Literal["count", "name", "ebook_edition_count"] = "count",
 ) -> list[web.storage]:
 
-    available_edition_counts = dict(
-        await get_all_language_counts("edition", ebook_access="borrowable")
-    )
+    available_edition_counts = dict(await get_all_language_counts("edition", ebook_access="borrowable"))
 
     results = [
         web.storage(
@@ -59,7 +58,6 @@ async def get_all_language_counts(
     ebook_access_query = ""
 
     if ebook_access:
-
         ebook_access_query = f" AND ebook_access:[{ebook_access} TO *]"
 
     result = await search.get_solr().select_async(
@@ -67,18 +65,14 @@ async def get_all_language_counts(
         rows=0,
         facets=["language"],
         facet_limit=1_000,
-        _timeout=30,  
-        time_allowed=False,  
+        _timeout=30,
+        time_allowed=False,
     )
 
-    return [
-        (f"/languages/{row.value}", row.count)
-        for row in result["facets"]["language"]
-    ]
+    return [(f"/languages/{row.value}", row.count) for row in result["facets"]["language"]]
 
 
 class index(delegate.page):
-
     path = "/languages"
 
     def GET(self):
@@ -86,14 +80,11 @@ class index(delegate.page):
         sort = web.input(sort="count").sort
 
         if sort not in ("count", "name", "ebook_edition_count"):
-
             raise web.badrequest("Invalid sort parameter")
 
         return render_template(
             "languages/index",
-            async_bridge.run(
-                get_top_languages(500, user_lang=web.ctx.lang, sort=sort)
-            ),
+            async_bridge.run(get_top_languages(500, user_lang=web.ctx.lang, sort=sort)),
         )
 
     def is_enabled(self):
@@ -102,7 +93,6 @@ class index(delegate.page):
 
 
 class language_search(delegate.page):
-
     path = "/search/languages"
 
     def GET(self):
@@ -138,7 +128,6 @@ class language_search(delegate.page):
 
 @dataclass
 class LanguageEngine(subjects.SubjectEngine):
-
     name: str = "language"
 
     key: str = "languages"
@@ -158,17 +147,14 @@ def normalize_key(self, key):
 
 def get_ebook_count(self, name, value, publish_year):
 
-
     solr = search.get_solr()
 
     q = {"language": value}
 
     if isinstance(publish_year, list):
-
-        q["publish_year"] = tuple(publish_year)  
+        q["publish_year"] = tuple(publish_year)
 
     elif publish_year:
-
         q["publish_year"] = publish_year
 
     result = solr.select(q, facets=["has_fulltext"], rows=0)

@@ -24,6 +24,7 @@ prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.12
 pydantic==2.13.4
 PyICU
+PyICU==2.13
 pymarc==5.3.1
 python-amazon-paapi==6.2.0
 python-dateutil==2.9.0.post0
@@ -37,4 +38,3 @@ simplejson==3.20.2
 statsd==4.0.1
 uvicorn[standard]==0.46.0
 validate_email==1.3
-PyICU==2.13

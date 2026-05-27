@@ -49,9 +49,7 @@ async def test_get_top_languages_sorting_with_icu():
             "openlibrary.plugins.worksearch.languages.Collator",
             mock_collator_class,
         ),
-        patch(
-            "openlibrary.plugins.worksearch.languages.Locale"
-        ) as mock_locale,
+        patch("openlibrary.plugins.worksearch.languages.Locale") as mock_locale,
         patch(
             "openlibrary.plugins.worksearch.languages.get_all_language_counts",
             mock_all_counts,
@@ -61,10 +59,7 @@ async def test_get_top_languages_sorting_with_icu():
             lambda key, lang: mock_names.get(key, key),
         ),
     ):
-
-        res = await languages.get_top_languages(
-            limit=3, user_lang="hr", sort="name"
-        )
+        res = await languages.get_top_languages(limit=3, user_lang="hr", sort="name")
 
         # Check Collator was created and set correctly
         mock_collator_class.createInstance.assert_called_once()
