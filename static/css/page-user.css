@@ -67,6 +67,25 @@ div.siteSearch.darker {
   background-color: var(--grey-f3f3f3);
   padding-right: 22px;
 }
+/* Availability + language filter popovers below the search input. */
+.search-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  margin: var(--spacing-md) 0;
+}
+
+/* On the search page, enlarge the in-page search box to match the header
+   search bar, then hide the now-redundant header search since the same
+   input is already visible in the page content. */
+.search-page .searchbox {
+  height: 47px;
+  border-radius: 6px;
+}
+.search-page .header-bar .search-component {
+  display: none;
+}
 /* stylelint-disable selector-max-specificity */
 div#revertLink,
 div#editHistory {

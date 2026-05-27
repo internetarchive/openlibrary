@@ -103,7 +103,6 @@ export class OlSelectPopover extends LitElement {
             color: var(--darker-grey);
             font: inherit;
             font-size: 14px;
-            font-weight: 500;
             line-height: 1.4;
             cursor: pointer;
             white-space: nowrap;

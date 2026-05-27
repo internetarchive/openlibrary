@@ -721,6 +721,11 @@ class search(delegate.page):
             "person",
             "time",
             "editions.sort",
+            # Availability filters. These are defined in WorkSearchScheme.facet_rewrites
+            # (mapping to ebook_access:* Solr clauses) but are not facet_fields, so they
+            # must be whitelisted here for the availability filter to take effect.
+            "public_scan",
+            "print_disabled",
         } | WorkSearchScheme.facet_fields:
             if web_input.get(p):
                 param[p] = web_input[p]

@@ -124,4 +124,39 @@
   --color-border-error: hsl(8, 78%, 49%);
   --color-border-subtle: hsl(0, 0%, 87%);
   --color-focus-ring: hsl(202, 96%, 37%);
+
+  /* Chip / tag variants — soft-tint palette (pale background, saturated text
+     & border) used to color a chip by the *kind* of thing it represents.
+     Consumed via the `variant` attribute on <ol-chip>; see OLChip.js. Each
+     variant defines bg / fg / border and a slightly darker bg for hover. */
+  --color-chip-language-bg: hsl(128, 45%, 94%);
+  --color-chip-language-bg-hover: hsl(128, 45%, 90%);
+  --color-chip-language-fg: hsl(130, 50%, 26%);
+  --color-chip-language-border: hsl(128, 38%, 80%);
+
+  --color-chip-subject-bg: hsl(202, 80%, 95%);
+  --color-chip-subject-bg-hover: hsl(202, 80%, 91%);
+  --color-chip-subject-fg: hsl(202, 96%, 28%);
+  --color-chip-subject-border: hsl(202, 70%, 83%);
+
+  --color-chip-genre-bg: hsl(283, 55%, 96%);
+  --color-chip-genre-bg-hover: hsl(283, 55%, 93%);
+  --color-chip-genre-fg: hsl(283, 60%, 40%);
+  --color-chip-genre-border: hsl(283, 45%, 86%);
+
+  --color-chip-author-bg: hsl(32, 90%, 94%);
+  --color-chip-author-bg-hover: hsl(32, 90%, 90%);
+  --color-chip-author-fg: hsl(23, 80%, 38%);
+  --color-chip-author-border: hsl(32, 80%, 82%);
+
+  --color-chip-place-bg: hsl(184, 55%, 93%);
+  --color-chip-place-bg-hover: hsl(184, 55%, 89%);
+  --color-chip-place-fg: hsl(184, 100%, 22%);
+  --color-chip-place-border: hsl(184, 45%, 77%);
+
+  /* Neutral facet chip (e.g. availability) — no category color. */
+  --color-chip-neutral-bg: hsl(0, 0%, 95%);
+  --color-chip-neutral-bg-hover: hsl(0, 0%, 92%);
+  --color-chip-neutral-fg: hsl(0, 0%, 20%);
+  --color-chip-neutral-border: hsl(0, 0%, 85%);
 }

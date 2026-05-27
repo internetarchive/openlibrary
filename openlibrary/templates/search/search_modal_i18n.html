@@ -1,0 +1,31 @@
+$def with ()
+$# Translated chrome strings for the header search modal (SearchModal.js):
+$# labels, placeholders, aria-labels and status messages. Rendered into the
+$# trigger's `data-i18n-ui` attribute and read client-side by
+$# search-modal/constants.js (searchModalStringsFromElement). The keys and
+$# English source strings here must match DEFAULT_SEARCH_MODAL_STRINGS in that
+$# same file. `%s` in "Remove filter:" is filled in client-side with the filter
+$# label. (Availability option labels live in search/availability_i18n.html.)
+$ search_modal_i18n = {
+$     "dialogAria":          _("Search Open Library"),
+$     "inputPlaceholder":    _("Search books, authors…"),
+$     "inputAria":           _("Search"),
+$     "scanAria":            _("Scan a barcode"),
+$     "scanTitle":           _("Scan barcode"),
+$     "closeAria":           _("Close search"),
+$     "seeAll":              _("See all results"),
+$     "activeFiltersAria":   _("Active filters"),
+$     "removeFilter":        _("Remove filter: %s"),
+$     "clearAll":            _("Clear all"),
+$     "filtersAria":         _("Search filters"),
+$     "availabilityLabel":   _("Availability"),
+$     "languageLabel":       _("Language"),
+$     "languagePlaceholder": _("Search languages…"),
+$     "languageHeading":     _("Languages"),
+$     "startTyping":         _("Start typing to search…"),
+$     "searching":           _("Searching…"),
+$     "noResults":           _("No results found"),
+$     "topResults":          _("Top results"),
+$     "untitled":            _("Untitled"),
+$ }
+$json_encode(search_modal_i18n)

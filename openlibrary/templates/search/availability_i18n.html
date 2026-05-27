@@ -1,0 +1,13 @@
+$def with ()
+$# Translated availability-filter labels/descriptions for the header search
+$# modal (lib/nav_head.html) and the search-results filter row (work_search.html).
+$# Rendered into a `data-i18n` attribute and read client-side by
+$# search-modal/constants.js (availabilityOptionsFromElement). The English source
+$# strings here must match the fallback AVAILABILITY_OPTIONS in that same file.
+$ availability_i18n = {
+$     "all":        {"label": _("All"),             "description": _("Every book in the catalog")},
+$     "readable":   {"label": _("Read now (free)"), "description": _("Fully readable – public domain & open access")},
+$     "borrowable": {"label": _("Borrowable"),      "description": _("Borrow via Internet Archive's lending library")},
+$     "open":       {"label": _("Preview only"),    "description": _("Limited preview available")},
+$ }
+$json_encode(availability_i18n)

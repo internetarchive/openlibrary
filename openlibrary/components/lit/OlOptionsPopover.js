@@ -71,7 +71,6 @@ export class OlOptionsPopover extends LitElement {
             color: var(--darker-grey);
             font: inherit;
             font-size: 14px;
-            font-weight: 500;
             line-height: 1.4;
             cursor: pointer;
             white-space: nowrap;
@@ -158,13 +157,13 @@ export class OlOptionsPopover extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover {
-                background: var(--icon-link-grey);
+                background: var(--lightest-grey);
             }
         }
 
         .item-row:focus-within {
             outline: none;
-            background: var(--icon-link-grey);
+            background: var(--lightest-grey);
         }
 
         .item--selected .item-row {
@@ -197,6 +196,7 @@ export class OlOptionsPopover extends LitElement {
         }
 
         .item-label {
+            display: block;
             color: var(--darker-grey);
             font-weight: 500;
         }
@@ -207,6 +207,7 @@ export class OlOptionsPopover extends LitElement {
         }
 
         .item-description {
+            display: block;
             margin-top: 2px;
             color: var(--accessible-grey);
             font-size: 13px;

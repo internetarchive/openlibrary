@@ -1,8 +1,6 @@
 import { getJsonFromUrl } from './Browser';
-import { SearchBar } from './SearchBar';
-import { SearchPage } from './SearchPage';
 import { initSearchModal } from './search-modal/SearchModal';
-import { SearchModeSelector, mode as searchMode } from './SearchUtils';
+import { mode as searchMode } from './SearchUtils';
 
 /*
 Sets the key in the website cookie to the specified value
@@ -17,13 +15,7 @@ export default function init() {
         searchMode.write(urlParams.mode);
     }
     const $searchComponent = $('header#header-bar .search-component');
-    new SearchBar($searchComponent, urlParams, { disableAutocomplete: true });
-    initSearchModal($searchComponent.find('form.search-bar-input input[type="text"]')[0]);
-
-    if ($('.siteSearch.olform').length) {
-        // Only applies to search results page (as of writing)
-        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode')));
-    }
+    initSearchModal($searchComponent.find('.search-bar-trigger')[0]);
 
     initBorrowAndReadLinks();
     initWebsiteTranslationOptions();

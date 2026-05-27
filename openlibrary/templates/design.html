@@ -303,6 +303,35 @@ $ _x = ctx.setdefault('cssfile', 'design')
             });
           </script>
         </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Domain variants")</h3>
+          <p>$:_("Use %(variant)s to color a chip by the kind of thing it represents (language, subject, genre, author, place, or a neutral facet). The chip maps the variant to a soft-tint palette internally.", variant='<code>variant</code>')</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language"&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="language">$_("English")</ol-chip>
+            <ol-chip variant="subject">$_("Science Fiction")</ol-chip>
+            <ol-chip variant="genre">$_("Memoir")</ol-chip>
+            <ol-chip variant="author">$_("Ursula K. Le Guin")</ol-chip>
+            <ol-chip variant="place">$_("San Francisco")</ol-chip>
+            <ol-chip variant="neutral">$_("Read now")</ol-chip>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Removable filter pills")</h3>
+          <p>$:_("Combine %(variant)s with %(selected)s to make a removable, category-colored filter pill. The selected state adds a close icon; listen for %(event)s to remove the filter.", variant='<code>variant</code>', selected='<code>selected</code>', event='<code>ol-chip-select</code>')</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language" selected&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="neutral" size="small" selected>$_("Read now")</ol-chip>
+            <ol-chip variant="language" size="small" selected>$_("English")</ol-chip>
+            <ol-chip variant="language" size="small" selected>$_("French")</ol-chip>
+          </div>
+        </section>
       </article>
 
       $:render_template("design/button")

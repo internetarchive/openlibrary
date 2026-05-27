@@ -919,9 +919,105 @@ div.search-facet:focus-within {
   padding-left: var(--spacing-inset-sm);
 }
 
+/* Barcode scanning needs a camera, so only surface it on touch devices.
+   Hides the header barcode (and its separator) on pointer-driven desktops,
+   overriding the expanded-state and min-width display:block rules above. */
+/* stylelint-disable selector-max-specificity */
+@media (hover: hover) and (pointer: fine) {
+  .header-bar .search-component .search-bar-input .search-by-barcode-submit,
+  .header-bar .search-component .search-bar-input .vertical-separator {
+    display: none;
+  }
+}
+/* stylelint-enable selector-max-specificity */
+
 /* Reclaim the space the facet held */
 @media only screen and (min-width: 35.5em) {
   .header-bar .search-component .search-bar-component {
     width: 240px;
+  }
+}
+
+/* ── Search trigger button ───────────────────────────────────────────────
+   The header search is a button that opens the search modal. It mimics the
+   look of the old text field but behaves like a button: pointer cursor,
+   hover background, and a slight press-down scale. On small screens only the
+   icon shows; the "Search" label appears once the box has room (>=35.5em). */
+.search-bar-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-inline-sm);
+  width: 100%;
+  min-height: 38px;
+  padding: 0 var(--spacing-inset-md);
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-input);
+  color: var(--grey);
+  font-family: inherit;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.search-bar-trigger__label {
+  display: none;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-bar-trigger__icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  background: url(/static/images/search-icon.svg) center / contain no-repeat;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-bar-trigger:hover {
+    background-color: var(--lightest-grey);
+  }
+}
+
+.search-bar-trigger:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Press feedback scales the whole field, including its border, rather than
+   just the inner button — otherwise the border stays put and detaches. */
+.search-bar-component {
+  transition: transform 0.1s ease;
+}
+
+.search-bar-component:has(.search-bar-trigger:active) {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-bar-trigger {
+    transition: none;
+  }
+
+  .search-bar-component {
+    transition: none;
+  }
+
+  .search-bar-component:has(.search-bar-trigger:active) {
+    transform: none;
+  }
+}
+
+@media only screen and (min-width: 35.5em) {
+  .search-bar-trigger {
+    justify-content: space-between;
+  }
+
+  .search-bar-trigger__label {
+    display: block;
   }
 }

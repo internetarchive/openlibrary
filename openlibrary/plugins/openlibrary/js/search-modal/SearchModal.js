@@ -3,22 +3,23 @@ import { repeat } from 'lit/directives/repeat.js';
 import '../../../../components/lit/OlDialog.js';
 import '../../../../components/lit/OlOptionsPopover.js';
 import '../../../../components/lit/OlSelectPopover.js';
+import '../../../../components/lit/OLChip.js';
+import '../../../../components/lit/OLChipGroup.js';
 import { debounce } from '../nonjquery_utils.js';
+import { sprintf } from '../i18n.js';
 import { mode as searchMode } from '../SearchUtils.js';
 import {
     AVAILABILITY_OPTIONS,
+    AVAILABILITY_TO_PARAMS,
     DEFAULT_AVAILABILITY,
-    LANGUAGE_OPTIONS,
+    DEFAULT_LANGUAGE_OPTIONS,
+    DEFAULT_SEARCH_MODAL_STRINGS,
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
+    availabilityOptionsFromElement,
+    searchModalStringsFromElement,
 } from './constants.js';
-
-const AVAILABILITY_TO_PARAMS = {
-    all: {},
-    readable: { public_scan: 'true' },
-    borrowable: { has_fulltext: 'true', public_scan: 'false' },
-    open: { print_disabled: 'true' },
-};
+import { fetchLanguageOptions } from './languages.js';
 
 const AVAILABILITY_TO_Q_CLAUSE = {};
 
@@ -138,7 +139,9 @@ export class SearchModal extends LitElement {
             opacity: 0.9;
         }
 
-        @media (prefers-reduced-motion: reduce) { .barcode-btn { transition: none; } }
+        /* Scanning needs a camera — only surface it on touch devices. */
+        @media (hover: hover) and (pointer: fine) { .barcode-btn { display: none; } }
+        @media (prefers-reduced-motion: reduce)   { .barcode-btn { transition: none; } }
 
         /* ── Active filter chip row ────────────────────────────────── */
 
@@ -151,41 +154,11 @@ export class SearchModal extends LitElement {
             border-bottom: 1px solid var(--color-border-subtle);
         }
 
-        .chip-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px var(--spacing-sm);
-            background: hsla(202, 96%, 37%, 0.07);
-            border: 1px solid hsla(202, 96%, 37%, 0.22);
-            border-radius: var(--border-radius-pill);
-            color: var(--link-blue);
-            font: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 150ms ease;
+        /* The chip group takes the row's width so "Clear all" is pushed to
+           the far end by its margin-left: auto. */
+        .chips ol-chip-group {
+            flex: 1;
         }
-
-        @media (hover: hover) and (pointer: fine) {
-            .chip-pill:hover { background: hsla(202, 96%, 37%, 0.13); }
-        }
-
-        .chip-pill:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .chip-pill__remove {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 14px;
-            height: 14px;
-            opacity: 0.65;
-        }
-
-        .chip-pill__remove svg { width: 100%; height: 100%; }
 
         .clear-all {
             margin-left: auto;
@@ -193,7 +166,7 @@ export class SearchModal extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--dark-red);
+            color: var(--darker-grey);
             font: inherit;
             font-size: 13px;
             font-weight: 600;
@@ -202,7 +175,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .clear-all:hover { background: hsla(8, 70%, 44%, 0.07); }
+            .clear-all:hover { background: var(--lightest-grey); }
         }
 
         .clear-all:focus-visible {
@@ -211,7 +184,7 @@ export class SearchModal extends LitElement {
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .chip-pill, .clear-all { transition: none; }
+            .clear-all { transition: none; }
         }
 
         /* ── Filter button row ─────────────────────────────────────── */
@@ -376,7 +349,19 @@ export class SearchModal extends LitElement {
         this._langsLoading = false;
         this.barcodeHref   = '';
 
-        this._languageItems = LANGUAGE_OPTIONS;
+        // Availability options. Defaults to the built-in English list; the
+        // localized list (from the trigger's data-i18n) is set in
+        // initSearchModal before the modal first renders.
+        this._availabilityOptions = AVAILABILITY_OPTIONS;
+
+        // Chrome strings (labels, placeholders, status messages). Defaults to
+        // English; the translated set (from the trigger's data-i18n-ui) is set
+        // in initSearchModal before the modal first renders.
+        this._i18n = DEFAULT_SEARCH_MODAL_STRINGS;
+
+        // Curated set shown instantly; replaced by the real catalogue list
+        // (translated names, volume-ranked) once _loadAllLanguages() resolves.
+        this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
 
         this._availability = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
 
@@ -390,16 +375,15 @@ export class SearchModal extends LitElement {
         this._allLangsLoaded = false;
     }
 
-    attachToTrigger(input) {
-        if (!input) return;
-        const openModal = (e) => {
+    attachToTrigger(trigger) {
+        if (!trigger) return;
+        // The trigger is a <button>, so a click (incl. keyboard Enter/Space)
+        // is the open intent — focus alone should not pop the modal open.
+        trigger.addEventListener('click', (e) => {
             if (this.open) return;
-            e.preventDefault?.();
-            input.blur();
+            e.preventDefault();
             this._openModal();
-        };
-        input.addEventListener('focus', openModal);
-        input.addEventListener('click', openModal);
+        });
     }
 
     _openModal() {
@@ -414,45 +398,10 @@ export class SearchModal extends LitElement {
     async _loadAllLanguages() {
         this._langsLoading = true;
         try {
-            const res = await fetch(
-                '/search.json?q=*&facets=true&limit=0&facet=language',
-                { signal: AbortSignal.timeout?.(8000) }
-            );
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            const data = await res.json();
-
-            const raw = data?.facet_counts?.facet_fields?.language || [];
-
-            const codes = [];
-            for (let i = 0; i < raw.length; i += 2) {
-                if (typeof raw[i] === 'string') codes.push(raw[i]);
-            }
-
-            const staticMap = new Map(
-                LANGUAGE_OPTIONS.map(o => [o.value, o.label])
-            );
-
-            const merged = codes
-                .map(code => ({
-                    value: code,
-                    label: staticMap.get(code) || _titleCase(code),
-                }))
-                .filter(o => o.value);
-
-            const seen    = new Set();
-            const deduped = merged.filter(o => {
-                if (seen.has(o.value)) return false;
-                seen.add(o.value);
-                return true;
-            });
-            deduped.sort((a, b) => a.label.localeCompare(b.label));
-
-            this._languageItems  = deduped;
-            this._allLangsLoaded = true;
-        } catch {
-            this._allLangsLoaded = true;
+            this._languageItems = await fetchLanguageOptions();
         } finally {
-            this._langsLoading = false;
+            this._allLangsLoaded = true;
+            this._langsLoading   = false;
         }
     }
 
@@ -471,7 +420,7 @@ export class SearchModal extends LitElement {
                 fullscreen-on-mobile
                 width="large"
                 placement="top"
-                aria-label="Search Open Library"
+                aria-label=${this._i18n.dialogAria}
                 style="
                     --ol-dialog-padding: 0;
                     --ol-dialog-top-offset: 54px;
@@ -487,8 +436,8 @@ export class SearchModal extends LitElement {
                     <input
                         type="search"
                         class="search-input"
-                        placeholder="Search books, authors…"
-                        aria-label="Search"
+                        placeholder=${this._i18n.inputPlaceholder}
+                        aria-label=${this._i18n.inputAria}
                         .value=${this._query}
                         @input=${this._onQueryInput}
                         @keydown=${this._onInputKeydown}
@@ -497,8 +446,8 @@ export class SearchModal extends LitElement {
                         <a
                             href=${this.barcodeHref}
                             class="barcode-btn"
-                            aria-label="Scan a barcode"
-                            title="Scan barcode"
+                            aria-label=${this._i18n.scanAria}
+                            title=${this._i18n.scanTitle}
                         >
                             <img
                                 src="/static/images/icons/barcode_scanner.svg"
@@ -511,7 +460,7 @@ export class SearchModal extends LitElement {
                     <button
                         type="button"
                         class="esc-pill"
-                        aria-label="Close search"
+                        aria-label=${this._i18n.closeAria}
                         @click=${this._closeModal}
                     >ESC</button>
                 </div>
@@ -526,20 +475,25 @@ export class SearchModal extends LitElement {
                         class="see-all"
                         ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
                         @click=${this._onSeeAllResults}
-                    >See all results</button>
+                    >${this._i18n.seeAll}</button>
                 </div>
             </ol-dialog>
         `;
     }
 
     _renderChips() {
+        // Each active filter is a selected <ol-chip>: the `selected` state
+        // gives it the built-in close icon, and clicking it (ol-chip-select)
+        // removes the filter. `variant` tints the chip by category — neutral
+        // grey for the availability facet, green for languages.
         const chips = [];
 
         if (this._availability !== DEFAULT_AVAILABILITY) {
-            const opt = AVAILABILITY_OPTIONS.find(o => o.value === this._availability);
+            const opt = this._availabilityOptions.find(o => o.value === this._availability);
             if (opt) chips.push({
                 key: `availability:${opt.value}`,
                 label: opt.label,
+                variant: 'neutral',
                 onRemove: () => this._setAvailability(DEFAULT_AVAILABILITY),
             });
         }
@@ -550,48 +504,46 @@ export class SearchModal extends LitElement {
             chips.push({
                 key: `language:${value}`,
                 label: opt.label,
+                variant: 'language',
                 onRemove: () => this._removeLanguage(value),
             });
         }
 
         return html`
-            <div class="chips" role="group" aria-label="Active filters">
-                ${repeat(chips, c => c.key, c => html`
-                    <button
-                        type="button"
-                        class="chip-pill"
-                        aria-label="Remove filter: ${c.label}"
-                        @click=${c.onRemove}
-                    >
-                        ${c.label}
-                        <span class="chip-pill__remove" aria-hidden="true">
-                            ${SearchModal._closeIcon}
-                        </span>
-                    </button>
-                `)}
+            <div class="chips">
+                <ol-chip-group gap="small" aria-label=${this._i18n.activeFiltersAria}>
+                    ${repeat(chips, c => c.key, c => html`
+                        <ol-chip
+                            selected
+                            size="small"
+                            variant=${c.variant}
+                            accessible-label=${sprintf(this._i18n.removeFilter, c.label)}
+                            @ol-chip-select=${c.onRemove}
+                        >${c.label}</ol-chip>
+                    `)}
+                </ol-chip-group>
                 <button
                     type="button"
                     class="clear-all"
                     @click=${this._clearAllFilters}
-                >Clear all</button>
+                >${this._i18n.clearAll}</button>
             </div>
         `;
     }
 
     _renderFilters() {
         return html`
-            <div class="filters" role="group" aria-label="Search filters">
+            <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
                 <ol-options-popover
-                    label="Availability"
-                    heading="AVAILABILITY"
-                    .items=${AVAILABILITY_OPTIONS}
+                    label=${this._i18n.availabilityLabel}
+                    .items=${this._availabilityOptions}
                     .selected=${this._availability}
                     @ol-options-popover-change=${this._onAvailabilityChange}
                 ></ol-options-popover>
                 <ol-select-popover
-                    label="Language"
-                    placeholder="Search languages…"
-                    unselected-heading="LANGUAGES"
+                    label=${this._i18n.languageLabel}
+                    placeholder=${this._i18n.languagePlaceholder}
+                    unselected-heading=${this._i18n.languageHeading}
                     .items=${this._languageItems}
                     .selected=${this._languages}
                     @ol-select-popover-change=${this._onLanguagesChange}
@@ -604,20 +556,20 @@ export class SearchModal extends LitElement {
         const trimmed = this._query.trim();
 
         if (trimmed.length < MIN_QUERY_LENGTH) {
-            return html`<div class="results"><div class="placeholder">Start typing to search…</div></div>`;
+            return html`<div class="results"><div class="placeholder">${this._i18n.startTyping}</div></div>`;
         }
 
         if (this._loading && this._results.length === 0) {
-            return html`<div class="results"><div class="loading">Searching…</div></div>`;
+            return html`<div class="results"><div class="loading">${this._i18n.searching}</div></div>`;
         }
 
         if (this._results.length === 0 && this._hasSearched) {
-            return html`<div class="results"><div class="empty">No results found</div></div>`;
+            return html`<div class="results"><div class="empty">${this._i18n.noResults}</div></div>`;
         }
 
         return html`
             <div class="results">
-                <h3 class="results-heading">Top results</h3>
+                <h3 class="results-heading">${this._i18n.topResults}</h3>
                 <ul class="results-list">${repeat(this._results, r => r.key, r => this._renderResult(r))}</ul>
             </div>
         `;
@@ -632,7 +584,7 @@ export class SearchModal extends LitElement {
                 <a class="result" href=${work.key}>
                     <img class="result__cover" src=${cover} alt="" loading="lazy" width="36" height="50"/>
                     <span class="result__meta">
-                        <span class="result__title">${work.title || 'Untitled'}</span>
+                        <span class="result__title">${work.title || this._i18n.untitled}</span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
                     </span>
                 </a>
@@ -772,24 +724,29 @@ export class SearchModal extends LitElement {
     // ── Static SVGs ──────────────────────────────────────────────────────
 
     static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
-
-    static _closeIcon  = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
 
 /**
- * Mounts a single SearchModal and wires it to a header trigger input.
+ * Mounts a single SearchModal and wires it to the header search trigger button.
  * Idempotent – safe to call multiple times with the same element.
- * @param {HTMLInputElement} triggerInput
+ * @param {HTMLButtonElement} trigger
  * @returns {SearchModal|null}
  */
-export function initSearchModal(triggerInput) {
-    if (!triggerInput || triggerInput.dataset.olSearchModalAttached === 'true') {
+export function initSearchModal(trigger) {
+    if (!trigger || trigger.dataset.olSearchModalAttached === 'true') {
         return null;
     }
 
     const modal = document.createElement('ol-search-modal');
+
+    // Translated strings are rendered into the trigger's data-i18n
+    // (availability options) and data-i18n-ui (chrome) attributes by
+    // search/availability_i18n.html and search/search_modal_i18n.html. Apply
+    // them before the modal mounts so the first render is already localized.
+    modal._availabilityOptions = availabilityOptionsFromElement(trigger);
+    modal._i18n = searchModalStringsFromElement(trigger);
 
     const barcodeLink = document.querySelector('#barcode_scanner_link');
     if (barcodeLink) {
@@ -797,11 +754,7 @@ export function initSearchModal(triggerInput) {
     }
 
     document.body.appendChild(modal);
-    modal.attachToTrigger(triggerInput);
-    triggerInput.dataset.olSearchModalAttached = 'true';
+    modal.attachToTrigger(trigger);
+    trigger.dataset.olSearchModalAttached = 'true';
     return modal;
-}
-
-function _titleCase(str) {
-    return str ? str.charAt(0).toUpperCase() + str.slice(1) : str;
 }
