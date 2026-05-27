@@ -15,12 +15,20 @@ export function initHistory(pageHistoryElement){
         const compareBtns = pageHistoryElement.querySelectorAll('.compare-arbitrary-btn');
         compareBtns.forEach(btn => btn.remove());
 
+        // Clear any previous A/B row highlights before re-applying.
+        pageHistoryElement.querySelectorAll('tr.pick-ab-selected')
+            .forEach(row => row.classList.remove('pick-ab-selected'));
+
         if (checkedRadioA && checkedRadioB){
             const valA = parseInt(checkedRadioA.value, 10);
             const valB = parseInt(checkedRadioB.value, 10);
 
             const higherRev = Math.max(valA, valB);
             const lowerRev = Math.min(valA, valB);
+
+            // Highlight the rows currently chosen as A and B.
+            checkedRadioA.closest('tr').classList.add('pick-ab-selected');
+            checkedRadioB.closest('tr').classList.add('pick-ab-selected');
 
             const href = `?m=diff&a=${lowerRev}&b=${higherRev}`;
 

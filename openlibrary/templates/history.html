@@ -31,58 +31,59 @@ $ i18n_strings = {
         <thead>
             <tr>
                 <th class="numberhead" style="text-align:center;">$_("Rev")</th>
-                <th class="historyheader">$_("Edit")</th>
+                <th class="historyheader">$_("When")</th>
+                <th class="historyheader">$_("Who")</th>
+                <th class="historyheader">$_("Comment")</th>
                 <th class="historyheader" style="text-align:center;">$_("Diff")</th>
-                <th class="historyheader" style="text-align:center;">$_("Pick (A/B)")</th>
+                <th class="historyheader pick-ab-header">
+                    <span class="pick-ab__option">$_("A")</span>
+                    <span class="pick-ab__option">$_("B")</span>
+                </th>
             </tr>
         </thead>
         <tbody>
             $for v in h:
                 $ row_class = "history-current-row" if v.revision == rev else ""
+                $ comment_class = "comment" if v.comment else "comment comment--empty"
                 <tr class="$row_class">
                     <td class="number">
-                        <div>$v.revision</div>
-                        $if v.revision == rev:
-                            <div class="history-current-badge">$_("Current")</div>
+                        <a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$v.revision</a>
                     </td>
-                    <td class="edit">
-                        <div>
-                            $if v.comment:
-                                $:render_template("history/comment", v)
-                            $else:
-                                <span class="history-no-comment">$_("no comment")</span>
-                        </div>
-                        <div>
-                            $if v.author:
-                                <a href="$homepath()$v.author.key">$v.author.displayname</a>
-                            $elif v.ip and v.ip != '127.0.0.1':
-                                <a href="/recentchanges?ip=$v.ip">$v.ip</a>
-                            $else:
-                                $v.ip
-                            <span class="edit-date">· $datestr(v.created)</span>
-                        </div>
+                    <td class="when">
+                        $datestr(v.created)
                     </td>
-                    <td class="compare-against" style="text-align:center;">
-                        <a href="$page.key?m=diff&b=$v.revision">$_("See changes")</a>
+                    <td class="who">
+                        $if v.author:
+                            <a href="$homepath()$v.author.key">$v.author.displayname</a>
+                        $elif v.ip and v.ip != '127.0.0.1':
+                            <a href="/recentchanges?ip=$v.ip">$v.ip</a>
+                        $else:
+                            $v.ip
+                    </td>
+                    <td class="$comment_class">
+                        $if v.comment:
+                            $:render_template("history/comment", v)
+                    </td>
+                    <td class="compare-against">
+                        <a href="$page.key?m=diff&b=$v.revision">$_("Changes")</a>
                         $if v.revision != rev:
-                            &nbsp;
-                            <a href="$page.key?m=diff&b=$rev&a=$v.revision">$_("Compare against latest")</a>
+                            <a href="$page.key?m=diff&b=$rev&a=$v.revision" title="$_('Compare this revision with the current version')">$_("vs current")</a>
                     </td>
                     <td class="pick-ab">
-                        <fieldset>
+                        <fieldset class="pick-ab__radios">
                             <legend class="shift">
                                 $_("Pick revision %s as A or B for comparison", v.revision)
                             </legend>
-                            <label><input type="radio" name="a" value="$v.revision"
+                            <label class="pick-ab__option"><input type="radio" name="a" value="$v.revision"
                                 $if v.revision == rev - 1:
                                     checked
                                 $elif v.revision == rev:
                                     checked
-                            /> A</label>
-                            <label><input type="radio" name="b" value="$v.revision"
+                            /><span class="shift">$_("A")</span></label>
+                            <label class="pick-ab__option"><input type="radio" name="b" value="$v.revision"
                                 $if v.revision == rev:
                                     checked
-                            /> B</label>
+                            /><span class="shift">$_("B")</span></label>
                         </fieldset>
                     </td>
                 </tr>

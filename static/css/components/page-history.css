@@ -55,11 +55,7 @@ table.history td.detail {
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory thead tr th {
   font-weight: bold;
-}
-
-/* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory tr.history-current-row {
-  background-color: var(--lighter-yellow);
+  padding: 10px 12px;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -68,49 +64,73 @@ table#pageHistory tbody td.number {
   text-align: center;
 }
 
+/* Column sizing: When/Who hug their content, Comment absorbs the slack */
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory td.edit div {
-  color: var(--link-blue);
+table#pageHistory tbody td {
+  padding: 10px 12px;
+  vertical-align: top;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory tbody td.number div {
-  color: var(--link-blue);
+table#pageHistory td.when {
+  color: var(--grey);
+  white-space: nowrap;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory td.number .history-current-badge {
-  border: 1px solid var(--brown);
-  border-radius: 3px;
-  color: var(--brown);
-  display: inline-block;
-  font-size: 0.7em;
-  font-weight: bold;
-  margin-top: 4px;
-  padding: 1px 6px;
-  text-transform: uppercase;
+table#pageHistory td.who {
+  white-space: nowrap;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.comment {
+  width: 100%;
+}
+
+/* Keep the two diff buttons side by side on one row */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.compare-against {
+  white-space: nowrap;
+  text-align: center;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory .compare-against a {
   border: 1px solid var(--light-grey);
-  border-radius: 3px;
-  color: var(--link-blue);
+  border-radius: var(--border-radius-button);
+  color: var(--dark-grey);
   display: inline-block;
-  font-weight: bold;
+  min-width: 64px;
+  font-size: var(--font-size-label-small);
+  font-weight: 500;
   padding: 3px 8px;
+  text-align: center;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory td.edit a {
+table#pageHistory .compare-against a + a {
+  margin-left: 6px;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.who a {
   color: var(--link-blue);
   text-decoration: none;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory td.edit .edit-date {
-  color: var(--grey);
+table#pageHistory td.comment a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody td.number a {
+  color: var(--link-blue);
+  font-size: var(--font-size-label-medium);
+  text-decoration: none;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -119,10 +139,31 @@ table#pageHistory td.pick-ab {
   vertical-align: middle;
 }
 
+/* Align the single A | B header over the bare per-row radios */
 /* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory td.pick-ab fieldset {
+table#pageHistory th.pick-ab-header {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.pick-ab .pick-ab__radios {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+  border: 0;
   margin: 0;
   padding: 0;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .pick-ab__option {
+  width: 20px;
+  margin: 0;
+  text-align: center;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -130,23 +171,140 @@ table#pageHistory .compare-against a:hover {
   background-color: var(--lightest-grey);
 }
 
-.compare-arbitrary-btn {
-  background-color: var(--dark-blue);
-  border-radius: 3px;
-  color: var(--white) !important;
+/* Match the subtle bordered style of the Changes / vs current buttons */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-arbitrary-btn {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-button);
+  color: var(--dark-grey);
   display: inline-block;
-  font-weight: bold;
+  font-size: var(--font-size-label-small);
+  font-weight: 500;
   margin-top: 6px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   text-align: center;
-  text-decoration: none !important;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.compare-arbitrary-btn:hover {
-  opacity: 0.85;
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-arbitrary-btn:hover {
+  background-color: var(--lightest-grey);
 }
 
-.history-no-comment {
-  color: var(--mid-grey);
-  font-style: italic;
+/* Mark the rows chosen as A / B with a left accent bar in the */
+/* selection outline color — inset shadow avoids shifting cell content */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody tr.pick-ab-selected td.number {
+  box-shadow: inset 3px 0 0 var(--color-focus-ring);
+}
+
+/* Mobile: collapse the table into stacked, card-like rows */
+@media only screen and (max-width: 768px /* --width-breakpoint-tablet */) {
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory thead {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody {
+    display: block;
+  }
+
+  /* rev # gutter | stacked who / when / comment / actions | A-B radio column */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "rev who     pick"
+      "rev when    pick"
+      "rev comment pick"
+      "rev diff    pick";
+    gap: 2px 14px;
+    align-items: start;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--grey-e7e7e7);
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.number {
+    grid-area: rev;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.who {
+    grid-area: who;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.when {
+    grid-area: when;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.comment {
+    grid-area: comment;
+    margin-top: 4px;
+  }
+
+  /* A commentless revision shouldn't reserve a row or its gaps */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.comment--empty {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr:has(td.comment--empty) {
+    grid-template-areas:
+      "rev who  pick"
+      "rev when pick"
+      "rev diff pick";
+  }
+
+  /* Uniform weight and size across the rev #, who, when, and comment */
+  /* stylelint-disable selector-max-specificity */
+  table#pageHistory tbody td.number,
+  table#pageHistory td.who,
+  table#pageHistory td.when,
+  table#pageHistory td.comment {
+    font-size: 0.85rem;
+    font-weight: normal;
+  }
+  /* stylelint-enable selector-max-specificity */
+
+  /* Changes / vs current share one left-aligned row */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.compare-against {
+    grid-area: diff;
+    text-align: left;
+  }
+
+  /* Let the radios and any injected compare button join the row's own grid */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.pick-ab {
+    display: contents;
+  }
+
+  /* Radios ride in the right column, top-aligned with the rev # */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.pick-ab .pick-ab__radios {
+    grid-area: pick;
+  }
+
+  /* Injected "Compare A with B" button drops to its own full-width row */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory .compare-arbitrary-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+    margin-top: 4px;
+  }
 }
