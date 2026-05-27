@@ -71,6 +71,8 @@ COPY --chown=openlibrary:openlibrary requirements*.txt ./
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # This is needed so we install packages into the system python instead of needing venv
 ENV UV_SYSTEM_PYTHON=1
+# Util to make scripts like copydocs work without needing to manually specify PYTHONPATH
+ENV PYTHONPATH=/openlibrary
 USER root
 RUN uv pip install --upgrade wheel
 RUN uv pip install -r requirements.txt
