@@ -1,0 +1,108 @@
+$def with()
+
+<article class="design-pattern" id="options-popover">
+    <h2 class="design-pattern__title">Options Popover</h2>
+    <p class="design-pattern__description">The ol-options-popover component pairs a trigger button with a popover containing a single-select list of rich options. Each option can carry a label, a description, and a count, making it a good fit for filters with a small fixed set of mutually exclusive choices. Use ol-select-popover instead when the user can pick multiple values or filter a long list.</p>
+
+    <section class="example">
+      <h3 class="example__title">Availability filter</h3>
+      <p>The canonical use case from the search bar. Each item is a <code>{ value, label, description, count }</code> object. The selected value is exposed via the <code>selected</code> attribute and the <code>ol-options-popover-change</code> event; the trigger itself stays fixed (the selection is usually surfaced separately, e.g. in a chip row).</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-options-popover
+  label="Availability"
+  selected="all"
+  items='[
+    {"value":"all","label":"Full Card Catalog","description":"Info on every book","count":"~50M"},
+    {"value":"readable","label":"Readable Books Only","description":"Older digitized, preserved","count":"~4.6M"}
+  ]'&gt;
+&lt;/ol-options-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-options-popover
+          id="demo-options-availability"
+          label="Availability"
+          selected="all"
+          aria-label="Availability filter"
+        ></ol-options-popover>
+        <p style="margin-top: 12px; font-size: 13px;">
+          Selected: <strong id="demo-options-availability-out">all</strong>
+        </p>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-options-availability');
+          var out = document.getElementById('demo-options-availability-out');
+          el.items = [
+            { value: 'all', label: 'Full Card Catalog', description: 'Info on every book in our catalog', count: '~50M' },
+            { value: 'readable', label: 'Readable Books Only', description: 'Older digitized, preserved, physical books', count: '~4.6M' },
+            { value: 'borrowable', label: 'Borrowable Books', description: 'Books you can check out for free', count: '~2M' },
+            { value: 'open', label: 'Always Available', description: 'Public domain books, free to read forever', count: '~1.2M' }
+          ];
+          el.addEventListener('ol-options-popover-change', function(e) {
+            out.textContent = e.detail.selected;
+          });
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Compact options (no description or count)</h3>
+      <p>Description and count are optional. With just <code>value</code> and <code>label</code> the rows render as a tidy single-select menu — useful for a sort order or layout switcher. The list heading defaults to the uppercased <code>label</code>; override it with <code>heading</code>.</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-options-popover
+  label="Sort by"
+  heading="SORT ORDER"
+  selected="relevance"
+  items='[{"value":"relevance","label":"Relevance"}, ...]'&gt;
+&lt;/ol-options-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-options-popover
+          id="demo-options-sort"
+          label="Sort by"
+          heading="SORT ORDER"
+          selected="relevance"
+          aria-label="Sort order"
+        ></ol-options-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-options-sort');
+          el.items = [
+            { value: 'relevance', label: 'Relevance' },
+            { value: 'newest', label: 'Date added (newest)' },
+            { value: 'oldest', label: 'Date added (oldest)' },
+            { value: 'title', label: 'Title (A–Z)' },
+            { value: 'rating', label: 'Rating' }
+          ];
+        })();
+      </script>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">Custom trigger via slot</h3>
+      <p>Provide your own trigger element with <code>slot="trigger"</code> when the default button doesn't fit. The component still handles open/close, ARIA wiring, and keyboard navigation (arrow keys, Home/End, and Escape).</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-options-popover label="Availability" items="..."&gt;
+  &lt;button slot="trigger"&gt;Filter availability&lt;/button&gt;
+&lt;/ol-options-popover&gt;</code></pre>
+      <div class="example__output">
+        <ol-options-popover
+          id="demo-options-custom"
+          label="Availability"
+          selected="readable"
+          aria-label="Availability filter"
+        >
+          <button
+            slot="trigger"
+            style="padding: 8px 16px; border-radius: 8px; border: 1px solid hsl(0,0%,87%); cursor: pointer; background: #fff; font: inherit; font-size: 14px;"
+          >Filter availability</button>
+        </ol-options-popover>
+      </div>
+      <script>
+        (function() {
+          var el = document.getElementById('demo-options-custom');
+          el.items = [
+            { value: 'all', label: 'Full Card Catalog', count: '~50M' },
+            { value: 'readable', label: 'Readable Books Only', count: '~4.6M' },
+            { value: 'borrowable', label: 'Borrowable Books', count: '~2M' }
+          ];
+        })();
+      </script>
+    </section>
+  </article>
