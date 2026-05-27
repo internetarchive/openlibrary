@@ -713,11 +713,19 @@ msgstr ""
 
 #: history.html
 #, python-format
-msgid "Compare %(a)s with %(b)s"
+msgid "Compare revisions %(a)s and %(b)s"
 msgstr ""
 
 #: history.html
 msgid "History of edits to"
+msgstr ""
+
+#: history.html
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
 msgstr ""
 
 #: history.html

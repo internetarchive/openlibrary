@@ -15,7 +15,7 @@ $var title: $name
 $ rev = page.latest_revision or page.revision
 
 $ i18n_strings = {
-    $ "compare_label": _("Compare %(a)s with %(b)s"),
+    $ "compare_label": _("Compare revisions %(a)s and %(b)s"),
     $ }
 
 <div id="contentHead">
@@ -25,6 +25,11 @@ $ i18n_strings = {
 </div>
 <div id="contentBody">
         $:macros.OlPagination(page_num, total_pages)
+
+        <div id="pageHistoryCompare" class="page-history-compare" role="region" aria-label="$_('Revision comparison')" aria-live="polite" hidden>
+            <a class="page-history-compare__submit is-disabled" data-compare-link aria-disabled="true" tabindex="-1"></a>
+            <button type="button" class="page-history-compare__clear" data-compare-clear aria-label="$_('Clear comparison')">&times;</button>
+        </div>
 
         <form action="">
         <table id="pageHistory" data-i18n="$json_encode(i18n_strings)">
@@ -74,16 +79,8 @@ $ i18n_strings = {
                             <legend class="shift">
                                 $_("Pick revision %s as A or B for comparison", v.revision)
                             </legend>
-                            <label class="pick-ab__option"><input type="radio" name="a" value="$v.revision"
-                                $if v.revision == rev - 1:
-                                    checked
-                                $elif v.revision == rev:
-                                    checked
-                            /><span class="shift">$_("A")</span></label>
-                            <label class="pick-ab__option"><input type="radio" name="b" value="$v.revision"
-                                $if v.revision == rev:
-                                    checked
-                            /><span class="shift">$_("B")</span></label>
+                            <label class="pick-ab__option"><input type="radio" name="a" value="$v.revision" /><span class="shift">$_("A")</span></label>
+                            <label class="pick-ab__option"><input type="radio" name="b" value="$v.revision" /><span class="shift">$_("B")</span></label>
                         </fieldset>
                     </td>
                 </tr>

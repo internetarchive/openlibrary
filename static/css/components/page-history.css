@@ -27,7 +27,7 @@
 table.history {
   width: 100%;
   margin-top: 10px;
-  border-top: 1px solid var(--grey-e7e7e7);
+  border-top: var(--border-table);
 }
 
 table.history tr:last-child {
@@ -38,7 +38,7 @@ table.history td {
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  border-bottom: var(--border-table);
 }
 
 table.history td.timestamp {
@@ -91,7 +91,6 @@ table#pageHistory td.comment {
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory td.compare-against {
   white-space: nowrap;
-  text-align: center;
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
@@ -171,25 +170,73 @@ table#pageHistory .compare-against a:hover {
   background-color: var(--lightest-grey);
 }
 
-/* Match the subtle bordered style of the Changes / vs current buttons */
-/* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory .compare-arbitrary-btn {
-  border: 1px solid var(--light-grey);
-  border-radius: var(--border-radius-button);
+/* Sticky card holding the cross-page A/B selection and Compare action (#12628) */
+.page-history-compare {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-level-1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding: 8px 12px;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--beige-pale);
   color: var(--dark-grey);
-  display: inline-block;
-  font-size: var(--font-size-label-small);
-  font-weight: 500;
-  margin-top: 6px;
-  padding: 3px 8px;
-  text-align: center;
-  text-decoration: none;
-  white-space: nowrap;
+  font-size: var(--font-size-label-medium);
 }
 
-/* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory .compare-arbitrary-btn:hover {
-  background-color: var(--lightest-grey);
+.page-history-compare[hidden] {
+  display: none;
+}
+
+/* Match the bordered style of the in-table Changes / vs current buttons. */
+/* Qualify with `a` so this beats the global `a:link` underline/blue rule. */
+a.page-history-compare__submit {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-button);
+  background: var(--white);
+  color: var(--dark-grey);
+  font-size: var(--font-size-label-small);
+  font-weight: 500;
+  padding: 3px 10px;
+  text-decoration: none;
+}
+
+.page-history-compare__submit:hover {
+  background: var(--lightest-grey);
+}
+
+.page-history-compare__submit.is-disabled {
+  border-color: var(--lighter-grey);
+  background: transparent;
+  color: var(--mid-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.page-history-compare__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-button);
+  background: transparent;
+  color: var(--grey);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page-history-compare__clear:hover {
+  background: var(--light-grey);
+  color: var(--dark-grey);
 }
 
 /* Mark the rows chosen as A / B with a left accent bar in the selection */
@@ -226,7 +273,7 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
     gap: 2px 14px;
     align-items: start;
     padding: 14px 4px;
-    border-bottom: 1px solid var(--grey-e7e7e7);
+    border-bottom: var(--border-table);
   }
 
   /* stylelint-disable-next-line selector-max-specificity */
@@ -285,7 +332,6 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
   /* stylelint-disable-next-line selector-max-specificity */
   table#pageHistory td.compare-against {
     grid-area: diff;
-    text-align: left;
   }
 
   /* Let the radios and any injected compare button join the row's own grid */
@@ -298,16 +344,6 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
   /* stylelint-disable-next-line selector-max-specificity */
   table#pageHistory td.pick-ab .pick-ab__radios {
     grid-area: pick;
-  }
-
-  /* Injected "Compare A with B" button drops to its own row, left edge */
-  /* aligned with the Changes / vs current buttons (the middle column), */
-  /* not the rev # gutter. */
-  /* stylelint-disable-next-line selector-max-specificity */
-  table#pageHistory .compare-arbitrary-btn {
-    grid-column: 2 / -1;
-    justify-self: start;
-    margin-top: 4px;
   }
 
   /* No A / B accent bar on mobile: the desktop bar lives on the number cell, */
