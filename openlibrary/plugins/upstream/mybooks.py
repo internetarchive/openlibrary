@@ -74,12 +74,26 @@ class mybooks_home(delegate.page):
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
             loans = web.Storage({"docs": [], "total_results": len(myloans)})
-            # TODO: should do in one web.ctx.get_many fetch
+
+            # Collect all book keys first so we can batch-load them in one call.
+            book_keys = [loan["book"] for loan in myloans]
+
+            # Batch fetch all books instead of calling site.get(...) inside the loop.
+            books = web.ctx.site.get_many(book_keys)
+
+            # Build a mapping from book key -> book object.
+            # This avoids relying on get_many() returning results in the same order
+            # as the original book_keys / myloans list.
+            books_by_key = {book.key: book for book in books if book}
+
             for loan in myloans:
-                # Book will be None if no OL edition exists for the book
-                if book := web.ctx.site.get(loan["book"]):
+                # Book will be None if no OL edition exists for the book.
+                # Match each loan to its book using the book key, not list position.
+
+                if book := books_by_key.get(loan["book"]):
                     book.loan = loan
                     loans.docs.append(book)
+
             docs["loans"] = loans
 
         if mb.me or mb.is_public:
@@ -575,38 +589,57 @@ class PatronBooknotes:
 
     def get_notes(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         notes = Booknotes.get_notes_grouped_by_work(self.username, limit=limit, page=page)
+        if not notes:
+            return notes
 
-        for entry in notes:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in notes]
+        works = web.ctx.site.get_many(work_keys)
+        works_by_key = {work.key: work for work in works}
+        author_keys = list(dict.fromkeys(a.author.key for work_key in work_keys for a in works_by_key[work_key].get("authors", [])))
+        authors_by_key = {author.key: author for author in web.ctx.site.get_many(author_keys)} if author_keys else {}
+        work_details_by_key = {work_key: self._get_work_details(works_by_key[work_key], authors_by_key=authors_by_key) for work_key in work_keys}
+
+        edition_ids = list(dict.fromkeys(note["edition_id"] for entry in notes for note in entry["notes"] if note["edition_id"] != Booknotes.NULL_EDITION_VALUE))
+        edition_keys_by_id = {edition_id: f"/books/OL{edition_id}M" for edition_id in edition_ids}
+        editions_by_key = {edition.key: edition for edition in web.ctx.site.get_many(list(edition_keys_by_id.values()))} if edition_keys_by_id else {}
+
+        for entry, work_key in zip(notes, work_keys):
+            entry["work_key"] = work_key
+            entry["work"] = works_by_key[work_key]
+            entry["work_details"] = work_details_by_key[work_key]
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: web.ctx.site.get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+            entry["editions"] = {k: editions_by_key[edition_keys_by_id[k]] for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
         observations = Observations.get_observations_grouped_by_work(self.username, limit=limit, page=page)
 
-        for entry in observations:
-            entry["work_key"] = f"/works/OL{entry['work_id']}W"
-            entry["work"] = self._get_work(entry["work_key"])
-            entry["work_details"] = self._get_work_details(entry["work"])
+        work_keys = [f"/works/OL{entry['work_id']}W" for entry in observations]
+        works = web.ctx.site.get_many(work_keys)
+        works_by_key = {work.key: work for work in works}
+
+        for entry, work_key in zip(observations, work_keys):
+            work = works_by_key[work_key]
+            entry["work_key"] = work_key
+            entry["work"] = work
+            entry["work_details"] = self._get_work_details(work)
+
             ids = {}
             for item in entry["observations"]:
                 ids[item["observation_type"]] = item["observation_values"]
             entry["observations"] = convert_observation_ids(ids)
+
         return observations
 
-    def _get_work(self, work_key: str) -> "Work | None":
-        return web.ctx.site.get(work_key)
-
-    def _get_work_details(self, work: "Work") -> dict[str, list[str] | str | int | None]:
+    def _get_work_details(self, work: "Work", authors_by_key: dict[str, Any] | None = None) -> dict[str, list[str] | str | int | None]:
         author_keys = [a.author.key for a in work.get("authors", [])]
+        if authors_by_key is None:
+            authors_by_key = {a.key: a for a in web.ctx.site.get_many(author_keys)}
 
         return {
             "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
             "title": work.get("title"),
-            "authors": [a.name for a in web.ctx.site.get_many(author_keys)],
+            "authors": [authors_by_key[key].name for key in author_keys if key in authors_by_key],
             "first_publish_year": work.first_publish_year or None,
         }
 

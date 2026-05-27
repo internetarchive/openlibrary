@@ -29,6 +29,9 @@ class bulk_tag_works(delegate.page):
         tags_to_add = json.loads(i.tags_to_add or "{}")
         tags_to_remove = json.loads(i.tags_to_remove or "{}")
 
+        work_keys = [f"/works/{work}" for work in works]
+        work_docs = {doc.key: doc for doc in web.ctx.site.get_many(work_keys) if doc}
+
         docs_to_update = []
         # Number of tags added per work:
         docs_adding = 0
@@ -36,7 +39,9 @@ class bulk_tag_works(delegate.page):
         docs_removing = 0
 
         for work in works:
-            w = web.ctx.site.get(f"/works/{work}")
+            w = work_docs.get(f"/works/{work}")
+            if not w:
+                continue
 
             current_subjects = {
                 # XXX : Should an empty list be the default for these?
