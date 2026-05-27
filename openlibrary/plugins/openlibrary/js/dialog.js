@@ -11,18 +11,18 @@ function initConfirmationDialogs() {
     const CONFIRMATION_PROMPT_DEFAULTS = { autoOpen: false, modal: true };
     $('#noMaster').dialog(CONFIRMATION_PROMPT_DEFAULTS);
 
-    const $confirmMerge = $('#confirmMerge')
+    const $confirmMerge = $('#confirmMerge');
     if ($confirmMerge.length) {
         $confirmMerge.dialog(
             $.extend({}, CONFIRMATION_PROMPT_DEFAULTS, {
                 buttons: {
                     'Yes, Merge': function() {
-                        const commentInput = document.querySelector('#author-merge-comment')
+                        const commentInput = document.querySelector('#author-merge-comment');
                         if (commentInput.value) {
-                            document.querySelector('#hidden-comment-input').value = commentInput.value
+                            document.querySelector('#hidden-comment-input').value = commentInput.value;
                         }
                         $('#mergeForm').trigger('submit');
-                        $(this).parents().find('button').attr('disabled','disabled');
+                        $(this).parents().find('button').attr('disabled', 'disabled');
                     },
                     'No, Cancel': function() {
                         $(this).dialog('close');
@@ -53,7 +53,7 @@ export function initPreviewDialogs() {
     // Delegated click handler for Book Preview buttons.
     // Uses event delegation so dynamically-added buttons (e.g. from
     // lazy-loaded carousels) work without re-initialization.
-    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function (e) {
+    $(document).off('click.bookPreview').on('click.bookPreview', '[data-book-preview]', function(e) {
         e.preventDefault();
         const $button = $(this);
         $.colorbox({
@@ -83,7 +83,7 @@ export function initPreviewDialogs() {
  * communicates where the HTML of that dialog lives.
  */
 export function initDialogs() {
-    $('.dialog--open').on('click', function () {
+    $('.dialog--open').on('click', function() {
         const $link = $(this),
             href = `#${$link.attr('aria-controls')}`;
 
@@ -107,6 +107,6 @@ export function initDialogs() {
  */
 export function initDialogClosers(closers) {
     closers.forEach(closer => {
-        $(closer).on('click', () => $.fn.colorbox.close())
-    })
+        $(closer).on('click', () => $.fn.colorbox.close());
+    });
 }

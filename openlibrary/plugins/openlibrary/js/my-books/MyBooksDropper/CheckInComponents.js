@@ -102,7 +102,7 @@ export class CheckInComponents {
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
-                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedSubmitCheckIn).show();
                 });
         });
 
@@ -134,8 +134,7 @@ export class CheckInComponents {
                     this.checkInPrompt.show();
                 })
                 .catch(() => {
-                    // TODO : Use localized strings
-                    new PersistentToast('Failed to delete check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedDeleteCheckIn).show();
                 })
                 .finally(() => {
                     this.closeModal();
@@ -155,8 +154,7 @@ export class CheckInComponents {
                     this.updateDateAndShowDisplay(year, month, day);
                 })
                 .catch(() => {
-                    // TODO : Use localized strings
-                    new PersistentToast('Failed to submit check-in.  Please try again in a few moments.').show();
+                    new PersistentToast(this.config.i18n.failedSubmitCheckIn).show();
                 })
                 .finally(() => {
                     this.closeModal();

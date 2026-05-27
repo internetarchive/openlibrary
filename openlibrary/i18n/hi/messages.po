@@ -18,12 +18,12 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-# Note: The Unicode Consortium guidelines were considered, and this specific
-# pluralization rule was chosen to align with common usage and linguistic
-# characteristics in Hindi.
 "Generated-By: Babel 2.9.1\n"
 "X-Generator: Poedit 3.4.2\n"
 
+# Note: The Unicode Consortium guidelines were considered, and this specific
+# pluralization rule was chosen to align with common usage and linguistic
+# characteristics in Hindi.
 #: account.html:7 account.html:15 account/notifications.html:13 account/privacy.html:13
 #: lib/nav_head.html:15 type/user/view.html:27
 msgid "Settings"

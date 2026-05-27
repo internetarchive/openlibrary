@@ -51,9 +51,9 @@ export class Carousel {
         /** @type {jquery} */
         this.$container = $container;
 
-        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
-        this.i18n = {loading: ''}; // Default to blank so carousels still work if the i18n input is missing.
-        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
+        // This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        this.i18n = {loading: ''}; // Allow loading to continue if translated text is missing.
+        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]');
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
         }
@@ -144,7 +144,7 @@ export class Carousel {
     }
 
     fetchPartials() {
-        const loadMore = this.loadMore
+        const loadMore = this.loadMore;
         const url = buildPartialsUrl('CarouselLoadMore', {
             queryType: loadMore.queryType,
             q: loadMore.q,
@@ -162,8 +162,8 @@ export class Carousel {
         $.ajax({url: url, type: 'GET'})
             .then((results) => {
                 this.removeLoadingSlide();
-                const cards = results.partials || []
-                cards.forEach(card => this.slick.addSlide(card))
+                const cards = results.partials || [];
+                cards.forEach(card => this.slick.addSlide(card));
 
                 if (!cards.length) {
                     loadMore.allDone = true;
@@ -173,7 +173,7 @@ export class Carousel {
             .fail(() => {
                 this.removeLoadingSlide();
                 loadMore.locked = false;
-            })
+            });
     }
 
     clearCarousel() {

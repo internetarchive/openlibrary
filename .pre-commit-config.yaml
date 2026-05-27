@@ -52,39 +52,6 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
-        # Exclude files currently touched by open (non-draft) PRs to avoid merge conflicts.
-        # List generated with: gh pr list --state open --draft=false --json files --jq '.[].files[].path' | sort | uniq
-        # Uses YAML literal block scalar (|) + (?x) verbose regex flag so each file is on
-        # its own line. Unlike >- (folded scalar), | preserves newlines exactly. The (?x)
-        # flag tells Python's re engine to ignore all whitespace/newlines in the pattern,
-        # so the leading | on each line works correctly as an alternation operator.
-        exclude: |
-          (?x)^(
-            openlibrary/accounts/model\.py
-            |openlibrary/core/models\.py
-            |openlibrary/plugins/openlibrary/api\.py
-            |openlibrary/plugins/openlibrary/code\.py
-            |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/worksearch/code\.py
-            |openlibrary/plugins/worksearch/schemes/works\.py
-          )$
-
-  - repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 26.3.1
-    hooks:
-      - id: black  # See pyproject.toml for args
-        # Complement to ruff-format above: black runs ONLY on files in active open PRs
-        # (the same set ruff-format excludes). Uses same (?x) + | literal block approach.
-        files: |
-          (?x)^(
-            openlibrary/accounts/model\.py
-            |openlibrary/core/models\.py
-            |openlibrary/plugins/openlibrary/api\.py
-            |openlibrary/plugins/openlibrary/code\.py
-            |openlibrary/plugins/openlibrary/lists\.py
-            |openlibrary/plugins/worksearch/code\.py
-            |openlibrary/plugins/worksearch/schemes/works\.py
-          )$
 
   - repo: https://github.com/MarcoGorelli/cython-lint
     rev: v0.19.0
