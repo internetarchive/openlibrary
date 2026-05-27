@@ -712,6 +712,11 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare %(a)s with %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 

@@ -14,6 +14,10 @@ $var title: $name
 
 $ rev = page.latest_revision or page.revision
 
+$ i18n_strings = {
+    $ "compare_label": _("Compare %(a)s with %(b)s"),
+    $ }
+
 <div id="contentHead">
     $:macros.databarHistory(page)
     <span class="lightgreen smallest sansserif">$_("History of edits to")</span>
@@ -23,7 +27,7 @@ $ rev = page.latest_revision or page.revision
         $:macros.OlPagination(page_num, total_pages)
 
         <form action="">
-        <table id="pageHistory">
+        <table id="pageHistory" data-i18n="$json_encode(i18n_strings)">
         <thead>
             <tr>
                 <th class="numberhead" style="text-align:center;">$_("Rev")</th>

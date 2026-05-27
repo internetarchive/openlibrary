@@ -6,12 +6,13 @@
  */
 export function initHistory(pageHistoryElement){
     const radios = pageHistoryElement.querySelectorAll('input[name="a"], input[name="b"]');
+    const i18nStrings = JSON.parse(pageHistoryElement.dataset.i18n);
 
     function updateCompareButton() {
         const checkedRadioA = pageHistoryElement.querySelector('input[name="a"]:checked');
         const checkedRadioB = pageHistoryElement.querySelector('input[name="b"]:checked');
 
-        var compareBtns = pageHistoryElement.querySelectorAll('.compare-arbitrary-btn');
+        const compareBtns = pageHistoryElement.querySelectorAll('.compare-arbitrary-btn');
         compareBtns.forEach(btn => btn.remove());
 
         if (checkedRadioA && checkedRadioB){
@@ -25,7 +26,9 @@ export function initHistory(pageHistoryElement){
 
             const link = document.createElement('a');
             link.href = href;
-            link.textContent = `Compare ${lowerRev} with ${higherRev}`;
+            link.textContent = i18nStrings.compare_label
+                .replace('%(a)s', lowerRev)
+                .replace('%(b)s', higherRev);
             link.className = 'compare-arbitrary-btn';
 
             const lowerRadio = pageHistoryElement.querySelector(`input[name="a"][value="${lowerRev}"]`);
