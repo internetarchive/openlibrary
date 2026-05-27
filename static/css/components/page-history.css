@@ -192,8 +192,10 @@ table#pageHistory .compare-arbitrary-btn:hover {
   background-color: var(--lightest-grey);
 }
 
-/* Mark the rows chosen as A / B with a left accent bar in the */
-/* selection outline color — inset shadow avoids shifting cell content */
+/* Mark the rows chosen as A / B with a left accent bar in the selection */
+/* outline color — inset shadow avoids shifting cell content. The number */
+/* cell stretches to the full row height on desktop, so the bar spans the */
+/* row; mobile drops it (the cell is only as tall as the rev number there). */
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory tbody tr.pick-ab-selected td.number {
   box-shadow: inset 3px 0 0 var(--color-focus-ring);
@@ -253,7 +255,6 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
   /* stylelint-disable-next-line selector-max-specificity */
   table#pageHistory td.comment {
     grid-area: comment;
-    margin-top: 4px;
   }
 
   /* A commentless revision shouldn't reserve a row or its gaps */
@@ -270,13 +271,12 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
       "rev diff pick";
   }
 
-  /* Uniform weight and size across the rev #, who, when, and comment */
+  /* Uniform weight across the rev #, who, when, and comment */
   /* stylelint-disable selector-max-specificity */
   table#pageHistory tbody td.number,
   table#pageHistory td.who,
   table#pageHistory td.when,
   table#pageHistory td.comment {
-    font-size: 0.85rem;
     font-weight: normal;
   }
   /* stylelint-enable selector-max-specificity */
@@ -300,11 +300,21 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
     grid-area: pick;
   }
 
-  /* Injected "Compare A with B" button drops to its own full-width row */
+  /* Injected "Compare A with B" button drops to its own row, left edge */
+  /* aligned with the Changes / vs current buttons (the middle column), */
+  /* not the rev # gutter. */
   /* stylelint-disable-next-line selector-max-specificity */
   table#pageHistory .compare-arbitrary-btn {
-    grid-column: 1 / -1;
+    grid-column: 2 / -1;
     justify-self: start;
     margin-top: 4px;
+  }
+
+  /* No A / B accent bar on mobile: the desktop bar lives on the number cell, */
+  /* which here is only as tall as the rev number and renders as a stub. The */
+  /* filled radio already signals the selection, so just drop the bar. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr.pick-ab-selected td.number {
+    box-shadow: none;
   }
 }
