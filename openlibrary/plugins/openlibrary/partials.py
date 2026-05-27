@@ -1,15 +1,11 @@
-import logging
-import os
-import re
-import time as _time
 from dataclasses import dataclass
+from functools import cache as functools_cache
 from hashlib import md5
 from pathlib import Path
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
-from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 
 from infogami.utils.view import public, render_template
@@ -297,29 +293,32 @@ def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
     ]
 
 
-_JINJA_ENV = Environment(
-    loader=FileSystemLoader(Path(__file__).resolve().parent.parent.parent / "macros"),
-    autoescape=True,
-)
-_JINJA_ENV.globals["_"] = _
+@functools_cache
+def _get_jinja_env():
+    """Lazily initialize and return the Jinja2 environment (cached after first call).
 
-_EXPERIMENT_LOGGER = logging.getLogger("openlibrary.jinja_experiment")
-_JINJA_EXPERIMENT_ENABLED = os.getenv("OL_JINJA_EXPERIMENT") == "1"
+    Per Jinja docs, a single Environment instance should be reused to take
+    advantage of template compilation caching.
+    """
+    from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-
-def _normalize_html(html: str) -> str:
-    """Collapse all non-semantic whitespace in HTML for comparison between engines."""
-    html = re.sub(r">\s+<", "><", html)
-    html = re.sub(r"\s{2,}", " ", html)
-    return html.strip()
+    env = Environment(
+        loader=FileSystemLoader(Path(__file__).resolve().parent.parent.parent / "macros"),
+        autoescape=True,
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    env.globals["_"] = _
+    return env
 
 
 def _render_affiliate_links_jinja(
     primary_stores: list[AffiliateStore],
     more_stores: list[AffiliateStore],
 ) -> str:
-    """Render affiliate links using Jinja2 for experiment comparison."""
-    template = _JINJA_ENV.get_template("AffiliateLinks.html.jinja")
+    """Render affiliate links using Jinja2."""
+    template = _get_jinja_env().get_template("AffiliateLinks.html.jinja")
     return template.render(
         primary_stores=primary_stores,
         more_stores=more_stores,
@@ -335,6 +334,7 @@ class AffiliateLinksPartial:
         isbn: str | None,
         asin: str | None,
         prices: bool,
+        jinja: bool = False,
     ) -> dict:
         from openlibrary.plugins.openlibrary.code import is_bot
 
@@ -354,33 +354,13 @@ class AffiliateLinksPartial:
         primary_stores = build_primary_stores(ctx)
         more_stores = build_more_stores(ctx)
 
-        t0 = _time.perf_counter()
-        macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
-        templetor_html = str(macro)
-        t1 = _time.perf_counter()
+        if jinja:
+            html = _render_affiliate_links_jinja(primary_stores, more_stores)
+        else:
+            macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
+            html = str(macro)
 
-        if _JINJA_EXPERIMENT_ENABLED:
-            t2 = _time.perf_counter()
-            try:
-                jinja2_html = _render_affiliate_links_jinja(primary_stores, more_stores)
-                t3 = _time.perf_counter()
-                match = _normalize_html(templetor_html) == _normalize_html(jinja2_html)
-                _EXPERIMENT_LOGGER.info(
-                    "Jinja2 experiment | match=%s templetor_ms=%.2f jinja2_ms=%.2f | title=%s isbn=%s",
-                    match,
-                    (t1 - t0) * 1000,
-                    (t3 - t2) * 1000,
-                    title,
-                    isbn,
-                )
-            except Exception:
-                _EXPERIMENT_LOGGER.exception(
-                    "Jinja2 experiment failed | title=%s isbn=%s",
-                    title,
-                    isbn,
-                )
-
-        return {"partials": templetor_html}
+        return {"partials": html}
 
 
 class SearchFacetsPartial:

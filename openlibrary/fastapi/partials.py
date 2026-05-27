@@ -54,12 +54,15 @@ async def search_facets_partial(
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
 async def affiliate_links_partial(
     data: Annotated[str, Query(description="JSON-encoded data with book information")],
+    jinja: Annotated[bool, Query(description="Use Jinja2 template instead of Templetor")] = False,
 ) -> dict:
     """
     Get affiliate links HTML for a book.
 
     The data parameter should contain:
     - args: list with [title, opts] where opts is a dict with optional isbn
+
+    Optionally pass jinja=true to render with the Jinja2 template (for testing).
     """
     try:
         parsed_data = json.loads(data)
@@ -76,6 +79,7 @@ async def affiliate_links_partial(
         isbn=opts.get("isbn", None),
         asin=opts.get("asin", None),
         prices=opts.get("prices", False),
+        jinja=jinja,
     )
 
 

@@ -47,11 +47,14 @@ MACROS_DIR = PROJECT_ROOT / "macros"
 
 def _make_jinja_env():
     """Create a Jinja2 environment configured like the production experiment."""
-    from jinja2 import Environment, FileSystemLoader
+    from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
     env = Environment(
         loader=FileSystemLoader(str(MACROS_DIR)),
         autoescape=True,
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
 
     def fake_gettext(message: str, **kwargs) -> str:
