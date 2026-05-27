@@ -69,7 +69,7 @@ describe('Carousel', () => {
         jest.restoreAllMocks();
     });
 
-    test('unlocks and removes the loading slide when loading more cards fails', async () => {
+    test('unlocks and removes the loading slide when loading more cards fails', async() => {
         const request = $.Deferred();
         $.ajax = jest.fn(() => request.promise());
         carousel.loadMore.locked = true;
@@ -80,6 +80,21 @@ describe('Carousel', () => {
 
         expect(slick.addSlide).toHaveBeenCalledWith('<div class="carousel__item carousel__loading-end">Loading...</div>');
         expect(slick.removeSlide).toHaveBeenCalledWith(6);
+        expect(carousel.loadMore.locked).toBe(false);
+        expect(carousel.loadMore.allDone).toBe(false);
+    });
+
+    test('does not remain locked when the i18n input is missing', async() => {
+        document.querySelector('input[name="carousel-i18n-strings"]').remove();
+        carousel = new Carousel($('.carousel'));
+        const request = $.Deferred();
+        jest.spyOn($, 'ajax').mockReturnValue(request.promise());
+        carousel.loadMore.locked = true;
+
+        expect(() => carousel.fetchPartials()).not.toThrow();
+        request.reject(new Error('Request failed'));
+        await flushPromises();
+
         expect(carousel.loadMore.locked).toBe(false);
         expect(carousel.loadMore.allDone).toBe(false);
     });

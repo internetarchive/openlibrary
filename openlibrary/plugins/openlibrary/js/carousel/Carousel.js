@@ -52,6 +52,7 @@ export class Carousel {
         this.$container = $container;
 
         //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        this.i18n = {loading: ''}; // Default to blank so carousels still work if the i18n input is missing.
         const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
