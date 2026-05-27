@@ -310,7 +310,18 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         values = param[field]
         if isinstance(values, str):
             values = [values]
-        params += [("fq", f'{field}:"{val}"') for val in values if val]
+        non_empty = [val for val in values if val]
+        if field == "language" and len(non_empty) > 1:
+            # Multiple languages are additive: a work in any of the selected
+            # languages should match. Emitting one fq per value would make Solr
+            # AND them, requiring a work to be in every selected language at
+            # once. Keep the field name first (language:("a" OR "b")) so
+            # editions.fq rewriting, which splits on the first ':', still
+            # resolves the field correctly.
+            or_clause = " OR ".join(f'"{val}"' for val in non_empty)
+            params.append(("fq", f"{field}:({or_clause})"))
+        else:
+            params += [("fq", f'{field}:"{val}"') for val in non_empty]
 
     # Many fields in solr use the convention of `*_facet` both
     # as a facet key and as the explicit search query key.
