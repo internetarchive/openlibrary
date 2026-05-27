@@ -260,7 +260,7 @@
 
    <!-- fields used by documents of type author -->
    <field name="name" type="text_international" indexed="true" stored="true" multiValued="false"/>
-   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false" docValues="true"/>
+   <field name="name_sort" type="text_international_sort" indexed="true" stored="false" multiValued="false"/>
    <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
@@ -336,8 +336,6 @@
     <!-- *** copyFields for OpenLibrary fields *** -->
     <!-- TODO: Can we pare this down for performance and storage? -->
 
-    <copyField source="name" dest="name_sort"/>
-
     <copyField source="title" dest="title_suggest"/> <!-- TODO: Unused internally 3.4 GB text -->
     <copyField source="title" dest="title_sort"/>
     <copyField source="publisher" dest="publisher_facet"/>
@@ -374,6 +372,7 @@
 
     <!-- Copy author search fields into default search field "text" -->
     <copyField source="name" dest="text"/>
+    <copyField source="name" dest="name_sort"/>
     <copyField source="alternate_names" dest="text"/>
 
     <!-- *** END of OpenLibrary copyFields *** -->

@@ -33,7 +33,9 @@ class AuthorSearchScheme(SearchScheme):
         {
             "work_count desc": "work_count desc",
             # TODO: fallback can be removed after reindex is complete
-            "name": "name_sort asc" if get_solr_next() else "name_str asc",
+            # NOTE: Lambda needed here, since get_solr_next reads in the openlibrary.yml
+            # at import-time, resulting in side-effects that cause unit tests to fail
+            "name": lambda: "name_sort asc" if get_solr_next() else "name_str asc",
             # Birth Year
             "birth_date asc": "birth_date asc",
             "birth_date desc": "birth_date desc",
