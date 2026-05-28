@@ -2,10 +2,12 @@ import json
 import re
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Required, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
 
 from infogami.infobase.client import Nothing, Thing
-from openlibrary.core.models import ThingReferenceDict
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import ThingReferenceDict
 
 
 @dataclass

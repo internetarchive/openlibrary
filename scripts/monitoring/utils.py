@@ -6,9 +6,10 @@ import struct
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+if TYPE_CHECKING:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 @dataclass

@@ -3,7 +3,6 @@ import typing
 from collections.abc import Callable
 from types import MappingProxyType
 
-import luqum.tree
 import web
 from luqum.exceptions import ParseError
 
@@ -14,6 +13,8 @@ from openlibrary.solr.query_utils import (
 )
 
 if typing.TYPE_CHECKING:
+    import luqum.tree
+
     from openlibrary.fastapi.models import SolrInternalsParams
 
 

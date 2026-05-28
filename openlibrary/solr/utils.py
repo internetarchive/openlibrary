@@ -2,14 +2,16 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
 
 from openlibrary import config
-from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
+
+if TYPE_CHECKING:
+    from openlibrary.solr.solr_types import SolrDocument
 
 logger = logging.getLogger("openlibrary.solr")
 

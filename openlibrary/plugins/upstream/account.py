@@ -44,7 +44,6 @@ from openlibrary.core.lending import (
     get_items_and_add_availability,
     s3_loan_api,
 )
-from openlibrary.core.models import SubjectType
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
 from openlibrary.i18n import gettext as _
@@ -56,6 +55,7 @@ from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
+    from openlibrary.core.models import SubjectType
     from openlibrary.plugins.upstream.models import User, Work
 
 logger = logging.getLogger("openlibrary.account")

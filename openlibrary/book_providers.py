@@ -8,12 +8,14 @@ from urllib import parse
 
 import web
 from web import uniq
-from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+
+if typing.TYPE_CHECKING:
+    from web.template import TemplateResult
 
 logger = logging.getLogger("openlibrary.book_providers")
 

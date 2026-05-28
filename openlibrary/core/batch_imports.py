@@ -2,9 +2,9 @@ import hashlib
 import json
 from dataclasses import dataclass
 from json.decoder import JSONDecodeError
+from typing import TYPE_CHECKING
 
 from pydantic import ValidationError
-from pydantic_core import ErrorDetails
 
 from openlibrary import accounts
 from openlibrary.catalog.add_book import (
@@ -16,6 +16,9 @@ from openlibrary.catalog.add_book import (
 )
 from openlibrary.core.imports import Batch
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
+
+if TYPE_CHECKING:
+    from pydantic_core import ErrorDetails
 
 
 def generate_hash(data: bytes, length: int = 20):

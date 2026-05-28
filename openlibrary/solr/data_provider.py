@@ -20,12 +20,14 @@ import web
 from httpx import HTTPError
 from web import DB
 
-from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
+
+if typing.TYPE_CHECKING:
+    from infogami.infobase.client import Site
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 

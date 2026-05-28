@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any, Final
 import web
 from psycopg2.errors import UndefinedTable, UniqueViolation
 from pydantic import ValidationError
-from web.db import ResultSet
 
 from openlibrary.catalog import add_book
 from openlibrary.core import cache
@@ -24,6 +23,8 @@ logger = logging.getLogger("openlibrary.imports")
 STAGED_SOURCES: Final = ("amazon", "idb", "google_books")
 
 if TYPE_CHECKING:
+    from web.db import ResultSet
+
     from openlibrary.core.models import Edition
 
 

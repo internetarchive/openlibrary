@@ -8,12 +8,11 @@ import urllib
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 from unicodedata import normalize
 
 import httpx
 import web
-from requests import Response
 
 from infogami import config
 from infogami.infobase.client import storify
@@ -31,7 +30,6 @@ from openlibrary.plugins.upstream.utils import (
     safeget,
     urlencode,
 )
-from openlibrary.plugins.worksearch.schemes import SearchScheme
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
@@ -41,7 +39,6 @@ from openlibrary.plugins.worksearch.schemes.works import (
 )
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.solr.query_utils import fully_escape_query
-from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context
@@ -50,6 +47,12 @@ from openlibrary.utils.solr import (
     DEFAULT_SOLR_TIMEOUT_SECONDS,
     SolrRequestLabel,
 )
+
+if TYPE_CHECKING:
+    from requests import Response
+
+    from openlibrary.plugins.worksearch.schemes import SearchScheme
+    from openlibrary.solr.solr_types import SolrDocument
 
 logger = logging.getLogger("openlibrary.worksearch")
 

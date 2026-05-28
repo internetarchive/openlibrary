@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast
 from warnings import deprecated
 
 import web
-from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -32,6 +31,8 @@ from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
+    from web.template import TemplateResult
+
     from openlibrary.core.lists.model import List
     from openlibrary.plugins.upstream.models import Work
 

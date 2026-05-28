@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from functools import cached_property
 from math import ceil
 from statistics import median
-from typing import TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
@@ -17,10 +17,7 @@ from openlibrary.core.models import (
     ThingReferenceDict,
     WorkSeriesEdge,
 )
-from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.plugins.upstream.utils import safeget
-from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
-from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrBuilder
@@ -29,6 +26,11 @@ from openlibrary.utils import normalize_subject_name, uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
 from openlibrary.utils.lcc import choose_sorting_lcc, short_lcc_to_sortable_lcc
 from openlibrary.utils.open_syllabus_project import get_total_by_olid
+
+if TYPE_CHECKING:
+    from openlibrary.core.ratings import WorkRatingsSummary
+    from openlibrary.plugins.worksearch.subjects import SubjectPseudoKey
+    from openlibrary.solr.data_provider import DataProvider, WorkReadingLogSolrSummary
 
 logger = logging.getLogger("openlibrary.solr")
 
