@@ -38,9 +38,11 @@ class show_ia(app.view):
         if error_404:  # no MARC record
             url = f"https://archive.org/download/{ia}/{ia}_meta.xml"
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=3)
                 response.raise_for_status()
                 data = response.content
+            except requests.Timeout:
+                return "ERROR: archive.org timed out"
             except requests.HTTPError as e:
                 return "ERROR:" + str(e)
             raise web.seeother("https://archive.org/details/" + ia)
