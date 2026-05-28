@@ -181,7 +181,7 @@ class ExperimentsProcessor:
 
         try:
             overrides = {k: v for k, v in web.input(_method="GET").items() if k.startswith("experiment_")}
-        except (AttributeError, KeyError, ValueError):
+        except AttributeError, KeyError, ValueError:
             overrides = {}
 
         experiments = get_user_experiments(user_id, overrides=overrides, is_logged_in=is_authenticated)
