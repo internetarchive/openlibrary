@@ -115,4 +115,49 @@ CSS custom properties inherit through the shadow boundary, so design tokens work
 | Hover causes flicker | Animate child element, not parent |
 | Popover scales from wrong point | Set `transform-origin` to trigger location |
 | Sequential tooltips feel slow | Skip delay/animation after first tooltip |
-| Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` |
+| Hover triggers on mobile | Use `@media (hover: hover) and (pointer: fine)` — see [Mobile](#mobile) |
+
+## Mobile
+
+### Prevent iOS Safari auto-zoom on input focus
+
+iOS Safari auto-zooms the viewport when the user focuses any text input with `font-size < 16px`. The page stays zoomed after the input blurs, which is jarring and breaks fixed-position layout. Fix: set `font-size: 16px` on every text input that can receive focus on mobile.
+
+```css
+.search-modal__input {
+  /* Visually 14px-feeling input, but 16px to dodge iOS auto-zoom. */
+  font-size: 16px;
+}
+```
+
+If you need the input to look smaller, scale it visually rather than dropping below 16px (e.g., reduce padding, use `transform: scale()` only on non-text affordances).
+
+### Gate hover styles to hover-capable pointers
+
+Touch devices fire `:hover` on tap and the style sticks until the next tap elsewhere. That makes plain `:hover` rules feel broken on phones — buttons stay highlighted, tooltips linger.
+
+Wrap hover styles in `@media (hover: hover) and (pointer: fine)` so they only apply on devices with a precise hover-capable pointer (mouse, trackpad):
+
+```css
+.chip {
+  background: var(--white);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    background: var(--lightest-grey);
+  }
+}
+```
+
+Use the same query to decide which affordance to render in markup. For example, the search modal shows a tappable close button on touch devices and an "ESC" pill on hover-capable pointers (where the keyboard is the expected dismiss path). Pick one or the other rather than showing both.
+
+```css
+.dismiss-touch { display: block; }
+.dismiss-keyboard { display: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .dismiss-touch { display: none; }
+  .dismiss-keyboard { display: block; }
+}
+```

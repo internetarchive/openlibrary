@@ -202,9 +202,119 @@ render() {
 </ol-card>
 ```
 
+## Registration
+
+Guard the `customElements.define()` call at the bottom of every component file:
+
+```js
+if (!customElements.get('ol-my-widget')) {
+    customElements.define('ol-my-widget', OlMyWidget);
+}
+```
+
+Some components get imported through both the central `lit-components` bundle and a downstream webpack consumer (e.g., the search-modal entrypoint). Without the guard, the second `define()` call throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause.
+
+If the component uses APIs that aren't available during SSR (e.g., `HTMLDialogElement`), also gate the `define()` call on `!isServer` from `lit`. See `OlDialog.js` for the pattern.
+
+## Focus and Shadow DOM
+
+Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `openlibrary/components/lit/utils/focus-utils.js` and `FocusableHostMixin` exist to handle the cases below — reach for them rather than rolling your own.
+
+### Make custom elements visible to outer focus traps
+
+A custom element whose only focusable content is a `<button>` inside its shadow root is **invisible** to a focus trap that calls `querySelectorAll(FOCUSABLE_SELECTOR)` on light DOM. Two problems compound:
+
+1. The trap's selector can't see into the shadow root, so the element is skipped entirely.
+2. Calling `host.focus()` focuses the *host*, not the inner button — `:focus-visible` lands on nothing.
+
+Apply `FocusableHostMixin` (`openlibrary/components/lit/utils/focusable-host-mixin.js`) to fix both at once. It sets `tabindex="0"` on the host (so traps discover it) and `delegatesFocus: true` on the shadow root (so `host.focus()` forwards to the first focusable inside and `:focus-visible` fires correctly). Override `_focusTarget` if the desired target isn't the first focusable in DOM order.
+
+```js
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+
+export class OlMyWidget extends FocusableHostMixin(LitElement) {
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.default-trigger');
+    }
+}
+```
+
+### Filter hidden elements from trap lists
+
+Calling `.focus()` on a `display:none` or `visibility:hidden` element is a silent no-op. But `querySelectorAll(FOCUSABLE_SELECTOR)` still returns it, so the trap thinks focus moved when it didn't — Tab/Shift+Tab appear stuck on the previous element.
+
+Use `el.checkVisibility({ visibilityProperty: true })` to filter (or `isFocusable()` from `focus-utils.js`, which wraps it). This bit us when a `display:none` close button in `SearchModal` kept jamming the dialog's focus trap.
+
+### Walk shadow boundaries when reading active element
+
+`document.activeElement` returns the *host*, not the deeply focused element inside a shadow root. When a trap needs to know "where is focus right now relative to my managed list?", use `getDeepActiveElement()` to drill in, then `findFocusableIndex()` to climb back out across shadow boundaries until it finds a host that the trap recognizes. Both are in `focus-utils.js`.
+
+### Restore focus after Lit re-renders
+
+When a `repeat` directive destroys a node — e.g., an item moves between two groups based on selected state, or a list re-sorts — the browser drops focus to `<body>`. Stash an identifying value, then refocus in `updated()` after the new node mounts:
+
+```js
+_onItemToggle(e) {
+    // Only restore if the checkbox actually owned focus at toggle time
+    if (this.shadowRoot?.activeElement === e.target) {
+        this._restoreFocusToValue = e.target.value;
+    }
+    this._emitChange(/* ... */);
+}
+
+updated(changedProperties) {
+    super.updated?.(changedProperties);
+    if (this._restoreFocusToValue !== null && changedProperties.has('selected')) {
+        const value = this._restoreFocusToValue;
+        this._restoreFocusToValue = null;
+        const target = this.shadowRoot?.querySelector(`[data-value="${value}"]`);
+        target?.focus({ preventScroll: true });
+    }
+}
+```
+
+See `OlSelectPopover._onItemToggle` for the reference implementation.
+
+## ARIA on lists
+
+Putting a non-list role like `role="radiogroup"` directly on a `<ul>` **strips the list semantics**. The `<li>` children then become invalid in the accessibility tree (a `<li>` is only valid inside `<ul>`, `<ol>`, or `<menu>`), and accesslint will flag it.
+
+Separate the roles: wrap the list in a `<div role="radiogroup">` and keep the `<ul>` pure.
+
+```js
+// Bad — strips list semantics
+html`<ul role="radiogroup" aria-label=${label}>
+       ${items.map(item => html`<li>...</li>`)}
+     </ul>`;
+
+// Good — separate roles
+html`<div role="radiogroup" aria-label=${label}>
+       <ul>${items.map(item => html`<li>...</li>`)}</ul>
+     </div>`;
+```
+
+Related: whitespace inside `<ul>` template literals creates real text nodes that accesslint flags as direct text content inside a list. Keep `<li>` flush against the opening `<ul>` tag — no leading newline.
+
+## Autofocus on mobile
+
+Don't auto-focus a text input when a component opens on a mobile breakpoint — the soft keyboard pops up and shrinks the visible panel area to nothing. Gate the focus call:
+
+```js
+_onPopoverOpen() {
+    if (!window.matchMedia('(max-width: 767px)').matches) {
+        this.shadowRoot.querySelector('.filter-input')?.focus();
+    }
+}
+```
+
+767px matches the breakpoint that `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the user sees.
+
+(Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
+
 ## New Component Checklist
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
 3. Add JSDoc to the class with `@element`, `@prop`, `@fires`, and `@example` tags (see `OlPagination.js` for the pattern).
-4. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080.
+4. Guard the `customElements.define()` call with `if (!customElements.get('ol-my-widget'))` — see [Registration](#registration).
+5. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080.
