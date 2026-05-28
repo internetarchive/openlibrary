@@ -164,15 +164,27 @@ class ExperimentsProcessor:
     """
 
     def __call__(self, handler):
-        user = get_current_user()
-        user_id = user.key if user else (web.cookies().get(config.get("login_cookie_name", "session")) or web.ctx.ip)
+        session_value = web.cookies().get(config.get("login_cookie_name", "session"))
+        is_authenticated = False
+        user_id = None
+
+        if session_value and session_value.startswith("/people/"):
+            from openlibrary.accounts.model import verify_session_cookie
+
+            if verify_session_cookie(session_value):
+                is_authenticated = True
+                user_id = session_value.split(",")[0]
+
+        if not user_id:
+            forwarded_for = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
+            user_id = forwarded_for.split(",")[0].strip() if forwarded_for else web.ctx.ip
 
         try:
             overrides = {k: v for k, v in web.input(_method="GET").items() if k.startswith("experiment_")}
         except (AttributeError, KeyError, ValueError):
             overrides = {}
 
-        experiments = get_user_experiments(user_id, overrides=overrides, is_logged_in=user is not None)
+        experiments = get_user_experiments(user_id, overrides=overrides, is_logged_in=is_authenticated)
 
         web.ctx["experiments"] = experiments
         context["experiments"] = experiments
