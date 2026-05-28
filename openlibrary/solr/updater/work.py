@@ -20,7 +20,7 @@ from openlibrary.core.models import (
 from openlibrary.plugins.upstream.utils import safeget
 from openlibrary.solr.solr_types import SolrDocument
 from openlibrary.solr.updater.abstract import AbstractSolrBuilder, AbstractSolrUpdater
-from openlibrary.solr.updater.edition import EditionSolrBuilder
+from openlibrary.solr.updater.edition import EditionSolrBuilder, sort_title
 from openlibrary.solr.utils import SolrUpdateRequest
 from openlibrary.utils import normalize_subject_name, uniq
 from openlibrary.utils.ddc import choose_sorting_ddc, normalize_ddc
@@ -73,6 +73,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
                 "key": wkey.replace("/books/", "/works/"),
                 "type": {"key": "/type/work"},
                 "title": work.get("title"),
+                "title_sort": work.get("title_sort"),
                 "editions": [work],
                 "authors": [{"type": "/type/author_role", "author": {"key": a["key"]}} for a in work.get("authors", [])],
             }
@@ -332,6 +333,20 @@ class WorkSolrBuilder(AbstractSolrBuilder):
     @property
     def subtitle(self) -> str | None:
         return self._work.get("subtitle")
+
+    @property
+    def title_sort(self) -> str | None:
+        """
+        Generates a formatted title string based on the ``title`` and
+        ``subtitle`` attributes with any leading article removed and
+        moved to the end of the string.
+
+        :return: A formatted title string or None if ``title`` is not set.
+        :rtype: str | None
+        """
+        if self.title:
+            return sort_title(self.title, self.subtitle)
+        return None
 
     @property
     def alternative_title(self) -> set[str]:
