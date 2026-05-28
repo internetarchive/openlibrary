@@ -39,7 +39,7 @@ class Batch(web.storage):
         self.items_skipped: set = set()
 
     @staticmethod
-    def find(name: str, create: bool = False) -> "Batch":  # type: ignore[return]
+    def find(name: str, create: bool = False) -> Batch:  # type: ignore[return]
         result = db.query("SELECT * FROM import_batch where name=$name", vars=locals())
         if result:
             return Batch(result[0])
@@ -47,7 +47,7 @@ class Batch(web.storage):
             return Batch.new(name)
 
     @staticmethod
-    def new(name: str, submitter: str | None = None) -> "Batch":
+    def new(name: str, submitter: str | None = None) -> Batch:
         db.insert("import_batch", name=name, submitter=submitter)
         return Batch.find(name=name)
 
@@ -157,7 +157,7 @@ class ImportItem(web.storage):
         return db.query(query, vars={"ia_ids": ia_ids})
 
     @staticmethod
-    def import_first_staged(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> "Edition | None":
+    def import_first_staged(identifiers: list[str], sources: Iterable[str] = STAGED_SOURCES) -> Edition | None:
         """
         Import the first staged item in import_item matching the ia_id identifiers.
 
@@ -186,7 +186,7 @@ class ImportItem(web.storage):
 
         return None
 
-    def single_import(self) -> "Edition | None":
+    def single_import(self) -> Edition | None:
         """Import the item using load(), swallow errors, update status, and return the Edition if any."""
         try:
             # Avoids a circular import issue.

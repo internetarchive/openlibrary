@@ -8,7 +8,7 @@ from collections.abc import Iterable
 from functools import cached_property
 from math import ceil
 from statistics import median
-from typing import Optional, TypedDict, cast
+from typing import TypedDict, cast
 
 import openlibrary.book_providers as bp
 from openlibrary.core import helpers as h
@@ -148,7 +148,7 @@ class WorkSolrUpdater(AbstractSolrUpdater):
         return update, []
 
 
-def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> Optional["bp.IALiteMetadata"]:
+def get_ia_collection_and_box_id(ia: str, data_provider: DataProvider) -> bp.IALiteMetadata | None:
     """
     Get the collections and boxids of the provided IA id
 
@@ -250,7 +250,7 @@ def datetimestr_to_int(datestr):
     if datestr:
         try:
             t = h.parse_datetime(datestr)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             t = datetime.datetime.now()
     else:
         t = datetime.datetime.now()
@@ -273,7 +273,7 @@ class WorkSolrBuilder(AbstractSolrBuilder):
         authors: list[dict],
         series: list[WorkSeriesEdge[SeriesDict]],
         data_provider: DataProvider,
-        ia_metadata: dict[str, Optional["bp.IALiteMetadata"]],
+        ia_metadata: dict[str, bp.IALiteMetadata | None],
         trending_data: dict,
     ):
         self._work = work

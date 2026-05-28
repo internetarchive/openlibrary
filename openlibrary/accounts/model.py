@@ -348,7 +348,7 @@ class Account(web.storage):
         t = self.get("last_login")
         return t and helpers.parse_datetime(t)
 
-    def get_user(self) -> "User":
+    def get_user(self) -> User:
         """A user is where preferences are attached to an account. An
         "Account" is outside of infogami in a separate table and is
         used to store private user information.
@@ -548,7 +548,7 @@ class OpenLibraryAccount(Account):
         cls,
         value: str,
         field: Literal["link", "email", "username", "key"],
-    ) -> "OpenLibraryAccount":
+    ) -> OpenLibraryAccount:
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -566,12 +566,12 @@ class OpenLibraryAccount(Account):
         return account
 
     @classmethod
-    def get_by_key(cls, key: str) -> "OpenLibraryAccount | None":
+    def get_by_key(cls, key: str) -> OpenLibraryAccount | None:
         username = key.rsplit("/", maxsplit=1)[-1]
         return cls.get_by_username(username)
 
     @classmethod
-    def get_by_username(cls, username: str) -> "OpenLibraryAccount | None":
+    def get_by_username(cls, username: str) -> OpenLibraryAccount | None:
         """Retrieves and OpenLibraryAccount by username if it exists or"""
         match = web.ctx.site.store.values(type="account", name="username", value=username, limit=1)
 
@@ -586,7 +586,7 @@ class OpenLibraryAccount(Account):
         return None
 
     @classmethod
-    def get_by_link(cls, link: str) -> "OpenLibraryAccount | None":
+    def get_by_link(cls, link: str) -> OpenLibraryAccount | None:
         """
         :rtype: OpenLibraryAccount or None
         """
@@ -594,7 +594,7 @@ class OpenLibraryAccount(Account):
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_by_email(cls, email: str) -> "OpenLibraryAccount | None":
+    def get_by_email(cls, email: str) -> OpenLibraryAccount | None:
         """the email stored in account doc is case-sensitive.
         The lowercase of email is used in the account-email document.
         querying that first and taking the username from there to make

@@ -34,7 +34,7 @@ class LogLine:
     page_key: str
 
     @staticmethod
-    def from_line(line: str) -> "LogLine":
+    def from_line(line: str) -> LogLine:
         parts = line.split(" ")
         return LogLine(
             ip=parts[0],

@@ -1,9 +1,9 @@
 """Reading log check-ins handler and services."""
 
 import json
+from warnings import deprecated
 
 import web
-from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public

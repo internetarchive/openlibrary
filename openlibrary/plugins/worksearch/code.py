@@ -356,7 +356,7 @@ def _process_solr_response_and_enrich(
     sort: str | None,
     url: str,
     duration: float,
-) -> "SearchResponse":
+) -> SearchResponse:
     """
     Processes the Solr response, enriches it, and returns a SearchResponse object.
     """
@@ -385,7 +385,7 @@ async def run_solr_query_async(
     extra_params: list[tuple[str, Any]] | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
     solr_internals_params: SolrInternalsParams | None = None,
-) -> "SearchResponse":
+) -> SearchResponse:
     """
     Builds and executes a synchronous Solr query.
     """
@@ -450,7 +450,7 @@ class SearchResponse:
         sort: str,
         solr_select: str,
         time: float,
-    ) -> "SearchResponse":
+    ) -> SearchResponse:
         if not solr_result or "error" in solr_result:
             return SearchResponse(
                 facet_counts=None,
@@ -835,7 +835,7 @@ class ListSearchRequest:
     api: Literal["", "next"]
 
     @staticmethod
-    def from_web_input(i: web.storage) -> "ListSearchRequest":
+    def from_web_input(i: web.storage) -> ListSearchRequest:
         offset = safeint(i.get("offset", 0), 0)
         limit = safeint(i.get("limit", 20), 20)
         fields = i.get("fields", "")
@@ -1079,7 +1079,7 @@ async def work_search_async(
     spellcheck_count: int | None = None,
     request_label: SolrRequestLabel = "UNLABELLED",
     lang: str | None = None,
-    solr_internals_params: "SolrInternalsParams | None" = None,
+    solr_internals_params: SolrInternalsParams | None = None,
 ) -> dict:
     prepared = _prepare_work_search_query(query, page, offset, limit)
     scheme = WorkSearchScheme(lang=lang, solr_editions=req_context.get().solr_editions)

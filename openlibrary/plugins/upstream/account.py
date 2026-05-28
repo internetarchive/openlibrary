@@ -613,7 +613,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return
 
     @staticmethod
@@ -837,7 +837,7 @@ class PatronExport(ABC):
         return csv_output
 
     @staticmethod
-    def get_work_from_id(work_id: str) -> "Work":
+    def get_work_from_id(work_id: str) -> Work:
         """
         Gets work data for a given work ID (OLxxxxxW format), used to access work author, title, etc. for CSV generation.
         """
@@ -854,7 +854,7 @@ class PatronExport(ABC):
         return work
 
     @property
-    def user(self) -> "User":
+    def user(self) -> User:
         if not (result := accounts.get_current_user()):
             raise PatronExportException("Must be logged in to export data.")
         return result
@@ -905,7 +905,7 @@ class ReadingLogExport(PatronExport):
 
     def get_data(self) -> list:
         def get_subjects(
-            work: "Work",
+            work: Work,
             subject_type: SubjectType = "subject",
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
@@ -1360,7 +1360,7 @@ def process_goodreads_csv(i):
     return books, books_wo_isbns
 
 
-def get_loan_history_data(page: int, mb: "MyBooksTemplate") -> dict[str, Any]:
+def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     Retrieve IA loan history data for page `page` of the patron's history.
 

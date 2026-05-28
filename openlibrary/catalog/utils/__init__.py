@@ -47,7 +47,7 @@ def key_int(rec):
     return int(web.numify(rec["key"]))
 
 
-def author_dates_match(a: "AuthorImportDict", b: "dict | Author") -> bool:
+def author_dates_match(a: AuthorImportDict, b: dict | Author) -> bool:
     """
     Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
@@ -462,7 +462,7 @@ def format_languages(languages: Iterable) -> list[dict[str, str]]:
                 # Note this must be last, since it raises errors
                 or get_abbrev_from_full_lang_name(language)
             )
-        except (LanguageNoMatchError, LanguageMultipleMatchError):
+        except LanguageNoMatchError, LanguageMultipleMatchError:
             # get_abbrev_from_full_lang_name raises errors
             raise InvalidLanguage(input_lang)
 

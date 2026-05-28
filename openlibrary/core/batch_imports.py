@@ -45,7 +45,7 @@ class BatchImportError:
     error_message: str
 
     @classmethod
-    def from_pydantic_error(cls, line_number: int, error: ErrorDetails) -> "BatchImportError":
+    def from_pydantic_error(cls, line_number: int, error: ErrorDetails) -> BatchImportError:
         """Create a BatchImportError object from Pydantic's ErrorDetails."""
         if loc := error.get("loc"):
             loc_str = ", ".join(map(str, loc))

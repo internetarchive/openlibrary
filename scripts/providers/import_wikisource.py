@@ -160,7 +160,7 @@ WHERE {
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self.excluded_category_names]
 
-    def exclude_book(self, book: "BookRecord") -> bool:
+    def exclude_book(self, book: BookRecord) -> bool:
         bad_category = any(c for c in book.categories if c in self.excluded_categories)
         if bad_category:
             return True
