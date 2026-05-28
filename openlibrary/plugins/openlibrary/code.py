@@ -1086,6 +1086,11 @@ def is_recognized_bot():
     return req_context.get().is_recognized_bot
 
 
+def htmlsafe_dumps(obj, **kwargs) -> str:
+    """Escapes HTML special characters in JSON to prevent XSS in template script tags."""
+    return json.dumps(obj, **kwargs).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+
+
 def setup_template_globals():
     # must be imported here, otherwise silently messes up infogami's import execution
     # order, resulting in random errors like the the /account/login.json endpoint
@@ -1142,7 +1147,7 @@ def setup_template_globals():
             "is_bot": is_bot,
             "time": time,
             "input": web.input,
-            "dumps": json.dumps,
+            "dumps": htmlsafe_dumps,
         }
     )
 

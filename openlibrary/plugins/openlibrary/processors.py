@@ -10,7 +10,7 @@ from infogami import config
 from infogami.utils.context import context
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
-from openlibrary.core.experiments import get_user_experiments
+from openlibrary.core.experiments import evaluate_experiments_for_request
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )
@@ -165,26 +165,20 @@ class ExperimentsProcessor:
 
     def __call__(self, handler):
         session_value = web.cookies().get(config.get("login_cookie_name", "session"))
-        is_authenticated = False
-        user_id = None
-
-        if session_value and session_value.startswith("/people/"):
-            from openlibrary.accounts.model import verify_session_cookie
-
-            if verify_session_cookie(session_value):
-                is_authenticated = True
-                user_id = session_value.split(",")[0]
-
-        if not user_id:
-            forwarded_for = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
-            user_id = forwarded_for.split(",")[0].strip() if forwarded_for else web.ctx.ip
+        forwarded_for = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
+        client_ip = web.ctx.ip
 
         try:
-            overrides = {k: v for k, v in web.input(_method="GET").items() if k.startswith("experiment_")}
-        except AttributeError, KeyError, ValueError:
-            overrides = {}
+            query_params = dict(web.input(_method="GET"))
+        except (AttributeError, KeyError, ValueError):
+            query_params = {}
 
-        experiments = get_user_experiments(user_id, overrides=overrides, is_logged_in=is_authenticated)
+        experiments = evaluate_experiments_for_request(
+            session_value=session_value,
+            forwarded_for=forwarded_for,
+            client_ip=client_ip,
+            query_params=query_params,
+        )
 
         web.ctx["experiments"] = experiments
         context["experiments"] = experiments

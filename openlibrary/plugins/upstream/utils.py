@@ -303,7 +303,7 @@ def commify_list(items: Iterable[Any]) -> str:
 
 @public
 def json_encode(d, indent=0) -> str:
-    return json.dumps(d, indent=indent)
+    return json.dumps(d, indent=indent).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 @public

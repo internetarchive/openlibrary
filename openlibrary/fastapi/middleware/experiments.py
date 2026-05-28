@@ -1,9 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from fastapi import Request
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from infogami import config
-from openlibrary.accounts.model import verify_session_cookie
-from openlibrary.core.experiments import get_user_experiments
+from openlibrary.core.experiments import evaluate_experiments_for_request
+
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Receive, Scope, Send
 
 
 class ABTestingMiddleware:
@@ -18,22 +23,15 @@ class ABTestingMiddleware:
         request = Request(scope, receive=receive)
 
         session_value = request.cookies.get(config.get("login_cookie_name", "session"))
-        is_authenticated = False
-        user_id = None
+        forwarded_for = request.headers.get("X-Forwarded-For")
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        query_params = dict(request.query_params)
 
-        if session_value and session_value.startswith("/people/") and verify_session_cookie(session_value):
-            is_authenticated = True
-            user_id = session_value.split(",")[0]
-
-        if not user_id:
-            forwarded_for = request.headers.get("X-Forwarded-For")
-            if forwarded_for:
-                user_id = forwarded_for.split(",")[0].strip()
-            else:
-                user_id = request.client.host if request.client else "127.0.0.1"
-
-        query_overrides = {k: v for k, v in request.query_params.items() if k.startswith("experiment_")}
-
-        request.state.experiments = get_user_experiments(user_id, overrides=query_overrides, is_logged_in=is_authenticated)
+        request.state.experiments = evaluate_experiments_for_request(
+            session_value=session_value,
+            forwarded_for=forwarded_for,
+            client_ip=client_ip,
+            query_params=query_params,
+        )
 
         await self.app(scope, receive, send)

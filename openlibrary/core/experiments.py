@@ -76,3 +76,30 @@ def get_user_experiments(
             results[exp_name] = get_variant(exp_name, user_identifier, is_logged_in)
 
     return results
+
+
+def evaluate_experiments_for_request(
+    session_value: str | None,
+    forwarded_for: str | None,
+    client_ip: str | None,
+    query_params: dict[str, str],
+) -> dict[str, str]:
+    """Resolves active experiments for a request based on session, IP, and query params."""
+    from openlibrary.accounts.model import verify_session_cookie
+
+    is_authenticated = False
+    user_id = None
+
+    if session_value and session_value.startswith("/people/") and verify_session_cookie(session_value):
+        is_authenticated = True
+        user_id = session_value.split(",")[0]
+
+    if not user_id:
+        if forwarded_for:
+            user_id = forwarded_for.split(",")[0].strip()
+        else:
+            user_id = client_ip or "127.0.0.1"
+
+    query_overrides = {k: v for k, v in query_params.items() if k.startswith("experiment_")}
+
+    return get_user_experiments(user_id, overrides=query_overrides, is_logged_in=is_authenticated)
