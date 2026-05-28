@@ -24,8 +24,11 @@ npm run watch:lit-components # Watch Lit components
 
 ```bash
 # Python tests (excludes integration tests by default)
-make test-py
-pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+# Preferred: run outside Docker with uv (faster)
+make test-py-uv
+
+# Alternative: run inside Docker
+docker compose run --rm home make test-py
 
 # Run a single Python test file
 pytest openlibrary/core/tests/test_models.py
