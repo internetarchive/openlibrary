@@ -2,26 +2,33 @@
  * Filter options for the header search modal.
  */
 
+// Counts are hand-curated round numbers (NOT live Solr facets) — they give the
+// user a sense of scale without an extra round-trip and stay stable across
+// renders. Bump them when the underlying corpus shifts materially.
 export const AVAILABILITY_OPTIONS = [
     {
         value: 'all',
-        label: 'All',
-        description: 'Every book in the catalog',
+        label: 'Full Card Catalog',
+        description: 'Info on every book published',
+        count: '~50M',
     },
     {
         value: 'readable',
-        label: 'Read now (free)',
-        description: 'Fully readable – public domain & open access',
+        label: 'Readable Books Only',
+        description: 'Primarily older digitized, preserved, physical books',
+        count: '~4.6M',
     },
     {
         value: 'borrowable',
-        label: 'Borrowable',
-        description: 'Borrow via Internet Archive\'s lending library',
+        label: 'Borrowable Only',
+        description: 'From Internet Archive\'s lending library',
+        count: '~2.7M',
     },
     {
         value: 'open',
-        label: 'Preview only',
-        description: 'Limited preview available',
+        label: 'Open Access Only',
+        description: 'From Trusted Book Providers',
+        count: '~1.8M',
     },
 ];
 
@@ -82,10 +89,10 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     dialogAria: 'Search Open Library',
     inputPlaceholder: 'Search books, authors…',
     inputAria: 'Search',
-    scanAria: 'Scan a barcode',
-    scanTitle: 'Scan barcode',
     closeAria: 'Close search',
     seeAll: 'See all results',
+    seeAllOne: 'See all %s result',
+    seeAllMany: 'See all %s results',
     activeFiltersAria: 'Active filters',
     removeFilter: 'Remove filter: %s',
     clearAll: 'Clear all',
@@ -195,3 +202,21 @@ export const DEFAULT_LANGUAGE_OPTIONS = [
  */
 export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
 export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
+
+/**
+ * Read the language list from sessionStorage. Guards against missing values,
+ * unparseable JSON, and values that parse to a non-array (e.g. a previously
+ * stored object or string), any of which would otherwise leave callers with a
+ * non-iterable or character-iterable value.
+ *
+ * @returns {string[]}
+ */
+export function readStoredLanguages() {
+    let raw = null;
+    try { raw = sessionStorage.getItem(SS_LANGUAGES_KEY); } catch { return []; }
+    if (!raw) return [];
+    try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+}

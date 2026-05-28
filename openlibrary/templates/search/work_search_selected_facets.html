@@ -35,17 +35,39 @@ $code:
 
     active_availability = get_active_availability(param) if param else 'all'
     selected_languages = list(param.get('language', [])) if param else []
-    # The chips bar is also surfaced for any facet header that has a value in
-    # the URL (author_key, subject_facet, etc.). We render those only when
-    # facet_counts has loaded — see the loop further down.
-    has_other_facet_filter = any(
-        header in param and header not in special_handled
-        for header, _label in facet_map
-    )
+
+    # Build the (header, value, display) tuples for the non-special facet chips
+    # (subject_facet, author_key, etc.). For most facets the raw URL value is
+    # already a usable display name, so we render the chip even when
+    # facet_counts is empty (e.g. a zero-result search, or a value outside
+    # Solr's facet.limit top-N). `author_key` is the exception: its raw value
+    # is an OL ID like "OL12345A" — we keep gating it on facet_counts
+    # resolving a display name rather than rendering the bare ID.
+    def build_other_chips():
+        if not param:
+            return []
+        facet_counts = search_response.facet_counts or {}
+        chips = []
+        for header, _label in facet_map:
+            if header in special_handled:
+                continue
+            selected = param.get(header, [])
+            if not selected:
+                continue
+            display_by_key = {k: d for k, d, _ in facet_counts.get(header, [])}
+            for v in selected:
+                if header == 'author_key' and v not in display_by_key:
+                    # Wait for the async sidebar request to resolve the name
+                    # so we don't render the bare OL ID on the chip.
+                    continue
+                chips.append((header, v, display_by_key.get(v, v)))
+        return chips
+
+    other_chips = build_other_chips()
     show_chips_bar = (
         active_availability != 'all'
         or selected_languages
-        or (search_response.facet_counts and has_other_facet_filter)
+        or other_chips
     )
 
 $if param and not search_response.error:
@@ -64,7 +86,6 @@ $if param and not search_response.error:
             <ol-chip
                 selected
                 size="small"
-                variant="neutral"
                 data-filter-kind="availability"
                 data-filter-value="$active_availability"
                 accessible-label="$_('Availability'): $avail_label"
@@ -76,34 +97,25 @@ $if param and not search_response.error:
             <ol-chip
                 selected
                 size="small"
-                variant="neutral"
                 data-filter-kind="language"
                 data-filter-value="$lang_code"
                 accessible-label="$_('Written in'): $lang_label"
                 href="$del_facet_url('language', lang_code)"
             >$lang_label</ol-chip>
 
-        $# Other facets (author, subject, year, etc.) depend on facet_counts to
-        $# resolve the display name — only render them once the async sidebar
-        $# request has populated facet_counts.
+        $# Other facets (author, subject, year, etc.). Most render immediately
+        $# off the URL params — facet_counts is used only to prettify the
+        $# display label where available. `author_key` is the exception: see
+        $# build_other_chips() above.
+        $for header, v, chip_display in other_chips:
+            $title.append(chip_display)
+            $ chip_title = facet_tooltips.get(header, '')
+            $if chip_title:
+                <ol-chip selected size="small" accessible-label="$chip_title: $chip_display" href="$del_facet_url(header, v)">$chip_display</ol-chip>
+            $else:
+                <ol-chip selected size="small" href="$del_facet_url(header, v)">$chip_display</ol-chip>
+
         $if search_response.facet_counts:
-            $for header, label in facet_map:
-                $if header in special_handled:
-                    $continue
-                $ counts = search_response.facet_counts[header]
-                $for k, display, count in counts:
-                    $if k not in param.get(header, []):
-                        $continue
-
-                    $title.append(display)
-
-                    $ chip_display = display
-                    $ chip_title = facet_tooltips.get(header, '')
-                    $if chip_title:
-                        <ol-chip selected size="small" variant="neutral" accessible-label="$chip_title: $chip_display" href="$del_facet_url(header, k)">$chip_display</ol-chip>
-                    $else:
-                        <ol-chip selected size="small" variant="neutral" href="$del_facet_url(header, k)">$chip_display</ol-chip>
-
             $# Legacy non-UI facets: only render when facet_counts is loaded
             $# (these aren't sticky filters owned by the new filter row).
             $# When an availability value is active the new Availability chip
@@ -115,7 +127,7 @@ $if param and not search_response.error:
                     $if k not in param.get('has_fulltext', []):
                         $continue
                     $ chip_display = fulltext_names.get(k, '')
-                    <ol-chip selected size="small" variant="neutral" href="$del_facet_url('has_fulltext', k)">$chip_display</ol-chip>
+                    <ol-chip selected size="small" href="$del_facet_url('has_fulltext', k)">$chip_display</ol-chip>
 
             $if 'public_scan_b' in param:
                 $ counts = search_response.facet_counts.get('public_scan_b', [])
@@ -126,6 +138,6 @@ $if param and not search_response.error:
                     $# this facet (the sidebar skips it), so it only triggers via
                     $# manually crafted URLs like /search?public_scan_b=true.
                     $ chip_display = _("Only Classic eBooks") if display == 'true' else _("Classic eBooks hidden")
-                    <ol-chip selected size="small" variant="neutral" href="$del_facet_url('public_scan_b', k)">$chip_display</ol-chip>
+                    <ol-chip selected size="small" href="$del_facet_url('public_scan_b', k)">$chip_display</ol-chip>
         </div>
     $var title: $_('%(title)s - search', title=', '.join(title))

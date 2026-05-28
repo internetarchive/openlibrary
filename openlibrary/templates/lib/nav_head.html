@@ -94,17 +94,16 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
         <span class="search-bar-trigger__label">$_('Search')</span>
         <span class="search-bar-trigger__icon" aria-hidden="true"></span>
       </button>
-      $# Kept (hidden) so the search modal can read the barcode-scanner URL.
+      $# Barcode scan needs a camera, so it's only surfaced on touch devices
+      $# (hidden on hover-capable pointers via CSS).
       <a
         id="barcode_scanner_link"
-        class="search-by-barcode-submit"
+        class="search-by-barcode"
         aria-label="$_('Search by barcode')"
         title="$_('Search by barcode')"
         href="/barcodescanner?returnTo=/isbn/$$$$$$"
-        tabindex="-1"
-        aria-hidden="true"
-        hidden
       >
+        <img src="/static/images/icons/barcode_scanner.svg" alt="" width="22" height="22"/>
       </a>
     </div>
   </div>

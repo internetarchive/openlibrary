@@ -1,6 +1,6 @@
 import { LitElement, html, css, isServer } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
-import { FOCUSABLE_SELECTOR, getDeepActiveElement, getFocusableFromSlot } from './utils/focus-utils.js';
+import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
 /**
@@ -226,7 +226,9 @@ export class OlDialog extends LitElement {
             width: var(--ol-dialog-width-large);
         }
 
-        /* Fullscreen on mobile — overrides width preset and removes chrome */
+        /* Fullscreen on mobile — overrides width preset and removes chrome.
+           Also neutralizes placement="top" so the dialog truly fills the
+           viewport (no top offset, no leftover max-height clamp). */
         @media (max-width: 767px) {
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
@@ -234,6 +236,12 @@ export class OlDialog extends LitElement {
                 max-width: none;
                 max-height: none;
                 border-radius: 0;
+            }
+
+            :host([fullscreen-on-mobile][placement="top"]) dialog {
+                margin-block-start: 0;
+                margin-block-end: 0;
+                max-height: 100dvh;
             }
         }
 
@@ -491,7 +499,7 @@ export class OlDialog extends LitElement {
             focusable.push(...headerSlotted);
         } else {
             const closeButton = this.renderRoot?.querySelector('.close-button');
-            if (closeButton && !this.withoutHeader && !closeButton.disabled) {
+            if (closeButton && !this.withoutHeader && isFocusable(closeButton)) {
                 focusable.push(closeButton);
             }
         }
@@ -518,7 +526,10 @@ export class OlDialog extends LitElement {
         event.preventDefault();
 
         const activeElement = getDeepActiveElement();
-        const currentIndex = focusable.indexOf(activeElement);
+        // findFocusableIndex climbs shadow boundaries so a custom-element
+        // wrapper (e.g. <ol-options-popover>) that delegates focus inward to
+        // a deeper button still matches its host entry in the trap list.
+        const currentIndex = findFocusableIndex(focusable, activeElement);
 
         let nextIndex;
         if (event.shiftKey) {

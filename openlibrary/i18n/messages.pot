@@ -6718,32 +6718,36 @@ msgstr ""
 msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
+msgid "Full Card Catalog"
+msgstr ""
+
 #: search/availability_i18n.html
-msgid "Every book in the catalog"
+msgid "Info on every book published"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Read now (free)"
+msgid "Readable Books Only"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Fully readable – public domain & open access"
+msgid "Primarily older digitized, preserved, physical books"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Borrowable"
+msgid "Borrowable Only"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Borrow via Internet Archive's lending library"
+msgid "From Internet Archive's lending library"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Preview only"
+msgid "Open Access Only"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Limited preview available"
+msgid "From Trusted Book Providers"
 msgstr ""
 
 #: search/inside.html
@@ -6811,19 +6815,21 @@ msgid "Search books, authors…"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "Scan a barcode"
-msgstr ""
-
-#: search/search_modal_i18n.html
-msgid "Scan barcode"
-msgstr ""
-
-#: search/search_modal_i18n.html
 msgid "Close search"
 msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "See all results"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s result"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "See all %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html

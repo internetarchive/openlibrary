@@ -166,10 +166,10 @@ def get_availability_label(value: str) -> str:
     """Translated chip label for an availability value. Keep in sync with the
     label text in AVAILABILITY_OPTIONS (search-modal/constants.js)."""
     return {
-        "all": _("All"),
-        "readable": _("Read now (free)"),
-        "borrowable": _("Borrowable"),
-        "open": _("Preview only"),
+        "all": _("Full Card Catalog"),
+        "readable": _("Readable Books Only"),
+        "borrowable": _("Borrowable Only"),
+        "open": _("Open Access Only"),
     }.get(value, value)
 
 

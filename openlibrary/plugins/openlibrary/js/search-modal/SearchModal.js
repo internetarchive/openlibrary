@@ -17,13 +17,12 @@ import {
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
     availabilityOptionsFromElement,
+    readStoredLanguages,
     searchModalStringsFromElement,
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 
-const AVAILABILITY_TO_Q_CLAUSE = {};
-
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name'];
+const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'first_publish_year'];
 
 const RESULTS_LIMIT     = 10;
 const MIN_QUERY_LENGTH  = 2;
@@ -39,11 +38,11 @@ export class SearchModal extends LitElement {
         _availability: { state: true },
         _languages: { state: true },
         _results: { state: true },
+        _numFound: { state: true },
         _loading: { state: true },
         _hasSearched: { state: true },
         _languageItems: { state: true },
         _langsLoading: { state: true },
-        barcodeHref: { type: String, attribute: 'barcode-href' },
     };
 
     static styles = css`
@@ -114,34 +113,38 @@ export class SearchModal extends LitElement {
         @media (hover: none) and (pointer: coarse) { .esc-pill { display: none; } }
         @media (prefers-reduced-motion: reduce)     { .esc-pill { transition: none; } }
 
-        /* ── Barcode button ────────────────────────────────────────── */
+        /* ── Close button (mobile) ─────────────────────────────────── */
 
-        .barcode-btn {
+        /* Touch devices don't have an Esc key, so the ESC pill (above) is
+           replaced by an explicit close affordance in the same slot. */
+        .close-btn {
             flex-shrink: 0;
-            display: inline-flex;
+            display: none;
             align-items: center;
             justify-content: center;
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
+            margin-right: calc(var(--spacing-sm) * -1);
+            background: transparent;
+            border: none;
             border-radius: var(--border-radius-button);
-            opacity: 0.55;
-            transition: opacity 150ms ease;
-            text-decoration: none;
+            color: var(--accessible-grey);
+            cursor: pointer;
+            transition: background-color 150ms ease;
         }
 
-        @media (hover: hover) and (pointer: fine) {
-            .barcode-btn:hover { opacity: 0.9; }
+        .close-btn svg {
+            width: 22px;
+            height: 22px;
         }
 
-        .barcode-btn:focus-visible {
+        .close-btn:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             outline-offset: 2px;
-            opacity: 0.9;
         }
 
-        /* Scanning needs a camera — only surface it on touch devices. */
-        @media (hover: hover) and (pointer: fine) { .barcode-btn { display: none; } }
-        @media (prefers-reduced-motion: reduce)   { .barcode-btn { transition: none; } }
+        @media (hover: none) and (pointer: coarse) { .close-btn { display: inline-flex; } }
+        @media (prefers-reduced-motion: reduce)    { .close-btn { transition: none; } }
 
         /* ── Active filter chip row ────────────────────────────────── */
 
@@ -279,6 +282,13 @@ export class SearchModal extends LitElement {
             white-space: nowrap;
         }
 
+        .result__year {
+            display: block;
+            color: var(--accessible-grey);
+            font-size: 12px;
+            font-weight: 400;
+        }
+
         .empty, .placeholder, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
             color: var(--accessible-grey);
@@ -344,10 +354,10 @@ export class SearchModal extends LitElement {
         this.open          = false;
         this._query        = '';
         this._results      = [];
+        this._numFound     = null;
         this._loading      = false;
         this._hasSearched  = false;
         this._langsLoading = false;
-        this.barcodeHref   = '';
 
         // Availability options. Defaults to the built-in English list; the
         // localized list (from the trigger's data-i18n) is set in
@@ -364,11 +374,7 @@ export class SearchModal extends LitElement {
         this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
 
         this._availability = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
-
-        const storedLangs = ssGet(SS_LANGUAGES_KEY);
-        this._languages = storedLangs
-            ? (() => { try { return JSON.parse(storedLangs); } catch { return []; } })()
-            : [];
+        this._languages    = readStoredLanguages();
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
         this._activeFetchKey = null;
@@ -442,27 +448,18 @@ export class SearchModal extends LitElement {
                         @input=${this._onQueryInput}
                         @keydown=${this._onInputKeydown}
                     />
-                    ${this.barcodeHref ? html`
-                        <a
-                            href=${this.barcodeHref}
-                            class="barcode-btn"
-                            aria-label=${this._i18n.scanAria}
-                            title=${this._i18n.scanTitle}
-                        >
-                            <img
-                                src="/static/images/icons/barcode_scanner.svg"
-                                alt=""
-                                width="24"
-                                height="24"
-                            />
-                        </a>
-                    ` : nothing}
                     <button
                         type="button"
                         class="esc-pill"
                         aria-label=${this._i18n.closeAria}
                         @click=${this._closeModal}
                     >ESC</button>
+                    <button
+                        type="button"
+                        class="close-btn"
+                        aria-label=${this._i18n.closeAria}
+                        @click=${this._closeModal}
+                    >${SearchModal._closeIcon}</button>
                 </div>
 
                 ${hasFilters ? this._renderChips() : nothing}
@@ -475,7 +472,7 @@ export class SearchModal extends LitElement {
                         class="see-all"
                         ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
                         @click=${this._onSeeAllResults}
-                    >${this._i18n.seeAll}</button>
+                    >${this._seeAllLabel()}</button>
                 </div>
             </ol-dialog>
         `;
@@ -483,9 +480,10 @@ export class SearchModal extends LitElement {
 
     _renderChips() {
         // Each active filter is a selected <ol-chip>: the `selected` state
-        // gives it the built-in close icon, and clicking it (ol-chip-select)
-        // removes the filter. `variant` tints the chip by category — neutral
-        // grey for the availability facet, green for languages.
+        // gives it the built-in close icon (and the default blue fill),
+        // and clicking it (ol-chip-select) removes the filter. We use the
+        // default chip here — no `variant=` — so the modal row matches the
+        // /search filter bar.
         const chips = [];
 
         if (this._availability !== DEFAULT_AVAILABILITY) {
@@ -493,18 +491,20 @@ export class SearchModal extends LitElement {
             if (opt) chips.push({
                 key: `availability:${opt.value}`,
                 label: opt.label,
-                variant: 'neutral',
                 onRemove: () => this._setAvailability(DEFAULT_AVAILABILITY),
             });
         }
 
         for (const value of this._languages) {
+            // Fall back to the raw code when the language isn't in our current
+            // item list. This happens for codes that aren't in
+            // DEFAULT_LANGUAGE_OPTIONS until /languages.json resolves; without
+            // a fallback the chip would silently disappear, leaving the user
+            // unable to dismiss an active filter.
             const opt = this._languageItems.find(o => o.value === value);
-            if (!opt) continue;
             chips.push({
                 key: `language:${value}`,
-                label: opt.label,
-                variant: 'language',
+                label: opt?.label || value,
                 onRemove: () => this._removeLanguage(value),
             });
         }
@@ -516,17 +516,18 @@ export class SearchModal extends LitElement {
                         <ol-chip
                             selected
                             size="small"
-                            variant=${c.variant}
                             accessible-label=${sprintf(this._i18n.removeFilter, c.label)}
                             @ol-chip-select=${c.onRemove}
                         >${c.label}</ol-chip>
                     `)}
                 </ol-chip-group>
-                <button
-                    type="button"
-                    class="clear-all"
-                    @click=${this._clearAllFilters}
-                >${this._i18n.clearAll}</button>
+                ${chips.length >= 2 ? html`
+                    <button
+                        type="button"
+                        class="clear-all"
+                        @click=${this._clearAllFilters}
+                    >${this._i18n.clearAll}</button>
+                ` : nothing}
             </div>
         `;
     }
@@ -577,6 +578,7 @@ export class SearchModal extends LitElement {
 
     _renderResult(work) {
         const author = work.author_name?.[0] || '';
+        const year   = work.first_publish_year || '';
         const cover  = work.cover_i
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`
             : COVER_PLACEHOLDER;
@@ -586,9 +588,21 @@ export class SearchModal extends LitElement {
                     <span class="result__meta">
                         <span class="result__title">${work.title || this._i18n.untitled}</span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
+                        ${year ? html`<span class="result__year">${year}</span>` : nothing}
                     </span>
                 </a>
             </li>`;
+    }
+
+    // The footer button shows the actual hit count once a search lands
+    // (e.g. "See all 1,234 results"); the bare "See all results" label is
+    // used before any results are in (initial open, query under MIN_QUERY_LENGTH,
+    // or fetch error).
+    _seeAllLabel() {
+        const n = this._numFound;
+        if (typeof n !== 'number' || n <= 0) return this._i18n.seeAll;
+        const template = n === 1 ? this._i18n.seeAllOne : this._i18n.seeAllMany;
+        return sprintf(template, n.toLocaleString());
     }
 
     // ── Event handlers ───────────────────────────────────────────────────
@@ -603,6 +617,7 @@ export class SearchModal extends LitElement {
         this._query = e.target.value;
         if (this._query.trim().length < MIN_QUERY_LENGTH) {
             this._results     = [];
+            this._numFound    = null;
             this._loading     = false;
             this._hasSearched = false;
             return;
@@ -673,12 +688,14 @@ export class SearchModal extends LitElement {
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._results     = data.docs || [];
+                this._numFound    = typeof data.numFound === 'number' ? data.numFound : null;
                 this._loading     = false;
                 this._hasSearched = true;
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
                 this._results     = [];
+                this._numFound    = null;
                 this._loading     = false;
                 this._hasSearched = true;
             });
@@ -686,7 +703,7 @@ export class SearchModal extends LitElement {
 
     _buildSearchJsonUrl(query) {
         const params = new URLSearchParams();
-        params.set('q', this._composeQ(query));
+        params.set('q', query);
         params.set('limit', String(RESULTS_LIMIT));
         params.set('fields', SEARCH_FIELDS.join(','));
         params.set('_spellcheck_count', '0');
@@ -700,15 +717,10 @@ export class SearchModal extends LitElement {
         if (trimmed.length < MIN_QUERY_LENGTH) return null;
 
         const params = new URLSearchParams();
-        params.set('q', this._composeQ(trimmed));
+        params.set('q', trimmed);
         params.set('mode', searchMode.read());
         this._appendFilterParams(params);
         return `/search?${params.toString()}`;
-    }
-
-    _composeQ(userQuery) {
-        const clause = AVAILABILITY_TO_Q_CLAUSE[this._availability];
-        return clause ? `(${userQuery}) AND ${clause}` : userQuery;
     }
 
     _appendFilterParams(params) {
@@ -724,6 +736,8 @@ export class SearchModal extends LitElement {
     // ── Static SVGs ──────────────────────────────────────────────────────
 
     static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
+
+    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
@@ -747,11 +761,6 @@ export function initSearchModal(trigger) {
     // them before the modal mounts so the first render is already localized.
     modal._availabilityOptions = availabilityOptionsFromElement(trigger);
     modal._i18n = searchModalStringsFromElement(trigger);
-
-    const barcodeLink = document.querySelector('#barcode_scanner_link');
-    if (barcodeLink) {
-        modal.barcodeHref = barcodeLink.getAttribute('href') || '';
-    }
 
     document.body.appendChild(modal);
     modal.attachToTrigger(trigger);

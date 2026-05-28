@@ -315,16 +315,16 @@ export class OlSelectPopover extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--dark-red);
+            color: var(--accessible-grey);
             font: inherit;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .clear-button:hover {
-                background: hsla(8, 70%, 44%, 0.08);
+                background: var(--lightest-grey);
             }
         }
 
@@ -363,6 +363,29 @@ export class OlSelectPopover extends LitElement {
         // One-shot flag set by ArrowDown on the trigger to focus into the list
         // after the popover opens (vs. just focusing the filter on plain click).
         this._pendingFocusFirst = false;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // The default trigger button lives in shadow DOM, so an outer focus
+        // trap (e.g. <ol-dialog>) can't discover it via querySelectorAll.
+        // Exposing the host as tabbable + delegating focus inward lets the
+        // trap include this component in its tab order.
+        if (!this.hasAttribute('tabindex')) {
+            this.setAttribute('tabindex', '0');
+        }
+    }
+
+    /**
+     * Forward focus to the internal trigger so the focus ring lands on the
+     * actual button rather than the (invisible) host.
+     * @override
+     */
+    focus(options) {
+        const trigger = this.shadowRoot?.querySelector('.default-trigger')
+            ?? this.querySelector('[slot="trigger"]');
+        if (trigger?.focus) trigger.focus(options);
+        else HTMLElement.prototype.focus.call(this, options);
     }
 
     render() {

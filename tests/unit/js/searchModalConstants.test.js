@@ -20,9 +20,10 @@ describe('localizeAvailabilityOptions', () => {
         expect(readable.label).toBe('Lire maintenant');
         expect(readable.description).toBe('Lecture libre');
         // Untranslated values keep their English text...
-        expect(localized.find((o) => o.value === 'all').label).toBe('All');
+        expect(localized.find((o) => o.value === 'all').label).toBe('Full Card Catalog');
         // ...and the non-translatable fields are preserved.
         expect(readable.value).toBe('readable');
+        expect(readable.count).toBe('~4.6M');
     });
 
     test('falls back per-field when a translation omits one', () => {
@@ -31,12 +32,12 @@ describe('localizeAvailabilityOptions', () => {
         });
         const readable = localized.find((o) => o.value === 'readable');
         expect(readable.label).toBe('Lire maintenant');
-        expect(readable.description).toBe('Fully readable – public domain & open access');
+        expect(readable.description).toBe('Primarily older digitized, preserved, physical books');
     });
 
     test('does not mutate the shared defaults', () => {
         localizeAvailabilityOptions({ all: { label: 'Tout' } });
-        expect(AVAILABILITY_OPTIONS.find((o) => o.value === 'all').label).toBe('All');
+        expect(AVAILABILITY_OPTIONS.find((o) => o.value === 'all').label).toBe('Full Card Catalog');
     });
 });
 

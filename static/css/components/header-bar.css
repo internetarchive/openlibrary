@@ -396,7 +396,6 @@
 /* stylelint-enable max-nesting-depth, selector-max-specificity */
 
 .header-bar .search-component {
-  width: 45px;
   -webkit-box-ordinal-group: 3;
   -ms-flex-order: 2;
   order: 2;
@@ -409,7 +408,10 @@
 }
 
 .header-bar .search-component .search-bar-component {
-  display: inline-block;
+  display: flex;
+  align-items: stretch;
+  background-color: var(--grey-fafafa);
+  border: 1px solid var(--dark-beige);
   border-radius: 6px;
   position: relative;
 }
@@ -544,8 +546,6 @@
   }
 
   .header-bar .search-component .search-bar-component {
-    background-color: var(--grey-fafafa);
-    border: 1px solid var(--dark-beige);
     width: 240px;
   }
 }
@@ -581,15 +581,17 @@
 
 /* ── Search trigger button ───────────────────────────────────────────────
    The header search is a button that opens the search modal. It mimics the
-   look of the old text field but behaves like a button: pointer cursor,
-   hover background, and a slight press-down scale. On small screens only the
-   icon shows; the "Search" label appears once the box has room (>=35.5em). */
+   look of a text field but behaves like a button: pointer cursor, hover
+   background, and a slight press-down scale. The same faux-input rendering
+   applies at every viewport — on mobile it's squeezed into whatever space
+   the header has left after the logo and hamburger. */
 .search-bar-trigger {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: var(--spacing-inline-sm);
-  width: 100%;
   min-height: 38px;
   padding: 0 var(--spacing-inset-md);
   background: transparent;
@@ -603,7 +605,6 @@
 }
 
 .search-bar-trigger__label {
-  display: none;
   flex: 1;
   text-align: left;
   white-space: nowrap;
@@ -616,6 +617,46 @@
   width: 20px;
   height: 20px;
   background: url(/static/images/search-icon.svg) center / contain no-repeat;
+}
+
+/* ── Barcode scanner button ──────────────────────────────────────────────
+   Sits to the right of the search trigger. Only surfaced on touch devices
+   since scanning needs a camera. */
+.search-by-barcode {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  min-height: 38px;
+  border-radius: var(--border-radius-input);
+  color: var(--grey);
+  opacity: 0.7;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.search-by-barcode img {
+  display: block;
+}
+
+.search-by-barcode:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .search-by-barcode {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-by-barcode {
+    transition: none;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -650,15 +691,5 @@
 
   .search-bar-component:has(.search-bar-trigger:active) {
     transform: none;
-  }
-}
-
-@media only screen and (min-width: 35.5em) {
-  .search-bar-trigger {
-    justify-content: space-between;
-  }
-
-  .search-bar-trigger__label {
-    display: block;
   }
 }

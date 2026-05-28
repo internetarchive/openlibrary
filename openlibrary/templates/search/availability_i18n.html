@@ -4,10 +4,12 @@ $# modal (lib/nav_head.html) and the search-results filter row (work_search.html
 $# Rendered into a `data-i18n` attribute and read client-side by
 $# search-modal/constants.js (availabilityOptionsFromElement). The English source
 $# strings here must match the fallback AVAILABILITY_OPTIONS in that same file.
+$# Counts are not translated — they're rendered separately by the popover and
+$# carried in AVAILABILITY_OPTIONS, not here.
 $ availability_i18n = {
-$     "all":        {"label": _("All"),             "description": _("Every book in the catalog")},
-$     "readable":   {"label": _("Read now (free)"), "description": _("Fully readable – public domain & open access")},
-$     "borrowable": {"label": _("Borrowable"),      "description": _("Borrow via Internet Archive's lending library")},
-$     "open":       {"label": _("Preview only"),    "description": _("Limited preview available")},
+$     "all":        {"label": _("Full Card Catalog"),   "description": _("Info on every book published")},
+$     "readable":   {"label": _("Readable Books Only"), "description": _("Primarily older digitized, preserved, physical books")},
+$     "borrowable": {"label": _("Borrowable Only"),     "description": _("From Internet Archive's lending library")},
+$     "open":       {"label": _("Open Access Only"),    "description": _("From Trusted Book Providers")},
 $ }
 $json_encode(availability_i18n)

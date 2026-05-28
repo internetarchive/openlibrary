@@ -210,7 +210,7 @@ export class OlOptionsPopover extends LitElement {
             display: block;
             margin-top: 2px;
             color: var(--accessible-grey);
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.35;
         }
 
@@ -240,6 +240,30 @@ export class OlOptionsPopover extends LitElement {
         this._radioName = `ol-options-popover-radio-${_idCounter}`;
         this._isOpen = false;
         this._pendingFocusFirst = false;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // The default trigger button lives in shadow DOM, so an outer focus
+        // trap (e.g. <ol-dialog>) can't discover it via querySelectorAll.
+        // Exposing the host as tabbable + delegating focus inward lets the
+        // trap include this component in its tab order.
+        if (!this.hasAttribute('tabindex')) {
+            this.setAttribute('tabindex', '0');
+        }
+    }
+
+    /**
+     * Forward focus to the internal trigger so the focus ring lands on the
+     * actual button rather than the (invisible) host. Falls back to the host
+     * itself when called before the first render.
+     * @override
+     */
+    focus(options) {
+        const trigger = this.shadowRoot?.querySelector('.default-trigger')
+            ?? this.querySelector('[slot="trigger"]');
+        if (trigger?.focus) trigger.focus(options);
+        else HTMLElement.prototype.focus.call(this, options);
     }
 
     render() {
@@ -354,12 +378,17 @@ export class OlOptionsPopover extends LitElement {
 
     _onItemChange(e) {
         const value = e.target.value;
-        if (value === this.selected) return;
-        this.selected = value;
-        this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
-            bubbles: true, composed: true,
-            detail: { selected: value },
-        }));
+        if (value !== this.selected) {
+            this.selected = value;
+            this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
+                bubbles: true, composed: true,
+                detail: { selected: value },
+            }));
+        }
+        // Close on selection to match native <select> / dropdown filter
+        // conventions. <ol-popover> restores focus to the trigger.
+        const popover = this.shadowRoot?.querySelector('ol-popover');
+        if (popover) popover.open = false;
     }
 
     _onListKeydown(e) {
