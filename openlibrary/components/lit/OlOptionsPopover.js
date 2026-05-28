@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlPopover.js';
 
 let _idCounter = 0;
@@ -44,7 +45,7 @@ let _idCounter = 0;
  *     ]'
  * ></ol-options-popover>
  */
-export class OlOptionsPopover extends LitElement {
+export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: String, reflect: true },
@@ -242,28 +243,15 @@ export class OlOptionsPopover extends LitElement {
         this._pendingFocusFirst = false;
     }
 
-    connectedCallback() {
-        super.connectedCallback();
-        // The default trigger button lives in shadow DOM, so an outer focus
-        // trap (e.g. <ol-dialog>) can't discover it via querySelectorAll.
-        // Exposing the host as tabbable + delegating focus inward lets the
-        // trap include this component in its tab order.
-        if (!this.hasAttribute('tabindex')) {
-            this.setAttribute('tabindex', '0');
-        }
-    }
-
     /**
-     * Forward focus to the internal trigger so the focus ring lands on the
-     * actual button rather than the (invisible) host. Falls back to the host
-     * itself when called before the first render.
-     * @override
+     * Send focus to the default-trigger button rather than the first
+     * focusable in shadow order (which could be a slotted user-provided
+     * trigger — but the default-trigger is the one we want when it's there).
      */
-    focus(options) {
-        const trigger = this.shadowRoot?.querySelector('.default-trigger')
-            ?? this.querySelector('[slot="trigger"]');
-        if (trigger?.focus) trigger.focus(options);
-        else HTMLElement.prototype.focus.call(this, options);
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.default-trigger')
+            ?? this.querySelector('[slot="trigger"]')
+            ?? null;
     }
 
     render() {

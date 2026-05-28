@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 
 /**
  * OLChip - A pill-shaped interactive chip web component
@@ -32,7 +33,7 @@ import { LitElement, html, css, nothing } from 'lit';
  * @example
  * <ol-chip size="small" count="76" href="/subjects/fiction">Fiction</ol-chip>
  */
-export class OLChip extends LitElement {
+export class OLChip extends FocusableHostMixin(LitElement) {
     static properties = {
         selected: { type: Boolean, reflect: true },
         size: { type: String, reflect: true },

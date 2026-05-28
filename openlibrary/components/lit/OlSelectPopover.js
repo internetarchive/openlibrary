@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlPopover.js';
 
 let _idCounter = 0;
@@ -69,7 +70,7 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-export class OlSelectPopover extends LitElement {
+export class OlSelectPopover extends FocusableHostMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -363,29 +364,39 @@ export class OlSelectPopover extends LitElement {
         // One-shot flag set by ArrowDown on the trigger to focus into the list
         // after the popover opens (vs. just focusing the filter on plain click).
         this._pendingFocusFirst = false;
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        // The default trigger button lives in shadow DOM, so an outer focus
-        // trap (e.g. <ol-dialog>) can't discover it via querySelectorAll.
-        // Exposing the host as tabbable + delegating focus inward lets the
-        // trap include this component in its tab order.
-        if (!this.hasAttribute('tabindex')) {
-            this.setAttribute('tabindex', '0');
-        }
+        // Item value to refocus after the next render — set by a toggle that
+        // re-homes the item between the selected/suggestions groups (which
+        // destroys its DOM node, so its focus is lost).
+        this._restoreFocusToValue = null;
     }
 
     /**
-     * Forward focus to the internal trigger so the focus ring lands on the
-     * actual button rather than the (invisible) host.
-     * @override
+     * Send focus to the default-trigger button rather than the first
+     * focusable in shadow order.
      */
-    focus(options) {
-        const trigger = this.shadowRoot?.querySelector('.default-trigger')
-            ?? this.querySelector('[slot="trigger"]');
-        if (trigger?.focus) trigger.focus(options);
-        else HTMLElement.prototype.focus.call(this, options);
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.default-trigger')
+            ?? this.querySelector('[slot="trigger"]')
+            ?? null;
+    }
+
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        // Restore focus to the checkbox of an item that just moved between
+        // the selected/suggestions groups (see _onItemToggle). Lit binds the
+        // checkbox value via `.value=` (the JS property, not the attribute),
+        // so we match by property at lookup time.
+        if (this._restoreFocusToValue !== null && changedProperties.has('selected')) {
+            const value = this._restoreFocusToValue;
+            this._restoreFocusToValue = null;
+            const checkboxes = this.shadowRoot?.querySelectorAll('.item-checkbox') ?? [];
+            for (const cb of checkboxes) {
+                if (cb.value === value) {
+                    cb.focus({ preventScroll: true });
+                    break;
+                }
+            }
+        }
     }
 
     render() {
@@ -568,6 +579,16 @@ export class OlSelectPopover extends LitElement {
         const nextSelected = (this.items || [])
             .map(it => it.value)
             .filter(v => current.has(v));
+
+        // The toggled item is about to move between the "selected" and
+        // "suggestions" groups, which destroys its checkbox DOM node — focus
+        // would fall back to <body>. Only restore if the checkbox actually
+        // owned focus at toggle time (skips the mouse-click-without-focus
+        // path on Safari).
+        if (this.shadowRoot?.activeElement === e.target) {
+            this._restoreFocusToValue = value;
+        }
+
         this._emitChange(nextSelected, checked ? value : null, checked ? null : value);
     }
 

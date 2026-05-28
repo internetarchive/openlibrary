@@ -514,18 +514,50 @@ export class OlDialog extends LitElement {
     }
 
     /**
+     * Walks up from `el` (across shadow boundaries) looking for an open
+     * nested overlay inside this dialog — currently any `<ol-popover>`
+     * with the `open` attribute set. Used to skip Tab trapping when a
+     * sub-overlay is driving its own focus.
+     * @param {Element|null} el
+     * @returns {Boolean}
+     */
+    _isInsideOpenOverlay(el) {
+        let cur = el;
+        while (cur && cur !== this.dialog) {
+            // ol-popover reflects `open` to its attribute (see OlPopover.js).
+            // We match by tagName to avoid an import-time coupling to the
+            // OlPopover class itself.
+            if (cur.tagName === 'OL-POPOVER' && cur.hasAttribute('open')) {
+                return true;
+            }
+            const parent = cur.parentNode;
+            cur = (parent?.nodeType === Node.DOCUMENT_FRAGMENT_NODE && parent.host)
+                ? parent.host
+                : cur.parentElement;
+        }
+        return false;
+    }
+
+    /**
      * Manual Tab focus trap. Needed because Safari doesn't trap focus across
      * shadow DOM boundaries for slotted content.
      */
     _handleKeyDown(event) {
         if (event.key !== 'Tab') return;
 
+        const activeElement = getDeepActiveElement();
+
+        // If focus is inside an open nested overlay (e.g. an <ol-popover> the
+        // user just opened from a trigger in this dialog), that overlay owns
+        // its own focus trap — don't intercept Tab or we'll yank focus back
+        // out of the popover.
+        if (this._isInsideOpenOverlay(activeElement)) return;
+
         const focusable = this._getFocusableElements();
         if (focusable.length === 0) return;
 
         event.preventDefault();
 
-        const activeElement = getDeepActiveElement();
         // findFocusableIndex climbs shadow boundaries so a custom-element
         // wrapper (e.g. <ol-options-popover>) that delegates focus inward to
         // a deeper button still matches its host entry in the trap list.
