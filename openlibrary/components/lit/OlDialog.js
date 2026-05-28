@@ -1,4 +1,4 @@
-import { LitElement, html, css, isServer } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
 import { slotHasContent } from './utils/slot-utils.js';
@@ -650,9 +650,4 @@ export class OlDialog extends LitElement {
     }
 }
 
-// SSR-safe registration. Guarded against double-registration when both the
-// lit-components bundle and a webpack consumer (e.g. SearchModal) import the
-// component module.
-if (!isServer && !customElements.get('ol-dialog')) {
-    customElements.define('ol-dialog', OlDialog);
-}
+customElements.define('ol-dialog', OlDialog);

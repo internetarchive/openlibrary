@@ -1,10 +1,10 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
-import '../../../../components/lit/OlDialog.js';
-import '../../../../components/lit/OlOptionsPopover.js';
-import '../../../../components/lit/OlSelectPopover.js';
-import '../../../../components/lit/OLChip.js';
-import '../../../../components/lit/OLChipGroup.js';
+// The <ol-*> custom elements this modal uses (ol-dialog, ol-options-popover,
+// ol-select-popover, ol-chip, ol-chip-group) are registered by the site-wide
+// Lit bundle: build/lit-components/production/ol-components.js, loaded from
+// openlibrary/templates/site/footer.html. Do NOT re-import those component
+// modules here — re-running customElements.define() throws NotSupportedError.
 import { debounce } from '../nonjquery_utils.js';
 import { sprintf } from '../i18n.js';
 import { mode as searchMode } from '../SearchUtils.js';

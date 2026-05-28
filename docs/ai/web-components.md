@@ -204,17 +204,15 @@ render() {
 
 ## Registration
 
-Guard the `customElements.define()` call at the bottom of every component file:
+Register the component once at the bottom of its file:
 
 ```js
-if (!customElements.get('ol-my-widget')) {
-    customElements.define('ol-my-widget', OlMyWidget);
-}
+customElements.define('ol-my-widget', OlMyWidget);
 ```
 
-Some components get imported through both the central `lit-components` bundle and a downstream webpack consumer (e.g., the search-modal entrypoint). Without the guard, the second `define()` call throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause.
+**`ol-components.js` is the single registration site for every `<ol-*>` custom element.** It is built from `openlibrary/components/lit/index.js` (which re-exports every component, running each `define()` as a side effect) and loaded site-wide from `openlibrary/templates/site/footer.html`.
 
-If the component uses APIs that aren't available during SSR (e.g., `HTMLDialogElement`), also gate the `define()` call on `!isServer` from `lit`. See `OlDialog.js` for the pattern.
+If you need to drive a Lit component from page JS that webpack bundles (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
 
 ## Focus and Shadow DOM
 

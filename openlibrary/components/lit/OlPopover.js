@@ -841,6 +841,4 @@ export class OlPopover extends LitElement {
     }
 }
 
-if (!customElements.get('ol-popover')) {
-    customElements.define('ol-popover', OlPopover);
-}
+customElements.define('ol-popover', OlPopover);
