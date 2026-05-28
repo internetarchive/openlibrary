@@ -3,51 +3,129 @@ $def with (param, search_response, q_param, path=None, query={})
 $code:
     fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
     facet_map = get_facet_map()
+    # get_language_name() needs the request's UI language to pick the
+    # translated language name. Use get_request_lang() instead of get_lang(),
+    # since this template is rendered both by the web.py server (work_search.html)
+    # and by the FastAPI partials endpoint (partials.py), and FastAPI doesn't
+    # populate web.ctx.lang — get_request_lang() reads the unified req_context.
+    user_lang = get_request_lang()
     facet_tooltips = {
         'first_publish_year': _('First published in'),
         'language': _('Written in'),
         'publisher_facet': _('Published by'),
         'author_key': _('Author'),
     }
+    # Facets the chips bar handles itself rather than via the facet_map loop.
+    # `has_fulltext` / `public_scan` / `print_disabled` are collapsed into a
+    # single Availability chip (see get_active_availability), and the language
+    # chips are rendered up-front so they don't depend on facet_counts being
+    # loaded (it isn't on the initial work_search.html render — facet=False).
+    special_handled = {'has_fulltext', 'public_scan_b', 'language'}
+
     def del_facet_url(k, v):
         if k != 'has_fulltext':
             return changequery(page=None, _path=path, query=dict(query), **{k:[i for i in param.get(k, []) if i != v]})
         else:
             return changequery(page=None, _path=path, query=dict(query), **{k:None})
 
+    def clear_availability_url():
+        # Clear every URL param any availability value can set, in one go.
+        cleared = {k: None for k in get_availability_param_keys()}
+        return changequery(page=None, _path=path, query=dict(query), **cleared)
+
+    active_availability = get_active_availability(param) if param else 'all'
+    selected_languages = list(param.get('language', [])) if param else []
+    # The chips bar is also surfaced for any facet header that has a value in
+    # the URL (author_key, subject_facet, etc.). We render those only when
+    # facet_counts has loaded — see the loop further down.
+    has_other_facet_filter = any(
+        header in param and header not in special_handled
+        for header, _label in facet_map
+    )
+    show_chips_bar = (
+        active_availability != 'all'
+        or selected_languages
+        or (search_response.facet_counts and has_other_facet_filter)
+    )
+
 $if param and not search_response.error:
     $ title = []
     $if q_param:
         $title.append(q_param)
-    $if 'has_fulltext' in param:
-        $title.append(_('eBook'))
-    $if 'public_scan_b' in param:
-        $title.append(_('Classic eBook'))
+    $if active_availability != 'all':
+        $title.append(get_availability_label(active_availability))
+    $for lang_code in selected_languages:
+        $title.append(get_language_name('/languages/' + lang_code, user_lang))
 
-    $if any(header in param for header, label in facet_map):
+    $if show_chips_bar:
         <div class="selected-search-facets">
-        $for header, label in facet_map:
-            $ counts = search_response.facet_counts[header]
-            $for k, display, count in counts:
-                $if k not in param.get(header, []):
-                    $continue
+        $if active_availability != 'all':
+            $ avail_label = get_availability_label(active_availability)
+            <ol-chip
+                selected
+                size="small"
+                variant="neutral"
+                data-filter-kind="availability"
+                data-filter-value="$active_availability"
+                accessible-label="$_('Availability'): $avail_label"
+                href="$clear_availability_url()"
+            >$avail_label</ol-chip>
 
-                $if header not in ['has_fulltext', 'public_scan_b']:
+        $for lang_code in selected_languages:
+            $ lang_label = get_language_name('/languages/' + lang_code, user_lang)
+            <ol-chip
+                selected
+                size="small"
+                variant="neutral"
+                data-filter-kind="language"
+                data-filter-value="$lang_code"
+                accessible-label="$_('Written in'): $lang_label"
+                href="$del_facet_url('language', lang_code)"
+            >$lang_label</ol-chip>
+
+        $# Other facets (author, subject, year, etc.) depend on facet_counts to
+        $# resolve the display name — only render them once the async sidebar
+        $# request has populated facet_counts.
+        $if search_response.facet_counts:
+            $for header, label in facet_map:
+                $if header in special_handled:
+                    $continue
+                $ counts = search_response.facet_counts[header]
+                $for k, display, count in counts:
+                    $if k not in param.get(header, []):
+                        $continue
+
                     $title.append(display)
 
-                $if header == 'has_fulltext':
+                    $ chip_display = display
+                    $ chip_title = facet_tooltips.get(header, '')
+                    $if chip_title:
+                        <ol-chip selected size="small" variant="neutral" accessible-label="$chip_title: $chip_display" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+                    $else:
+                        <ol-chip selected size="small" variant="neutral" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+
+            $# Legacy non-UI facets: only render when facet_counts is loaded
+            $# (these aren't sticky filters owned by the new filter row).
+            $# When an availability value is active the new Availability chip
+            $# already represents has_fulltext — skip the legacy chip to avoid
+            $# showing two chips for the same param ("Borrowable" + "Ebooks").
+            $if 'has_fulltext' in param and active_availability == 'all':
+                $ counts = search_response.facet_counts.get('has_fulltext', [])
+                $for k, display, count in counts:
+                    $if k not in param.get('has_fulltext', []):
+                        $continue
                     $ chip_display = fulltext_names.get(k, '')
-                $elif header == 'public_scan_b':
+                    <ol-chip selected size="small" variant="neutral" href="$del_facet_url('has_fulltext', k)">$chip_display</ol-chip>
+
+            $if 'public_scan_b' in param:
+                $ counts = search_response.facet_counts.get('public_scan_b', [])
+                $for k, display, count in counts:
+                    $if k not in param.get('public_scan_b', []):
+                        $continue
                     $# TODO: Consider removing public_scan_b handling. No UI exposes
                     $# this facet (the sidebar skips it), so it only triggers via
                     $# manually crafted URLs like /search?public_scan_b=true.
                     $ chip_display = _("Only Classic eBooks") if display == 'true' else _("Classic eBooks hidden")
-                $else:
-                    $ chip_display = display
-                $ chip_title = facet_tooltips.get(header, '')
-                $if chip_title:
-                    <ol-chip selected size="small" accessible-label="$chip_title: $chip_display" href="$del_facet_url(header, k)">$chip_display</ol-chip>
-                $else:
-                    <ol-chip selected size="small" href="$del_facet_url(header, k)">$chip_display</ol-chip>
+                    <ol-chip selected size="small" variant="neutral" href="$del_facet_url('public_scan_b', k)">$chip_display</ol-chip>
         </div>
     $var title: $_('%(title)s - search', title=', '.join(title))

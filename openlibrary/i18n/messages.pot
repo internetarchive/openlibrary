@@ -1446,8 +1446,8 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: search/search_modal_i18n.html type/work/editions_datatable.html
-#: work_search.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: type/work/editions_datatable.html work_search.html
 msgid "Availability"
 msgstr ""
 
@@ -1529,7 +1529,8 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html search/availability_i18n.html type/tag/index.html
+#: about/index.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html type/tag/index.html
 msgid "All"
 msgstr ""
 
@@ -6721,7 +6722,7 @@ msgstr ""
 msgid "Every book in the catalog"
 msgstr ""
 
-#: search/availability_i18n.html
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Read now (free)"
 msgstr ""
 
@@ -6729,7 +6730,7 @@ msgstr ""
 msgid "Fully readable – public domain & open access"
 msgstr ""
 
-#: search/availability_i18n.html
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Borrowable"
 msgstr ""
 
@@ -6737,7 +6738,7 @@ msgstr ""
 msgid "Borrow via Internet Archive's lending library"
 msgstr ""
 
-#: search/availability_i18n.html
+#: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Preview only"
 msgstr ""
 
@@ -7026,14 +7027,6 @@ msgstr ""
 
 #: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "eBook"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Classic eBook"
 msgstr ""
 
 #: search/work_search_selected_facets.html

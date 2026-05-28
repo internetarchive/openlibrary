@@ -78,13 +78,16 @@ div.siteSearch.darker {
 
 /* On the search page, enlarge the in-page search box to match the header
    search bar, then hide the now-redundant header search since the same
-   input is already visible in the page content. */
+   input is already visible in the page content. Use `visibility: hidden`
+   (not `display: none`) so the search-component keeps its flex slot —
+   otherwise the also-`flex: 1` navigation-component absorbs the freed
+   space and shifts My Books / Browse out of their normal positions. */
 .search-page .searchbox {
   height: 47px;
   border-radius: 6px;
 }
 .search-page .header-bar .search-component {
-  display: none;
+  visibility: hidden;
 }
 /* stylelint-disable selector-max-specificity */
 div#revertLink,

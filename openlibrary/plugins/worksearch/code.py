@@ -117,6 +117,80 @@ def get_facet_map() -> tuple[tuple[str, str]]:
     )
 
 
+# Server-side mirror of AVAILABILITY_TO_PARAMS in
+# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync.
+# The keys are the user-facing availability "value" the header modal and the
+# search-page filter row use; the values are the Solr filter params they
+# materialize as in the URL.
+AVAILABILITY_TO_PARAMS: dict[str, dict[str, str]] = {
+    "all": {},
+    "readable": {"public_scan": "true"},
+    "borrowable": {"has_fulltext": "true", "public_scan": "false"},
+    "open": {"print_disabled": "true"},
+}
+
+# Every URL param that any availability value can set. Used to clear the
+# availability filter (chip removal) without touching unrelated params.
+AVAILABILITY_PARAM_KEYS: tuple[str, ...] = tuple({key for params in AVAILABILITY_TO_PARAMS.values() for key in params})
+
+
+def _param_first(param: dict, key: str) -> str:
+    """web.input can give back either a string or list depending on the field's
+    default. The availability params come in as scalar strings, but we
+    defensively unwrap lists too so a future change to the input declaration
+    doesn't silently break this comparison."""
+    val = param.get(key)
+    if isinstance(val, list):
+        return val[0] if val else ""
+    return "" if val is None else str(val)
+
+
+@public
+def get_active_availability(param: dict) -> str:
+    """Return the availability value ('all'/'readable'/'borrowable'/'open')
+    currently active for `param`. Mirrors availabilityFromParams() in
+    search-modal/constants.js: check the more specific multi-param values
+    first, fall back to 'all'."""
+
+    def matches(expected: dict) -> bool:
+        return all(_param_first(param, k) == v for k, v in expected.items())
+
+    for value in ("borrowable", "readable", "open"):
+        if matches(AVAILABILITY_TO_PARAMS[value]):
+            return value
+    return "all"
+
+
+@public
+def get_availability_label(value: str) -> str:
+    """Translated chip label for an availability value. Keep in sync with the
+    label text in AVAILABILITY_OPTIONS (search-modal/constants.js)."""
+    return {
+        "all": _("All"),
+        "readable": _("Read now (free)"),
+        "borrowable": _("Borrowable"),
+        "open": _("Preview only"),
+    }.get(value, value)
+
+
+@public
+def get_availability_param_keys() -> tuple[str, ...]:
+    return AVAILABILITY_PARAM_KEYS
+
+
+@public
+def get_request_lang() -> str:
+    """The request's UI language, safe to call from templates rendered on
+    either the legacy web.py server or the FastAPI server. The Templetor
+    global `get_lang()` reads `web.ctx.lang` directly, which isn't populated
+    by FastAPI — partials rendered there would AttributeError. Reading from
+    the unified `req_context` works on both. Falls back to 'en'."""
+    try:
+        return req_context.get().lang or "en"
+    except LookupError:
+        return "en"
+
+
 async def get_solr_works_async(work_keys: set[str], fields: Iterable[str] | None = None, editions=False) -> dict[str, web.storage]:
     from openlibrary.plugins.worksearch.search import get_solr
 
