@@ -4,13 +4,13 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.12 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 9.9
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 10
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
 ### Key Commands
 
-**Before committing**, run pre-commit on your changed files (requires Python 3.12 on host — `brew install python@3.12`):
+**Before committing**, run pre-commit on your changed files (requires Python 3.14 on host — `brew install python@3.14`):
 
 ```bash
 pre-commit run --files <file1> <file2> ...

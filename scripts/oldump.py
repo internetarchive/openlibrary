@@ -27,7 +27,7 @@ if __name__ == "__main__":
     from openlibrary.config import load_config
     from openlibrary.data import dump
 
-    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.12.2
+    log("{} on Python {}.{}.{}".format(sys.argv, *sys.version_info))  # Python 3.14.x
 
     ol_config = os.getenv("OL_CONFIG")
     if ol_config:

@@ -1,14 +1,17 @@
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 import pytest
 
-from openlibrary.core.ratings import WorkRatingsSummary
 from openlibrary.solr import update
 from openlibrary.solr.data_provider import (
     DataProvider,
     WorkReadingLogSolrSummary,
     get_all_trending_fields,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.core.ratings import WorkRatingsSummary
 
 author_counter = 0
 edition_counter = 0

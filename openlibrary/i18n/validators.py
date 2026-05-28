@@ -1,10 +1,12 @@
 import re
 from itertools import groupby
+from typing import TYPE_CHECKING
 
-from babel.messages.catalog import (
-    Catalog,
-    Message,
-)
+if TYPE_CHECKING:
+    from babel.messages.catalog import (
+        Catalog,
+        Message,
+    )
 
 
 def validate(message: Message, catalog: Catalog) -> list[str]:

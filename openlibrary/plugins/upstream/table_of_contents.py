@@ -2,15 +2,17 @@ import json
 import re
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Required, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Required, TypedDict, TypeVar
 
 from infogami.infobase.client import Nothing, Thing
-from openlibrary.core.models import ThingReferenceDict
+
+if TYPE_CHECKING:
+    from openlibrary.core.models import ThingReferenceDict
 
 
 @dataclass
 class TableOfContents:
-    entries: list["TocEntry"]
+    entries: list[TocEntry]
 
     @cached_property
     def min_level(self) -> int:
@@ -22,8 +24,8 @@ class TableOfContents:
     @staticmethod
     def from_db(
         db_table_of_contents: list[dict] | list[str] | list[str | dict],
-    ) -> "TableOfContents":
-        def row(r: dict | str) -> "TocEntry":
+    ) -> TableOfContents:
+        def row(r: dict | str) -> TocEntry:
             if isinstance(r, str):
                 # Legacy, can be just a plain string
                 return TocEntry(level=0, title=r)
@@ -36,7 +38,7 @@ class TableOfContents:
         return [r.to_dict() for r in self.entries]
 
     @staticmethod
-    def from_markdown(text: str) -> "TableOfContents":
+    def from_markdown(text: str) -> TableOfContents:
         return TableOfContents([TocEntry.from_markdown(line) for line in text.splitlines() if line.strip(" |")])
 
     def to_markdown(self) -> str:
@@ -70,7 +72,7 @@ class TocEntry:
         return {field: getattr(self, field) for field in extra_fields if getattr(self, field) is not None}
 
     @staticmethod
-    def from_dict(d: dict) -> "TocEntry":
+    def from_dict(d: dict) -> TocEntry:
         return TocEntry(
             level=d.get("level", 0),
             label=d.get("label"),
@@ -85,7 +87,7 @@ class TocEntry:
         return {key: value for key, value in self.__dict__.items() if value is not None}
 
     @staticmethod
-    def from_markdown(line: str) -> "TocEntry":
+    def from_markdown(line: str) -> TocEntry:
         """
         Parse one row of table of contents.
 
