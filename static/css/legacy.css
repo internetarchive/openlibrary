@@ -1766,10 +1766,6 @@ div#subjectLists p {
     order: 3;
   }
 
-  .header-bar .search-component .search-bar-component {
-    width: 300px;
-  }
-
   .header-bar .header-dropdown .account__icon {
     width: 45px;
     height: 45px;
@@ -1868,8 +1864,27 @@ div#subjectLists p {
     white-space: nowrap;
   }
 
+  /* Mirrors header-bar--desktop.css: restores the wide "Search 🔍" bar
+     at desktop. Mobile/touch widths keep the icon-only pill. */
   .header-bar .search-component .search-bar-component {
     width: 100%;
+  }
+
+  .header-bar .search-bar-trigger {
+    flex: 1;
+    min-width: 0;
+    justify-content: space-between;
+    gap: var(--spacing-inline-sm);
+    padding: 0 var(--spacing-inset-md);
+  }
+
+  .header-bar .search-bar-trigger__label {
+    display: block;
+    flex: 1;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-bar .hamburger-component {

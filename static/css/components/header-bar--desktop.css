@@ -39,8 +39,31 @@
   white-space: nowrap;
 }
 
+/* ── Desktop search trigger ─────────────────────────────────────────────
+   At desktop widths we restore the full-width "Search 🔍" bar: the pill
+   expands to fill the search-component slot, the trigger stretches to
+   fill the pill, the label is shown, and the magnifier sits at the
+   right edge. Mobile/touch widths keep the compact icon-only pill from
+   the base file. */
 .header-bar .search-component .search-bar-component {
   width: 100%;
+}
+
+.header-bar .search-bar-trigger {
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
+  gap: var(--spacing-inline-sm);
+  padding: 0 var(--spacing-inset-md);
+}
+
+.header-bar .search-bar-trigger__label {
+  display: block;
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-bar .hamburger-component {

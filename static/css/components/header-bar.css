@@ -400,11 +400,15 @@
   -ms-flex-order: 2;
   order: 2;
   height: 47px;
-  margin-right: -5px;
-  text-align: right;
   -webkit-box-flex: 1;
   -ms-flex: 1;
   flex: 1;
+  /* Holds the icon-only search pill and the standalone barcode button as
+     two distinct controls aligned to the right of the header. */
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-inline-sm);
 }
 
 .header-bar .search-component .search-bar-component {
@@ -474,14 +478,14 @@
 }
 
 @media only screen and (max-width: 25em) {
-  .search-bar-component {
+  .search-component {
     margin-right: 15px;
   }
 }
 
 /* We should review this media query to determine if it is in fact needed. */
 @media only screen and (min-width: 25em) {
-  .header-bar .search-bar-component {
+  .header-bar .search-component {
     margin-right: 15px;
   }
 
@@ -516,10 +520,6 @@
     border-top-left-radius: 0;
   }
 
-  .header-bar .search-component {
-    margin-right: 0;
-  }
-
   .header-bar .hamburger-component summary {
     margin-left: var(--spacing-inline-lg);
   }
@@ -543,10 +543,6 @@
     border-top: none;
     border-top-right-radius: 0;
     border-top-left-radius: 0;
-  }
-
-  .header-bar .search-component .search-bar-component {
-    width: 240px;
   }
 }
 
@@ -580,20 +576,23 @@
 }
 
 /* ── Search trigger button ───────────────────────────────────────────────
-   The header search is a button that opens the search modal. It mimics the
-   look of a text field but behaves like a button: pointer cursor, hover
-   background, and a slight press-down scale. The same faux-input rendering
-   applies at every viewport — on mobile it's squeezed into whatever space
-   the header has left after the logo and hamburger. */
+   The header search is a button that opens the search modal. The
+   faux-input aesthetic (background, border, radius) lives on the
+   `.search-bar-component` wrapper; this button sits inside the pill.
+
+   On mobile/touch widths the trigger renders as a compact icon-only pill
+   (the "Search" label is hidden). On desktop (header-bar--desktop.css)
+   it expands to fill the slot and the label is shown beside the icon —
+   the original wide "Search 🔍" bar. `aria-label="Search"` on the button
+   supplies the accessible name in both modes. */
 .search-bar-trigger {
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-inline-sm);
+  justify-content: center;
+  min-width: 44px;
   min-height: 38px;
-  padding: 0 var(--spacing-inset-md);
+  padding: 0 var(--spacing-inset-sm);
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-input);
@@ -604,12 +603,10 @@
   transition: background-color 0.15s ease;
 }
 
+/* Hidden on mobile/touch; the desktop file flips this back to `block`
+   alongside the wider trigger layout. */
 .search-bar-trigger__label {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
 }
 
 .search-bar-trigger__icon {
@@ -620,8 +617,10 @@
 }
 
 /* ── Barcode scanner button ──────────────────────────────────────────────
-   Sits to the right of the search trigger. Only surfaced on touch devices
-   since scanning needs a camera. */
+   Standalone control that sits next to the search pill in the header
+   (not nested inside it), so the `.search-page` rule that hides the pill
+   still leaves the scanner reachable from the search results page. Only
+   surfaced on touch devices since scanning needs a camera. */
 .search-by-barcode {
   flex-shrink: 0;
   display: inline-flex;
@@ -645,6 +644,13 @@
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
   opacity: 1;
+}
+
+@media (hover: hover) {
+  .search-by-barcode:hover {
+    opacity: 1;
+    background-color: var(--lightest-grey);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {

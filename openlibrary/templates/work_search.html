@@ -1,6 +1,8 @@
 $def with (q_param, search_response, get_doc, param, page, rows, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('search-page')
 
 <div>
     <div id="contentHead">
