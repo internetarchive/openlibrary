@@ -4,7 +4,7 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 9.9
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 10
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 

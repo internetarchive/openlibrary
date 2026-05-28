@@ -138,7 +138,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Search
 
-Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
+Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
 
 ### Data Model
 
