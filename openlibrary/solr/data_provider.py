@@ -198,7 +198,7 @@ class DataProvider:
         if invalid_ocaids:
             logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
         valid_ocaids = list(set(ocaids) - invalid_ocaids)
-        batches = list(itertools.batched(valid_ocaids, 250))
+        batches = list(itertools.batched(valid_ocaids, 250, strict=False))
         # Start them all async
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
@@ -206,7 +206,7 @@ class DataProvider:
                 self.ia_cache[doc["identifier"]] = doc
 
         missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
-        missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6))
+        missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6, strict=False))
         for missing_batch in missing_ocaid_batches:
             # Start them all async
             tasks = [asyncio.create_task(self._get_lite_metadata_direct(ocaid)) for ocaid in missing_batch]
