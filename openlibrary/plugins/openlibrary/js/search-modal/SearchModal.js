@@ -22,7 +22,13 @@ import {
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'first_publish_year'];
+// `editions` is requested not to render it, but to opt /search.json into the
+// edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
+// availability filters like "Readable Books Only" (public_scan/print_disabled)
+// only match the work-level `ebook_access` aggregate, so the modal would surface
+// works the /search page hides — e.g. a work whose only query-matching edition
+// is non-readable. Requesting `editions` makes the modal match /search exactly.
+const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'first_publish_year', 'editions'];
 
 const RESULTS_LIMIT     = 10;
 const MIN_QUERY_LENGTH  = 2;
