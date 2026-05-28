@@ -1529,8 +1529,7 @@ msgstr ""
 msgid "Role:"
 msgstr ""
 
-#: about/index.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html type/tag/index.html
+#: about/index.html type/tag/index.html
 msgid "All"
 msgstr ""
 
