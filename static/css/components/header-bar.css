@@ -408,216 +408,10 @@
   flex: 1;
 }
 
-/* stylelint-disable selector-max-specificity */
-/* stylelint-disable max-nesting-depth */
-.header-bar .search-component.expanded {
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  margin-left: 5px;
-  -ms-flex-item-align: center;
-  align-self: center;
-}
-
-.header-bar .search-component.expanded .search-bar-component {
-  width: 95%;
-  background-color: var(--grey-fafafa);
-  border: 1px solid var(--dark-beige);
-}
-
-.header-bar .search-component.expanded .search-bar {
-  width: auto;
-}
-
-.header-bar .search-component.expanded .search-bar .search-bar-input {
-  display: flex;
-}
-
-.header-bar .search-component.expanded .search-bar-input input[type="text"] {
-  display: block;
-  width: 100%;
-}
-
-.header-bar .search-component.expanded .search-bar-submit {
-  cursor: pointer;
-}
-
-.header-bar .search-component.expanded .vertical-separator {
-  display: block;
-}
-
-.header-bar .search-component.expanded .search-by-barcode-submit {
-  display: block;
-}
-
-.header-bar .search-component.expanded .search-facet-selector {
-  display: block;
-}
-
-.header-bar .search-component.expanded .search-facet {
-  display: block;
-}
-
-.header-bar .search-component .search-bar {
-  width: 45px;
-}
-
-.header-bar .search-component .search-bar-submit {
-  background: url(/static/images/search-icon.svg) center no-repeat;
-  width: 35px;
-  height: 45px;
-  border-top-left-radius: 0.3em;
-  border-bottom-left-radius: 0.3em;
-}
-
-.header-bar .search-component .vertical-separator {
-  border-left: 1px solid var(--light-grey);
-  height: 34px;
-  margin: auto 5px auto 0;
-}
-
-.header-bar .search-component .search-by-barcode-submit {
-  background: url(/static/images/icons/barcode_scanner.svg) center no-repeat;
-  background-size: 26px;
-  width: 28px;
-  margin-right: 8px;
-}
-
 .header-bar .search-component .search-bar-component {
   display: inline-block;
   border-radius: 6px;
   position: relative;
-}
-
-.header-bar .search-component .search-bar-advanced-btn {
-  text-align: center;
-}
-
-.header-bar .search-component .search-bar-input input[type="text"] {
-  max-width: 100%;
-}
-/* stylelint-enable selector-max-specificity */
-
-.header-bar .search-component .search-dropdown {
-  position: relative;
-}
-
-/* stylelint-disable selector-max-specificity */
-.header-bar .search-component .search-dropdown .search-results li {
-  text-align: left;
-  padding: var(--spacing-inset-sm);
-  border-top: 1px solid var(--lighter-grey);
-  font-size: var(--font-size-label-large);
-  transition: background-color 0.2s;
-}
-
-.header-bar .search-component .search-dropdown .search-results li:last-child {
-  border-radius: 0 0 6px 6px;
-}
-
-.header-bar .search-component .search-dropdown .search-results li:hover {
-  background-color: var(--white);
-}
-
-.header-bar .search-component .search-dropdown .search-results li a {
-  display: flex;
-  text-decoration: none;
-  color: var(--dark-grey);
-}
-
-.header-bar .search-component .search-dropdown .search-results li a img {
-  width: 40px;
-  min-width: 40px;
-  height: 60px;
-  min-height: 60px;
-  background-color: var(--lightest-grey);
-  margin-right: var(--spacing-inline-lg);
-  object-fit: cover;
-  border-radius: var(--border-radius-thumbnail);
-}
-
-.header-bar .search-component .search-dropdown .search-results li a .book-desc {
-  font-weight: 300;
-  text-decoration: none;
-}
-
-.header-bar
-  .search-component
-  .search-dropdown
-  .search-results
-  li
-  a
-  .book-desc
-  .book-title {
-  font-weight: bold;
-}
-
-.header-bar
-  .search-component
-  .search-dropdown
-  .search-results
-  li
-  a
-  .book-desc
-  .book-author {
-  color: var(--dark-blue);
-}
-/* stylelint-enable selector-max-specificity */
-
-.header-bar .search-component .search-facet-selector {
-  display: none;
-  margin-top: var(--spacing-stack-xs);
-  padding: 13px 10px 0;
-  font-size: var(--font-size-label-large);
-}
-
-.header-bar .search-component .search-facet {
-  display: none;
-  position: relative;
-  border-radius: 3px 0 0 3px;
-  background-color: hsla(48, 33%, 83%, 0.32);
-  border: none;
-  border-right: 1px solid var(--lighter-grey);
-  font-weight: 500;
-  color: var(--grey);
-}
-
-/* stylelint-disable-next-line selector-max-specificity */
-.header-bar .search-component .search-facet select {
-  font-size: inherit;
-  font-family: inherit;
-  font-weight: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  cursor: pointer;
-  max-width: 100%;
-  -moz-appearance: none;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.header-bar .search-component .search-facet-value {
-  display: block;
-  min-width: 20px;
-  padding-right: var(--spacing-inset-sm);
-}
-
-/* stylelint-disable-next-line selector-max-specificity */
-.header-bar .search-component .search-facet-value::after {
-  position: absolute;
-  top: 50%;
-  right: 4px;
-  content: "";
-  width: 0;
-  height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 4px solid currentColor;
-}
-
-div.search-facet:focus-within {
-  outline: 2px solid;
 }
 
 .hamburger-component summary {
@@ -677,71 +471,6 @@ div.search-facet:focus-within {
   line-height: 0;
 }
 
-.search-component .search-bar-advanced-btn {
-  margin: 10px;
-  border: 0 none;
-  width: 40px;
-  padding: 0;
-  cursor: pointer;
-  display: none;
-}
-
-.search-component .search-bar {
-  max-width: none;
-  min-width: none;
-  -webkit-transition: all 0.2s;
-  -o-transition: all 0.2s;
-  transition: all 0.2s;
-  border-radius: var(--border-radius-input);
-  -webkit-box-flex: 1;
-  -ms-flex: 1 0 0%;
-  flex: 1;
-  display: flex;
-}
-
-.search-component .search-bar-input {
-  min-width: 50px;
-  width: 100%;
-  display: flex;
-}
-
-/* stylelint-disable selector-max-specificity */
-.search-component .search-bar-input input[type="text"] {
-  min-width: 0;
-  margin: 3px;
-  -webkit-box-flex: 1;
-  -ms-flex: 1;
-  flex: 1;
-  padding: 5px 0 2px 3px;
-  font-size: 1em;
-  font-weight: 500;
-  border: 0 none;
-  outline: none;
-  background: var(--grey-fafafa);
-  color: var(--grey);
-  -webkit-transition: all 0.5s;
-  -o-transition: all 0.5s;
-  transition: all 0.5s;
-  display: none;
-}
-
-.search-component .search-bar-input input[type="submit"] {
-  border: none;
-  cursor: pointer;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-}
-
-.search-component .search-bar-input .vertical-separator {
-  display: none;
-}
-
-.search-component .search-bar-input .search-by-barcode-submit {
-  display: none;
-}
-/* stylelint-enable selector-max-specificity */
-
 @media only screen and (max-width: 25em) {
   .search-bar-component {
     margin-right: 15px;
@@ -794,15 +523,6 @@ div.search-facet:focus-within {
   }
 }
 
-/* If JS is enabled, we are going to inject a new
- * element but use the option control to toggle it.
- * to prepare for this change and ensure the search-facet
- * is the right size hide the select element */
-.client-js .search-facet select {
-  opacity: 0;
-  position: absolute;
-}
-
 /* We should review this media query to determine if it is in fact needed. */
 @media only screen and (min-width: 35.5em) {
   .header-bar .logo-component {
@@ -823,49 +543,10 @@ div.search-facet:focus-within {
     border-top-left-radius: 0;
   }
 
-  .header-bar .search-bar-input input {
-    width: 100%;
-  }
-
-  .header-bar .search-component .search-bar {
-    width: auto;
-    max-width: 205px;
-  }
-
-  .header-bar .search-component .search-bar-advanced-btn {
-    display: block;
-  }
-
   .header-bar .search-component .search-bar-component {
     background-color: var(--grey-fafafa);
     border: 1px solid var(--dark-beige);
-    width: 207px;
-  }
-
-  .header-bar .search-component .search-bar-input {
-    display: flex;
-  }
-
-  /* stylelint-disable selector-max-specificity */
-  .header-bar .search-component .search-bar-input input[type="text"] {
-    display: block;
-  }
-
-  .header-bar .search-component .search-bar-input .vertical-separator {
-    display: block;
-  }
-
-  .header-bar .search-component .search-bar-input .search-by-barcode-submit {
-    display: block;
-  }
-  /* stylelint-enable selector-max-specificity */
-
-  .header-bar .search-component .search-facet {
-    display: block;
-  }
-
-  .header-bar .search-component .search-facet-selector {
-    display: block;
+    width: 240px;
   }
 }
 
@@ -893,48 +574,8 @@ div.search-facet:focus-within {
     height: 44px;
   }
 
-  .header-bar .search-component .search-bar-submit {
-    height: 42px;
-  }
-
-  .header-bar .search-component .search-facet-selector {
-    margin-top: 1px;
-  }
-
   .header-bar.mobile {
     padding: var(--spacing-inset-sm) 0;
-  }
-}
-
-/* Always hide the legacy "All ▼" facet selector */
-.header-bar .search-component .search-facet,
-.header-bar .search-component .search-facet-selector,
-.header-bar .search-component .search-facet-value {
-  display: none !important;
-}
-
-/* Remove the orphaned left-border separator now the facet is gone */
-.search-bar-input input {
-  border-left: none;
-  padding-left: var(--spacing-inset-sm);
-}
-
-/* Barcode scanning needs a camera, so only surface it on touch devices.
-   Hides the header barcode (and its separator) on pointer-driven desktops,
-   overriding the expanded-state and min-width display:block rules above. */
-/* stylelint-disable selector-max-specificity */
-@media (hover: hover) and (pointer: fine) {
-  .header-bar .search-component .search-bar-input .search-by-barcode-submit,
-  .header-bar .search-component .search-bar-input .vertical-separator {
-    display: none;
-  }
-}
-/* stylelint-enable selector-max-specificity */
-
-/* Reclaim the space the facet held */
-@media only screen and (min-width: 35.5em) {
-  .header-bar .search-component .search-bar-component {
-    width: 240px;
   }
 }
 

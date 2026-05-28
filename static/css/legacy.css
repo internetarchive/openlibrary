@@ -1770,15 +1770,6 @@ div#subjectLists p {
     width: 300px;
   }
 
-  .header-bar .search-component .search-justify-right {
-    min-width: 210px;
-  }
-
-  .header-bar .search-component .search-bar {
-    width: auto;
-    max-width: 310px;
-  }
-
   .header-bar .header-dropdown .account__icon {
     width: 45px;
     height: 45px;
@@ -1879,10 +1870,6 @@ div#subjectLists p {
 
   .header-bar .search-component .search-bar-component {
     width: 100%;
-  }
-
-  .header-bar .search-component .search-bar {
-    max-width: 100%;
   }
 
   .header-bar .hamburger-component {

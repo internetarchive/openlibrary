@@ -43,10 +43,6 @@
   width: 100%;
 }
 
-.header-bar .search-component .search-bar {
-  max-width: 100%;
-}
-
 .header-bar .hamburger-component {
   -webkit-box-ordinal-group: 5;
   -ms-flex-order: 6;
