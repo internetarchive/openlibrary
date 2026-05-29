@@ -51,7 +51,8 @@ export class Carousel {
         /** @type {jquery} */
         this.$container = $container;
 
-        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        // This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
+        this.i18n = {loading: ''}; // Allow loading to continue if translated text is missing.
         const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]');
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
@@ -167,6 +168,10 @@ export class Carousel {
                 if (!cards.length) {
                     loadMore.allDone = true;
                 }
+                loadMore.locked = false;
+            })
+            .fail(() => {
+                this.removeLoadingSlide();
                 loadMore.locked = false;
             });
     }
