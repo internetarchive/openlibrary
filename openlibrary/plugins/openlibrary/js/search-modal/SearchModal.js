@@ -31,8 +31,15 @@ import { fetchLanguageOptions } from './languages.js';
 const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'first_publish_year', 'editions'];
 
 const RESULTS_LIMIT     = 10;
-const MIN_QUERY_LENGTH  = 2;
+// Matches the legacy SearchBar autocomplete threshold: fire the header
+// autocomplete only at 3+ chars (see _shouldAutocomplete for the "the" skip).
+const MIN_QUERY_LENGTH  = 3;
 const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
+
+// The bare common-word "the" matches almost everything and isn't worth a Solr
+// round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
+// to /search is still allowed for it (handled by the length-only gates).
+const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
 
 function ssGet(key)        { try { return sessionStorage.getItem(key); }        catch { return null; } }
 function ssSet(key, value) { try { sessionStorage.setItem(key, value); }        catch { /* ignore */ } }
@@ -560,9 +567,7 @@ export class SearchModal extends LitElement {
     }
 
     _renderResults() {
-        const trimmed = this._query.trim();
-
-        if (trimmed.length < MIN_QUERY_LENGTH) {
+        if (!this._shouldAutocomplete()) {
             return html`<div class="results"><div class="placeholder">${this._i18n.startTyping}</div></div>`;
         }
 
@@ -621,7 +626,7 @@ export class SearchModal extends LitElement {
 
     _onQueryInput(e) {
         this._query = e.target.value;
-        if (this._query.trim().length < MIN_QUERY_LENGTH) {
+        if (!this._shouldAutocomplete()) {
             this._results     = [];
             this._numFound    = null;
             this._loading     = false;
@@ -668,7 +673,7 @@ export class SearchModal extends LitElement {
     }
 
     _refetchIfActive() {
-        if (this._query.trim().length >= MIN_QUERY_LENGTH) {
+        if (this._shouldAutocomplete()) {
             this._loading = true;
             this._debouncedFetch();
         }
@@ -681,9 +686,16 @@ export class SearchModal extends LitElement {
 
     // ── Data layer ───────────────────────────────────────────────────────
 
+    // Whether the current query should trigger the header autocomplete. Mirrors
+    // the legacy SearchBar gate: long enough, and not a bare autocomplete stopword.
+    _shouldAutocomplete() {
+        const trimmed = this._query.trim();
+        return trimmed.length >= MIN_QUERY_LENGTH && !AUTOCOMPLETE_STOPWORDS.has(trimmed.toLowerCase());
+    }
+
     _fetchResults() {
         const trimmed = this._query.trim();
-        if (trimmed.length < MIN_QUERY_LENGTH) return;
+        if (!this._shouldAutocomplete()) return;
 
         const url      = this._buildSearchJsonUrl(trimmed);
         const fetchKey = url;
