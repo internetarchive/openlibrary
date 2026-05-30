@@ -14,7 +14,7 @@ import 'chartjs-plugin-datalabels';
  * @typedef {object} Work
  * @property {string} key
  * @property {number | null} first_publish_year
- * @property {string | null} [decade]
+ * @property {string[] | null} [decade]
  */
 
 /**
@@ -33,7 +33,7 @@ import 'chartjs-plugin-datalabels';
 /**
  * @typedef {object} ChartConfig
  * @property {string} title
- * @property {'wd-chart' | 'work-chart'} type
+ * @property {'wd-chart' | 'work-chart' | 'decade-chart'} type
  * @property {string} key
  * @property {string[]} [exclude]
  */
