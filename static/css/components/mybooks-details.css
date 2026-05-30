@@ -208,8 +208,10 @@
 }
 
 .pending-action-container .page-banner--dismissable {
-  background: var(--mid-baby-blue);
-  color: var(--dark-blue);
+  background: var(--lightest-blue);
+  border: var(--border-input-focused);
+  border-radius: var(--border-radius-notification);
+  color: var(--dark-grey);
   box-shadow:
     0 4px 12px var(--icon-link-grey),
     0 1px 3px var(--icon-link-grey);
@@ -236,8 +238,4 @@
 .pending-action-container .pending-action-link:hover {
   color: var(--dark-blue);
   border-bottom-color: var(--dark-blue);
-}
-
-.pending-action-container .page-banner--dismissable-close {
-  color: var(--dark-grey);
 }

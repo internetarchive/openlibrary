@@ -97,5 +97,5 @@ export function queueAction(actionName, itemName, targetUrl, itemType) {
     };
 
     const cookieValue = encodeURIComponent(JSON.stringify(data));
-    document.cookie = `pending_action=${cookieValue}; path=/; max-age=3600; samesite=lax`;
+    document.cookie = `pending_action=${cookieValue}; path=/; max-age=129600; samesite=lax`;
 }

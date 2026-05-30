@@ -488,7 +488,7 @@ class MyBooksTemplate:
             action_translated = _(action)
 
             msg_template = _(
-                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>.'
+                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>'
             )
 
             msg = msg_template % {
