@@ -8,12 +8,14 @@ from urllib import parse
 
 import web
 from web import uniq
-from web.template import TemplateResult
 
 from openlibrary.app import render_template
 from openlibrary.plugins.upstream.models import Edition
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url
 from openlibrary.utils import OrderedEnum, multisort_best
+
+if typing.TYPE_CHECKING:
+    from web.template import TemplateResult
 
 logger = logging.getLogger("openlibrary.book_providers")
 
@@ -32,14 +34,14 @@ class EbookAccess(OrderedEnum):
         return self.name.lower()
 
     @staticmethod
-    def from_solr_str(literal: str) -> "EbookAccess":
+    def from_solr_str(literal: str) -> EbookAccess:
         try:
             return EbookAccess[literal.upper()]
         except KeyError:
             raise ValueError(f"Unknown access literal: {literal}")
 
     @staticmethod
-    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> "EbookAccess":
+    def from_acquisition_access(literal: AcquisitionAccessLiteral) -> EbookAccess:
         if literal == "sample":
             # We need to update solr to handle these! Requires full reindex
             return EbookAccess.PRINTDISABLED
@@ -85,7 +87,7 @@ class Acquisition:
         return EbookAccess.from_acquisition_access(self.access)
 
     @staticmethod
-    def from_json(json: dict) -> "Acquisition":
+    def from_json(json: dict) -> Acquisition:
         if "href" in json:
             # OPDS-style provider
             return Acquisition.from_opds_json(json)
@@ -113,7 +115,7 @@ class Acquisition:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
 
     @staticmethod
-    def from_opds_json(json: dict) -> "Acquisition":
+    def from_opds_json(json: dict) -> Acquisition:
         if json.get("properties", {}).get("indirectAcquisition", None):
             mimetype = json["properties"]["indirectAcquisition"][0]["type"]
         else:

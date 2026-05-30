@@ -80,7 +80,7 @@ class Image:
                 d["author"] = d["author"] and self._site.get(d["author"])
 
             return web.storage(d)
-        except (requests.exceptions.RequestException, OSError):
+        except requests.exceptions.RequestException, OSError:
             # coverstore is down
             return None
 
@@ -402,7 +402,7 @@ class Edition(Thing):
         isbn_or_asin: str,
         high_priority: bool = False,
         allow_import: bool = False,
-    ) -> "Edition | None":
+    ) -> Edition | None:
         """
         Attempts to fetch an edition by ISBN or ASIN, or if no edition is found, then
         check the import_item table for a match, then as a last result, attempt

@@ -20,12 +20,14 @@ import web
 from httpx import HTTPError
 from web import DB
 
-from infogami.infobase.client import Site
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
+
+if typing.TYPE_CHECKING:
+    from infogami.infobase.client import Site
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
@@ -137,7 +139,7 @@ class DataProvider:
             return r.json()["response"]["docs"]
         except HTTPError:
             logger.warning("IA bulk query failed")
-        except (ValueError, KeyError):
+        except ValueError, KeyError:
             logger.warning(f"IA bulk query failed {r.status_code}: {r.json()['error']}")
 
         # Only here if an exception occurred
@@ -197,7 +199,7 @@ class DataProvider:
         if invalid_ocaids:
             logger.warning(f"Trying to cache invalid OCAIDs: {invalid_ocaids}")
         valid_ocaids = list(set(ocaids) - invalid_ocaids)
-        batches = list(itertools.batched(valid_ocaids, 250))
+        batches = list(itertools.batched(valid_ocaids, 250, strict=False))
         # Start them all async
         tasks = [asyncio.create_task(self._get_lite_metadata(b)) for b in batches]
         for task in tasks:
@@ -205,7 +207,7 @@ class DataProvider:
                 self.ia_cache[doc["identifier"]] = doc
 
         missing_ocaids = [ocaid for ocaid in valid_ocaids if ocaid not in self.ia_cache]
-        missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6))
+        missing_ocaid_batches = list(itertools.batched(missing_ocaids, 6, strict=False))
         for missing_batch in missing_ocaid_batches:
             # Start them all async
             tasks = [asyncio.create_task(self._get_lite_metadata_direct(ocaid)) for ocaid in missing_batch]

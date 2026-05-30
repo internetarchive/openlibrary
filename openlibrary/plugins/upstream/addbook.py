@@ -6,10 +6,9 @@ import io
 import logging
 import re
 import urllib
-from typing import Literal, NoReturn, overload
+from typing import TYPE_CHECKING, Literal, NoReturn, overload
 
 import web
-from web.webapi import SeeOther
 
 from infogami import config
 from infogami.core.db import ValidationException
@@ -18,15 +17,19 @@ from infogami.utils import delegate
 from infogami.utils.view import add_flash_message, safeint
 from openlibrary import accounts
 from openlibrary.core.helpers import uniq
-from openlibrary.core.lists.model import List, Series
 from openlibrary.i18n import gettext as _  # noqa: F401 side effects may be needed
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.models import Author, Edition, Work
 from openlibrary.plugins.upstream.table_of_contents import TocParseError
 from openlibrary.plugins.upstream.utils import fuzzy_find, render_template
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.request_context import site
+
+if TYPE_CHECKING:
+    from web.webapi import SeeOther
+
+    from openlibrary.core.lists.model import List, Series
+    from openlibrary.plugins.upstream.models import Author, Edition, Work
 
 logger = logging.getLogger("openlibrary.book")
 

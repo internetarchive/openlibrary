@@ -17,7 +17,11 @@ $code:
   modal_id = 'modal-content-%s' % work_olid
   prompt_id = 'prompt-%s' % work_olid
   config = {
-    "workOlid": work_olid
+    "workOlid": work_olid,
+    "i18n": {
+      "failedDeleteCheckIn": _('Failed to delete check-in. Please try again in a few moments.'),
+      "failedSubmitCheckIn": _('Failed to submit check-in. Please try again in a few moments.')
+    }
   }
   if edition_key:
     config["editionKey"] = edition_key

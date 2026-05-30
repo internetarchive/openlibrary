@@ -5908,3 +5908,19 @@ msgstr ""
 #: forms.py:151
 msgid "Invalid password"
 msgstr "Mot de passe incorrect"
+
+#: templates/my_books/check_ins/check_in_prompt.html
+msgid "Failed to delete check-in. Please try again in a few moments."
+msgstr "Échec de la suppression de l'enregistrement de lecture. Veuillez réessayer dans quelques instants."
+
+#: templates/my_books/check_ins/check_in_prompt.html
+msgid "Failed to submit check-in. Please try again in a few moments."
+msgstr "Échec de l'envoi de l'enregistrement de lecture. Veuillez réessayer dans quelques instants."
+
+#: templates/my_books/dropdown_content.html
+msgid "saving..."
+msgstr "enregistrement..."
+
+#: templates/my_books/dropdown_content.html
+msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
+msgstr "Supprimer ce livre de vos étagères supprimera également vos enregistrements de lecture pour cette œuvre. Continuer ?"
