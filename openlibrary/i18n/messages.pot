@@ -2198,6 +2198,10 @@ msgid "Works by Time Period"
 msgstr ""
 
 #: account/readinglog_stats.html
+msgid "Works by Decade Published"
+msgstr ""
+
+#: account/readinglog_stats.html
 msgid "Matching works"
 msgstr ""
 
