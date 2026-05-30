@@ -97,7 +97,7 @@ describe('`queueAction()` tests', () => {
         };
 
         const expectedCookieValue = encodeURIComponent(JSON.stringify(expectedData));
-        const expectedCookieString = `pending_action=${expectedCookieValue}; path=/; max-age=3600; samesite=lax`;
+        const expectedCookieString = `pending_action=${expectedCookieValue}; path=/; max-age=129600; samesite=lax`;
 
         expect(document.cookie).toBe(expectedCookieString);
     });
@@ -113,7 +113,7 @@ describe('`queueAction()` tests', () => {
         };
 
         const expectedCookieValue = encodeURIComponent(JSON.stringify(expectedData));
-        const expectedCookieString = `pending_action=${expectedCookieValue}; path=/; max-age=3600; samesite=lax`;
+        const expectedCookieString = `pending_action=${expectedCookieValue}; path=/; max-age=129600; samesite=lax`;
 
         expect(document.cookie).toBe(expectedCookieString);
     });
