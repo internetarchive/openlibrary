@@ -13,6 +13,8 @@ import 'chartjs-plugin-datalabels';
 /**
  * @typedef {object} Work
  * @property {string} key
+ * @property {number | null} first_publish_year
+ * @property {string | null} [decade]
  */
 
 /**
@@ -211,6 +213,15 @@ export function init(config) {
             createWorkChart(config, chartConfig, container, canvas);
         } else if (chartConfig.type === 'wd-chart') {
             wdPromise.then(() => createWorkChart(config, chartConfig, container, canvas));
+        } else if (chartConfig.type === 'decade-chart') {
+            const decadeConfig = {
+                ...config,
+                works: config.works.map(work => ({
+                    ...work,
+                    decade: work.first_publish_year ? [`${Math.floor(work.first_publish_year / 10) * 10}s`] : null,
+                })),
+            };
+            createWorkChart(decadeConfig, { ...chartConfig, key: 'decade' }, container, canvas);
         }
     }
 }
