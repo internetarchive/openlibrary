@@ -69,15 +69,23 @@ def monitor_nginx_logs():
     )
 
 
-@limit_server(["ol-solr0", "ol-solr1"], scheduler)
+@limit_server(["ol-solr0", "ol-solr1", "ol-solr2"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)
 async def monitor_solr():
     # Note this is a long-running job that does its own scheduling.
     # But by having it on a 60s interval, we ensure it restarts if it fails.
     from scripts.monitoring.solr_logs_monitor import main
 
+    match SERVER:
+        case "ol-solr0":
+            solr_container = "openlibrary-solr-1"
+        case "ol-solr1":
+            solr_container = "solr_builder-solr_prod-1"
+        case "ol-solr2":
+            solr_container = "openlibrary-solr_replica-1"
+
     main(
-        solr_container=("solr_builder-solr_prod-1" if SERVER == "ol-solr1" else "openlibrary-solr-1"),
+        solr_container=solr_container,
         graphite_prefix=f"stats.ol.{SERVER}",
         graphite_address=GRAPHITE_URL,
     )
@@ -247,5 +255,5 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
+    except KeyboardInterrupt, SystemExit:
         print("[OL-MONITOR] Monitoring stopped.", flush=True)

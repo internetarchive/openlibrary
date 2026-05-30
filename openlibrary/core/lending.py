@@ -41,13 +41,6 @@ logger = logging.getLogger(__name__)
 
 S3_LOAN_URL = "https://%s/services/loans/loan/"
 
-# When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
-# Once the loan fulfillment inside Digital Editions the book status server will know
-# the loan has occurred.  We allow this timeout so that we don't delete the OL loan
-# record before fulfillment because we can't find it in the book status server.
-# $$$ If a user borrows an ACS4 book and immediately returns book loan will show as
-#     "not yet downloaded" for the duration of the timeout.
-#     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
 
 # How long bookreader loans should last
@@ -959,33 +952,8 @@ def userkey2userid(user_key: str) -> str:
     return "ol:" + username
 
 
-def get_resource_id(identifier: str, resource_type: str) -> str | None:
-    """Returns the resource_id for an identifier for the specified resource_type.
-
-    The resource_id is found by looking at external_identifiers field in the
-    metadata of the item.
-    """
-    if resource_type == "bookreader":
-        return "bookreader:" + identifier
-
-    metadata = ia.get_metadata(identifier)
-    external_identifiers = metadata.get("external-identifier", [])
-
-    for eid in external_identifiers:
-        # Ignore bad external identifiers
-        if eid.count(":") < 2:
-            continue
-
-        # The external identifiers will be of the format
-        # acs:epub:<resource_id> or acs:pdf:<resource_id>
-        _acs, rtype, resource_id = eid.split(":", 2)
-        if rtype == resource_type:
-            return resource_id
-    return None
-
-
 def update_loan_status(identifier):
-    """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
+    """Update the loan status in OL. Used to check for early returns."""
     loan = get_loan(identifier)
 
     # if the loan is from ia, it is already updated when getting the loan

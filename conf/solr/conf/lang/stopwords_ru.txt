@@ -1,11 +1,12 @@
- | From svn.tartarus.org/snowball/trunk/website/algorithms/russian/stop.txt
+ | From https://snowballstem.org/algorithms/russian/stop.txt
  | This file is distributed under the BSD License.
- | See http://snowball.tartarus.org/license.php
- | Also see http://www.opensource.org/licenses/bsd-license.html
+ | See https://snowballstem.org/license.html
+ | Also see https://opensource.org/licenses/bsd-license.html
  |  - Encoding was converted to UTF-8.
  |  - This notice was added.
  |
  | NOTE: To use this file with StopFilterFactory, you must specify format="snowball"
+
 
  | a russian stop word list. comments begin with vertical bar. each stop
  | word is at the start of a line.

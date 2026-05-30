@@ -1,6 +1,6 @@
 import pytest
 
-from openlibrary.solr.updater.edition import EditionSolrBuilder, EditionSolrUpdater
+from openlibrary.solr.updater.edition import EditionSolrBuilder, EditionSolrUpdater, sort_title
 from openlibrary.tests.solr.test_update import FakeDataProvider, make_edition
 
 
@@ -26,6 +26,19 @@ class TestEditionSolrUpdater:
         assert req.deletes == []
         assert req.adds == []
         assert new_keys == ["/works/OL1M"]
+
+
+@pytest.mark.parametrize(
+    ("title", "subtitle", "expected"),
+    [
+        ("The Great Gatsby", None, "Great Gatsby, The"),
+        ("Dune", None, "Dune"),
+        ("The Hobbit", "There and Back Again", "Hobbit: There and Back Again, The"),
+        ("L'amour", None, "amour, L'"),
+    ],
+)
+def test_sort_title(title, subtitle, expected):
+    assert sort_title(title, subtitle) == expected
 
 
 class TestEditionSolrBuilder:

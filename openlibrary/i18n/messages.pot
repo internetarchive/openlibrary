@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
@@ -276,6 +276,10 @@ msgstr ""
 
 #: design.html
 msgid "Chip"
+msgstr ""
+
+#: design.html design/button.html
+msgid "Button"
 msgstr ""
 
 #: design.html
@@ -830,9 +834,9 @@ msgstr ""
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html interstitial.html
-#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
-#: type/series/edit.html type/tag/form.html
+#: admin/permissions.html books/add.html databarEdit.html design/button.html
+#: interstitial.html merge/authors.html my_books/dropdown_content.html
+#: type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -1961,7 +1965,7 @@ msgid "Yes! Please!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html admin/spamwords.html covers/manage.html
+#: admin/block.html admin/spamwords.html covers/manage.html design/button.html
 msgid "Save"
 msgstr ""
 
@@ -1970,7 +1974,8 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html design/popover.html
+#: account/observations.html admin/inspect/memcache.html design/button.html
+#: design/popover.html
 msgid "Delete"
 msgstr ""
 
@@ -2357,7 +2362,7 @@ msgstr ""
 msgid "Please enter a new password for your Open Library account."
 msgstr ""
 
-#: account/password/reset.html
+#: account/password/reset.html design/button.html
 msgid "Reset"
 msgstr ""
 
@@ -2557,7 +2562,7 @@ msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html
+#: admin/people/edits.html admin/permissions.html design/button.html
 #: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr ""
@@ -3880,7 +3885,7 @@ msgstr ""
 msgid "None of these match the book I want to add."
 msgstr ""
 
-#: books/check.html
+#: books/check.html design/button.html
 msgid "Continue"
 msgstr ""
 
@@ -3906,16 +3911,6 @@ msgid "There isn't a DAISY file available for "
 msgstr ""
 
 #: books/daisy.html
-msgid "This DAISY file is protected."
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"It can only be opened on a specialized device with a key issued by the "
-"Library of Congress."
-msgstr ""
-
-#: books/daisy.html
 #, python-format
 msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
@@ -3931,15 +3926,6 @@ msgid ""
 "The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
-msgstr ""
-
-#: books/daisy.html
-msgid ""
-"There are two types of DAISYs on Open Library: <i>open</i> and "
-"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
-"different devices. Protected DAISYs like this one can only be opened "
-"using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of "
-"Congress NLS program</a>."
 msgstr ""
 
 #: books/daisy.html
@@ -4911,7 +4897,7 @@ msgstr ""
 
 #: covers/external_image.html
 #, python-format
-msgid "Or, use a cover from %s"
+msgid "Or, use an image from %s"
 msgstr ""
 
 #: covers/manage.html
@@ -4938,6 +4924,10 @@ msgstr ""
 
 #: covers/saved.html
 msgid "Finished"
+msgstr ""
+
+#: design/button.html merge/authors.html recentchanges/merge/view.html
+msgid "Primary"
 msgstr ""
 
 #: design/popover.html
@@ -5996,10 +5986,6 @@ msgstr ""
 msgid "<b>Are you sure</b> you want to merge these records?"
 msgstr ""
 
-#: merge/authors.html recentchanges/merge/view.html
-msgid "Primary"
-msgstr ""
-
 #: merge/authors.html
 msgid "Merge"
 msgstr ""
@@ -6218,6 +6204,16 @@ msgstr ""
 msgid "Create new list"
 msgstr ""
 
+#: my_books/dropdown_content.html
+msgid "saving..."
+msgstr ""
+
+#: my_books/dropdown_content.html
+msgid ""
+"Removing this book from your shelves will delete your check-ins for this "
+"work.  Continue?"
+msgstr ""
+
 #: my_books/primary_action.html
 msgid "Add to List"
 msgstr ""
@@ -6306,6 +6302,14 @@ msgstr ""
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to delete check-in. Please try again in a few moments."
+msgstr ""
+
+#: my_books/check_ins/check_in_prompt.html
+msgid "Failed to submit check-in. Please try again in a few moments."
 msgstr ""
 
 #: my_books/check_ins/check_in_prompt.html
@@ -7760,6 +7764,10 @@ msgid "Tag Body"
 msgstr ""
 
 #: type/tag/view.html
+msgid "URL Slugs"
+msgstr ""
+
+#: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
 msgstr ""
@@ -8120,10 +8128,12 @@ msgid "Go to next page"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Go to page {page}"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Page {page}, current page"
 msgstr ""
 

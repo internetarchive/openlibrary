@@ -2,6 +2,8 @@
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
 
+from unittest.mock import patch
+
 import web
 
 import openlibrary.core.lists.model as list_model
@@ -139,3 +141,44 @@ class TestGetAvatarUrl:
             }
         assert models.User.get_avatar_url("alice") == "https://archive.org/services/img/@alice-archive"
         assert models.User.get_avatar_url("bob") == "https://archive.org/services/img/@bob-archive"
+
+
+class TestEdition:
+    def setup_method(self, method):
+        web.ctx.site = MockSite()
+        models.setup()
+
+    def _make_edition(self, ocaid=None):
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}}
+        if ocaid:
+            data["ocaid"] = ocaid
+        web.ctx.site.save(data)
+        return web.ctx.site.get("/books/OL1M")
+
+    def test_get_available_loans_no_ocaid(self):
+        ed = self._make_edition()
+        assert ed.get_available_loans() == []
+
+    def test_get_available_loans_returns_bookreader(self):
+        ed = self._make_edition(ocaid="testitem00archive")
+        with (
+            patch("openlibrary.core.lending.is_loaned_out", return_value=False),
+            patch("openlibrary.plugins.upstream.borrow.is_loaned_out", return_value=False),
+        ):
+            loans = ed.get_available_loans()
+        assert len(loans) == 1
+        assert loans[0]["resource_type"] == "bookreader"
+        assert loans[0]["resource_id"] == "bookreader:testitem00archive"
+
+    def test_get_available_loans_checked_out(self):
+        ed = self._make_edition(ocaid="testitem00archive")
+        with patch("openlibrary.core.lending.is_loaned_out", return_value=True):
+            loans = ed.get_available_loans()
+        assert loans == []
+
+    def test_get_ia_meta_fields_no_external_identifier(self):
+        ed = self._make_edition(ocaid="testitem00archive")
+        with patch("openlibrary.core.ia.get_metadata", return_value={"collection": ["inlibrary"]}):
+            meta = ed.get_ia_meta_fields()
+        assert "external-identifier" not in meta
+        assert "collection" in meta

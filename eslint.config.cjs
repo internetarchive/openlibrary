@@ -228,22 +228,4 @@ module.exports = [
       },
     },
   },
-
-// TEMPORARY EXEMPTIONS: Turn off new formatting rules for files locked in active PRs
-  {
-    files: [
-      "openlibrary/components/lit/OLChip.js",
-      "openlibrary/plugins/openlibrary/js/SearchBar.js",
-      "openlibrary/plugins/openlibrary/js/add-book.js",
-      "openlibrary/plugins/openlibrary/js/carousel/Carousel.js",
-      "openlibrary/plugins/openlibrary/js/dialog.js",
-      "openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/ReadingLogForms.js",
-      "openlibrary/plugins/openlibrary/js/service-worker-init.js"
-    ],
-    rules: {
-      "semi": "off",
-      "space-before-function-paren": "off",
-      "comma-spacing": "off"
-    }
-  }
 ];

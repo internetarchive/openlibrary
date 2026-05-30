@@ -3,10 +3,9 @@ import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
+from warnings import deprecated
 
 import web
-from typing_extensions import deprecated
-from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -34,6 +33,8 @@ from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
 
 if TYPE_CHECKING:
+    from web.template import TemplateResult
+
     from openlibrary.core.lists.model import List
     from openlibrary.plugins.upstream.models import Work
 
@@ -63,7 +64,7 @@ class mybooks_home(delegate.page):
         template = self.render_template(mb)
         return mb.render(header_title=_("Books"), template=template)
 
-    def render_template(self, mb: "MyBooksTemplate") -> TemplateResult:
+    def render_template(self, mb: MyBooksTemplate) -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
         docs: dict[str, Any] = {
@@ -256,7 +257,7 @@ class mybooks_readinglog(delegate.page):
             return mb.render(header_title=KEYS_TITLES[key], template=template)
         raise web.seeother(mb.user.key)
 
-    def render_template(self, mb: "MyBooksTemplate", year: int | None = None):
+    def render_template(self, mb: MyBooksTemplate, year: int | None = None):
         i = web.input(
             page=1,
             sort="desc",
@@ -460,7 +461,7 @@ class MyBooksTemplate:
             self.component_times,
         )
 
-    def render(self, template: TemplateResult, header_title: str, page: "List | None" = None) -> TemplateResult:
+    def render(self, template: TemplateResult, header_title: str, page: List | None = None) -> TemplateResult:
         """
         Gather the data necessary to render the My Books template, and then
         render the template.
@@ -558,7 +559,7 @@ class ReadingLog:
         q: str = "",
         year: int | None = None,
         fq: list[str] | None = None,
-    ) -> "LoggedBooksData":
+    ) -> LoggedBooksData:
         """
         Get works for want-to-read, currently-reading, and already-read as
         determined by {key}.
@@ -633,10 +634,10 @@ class PatronBooknotes:
             entry["observations"] = convert_observation_ids(ids)
         return observations
 
-    def _get_work(self, work_key: str) -> "Work | None":
+    def _get_work(self, work_key: str) -> Work | None:
         return web.ctx.site.get(work_key)
 
-    def _get_work_details(self, work: "Work") -> dict[str, list[str] | str | int | None]:
+    def _get_work_details(self, work: Work) -> dict[str, list[str] | str | int | None]:
         author_keys = [a.author.key for a in work.get("authors", [])]
 
         return {
