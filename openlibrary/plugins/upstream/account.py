@@ -872,7 +872,7 @@ class ReadingLogExport(PatronExport):
         ) -> str:
             return " | ".join(s.title for s in work.get_subject_links(subject_type))
 
-        bookshelf_map = {1: "Want to Read", 2: "Currently Reading", 3: "Already Read"}
+        bookshelf_map = {1: "Want to Read", 2: "Currently Reading", 3: "Already Read", 4: "Stopped Reading"}
         username = self.user.key.split("/")[-1]
         books = Bookshelves.iterate_users_logged_books(username)
         result = []

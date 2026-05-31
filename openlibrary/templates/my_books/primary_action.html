@@ -2,7 +2,10 @@ $def with(work_key, edition_key, user_key, read_status, page_url, title="")
 
 $def reading_log_cta(work_key, edition_key, user_key, read_status, title):
   <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
-    $if read_status == 3:
+    $if read_status == 4:
+      $ message = _("Stopped Reading")
+      $ track_value = "ReadingLog|StoppedReading"
+    $elif read_status == 3:
       $ message = _("Already Read")
       $ track_value = "ReadingLog|AlreadyRead"
     $elif read_status == 2:

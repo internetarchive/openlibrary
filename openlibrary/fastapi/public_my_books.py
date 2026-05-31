@@ -51,7 +51,7 @@ class ReadingLogResponse(BaseModel):
     reading_log_entries: list[ReadingLogEntry]
 
 
-ReadingLogKey = Literal["want-to-read", "currently-reading", "already-read"]
+ReadingLogKey = Literal["want-to-read", "currently-reading", "already-read", "stopped-reading"]
 
 
 @router.get("/people/{username}/books/{key}.json")
