@@ -3,15 +3,19 @@ $def with(work_key, edition_key, user_key, read_status, page_url, title="")
 $def reading_log_cta(work_key, edition_key, user_key, read_status, title):
   <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
     $if read_status == 4:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user stopped reading (bookshelf ID 4). Used as a button label and shelf name.
       $ message = _("Stopped Reading")
       $ track_value = "ReadingLog|StoppedReading"
     $elif read_status == 3:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
       $ message = _("Already Read")
       $ track_value = "ReadingLog|AlreadyRead"
     $elif read_status == 2:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
       $ message = _("Currently Reading")
       $ track_value = "ReadingLog|CurrentlyReading"
     $elif user_key:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
       $ message = _("Want to Read")
       $ track_value = "ReadingLog|WantToRead"
     $else:

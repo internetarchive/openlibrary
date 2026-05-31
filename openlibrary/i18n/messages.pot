@@ -1284,11 +1284,17 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
+#. Label for the reading log shelf for books the user plans to read in the
+#. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
+#. Display name for the "currently-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user is actively reading
+#. (bookshelf ID 2). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
@@ -1301,6 +1307,8 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
+#. Label for the reading log shelf for books the user stopped reading
+#. (bookshelf ID 4). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
@@ -1832,6 +1840,10 @@ msgstr ""
 msgid "My Loans"
 msgstr ""
 
+#. Display name for the "already-read" reading log shelf used in page headings
+#. and breadcrumbs.
+#. Label for the reading log shelf for books the user has finished reading
+#. (bookshelf ID 3). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
@@ -2145,6 +2157,8 @@ msgid ""
 "their book updates will appear here."
 msgstr ""
 
+#. Display name for the "want-to-read" reading log shelf used in page headings
+#. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
 msgstr ""
@@ -4136,16 +4150,25 @@ msgstr ""
 msgid "Books"
 msgstr ""
 
+#. Page title for the "Want to Read" shelf page.
+#. Example: "Want to Read (17)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
+#. Page title for the "Currently Reading" shelf page.
+#. Example: "Currently Reading (42)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
+#. Page title for the "Already Read" shelf page.
+#. Example: "Already Read (203)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
@@ -8353,6 +8376,10 @@ msgstr ""
 msgid "ratings"
 msgstr ""
 
+#. Shows the count of readers who added this book to their "Want to read"
+#. shelf, displayed on search result pages. %(want_to_read_count)s is a
+#. formatted integer (may include commas as thousands separators). Example:
+#. "2,389 Want to read".
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
@@ -8363,14 +8390,22 @@ msgstr ""
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 msgstr ""
 
+#. Short label displayed next to the count of readers who want to read this
+#. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
 msgstr ""
 
+#. Short label displayed next to the count of readers currently reading this
+#. book, shown in the stats bar on a book page. Example: "1,247 Currently
+#. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
 msgstr ""
 
+#. Short label displayed next to the count of readers who have finished this
+#. book, shown in the stats bar on a book page. Example: "15,420 Have read".
+#. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
 msgstr ""
