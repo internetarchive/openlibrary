@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
@@ -26,6 +27,7 @@ from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -465,6 +467,40 @@ class MyBooksTemplate:
         render the template.
         """
         return render["account/view"](mb=self, template=template, header_title=header_title, page=page)
+
+    def get_pending_action_banner(self) -> str:
+        cookie = web.cookies().get("pending_action")
+        if not cookie or cookie == "1":
+            return ""
+
+        try:
+            data = json.loads(urllib.parse.unquote(cookie))
+            if not isinstance(data, dict):
+                return ""
+
+            action = data.get("action")
+            name = data.get("name", "")
+            url = data.get("url")
+
+            if not action or not url:
+                return ""
+
+            action_translated = _(action)
+
+            msg_template = _(
+                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>'
+            )
+
+            msg = msg_template % {
+                "url": web.net.websafe(url if is_safe_redirect(url) else "/"),
+                "raw_action": web.net.websafe(action),
+                "action": web.net.websafe(action_translated),
+                "name": web.net.websafe(name),
+            }
+            return msg
+
+        except json.JSONDecodeError:
+            return ""
 
 
 class ReadingLog:

@@ -7205,6 +7205,14 @@ msgstr ""
 msgid "Review"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "reviewing"
+msgstr ""
+
+#: type/edition/modal_links.html
+msgid "adding notes to"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -8289,6 +8297,26 @@ msgid "QR Code"
 msgstr ""
 
 #: StarRatings.html
+msgid "leaving a 1 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 2 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 3 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 4 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 5 star review for"
+msgstr ""
+
+#: StarRatings.html
 msgid "Clear my rating"
 msgstr ""
 
@@ -8835,6 +8863,14 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid ""
+"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py

@@ -2,7 +2,6 @@ import csv
 import io
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from math import ceil
@@ -51,6 +50,7 @@ from openlibrary.plugins.openlibrary.pd import get_pd_options
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
 
 if TYPE_CHECKING:
@@ -88,15 +88,6 @@ def get_login_error(error_key):
         "security_error": _("Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"),
     }
     return LOGIN_ERRORS[error_key] if error_key in LOGIN_ERRORS else _("Request failed with error code: %(error_code)s", error_code=error_key)
-
-
-def is_safe_redirect(url: str) -> bool:
-    parsed = urlparse(url)
-    if parsed.netloc or parsed.scheme:
-        return False
-    if not re.match(r"^/[^/\\]", parsed.path):  # noqa: SIM103
-        return False
-    return True
 
 
 class availability(delegate.page):
