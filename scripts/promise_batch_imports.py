@@ -61,7 +61,7 @@ def map_book_to_olbook(book, promise_id):
     isbn = book.get("ISBN") or " "
     sku = book.get("BookSKUB") or book.get("BookSKU") or book.get("BookBarcode")
     if not sku:
-        logger.info(F"No sku found for record: {product_json}")
+        logger.info(f"No sku found for record: {product_json}")
         return None
     olbook = {
         "local_id": [f"urn:bwbsku:{sku.upper()}"],
@@ -144,11 +144,7 @@ def batch_import(promise_id, batch_size=1000, dry_run=False):
     url = "https://archive.org/download/"
     date = promise_id.split("_")[-1]
     resp = requests.get(f"{url}{promise_id}/DailyPallets__{date}.json", stream=True)
-    olbooks_gen = (
-        olbook
-        for book in ijson.items(resp.raw, "item")
-        if (olbook := map_book_to_olbook(book, promise_id)) is not None
-    )
+    olbooks_gen = (olbook for book in ijson.items(resp.raw, "item") if (olbook := map_book_to_olbook(book, promise_id)) is not None)
 
     # Note: dry_run won't include BookWorm data.
     if dry_run:
