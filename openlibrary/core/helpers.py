@@ -5,7 +5,7 @@ import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -15,7 +15,6 @@ import babel.numbers
 import genshi
 import genshi.filters
 import web
-from babel.core import Locale
 from bs4 import BeautifulSoup
 
 from infogami import config
@@ -24,6 +23,9 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
+if TYPE_CHECKING:
+    from babel.core import Locale
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()

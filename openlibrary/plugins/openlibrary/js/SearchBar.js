@@ -2,7 +2,7 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 import $ from 'jquery';
-import { websafe } from './jsdef'
+import { websafe } from './jsdef';
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -63,7 +63,7 @@ const RENDER_AUTOCOMPLETE_RESULT = {
                 </a>
             </li>`;
     }
-}
+};
 
 /**
  * Manages the interactions associated with the search bar in the header
@@ -81,7 +81,7 @@ export class SearchBar {
         this.$results = this.$component.find('ul.search-results');
         this.$facetSelect = this.$component.find('.search-facet-selector select');
         this.$barcodeScanner = this.$component.find('#barcode_scanner_link');
-        this.$searchSubmit = this.$component.find('.search-bar-submit')
+        this.$searchSubmit = this.$component.find('.search-bar-submit');
 
         /** State */
         /** Whether the bar is in collapsible mode */
@@ -110,7 +110,7 @@ export class SearchBar {
             if (e.key === 'Tab' && e.shiftKey) {
                 this.clearAutocompletionResults();
             }
-        })
+        });
 
         this.$input.on('keydown', (e) => {
             if (e.key === 'ArrowUp') {
@@ -122,13 +122,13 @@ export class SearchBar {
             } else if (e.key === 'Escape') {
                 this.clearAutocompletionResults();
             }
-        })
+        });
 
         this.$barcodeScanner.on('keydown', (e) => {
             if (e.key === 'Tab') {
                 this.clearAutocompletionResults();
             }
-        })
+        });
 
         this.$results.on('keydown', (e) => {
             if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
@@ -158,7 +158,7 @@ export class SearchBar {
                 this.escapeInput = true;
                 this.clearAutocompletionResults();
             }
-        })
+        });
 
         this.$form.on('keydown', (e) => {
             if (e.key === 'Tab') {
@@ -217,7 +217,7 @@ export class SearchBar {
                 this.toggleCollapse();
                 this.$input.trigger('focus');
             }
-        }
+        };
         const expandSelectors = ['.search-component', 'a[href="/search"]'];
 
         // When clicking on the search bar or a link to /search, expand search if it isn't already.
@@ -326,7 +326,7 @@ export class SearchBar {
 
         this.$input.on('keyup', debounce(event => {
             // ignore directional keys, enter, escape, and shift for callback
-            if (![13,16,27,37,38,39,40].includes(event.keyCode)) {
+            if (![13, 16, 27, 37, 38, 39, 40].includes(event.keyCode)) {
                 this.renderAutocompletionResults();
             }
         }, 500, false));

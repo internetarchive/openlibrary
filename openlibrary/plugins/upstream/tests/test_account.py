@@ -1,10 +1,14 @@
 import os
 import sys
+from unittest import mock
 
 import pytest
 import web
 
+from openlibrary.accounts.model import create_link_doc
+
 from .. import account
+from ..account import account_login, account_verify
 
 
 def open_test_data(filename):
@@ -19,7 +23,7 @@ def test_create_list_doc(wildcard):
     username = "foo"
     email = "foo@example.com"
 
-    doc = account.create_link_doc(key, username, email)
+    doc = create_link_doc(key, username, email)
 
     assert doc == {
         "_key": key,
@@ -172,3 +176,89 @@ class TestGoodReadsImport:
         books, books_wo_isbns = account.process_goodreads_csv(web.storage({"csv": self.csv_data}))
         assert books == self.expected_books
         assert books_wo_isbns == self.expected_books_wo_isbns
+
+
+# --- account_verify.GET ---
+
+
+class TestAccountVerify:
+    """Tests for the /account/verify GET endpoint."""
+
+    def _make_handler(self):
+        return account_verify()
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.account_login")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_valid_token_calls_login_with_s3_keys(self, mock_web, mock_flash, mock_login_cls, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="validtoken")
+        mock_ia_account.verify.return_value = {
+            "email": "test@example.com",
+            "s3": {"access": "ACCESSKEY", "secret": "SECRETKEY"},
+        }
+        login_instance = mock.MagicMock()
+        mock_login_cls.return_value = login_instance
+
+        self._make_handler().GET()
+
+        mock_ia_account.verify.assert_called_once_with(token="validtoken")
+        login_instance.login.assert_called_once_with(
+            access="ACCESSKEY",
+            secret="SECRETKEY",
+        )
+
+    @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account._", lambda x, **kw: x)
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_invalid_token_redirects_to_create(self, mock_web, mock_flash, mock_ia_account):
+        mock_web.input.return_value = web.storage(t="badtoken")
+        mock_ia_account.verify.return_value = {"error": "invalid_token"}
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_called_once()
+        flash_args = mock_flash.call_args[0]
+        assert flash_args[0] == "error"
+        mock_web.seeother.assert_called_once_with("/account/create")
+
+    @mock.patch("openlibrary.plugins.upstream.account.add_flash_message")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_missing_token_redirects_to_create(self, mock_web, mock_flash):
+        mock_web.input.return_value = web.storage(t=None)
+        mock_web.seeother.side_effect = Exception("redirect")
+
+        with pytest.raises(Exception, match="redirect"):
+            self._make_handler().GET()
+
+        mock_flash.assert_not_called()
+        mock_web.seeother.assert_called_once_with("/account/create")
+
+
+# --- account_login.login cookie helpers ---
+
+
+class TestAccountLoginSetCookies:
+    """Tests for the set_cookies helper on account_login."""
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_truthy_value_uses_expires(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=True, session="abc123")
+        mock_web.setcookie.assert_called_once_with("session", "abc123", expires=3600 * 24 * 365)
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_falsy_value_expires_cookie(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=True, pda="")
+        mock_web.setcookie.assert_called_once_with("pda", "", expires=1)
+
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    def test_no_remember_uses_session_expiry(self, mock_web):
+        handler = account_login()
+        handler.set_cookies(remember=False, session="abc123")
+        mock_web.setcookie.assert_called_once_with("session", "abc123", expires="")

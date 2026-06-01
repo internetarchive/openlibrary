@@ -141,7 +141,7 @@ def do_flip(author: AuthorImportDict) -> None:
         author["personal_name"] = name
 
 
-def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Author":
+def pick_from_matches(author: AuthorImportDict, match: list[Author]) -> Author:
     """
     Finds the best match for author from a list of OL authors records, match.
 
@@ -162,12 +162,12 @@ def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Autho
     return min(maybe, key=key_int)
 
 
-def find_author(author: AuthorImportDict) -> list["Author"]:
+def find_author(author: AuthorImportDict) -> list[Author]:
     """
     Searches OL for an author by a range of queries.
     """
 
-    def has_dates(author: "dict | Author | AuthorImportDict") -> bool:
+    def has_dates(author: dict | Author | AuthorImportDict) -> bool:
         return "birth_date" in author or "death_date" in author
 
     def walk_redirects(obj, seen):
@@ -178,7 +178,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
             seen.add(obj["key"])
         return obj
 
-    def get_redirected_authors(authors: list["Author"]):
+    def get_redirected_authors(authors: list[Author]):
         keys = [a.type.key for a in authors]
         if any(k != "/type/author" for k in keys):
             seen: set[str] = set()
@@ -256,7 +256,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
     return [pick_from_matches(author, match)]
 
 
-def find_entity(author: AuthorImportDict) -> "Author | None":
+def find_entity(author: AuthorImportDict) -> Author | None:
     """
     Looks for an existing Author record in OL
     and returns it if found.
@@ -294,7 +294,7 @@ def remove_author_honorifics(name: str) -> str:
     return name
 
 
-def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> "Author | dict[str, Any]":
+def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.

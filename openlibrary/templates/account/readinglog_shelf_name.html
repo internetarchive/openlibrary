@@ -1,8 +1,13 @@
 $def with (key)
 
 $if key == 'currently-reading':
+  $code: pass  # NOTE: Display name for the "currently-reading" reading log shelf used in page headings and breadcrumbs.
   $_("Currently Reading")
 $elif key == 'want-to-read':
+  $code: pass  # NOTE: Display name for the "want-to-read" reading log shelf used in page headings and breadcrumbs.
   $_("Want To Read")
 $elif key == 'already-read':
+  $code: pass  # NOTE: Display name for the "already-read" reading log shelf used in page headings and breadcrumbs.
   $_("Already Read")
+$elif key == 'stopped-reading':
+  $_("Stopped Reading")

@@ -8,14 +8,18 @@ and parsing request data for both web.py and FastAPI frameworks.
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from urllib.parse import unquote
 
 import web
-from fastapi import Request
 
 from infogami import config
-from infogami.infobase.client import Site
 from infogami.utils.delegate import create_site
+
+if TYPE_CHECKING:
+    from fastapi import Request
+
+    from infogami.infobase.client import Site
 
 
 @dataclass(frozen=True)

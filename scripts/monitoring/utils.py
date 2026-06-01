@@ -6,9 +6,10 @@ import struct
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+if TYPE_CHECKING:
+    from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 @dataclass
@@ -27,7 +28,7 @@ class GraphiteEvent:
         GraphiteEvent.submit_many([self], graphite_address)
 
     @staticmethod
-    def submit_many(events: list["GraphiteEvent"], graphite_address: str | tuple[str, int]):
+    def submit_many(events: list[GraphiteEvent], graphite_address: str | tuple[str, int]):
         if isinstance(graphite_address, str):
             graphite_host, graphite_port = cast(tuple[str, str], tuple(graphite_address.split(":", 1)))
             graphite_address_tuple = (graphite_host, int(graphite_port))

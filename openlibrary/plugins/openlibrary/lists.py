@@ -6,11 +6,11 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
+from warnings import deprecated
 
 import web
 from pydantic import BaseModel
 from starlette.datastructures import URL
-from typing_extensions import deprecated
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
@@ -116,7 +116,7 @@ class ListRecord:
         else:
             raise ValueError("Invalid seed")
 
-    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
+    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict]:
         for seed in self.seeds:
             if isinstance(seed, dict):
                 if "thing" in seed:

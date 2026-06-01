@@ -9,9 +9,9 @@ from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_us
 from openlibrary.plugins.worksearch.code import SearchResponse
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def fastapi_client():
-    """Create a test client for the FastAPI app."""
+    """Create a test client for the FastAPI app (session-scoped for speed)."""
     with patch("openlibrary.asgi_app.set_context_from_fastapi", autospec=True):
         from openlibrary.asgi_app import create_app  # noqa: PLC0415
 

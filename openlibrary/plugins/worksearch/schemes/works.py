@@ -89,6 +89,7 @@ class WorkSearchScheme(SearchScheme):
             "want_to_read_count",
             "currently_reading_count",
             "already_read_count",
+            "stopped_reading_count",
             "series_key",
             "series_name",
             "series_position",
@@ -163,6 +164,7 @@ class WorkSearchScheme(SearchScheme):
             "want_to_read": "want_to_read_count desc",
             "currently_reading": "currently_reading_count desc",
             "already_read": "already_read_count desc",
+            "stopped_reading": "stopped_reading_count desc",
             "title": "title_sort asc",
             "scans": "ebook_count_i desc",  # Legacy, used in some collections
             # Classifications
@@ -320,7 +322,7 @@ class WorkSearchScheme(SearchScheme):
         solr_fields: set[str],
         cur_solr_params: list[tuple[str, str]],
         highlight: bool = False,
-        solr_internals_params: "SolrInternalsParams | None" = None,
+        solr_internals_params: SolrInternalsParams | None = None,
     ) -> list[tuple[str, str]]:
         new_params: list[tuple[str, str]] = []
 
