@@ -3044,8 +3044,7 @@ msgid ""
 "For example, if you want to prevent edits containing the domain "
 "<code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the "
 "spamwords list."
-msgstr ""
-"예를 들어 <code>t.co</code> 도메인이 포함된 편집을 막으려면 스팸 단어 목록에 "
+msgstr "예를 들어 <code>t.co</code> 도메인이 포함된 편집을 막으려면 스팸 단어 목록에 "
 "<code>(|https://|http://)t\\.co</code>를 추가하세요."
 
 #: admin/spamwords.html
@@ -3346,8 +3345,7 @@ msgstr "이 사용자로 로그인"
 msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
 "href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
-"<a href=\"/admin/ip/%(ip)s\">%(ip)s</a>에서 <span "
+msgstr "<a href=\"/admin/ip/%(ip)s\">%(ip)s</a>에서 <span "
 "class=\"time\">%(date)s</span>에 활성화됨."
 
 #: admin/people/view.html
