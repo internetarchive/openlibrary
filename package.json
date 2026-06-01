@@ -44,7 +44,7 @@
     "bundlesize2": "^0.0.35",
     "chart.js": "2.9.4",
     "chartjs-plugin-datalabels": "0.7.0",
-    "concurrently": "^7.6.0",
+    "concurrently": "^9.0.0",
     "core-js": "^3.37.1",
     "css-loader": "^7.1.4",
     "css-minimizer-webpack-plugin": "^8.0.0",
