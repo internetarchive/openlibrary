@@ -84,16 +84,12 @@ delegate.app.add_processor(
     )
 )
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.ExperimentsProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
-
-# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler.
-# The only exception is ExperimentsProcessor, which needs to run after setup_contextvars
-# so that request ContextVars (like `site` and `req_context`) are fully initialized,
-# allowing `get_current_user()` to function correctly.
-# It's added here (not as a loadhook) so it runs in the same request context.
+# IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
+# It's added here (not as a loadhook) so it runs in the same request context
 delegate.app.add_processor(setup_contextvars)
-delegate.app.add_processor(processors.ExperimentsProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -1086,11 +1082,6 @@ def is_recognized_bot():
     return req_context.get().is_recognized_bot
 
 
-def htmlsafe_dumps(obj, **kwargs) -> str:
-    """Escapes HTML special characters in JSON to prevent XSS in template script tags."""
-    return json.dumps(obj, **kwargs).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
-
-
 def setup_template_globals():
     # must be imported here, otherwise silently messes up infogami's import execution
     # order, resulting in random errors like the the /account/login.json endpoint
@@ -1147,7 +1138,6 @@ def setup_template_globals():
             "is_bot": is_bot,
             "time": time,
             "input": web.input,
-            "dumps": htmlsafe_dumps,
         }
     )
 
