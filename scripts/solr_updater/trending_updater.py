@@ -84,5 +84,5 @@ async def main(
 if __name__ == "__main__":
     try:
         FnToCLI(main).run()
-    except KeyboardInterrupt, SystemExit:
+    except (KeyboardInterrupt, SystemExit):
         print("Exiting trending updater script.")
