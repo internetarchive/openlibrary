@@ -105,22 +105,22 @@ def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
     :param ndays: number of days to read
     :return: list containing [count, timestamp] for ndays
     """
-    # try:
-    #     response = requests.get(
-    #         "http://graphite.us.archive.org/render/",
-    #         params={
-    #             "target": "summarize(stats.uniqueips.openlibrary, '1d')",
-    #             "from": f"-{ndays}days",
-    #             "tz": "UTC",
-    #             "format": "json",
-    #         },
-    #     )
-    #     response.raise_for_status()
-    #     visitors = response.json()[0]["datapoints"]
-    # except requests.exceptions.RequestException:
-    #     visitors = []
-    # return visitors
-    return []
+    try:
+        response = requests.get(
+            "http://graphite.us.archive.org/render/",
+            params={
+                "target": "summarize(stats.uniqueips.openlibrary, '1d')",
+                "from": f"-{ndays}days",
+                "tz": "UTC",
+                "format": "json",
+            },
+            timeout=5,
+        )
+        response.raise_for_status()
+        visitors = response.json()[0]["datapoints"]
+    except requests.exceptions.RequestException:
+        visitors = []
+    return visitors
 
 
 class VisitorStats(Stats):
