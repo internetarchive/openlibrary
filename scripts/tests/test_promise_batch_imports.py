@@ -16,8 +16,8 @@ TEST_BOOK_NO_ASIN = {
         "Author": "Maria Isabel Medina-Berrios",
         "Publisher": "The Kemper Foundation",
         "PublicationDate": "20151215",
-        "BisacCategory": "Juvenile Fiction"
-    }
+        "BisacCategory": "Juvenile Fiction",
+    },
 }
 
 
