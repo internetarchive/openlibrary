@@ -99,27 +99,28 @@ class LoanStats(Stats):
 
 
 @cache.memoize(engine="memcache", key="admin._get_visitor_counts_from_graphite", expires=5 * 60)
-def _get_visitor_counts_from_graphite(self, ndays: int = 28) -> list[list[int]]:
+def _get_visitor_counts_from_graphite(ndays: int = 28) -> list[list[int]]:
     """
     Read the unique visitors (IP addresses) per day for the last ndays from graphite.
     :param ndays: number of days to read
     :return: list containing [count, timestamp] for ndays
     """
-    try:
-        response = requests.get(
-            "http://graphite.us.archive.org/render/",
-            params={
-                "target": "summarize(stats.uniqueips.openlibrary, '1d')",
-                "from": f"-{ndays}days",
-                "tz": "UTC",
-                "format": "json",
-            },
-        )
-        response.raise_for_status()
-        visitors = response.json()[0]["datapoints"]
-    except requests.exceptions.RequestException:
-        visitors = []
-    return visitors
+    # try:
+    #     response = requests.get(
+    #         "http://graphite.us.archive.org/render/",
+    #         params={
+    #             "target": "summarize(stats.uniqueips.openlibrary, '1d')",
+    #             "from": f"-{ndays}days",
+    #             "tz": "UTC",
+    #             "format": "json",
+    #         },
+    #     )
+    #     response.raise_for_status()
+    #     visitors = response.json()[0]["datapoints"]
+    # except requests.exceptions.RequestException:
+    #     visitors = []
+    # return visitors
+    return []
 
 
 class VisitorStats(Stats):
