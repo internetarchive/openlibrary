@@ -55,7 +55,7 @@ def update_preferences(keys: list[str]) -> list[str]:
             username = key.split("/")[2]
             with RunAs(username):
                 web.ctx.site.save(new_prefs, "Updating preferences")
-        except infogami.infobase.client.ClientException, KeyError, IndexError:
+        except (infogami.infobase.client.ClientException, KeyError, IndexError):
             retry_list.append(key)
 
     return retry_list

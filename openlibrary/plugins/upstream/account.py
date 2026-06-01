@@ -583,7 +583,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except OSError, ValueError:
+        except (OSError, ValueError):
             return
 
     @staticmethod

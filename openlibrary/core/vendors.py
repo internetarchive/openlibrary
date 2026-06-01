@@ -423,7 +423,7 @@ class AmazonCreatorsAPI:
                 # AmazonCreatorsApi; replace its rest_client to route all
                 # outbound HTTP through the proxy.
                 self.api._api_client.rest_client = rest_client
-            except ImportError, AttributeError:
+            except (ImportError, AttributeError):
                 logger.warning(
                     "AmazonCreatorsAPI: could not inject proxy — falling back to environment-level proxy (HTTPS_PROXY)",
                     exc_info=True,
