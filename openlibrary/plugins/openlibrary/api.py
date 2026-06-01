@@ -181,7 +181,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return delegate.RawText(
                 json.dumps({"error": "Invalid bookshelf"}),
                 content_type="application/json",
@@ -821,7 +821,7 @@ class unlink_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=1)
@@ -887,7 +887,7 @@ class link_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=2)
