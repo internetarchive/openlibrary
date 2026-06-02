@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import date
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import web
 
@@ -12,7 +12,9 @@ from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.solr import SolrRequestLabel
+
+if TYPE_CHECKING:
+    from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
 
@@ -285,7 +287,7 @@ class SubjectEngine:
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
-        if details:
+        if details and result.facet_counts:
             result.facet_counts = {
                 facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()

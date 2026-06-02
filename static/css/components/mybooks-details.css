@@ -61,6 +61,7 @@
 .crumbicon:has(.disguised-select:focus-visible) .dropdown {
   box-shadow: var(--box-shadow-focus);
 }
+
 /* stylelint-enable selector-max-specificity */
 
 .down-chevron {
@@ -105,6 +106,7 @@
   padding: 0 !important;
   margin-left: 8px;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 .mybooks-details h1 {
@@ -119,6 +121,7 @@
 .mybooks-details > div:not([class]):not([id]) {
   margin-left: 8px;
 }
+
 /* stylelint-enable selector-max-specificity */
 
 @media only screen and (max-width: 768px) {
@@ -202,4 +205,37 @@
   .mybooks-details .navigation-breadcrumbs .crumb {
     margin-bottom: 10px;
   }
+}
+
+.pending-action-container .page-banner--dismissable {
+  background: var(--lightest-blue);
+  border: var(--border-input-focused);
+  border-radius: var(--border-radius-notification);
+  color: var(--dark-grey);
+  box-shadow:
+    0 4px 12px var(--icon-link-grey),
+    0 1px 3px var(--icon-link-grey);
+  font-weight: 500;
+  font-size: var(--font-size-body-large);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.pending-action-container .page-banner--dismissable:hover {
+  box-shadow:
+    0 8px 16px var(--boxshadow-black),
+    0 2px 6px var(--icon-link-grey);
+}
+
+.pending-action-container .pending-action-link {
+  color: var(--primary-blue);
+  text-decoration: none;
+  border-bottom: 2px solid var(--link-blue);
+  transition:
+    color 0.2s ease,
+    border-bottom-color 0.2s ease;
+}
+
+.pending-action-container .pending-action-link:hover {
+  color: var(--dark-blue);
+  border-bottom-color: var(--dark-blue);
 }

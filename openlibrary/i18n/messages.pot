@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.12.1\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
@@ -1336,11 +1336,17 @@ msgstr ""
 msgid "Earliest trending data is from October 2017"
 msgstr ""
 
+#. Label for the reading log shelf for books the user plans to read in the
+#. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr ""
 
+#. Display name for the "currently-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user is actively reading
+#. (bookshelf ID 2). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
@@ -1351,6 +1357,14 @@ msgstr ""
 #: book_providers/read_button.html books/edit/edition.html trending.html
 #: type/list/embed.html widget.html
 msgid "Read"
+msgstr ""
+
+#. Label for the reading log shelf for books the user stopped reading
+#. (bookshelf ID 4). Used as a button label and shelf name.
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
+msgid "Stopped Reading"
 msgstr ""
 
 #: trending.html
@@ -1897,6 +1911,10 @@ msgstr ""
 msgid "My Loans"
 msgstr ""
 
+#. Display name for the "already-read" reading log shelf used in page headings
+#. and breadcrumbs.
+#. Label for the reading log shelf for books the user has finished reading
+#. (bookshelf ID 3). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
@@ -2075,8 +2093,8 @@ msgstr ""
 #: account/privacy.html
 msgid ""
 "This will enable others to see what books you want to read, are reading, "
-"or have already read. Patrons with reading logs set to public may be "
-"followed."
+"stopped reading, or have already read. Patrons with reading logs set to "
+"public may be followed."
 msgstr ""
 
 #: account/privacy.html admin/people/view.html
@@ -2119,6 +2137,18 @@ msgstr ""
 msgid ""
 "%(username)s wants to read %(total)d books. Join %(username)s on "
 "OpenLibrary.org and share the books that you'll soon be reading!"
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid "Books %(username)s stopped reading"
+msgstr ""
+
+#: account/reading_log.html
+#, python-format
+msgid ""
+"%(username)s stopped reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org to share your own reading updates!"
 msgstr ""
 
 #: account/reading_log.html
@@ -2198,6 +2228,8 @@ msgid ""
 "their book updates will appear here."
 msgstr ""
 
+#. Display name for the "want-to-read" reading log shelf used in page headings
+#. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
 msgstr ""
@@ -3378,19 +3410,6 @@ msgstr ""
 msgid "activate account"
 msgstr ""
 
-#: admin/people/view.html
-#, python-format
-msgid "Activation link expiring on <span class=\"time\">%(date)s.</span>"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Activation link expired"
-msgstr ""
-
-#: admin/people/view.html
-msgid "Resend activation link"
-msgstr ""
-
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
 msgstr ""
@@ -4203,19 +4222,33 @@ msgstr ""
 msgid "Books"
 msgstr ""
 
+#. Page title for the "Want to Read" shelf page.
+#. Example: "Want to Read (17)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
 msgstr ""
 
+#. Page title for the "Currently Reading" shelf page.
+#. Example: "Currently Reading (42)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
 msgstr ""
 
+#. Page title for the "Already Read" shelf page.
+#. Example: "Already Read (203)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
+msgstr ""
+
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid "Stopped Reading (%(count)d)"
 msgstr ""
 
 #: books/mybooks_breadcrumb_select.html
@@ -7369,6 +7402,14 @@ msgstr ""
 msgid "Review"
 msgstr ""
 
+#: type/edition/modal_links.html
+msgid "reviewing"
+msgstr ""
+
+#: type/edition/modal_links.html
+msgid "adding notes to"
+msgstr ""
+
 #: type/edition/title_and_author.html
 msgid "An edition of"
 msgstr ""
@@ -7964,8 +8005,9 @@ msgstr ""
 msgid ""
 "You are publicly sharing the books you are <a href=\"%(username)s/books"
 "/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
-"/already-read\">have already read</a>, and <a href=\"%(username)s/books"
-"/want-to-read\">want to read</a>."
+"/already-read\">have already read</a>, <a href=\"%(username)s/books/want-"
+"to-read\">want to read</a>, and have <a href=\"%(username)s/books"
+"/stopped-reading\">stopped reading</a>!"
 msgstr ""
 
 #: type/user/view.html
@@ -7985,8 +8027,9 @@ msgstr ""
 msgid ""
 "Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
 "reading\">currently reading</a>, <a href=\"%(username)s/books/already-"
-"read\">have already read</a>, and <a href=\"%(username)s/books/want-to-"
-"read\">want to read</a>!"
+"read\">have already read</a>, <a href=\"%(username)s/books/want-to-"
+"read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
+"reading\">stopped reading</a>!"
 msgstr ""
 
 #: type/user/view.html
@@ -8262,10 +8305,12 @@ msgid "Go to next page"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Go to page {page}"
 msgstr ""
 
 #: OlPagination.html
+#, python-brace-format
 msgid "Page {page}, current page"
 msgstr ""
 
@@ -8442,6 +8487,26 @@ msgid "QR Code"
 msgstr ""
 
 #: StarRatings.html
+msgid "leaving a 1 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 2 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 3 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 4 star review for"
+msgstr ""
+
+#: StarRatings.html
+msgid "leaving a 5 star review for"
+msgstr ""
+
+#: StarRatings.html
 msgid "Clear my rating"
 msgstr ""
 
@@ -8453,6 +8518,10 @@ msgstr ""
 msgid "ratings"
 msgstr ""
 
+#. Shows the count of readers who added this book to their "Want to read"
+#. shelf, displayed on search result pages. %(want_to_read_count)s is a
+#. formatted integer (may include commas as thousands separators). Example:
+#. "2,389 Want to read".
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
@@ -8463,16 +8532,28 @@ msgstr ""
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 msgstr ""
 
+#. Short label displayed next to the count of readers who want to read this
+#. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
 msgstr ""
 
+#. Short label displayed next to the count of readers currently reading this
+#. book, shown in the stats bar on a book page. Example: "1,247 Currently
+#. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
 msgstr ""
 
+#. Short label displayed next to the count of readers who have finished this
+#. book, shown in the stats bar on a book page. Example: "15,420 Have read".
+#. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
+msgstr ""
+
+#: StarRatingsStats.html
+msgid "Stopped reading"
 msgstr ""
 
 #: SubjectTags.html
@@ -8901,33 +8982,13 @@ msgid "An Internet Archive account already exists with this email"
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email address is already used."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
 msgid ""
-"Your email address couldn't be updated. The specified email address is "
-"already used."
+"Verification failed. The link may be invalid or expired. Please try "
+"registering again."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Email verification successful."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address has been successfully verified and updated in your "
-"account."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid "Email address couldn't be verified."
-msgstr ""
-
-#: openlibrary/plugins/upstream/account.py
-msgid ""
-"Your email address couldn't be verified. The verification link seems "
-"invalid."
+msgid "Your email has been verified. You are now logged in."
 msgstr ""
 
 #: openlibrary/plugins/upstream/account.py
@@ -8996,6 +9057,14 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
+msgstr ""
+
+#: openlibrary/plugins/upstream/mybooks.py
+#, python-format
+msgid ""
+"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
