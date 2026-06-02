@@ -63,7 +63,7 @@ class PublicQueryOptions(BaseModel):
     # (`print_disabled`, "true") to `ebook_access:*` fq clauses. Mirrors the
     # explicit whitelist in the web.py /search handler (worksearch/code.py);
     # without declaring them here, FastAPI silently drops the params and the
-    # header search modal's "Readable Books Only" filter does nothing.
+    # header search modal's availability filters do nothing.
     public_scan: Literal["true", "false"] | None = None
     print_disabled: Literal["true", "false"] | None = None
 

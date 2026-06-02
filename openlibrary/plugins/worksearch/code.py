@@ -127,9 +127,13 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 # materialize as in the URL.
 AVAILABILITY_TO_PARAMS: dict[str, dict[str, str]] = {
     "all": {},
-    "readable": {"public_scan": "true"},
+    # "Readable online" — readable without special access: ebook_access:[borrowable TO *]
+    # via has_fulltext (public + borrowable).
+    "readable": {"has_fulltext": "true"},
+    # "Borrow online" — readable but not public: borrowable scans only.
     "borrowable": {"has_fulltext": "true", "public_scan": "false"},
-    "open": {"print_disabled": "true"},
+    # "Free to read now" — public-domain / open-access scans (ebook_access:public).
+    "open": {"public_scan": "true"},
 }
 
 # Every URL param that any availability value can set. Used to clear the
@@ -169,10 +173,10 @@ def get_availability_label(value: str) -> str:
     """Translated chip label for an availability value. Keep in sync with the
     label text in AVAILABILITY_OPTIONS (search-modal/constants.js)."""
     return {
-        "all": _("Full Card Catalog"),
-        "readable": _("Readable Books Only"),
-        "borrowable": _("Borrowable Only"),
-        "open": _("Open Access Only"),
+        "all": _("All books"),
+        "readable": _("Readable online"),
+        "borrowable": _("Borrow online"),
+        "open": _("Free to read now"),
     }.get(value, value)
 
 

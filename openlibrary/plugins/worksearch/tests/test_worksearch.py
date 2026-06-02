@@ -137,8 +137,8 @@ def test_prepare_solr_query_params_borrowable_editions_fq_anchors_negation():
     assert "-ebook_access:public" not in editions_fq
 
 
-def test_prepare_solr_query_params_readable_editions_fq_positive_unwrapped():
-    """A positive availability clause ("Readable" → public_scan=true →
+def test_prepare_solr_query_params_open_access_editions_fq_positive_unwrapped():
+    """A positive availability clause ("Free to read now" → public_scan=true →
     ebook_access:public) must pass through to editions.fq unwrapped — the
     negation guard should only touch negated clauses."""
     editions_fq = _editions_fq_for({"q": "harry potter", "public_scan": "true"})

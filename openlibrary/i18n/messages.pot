@@ -6751,35 +6751,35 @@ msgid "No <strong>authors</strong> directly matched your search"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Full Card Catalog"
+msgid "All books"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Info on every book published"
+msgid "Including print-only books with no digital copy"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Readable Books Only"
+msgid "Readable online"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Primarily older digitized, preserved, physical books"
+msgid "Anything you can read in your browser"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Borrowable Only"
+msgid "Free to read now"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "From Internet Archive's lending library"
+msgid "Public domain & openly licensed"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Open Access Only"
+msgid "Borrow online"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "From Trusted Book Providers"
+msgid "Digital loan — one reader at a time, may have a waitlist"
 msgstr ""
 
 #: search/inside.html

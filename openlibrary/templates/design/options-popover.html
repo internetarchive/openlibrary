@@ -6,13 +6,14 @@ $def with()
 
     <section class="example">
       <h3 class="example__title">Availability filter</h3>
-      <p>The canonical use case from the search bar. Each item is a <code>{ value, label, description, count }</code> object. The selected value is exposed via the <code>selected</code> attribute and the <code>ol-options-popover-change</code> event; the trigger itself stays fixed (the selection is usually surfaced separately, e.g. in a chip row).</p>
+      <p>The canonical use case from the search bar. Each item is a <code>{ value, label, description, count, nested }</code> object. Set <code>nested: true</code> to indent an option as a subset of the one above it. The selected value is exposed via the <code>selected</code> attribute and the <code>ol-options-popover-change</code> event; the trigger itself stays fixed (the selection is usually surfaced separately, e.g. in a chip row).</p>
       <pre class="example__code"><code class="language-html">&lt;ol-options-popover
   label="Availability"
   selected="all"
   items='[
-    {"value":"all","label":"Full Card Catalog","description":"Info on every book","count":"~50M"},
-    {"value":"readable","label":"Readable Books Only","description":"Older digitized, preserved","count":"~4.6M"}
+    {"value":"all","label":"All books","description":"Including print-only","count":"~23M"},
+    {"value":"readable","label":"Readable online","description":"Anything you can read","count":"~4.6M"},
+    {"value":"open","label":"Free to read now","count":"~1.9M","nested":true}
   ]'&gt;
 &lt;/ol-options-popover&gt;</code></pre>
       <div class="example__output">
@@ -31,10 +32,10 @@ $def with()
           var el = document.getElementById('demo-options-availability');
           var out = document.getElementById('demo-options-availability-out');
           el.items = [
-            { value: 'all', label: 'Full Card Catalog', description: 'Info on every book published', count: '~50M' },
-            { value: 'readable', label: 'Readable Books Only', description: 'Primarily older digitized, preserved, physical books', count: '~4.6M' },
-            { value: 'borrowable', label: 'Borrowable Only', description: 'From Internet Archive\'s lending library', count: '~2.7M' },
-            { value: 'open', label: 'Open Access Only', description: 'From Trusted Book Providers', count: '~1.8M' }
+            { value: 'all', label: 'All books', description: 'Including print-only books with no digital copy', count: '~23M' },
+            { value: 'readable', label: 'Readable online', description: 'Anything you can read in your browser', count: '~4.6M' },
+            { value: 'open', label: 'Free to read now', description: 'Public domain & openly licensed', count: '~1.9M', nested: true },
+            { value: 'borrowable', label: 'Borrow online', description: 'Digital loan — one reader at a time, may have a waitlist', count: '~2.8M', nested: true }
           ];
           el.addEventListener('ol-options-popover-change', function(e) {
             out.textContent = e.detail.selected;
@@ -98,9 +99,9 @@ $def with()
         (function() {
           var el = document.getElementById('demo-options-custom');
           el.items = [
-            { value: 'all', label: 'Full Card Catalog', count: '~50M' },
-            { value: 'readable', label: 'Readable Books Only', count: '~4.6M' },
-            { value: 'borrowable', label: 'Borrowable Only', count: '~2.7M' }
+            { value: 'all', label: 'All books', count: '~23M' },
+            { value: 'readable', label: 'Readable online', count: '~4.6M' },
+            { value: 'borrowable', label: 'Borrow online', count: '~2.8M' }
           ];
         })();
       </script>

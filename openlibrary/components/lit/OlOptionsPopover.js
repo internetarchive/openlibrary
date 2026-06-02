@@ -19,8 +19,9 @@ let _idCounter = 0;
  *
  * @element ol-options-popover
  *
- * @prop {Array} items - List of `{ value, label, description?, count? }`
- *     objects. Settable as JSON attribute or property.
+ * @prop {Array} items - List of `{ value, label, description?, count?,
+ *     nested? }` objects. Settable as JSON attribute or property. `nested: true`
+ *     indents the option to show it's a subset of the option above it.
  * @prop {String} selected - Currently selected `value`, or empty string for
  *     no selection. Reflects to attribute.
  * @prop {String} label - Default trigger button text (e.g. "Availability").
@@ -154,6 +155,12 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
             padding: var(--spacing-inset-sm) var(--spacing-inset-md);
             cursor: pointer;
             user-select: none;
+        }
+
+        /* Nested options are a subset of the option above them; indent the
+           whole row so the hierarchy reads at a glance. */
+        .item--nested .item-row {
+            padding-left: var(--spacing-inset-xl);
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -317,7 +324,7 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
         // FIX (WCAG 1.3.1): no leading whitespace/newline before <li> — Lit
         // template literal whitespace creates real text nodes that accesslint
         // flags as direct text content inside <ul>.
-        return html`<li class="item ${isSelected ? 'item--selected' : ''}">
+        return html`<li class="item ${isSelected ? 'item--selected' : ''} ${item.nested ? 'item--nested' : ''}">
                 <label class="item-row">
                     <input
                         type="radio"

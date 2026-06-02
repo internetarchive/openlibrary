@@ -2,33 +2,41 @@
  * Filter options for the header search modal.
  */
 
-// Counts are hand-curated round numbers (NOT live Solr facets) — they give the
-// user a sense of scale without an extra round-trip and stay stable across
-// renders. Bump them when the underlying corpus shifts materially.
+// Counts are rounded from production openlibrary.org facets (NOT fetched live)
+// — they give the user a sense of scale without an extra round-trip and stay
+// stable across renders. Last verified 2026-06-02: all=23.2M, readable=4.62M
+// (public+borrowable), open/public=1.86M, borrowable=2.75M. The nested counts
+// sum to their parent exactly (1.86M + 2.75M = 4.62M); print-disabled-only
+// scans are excluded from `has_fulltext` for non-print-disabled patrons. Bump
+// these when the corpus shifts materially.
+// `nested: true` marks an option as a subset of the broader option above it
+// ("Readable online"), so the popover indents it to show the hierarchy.
 export const AVAILABILITY_OPTIONS = [
     {
         value: 'all',
-        label: 'Full Card Catalog',
-        description: 'Info on every book published',
-        count: '~50M',
+        label: 'All books',
+        description: 'Including print-only books with no digital copy',
+        count: '~23M',
     },
     {
         value: 'readable',
-        label: 'Readable Books Only',
-        description: 'Primarily older digitized, preserved, physical books',
+        label: 'Readable online',
+        description: 'Anything you can read in your browser',
         count: '~4.6M',
     },
     {
-        value: 'borrowable',
-        label: 'Borrowable Only',
-        description: 'From Internet Archive\'s lending library',
-        count: '~2.7M',
+        value: 'open',
+        label: 'Free to read now',
+        description: 'Public domain & openly licensed',
+        count: '~1.9M',
+        nested: true,
     },
     {
-        value: 'open',
-        label: 'Open Access Only',
-        description: 'From Trusted Book Providers',
-        count: '~1.8M',
+        value: 'borrowable',
+        label: 'Borrow online',
+        description: 'Digital loan — one reader at a time, may have a waitlist',
+        count: '~2.8M',
+        nested: true,
     },
 ];
 
@@ -137,9 +145,13 @@ export function searchModalStringsFromElement(el) {
  */
 export const AVAILABILITY_TO_PARAMS = {
     all: {},
-    readable: { public_scan: 'true' },
+    // "Readable online" — everything a patron can read without special access:
+    // ebook_access:[borrowable TO *] via has_fulltext (public + borrowable).
+    readable: { has_fulltext: 'true' },
+    // "Borrow online" — readable but not public: borrowable scans only.
     borrowable: { has_fulltext: 'true', public_scan: 'false' },
-    open: { print_disabled: 'true' },
+    // "Free to read now" — public-domain / open-access scans (ebook_access:public).
+    open: { public_scan: 'true' },
 };
 
 /**

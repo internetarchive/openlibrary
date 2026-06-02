@@ -511,7 +511,7 @@ class WorkSearchScheme(SearchScheme):
                         # block-join `filters=$editions.fq` local param (it gets
                         # no top-level `*:*` fixup the way a real `fq` does), so
                         # an unguarded `-ebook_access:public` zeroed out the
-                        # "Borrowable Only" filter (public_scan=false). Anchor
+                        # "Borrow online" filter (public_scan=false). Anchor
                         # with `*:*` so it subtracts instead of matching nothing.
                         editions_fq.append(f"(*:* -{ed_field}:{field_val})")
                     else:

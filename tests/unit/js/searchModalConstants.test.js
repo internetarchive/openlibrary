@@ -20,7 +20,7 @@ describe('localizeAvailabilityOptions', () => {
         expect(readable.label).toBe('Lire maintenant');
         expect(readable.description).toBe('Lecture libre');
         // Untranslated values keep their English text...
-        expect(localized.find((o) => o.value === 'all').label).toBe('Full Card Catalog');
+        expect(localized.find((o) => o.value === 'all').label).toBe('All books');
         // ...and the non-translatable fields are preserved.
         expect(readable.value).toBe('readable');
         expect(readable.count).toBe('~4.6M');
@@ -32,12 +32,12 @@ describe('localizeAvailabilityOptions', () => {
         });
         const readable = localized.find((o) => o.value === 'readable');
         expect(readable.label).toBe('Lire maintenant');
-        expect(readable.description).toBe('Primarily older digitized, preserved, physical books');
+        expect(readable.description).toBe('Anything you can read in your browser');
     });
 
     test('does not mutate the shared defaults', () => {
         localizeAvailabilityOptions({ all: { label: 'Tout' } });
-        expect(AVAILABILITY_OPTIONS.find((o) => o.value === 'all').label).toBe('Full Card Catalog');
+        expect(AVAILABILITY_OPTIONS.find((o) => o.value === 'all').label).toBe('All books');
     });
 });
 
@@ -101,9 +101,9 @@ describe('availabilityFromParams', () => {
     const fromObj = (obj) => availabilityFromParams((name) => obj[name]);
 
     test('maps params back to their availability value', () => {
-        expect(fromObj({ public_scan: 'true' })).toBe('readable');
+        expect(fromObj({ has_fulltext: 'true' })).toBe('readable');
         expect(fromObj({ has_fulltext: 'true', public_scan: 'false' })).toBe('borrowable');
-        expect(fromObj({ print_disabled: 'true' })).toBe('open');
+        expect(fromObj({ public_scan: 'true' })).toBe('open');
     });
 
     test('falls back to the default when nothing matches', () => {
