@@ -190,6 +190,12 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             box-shadow: 0 0 0 1px var(--color-border-focused);
         }
 
+        /* iOS zooms in on focus when the input font is < 16px; bump it up on
+           mobile to suppress that. */
+        @media (max-width: 767px) {
+            .filter-input { font-size: 16px; }
+        }
+
         .filter-icon {
             position: absolute;
             top: 50%;

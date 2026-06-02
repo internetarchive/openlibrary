@@ -157,7 +157,7 @@ export function initSearchFilterBar(container) {
 
     wireChipRemovalSync();
 
-    const availabilityEl = container.querySelector('ol-options-popover');
+    const availabilityEl = container.querySelector('ol-availability-filter');
     const languageEl = container.querySelector('ol-select-popover');
 
     if (availabilityEl) {
@@ -166,7 +166,7 @@ export function initSearchFilterBar(container) {
         // English defaults if it's absent.
         availabilityEl.items = availabilityOptionsFromElement(container);
         availabilityEl.selected = availabilityFromParams((name) => currentParams.get(name));
-        availabilityEl.addEventListener('ol-options-popover-change', (e) => {
+        availabilityEl.addEventListener('ol-availability-filter-change', (e) => {
             writeStoredAvailability(e.detail.selected);
             const mapped = AVAILABILITY_TO_PARAMS[e.detail.selected] || {};
             navigateWithParams((params) => {

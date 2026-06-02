@@ -45,10 +45,10 @@ $ bodyclass.append('search-page')
         $# data-i18n carries the translated availability-filter strings;
         $# SearchFilterBar.js reads it from this container element.
         <div class="search-filter-row" id="search-filter-row" data-i18n="$:render_template('search/availability_i18n')">
-          <ol-options-popover
+          <ol-availability-filter
             label="$_('Availability')"
             aria-label="$_('Filter by availability')"
-          ></ol-options-popover>
+          ></ol-availability-filter>
           <ol-select-popover
             label="$_('Language')"
             placeholder="$_('Search languages…')"

@@ -23,7 +23,7 @@ describe('localizeAvailabilityOptions', () => {
         expect(localized.find((o) => o.value === 'all').label).toBe('All books');
         // ...and the non-translatable fields are preserved.
         expect(readable.value).toBe('readable');
-        expect(readable.count).toBe('~4.6M');
+        expect(readable.count).toBe('4.6M');
     });
 
     test('falls back per-field when a translation omits one', () => {

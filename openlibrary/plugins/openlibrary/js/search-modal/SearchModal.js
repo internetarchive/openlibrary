@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
-// The <ol-*> custom elements this modal uses (ol-dialog, ol-options-popover,
+// The <ol-*> custom elements this modal uses (ol-dialog, ol-availability-filter,
 // ol-select-popover, ol-chip, ol-chip-group) are registered by the site-wide
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
@@ -548,12 +548,12 @@ export class SearchModal extends LitElement {
     _renderFilters() {
         return html`
             <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
-                <ol-options-popover
+                <ol-availability-filter
                     label=${this._i18n.availabilityLabel}
                     .items=${this._availabilityOptions}
                     .selected=${this._availability}
-                    @ol-options-popover-change=${this._onAvailabilityChange}
-                ></ol-options-popover>
+                    @ol-availability-filter-change=${this._onAvailabilityChange}
+                ></ol-availability-filter>
                 <ol-select-popover
                     label=${this._i18n.languageLabel}
                     placeholder=${this._i18n.languagePlaceholder}
