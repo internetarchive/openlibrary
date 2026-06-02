@@ -1,7 +1,5 @@
 from dataclasses import dataclass
-from functools import cache as functools_cache
 from hashlib import md5
-from pathlib import Path
 from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
@@ -13,6 +11,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
@@ -21,6 +20,7 @@ from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
 )
 from openlibrary.i18n import gettext as _
+from openlibrary.plugins.openlibrary.code import is_bot
 from openlibrary.plugins.openlibrary.lists import get_lists_async, get_user_lists
 from openlibrary.plugins.upstream.utils import render_macro
 from openlibrary.plugins.upstream.yearly_reading_goals import get_reading_goals
@@ -293,38 +293,6 @@ def build_more_stores(ctx: AffiliateStoreBuildContext) -> list[AffiliateStore]:
     ]
 
 
-@functools_cache
-def _get_jinja_env():
-    """Lazily initialize and return the Jinja2 environment (cached after first call).
-
-    Per Jinja docs, a single Environment instance should be reused to take
-    advantage of template compilation caching.
-    """
-    from jinja2 import Environment, FileSystemLoader, StrictUndefined
-
-    env = Environment(
-        loader=FileSystemLoader(Path(__file__).resolve().parent.parent.parent / "macros"),
-        autoescape=True,
-        undefined=StrictUndefined,
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
-    env.globals["_"] = _
-    return env
-
-
-def _render_affiliate_links_jinja(
-    primary_stores: list[AffiliateStore],
-    more_stores: list[AffiliateStore],
-) -> str:
-    """Render affiliate links using Jinja2."""
-    template = _get_jinja_env().get_template("AffiliateLinks.html.jinja")
-    return template.render(
-        primary_stores=primary_stores,
-        more_stores=more_stores,
-    )
-
-
 class AffiliateLinksPartial:
     """Handler for affiliate links"""
 
@@ -334,9 +302,7 @@ class AffiliateLinksPartial:
         isbn: str | None,
         asin: str | None,
         prices: bool,
-        jinja: bool = False,
     ) -> dict:
-        from openlibrary.plugins.openlibrary.code import is_bot
 
         bwb_metadata = None
         amz_metadata = None
@@ -354,11 +320,8 @@ class AffiliateLinksPartial:
         primary_stores = build_primary_stores(ctx)
         more_stores = build_more_stores(ctx)
 
-        if jinja:
-            html = _render_affiliate_links_jinja(primary_stores, more_stores)
-        else:
-            macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
-            html = str(macro)
+        template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
+        html = template.render(primary_stores=primary_stores, more_stores=more_stores)
 
         return {"partials": html}
 
