@@ -420,7 +420,7 @@ class account_login_json(delegate.page):
 
 def _parse_low_auth_header():
     """Parse 'Authorization: LOW access:secret' from the current request.
-    Returns (access, secret) tuple or raises ValueError if missing/malformed."""
+    Returns (access, secret) tuple or raises ValueError if missing/malformed/empty."""
     header = web.ctx.env.get("HTTP_AUTHORIZATION", "")
     if not header.startswith("LOW "):
         raise ValueError("Missing or invalid Authorization header")
@@ -428,7 +428,23 @@ def _parse_low_auth_header():
     if ":" not in keys:
         raise ValueError("Malformed authorization keys")
     access, secret = keys.split(":", 1)
-    return access.strip(), secret.strip()
+    access, secret = access.strip(), secret.strip()
+    if not access or not secret:
+        raise ValueError("Empty access or secret key")
+    return access, secret
+
+
+def _require_s3_auth():
+    """Validate the request's IA S3 credentials. Returns None on success or a RawText error response."""
+    try:
+        s3_access, s3_secret = _parse_low_auth_header()
+    except ValueError:
+        return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
+    if "error" in (result := InternetArchiveAccount.s3auth(s3_access, s3_secret)):
+        if result.get("code", 400) >= 500:
+            return delegate.RawText(json.dumps({"error": "auth_service_unavailable"}))
+        return delegate.RawText(json.dumps({"error": "unauthorized"}))
+    return None
 
 
 class otp_service_issue(delegate.page):
@@ -436,13 +452,8 @@ class otp_service_issue(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        # Require valid IA S3 credentials — only Lenny instances linked to an OL account may call this.
-        try:
-            s3_access, s3_secret = _parse_low_auth_header()
-        except ValueError:
-            return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
-        if "error" in InternetArchiveAccount.s3auth(s3_access, s3_secret):
-            return delegate.RawText(json.dumps({"error": "unauthorized"}))
+        if err := _require_s3_auth():
+            return err
 
         i = web.input(email="", ip="", challenge_url="", sendmail="true")
         required_keys = ("email", "ip", "service_ip")
@@ -473,13 +484,8 @@ class otp_service_redeem(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
-        # Require valid IA S3 credentials — only Lenny instances linked to an OL account may call this.
-        try:
-            s3_access, s3_secret = _parse_low_auth_header()
-        except ValueError:
-            return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
-        if "error" in InternetArchiveAccount.s3auth(s3_access, s3_secret):
-            return delegate.RawText(json.dumps({"error": "unauthorized"}))
+        if err := _require_s3_auth():
+            return err
 
         required_keys = ("email", "ip", "service_ip", "otp")
         i = web.input(email="", ip="", otp="")
