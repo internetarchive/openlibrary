@@ -8,9 +8,13 @@ import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from openlibrary import accounts
+from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
+from openlibrary.plugins.upstream.edits import process_merge_request
 from openlibrary.solr.query_utils import query_dict_to_str
+from openlibrary.utils import uniq
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.solr import SolrRequestLabel
 
@@ -21,8 +25,103 @@ DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
 
+SUBJECT_MERGE_TYPES = {"subject", "person", "place", "time"}
+
+
+def normalize_subject_merge_id(record: str) -> str:
+    record = record.strip().removeprefix("/subjects/")
+    if record.startswith("subject:"):
+        record = record.split(":", 1)[1]
+
+    if ":" in record:
+        subject_type, name = record.split(":", 1)
+        if subject_type in SUBJECT_MERGE_TYPES - {"subject"}:
+            return f"{subject_type}:{Tag.normalize(name)}"
+
+    return f"subject:{Tag.normalize(record)}"
+
+
+def get_subject_key_from_merge_id(record_id: str) -> str:
+    subject_type, slug = record_id.split(":", 1)
+    if subject_type == "subject":
+        return f"/subjects/{slug}"
+    return f"/subjects/{subject_type}:{slug}"
+
+
+def get_subject_merge_record(record_id: str) -> web.storage:
+    key = get_subject_key_from_merge_id(record_id)
+    subject_type, slug = record_id.split(":", 1)
+    fallback_name = slug.replace("_", " ")
+    subject = get_subject(key, limit=0, request_label="SUBJECT_ENGINE_PAGE")
+    name = subject.name if subject and subject.name else fallback_name
+    work_count = subject.work_count if subject and subject.work_count else 0
+
+    return web.storage(
+        id=record_id,
+        key=key,
+        name=name,
+        subject_type=subject_type,
+        work_count=work_count,
+    )
+
+
+class merge_subjects(delegate.page):
+    path = "/subjects/merge"
+
+    def require_access(self):
+        user = accounts.get_current_user()
+        if user is None:
+            raise web.unauthorized()
+        if not (user.is_admin() or user.is_librarian() or user.is_super_librarian()):
+            raise web.forbidden()
+        return user
+
+    def get_records(self, values: list[str]) -> list[web.storage]:
+        record_ids = uniq(normalize_subject_merge_id(value) for value in values if value)
+        return [get_subject_merge_record(record_id) for record_id in record_ids]
+
+    def GET(self):
+        self.require_access()
+        i = web.input(key=[], mrid=None, records="", primary=None)
+        values = list(i.key) + i.records.strip(",").split(",")
+        records = self.get_records(values)
+        primary = normalize_subject_merge_id(i.primary) if i.primary else None
+        return render_template("merge/subjects", records, mrid=i.mrid, primary=primary)
+
+    def POST(self):
+        user = self.require_access()
+        i = web.input(key=[], master=None, merge_key=[], mrid=None, comment=None)
+        records = self.get_records(list(i.key))
+        selected = uniq(i.merge_key)
+
+        if i.master in selected:
+            selected.remove(i.master)
+
+        formdata = web.storage(master=i.master, selected=selected)
+        if not i.master or len(selected) == 0:
+            return render_template("merge/subjects", records, formdata=formdata, mrid=i.mrid)
+
+        selected.insert(0, i.master)
+        data = {
+            "mr_type": CommunityEditsQueue.TYPE["SUBJECT_MERGE"],
+            "action": "create-pending",
+            "olids": ",".join(selected),
+            "primary": i.master,
+        }
+        if i.comment:
+            data["comment"] = i.comment
+
+        result = process_merge_request("create-request", data)
+        username = user.get("key").split("/")[-1]
+
+        redir_url = f"/merges?submitter={username}"
+        if mrid := result.get("id", None):
+            redir_url = f"{redir_url}#mrid-{mrid}"
+        raise web.seeother(redir_url)
+
+
 class subjects(delegate.page):
-    path = "(/subjects/[^/]+)"
+    path = "(/subjects/(?!merge$)[^/]+)"
 
     def GET(self, key):
         if (nkey := self.normalize_key(key)) != key:

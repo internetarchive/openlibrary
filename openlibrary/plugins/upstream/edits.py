@@ -47,6 +47,7 @@ class community_edits_queue(delegate.page):
             reviewer=None,
             order="desc",
             status=None,
+            types=None,
         )
 
         order: Literal["asc", "desc"] = "desc"
@@ -61,6 +62,26 @@ class community_edits_queue(delegate.page):
         else:
             return web.badrequest(f'Invalid mode parameter: "{i.mode}". Must be one of {list(CommunityEditsQueue.MODES.keys())}.')
 
+        types_filter = []
+        parsed_types = []
+        if types_param := i.types:
+            for t in types_param.split(","):
+                title = t.strip().lower()
+                parsed_types.append(title)
+                if title == "works":
+                    types_filter.append(CommunityEditsQueue.TYPE["WORK_MERGE"])
+                elif title == "authors":
+                    types_filter.append(CommunityEditsQueue.TYPE["AUTHOR_MERGE"])
+                elif title == "subjects":
+                    types_filter.append(CommunityEditsQueue.TYPE["SUBJECT_MERGE"])
+
+        types_hrefs = {}
+        types_checked = {}
+        for t in ["works", "authors", "subjects"]:
+            tt = [x for x in parsed_types if x != t] if t in parsed_types else parsed_types + [t]
+            types_hrefs[t] = ",".join(tt) if tt else ""
+            types_checked[t] = t in parsed_types
+
         merge_requests = CommunityEditsQueue.get_requests(
             page=int(i.page),
             limit=int(i.limit),
@@ -69,11 +90,17 @@ class community_edits_queue(delegate.page):
             reviewer=i.reviewer,
             order_by_updated=order,
             status=i.status,
+            types=types_filter or None,
         ).list()
 
+        count_filters = {
+            "submitter": i.submitter,
+            "reviewer": i.reviewer,
+            "types": types_filter or None,
+        }
         total_found = {
-            "open": CommunityEditsQueue.get_counts_by_mode(mode="open", submitter=i.submitter, reviewer=i.reviewer),
-            "closed": CommunityEditsQueue.get_counts_by_mode(mode="closed", submitter=i.submitter, reviewer=i.reviewer),
+            "open": CommunityEditsQueue.get_counts_by_mode(mode="open", **count_filters),
+            "closed": CommunityEditsQueue.get_counts_by_mode(mode="closed", **count_filters),
             "submitters": CommunityEditsQueue.get_submitters(),
             "reviewers": CommunityEditsQueue.get_reviewers(),
         }
@@ -81,6 +108,8 @@ class community_edits_queue(delegate.page):
         librarians = {
             "submitters": CommunityEditsQueue.get_submitters(),
             "reviewers": CommunityEditsQueue.get_reviewers(),
+            "types_hrefs": types_hrefs,
+            "types_checked": types_checked,
         }
 
         return render_template(
@@ -115,6 +144,7 @@ class community_edits_queue(delegate.page):
             return mr_type in (
                 CommunityEditsQueue.TYPE["WORK_MERGE"],
                 CommunityEditsQueue.TYPE["AUTHOR_MERGE"],
+                CommunityEditsQueue.TYPE["SUBJECT_MERGE"],
             )
 
         if is_valid_action(action):
@@ -197,6 +227,9 @@ class community_edits_queue(delegate.page):
             return f"/works/merge?records={','.join(olids)}{primary_param}"
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             return f"/authors/merge?records={','.join(olids)}"
+        elif mr_type == CommunityEditsQueue.TYPE["SUBJECT_MERGE"]:
+            primary_param = f"&primary={primary}" if primary else ""
+            return f"/subjects/merge?records={','.join(olids)}{primary_param}"
         return ""
 
     @staticmethod
@@ -211,6 +244,9 @@ class community_edits_queue(delegate.page):
                 author = web.ctx.site.get(f"/authors/{olid}")
                 if author and author.name:
                     return author.name
+        elif mr_type == CommunityEditsQueue.TYPE["SUBJECT_MERGE"]:
+            for olid in olids:
+                return olid.split(":", 1)[-1].replace("_", " ")
         return "Unknown record"
 
 

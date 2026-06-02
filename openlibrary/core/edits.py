@@ -46,6 +46,7 @@ class CommunityEditsQueue:
         {
             "WORK_MERGE": 1,
             "AUTHOR_MERGE": 2,
+            "SUBJECT_MERGE": 3,
         }
     )
 
@@ -131,6 +132,9 @@ class CommunityEditsQueue:
             wheres.append("url=$url")
         if "id" in kwargs:
             wheres.append("id=$id")
+        if "types" in kwargs and (types := kwargs.get("types")):
+            types_list = [f"mr_type={t}" for t in types]
+            wheres.append(f"({' OR '.join(types_list)})")
 
         status_list = [f"status={status}" for status in cls.MODES[mode]] if mode != "all" else []
 

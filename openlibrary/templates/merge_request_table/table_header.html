@@ -8,11 +8,39 @@ $# reviewer : str | None : Reviewer's username. Only passed if we are filtering 
 $# status : str | None : "0" | "1" | "2" : Represents a request's status.  Only passed if we are filtering by `status`
 
 $ order = query_param('order', 'desc')
+$ t_hr = librarians['types_hrefs']
+$ t_ck = librarians['types_checked']
 
 <div class="table-header">
     <a class="$(mode=='open' and 'selected' or '') mode-open" href="$changequery(mode='open', status=None, page=None)">$totals['open'] $_('Open')</a>
     <a class="$(mode=='closed' and 'selected' or '') mode-closed" href="$changequery(mode='closed', status=None, page=None)">$totals['closed'] $_('Closed')</a>
     <div class="flex-auto"></div>
+    <div class="mr-dropdown" id="type-menu-button">$_('Type ▾')
+      <div class="mr-dropdown-menu sort hidden">
+        <header class="dropdown-header">
+          <span>$_('Type')</span>
+          <button class="dropdown-close">&times;</button>
+        </header>
+        $ w_href = changequery(types=t_hr['works'] or None, page=None)
+        $ w_check = '' if t_ck['works'] else 'invisible'
+        <a href="$w_href" class="dropdown-item">
+          <span class="$w_check item-checked">✓</span>
+          <span>$_('Works')</span>
+        </a>
+        $ a_href = changequery(types=t_hr['authors'] or None, page=None)
+        $ a_check = '' if t_ck['authors'] else 'invisible'
+        <a href="$a_href" class="dropdown-item">
+          <span class="$a_check item-checked">✓</span>
+          <span>$_('Authors')</span>
+        </a>
+        $ s_href = changequery(types=t_hr['subjects'] or None, page=None)
+        $ s_check = '' if t_ck['subjects'] else 'invisible'
+        <a href="$s_href" class="dropdown-item">
+          <span class="$s_check item-checked">✓</span>
+          <span>$_('Subjects')</span>
+        </a>
+      </div>
+    </div>
     $if mode != 'open':
       $# Add filter for request status
       <div class="mr-dropdown">$_('Status ▾')
