@@ -35,7 +35,7 @@ SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
-# Convert "2026-05-19-at-19-10" to ISO timestamp prefix; replace "-at-" with "T" and "-" with ":"
+# Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
 LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
 RELEASE_MERGED_PRS_URL="https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr++is%3Amerged+merged%3A$LATEST_TAG_TIMESTAMP..$(date -u +%Y-%m-%dT%H:%M)"
@@ -475,8 +475,7 @@ deploy_openlibrary() {
             choice=${choice:-Y}
             if [[ ! "$choice" =~ ^[Yy]$ ]]; then
                 echo "Aborting deployment."
-                cleanup "${DEPLOY_DIR}/openlibrary"
-                exit 1
+                clean_exit
             fi
         done
     fi
