@@ -100,7 +100,7 @@ export function availabilityOptionsFromElement(el) {
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
     dialogAria: 'Search Open Library',
-    inputPlaceholder: 'Search books, authors…',
+    inputPlaceholder: 'Search books and authors…',
     inputAria: 'Search',
     closeAria: 'Close search',
     seeAll: 'See all results',
@@ -119,6 +119,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     noResults: 'No results found',
     topResults: 'Top results',
     untitled: 'Untitled',
+    authorLabel: 'Author',
 };
 
 /**

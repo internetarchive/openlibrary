@@ -21,6 +21,7 @@ import {
     searchModalStringsFromElement,
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
+import { deriveAuthors } from './authorSuggestion.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
 // edition-level block-join (see WorkSearchScheme.q_to_solr_params). Without it,
@@ -28,7 +29,10 @@ import { fetchLanguageOptions } from './languages.js';
 // only match the work-level `ebook_access` aggregate, so the modal would surface
 // works the /search page hides — e.g. a work whose only query-matching edition
 // is non-readable. Requesting `editions` makes the modal match /search exactly.
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'first_publish_year', 'editions'];
+// `author_key` rides along with `author_name` so each result's author can link
+// to the author page (and so deriveAuthors() can surface author rows for the
+// top results whose author the query names).
+const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -51,6 +55,7 @@ export class SearchModal extends LitElement {
         _availability: { state: true },
         _languages: { state: true },
         _results: { state: true },
+        _authorSuggestions: { state: true },
         _numFound: { state: true },
         _loading: { state: true },
         _hasSearched: { state: true },
@@ -257,6 +262,13 @@ export class SearchModal extends LitElement {
             padding: 0;
         }
 
+        /* Sets the author suggestion apart from the "Top results" works below. */
+        .author-suggestion {
+            margin-bottom: var(--spacing-2xs);
+            padding-bottom: var(--spacing-2xs);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
         .result {
             display: flex;
             align-items: center;
@@ -268,16 +280,23 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: hover) and (pointer: fine) {
-            .result:hover { background: var(--icon-link-grey); }
+            .result:hover { background: var(--lightest-grey); }
         }
 
+        /* Both the author suggestion and the work rows are single anchors, so
+           the same focus highlight covers the whole row. */
         .result:focus-visible {
             outline: none;
-            background: var(--icon-link-grey);
+            background: var(--lightest-grey);
             box-shadow: inset 2px 0 0 var(--color-focus-ring);
         }
 
         @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
+
+        .result__cover-link {
+            display: flex;
+            flex-shrink: 0;
+        }
 
         .result__cover {
             flex-shrink: 0;
@@ -286,6 +305,34 @@ export class SearchModal extends LitElement {
             object-fit: cover;
             background: var(--lightest-grey);
             border-radius: var(--border-radius-thumbnail);
+        }
+
+        /* Circular author avatar. The person glyph sits underneath as the
+           always-present fallback; the photo (when the author has one) is
+           layered over it and covers the circle. If the photo 404s, it's hidden
+           to reveal the glyph — so there's never a broken-image flash. */
+        .result__avatar {
+            position: relative;
+            display: flex;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            overflow: hidden;
+            color: var(--accessible-grey);
+            background: var(--lightest-grey);
+            border-radius: 50%;
+        }
+
+        .result__avatar svg { width: 20px; height: 20px; }
+
+        .result__avatar-photo {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .result__meta {
@@ -300,6 +347,7 @@ export class SearchModal extends LitElement {
             overflow: hidden;
             color: var(--darker-grey);
             font-weight: 600;
+            text-decoration: none;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -397,6 +445,7 @@ export class SearchModal extends LitElement {
         this.open          = false;
         this._query        = '';
         this._results      = [];
+        this._authorSuggestions = [];
         this._numFound     = null;
         this._loading      = false;
         this._hasSearched  = false;
@@ -613,12 +662,44 @@ export class SearchModal extends LitElement {
 
         return html`
             <div class="results">
+                ${this._authorSuggestions.length ? html`
+                    <ul class="results-list author-suggestion">
+                        ${repeat(this._authorSuggestions, a => a.key, a => this._renderAuthorSuggestion(a))}
+                    </ul>
+                ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
                 <ul class="results-list">${repeat(this._results, r => r.key, r => this._renderResult(r))}</ul>
             </div>
         `;
     }
 
+    // A "go to the author page" row shown above the works for each top-result
+    // author the query names (see deriveAuthors). The whole row is a single link
+    // to the author page, so it's a plain anchor (no nested-link concern).
+    _renderAuthorSuggestion(author) {
+        return html`<li>
+                <a class="result" href="/authors/${author.key}">
+                    <span class="result__avatar">
+                        ${SearchModal._personIcon}
+                        <img
+                            class="result__avatar-photo"
+                            src="https://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=false"
+                            alt=""
+                            loading="lazy"
+                            @error=${this._onAvatarError}
+                        />
+                    </span>
+                    <span class="result__meta">
+                        <span class="result__title">${author.name}</span>
+                        <span class="result__author">${this._i18n.authorLabel}</span>
+                    </span>
+                </a>
+            </li>`;
+    }
+
+    // The whole row is a single link to the work — the author is surfaced in
+    // its own suggestion row, so there's no separate author link here (which
+    // also keeps this a plain anchor with no nested-link concern).
     _renderResult(work) {
         const author = work.author_name?.[0] || '';
         const year   = work.first_publish_year || '';
@@ -627,7 +708,9 @@ export class SearchModal extends LitElement {
             : COVER_PLACEHOLDER;
         return html`<li>
                 <a class="result" href=${work.key}>
-                    <img class="result__cover" src=${cover} alt="" loading="lazy" width="36" height="50"/>
+                    <span class="result__cover-link">
+                        <img class="result__cover" src=${cover} alt="" loading="lazy" width="36" height="50"/>
+                    </span>
                     <span class="result__meta">
                         <span class="result__title">${work.title || this._i18n.untitled}</span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
@@ -656,13 +739,18 @@ export class SearchModal extends LitElement {
 
     _onDialogClosed() { this.open = false; }
 
+    // The author photo is requested with ?default=false, so a missing photo
+    // 404s and fires this — hide the <img> to reveal the person glyph beneath.
+    _onAvatarError(e) { e.target.hidden = true; }
+
     _onQueryInput(e) {
         this._query = e.target.value;
         if (!this._shouldAutocomplete()) {
-            this._results     = [];
-            this._numFound    = null;
-            this._loading     = false;
-            this._hasSearched = false;
+            this._results           = [];
+            this._authorSuggestions = [];
+            this._numFound          = null;
+            this._loading           = false;
+            this._hasSearched       = false;
             return;
         }
         this._loading = true;
@@ -737,17 +825,19 @@ export class SearchModal extends LitElement {
             .then(r => r.ok ? r.json() : Promise.reject(new Error(`Search failed: ${r.status}`)))
             .then(data => {
                 if (this._activeFetchKey !== fetchKey) return;
-                this._results     = data.docs || [];
-                this._numFound    = typeof data.numFound === 'number' ? data.numFound : null;
-                this._loading     = false;
-                this._hasSearched = true;
+                this._results           = data.docs || [];
+                this._authorSuggestions = deriveAuthors(this._results, trimmed);
+                this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
+                this._loading           = false;
+                this._hasSearched       = true;
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
-                this._results     = [];
-                this._numFound    = null;
-                this._loading     = false;
-                this._hasSearched = true;
+                this._results           = [];
+                this._authorSuggestions = [];
+                this._numFound          = null;
+                this._loading           = false;
+                this._hasSearched       = true;
             });
     }
 
@@ -788,6 +878,8 @@ export class SearchModal extends LitElement {
     static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
     static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
