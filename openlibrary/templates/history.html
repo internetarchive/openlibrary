@@ -31,7 +31,6 @@ $ i18n_strings = {
             <button type="button" class="page-history-compare__clear" data-compare-clear aria-label="$_('Clear comparison')">&times;</button>
         </div>
 
-        <form action="">
         <table id="pageHistory" data-i18n="$json_encode(i18n_strings)">
         <thead>
             <tr>
@@ -41,7 +40,9 @@ $ i18n_strings = {
                 <th class="historyheader">$_("Comment")</th>
                 <th class="historyheader" style="text-align:center;">$_("Diff")</th>
                 <th class="historyheader pick-ab-header">
+                    $code: pass  # NOTE: Column header labeling the "A" side (the earlier/left revision) of a revision comparison on a page's edit-history table. Keep extremely short; a single letter is ideal. Pairs with "B".
                     <span class="pick-ab__option">$_("A")</span>
+                    $code: pass  # NOTE: Column header labeling the "B" side (the later/right revision) of a revision comparison on a page's edit-history table. Keep extremely short; a single letter is ideal. Pairs with "A".
                     <span class="pick-ab__option">$_("B")</span>
                 </th>
             </tr>
@@ -86,9 +87,6 @@ $ i18n_strings = {
                 </tr>
         </tbody>
         </table>
-        <input type="hidden" name="m" value="diff"/>
-
-        </form>
 
         $:macros.OlPagination(page_num, total_pages)
 

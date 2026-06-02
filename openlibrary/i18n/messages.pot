@@ -754,10 +754,16 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
 msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
 msgid "B"
 msgstr ""
