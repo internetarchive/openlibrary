@@ -169,6 +169,18 @@ export class OlAvailabilityFilter extends FocusableHostMixin(LitElement) {
             padding-left: var(--spacing-inset-xl);
         }
 
+        /* Dial back the label and icon on nested options so they read as
+           secondary to the top-level option they sit under. */
+        .item--nested .item-label {
+            font-size: 13px;
+        }
+
+        .item--nested .item-icon,
+        .item--nested .icon-svg {
+            width: 20px;
+            height: 20px;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover {
                 background: var(--lightest-grey);
