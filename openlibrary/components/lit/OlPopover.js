@@ -125,16 +125,16 @@ export class OlPopover extends LitElement {
             z-index: 999;
             background: hsla(0, 0%, 0%, 0.3);
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
         }
 
         .backdrop[data-state="entering"],
         .backdrop[data-state="open"] {
             opacity: 1;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: auto;
         }
 
@@ -147,8 +147,8 @@ export class OlPopover extends LitElement {
 
         .backdrop[data-state="exiting"] {
             opacity: 0;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(1px);
+            -webkit-backdrop-filter: blur(1px);
             pointer-events: none;
             transition:
                 opacity 200ms cubic-bezier(0.23, 1, 0.32, 1),
