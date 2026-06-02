@@ -6779,7 +6779,7 @@ msgid "Borrow online"
 msgstr ""
 
 #: search/availability_i18n.html
-msgid "Digital loan — one reader at a time, may have a waitlist"
+msgid "Digital loan - one reader at a time, may have a waitlist"
 msgstr ""
 
 #: search/inside.html
