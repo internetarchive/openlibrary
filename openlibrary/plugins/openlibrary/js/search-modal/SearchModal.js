@@ -61,6 +61,7 @@ export class SearchModal extends LitElement {
         _hasSearched: { state: true },
         _languageItems: { state: true },
         _langsLoading: { state: true },
+        _navigatingKey: { state: true },
     };
 
     static styles = css`
@@ -276,7 +277,10 @@ export class SearchModal extends LitElement {
             padding: var(--spacing-sm) var(--spacing-lg);
             color: inherit;
             text-decoration: none;
-            transition: background-color 100ms ease;
+            transition:
+                background-color 100ms ease,
+                opacity 160ms ease,
+                transform 100ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -294,6 +298,7 @@ export class SearchModal extends LitElement {
         @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
 
         .result__cover-link {
+            position: relative;
             display: flex;
             flex-shrink: 0;
         }
@@ -375,6 +380,65 @@ export class SearchModal extends LitElement {
             text-align: center;
         }
 
+        /* ── Navigating (pressed result → page loading) ────────────── */
+
+        /* Pressing a result navigates the whole window, and the next page can
+           take a moment to start painting. During that gap the chosen row
+           holds full opacity while the rest dim back, its cover darkens under
+           a spinner, and the row scales down — matching the header search
+           field's press feedback (scale 0.985). */
+        .results.is-navigating .result { opacity: 0.4; }
+
+        .results.is-navigating .result.is-target {
+            opacity: 1;
+            background: var(--lightest-grey);
+            transform: scale(0.985);
+        }
+
+        .result.is-target .result__cover,
+        .result.is-target .result__avatar-photo {
+            filter: brightness(0.5);
+        }
+
+        /* Spinner centered over the thumbnail. Mirrors the <ol-button> loading
+           spinner — a currentcolor ring with one transparent edge spun by
+           keyframes — but white here to read over the darkened cover. */
+        .result__spinner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 160ms ease;
+        }
+
+        .result__spinner::before {
+            content: "";
+            box-sizing: border-box;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--white);
+            border-right-color: transparent;
+            border-radius: 50%;
+        }
+
+        .result.is-target .result__spinner { opacity: 1; }
+
+        .result.is-target .result__spinner::before {
+            animation: ol-search-result-spin 0.7s linear infinite;
+        }
+
+        @keyframes ol-search-result-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .results.is-navigating .result.is-target { transform: none; }
+            .result.is-target .result__spinner::before { animation-duration: 2s; }
+        }
+
         /* ── Footer ────────────────────────────────────────────────── */
 
         .footer {
@@ -450,6 +514,7 @@ export class SearchModal extends LitElement {
         this._loading      = false;
         this._hasSearched  = false;
         this._langsLoading = false;
+        this._navigatingKey = null;
 
         // Availability options. Defaults to the built-in English list; the
         // localized list (from the trigger's data-i18n) is set in
@@ -471,6 +536,20 @@ export class SearchModal extends LitElement {
         this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        // The back button can restore this page (and modal) from the bfcache
+        // with a row still flagged as navigating — clear it so its spinner
+        // doesn't linger on a page the user has returned to.
+        this._onPageShow = () => { this._navigatingKey = null; };
+        window.addEventListener('pageshow', this._onPageShow);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('pageshow', this._onPageShow);
+        super.disconnectedCallback();
     }
 
     attachToTrigger(trigger) {
@@ -661,7 +740,7 @@ export class SearchModal extends LitElement {
         }
 
         return html`
-            <div class="results">
+            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}">
                 ${this._authorSuggestions.length ? html`
                     <ul class="results-list author-suggestion">
                         ${repeat(this._authorSuggestions, a => a.key, a => this._renderAuthorSuggestion(a))}
@@ -677,8 +756,13 @@ export class SearchModal extends LitElement {
     // author the query names (see deriveAuthors). The whole row is a single link
     // to the author page, so it's a plain anchor (no nested-link concern).
     _renderAuthorSuggestion(author) {
+        const href = `/authors/${author.key}`;
         return html`<li>
-                <a class="result" href="/authors/${author.key}">
+                <a
+                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href)}
+                >
                     <span class="result__avatar">
                         ${SearchModal._personIcon}
                         <img
@@ -688,6 +772,7 @@ export class SearchModal extends LitElement {
                             loading="lazy"
                             @error=${this._onAvatarError}
                         />
+                        <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
                         <span class="result__title">${author.name}</span>
@@ -707,9 +792,14 @@ export class SearchModal extends LitElement {
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`
             : COVER_PLACEHOLDER;
         return html`<li>
-                <a class="result" href=${work.key}>
+                <a
+                    class="result ${this._navigatingKey === work.key ? 'is-target' : ''}"
+                    href=${work.key}
+                    @click=${(e) => this._onResultPress(e, work.key)}
+                >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} alt="" loading="lazy" width="36" height="50"/>
+                        <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
                         <span class="result__title">${work.title || this._i18n.untitled}</span>
@@ -737,7 +827,21 @@ export class SearchModal extends LitElement {
         this.renderRoot.querySelector('.search-input')?.focus();
     }
 
-    _onDialogClosed() { this.open = false; }
+    _onDialogClosed() {
+        this.open = false;
+        this._navigatingKey = null;
+    }
+
+    // A result is a native anchor, so pressing it navigates the whole window.
+    // The new page can take a beat to start painting; flag the chosen row so it
+    // shows its loading treatment (cover spinner, dimmed siblings) during that
+    // gap. Modified clicks (open in new tab/window) don't navigate this page —
+    // leave them untreated.
+    _onResultPress(e, key) {
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._navigatingKey = key;
+    }
 
     // The author photo is requested with ?default=false, so a missing photo
     // 404s and fires this — hide the <img> to reveal the person glyph beneath.
@@ -745,6 +849,7 @@ export class SearchModal extends LitElement {
 
     _onQueryInput(e) {
         this._query = e.target.value;
+        this._navigatingKey = null;
         if (!this._shouldAutocomplete()) {
             this._results           = [];
             this._authorSuggestions = [];
