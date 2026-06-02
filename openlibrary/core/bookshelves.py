@@ -25,27 +25,16 @@ class WorkReadingLogSummary(TypedDict):
     want_to_read: int
     currently_reading: int
     already_read: int
+    stopped_reading: int
 
 
 class Bookshelves(db.CommonExtras):
     TABLENAME = "bookshelves_books"
     PRIMARY_KEY = ("username", "work_id", "bookshelf_id")
-    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType(
-        {
-            "Want to Read": 1,
-            "Currently Reading": 2,
-            "Already Read": 3,
-        }
-    )
+    PRESET_BOOKSHELVES: MappingProxyType[str, int] = MappingProxyType({"Want to Read": 1, "Currently Reading": 2, "Already Read": 3, "Stopped Reading": 4})
     ALLOW_DELETE_ON_CONFLICT = True
 
-    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType(
-        {
-            "want_to_read": 1,
-            "currently_reading": 2,
-            "already_read": 3,
-        }
-    )
+    PRESET_BOOKSHELVES_JSON: MappingProxyType[str, int] = MappingProxyType({"want_to_read": 1, "currently_reading": 2, "already_read": 3, "stopped_reading": 4})
 
     @classmethod
     def summary(cls):
@@ -118,7 +107,7 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def most_logged_books(
         cls,
-        shelf_id: int | None = None,
+        shelf_ids: list[int] | None = None,
         limit: int = 10,
         since: date | None = None,
         page: int = 1,
@@ -127,8 +116,8 @@ class Bookshelves(db.CommonExtras):
     ) -> list:
         """Returns a ranked list of work OLIDs (in the form of an integer --
         i.e. OL123W would be 123) which have been most logged by
-        users. This query is limited to a specific shelf_id (e.g. 1
-        for "Want to Read").
+        users. This query can be limited to specific shelf_ids (e.g. [1, 2]
+        for "Want to Read" and "Currently Reading").
         """
         page = int(page or 1)
         offset = (page - 1) * limit
@@ -138,7 +127,7 @@ class Bookshelves(db.CommonExtras):
             SELECT work_id, count(*) AS cnt
             FROM bookshelves_books
             WHERE
-                bookshelf_id {"=$shelf_id" if shelf_id else "IS NOT NULL"}
+                {"bookshelf_id IN $shelf_ids" if shelf_ids else "bookshelf_id IS NOT NULL"}
                 {"AND created >= $since" if since else ""}
             GROUP BY work_id {"HAVING COUNT(*) > $minimum" if minimum else ""}
             {"ORDER BY cnt DESC" if sort_by_count else ""}
@@ -146,7 +135,7 @@ class Bookshelves(db.CommonExtras):
             OFFSET $offset
         """
         data = {
-            "shelf_id": shelf_id,
+            "shelf_ids": shelf_ids,
             "limit": limit,
             "offset": offset,
             "since": since,
@@ -585,25 +574,25 @@ class Bookshelves(db.CommonExtras):
     @classmethod
     def get_recently_logged_books(
         cls,
-        bookshelf_id: str | None = None,
+        shelf_ids: list[int] | None = None,
         limit: int = 50,
         page: int = 1,
     ) -> list:
         oldb = db.get_db()
         page = int(page or 1)
         data = {
-            "bookshelf_id": bookshelf_id,
+            "shelf_ids": shelf_ids,
             "limit": limit,
             "offset": limit * (page - 1),
         }
-        where = "WHERE bookshelf_id=$bookshelf_id " if bookshelf_id else ""
-        query = f"SELECT * from bookshelves_books {where} ORDER BY created DESC LIMIT $limit OFFSET $offset"
+        where = "WHERE bookshelf_id IN $shelf_ids" if shelf_ids else ""
+        query = f"SELECT * FROM bookshelves_books {where} ORDER BY updated DESC LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 
     @classmethod
     def get_users_read_status_of_work(cls, username: str, work_id: str) -> int | None:
         """A user can mark a book as (1) want to read, (2) currently reading,
-        or (3) already read. Each of these states is mutually
+        (3) already read, or (4) stopped reading. Each of these states is mutually
         exclusive. Returns the user's read state of this work, if one
         exists.
         """
@@ -715,7 +704,7 @@ class Bookshelves(db.CommonExtras):
         Which super patrons have the most books logged?
 
         SELECT username, count(*) AS counted from bookshelves_books
-          WHERE bookshelf_id=ANY('{1,3,2}'::int[]) GROUP BY username
+          WHERE bookshelf_id=ANY('{1,2,3,4}'::int[]) GROUP BY username
             ORDER BY counted DESC, username LIMIT 10
         """
         oldb = db.get_db()

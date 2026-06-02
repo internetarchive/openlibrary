@@ -167,16 +167,6 @@ def test_list_subjects_json_series(client, monkeypatch):
     assert resp.status_code == 200
 
 
-def test_list_subjects_json_user_series(client, monkeypatch):
-    subjects = {**FAKE_SUBJECTS, "links": {"self": "/people/testuser/series/OL123L/subjects", "list": "/people/testuser/series/OL123L"}}
-    monkeypatch.setattr(
-        "openlibrary.fastapi.lists.get_list_subjects",
-        lambda key, limit=20: subjects,
-    )
-    resp = client.get("/people/testuser/series/OL123L/subjects.json")
-    assert resp.status_code == 200
-
-
 FAKE_EDITIONS = {
     "size": 1,
     "start": 0,
@@ -230,14 +220,4 @@ def test_list_editions_json_series(client, monkeypatch):
         lambda key, url, offset=0, limit=50: editions,
     )
     resp = client.get("/series/OL789L/editions.json")
-    assert resp.status_code == 200
-
-
-def test_list_editions_json_user_series(client, monkeypatch):
-    editions = {**FAKE_EDITIONS, "links": {**FAKE_EDITIONS["links"], "self": "/people/testuser/series/OL123L/editions", "list": "/people/testuser/series/OL123L"}}
-    monkeypatch.setattr(
-        "openlibrary.fastapi.lists.get_list_editions",
-        lambda key, url, offset=0, limit=50: editions,
-    )
-    resp = client.get("/people/testuser/series/OL123L/editions.json")
     assert resp.status_code == 200

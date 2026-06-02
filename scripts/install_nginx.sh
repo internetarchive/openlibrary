@@ -20,7 +20,7 @@ apt-get update
 apt-get install -y --no-install-recommends nginx nginx-module-njs letsencrypt
 
 # Install modsecurity
-# Modsecurity will rely on the /olsystem/lib/ngx_http_modsecurity_module.so
+# Modsecurity will rely on /usr/lib/nginx/modules/ngx_http_modsecurity_module.so
 # Nginx will not start without it.
 apt-get install -y --no-install-recommends libmodsecurity3 modsecurity-crs
 

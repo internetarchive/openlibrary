@@ -3,7 +3,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 import aiofiles
 
@@ -13,7 +13,6 @@ from openlibrary.solr.data_provider import (
     ExternalDataProvider,
     get_data_provider,
 )
-from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 from openlibrary.solr.updater.author import AuthorSolrUpdater
 from openlibrary.solr.updater.edition import EditionSolrUpdater
 from openlibrary.solr.updater.list import ListSolrUpdater
@@ -27,6 +26,9 @@ from openlibrary.solr.utils import (
 )
 from openlibrary.utils import uniq
 from openlibrary.utils.open_syllabus_project import set_osp_dump_location
+
+if TYPE_CHECKING:
+    from openlibrary.solr.updater.abstract import AbstractSolrUpdater
 
 logger = logging.getLogger("openlibrary.solr")
 

@@ -15,6 +15,26 @@ $var title: $header_title
   $ css = 'no-padding' if mb.key == 'mybooks' else ''
   <div class="mybooks-details $css">
 
+    $if ctx.user:
+      $ pending_action_msg = mb.get_pending_action_banner()
+      $if pending_action_msg:
+        <div id="pending-action-container" class="pending-action-container">
+          $:render_template('site/banner', pending_action_msg, 'pending_action', cookie_duration_days=1)
+        </div>
+        <script>
+          document.addEventListener("DOMContentLoaded", function() {
+              var container = document.getElementById('pending-action-container');
+              if (container) {
+                  var link = container.querySelector('.pending-action-link');
+                  if (link) {
+                      link.addEventListener('click', function() {
+                          document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
+                      });
+                  }
+              }
+          });
+        </script>
+
     $ mb.component_times['Details header'] = time()
     <header>
       <div class="breadcrumb-wrapper">
