@@ -74,6 +74,16 @@ export class SearchModal extends LitElement {
             border-bottom: 1px solid var(--color-border-subtle);
         }
 
+        /* Wraps the icon + input (+ ESC pill). Transparent on desktop so the
+           bar reads as one flat row; becomes an inset rounded box on mobile. */
+        .search-field {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
         .search-icon {
             flex-shrink: 0;
             width: 20px;
@@ -95,6 +105,14 @@ export class SearchModal extends LitElement {
 
         .search-input::placeholder { color: var(--accessible-grey); }
         .search-input:focus         { outline: none; }
+
+        /* Drop the native type="search" clear affordance — the modal has its
+           own close control and an empty field is cleared by deleting text. */
+        .search-input::-webkit-search-cancel-button,
+        .search-input::-webkit-search-decoration {
+            -webkit-appearance: none;
+            appearance: none;
+        }
 
         .esc-pill {
             flex-shrink: 0;
@@ -359,6 +377,18 @@ export class SearchModal extends LitElement {
                 background: var(--white);
                 border-top: 1px solid var(--color-border-subtle);
             }
+
+            /* Inset, rounded search field with the close (X) sitting outside it. */
+            .bar {
+                padding: var(--spacing-md);
+                border-bottom: none;
+            }
+            .search-field {
+                padding: var(--spacing-sm) var(--spacing-md);
+                border: 1px solid var(--color-border-subtle);
+                border-radius: var(--border-radius-xl);
+            }
+            .close-btn { margin-right: 0; }
         }
     `;
 
@@ -451,22 +481,24 @@ export class SearchModal extends LitElement {
                 @ol-after-close=${this._onDialogClosed}
             >
                 <div slot="header" class="bar">
-                    ${SearchModal._searchIcon}
-                    <input
-                        type="search"
-                        class="search-input"
-                        placeholder=${this._i18n.inputPlaceholder}
-                        aria-label=${this._i18n.inputAria}
-                        .value=${this._query}
-                        @input=${this._onQueryInput}
-                        @keydown=${this._onInputKeydown}
-                    />
-                    <button
-                        type="button"
-                        class="esc-pill"
-                        aria-label=${this._i18n.closeAria}
-                        @click=${this._closeModal}
-                    >ESC</button>
+                    <div class="search-field">
+                        ${SearchModal._searchIcon}
+                        <input
+                            type="search"
+                            class="search-input"
+                            placeholder=${this._i18n.inputPlaceholder}
+                            aria-label=${this._i18n.inputAria}
+                            .value=${this._query}
+                            @input=${this._onQueryInput}
+                            @keydown=${this._onInputKeydown}
+                        />
+                        <button
+                            type="button"
+                            class="esc-pill"
+                            aria-label=${this._i18n.closeAria}
+                            @click=${this._closeModal}
+                        >ESC</button>
+                    </div>
                     <button
                         type="button"
                         class="close-btn"
