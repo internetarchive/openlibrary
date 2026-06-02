@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import web
 
 from openlibrary.plugins.worksearch.code import (
@@ -6,6 +8,7 @@ from openlibrary.plugins.worksearch.code import (
     process_facet,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 
 def test_process_facet():
@@ -92,3 +95,52 @@ def test_prepare_solr_query_params_first_publish_year_string():
     # Check that the fq param for first_publish_year is correctly added
     fq_params = [p for p in params if p[0] == "fq"]
     assert ("fq", 'first_publish_year:"1997"') in fq_params
+
+
+def _editions_fq_for(param: dict) -> list[str]:
+    """Run a Solr-editions query for `param` and return its editions.fq clauses.
+
+    Sets req_context because the has_fulltext facet_rewrite resolves
+    get_fulltext_min() off it; requesting the `editions` field opts the query
+    into the block-join path that builds editions.fq. convert_iso_to_marc is
+    stubbed since it reaches for the `site` ContextVar (irrelevant here)."""
+    token = req_context.set(
+        RequestContextVars(
+            x_forwarded_for=None,
+            user_agent=None,
+            lang="en",
+            solr_editions=True,
+            print_disabled=False,
+        )
+    )
+    try:
+        scheme = WorkSearchScheme(solr_editions=True)
+        with patch(
+            "openlibrary.plugins.worksearch.schemes.works.convert_iso_to_marc",
+            return_value="eng",
+        ):
+            params, _ = _prepare_solr_query_params(scheme, param, fields="key,editions")
+    finally:
+        req_context.reset(token)
+    return [v for k, v in params if k == "editions.fq"]
+
+
+def test_prepare_solr_query_params_borrowable_editions_fq_anchors_negation():
+    """ "Borrowable Only" maps to has_fulltext=true + public_scan=false, the
+    latter rewriting to a negated `-ebook_access:public`. A bare pure-negative
+    clause matches nothing inside the block-join `filters=$editions.fq` local
+    param (no top-level `*:*` fixup), which made the filter return zero results.
+    It must be anchored as `(*:* -ebook_access:public)`."""
+    editions_fq = _editions_fq_for({"q": "harry potter", "has_fulltext": "true", "public_scan": "false"})
+    assert "(*:* -ebook_access:public)" in editions_fq
+    # The unanchored form (the bug) must never be emitted.
+    assert "-ebook_access:public" not in editions_fq
+
+
+def test_prepare_solr_query_params_readable_editions_fq_positive_unwrapped():
+    """A positive availability clause ("Readable" → public_scan=true →
+    ebook_access:public) must pass through to editions.fq unwrapped — the
+    negation guard should only touch negated clauses."""
+    editions_fq = _editions_fq_for({"q": "harry potter", "public_scan": "true"})
+    assert "ebook_access:public" in editions_fq
+    assert "(*:* -ebook_access:public)" not in editions_fq
