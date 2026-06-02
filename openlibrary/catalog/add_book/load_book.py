@@ -1,10 +1,7 @@
 import logging
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
-import web
 from pydantic import TypeAdapter, ValidationError
-
-from openlibrary.utils.request_context import site
 
 from openlibrary.catalog.utils import (
     author_dates_match,
@@ -14,6 +11,7 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core.helpers import extract_year
 from openlibrary.utils import extract_numeric_id_from_olid, uniq
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author

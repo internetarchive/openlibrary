@@ -38,7 +38,6 @@ import requests
 import web
 
 from infogami import config
-from openlibrary.utils.request_context import site
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
@@ -63,6 +62,7 @@ from openlibrary.plugins.upstream.utils import safeget, setup_requests, strip_ac
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.lccn import normalize_lccn
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Edition

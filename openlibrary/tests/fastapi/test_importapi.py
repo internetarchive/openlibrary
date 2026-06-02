@@ -77,30 +77,20 @@ class TestImportPreviewAuth:
         assert response.status_code == 401
 
     def test_post_requires_authentication(self, fastapi_client):
-        response = fastapi_client.post(
-            "/import/preview.json", data={"source": "amazon:ASIN123"}
-        )
+        response = fastapi_client.post("/import/preview.json", data={"source": "amazon:ASIN123"})
         assert response.status_code == 401
 
-    def test_get_forbidden_for_regular_user(
-        self, fastapi_client, mock_authenticated_user, mock_user_factory
-    ):
+    def test_get_forbidden_for_regular_user(self, fastapi_client, mock_authenticated_user, mock_user_factory):
         mock_user_factory()
         response = fastapi_client.get("/import/preview.json?source=amazon:ASIN123")
         assert response.status_code == 403
 
-    def test_post_forbidden_for_regular_user(
-        self, fastapi_client, mock_authenticated_user, mock_user_factory
-    ):
+    def test_post_forbidden_for_regular_user(self, fastapi_client, mock_authenticated_user, mock_user_factory):
         mock_user_factory()
-        response = fastapi_client.post(
-            "/import/preview.json", data={"source": "amazon:ASIN123"}
-        )
+        response = fastapi_client.post("/import/preview.json", data={"source": "amazon:ASIN123"})
         assert response.status_code == 403
 
-    def test_get_allows_admin(
-        self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch
-    ):
+    def test_get_allows_admin(self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch):
         mock_user_factory(is_admin=True)
         monkeypatch.setattr(
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
@@ -109,9 +99,7 @@ class TestImportPreviewAuth:
         response = fastapi_client.get("/import/preview.json?source=amazon:ASIN123")
         assert response.status_code == 200
 
-    def test_get_allows_librarian(
-        self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch
-    ):
+    def test_get_allows_librarian(self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch):
         mock_user_factory(is_librarian=True)
         monkeypatch.setattr(
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
@@ -120,9 +108,7 @@ class TestImportPreviewAuth:
         response = fastapi_client.get("/import/preview.json?source=amazon:ASIN123")
         assert response.status_code == 200
 
-    def test_get_allows_super_librarian(
-        self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch
-    ):
+    def test_get_allows_super_librarian(self, fastapi_client, mock_authenticated_user, mock_user_factory, mock_import_request, monkeypatch):
         mock_user_factory(is_super_librarian=True)
         monkeypatch.setattr(
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
@@ -225,9 +211,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             lambda i: mock_import_request(),
         )
-        response = self.client.post(
-            "/import/preview.json", data={"source": "amazon:ASIN123"}
-        )
+        response = self.client.post("/import/preview.json", data={"source": "amazon:ASIN123"})
         assert response.status_code == 200
 
     def test_post_can_save(self):
@@ -264,9 +248,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             fake_from_input,
         )
-        response = self.client.post(
-            "/import/preview.json", data={"source": "amazon:ASIN123"}
-        )
+        response = self.client.post("/import/preview.json", data={"source": "amazon:ASIN123"})
         assert response.status_code == 200
         assert captured["save"] == "false"
 
@@ -275,9 +257,7 @@ class TestImportPreviewPost:
             "openlibrary.fastapi.importapi.ImportPreviewRequest.from_input",
             lambda i: _raise(ValueError("Invalid source provided")),
         )
-        response = self.client.post(
-            "/import/preview.json", data={"source": "invalid"}
-        )
+        response = self.client.post("/import/preview.json", data={"source": "invalid"})
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is False
