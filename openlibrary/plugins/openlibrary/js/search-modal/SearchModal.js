@@ -482,6 +482,10 @@ export class SearchModal extends LitElement {
         @media (max-width: 767px) {
             .search-input { font-size: 16px; }
             .results { max-height: none; flex: 1; }
+
+            /* The "Start typing to search…" prompt reads as confusing on a
+               phone where the keyboard is already up — drop it on mobile. */
+            .placeholder { display: none; }
             .filters { padding: var(--spacing-xs) var(--spacing-md) var(--spacing-sm); }
             .footer {
                 position: sticky;
