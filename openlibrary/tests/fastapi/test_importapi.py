@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from openlibrary.utils.request_context import RequestContextVars, req_context, site
+
 
 def _raise(exc: Exception) -> None:
     raise exc
@@ -18,8 +20,6 @@ FAKE_IMPORT_RESULT = {
 @pytest.fixture(autouse=True)
 def _setup_request_context():
     """Set ContextVars for tests that reach _build_preview_response."""
-    from openlibrary.utils.request_context import RequestContextVars, req_context, site
-
     site.set(MagicMock())
     req_context.set(
         RequestContextVars(
