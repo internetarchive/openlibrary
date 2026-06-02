@@ -669,13 +669,34 @@ export class OlPopover extends LitElement {
         const handle = this.shadowRoot.querySelector('.tray-handle');
         const panel = this.shadowRoot.querySelector('.panel');
         const touch = e.touches[0];
+        const path = e.composedPath();
 
         this._touchStartY = touch.clientY;
         this._touchStartTime = Date.now();
         this._isDragging = false;
         this._lastDragY = 0;
-        this._isHandleDrag = !!(handle && e.composedPath().includes(handle));
-        this._touchScrollTop = panel?.scrollTop ?? 0;
+        this._isHandleDrag = !!(handle && path.includes(handle));
+        // Read scroll position from the actual scroll container under the touch,
+        // not the panel — consumers like ol-select-popover scroll an inner
+        // element, so panel.scrollTop stays 0 and would wrongly read as
+        // "scrolled to top", triggering swipe-to-dismiss mid-list.
+        this._touchScrollTop = this._scrollableInPath(path, panel)?.scrollTop ?? 0;
+    }
+
+    /**
+     * Walk the touch's composed path (which includes slotted light-DOM content)
+     * up to and including the panel, returning the first vertically scrollable
+     * element. Falls back to the panel itself.
+     */
+    _scrollableInPath(path, panel) {
+        for (const el of path) {
+            if (el instanceof HTMLElement && el.scrollHeight > el.clientHeight) {
+                const overflowY = getComputedStyle(el).overflowY;
+                if (overflowY === 'auto' || overflowY === 'scroll') return el;
+            }
+            if (el === panel) break;
+        }
+        return panel;
     }
 
     _onTouchMove(e) {
@@ -741,6 +762,10 @@ export class OlPopover extends LitElement {
                 this._clearDragStyles();
                 this._animState = 'closed';
                 this._cleanup();
+                // Sync the `open` property so the trigger toggles correctly on
+                // the next tap. _animState is already 'closed', so the _hide()
+                // this triggers early-returns without re-animating.
+                this.open = false;
                 this.dispatchEvent(new CustomEvent('ol-popover-close', {
                     bubbles: true, composed: true,
                     detail: { reason: 'swipe' },
