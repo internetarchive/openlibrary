@@ -38,6 +38,7 @@ import requests
 import web
 
 from infogami import config
+from openlibrary.utils.request_context import site
 from openlibrary import accounts
 from openlibrary.catalog.add_book.load_book import (
     author_import_record_to_author,
@@ -207,9 +208,9 @@ def find_matching_work(e):
     seen = set()
     for a in e["authors"]:
         q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
-        work_keys = list(web.ctx.site.things(q))
+        work_keys = list(site.get().things(q))
         for wkey in work_keys:
-            w = web.ctx.site.get(wkey)
+            w = site.get().get(wkey)
             if wkey in seen:
                 continue
             seen.add(wkey)
@@ -237,7 +238,7 @@ def load_author_import_records(authors_in, edits, source, save: bool = True):
         new_author = "key" not in a
         if new_author:
             if save:
-                a["key"] = web.ctx.site.new_key("/type/author")
+                a["key"] = site.get().new_key("/type/author")
             else:
                 a["key"] = f"/authors/__new__{uuid.uuid4()}"
             a["source_records"] = [source]
@@ -280,7 +281,7 @@ def new_work(edition: dict, rec: dict, cover_id: int | None = None, save: bool =
         w["description"] = {"type": "/type/text", "value": rec["description"]}
 
     if save:
-        w["key"] = web.ctx.site.new_key("/type/work")
+        w["key"] = site.get().new_key("/type/work")
     else:
         w["key"] = f"/works/__new__{uuid.uuid4()}"
 
@@ -381,7 +382,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
 
     data = {"error": "No qualifying edition"}
     if edition_id:
-        ed = web.ctx.site.get(f"/books/{edition_id}")
+        ed = site.get().get(f"/books/{edition_id}")
         if ed.ocaid:
             work = ed.works[0] if ed.get("works") else None
             if work and work.key:
@@ -525,7 +526,7 @@ def editions_matched(rec: dict, key: str, value=None) -> list[str]:
 
     q = {"type": "/type/edition", key: value}
 
-    ekeys = list(web.ctx.site.things(q))
+    ekeys = list(site.get().things(q))
     return ekeys
 
 
@@ -544,7 +545,7 @@ def find_threshold_match(rec: dict, edition_pool: dict[str, list[str]]) -> str |
             thing = None
             while not thing or is_redirect(thing):
                 seen.add(edition_key)
-                thing = web.ctx.site.get(edition_key)
+                thing = site.get().get(edition_key)
                 if thing is None:
                     break
                 if is_redirect(thing):
@@ -634,7 +635,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     edition_key = edition.get("key")
     if not edition_key:
         if save:
-            edition_key = web.ctx.site.new_key("/type/edition")
+            edition_key = site.get().new_key("/type/edition")
         else:
             edition_key = f"/books/__new__{uuid.uuid4()}"
 
@@ -676,7 +677,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if not work_key and "authors" in edition:
         work_key = find_matching_work(edition)
     if work_key:
-        work = web.ctx.site.get(work_key)
+        work = site.get().get(work_key)
         work_state = "matched"
         need_update = False
         for k in subject_fields:
@@ -708,7 +709,7 @@ def load_data(  # noqa: PLR0912, PLR0915
     if save:
         comment = "overwrite existing edition" if existing_edition else "import new book"
         action = "edit-book" if existing_edition else "add-book"
-        web.ctx.site.save_many(edits, comment=comment, action=action)
+        site.get().save_many(edits, comment=comment, action=action)
 
         # Writes back `openlibrary_edition` and `openlibrary_work` to
         # archive.org item after successful import:
@@ -986,14 +987,14 @@ def load(
     # We have an edition match at this point
     need_work_save = need_edition_save = False
     work: dict[str, Any]
-    existing_edition: Edition = web.ctx.site.get(match)
+    existing_edition: Edition = site.get().get(match)
 
     # check for, and resolve, author redirects
     for a in existing_edition.authors:
         while is_redirect(a):
             if a in existing_edition.authors:
                 existing_edition.authors.remove(a)
-            a = web.ctx.site.get(a.location)
+            a = site.get().get(a.location)
             if not is_redirect(a):
                 existing_edition.authors.append(a)
 
@@ -1039,7 +1040,7 @@ def load(
 
     if save:
         if edits:
-            web.ctx.site.save_many(edits, comment="import existing book", action="edit-book")
+            site.get().save_many(edits, comment="import existing book", action="edit-book")
         if "ocaid" in rec:
             update_ia_metadata_for_ol_edition(match.split("/")[-1])
 

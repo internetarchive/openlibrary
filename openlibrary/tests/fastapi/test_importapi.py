@@ -1,6 +1,6 @@
 """Tests for the FastAPI import preview endpoints."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -15,15 +15,25 @@ FAKE_IMPORT_RESULT = {
 }
 
 
-@pytest.fixture
-def mock_site():
-    """Mock the site ContextVar to avoid real infogami connection."""
-    with patch("openlibrary.fastapi.importapi.site") as mock:
-        yield mock
+@pytest.fixture(autouse=True)
+def _setup_request_context():
+    """Set ContextVars for tests that reach _build_preview_response."""
+    from openlibrary.utils.request_context import RequestContextVars, req_context, site
+
+    site.set(MagicMock())
+    req_context.set(
+        RequestContextVars(
+            x_forwarded_for=None,
+            user_agent=None,
+            lang="en",
+            solr_editions=True,
+            print_disabled=False,
+        )
+    )
 
 
 @pytest.fixture
-def mock_user_factory(mock_site, monkeypatch):
+def mock_user_factory(monkeypatch):
     """Factory fixture to create and mock users with configurable roles.
 
     Usage:
@@ -62,11 +72,11 @@ def mock_import_request():
 class TestImportPreviewAuth:
     """Authentication and authorization tests."""
 
-    def test_get_requires_authentication(self, fastapi_client, mock_site):
+    def test_get_requires_authentication(self, fastapi_client):
         response = fastapi_client.get("/import/preview.json?source=amazon:ASIN123")
         assert response.status_code == 401
 
-    def test_post_requires_authentication(self, fastapi_client, mock_site):
+    def test_post_requires_authentication(self, fastapi_client):
         response = fastapi_client.post(
             "/import/preview.json", data={"source": "amazon:ASIN123"}
         )

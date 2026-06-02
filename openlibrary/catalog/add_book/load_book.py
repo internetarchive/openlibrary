@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 import web
 from pydantic import TypeAdapter, ValidationError
 
+from openlibrary.utils.request_context import site
+
 from openlibrary.catalog.utils import (
     author_dates_match,
     flip_name,
@@ -174,7 +176,7 @@ def find_author(author: AuthorImportDict) -> list[Author]:
         seen.add(obj["key"])
         while obj["type"]["key"] == "/type/redirect":
             assert obj["location"] != obj["key"]
-            obj = web.ctx.site.get(obj["location"])
+            obj = site.get().get(obj["location"])
             seen.add(obj["key"])
         return obj
 
@@ -187,7 +189,7 @@ def find_author(author: AuthorImportDict) -> list[Author]:
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("key")) and (record := web.ctx.site.get(key)):
+    if (key := author.get("key")) and (record := site.get().get(key)):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([record])
 
@@ -199,8 +201,8 @@ def find_author(author: AuthorImportDict) -> list[Author]:
         for identifier, val in remote_ids.items():
             queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                matched_authors.extend(get_redirected_authors(list(web.ctx.site.get_many(reply))))
+            if reply := list(site.get().things(query)):
+                matched_authors.extend(get_redirected_authors(list(site.get().get_many(reply))))
         matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
         # The match is whichever one has the most identifiers in common
         if matched_authors:
@@ -232,8 +234,8 @@ def find_author(author: AuthorImportDict) -> list[Author]:
             },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
         ]
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                things += get_redirected_authors(list(web.ctx.site.get_many(reply)))
+            if reply := list(site.get().things(query)):
+                things += get_redirected_authors(list(site.get().get_many(reply)))
                 break
     match = []
     seen = set()
