@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,6 +22,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -418,11 +418,32 @@ class account_login_json(delegate.page):
             infogami_login().POST()
 
 
+def _parse_low_auth_header():
+    """Parse 'Authorization: LOW access:secret' from the current request.
+    Returns (access, secret) tuple or raises ValueError if missing/malformed."""
+    header = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+    if not header.startswith("LOW "):
+        raise ValueError("Missing or invalid Authorization header")
+    _, keys = header.split("LOW ", 1)
+    if ":" not in keys:
+        raise ValueError("Malformed authorization keys")
+    access, secret = keys.split(":", 1)
+    return access.strip(), secret.strip()
+
+
 class otp_service_issue(delegate.page):
     path = "/account/otp/issue"
 
     def POST(self):
         web.header("Content-Type", "application/json")
+        # Require valid IA S3 credentials — only Lenny instances linked to an OL account may call this.
+        try:
+            s3_access, s3_secret = _parse_low_auth_header()
+        except ValueError:
+            return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
+        if "error" in InternetArchiveAccount.s3auth(s3_access, s3_secret):
+            return delegate.RawText(json.dumps({"error": "unauthorized"}))
+
         i = web.input(email="", ip="", challenge_url="", sendmail="true")
         required_keys = ("email", "ip", "service_ip")
         i.email = i.email.replace(" ", "+").lower()
@@ -452,6 +473,14 @@ class otp_service_redeem(delegate.page):
 
     def POST(self):
         web.header("Content-Type", "application/json")
+        # Require valid IA S3 credentials — only Lenny instances linked to an OL account may call this.
+        try:
+            s3_access, s3_secret = _parse_low_auth_header()
+        except ValueError:
+            return delegate.RawText(json.dumps({"error": "missing_or_invalid_authorization"}))
+        if "error" in InternetArchiveAccount.s3auth(s3_access, s3_secret):
+            return delegate.RawText(json.dumps({"error": "unauthorized"}))
+
         required_keys = ("email", "ip", "service_ip", "otp")
         i = web.input(email="", ip="", otp="")
         i.email = i.email.replace(" ", "+").lower()
