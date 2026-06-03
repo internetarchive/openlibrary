@@ -251,6 +251,8 @@ class mybooks_readinglog(delegate.page):
                 # NOTE: Page title for the "Already Read" shelf page.
                 # NOTE: Example: "Already Read (203)". %(count)d is the number of books on this shelf.
                 "already-read": _("Already Read (%(count)d)", count=mb.counts["already-read"]),
+                # NOTE: Page title for the "Stopped Reading" shelf page.
+                # NOTE: Example: "Stopped Reading (8)". %(count)d is the number of books on this shelf.
                 "stopped-reading": _("Stopped Reading (%(count)d)", count=mb.counts["stopped-reading"]),
             }
             template = self.render_template(mb)
