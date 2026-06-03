@@ -87,9 +87,9 @@ class Acquisition(web.storage, CommonExtras):
         existing row has its ``work_id``/``data`` refreshed.
         """
         payload = json.dumps(data or {})
-        existing = Acquisition.get_by_edition(edition_id, provider_name)
-        if existing:
-            db.update(
+
+        def _update() -> int:
+            return db.update(
                 "acquisitions",
                 where="edition_id=$edition_id AND provider_name=$provider_name",
                 vars={"edition_id": edition_id, "provider_name": provider_name},
@@ -97,7 +97,9 @@ class Acquisition(web.storage, CommonExtras):
                 data=payload,
                 updated=_utcnow(),
             )
-        else:
+
+        # Update first; insert only when no row exists yet.
+        if not _update():
             try:
                 db.insert(
                     "acquisitions",
@@ -108,14 +110,7 @@ class Acquisition(web.storage, CommonExtras):
                 )
             except UniqueViolation, IntegrityError:
                 # Raced with a concurrent insert; fall back to update.
-                db.update(
-                    "acquisitions",
-                    where="edition_id=$edition_id AND provider_name=$provider_name",
-                    vars={"edition_id": edition_id, "provider_name": provider_name},
-                    work_id=work_id,
-                    data=payload,
-                    updated=_utcnow(),
-                )
+                _update()
         result = Acquisition.get_by_edition(edition_id, provider_name)
         return result[0] if result else None
 
