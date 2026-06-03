@@ -27,9 +27,14 @@ $var title: $header_title
               if (container) {
                   var link = container.querySelector('.pending-action-link');
                   if (link) {
+                      link.setAttribute('data-ol-link-track', 'PreserveIntent|Continue');
                       link.addEventListener('click', function() {
                           document.cookie = 'pending_action=; path=/; max-age=0; samesite=lax';
                       });
+                  }
+                  var dismiss = container.querySelector('.page-banner--dismissable-close');
+                  if (dismiss) {
+                      dismiss.setAttribute('data-ol-link-track', 'PreserveIntent|Dismiss');
                   }
               }
           });
