@@ -53,7 +53,7 @@ export class OpenLibraryOTP extends LitElement {
             border: none;
             border-radius: 4px;
             padding: 8px 16px;
-            font-size: 1rem;
+            font-size: var(--font-size-label-large, 14px);
             font-family: inherit;
             cursor: pointer;
             width: 100%;
