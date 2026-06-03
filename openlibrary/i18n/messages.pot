@@ -2214,6 +2214,14 @@ msgid "Work Stats"
 msgstr ""
 
 #: account/readinglog_stats.html
+msgid "Works by Decade Published"
+msgstr ""
+
+#: account/readinglog_stats.html
+msgid "Works by Century Published"
+msgstr ""
+
+#: account/readinglog_stats.html
 msgid "Works by Subject"
 msgstr ""
 
@@ -2227,14 +2235,6 @@ msgstr ""
 
 #: account/readinglog_stats.html
 msgid "Works by Time Period"
-msgstr ""
-
-#: account/readinglog_stats.html
-msgid "Works by Decade Published"
-msgstr ""
-
-#: account/readinglog_stats.html
-msgid "Works by Century Published"
 msgstr ""
 
 #: account/readinglog_stats.html
