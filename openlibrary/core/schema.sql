@@ -131,3 +131,19 @@ CREATE TABLE bestbooks (
 CREATE INDEX bestbooks_username ON bestbooks (username);
 CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
+
+CREATE TABLE acquisitions (
+    id serial primary key,
+    work_id integer not null,
+    edition_id integer not null,
+    provider_name text not null,
+    -- provider metadata blob: prices, formats, urls, etc.
+    data jsonb not null default '{}'::jsonb,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (edition_id, provider_name)
+);
+
+CREATE INDEX acquisitions_work_id_idx ON acquisitions (work_id);
+CREATE INDEX acquisitions_edition_id_idx ON acquisitions (edition_id);
+CREATE INDEX acquisitions_updated_idx ON acquisitions (updated);
