@@ -366,7 +366,7 @@ class TestOtpServiceS3Auth:
     def test_issue_missing_auth_header(self, mock_web, mock_ia):
         mock_web.ctx.env = {}
         result = account.otp_service_issue().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "missing_or_invalid_authorization"
         mock_ia.s3auth.assert_not_called()
 
@@ -375,7 +375,7 @@ class TestOtpServiceS3Auth:
     def test_issue_empty_secret_rejected(self, mock_web, mock_ia):
         mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:"}
         result = account.otp_service_issue().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "missing_or_invalid_authorization"
         mock_ia.s3auth.assert_not_called()
 
@@ -385,7 +385,7 @@ class TestOtpServiceS3Auth:
         mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
         mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW badaccess:badsecret"}
         result = account.otp_service_issue().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "unauthorized"
 
     @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
@@ -394,7 +394,7 @@ class TestOtpServiceS3Auth:
         mock_ia.s3auth.return_value = {"error": "service error", "code": 503}
         mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW access:secret"}
         result = account.otp_service_issue().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "auth_service_unavailable"
 
     @mock.patch("openlibrary.plugins.upstream.account.OTP")
@@ -411,7 +411,7 @@ class TestOtpServiceS3Auth:
         mock_otp.is_ratelimited.return_value = None
         mock_otp.verify_service.return_value = True
         result = account.otp_service_issue().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body == {"success": "issued"}
 
     @mock.patch("openlibrary.plugins.upstream.account.InternetArchiveAccount")
@@ -419,7 +419,7 @@ class TestOtpServiceS3Auth:
     def test_redeem_missing_auth_header(self, mock_web, mock_ia):
         mock_web.ctx.env = {}
         result = account.otp_service_redeem().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "missing_or_invalid_authorization"
         mock_ia.s3auth.assert_not_called()
 
@@ -429,5 +429,5 @@ class TestOtpServiceS3Auth:
         mock_ia.s3auth.return_value = {"error": "invalid_s3keys", "code": 401}
         mock_web.ctx.env = {"HTTP_AUTHORIZATION": "LOW bad:creds"}
         result = account.otp_service_redeem().POST()
-        body = json.loads(result.data)
+        body = json.loads(result.rawtext)
         assert body["error"] == "unauthorized"
