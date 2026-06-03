@@ -127,31 +127,6 @@ table.changeHistory .comment__cover {
   margin-left: 10px;
 }
 
-/* https://openlibrary.org/help/markdown */
-table.help {
-  margin: 20px 0;
-  border-top: 1px solid var(--grey-e7e7e7);
-}
-
-table.help th {
-  font-size: 0.75em;
-  font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: var(--spacing-inset-xs);
-  vertical-align: top;
-  background-color: var(--lightest-grey);
-}
-
-table.help td {
-  font-size: 0.75em;
-  font-family: var(--font-family-body);
-  color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
-  padding: var(--spacing-inset-xs);
-  vertical-align: top;
-}
-
 fieldset,
 img {
   border: 0;
@@ -166,27 +141,6 @@ th,
 var {
   font-style: normal;
   font-weight: normal;
-}
-
-li span.snippet {
-  display: block;
-  margin: var(--spacing-stack-sm) 0;
-  background-color: var(--lightest-grey);
-  font-size: 0.8em;
-  padding: 20px;
-  font-style: italic;
-}
-
-li.edition-cover img {
-  max-height: 140px;
-  max-width: 90px;
-  cursor: pointer;
-  border: 5px solid var(--white);
-}
-
-li.edition-cover img:hover {
-  cursor: pointer;
-  border: 5px solid var(--link-blue);
 }
 
 caption,
@@ -276,11 +230,6 @@ span.tools {
   font-family: var(--font-family-body);
 }
 
-span.tools.sorter {
-  margin-right: 5px;
-  margin-left: 10px;
-}
-
 span.tools span.label {
   background-color: var(--orange);
   color: var(--white);
@@ -314,12 +263,6 @@ span.merge {
 span.resultTitle {
   font-family: var(--font-family-body);
   color: var(--grey);
-}
-
-span.resultTitle span.resultType {
-  font-size: 0.75em;
-  font-family: var(--font-family-body);
-  color: var(--brown);
 }
 
 span.resultTitle .bookauthor,
@@ -368,14 +311,6 @@ p.alert {
   padding: var(--spacing-inset-md) 52px;
 }
 
-p.info {
-  background-image: url(/static/images/icons/icon_info.png);
-}
-
-p.thanks {
-  background-image: url(/static/images/icons/icon_check.png);
-}
-
 input[type="text"],
 select,
 textarea {
@@ -418,15 +353,6 @@ input.highlight {
   overflow-x: auto;
 }
 
-/* Search v2 */
-/* openlibrary/macros/SearchResultsWork.html */
-.serp-extras {
-  border: 1px solid var(--lighter-grey);
-  background-color: var(--white);
-  padding: 0 10px 10px;
-  margin-top: var(--spacing-stack-sm);
-}
-
 /* LAYOUT */
 @import "layout/index.css";
 
@@ -441,38 +367,9 @@ div#position {
   width: 960px;
 }
 
-div#content {
-  clear: both;
-  position: relative;
-  width: 958px;
-  background-color: var(--white);
-  border-radius: 5px;
-  border: 1px solid var(--dark-beige);
-}
-
-div#content div.contentLists {
-  float: left;
-  position: relative;
-  left: -20px;
-}
-
-/* stylelint-disable selector-max-specificity */
-div#content div#contentLists {
-  float: left;
-  position: relative;
-  border-top: 1px solid var(--lighter-grey);
-  background: var(--white) url(/static/images/back_results.png) repeat-x;
-}
-/* stylelint-enable selector-max-specificity */
-
 div#contentHead {
   max-width: 1018px;
   padding: 20px;
-}
-
-/* Reset h1 margin set in common.css */
-div#contentHead h1 {
-  margin: 0;
 }
 
 /* WIDGETS */
@@ -502,30 +399,25 @@ div#noLogin {
 }
 
 /* openlibrary/templates/type/author/view.html */
-div#preMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_merge.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
-div#postMerge {
-  min-height: 32px;
-  padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
-    var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_check.png) no-repeat
-    10px 10px;
-}
-
-/* openlibrary/templates/type/author/view.html */
+div#preMerge,
+div#postMerge,
 div#errorMerge {
   min-height: 32px;
   padding: var(--spacing-inset-sm) var(--spacing-inset-sm)
     var(--spacing-inset-sm) 52px;
-  background: transparent url(/static/images/icons/icon_alert.png) no-repeat
-    10px 10px;
+  background: transparent no-repeat 10px 10px;
+}
+
+div#preMerge {
+  background-image: url(/static/images/icons/icon_merge.png);
+}
+
+div#postMerge {
+  background-image: url(/static/images/icons/icon_check.png);
+}
+
+div#errorMerge {
+  background-image: url(/static/images/icons/icon_alert.png);
 }
 
 /* FORMS */
@@ -565,12 +457,6 @@ fieldset {
   margin: 0 0 var(--spacing-stack-sm);
 }
 
-fieldset.minor {
-  display: block;
-  padding: 0;
-  margin: 0;
-}
-
 fieldset.major legend {
   padding: var(--spacing-inset-xs) 0;
   font-family: var(--font-family-body);
@@ -607,9 +493,7 @@ form#notifications input[type="radio"] {
 
 /* openlibrary/templates/account/verify/failed.html */
 /* openlibrary/templates/form.html */
-/* FIXME: `div.valid` is possibly unused/or used in JS? */
-div.invalid,
-div.valid {
+div.invalid {
   float: left;
   font-size: 1em !important;
   font-family: var(--font-family-body);
@@ -634,11 +518,6 @@ div.siteSearch {
   overflow: visible;
   border-radius: 5px;
   width: 300px;
-}
-
-div.siteSearch.darker {
-  -webkit-box-shadow: 1px 1px 10px var(--dark-grey);
-  box-shadow: 1px 1px 10px var(--dark-grey);
 }
 
 div.siteSearch input[type="submit"] {
@@ -714,8 +593,7 @@ div.cclicense {
 /* openlibrary/macros/databarEdit.html */
 /* openlibrary/templates/recentchanges/header.html */
 div.editButton button,
-div#editHistory button,
-div.revert.notice button {
+div#editHistory button {
   font-size: 1.125em;
 }
 
@@ -729,25 +607,16 @@ div#revertNotice {
 }
 
 /* MESSAGING */
-div.alert span,
-div.verify span {
+/* openlibrary/templates/account/verify/failed.html */
+div.alert span {
   margin: 0 auto;
   min-height: 25px;
   padding: var(--spacing-inset-xs) 0 var(--spacing-inset-xs) 32px;
-}
-
-div.alert,
-div.verify {
-  font: 1.25em var(--font-family-body);
-}
-
-/* openlibrary/templates/account/verify/failed.html */
-div.alert span {
   background: url(/static/images/icons/icon_alert.png) no-repeat;
 }
 
-div.verify span {
-  background: url(/static/images/icons/icon_check.png) no-repeat;
+div.alert {
+  font: 1.25em var(--font-family-body);
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
@@ -760,10 +629,6 @@ div.verify span {
 }
 
 /* openlibrary/templates/account/email/forgot-ia.html */
-.forgot-email {
-  font-size: 0.8em;
-}
-
 .forgot-email-form {
   padding: 10px 0;
 }
@@ -787,12 +652,10 @@ div.verify span {
 @import "components/link-box.css";
 
 /* Various templates */
-.contentQuarter {
-  min-height: 100px;
-  margin-bottom: 20px;
-}
-
-.contentTwothird {
+.contentQuarter,
+.contentTwothird,
+.contentOnethird,
+.contentHalf {
   min-height: 100px;
   margin-bottom: 20px;
 }
@@ -801,22 +664,12 @@ div.verify span {
   margin-top: 0;
 }
 
-.contentOnethird {
-  min-height: 100px;
-  margin-bottom: 20px;
-}
-
-.contentHalf {
-  min-height: 100px;
-  margin-bottom: 20px;
-}
-
 .contentSpacer {
   width: 19px;
   height: 2px;
 }
 
-/* many pages... */
+/* many pages... (also resets the h1 margin set in common.css) */
 #contentHead h1 {
   margin: 0;
   padding: 0;
@@ -897,15 +750,6 @@ div#searchResults .SRPCoverBlank a {
   position: relative;
 }
 
-/* openlibrary/macros/AvailabilityButton.html */
-.waitlist-msg {
-  font-family: var(--font-family-body);
-  font-size: 0.7em;
-  margin-bottom: -1.5em;
-  color: var(--grey);
-  padding: 0.2em;
-}
-
 /* Results on /search/authors */
 /* openlibrary/templates/search/authors.html */
 .authorList {
@@ -977,57 +821,6 @@ div.facetMoreLess a {
   text-decoration: none !important;
 }
 
-/* RESULTS */
-
-/* openlibrary/templates/lib/message_addbook.html */
-/* openlibrary/templates/lists/widget.html */
-div.list {
-  float: left;
-  width: 207px;
-  padding-top: 10px;
-}
-
-div.list .cover {
-  float: left;
-  width: 42px;
-  padding-right: 10px;
-}
-
-div.list img {
-  width: 42px;
-}
-
-div.list .copy {
-  float: left;
-  width: 155px;
-}
-
-div.list h5 {
-  font-family: var(--font-family-serif);
-  font-weight: normal;
-  color: var(--dark-grey);
-  margin-bottom: var(--spacing-stack-xs);
-}
-
-div.list h5 span {
-  font-family: var(--font-family-body);
-  font-size: 80%;
-}
-
-div.list .tags {
-  font-family: var(--font-family-body);
-  font-size: 0.6875em;
-  color: var(--grey);
-  margin-bottom: var(--spacing-stack-xs);
-}
-
-div.list .owner {
-  font-family: var(--font-family-body);
-  font-size: 0.6875em;
-  color: var(--grey);
-  text-align: right;
-}
-
 /* BOOKS */
 /* Work sub-imports */
 @import "components/compact-title.css";
@@ -1040,29 +833,6 @@ div.list .owner {
 @import "components/work-title-and-author.css";
 @import "components/work.css";
 @import "components/navEdition.css";
-
-/* openlibrary/templates/books/author-autocomplete.html */
-/* openlibrary/templates/type/work/view.html */
-div.work {
-  font-family: var(--font-family-body);
-}
-
-div.work span.work,
-div.work span.author {
-  font-family: var(--font-family-body);
-  color: var(--brown);
-  font-size: 1.125em;
-}
-
-div.work span.work {
-  font-weight: 700;
-}
-
-div.work span.editions {
-  font-family: var(--font-family-body);
-  color: var(--brown);
-  font-size: 1.125em;
-}
 
 div.workHelp {
   padding-top: 10px;
@@ -1217,20 +987,6 @@ ul.booklinks li div.linkRemove {
   padding: 0 10px 10px 15px;
 }
 
-/* openlibrary/templates/type/user/view.html */
-ul.clean {
-  border-top: none !important;
-}
-
-ul.clean li {
-  border-bottom: none !important;
-}
-
-ul.clean li span.resultTitle {
-  width: 236px;
-  max-width: 236px;
-}
-
 /* openlibrary/macros/databarWork.html */
 #external-links ul li {
   list-style-type: none;
@@ -1318,15 +1074,6 @@ span.actions a span.image {
 
 span.actions a span.label {
   display: block;
-  background-image: url();
-}
-
-span.actions span.list {
-  background-position: 0 0 !important;
-}
-
-span.actions span.list:hover {
-  background-position: -24px 0 !important;
 }
 
 span.actions span.read {
@@ -1335,22 +1082,6 @@ span.actions span.read {
 
 span.actions span.read:hover {
   background-position: -96px 0 !important;
-}
-
-span.actions span.download {
-  background-position: -144px 0 !important;
-}
-
-span.actions span.download:hover {
-  background-position: -168px 0 !important;
-}
-
-span.actions span.buy {
-  background-position: -216px 0 !important;
-}
-
-span.actions span.buy:hover {
-  background-position: -240px 0 !important;
 }
 
 span.actions span.borrow {
@@ -1584,12 +1315,6 @@ div.mergeThis {
 }
 /* stylelint-enable selector-max-specificity */
 
-/* BORROWING */
-div.preSubmit,
-div.postSubmit {
-  text-align: center;
-}
-
 /* LISTS */
 /* openlibrary/templates/type/list/exports.html */
 #listTools ul {
@@ -1628,58 +1353,10 @@ div.postSubmit {
 
 @import "components/listLists.css";
 
-/* openlibrary/templates/lists/widget.html */
-.heart-adjust {
-  position: relative;
-  top: -3px;
-  left: 4px;
-}
-
-/* openlibrary/templates/publishers/view.html */
-/* openlibrary/templates/subjects.html */
-div#subjectLists ul.listLists {
-  padding: 0;
-}
-
-div#subjectLists ul.listLists li {
-  list-style-type: none;
-  float: left;
-  width: 282px;
-  font-family: var(--font-family-body);
-  padding-bottom: 10px;
-  padding-top: 0;
-  display: flex;
-}
-
-div#subjectLists ul.listLists li .image {
-  display: block;
-  float: left;
-  width: 34px;
-  min-height: 35px;
-}
-
-div#subjectLists ul.listLists li .image img {
-  width: 24px;
-}
-
-div#subjectLists ul.listLists li .data {
-  display: block;
-  float: left;
-  width: 248px;
-}
-
-div#subjectLists p {
-  font-size: 0.6875em;
-  font-family: var(--font-family-body);
-  padding-left: 42px;
-  margin-bottom: var(--spacing-stack-xs) !important;
-}
-
 /* SEARCH INSIDE */
 /* openlibrary/templates/search/snippets.html */
 .snipHL {
   opacity: 0.2;
-  filter: alpha(opacity=20);
   background-color: var(--blue);
   position: absolute;
 }
@@ -1761,8 +1438,6 @@ div#subjectLists p {
   }
 
   .header-bar .search-component {
-    -webkit-box-ordinal-group: 4;
-    -ms-flex-order: 3;
     order: 3;
   }
 
@@ -1840,15 +1515,10 @@ div#subjectLists p {
   .header-bar {
     margin: 20px auto;
     padding-top: 0;
-    -webkit-box-orient: horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: row;
     flex-direction: row;
   }
 
   .header-bar .auth-component {
-    -webkit-box-ordinal-group: 7;
-    -ms-flex-order: 6;
     order: 6;
   }
 
@@ -1859,11 +1529,7 @@ div#subjectLists p {
 
   .header-bar .navigation-component {
     display: flex;
-    -webkit-box-ordinal-group: 3;
-    -ms-flex-order: 2;
     order: 2;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
     flex: 1;
   }
 
@@ -1886,8 +1552,6 @@ div#subjectLists p {
   }
 
   .header-bar .hamburger-component {
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 6;
     order: 6;
   }
 
@@ -1910,9 +1574,6 @@ div#subjectLists p {
   }
   /** These styles are used on the page for editing a book.
   They may be used in another places as well */
-  fieldset.minor {
-    width: 400px;
-  }
   table.identifiers {
     width: 395px;
   }
@@ -1955,10 +1616,6 @@ div#subjectLists p {
   .contentHalf {
     float: left;
     max-width: 439px;
-  }
-  .contentThreeQuarter {
-    float: left;
-    max-width: 684px;
   }
   .contentSpacer {
     float: left;

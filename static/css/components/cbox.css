@@ -77,7 +77,6 @@
   padding: var(--spacing-inset-sm);
   border: 1px solid var(--dark-beige);
   border-radius: var(--border-radius-overlay);
-  -webkit-box-shadow: 1px 3px 5px var(--darker-grey);
   box-shadow: 1px 3px 5px var(--darker-grey);
 }
 

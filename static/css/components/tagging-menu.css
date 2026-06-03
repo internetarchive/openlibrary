@@ -69,7 +69,7 @@
 .selection-container::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: var(--grey);
-  -webkit-box-shadow: 0 0 1px var(--grey);
+  box-shadow: 0 0 1px var(--grey);
 }
 
 /* Holds the button */
