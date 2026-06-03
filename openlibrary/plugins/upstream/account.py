@@ -459,6 +459,25 @@ class otp_service_redeem(delegate.page):
         return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
 
 
+def _set_login_cookies(
+    audit: dict,
+    ol_account: OpenLibraryAccount | None,
+    remember: bool = False,
+) -> None:
+    """Set all session cookies after a successful login (password or OTP)."""
+    expires = 3600 * 24 * 365 if remember else ""
+
+    def _setcookie(name, value):
+        web.setcookie(name, value, expires=expires if value else 1)
+
+    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+    _setcookie("pd", "1" if audit.get("special_access") else "")
+    if ol_account and (ol_user := ol_account.get_user()):
+        _setcookie("sfw", "yes" if ol_user.get_safe_mode() == "yes" else "")
+        if pref_key := ol_user.preferences().get("yrg_banner_pref"):
+            web.setcookie(pref_key, "1", expires=3600 * 24 * 365)
+
+
 class account_login_otp_issue(delegate.page):
     path = "/account/login/otp/issue"
 
@@ -504,11 +523,8 @@ class account_login_otp_redeem(delegate.page):
         )
         if error := audit.get("error"):
             return delegate.RawText(json.dumps({"error": error}))
-        web.setcookie("pd", int(audit.get("special_access") or 0) or "")
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
         email = audit.get("ia_email") or audit.get("ol_email")
-        if ol_account := OpenLibraryAccount.get_by_email(email):
-            _set_account_cookies(ol_account, expires="")
+        _set_login_cookies(audit, OpenLibraryAccount.get_by_email(email))
         redirect = i.redirect
         # Reject non-path redirects (open redirect prevention) and login loops
         _blacklist = ["/account/login", "/account/create"]
@@ -629,17 +645,7 @@ class account_login(delegate.page):
         email = email or audit.get("ia_email") or audit.get("ol_email")
 
         if ol_account := OpenLibraryAccount.get_by_email(email):
-            ol_user = ol_account.get_user()
-            self.set_cookies(
-                remember=remember,
-                **{
-                    config.login_cookie_name: web.ctx.conn.get_auth_token(),
-                    "pd": "1" if audit.get("special_access") else "",
-                    "sfw": "yes" if ol_user.get_safe_mode() == "yes" else "",
-                },
-            )
-            if pref_key := ol_user.preferences().get("yrg_banner_pref"):
-                web.setcookie(pref_key, "1", expires=3600 * 24 * 365)
+            _set_login_cookies(audit, ol_account, remember=remember)
 
             if web.cookies().get("pda"):
                 add_flash_message(
