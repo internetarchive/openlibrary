@@ -9,6 +9,9 @@ from .. import bwb_opds_imports
 from ..bwb_opds_imports import (
     EPOCH,
     _parse_iso,
+    _registry_cursor,
+    extract_acquisition,
+    extract_buy_url,
     extract_cover,
     extract_isbn,
     extract_price,
@@ -17,6 +20,7 @@ from ..bwb_opds_imports import (
     map_publication_to_olbook,
     process_feed,
     read_state,
+    upsert_acquisitions,
     write_state,
 )
 
@@ -419,3 +423,98 @@ def test_process_feed_logs_and_skips_bad_modified(monkeypatch, modified_raw):
         prices_out_fh=io.StringIO(),
     )
     assert olbooks == []
+
+
+# --- PR3: acquisitions + registry ------------------------------------------
+
+
+def test_extract_buy_url():
+    assert extract_buy_url(SAMPLE_PUBLICATION) == "https://www.betterworldbooks.com/purchase/9781737408802"
+    assert extract_buy_url({"links": []}) is None
+
+
+def test_extract_acquisition_captures_price_and_url():
+    assert extract_acquisition(SAMPLE_PUBLICATION) == {
+        "provider_name": "betterworldbooks",
+        "price": 1.1,
+        "currency": "USD",
+        "url": "https://www.betterworldbooks.com/purchase/9781737408802",
+    }
+
+
+def test_extract_acquisition_none_without_buy_link():
+    assert extract_acquisition({"links": []}) is None
+
+
+def test_process_feed_collects_acquisitions(monkeypatch):
+    monkeypatch.setattr(bwb_opds_imports, "PAGE_SLEEP_SECONDS", 0)
+    pages = {"https://x/p1": {"publications": [SAMPLE_PUBLICATION], "links": []}}
+    session = FakeSession(pages)
+    monkeypatch.setattr(bwb_opds_imports.requests, "Session", lambda: session)
+
+    acquisitions: list = []
+    process_feed(
+        feed_url="https://x/p1",
+        since=EPOCH,
+        prices_out_fh=io.StringIO(),
+        acquisitions_out=acquisitions,
+    )
+    assert acquisitions == [
+        {
+            "isbn_13": "9781737408802",
+            "data": {
+                "provider_name": "betterworldbooks",
+                "price": 1.1,
+                "currency": "USD",
+                "url": "https://www.betterworldbooks.com/purchase/9781737408802",
+            },
+        }
+    ]
+
+
+class _FakeThing:
+    def __init__(self, key):
+        self.key = key
+
+
+class _FakeEdition:
+    def __init__(self, key, work_key):
+        self.key = key
+        self.works = [_FakeThing(work_key)] if work_key else []
+
+
+def test_upsert_acquisitions_maps_existing_editions(monkeypatch):
+    editions = {"9781737408802": _FakeEdition("/books/OL55M", "/works/OL7W")}
+    monkeypatch.setattr(bwb_opds_imports.Edition, "from_isbn", staticmethod(lambda isbn, allow_import=False: editions.get(isbn)))
+    calls = []
+    monkeypatch.setattr(
+        bwb_opds_imports.Acquisition,
+        "upsert",
+        staticmethod(lambda work_id, edition_id, provider_name, data=None: calls.append((work_id, edition_id, provider_name, data))),
+    )
+
+    records = [
+        {"isbn_13": "9781737408802", "data": {"price": 1.1}},
+        {"isbn_13": "9780000000000", "data": {"price": 2.0}},  # no edition yet -> skipped
+    ]
+    upserted = upsert_acquisitions(records, "betterworldbooks")
+    assert upserted == 1
+    assert calls == [(7, 55, "betterworldbooks", {"price": 1.1})]
+
+
+def test_upsert_acquisitions_skips_workless_edition(monkeypatch):
+    monkeypatch.setattr(bwb_opds_imports.Edition, "from_isbn", staticmethod(lambda isbn, allow_import=False: _FakeEdition("/books/OL55M", None)))
+    monkeypatch.setattr(
+        bwb_opds_imports.Acquisition,
+        "upsert",
+        staticmethod(lambda *a, **k: pytest.fail("should not upsert a workless edition")),
+    )
+    assert upsert_acquisitions([{"isbn_13": "9781737408802", "data": {}}]) == 0
+
+
+def test_registry_cursor_naive_and_none():
+    assert _registry_cursor(None) is None
+    assert _registry_cursor(bwb_opds_imports.FeedRegistry({"last_updated": None})) is None
+    naive = datetime.datetime(2026, 5, 1, 12, 0, 0)
+    cur = _registry_cursor(bwb_opds_imports.FeedRegistry({"last_updated": naive}))
+    assert cur == datetime.datetime(2026, 5, 1, 12, 0, 0, tzinfo=datetime.UTC)

@@ -53,9 +53,13 @@ except ImportError:
 
 from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
+from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
+from openlibrary.core.models import Edition
+from openlibrary.core.tbp import FeedRegistry
 from openlibrary.core.vendors import stage_bookworm_metadata
 from openlibrary.plugins.upstream.utils import get_marc21_language
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.utils.isbn import to_isbn_13
 from scripts.partner_batch_imports import is_low_quality_book, is_published_in_future_year
 from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
@@ -63,6 +67,7 @@ from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 logger = logging.getLogger("openlibrary.importer.bwb_opds")
 
 OPDS_FEED_URL = "https://www.betterworldbooks.com/opds"
+PROVIDER_NAME = "betterworldbooks"
 ACQUISITION_REL = "http://opds-spec.org/acquisition/buy"
 ISBN_URN_PREFIX = "urn:isbn:"
 DEFAULT_STATE_FILE = "/openlibrary/data/bwb_opds_last_run.txt"
@@ -124,6 +129,33 @@ def extract_price(publication: dict[str, Any]) -> dict[str, Any] | None:
         if price.get("value") is not None and price.get("currency"):
             return {"currency": price["currency"], "value": price["value"]}
     return None
+
+
+def extract_buy_url(publication: dict[str, Any]) -> str | None:
+    """Return the href of the first buy-acquisition link, or None."""
+    for link in publication.get("links", []) or []:
+        if link.get("rel") == ACQUISITION_REL and link.get("href"):
+            return link["href"]
+    return None
+
+
+def extract_acquisition(publication: dict[str, Any]) -> dict[str, Any] | None:
+    """Return the acquisitions ``data`` blob for a publication, or None.
+
+    Captures price + buy url from the OPDS buy link. Returns None when the
+    publication has no buy acquisition at all (nothing to record).
+    """
+    price = extract_price(publication)
+    url = extract_buy_url(publication)
+    if not price and not url:
+        return None
+    data: dict[str, Any] = {"provider_name": PROVIDER_NAME}
+    if price:
+        data["price"] = price["value"]
+        data["currency"] = price["currency"]
+    if url:
+        data["url"] = url
+    return data
 
 
 def extract_cover(publication: dict[str, Any]) -> str | None:
@@ -212,6 +244,7 @@ def process_feed(
     prices_out_fh,
     max_pages: int | None = None,
     early_stop: bool = False,
+    acquisitions_out: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Crawl the OPDS feed and return (olbooks, max_modified_seen).
 
@@ -220,6 +253,10 @@ def process_feed(
     cursor advances on every publication that is newer than ``since``, even
     when mapping fails — otherwise an unmappable but newer record would force
     every subsequent run to re-scan it forever.
+
+    When ``acquisitions_out`` is supplied, an ``{"isbn_13", "data"}`` record
+    is appended for each mapped publication that carries a buy acquisition, so
+    the caller can upsert the ``acquisitions`` table once editions exist.
 
     Quality filters from ``partner_batch_imports`` (low-quality independently
     published reprints, future-dated publications) are applied so the OPDS
@@ -271,6 +308,9 @@ def process_feed(
                     )
                     + "\n"
                 )
+
+            if acquisitions_out is not None and (acq := extract_acquisition(publication)):
+                acquisitions_out.append({"isbn_13": olbook["isbn_13"][0], "data": acq})
 
         if early_stop and fresh_in_page == 0:
             logger.info("Page contains no records newer than %s; stopping (feed is modified-desc).", since.isoformat())
@@ -347,14 +387,15 @@ def _run_feed(
     max_pages: int | None,
     dry_run: bool,
     early_stop: bool = False,
+    acquisitions_out: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], datetime.datetime]:
     """Process the OPDS feed, routing price rows to disk or to a discard buffer."""
     if dry_run:
         with contextlib.nullcontext(io.StringIO()) as prices_fh:
-            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop)
+            return process_feed(feed_url, cutoff, prices_fh, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     writer = _LazyWriter(prices_out)
     try:
-        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop)
+        return process_feed(feed_url, cutoff, writer, max_pages=max_pages, early_stop=early_stop, acquisitions_out=acquisitions_out)
     finally:
         writer.close()
 
@@ -366,9 +407,49 @@ def commit_batch(batch_name: str, olbooks: list[dict[str, Any]], batch_size: int
         batch.add_items(items[i : i + batch_size])
 
 
+def upsert_acquisitions(records: list[dict[str, Any]], provider_name: str = PROVIDER_NAME) -> int:
+    """Upsert ``acquisitions`` rows for records whose edition already exists.
+
+    Implements the post-batch edition mapping: an OPDS record's edition_id is
+    unknown at submit time, so we resolve ``bwb:{isbn}`` to an existing OL
+    edition by ISBN (no import side effects) and key the acquisition off its
+    numeric work/edition ids. Records whose editions have not been imported
+    yet are skipped — a later daily run picks them up once the import queue
+    has processed them.
+
+    Returns the number of rows upserted.
+    """
+    upserted = 0
+    for record in records:
+        isbn = record["isbn_13"]
+        edition = Edition.from_isbn(isbn, allow_import=False)
+        if not edition:
+            continue
+        works = edition.works
+        if not works:
+            logger.warning("Edition %s (isbn %s) has no work; skipping acquisition.", edition.key, isbn)
+            continue
+        edition_id = int(extract_numeric_id_from_olid(edition.key))
+        work_id = int(extract_numeric_id_from_olid(works[0].key))
+        Acquisition.upsert(work_id, edition_id, provider_name, data=record["data"])
+        upserted += 1
+    return upserted
+
+
+def _registry_cursor(registry: FeedRegistry | None) -> datetime.datetime | None:
+    """Return the registry's ``last_updated`` as a tz-aware UTC datetime, or None."""
+    if registry is None or registry.get("last_updated") is None:
+        return None
+    last = registry.last_updated
+    if isinstance(last, str):
+        last = datetime.datetime.fromisoformat(last)
+    return last.replace(tzinfo=datetime.UTC) if last.tzinfo is None else last.astimezone(datetime.UTC)
+
+
 def main(
     ol_config: str,
     feed_url: str = OPDS_FEED_URL,
+    provider_name: str = PROVIDER_NAME,
     state_file: str = DEFAULT_STATE_FILE,
     prices_out: str = DEFAULT_PRICES_OUT,
     since: str | None = None,
@@ -378,25 +459,38 @@ def main(
 ) -> None:
     """Run one incremental BWB OPDS import.
 
+    The incremental cutoff comes from the ``tbp_feed_registry`` row for this
+    ``(provider_name, feed_url)`` (its ``last_updated`` cursor), falling back
+    to the legacy ``state_file`` when the feed is not registered. After import,
+    acquisitions are upserted for editions that already exist and the registry
+    cursor is advanced.
+
     :param ol_config: Path to ``openlibrary.yml``.
     :param feed_url: OPDS 2.0 feed entry point.
-    :param state_file: Path to file storing last successful run's max ``modified`` ts.
+    :param provider_name: Trusted-book-provider name; keys the registry row and acquisitions.
+    :param state_file: Legacy cursor file, used only when the feed is not in the registry.
     :param prices_out: Path to JSONL price sidecar; opened lazily so a zero-row run leaves any
         prior snapshot intact (avoids handing the Solr updater an empty file mid-handoff).
     :param since: Optional ISO 8601 override for the incremental cutoff.
     :param max_pages: Safety cap on pagination depth (unbounded if None).
-    :param dry_run: If True, print mapped records and do not touch the batch DB or state file.
+    :param dry_run: If True, print mapped records and do not touch the batch DB, registry, or state file.
     :param early_stop: Opt-in optimisation: stop pagination once a full page contains no records newer
         than the cutoff. OPDS spec does not mandate sort-by-modified, so leave disabled until
         BWB's feed order is empirically confirmed.
     """
-    cutoff = _parse_iso(since) if since else read_state(state_file)
-    batch_name = f"bwb-opds-{datetime.datetime.now(datetime.UTC):%Y-%m-%d}"
-    logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
-
     if not dry_run:
         load_config(ol_config)
 
+    registry = None if dry_run else FeedRegistry.find(provider_name, feed_url)
+    if since:
+        cutoff = _parse_iso(since)
+    else:
+        cutoff = _registry_cursor(registry) or read_state(state_file)
+
+    batch_name = f"bwb-opds-{datetime.datetime.now(datetime.UTC):%Y-%m-%d}"
+    logger.info("Starting BWB OPDS import: cutoff=%s batch=%s", cutoff.isoformat(), batch_name)
+
+    acquisitions: list[dict[str, Any]] = []
     olbooks, max_modified = _run_feed(
         feed_url=feed_url,
         cutoff=cutoff,
@@ -404,6 +498,7 @@ def main(
         max_pages=max_pages,
         dry_run=dry_run,
         early_stop=early_stop,
+        acquisitions_out=acquisitions,
     )
 
     logger.info("Mapped %d new publications (max_modified=%s)", len(olbooks), max_modified.isoformat())
@@ -417,11 +512,18 @@ def main(
         stage_incomplete_records_for_import(olbooks)
         commit_batch(batch_name, olbooks)
 
+    upserted = upsert_acquisitions(acquisitions, provider_name)
+    logger.info("Upserted %d acquisition rows (of %d candidates).", upserted, len(acquisitions))
+
     if max_modified > cutoff:
+        # Strip tz: the registry/state store timezone-naive UTC.
+        naive_max = max_modified.astimezone(datetime.UTC).replace(tzinfo=None)
+        if registry is not None:
+            FeedRegistry.advance(registry.id, last_updated=naive_max)
         write_state(state_file, max_modified)
-        logger.info("Wrote new state: %s", max_modified.isoformat())
+        logger.info("Advanced cursor to %s.", max_modified.isoformat())
     else:
-        logger.info("No newer publications since %s; leaving state file untouched.", cutoff.isoformat())
+        logger.info("No newer publications since %s; leaving cursor untouched.", cutoff.isoformat())
 
 
 if __name__ == "__main__":
