@@ -1,10 +1,12 @@
 import json
+import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
 from warnings import deprecated
 
 import web
+from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
@@ -26,6 +28,7 @@ from openlibrary.core.models import LoggedBooksData, User
 from openlibrary.core.observations import Observations, convert_observation_ids
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.openlibrary.home import caching_prethread
+from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
@@ -65,12 +68,7 @@ class mybooks_home(delegate.page):
     def render_template(self, mb: MyBooksTemplate) -> TemplateResult:
         # Marshal loans into homogeneous data that carousel can render
 
-        docs: dict[str, Any] = {
-            "loans": [],
-            "want-to-read": [],
-            "currently-reading": [],
-            "already-read": [],
-        }
+        docs: dict[str, Any] = {"loans": [], "want-to-read": [], "currently-reading": [], "already-read": [], "stopped-reading": []}
 
         if mb.me:
             myloans = get_loans_of_user(mb.me.key)
@@ -87,7 +85,8 @@ class mybooks_home(delegate.page):
             want_to_read = mb.readlog.get_works("want-to-read", limit=6)
             currently_reading = mb.readlog.get_works("currently-reading", limit=6)
             already_read = mb.readlog.get_works("already-read", limit=6)
-            works = want_to_read.docs + currently_reading.docs + already_read.docs
+            stopped_reading = mb.readlog.get_works("stopped-reading", limit=6)
+            works = want_to_read.docs + currently_reading.docs + already_read.docs + stopped_reading.docs
 
             def get_edition(solr_doc: web.Storage | dict) -> dict | None:
                 editions_raw = cast(dict | list[dict], solr_doc.get("editions"))
@@ -100,11 +99,7 @@ class mybooks_home(delegate.page):
 
             add_availability([get_edition(doc) or doc for doc in works if doc.get("title")])
 
-            docs |= {
-                "want-to-read": want_to_read,
-                "currently-reading": currently_reading,
-                "already-read": already_read,
-            }
+            docs |= {"want-to-read": want_to_read, "currently-reading": currently_reading, "already-read": already_read, "stopped-reading": stopped_reading}
 
         return render["account/mybooks"](
             mb.user,
@@ -166,7 +161,7 @@ class mybooks_feed(delegate.page):
 
 
 class readinglog_stats(delegate.page):
-    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read)(/year/\\d{4})?/stats"
+    path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)(/year/\\d{4})?/stats"
 
     def GET(self, username, key="want-to-read", year=None):
         user = web.ctx.site.get("/people/%s" % username)
@@ -238,18 +233,25 @@ class readinglog_yearly(delegate.page):
 
 
 class mybooks_readinglog(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)"
 
     def GET(self, username, key="want-to-read"):
         mb = MyBooksTemplate(username, key)
         if mb.is_my_page or mb.is_public:
+            # NOTE: Page title for the "Currently Reading" shelf page.
+            # NOTE: Example: "Currently Reading (42)". %(count)d is the number of books on this shelf.
             KEYS_TITLES = {
                 "currently-reading": _(
                     "Currently Reading (%(count)d)",
                     count=mb.counts["currently-reading"],
                 ),
+                # NOTE: Page title for the "Want to Read" shelf page.
+                # NOTE: Example: "Want to Read (17)". %(count)d is the number of books on this shelf.
                 "want-to-read": _("Want to Read (%(count)d)", count=mb.counts["want-to-read"]),
+                # NOTE: Page title for the "Already Read" shelf page.
+                # NOTE: Example: "Already Read (203)". %(count)d is the number of books on this shelf.
                 "already-read": _("Already Read (%(count)d)", count=mb.counts["already-read"]),
+                "stopped-reading": _("Stopped Reading (%(count)d)", count=mb.counts["stopped-reading"]),
             }
             template = self.render_template(mb)
             return mb.render(header_title=KEYS_TITLES[key], template=template)
@@ -314,7 +316,7 @@ class mybooks_readinglog(delegate.page):
 
 @deprecated("migrated to fastapi")
 class public_my_books_json(delegate.page):
-    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read)"
+    path = r"/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)\.json"
     encoding = "json"
 
     def GET(self, username, key="want-to-read"):
@@ -399,6 +401,7 @@ class MyBooksTemplate:
             "currently-reading",
             "want-to-read",
             "already-read",
+            "stopped-reading",
         }
     )
 
@@ -466,18 +469,53 @@ class MyBooksTemplate:
         """
         return render["account/view"](mb=self, template=template, header_title=header_title, page=page)
 
+    def get_pending_action_banner(self) -> str:
+        cookie = web.cookies().get("pending_action")
+        if not cookie or cookie == "1":
+            return ""
+
+        try:
+            data = json.loads(urllib.parse.unquote(cookie))
+            if not isinstance(data, dict):
+                return ""
+
+            action = data.get("action")
+            name = data.get("name", "")
+            url = data.get("url")
+
+            if not action or not url:
+                return ""
+
+            action_translated = _(action)
+
+            msg_template = _(
+                'Continue <a href="%(url)s" class="pending-action-link" data-action="%(raw_action)s"><strong>%(action)s</strong> <em>%(name)s</em></a>'
+            )
+
+            msg = msg_template % {
+                "url": web.net.websafe(url if is_safe_redirect(url) else "/"),
+                "raw_action": web.net.websafe(action),
+                "action": web.net.websafe(action_translated),
+                "name": web.net.websafe(name),
+            }
+            return msg
+
+        except json.JSONDecodeError:
+            return ""
+
 
 class ReadingLog:
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
     # Constants
-    PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading"]
-    READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading"]
+    PRESET_SHELVES = Literal["Want to Read", "Already Read", "Currently Reading", "Stopped Reading"]
+    READING_LOG_KEYS = Literal["want-to-read", "already-read", "currently-reading", "stopped-reading"]
     READING_LOG_KEY_TO_SHELF: MappingProxyType[READING_LOG_KEYS, PRESET_SHELVES] = MappingProxyType(
         {
             "want-to-read": "Want to Read",
             "already-read": "Already Read",
             "currently-reading": "Currently Reading",
+            "stopped-reading": "Stopped Reading",
         }
     )
 
@@ -505,6 +543,7 @@ class ReadingLog:
             "want-to-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], 0),
             "currently-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Currently Reading"], 0),
             "already-read": counts.get(Bookshelves.PRESET_BOOKSHELVES["Already Read"], 0),
+            "stopped-reading": counts.get(Bookshelves.PRESET_BOOKSHELVES["Stopped Reading"], 0),
         }
 
     def count_shelf(self, key: READING_LOG_KEYS) -> int:
@@ -525,7 +564,7 @@ class ReadingLog:
         fq: list[str] | None = None,
     ) -> LoggedBooksData:
         """
-        Get works for want-to-read, currently-reading, and already-read as
+        Get works for want-to-read, currently-reading, already-read, and stopped-reading as
         determined by {key}.
 
         See LoggedBooksData for specifics on what's returned.
@@ -665,7 +704,14 @@ class ActivityFeed:
                 return user and user.preferences().get("public_readlog", "no") == "yes"
             return False
 
-        logged_books = Bookshelves.get_recently_logged_books(limit=10)
+        logged_books = Bookshelves.get_recently_logged_books(
+            shelf_ids=[
+                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+            ],
+            limit=10,
+        )
         Bookshelves.add_solr_works(logged_books)
 
         feed = []

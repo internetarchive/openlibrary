@@ -9,6 +9,7 @@ import secrets
 import string
 import time
 import uuid
+from enum import Enum
 from typing import TYPE_CHECKING, Literal
 
 import requests
@@ -185,18 +186,6 @@ def generate_uuid() -> str:
     return str(uuid.uuid4()).replace("-", "")
 
 
-def send_verification_email(username: str, email: str) -> None:
-    """Sends account verification email."""
-    key = f"account/{username}/verify"
-
-    doc = create_link_doc(key, username, email)
-    web.ctx.site.store[key] = doc
-
-    link = web.ctx.home + "/account/verify/" + doc["code"]
-    msg = render_template("email/account/verify", username=username, email=email, password=None, link=link)
-    sendmail(email, msg)
-
-
 def create_link_doc(key: str, username: str, email: str) -> dict:
     """Creates doc required for generating verification link email.
 
@@ -282,9 +271,6 @@ class Account(web.storage):
 
     def update_email(self, email) -> None:
         web.ctx.site.update_account(self.username, email=email)
-
-    def send_verification_email(self) -> None:
-        send_verification_email(self.username, self.email)
 
     def activate(self) -> None:
         web.ctx.site.activate_account(username=self.username)
@@ -464,6 +450,12 @@ class Account(web.storage):
 
     def render_link(self) -> str:
         return f'<a href="/people/{self.username}">{web.net.htmlquote(self.displayname)}</a>'
+
+
+class PDRequestStatus(Enum):
+    REQUESTED = 0
+    EMAILED = 1
+    FULFILLED = 2
 
 
 class OpenLibraryAccount(Account):
@@ -653,6 +645,40 @@ class OpenLibraryAccount(Account):
         _ol_account["last_login"] = last_login
         web.ctx.site.store[self._key] = _ol_account
         self.last_login = last_login
+
+    @property
+    def pd_authority(self):
+        """Return patron's requested Print Disability Authority"""
+        return self.get_user().preferences().get("pda")
+
+    @property
+    def pd_status(self):
+        rpd = self.get_user().preferences().get("rpd")
+        return PDRequestStatus(int(rpd)) if rpd is not None else None
+
+    def update_pd(self, pda=None, rpd=None):
+        prefs = {}
+        u = self.get_user()
+        if pda and self.pd_authority != pda:
+            prefs["pda"] = pda
+        if rpd is not None and self.pd_status != PDRequestStatus(int(rpd)):
+            prefs["rpd"] = rpd
+        if prefs:
+            u.save_preferences(prefs)
+
+    def send_pd_email(self):
+        if org := self.pd_authority:
+            if org == "unqualified":
+                org = "vtmas_disabilityresources"
+            displayname = web.safestr(self.displayname)
+            msg = render_template("email/account/pd_request", displayname=displayname, org=org)
+            web.sendmail(
+                config.from_address,
+                self.email,
+                subject=msg.subject.strip(),
+                message=msg,
+            )
+            self.update_pd(rpd=PDRequestStatus.EMAILED.value)
 
     @classmethod
     def authenticate(cls, email: str, password: str, test: bool = False) -> str:
@@ -846,8 +872,28 @@ class InternetArchiveAccount(web.storage):
                 response["values"]["reason"] = "ia_account_not_verified"
         return response
 
+    @classmethod
+    def verify(cls, token, welcome_email=True, test=False):
+        """
+        Verifies (activates) an Internet Archive account using a one-time token sent to the user's email.
 
-def audit_accounts(
+        See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn#activate
+        """
+        payload = {"token": token, "welcome-email": welcome_email}
+
+        response = cls.xauth(op="activate", test=test, **payload)
+
+        if not response.get("success"):
+            reason = response.get("values", {}).get("reason") or response.get("error")
+            return {
+                "error": reason or "activation_failed",
+                "code": response.get("code", 409),
+            }
+
+        return response.get("values", response)
+
+
+def audit_accounts(  # noqa: PLR0912
     email,
     password,
     require_link=False,
@@ -985,6 +1031,18 @@ def audit_accounts(
         }
         ol_account.save_s3_keys(s3_keys)
 
+    # Handle Print Disability Processing
+    has_special_access = getattr(ia_account, "has_disability_access", False)
+    if pda := web.cookies().get("pda"):
+        if has_special_access:
+            ol_account.update_pd(pda, PDRequestStatus.FULFILLED.value)
+        else:
+            ol_account.update_pd(pda, PDRequestStatus.REQUESTED.value)
+        if ol_account.pd_status == PDRequestStatus.REQUESTED:
+            ol_account.send_pd_email()
+    elif ol_account.pd_authority and has_special_access and ol_account.pd_status != PDRequestStatus.FULFILLED:
+        ol_account.update_pd(rpd=PDRequestStatus.FULFILLED.value)
+
     # When a user logs in with OL credentials, the web.ctx.site.login() is called with
     # their OL user credentials, which internally sets an auth_token enabling the
     # user's session.  The web.ctx.site.login method requires OL credentials which are
@@ -997,7 +1055,7 @@ def audit_accounts(
     ol_account.update_last_login()
     return {
         "authenticated": True,
-        "special_access": getattr(ia_account, "has_disability_access", False),
+        "special_access": has_special_access,
         "ia_email": ia_account.email,
         "ol_email": ol_account.email,
         "ia_username": ia_account.screenname,

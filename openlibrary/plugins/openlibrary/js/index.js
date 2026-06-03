@@ -6,6 +6,7 @@ import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
+import { queueAction } from './utils';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -15,6 +16,26 @@ window.jQuery = jQuery;
 window.$ = jQuery;
 
 window.Promise = Promise;
+
+// Global listener for login intent buttons
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-login-intent');
+    if (btn) {
+        const action = btn.dataset.action;
+        const title = btn.dataset.title;
+        const type = btn.dataset.type || 'item';
+        const targetUrl = btn.dataset.resumeurl || (window.location.pathname + window.location.search);
+        if (action && title) {
+            queueAction(action, title, targetUrl, type);
+        }
+        if (btn.tagName !== 'A') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
+    }
+}, true);
 
 // Init the service worker first since it does caching
 initServiceWorker();

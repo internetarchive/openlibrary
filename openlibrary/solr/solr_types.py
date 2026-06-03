@@ -114,6 +114,7 @@ class SolrDocument(TypedDict):
     want_to_read_count: Optional[int]
     currently_reading_count: Optional[int]
     already_read_count: Optional[int]
+    stopped_reading_count: Optional[int]
     osp_count: Optional[int]
     text: Optional[list[str]]
     seed: Optional[list[str]]
