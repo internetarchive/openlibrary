@@ -9,6 +9,8 @@ See https://github.com/internetarchive/openlibrary/issues/12844 and
 https://github.com/internetarchive/openlibrary/pull/12793.
 """
 
+from __future__ import annotations
+
 import datetime
 import json
 import logging
