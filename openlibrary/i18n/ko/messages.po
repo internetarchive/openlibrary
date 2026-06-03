@@ -1611,7 +1611,7 @@ msgstr ""
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr "계정이 이미 있으신가요?  a href=\"/account/login\">로그인</a>"
+msgstr "계정이 이미 있으신가요? <a href=\"/account/login\">로그인</a>"
 
 #: account/delete.html
 msgid "Delete Account"
