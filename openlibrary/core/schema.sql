@@ -131,3 +131,18 @@ CREATE TABLE bestbooks (
 CREATE INDEX bestbooks_username ON bestbooks (username);
 CREATE INDEX bestbooks_work ON bestbooks (work_id);
 CREATE INDEX bestbooks_topic ON bestbooks (topic);
+
+CREATE TABLE tbp_feed_registry (
+    id serial primary key,
+    provider_name text not null,
+    feed_type text not null,  -- feed schema/type, e.g. opds, onix, standardebooks
+    url text not null,
+    -- how far we have processed this feed: last fetch date / publication cursor
+    last_updated timestamp without time zone default null,
+    data jsonb not null default '{}'::jsonb,
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    UNIQUE (provider_name, url)
+);
+
+CREATE INDEX tbp_feed_registry_provider_name ON tbp_feed_registry (provider_name);
