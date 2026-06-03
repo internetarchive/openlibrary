@@ -119,7 +119,7 @@ class xauth(delegate.page):
         # xauth() sends JSON body; web.input() only reads query params + form bodies
         try:
             body = json.loads(web.data() or "{}")
-        except (json.JSONDecodeError, ValueError):
+        except json.JSONDecodeError, ValueError:
             body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
