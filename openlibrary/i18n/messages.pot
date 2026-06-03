@@ -2234,6 +2234,10 @@ msgid "Works by Decade Published"
 msgstr ""
 
 #: account/readinglog_stats.html
+msgid "Works by Century Published"
+msgstr ""
+
+#: account/readinglog_stats.html
 msgid "Matching works"
 msgstr ""
 
