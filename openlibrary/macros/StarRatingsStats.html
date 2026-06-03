@@ -7,6 +7,7 @@ $ ratings_count = rating_stats.get('num_ratings', None)
 $ want_to_read_count = stats_by_bookshelf.get('want-to-read') and "{:,}".format(stats_by_bookshelf['want-to-read'])
 $ currently_reading_count = stats_by_bookshelf.get('currently-reading') and "{:,}".format(stats_by_bookshelf['currently-reading'])
 $ already_read_count = stats_by_bookshelf.get('already-read') and "{:,}".format(stats_by_bookshelf['already-read'])
+$ stopped_reading_count = stats_by_bookshelf.get('stopped-reading') and "{:,}".format(stats_by_bookshelf['stopped-reading'])
 $ review_count_class = 'readers-stats__review-count--none' if ratings_count == None else ''
 $ id = '--mobile' if mobile else ''
 
@@ -20,9 +21,14 @@ $ id = '--mobile' if mobile else ''
       $:macros.StarRatingsComponent(ratings_count, ratings_average, 'results_page')
   </li>
   $if want_to_read_count:
+    $code: pass  # NOTE: Short label displayed next to the count of readers who want to read this book, shown in the stats bar on a book page. Example: "2,389 Want to read".
     <li class="reading-log-stat"><span class="readers-stats__stat">$want_to_read_count</span> <span class="readers-stats__label">$_("Want to read")</span></li>
   $if currently_reading_count:
+    $code: pass  # NOTE: Short label displayed next to the count of readers currently reading this book, shown in the stats bar on a book page. Example: "1,247 Currently reading".
     <li class="reading-log-stat"><span class="readers-stats__stat">$currently_reading_count</span> <span class="readers-stats__label">$_("Currently reading")</span></li>
   $if already_read_count:
+    $code: pass  # NOTE: Short label displayed next to the count of readers who have finished this book, shown in the stats bar on a book page. Example: "15,420 Have read". This refers to the same shelf as the "Already Read" button.
     <li class="reading-log-stat"><span class="readers-stats__stat">$already_read_count</span> <span class="readers-stats__label">$_("Have read")</span></li>
+  $if stopped_reading_count:
+    <li class="reading-log-stat"><span class="readers-stats__stat">$stopped_reading_count</span> <span class="readers-stats__label">$_("Stopped reading")</span></li>
 </ul>

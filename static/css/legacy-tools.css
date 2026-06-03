@@ -59,7 +59,7 @@
 }
 
 .Tools .check-availability {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   border-top: 1px solid var(--lightest-grey);
   border-radius: 3px;
 }
@@ -83,7 +83,7 @@
 }
 
 .Tools .cta-section {
-  padding: 5px 5px 0;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-xs) 0;
   margin: 0;
 }
 
@@ -125,11 +125,11 @@
 }
 
 .Tools table td.price {
-  padding: 3px 0 0;
+  padding: var(--spacing-inset-xs) 0 0;
 }
 
 .Tools table td.vendor {
-  padding: 3px 10px 0 42px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm) 0 42px;
 }
 
 .Tools h3 {
@@ -212,13 +212,13 @@
   font-family: var(--font-family-body);
   color: var(--teal);
   font-weight: 600;
-  margin: 0 0 10px;
+  margin: 0 0 var(--spacing-stack-sm);
   padding: 0;
   zoom: 1;
 }
 
 .Tools .panel {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .Tools .panel ul {
@@ -263,7 +263,7 @@
   font-size: 0.6875em;
   font-family: var(--font-family-body);
   padding-left: 42px;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 .Tools #readBooks p {

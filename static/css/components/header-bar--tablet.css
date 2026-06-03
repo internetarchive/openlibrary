@@ -1,5 +1,5 @@
 .header-bar {
-  padding-top: 5px;
+  padding-top: var(--spacing-inset-xs);
 }
 
 /* The width and height attributes of logo-icon should be equal to */

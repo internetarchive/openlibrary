@@ -49,7 +49,7 @@
   padding: var(--spacing-inset-xs);
   float: left;
   height: 100%;
-  margin: 0 var(--spacing-inset-sm);
+  margin: 0 var(--spacing-inline-md);
   min-height: 1px;
   overflow: hidden;
   box-sizing: border-box;
@@ -160,7 +160,7 @@
   top: 0;
   bottom: 0;
   /* stylelint-enable declaration-block-no-redundant-longhand-properties */
-  margin: var(--spacing-inset-sm);
+  margin: 8px;
 }
 
 .carousel__item__blankcover--title {

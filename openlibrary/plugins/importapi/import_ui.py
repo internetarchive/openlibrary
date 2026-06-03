@@ -106,12 +106,12 @@ class import_preview_json(delegate.page):
 
 @dataclass
 class ImportPreviewRequest:
-    metadata_provider: "AbstractMetadataProvider"
+    metadata_provider: AbstractMetadataProvider
     identifier: str
     save: bool
 
     @staticmethod
-    def from_input(i: dict) -> "ImportPreviewRequest":
+    def from_input(i: dict) -> ImportPreviewRequest:
         source = cast(str | None, i.get("source"))
         provider = cast(str | None, i.get("provider"))
 

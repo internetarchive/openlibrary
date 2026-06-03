@@ -6,6 +6,7 @@
   /* Blues */
   --primary-blue: hsl(202, 96%, 37%);
   --link-blue: hsl(202, 96%, 28%);
+  --lightest-blue: hsl(201, 100%, 96%);
   --mid-blue: hsl(204, 70%, 53%);
   --dark-blue: hsl(210, 100%, 20%);
   --darker-brand-blue: hsl(198, 100%, 36%);

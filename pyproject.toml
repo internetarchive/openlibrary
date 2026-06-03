@@ -1,16 +1,7 @@
-# NOTE: You have to use single-quoted strings in TOML for regular expressions.
-# It's the equivalent of r-strings in Python.  Multiline strings are treated as
-# verbose regular expressions by Black.  Use [ ] to denote a significant space
-# character.
-
 [project]
 name = "openlibrary"
 version = "1.0.0"
-requires-python = ">=3.12.2,<3.12.3"
-
-[tool.black]
-skip-string-normalization = true
-target-version = ["py311"]
+requires-python = ">=3.14.5,<3.14.6"
 
 [tool.codespell]
 ignore-words-list = "beng,curren,datas,furst,nd,nin,ot,ser,spects,te,tha,ue,upto,thirdparty"
@@ -46,7 +37,7 @@ filterwarnings = [
     # Ignore warnings from webob, which doesn't have a fix.
     # It comes from webtest, which we will remove when fastapi is done
     'ignore::DeprecationWarning:webob',
-    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.12 deprecation)
+    # Ignore sqlite3 default timestamp converter warnings from web.py (Python 3.14 deprecation)
     'ignore:The default timestamp converter is deprecated:DeprecationWarning:web',
 ]
 addopts = "-m 'not integration'"
@@ -55,7 +46,7 @@ markers = [
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 extend-exclude = [
   "./.*",
   "vendor",
