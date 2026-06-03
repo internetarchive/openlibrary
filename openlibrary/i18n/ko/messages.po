@@ -8001,7 +8001,7 @@ msgstr "관리자 페이지"
 
 #: type/user/view.html
 #, fuzzy, python-format
-msgid 
+msgid
 "You are publicly sharing the books you are <a href=\"%(username)s/books"
 "/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
 "/already-read\">have already read</a>, <a href=\"%(username)s/books/want-"
