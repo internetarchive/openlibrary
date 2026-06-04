@@ -1,4 +1,6 @@
 """Utility to setup graceful shutdown for a process. This enables docker to shutdown faster rather than waiting 10 seconds."""
+from __future__ import annotations
+
 
 import signal
 import sys

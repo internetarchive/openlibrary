@@ -1,4 +1,6 @@
 """Code for handling /data/*.txt.gz URLs."""
+from __future__ import annotations
+
 
 import requests
 import web

@@ -1,4 +1,6 @@
 """Module for handling patron observation functionality"""
+from __future__ import annotations
+
 
 from collections import defaultdict, namedtuple
 from typing import Literal

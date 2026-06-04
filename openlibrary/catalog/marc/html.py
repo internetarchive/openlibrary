@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 
 from pymarc.record import Record

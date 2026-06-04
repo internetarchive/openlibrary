@@ -1,4 +1,6 @@
 """Tests for the /trending/{period}.json FastAPI endpoint (internal API)."""
+from __future__ import annotations
+
 
 from typing import get_args
 from unittest.mock import patch

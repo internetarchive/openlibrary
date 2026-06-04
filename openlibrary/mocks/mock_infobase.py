@@ -1,4 +1,6 @@
 """Simple implementation of mock infogami site to use in testing."""
+from __future__ import annotations
+
 
 import glob
 import itertools

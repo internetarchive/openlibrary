@@ -1,4 +1,6 @@
 """Library for managing Open Library data"""
+from __future__ import annotations
+
 
 import json
 

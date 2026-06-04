@@ -1,4 +1,6 @@
 """web.py application processors for Open Library."""
+from __future__ import annotations
+
 
 import re
 from typing import ClassVar, cast

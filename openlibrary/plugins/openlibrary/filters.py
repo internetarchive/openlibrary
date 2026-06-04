@@ -1,6 +1,8 @@
 """
 Filters used to check if a certain statistic should be recorded
 """
+from __future__ import annotations
+
 
 import logging
 import re

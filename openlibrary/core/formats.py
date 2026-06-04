@@ -1,4 +1,6 @@
 """Library for loading and dumping data to json and yaml."""
+from __future__ import annotations
+
 
 import json
 from typing import Literal

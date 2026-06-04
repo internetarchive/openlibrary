@@ -4,6 +4,8 @@ Tests for openlibrary.core.ratings
 Focuses on testing the pure mathematical functions that compute rating statistics.
 These functions don't require database access and test the core rating logic.
 """
+from __future__ import annotations
+
 
 from openlibrary.core.ratings import Ratings
 

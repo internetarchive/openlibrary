@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 r"""Open Library API Client.
 
 Sample Usage::

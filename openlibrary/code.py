@@ -2,6 +2,8 @@
 
 Loaded from Infogami plugin mechanism.
 """
+from __future__ import annotations
+
 
 import logging
 import logging.config

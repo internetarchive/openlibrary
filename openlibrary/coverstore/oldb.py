@@ -1,4 +1,6 @@
 """Library to talk directly to OL database to avoid expensive API calls."""
+from __future__ import annotations
+
 
 import functools
 import json

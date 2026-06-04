@@ -1,4 +1,6 @@
 """Tests for get_days_registered — Matomo retention dimension helper."""
+from __future__ import annotations
+
 
 import datetime
 from unittest.mock import MagicMock

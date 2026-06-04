@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import infogami
 from infogami.utils import delegate
 from openlibrary.utils.sentry import InfogamiSentryProcessor, Sentry, init_sentry

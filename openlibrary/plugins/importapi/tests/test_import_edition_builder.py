@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder

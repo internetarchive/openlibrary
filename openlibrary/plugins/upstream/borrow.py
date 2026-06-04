@@ -1,4 +1,6 @@
 """Handlers for borrowing books"""
+from __future__ import annotations
+
 
 import contextlib
 import copy

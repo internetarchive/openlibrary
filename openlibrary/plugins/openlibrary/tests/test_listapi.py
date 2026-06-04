@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # from py.test import config
 import json
 

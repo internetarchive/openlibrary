@@ -1,4 +1,6 @@
 """Tests for openlibrary.plugins.openlibrary.bulk_tag."""
+from __future__ import annotations
+
 
 from unittest.mock import MagicMock
 

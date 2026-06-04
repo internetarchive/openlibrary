@@ -1,4 +1,6 @@
 """Recapcha Input to use in web.py forms."""
+from __future__ import annotations
+
 
 import logging
 

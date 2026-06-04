@@ -12,6 +12,8 @@ The stats table in the openlibrary database is of the following schema:
 
 see schema.py for more details.
 """
+from __future__ import annotations
+
 
 import datetime
 import json

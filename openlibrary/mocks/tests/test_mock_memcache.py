@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import memcache
 
 from .. import mock_memcache

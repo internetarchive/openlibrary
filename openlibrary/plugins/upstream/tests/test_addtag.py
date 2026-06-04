@@ -1,4 +1,6 @@
 """Tests for openlibrary.plugins.upstream.addtag."""
+from __future__ import annotations
+
 
 import pytest
 import web

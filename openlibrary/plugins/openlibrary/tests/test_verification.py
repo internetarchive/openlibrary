@@ -1,4 +1,6 @@
 """Tests for human verification challenge functionality."""
+from __future__ import annotations
+
 
 import web
 

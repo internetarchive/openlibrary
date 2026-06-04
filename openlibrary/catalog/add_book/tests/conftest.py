@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from openlibrary.plugins.upstream.utils import convert_iso_to_marc, get_languages

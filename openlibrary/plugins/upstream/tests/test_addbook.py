@@ -1,4 +1,6 @@
 """py.test tests for addbook"""
+from __future__ import annotations
+
 
 import web
 

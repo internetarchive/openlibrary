@@ -1,4 +1,6 @@
 """Library for interacting with archive.org."""
+from __future__ import annotations
+
 
 import datetime
 import logging

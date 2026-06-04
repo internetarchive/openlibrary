@@ -1,6 +1,8 @@
 """
 Hook to show MARC or other source record details in Open Library.
 """
+from __future__ import annotations
+
 
 import re
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from openlibrary.core.observations import _sort_values
 
 

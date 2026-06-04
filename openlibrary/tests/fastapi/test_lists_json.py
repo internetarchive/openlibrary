@@ -1,4 +1,6 @@
 """Tests for the FastAPI lists.json endpoints."""
+from __future__ import annotations
+
 
 from unittest.mock import Mock, patch
 

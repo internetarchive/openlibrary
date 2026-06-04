@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import web
 
 import openlibrary.core.lists.model as list_model

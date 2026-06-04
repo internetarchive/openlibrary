@@ -1,6 +1,8 @@
 """
 OL Import API RDF parser
 """
+from __future__ import annotations
+
 
 from openlibrary.plugins.importapi import import_edition_builder
 

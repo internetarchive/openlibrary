@@ -1,4 +1,6 @@
 """Tests for the fastapi models module."""
+from __future__ import annotations
+
 
 from unittest.mock import MagicMock
 

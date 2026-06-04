@@ -2,6 +2,8 @@
 
 see compress module for details.
 """
+from __future__ import annotations
+
 
 from openlibrary.utils.compress import Compressor
 

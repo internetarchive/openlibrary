@@ -1,4 +1,6 @@
 """Handlers for adding and editing tags."""
+from __future__ import annotations
+
 
 import web
 

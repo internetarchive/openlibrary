@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from openlibrary.plugins.upstream.table_of_contents import TableOfContents, TocEntry
 
 

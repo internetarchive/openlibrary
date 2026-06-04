@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import web
 
 from openlibrary.core.booknotes import Booknotes

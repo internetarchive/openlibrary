@@ -7,6 +7,8 @@ List of events:
     * infobase.all: Triggered for any change in Infobase. The infobase event object is passed as argument.
     * infobase.edit: Triggered for edits. Changeset is passed as argument.
 """
+from __future__ import annotations
+
 
 import functools
 import logging

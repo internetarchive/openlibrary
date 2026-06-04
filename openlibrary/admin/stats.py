@@ -2,6 +2,8 @@
 Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
+from __future__ import annotations
+
 
 import datetime
 import logging
