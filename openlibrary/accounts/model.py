@@ -897,7 +897,7 @@ class InternetArchiveAccount(web.storage):
         return cls.xauth(
             "redeem_otp",
             email=email.strip().lower(),
-            otp=otp,
+            password=otp,
             headers=headers,
         )
 
