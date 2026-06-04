@@ -1,6 +1,5 @@
 """Module to provide data for solr indexer.
 
-from __future__ import annotations
 This module has all the logic for querying different sources for getting the
 data required for solr.
 

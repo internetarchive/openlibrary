@@ -1,6 +1,5 @@
 """Module to load books into Open Library.
 
-from __future__ import annotations
 This is used to load books from various MARC sources, including
 Internet Archive.
 

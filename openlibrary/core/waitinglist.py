@@ -1,6 +1,5 @@
 """Implementation of waiting-list feature for OL loans.
 
-from __future__ import annotations
 Each waiting instance is represented as a document in the store as follows:
 
     {
