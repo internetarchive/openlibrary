@@ -11,7 +11,7 @@ import { buildPartialsUrl } from  '../utils.js';
  * @property {String} carouselKey
  * @property {Object<string, string>} [i18n] localized UI strings (e.g. `loading`)
  * @property {Object} [loadMore] configuration for loading more items
- * @property {String} loadMore.url to use to load more items
+ * @property {String} loadMore.queryType query category used to fetch more items (e.g. 'SEARCH', 'BROWSE', 'SUBJECTS')
  * @property {Number} loadMore.limit of new items to receive
  * @property {'page' | 'offset'} loadMore.pageMode
  * -- INTERNAL --
