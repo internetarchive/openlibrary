@@ -201,7 +201,7 @@ def set_context_from_legacy_web_py() -> None:
     )
 
 
-def set_context_from_fastapi(request: Request) -> None:
+def set_context_from_fastapi(request: "Request") -> None:
     """
     Extracts context from a FastAPI request (async) and populates ContextVars.
     Should be called within the middleware stack.
