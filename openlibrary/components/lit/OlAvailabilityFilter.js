@@ -306,6 +306,12 @@ export class OlAvailabilityFilter extends FocusableHostMixin(LitElement) {
         .item--selected .item-indicator {
             color: var(--primary-blue);
         }
+        
+        @media (hover: hover) and (pointer: fine) {
+            .item-row:hover .item-indicator {
+                color: var(--accessible-grey);
+            }
+        }
 
         .item--in-scope .item-indicator {
             color: var(--link-blue);
@@ -504,7 +510,9 @@ export class OlAvailabilityFilter extends FocusableHostMixin(LitElement) {
                 <path d="M7.25 12.5l3 3 6.25-6.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>`;
         }
-        return nothing;
+        return html`<svg class="indicator-svg" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10.5" fill="none" stroke="var(--color-border-subtle)" stroke-width="1.5"/>
+        </svg>`;
     }
 
     // ── Event handlers ───────────────────────────────────────────

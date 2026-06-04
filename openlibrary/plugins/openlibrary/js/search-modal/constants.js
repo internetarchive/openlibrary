@@ -120,6 +120,8 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     topResults: 'Top results',
     untitled: 'Untitled',
     authorLabel: 'Author',
+    recentSearches: 'Recent searches',
+    clearRecents: 'Clear',
 };
 
 /**
@@ -220,6 +222,56 @@ export const DEFAULT_LANGUAGE_OPTIONS = [
  */
 export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
 export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
+
+/**
+ * localStorage key and cap for per-device recent searches.
+ */
+export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
+export const RECENT_SEARCHES_MAX    = 8;
+
+/**
+ * Read the recent-search list from localStorage. Returns [] on any failure.
+ * @returns {string[]}
+ */
+export function readRecentSearches() {
+    try {
+        const raw = localStorage.getItem(LS_RECENT_SEARCHES_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed.slice(0, RECENT_SEARCHES_MAX) : [];
+    } catch { return []; }
+}
+
+/**
+ * Prepend `query` to the recent-search list, dedup, and cap at
+ * RECENT_SEARCHES_MAX. Silently ignores localStorage errors (private browsing).
+ * @param {string} query
+ */
+export function saveRecentSearch(query) {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    try {
+        const searches = readRecentSearches().filter(s => s !== trimmed);
+        searches.unshift(trimmed);
+        localStorage.setItem(
+            LS_RECENT_SEARCHES_KEY,
+            JSON.stringify(searches.slice(0, RECENT_SEARCHES_MAX))
+        );
+    } catch { /* ignore */ }
+}
+
+/**
+ * Remove a single entry from the recent-search list.
+ * @param {string} query
+ * @returns {string[]} updated list
+ */
+export function removeRecentSearch(query) {
+    try {
+        const searches = readRecentSearches().filter(s => s !== query);
+        localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(searches));
+        return searches;
+    } catch { return readRecentSearches(); }
+}
 
 /**
  * Read the language list from sessionStorage. Guards against missing values,

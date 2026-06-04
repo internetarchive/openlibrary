@@ -19,6 +19,10 @@ import {
     availabilityOptionsFromElement,
     readStoredLanguages,
     searchModalStringsFromElement,
+    LS_RECENT_SEARCHES_KEY,
+    readRecentSearches,
+    saveRecentSearch,
+    removeRecentSearch,
 } from './constants.js';
 import { fetchLanguageOptions } from './languages.js';
 import { deriveAuthors } from './authorSuggestion.js';
@@ -62,6 +66,7 @@ export class SearchModal extends LitElement {
         _languageItems: { state: true },
         _langsLoading: { state: true },
         _navigatingKey: { state: true },
+        _recentSearches: { state: true },
     };
 
     static styles = css`
@@ -380,6 +385,97 @@ export class SearchModal extends LitElement {
             text-align: center;
         }
 
+        /* ── Recent-searches heading row ───────────────────────────────── */
+
+        .results-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-lg);
+        }
+
+        /* Overrides .results-heading's padding so the row wrapper owns it. */
+        .results-heading-row .results-heading { padding-left: 0; padding-right: 0; }
+
+        .clear-recents {
+            background: transparent;
+            border: none;
+            color: var(--accessible-grey);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: var(--spacing-2xs) var(--spacing-sm);
+            border-radius: var(--border-radius-button);
+            transition: background-color 150ms ease;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .clear-recents:hover { background: var(--lightest-grey); }
+        }
+
+        .clear-recents:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) { .clear-recents { transition: none; } }
+
+        /* ── Recent-search row ──────────────────────────────────────────── */
+
+        /* <li> is the flex container; anchor takes the remaining space. */
+        .recent-result {
+            display: flex;
+            align-items: center;
+        }
+
+        .recent-result .result { flex: 1; min-width: 0; }
+
+        .result__recent-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            color: var(--accessible-grey);
+        }
+
+        .result__recent-icon svg { width: 18px; height: 18px; }
+
+        .result__remove-recent {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius-button);
+            color: var(--accessible-grey);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 100ms ease, background-color 150ms ease;
+        }
+
+        .recent-result:hover .result__remove-recent,
+        .recent-result:focus-within .result__remove-recent { opacity: 1; }
+
+        .result__remove-recent svg { width: 16px; height: 16px; }
+
+        .result__remove-recent:focus-visible {
+            outline: 2px solid var(--color-focus-ring);
+            outline-offset: 2px;
+            opacity: 1;
+        }
+
+        /* Always show remove button on touch devices (no hover state). */
+        @media (hover: none) and (pointer: coarse) {
+            .result__remove-recent { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) { .result__remove-recent { transition: none; } }
         /* ── Navigating (pressed result → page loading) ────────────── */
 
         /* Pressing a result navigates the whole window, and the next page can
@@ -534,9 +630,11 @@ export class SearchModal extends LitElement {
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
         this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
 
-        this._availability = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
+        const _storedAvailability = ssGet(SS_AVAILABILITY_KEY);
+        this._availability = _storedAvailability !== null ? _storedAvailability : 'readable';
         this._languages    = readStoredLanguages();
 
+        this._recentSearches = readRecentSearches();
         this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
@@ -732,7 +830,9 @@ export class SearchModal extends LitElement {
 
     _renderResults() {
         if (!this._shouldAutocomplete()) {
-            return html`<div class="results"><div class="placeholder">${this._i18n.startTyping}</div></div>`;
+            return this._recentSearches.length > 0
+                ? this._renderRecentSearches()
+                : html`<div class="results"><div class="placeholder">${this._i18n.startTyping}</div></div>`;
         }
 
         if (this._loading && this._results.length === 0) {
@@ -754,6 +854,69 @@ export class SearchModal extends LitElement {
                 <ul class="results-list">${repeat(this._results, r => r.key, r => this._renderResult(r))}</ul>
             </div>
         `;
+    }
+
+    _renderRecentSearches() {
+        return html`
+            <div class="results">
+                <div class="results-heading-row">
+                    <h3 class="results-heading">${this._i18n.recentSearches}</h3>
+                    <button
+                        type="button"
+                        class="clear-recents"
+                        @click=${this._clearRecentSearches}
+                    >${this._i18n.clearRecents}</button>
+                </div>
+                <ul class="results-list">
+                    ${repeat(this._recentSearches, s => s, s => html`
+                        <li class="recent-result">
+                            <a
+                                class="result"
+                                href="/search?q=${encodeURIComponent(s)}&mode=${searchMode.read()}"
+                                @click=${(e) => this._onRecentSearchClick(e, s)}
+                            >
+                                <span class="result__recent-icon" aria-hidden="true">
+                                    ${SearchModal._clockIcon}
+                                </span>
+                                <span class="result__meta">
+                                    <span class="result__title">${s}</span>
+                                </span>
+                            </a>
+                            <button
+                                type="button"
+                                class="result__remove-recent"
+                                aria-label="Remove &quot;${s}&quot; from recent searches"
+                                @click=${() => { this._recentSearches = removeRecentSearch(s); }}
+                            >${SearchModal._closeIcon}</button>
+                        </li>
+                    `)}
+                </ul>
+            </div>
+        `;
+    }
+
+    // Clicking a recent-search row fills the input and kicks off a search,
+    // rather than hard-navigating, so the patron sees inline results first.
+    _onRecentSearchClick(e, query) {
+        e.preventDefault();
+        this._query = query;
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) input.value = query;
+        this._loading = true;
+        this._debouncedFetch();
+    }
+
+    _clearRecentSearches() {
+        try { localStorage.removeItem(LS_RECENT_SEARCHES_KEY); } catch { /* ignore */ }
+        this._recentSearches = [];
+    }
+
+    // Save the current query to recent searches. Called before any navigation.
+    _saveCurrentSearch() {
+        const trimmed = this._query.trim();
+        if (trimmed.length < MIN_QUERY_LENGTH) return;
+        saveRecentSearch(trimmed);
+        this._recentSearches = readRecentSearches();
     }
 
     // A "go to the author page" row shown above the works for each top-result
@@ -844,6 +1007,7 @@ export class SearchModal extends LitElement {
     _onResultPress(e, key) {
         if (e.defaultPrevented || e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        this._saveCurrentSearch();
         this._navigatingKey = key;
     }
 
@@ -909,6 +1073,7 @@ export class SearchModal extends LitElement {
     }
 
     _onSeeAllResults() {
+        this._saveCurrentSearch();
         const url = this._buildSearchUrl();
         if (url) window.location.assign(url);
     }
@@ -983,6 +1148,8 @@ export class SearchModal extends LitElement {
     }
 
     // ── Static SVGs ──────────────────────────────────────────────────────
+
+    static _clockIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 
     static _searchIcon = html`<svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
