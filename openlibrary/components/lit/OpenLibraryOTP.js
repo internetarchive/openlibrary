@@ -313,7 +313,7 @@ export class OpenLibraryOTP extends LitElement {
         h2.textContent = 'Sign in with a one-time code';
 
         const p = document.createElement('p');
-        p.textContent = "Enter your Internet Archive email and we'll send you a login code.";
+        p.textContent = 'Enter your Internet Archive email and we\'ll send you a login code.';
 
         const form = document.createElement('form');
         form.className = 'ol-otp-email-form';
