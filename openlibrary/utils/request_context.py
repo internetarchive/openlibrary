@@ -42,7 +42,7 @@ class RequestContextVars:
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
-site: ContextVar[Site] = ContextVar("site")
+site: "ContextVar[Site]" = ContextVar("site")
 
 
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).

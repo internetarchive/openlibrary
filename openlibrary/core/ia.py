@@ -143,7 +143,7 @@ def locate_item(itemid: str) -> tuple[str | None, str | None]:
     return d.get("server"), d.get("dir")
 
 
-def edition_from_item_metadata(itemid: str, metadata: dict) -> ItemEdition | None:
+def edition_from_item_metadata(itemid: str, metadata: dict) -> "ItemEdition | None":
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 

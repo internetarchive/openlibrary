@@ -576,7 +576,7 @@ def check_cover_url_host(cover_url: str | None, allowed_cover_hosts: Iterable[st
 def load_data(  # noqa: PLR0912, PLR0915
     rec: dict,
     account_key: str | None = None,
-    existing_edition: Edition | None = None,
+    existing_edition: "Edition | None" = None,
     save: bool = True,
 ):
     """
