@@ -306,7 +306,7 @@ export class OlAvailabilityFilter extends FocusableHostMixin(LitElement) {
         .item--selected .item-indicator {
             color: var(--primary-blue);
         }
-        
+
         @media (hover: hover) and (pointer: fine) {
             .item-row:hover .item-indicator {
                 color: var(--accessible-grey);
