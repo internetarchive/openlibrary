@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from functools import cached_property
 import glob
 import os
 import re
@@ -338,7 +337,7 @@ class Cover:
         path = os.path.join(relpath, img_filename)
         return f"{protocol}://archive.org/download/{path}"
 
-    @cached_property
+    @property
     def files(self):
         files = [
             web.storage(name=f"{self.id:010}.jpg", filename=self.filename),
@@ -462,7 +461,7 @@ class ZipManager:
     @staticmethod
     def count_files_in_zip(filepath):
         with zipfile.ZipFile(filepath, 'r') as zip_ref:
-            return len(name for name in zip_ref.namelist() if name.endswith(".jpg"))
+            return sum(1 for name in zip_ref.namelist() if name.endswith(".jpg"))
 
     def get_zipfile(self, name):
         cid = web.numify(name)
@@ -496,9 +495,8 @@ class ZipManager:
         zipper = self.get_zipfile(name)
 
         if name not in zipper.namelist():
-            with open(filepath, 'rb'):
-                # Set compression to ZIP_STORED to avoid compression
-                zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
+            # Set compression to ZIP_STORED to avoid compression
+            zipper.write(filepath, arcname=name, compress_type=zipfile.ZIP_STORED)
 
     def __enter__(self):
         return self
