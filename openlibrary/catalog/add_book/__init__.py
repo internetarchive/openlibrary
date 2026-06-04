@@ -22,6 +22,8 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+from __future__ import annotations
+
 
 import itertools
 import logging

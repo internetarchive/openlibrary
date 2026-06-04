@@ -1,4 +1,6 @@
 """Models of various OL objects."""
+from __future__ import annotations
+
 
 import functools
 import logging

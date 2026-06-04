@@ -1,4 +1,6 @@
 """Generic helper functions to use in the templates and the webapp."""
+from __future__ import annotations
+
 
 import functools
 import json

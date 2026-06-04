@@ -1,4 +1,6 @@
 """Interface to import queue."""
+from __future__ import annotations
+
 
 import contextlib
 import datetime
