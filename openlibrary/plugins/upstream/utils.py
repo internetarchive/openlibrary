@@ -670,7 +670,7 @@ def safeget[T](func: Callable[[], T], default=None) -> T:
     """
     try:
         return func()
-    except KeyError, IndexError, TypeError:
+    except (KeyError, IndexError, TypeError):
         return default
 
 

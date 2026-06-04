@@ -74,7 +74,7 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
             },
         )
         return r.json()[0]["datapoints"]
-    except requests.exceptions.RequestException, ValueError, AttributeError:
+    except (requests.exceptions.RequestException, ValueError, AttributeError):
         return None
 
 
