@@ -4,8 +4,6 @@ StatsD client to be used in the application to log various metrics
 Based on the code in http://www.monkinetic.com/2011/02/statsd.html (pystatsd client)
 
 """
-from __future__ import annotations
-
 
 # statsd.py
 

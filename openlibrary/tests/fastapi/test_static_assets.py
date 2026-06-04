@@ -1,6 +1,4 @@
 """Tests for FastAPI static asset serving."""
-from __future__ import annotations
-
 
 
 def test_static_assets_are_served(fastapi_client):

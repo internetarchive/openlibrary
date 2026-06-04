@@ -1,6 +1,4 @@
 """Interface to access the database of openlibrary."""
-from __future__ import annotations
-
 
 import functools
 import sqlite3

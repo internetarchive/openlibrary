@@ -6,8 +6,6 @@ Glossary:
 * cdump - Complete dump. Dump of all revisions of all documents.
 * idump - Incremental dump. Dump of all revisions created in the given day.
 """
-from __future__ import annotations
-
 
 import gzip
 import itertools

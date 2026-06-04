@@ -1,8 +1,6 @@
 """
 Legacy file now containing a few helper methods.
 """
-from __future__ import annotations
-
 
 conversions = {
     #    '/people/': '/user/',

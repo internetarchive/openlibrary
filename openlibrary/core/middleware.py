@@ -1,6 +1,4 @@
 """WSGI middleware used in Open Library."""
-from __future__ import annotations
-
 
 import gzip
 from io import BytesIO

@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from openlibrary.solr.updater.edition import EditionSolrBuilder, EditionSolrUpdater, sort_title

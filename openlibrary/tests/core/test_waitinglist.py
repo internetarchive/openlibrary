@@ -2,8 +2,6 @@
 
 Waiting loans track users waiting for books that are currently checked out.
 """
-from __future__ import annotations
-
 
 import datetime
 import json

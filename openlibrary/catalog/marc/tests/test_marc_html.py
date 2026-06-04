@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from pathlib import Path
 
 from openlibrary.catalog.marc.html import html_record

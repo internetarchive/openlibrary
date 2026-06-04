@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from hashlib import md5
 from typing import Literal, NotRequired, TypedDict

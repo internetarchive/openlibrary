@@ -1,6 +1,4 @@
 """Tests for the /cdn/archive.org JS proxy endpoint (FastAPI)."""
-from __future__ import annotations
-
 
 from unittest.mock import AsyncMock, MagicMock, patch
 

@@ -1,6 +1,4 @@
 """Reading log check-ins handler and services."""
-from __future__ import annotations
-
 
 import json
 try:

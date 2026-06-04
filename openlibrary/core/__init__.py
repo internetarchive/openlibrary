@@ -2,5 +2,3 @@
 
 This is a set of reusable, easily testable modules.
 """
-from __future__ import annotations
-

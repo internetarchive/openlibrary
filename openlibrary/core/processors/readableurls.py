@@ -1,6 +1,4 @@
 """Various web.py application processors used in OL."""
-from __future__ import annotations
-
 
 import logging
 import os

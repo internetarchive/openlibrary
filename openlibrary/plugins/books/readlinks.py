@@ -2,8 +2,6 @@
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
-from __future__ import annotations
-
 
 import re
 import sys

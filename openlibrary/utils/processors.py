@@ -1,6 +1,4 @@
 """Generic web.py application processors."""
-from __future__ import annotations
-
 
 import re
 import time

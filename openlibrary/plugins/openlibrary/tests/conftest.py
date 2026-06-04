@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 collect_ignore = ["test_listapi.py", "test_ratingsapi.py"]
 
 

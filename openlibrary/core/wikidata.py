@@ -4,8 +4,6 @@ The purpose of this file is to:
 2. Store the results
 3. Make the results easy to access from other files
 """
-from __future__ import annotations
-
 
 import json
 import logging

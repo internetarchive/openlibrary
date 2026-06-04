@@ -1,8 +1,6 @@
 """
 Capture some of the unintuitive aspects of Storage, Things, and Works
 """
-from __future__ import annotations
-
 
 from unittest.mock import patch
 

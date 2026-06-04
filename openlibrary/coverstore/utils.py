@@ -1,6 +1,4 @@
 """Utilities for coverstore"""
-from __future__ import annotations
-
 
 import contextlib
 import json

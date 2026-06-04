@@ -42,8 +42,6 @@ For more details, see:
 http://github.com/anandology/notebook/tree/master/2010/03/jsdef/
 
 """
-from __future__ import annotations
-
 
 __author__ = "Anand Chitipothu <anandology@gmail.com>"
 __version__ = "0.3"

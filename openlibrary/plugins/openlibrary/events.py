@@ -1,6 +1,4 @@
 """Handling various events triggered by Open Library."""
-from __future__ import annotations
-
 
 import logging
 

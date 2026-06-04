@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # This will be moved to core soon.
 import json
 

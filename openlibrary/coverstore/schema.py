@@ -1,6 +1,4 @@
 """Coverstore schema."""
-from __future__ import annotations
-
 
 from openlibrary.utils import schema
 

@@ -1,6 +1,4 @@
 """Handle book cover/author photo upload."""
-from __future__ import annotations
-
 
 import os
 from logging import getLogger

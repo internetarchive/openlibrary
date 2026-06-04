@@ -3,8 +3,6 @@ This file should be for internal APIs which Open Library requires for
 its experience. This does not include public facing APIs with LTS
 (long term support)
 """
-from __future__ import annotations
-
 
 import io
 import json

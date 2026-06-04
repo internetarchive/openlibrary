@@ -2,8 +2,6 @@
 OPDS helper class.
 A lightweight version of github.com/internetarchive/bookserver
 """
-from __future__ import annotations
-
 
 from types import MappingProxyType
 

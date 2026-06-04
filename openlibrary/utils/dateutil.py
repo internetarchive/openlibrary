@@ -1,6 +1,4 @@
 """Generic date utilities."""
-from __future__ import annotations
-
 
 import calendar
 import datetime

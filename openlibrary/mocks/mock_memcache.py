@@ -1,6 +1,4 @@
 """Library to mock memcache functionality."""
-from __future__ import annotations
-
 
 import memcache
 import pytest

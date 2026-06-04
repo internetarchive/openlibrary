@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import json
 import urllib
 from os import system

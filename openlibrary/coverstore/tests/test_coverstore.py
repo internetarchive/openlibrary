@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from os.path import abspath, dirname, exists, join, pardir
 
 import pytest

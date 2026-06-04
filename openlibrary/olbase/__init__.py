@@ -1,6 +1,4 @@
 """Infobase extension for Open Library."""
-from __future__ import annotations
-
 
 from ..plugins import ol_infobase
 from . import events

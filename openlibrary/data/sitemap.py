@@ -12,8 +12,6 @@ http://www.archive.org/download/ol-sitemaps/sitindex-authors.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
-from __future__ import annotations
-
 
 import datetime
 import os

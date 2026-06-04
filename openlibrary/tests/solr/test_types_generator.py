@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import os
 
 from openlibrary.solr.types_generator import generate

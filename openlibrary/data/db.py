@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import annotations
-
 """Library to provide fast access to Open Library database.
 
 How to use:

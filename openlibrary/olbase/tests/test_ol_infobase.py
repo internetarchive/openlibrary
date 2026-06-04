@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from openlibrary.plugins.ol_infobase import OLIndexer
 
 

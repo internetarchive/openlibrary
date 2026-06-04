@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from openlibrary.catalog.add_book import load_book

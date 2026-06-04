@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 
 REV_RE = re.compile(r"rev.*")

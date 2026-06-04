@@ -1,6 +1,4 @@
 """Mock of openlibrary.core.ia module."""
-from __future__ import annotations
-
 
 import pytest
 

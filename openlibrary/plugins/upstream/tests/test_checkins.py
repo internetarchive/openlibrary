@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from openlibrary.plugins.upstream.checkins import (
     is_valid_date,
     make_date_string,

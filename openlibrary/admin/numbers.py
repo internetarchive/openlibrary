@@ -14,8 +14,6 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
-from __future__ import annotations
-
 
 import functools
 import logging

@@ -1,6 +1,4 @@
 """Memcache interface to store data in memcached."""
-from __future__ import annotations
-
 
 import memcache
 import web

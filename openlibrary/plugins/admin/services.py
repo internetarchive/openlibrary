@@ -2,8 +2,6 @@
 Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """
-from __future__ import annotations
-
 
 import re
 from collections import defaultdict

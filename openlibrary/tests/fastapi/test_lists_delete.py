@@ -1,6 +1,4 @@
 """Tests for POST /people/{username}/lists/{list_id}/delete.json (FastAPI)."""
-from __future__ import annotations
-
 
 from unittest.mock import MagicMock, patch
 

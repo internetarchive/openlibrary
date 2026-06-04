@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from openlibrary.utils import (
     extract_numeric_id_from_olid,
 )

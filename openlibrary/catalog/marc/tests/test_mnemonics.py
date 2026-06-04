@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from openlibrary.catalog.marc.mnemonics import read
 
 

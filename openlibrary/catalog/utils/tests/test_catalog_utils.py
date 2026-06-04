@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import pytest
 
 from openlibrary.catalog.utils import author_dates_match

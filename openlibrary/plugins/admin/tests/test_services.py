@@ -1,8 +1,6 @@
 """
 Tests for the services module used by the admin interface.
 """
-from __future__ import annotations
-
 
 from .. import services
 

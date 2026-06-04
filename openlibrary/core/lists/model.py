@@ -1,6 +1,4 @@
 """Helper functions used by the List model."""
-from __future__ import annotations
-
 
 import contextlib
 import logging

@@ -1,6 +1,4 @@
 """OpenLibrary schema."""
-from __future__ import annotations
-
 
 from openlibrary.core.schema import get_schema
 

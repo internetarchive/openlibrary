@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import web
 
 from infogami.infobase import client, common

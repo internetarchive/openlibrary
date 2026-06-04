@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # read MARC mnemonics
 # result is in MARC8 and still needs to be converted to Unicode
 

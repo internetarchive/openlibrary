@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import render

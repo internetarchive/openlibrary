@@ -1,8 +1,6 @@
 """
 Tests the stats gathering systems.
 """
-from __future__ import annotations
-
 
 import calendar
 import datetime

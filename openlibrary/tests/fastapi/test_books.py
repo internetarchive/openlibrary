@@ -1,6 +1,4 @@
 """Exhaustive tests for the FastAPI Books API endpoints."""
-from __future__ import annotations
-
 
 import json
 from unittest.mock import patch

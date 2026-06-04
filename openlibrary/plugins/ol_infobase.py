@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import annotations
-
 """Open Library plugin for infobase."""
 
 import datetime

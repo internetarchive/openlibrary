@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Annotated, Any, Final, TypeVar
 
 from annotated_types import MinLen

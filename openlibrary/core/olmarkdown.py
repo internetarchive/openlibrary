@@ -8,8 +8,6 @@ Differences from traditional Markdown:
 * generated HTML is sanitized
 
 """
-from __future__ import annotations
-
 
 import re
 

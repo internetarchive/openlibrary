@@ -1,8 +1,6 @@
 """
 Open Library Plugin.
 """
-from __future__ import annotations
-
 
 import datetime
 import functools

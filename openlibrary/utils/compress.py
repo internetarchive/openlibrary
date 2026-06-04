@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 # incremental zlib compression, written by solrize, August 2009
 import zlib
 

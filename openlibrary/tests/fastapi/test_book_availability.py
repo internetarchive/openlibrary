@@ -1,6 +1,4 @@
 """Tests for the /availability/v2 FastAPI endpoint (internal API)."""
-from __future__ import annotations
-
 
 from unittest.mock import patch
 

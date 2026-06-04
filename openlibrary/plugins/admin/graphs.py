@@ -1,6 +1,4 @@
 """Utilities for rendering Graphite graphs."""
-from __future__ import annotations
-
 
 import urllib
 

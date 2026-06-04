@@ -4,8 +4,6 @@ Redirects deprecated endpoints to port 18080 in dev environment,
 or raises a loud error in production.
 This is temporary while we migrate to fastapi and have two containers running.
 """
-from __future__ import annotations
-
 
 import httpx
 import web

@@ -2,8 +2,6 @@
 
 * Log all modified book pages as required for the search engine.
 """
-from __future__ import annotations
-
 
 import datetime
 

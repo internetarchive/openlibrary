@@ -85,8 +85,6 @@ A sample dict looks like one of these:
     "publish_places": ["New York"],
 }
 """
-from __future__ import annotations
-
 
 from openlibrary.plugins.importapi.import_validator import import_validator
 
