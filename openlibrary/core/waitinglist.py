@@ -1,6 +1,5 @@
 """Implementation of waiting-list feature for OL loans.
 
-from __future__ import annotations
 Each waiting instance is represented as a document in the store as follows:
 
     {
@@ -13,6 +12,8 @@ Each waiting instance is represented as a document in the store as follows:
         "last-update": "2013-10-01T06:09:16.577942"
     }
 """
+from __future__ import annotations
+
 
 import datetime
 import logging
