@@ -14,6 +14,7 @@ from __future__ import annotations
 import datetime
 import json
 import logging
+from sqlite3 import IntegrityError
 from typing import TYPE_CHECKING, Any
 
 import web
@@ -100,7 +101,7 @@ class FeedRegistry(web.storage):
                 feed_type=feed_type,
                 data=data,
             )
-        except UniqueViolation:
+        except UniqueViolation, IntegrityError:
             # Raced with a concurrent insert; the row now exists.
             return FeedRegistry.find(provider_name=provider_name, url=url)
 

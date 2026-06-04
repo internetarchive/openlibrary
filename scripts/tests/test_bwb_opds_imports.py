@@ -435,7 +435,6 @@ def test_extract_buy_url():
 
 def test_extract_acquisition_captures_price_and_url():
     assert extract_acquisition(SAMPLE_PUBLICATION) == {
-        "provider_name": "betterworldbooks",
         "price": 1.1,
         "currency": "USD",
         "url": "https://www.betterworldbooks.com/purchase/9781737408802",
@@ -463,7 +462,6 @@ def test_process_feed_collects_acquisitions(monkeypatch):
         {
             "isbn_13": "9781737408802",
             "data": {
-                "provider_name": "betterworldbooks",
                 "price": 1.1,
                 "currency": "USD",
                 "url": "https://www.betterworldbooks.com/purchase/9781737408802",

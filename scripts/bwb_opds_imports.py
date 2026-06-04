@@ -151,7 +151,8 @@ def extract_acquisition(publication: dict[str, Any]) -> dict[str, Any] | None:
     url = extract_buy_url(publication)
     if not price and not url:
         return None
-    data: dict[str, Any] = {"provider_name": PROVIDER_NAME}
+    # provider identity lives in the acquisitions.provider_name column, not here.
+    data: dict[str, Any] = {}
     if price:
         data["price"] = price["value"]
         data["currency"] = price["currency"]
@@ -470,7 +471,8 @@ def main(
     :param ol_config: Path to ``openlibrary.yml``.
     :param feed_url: OPDS 2.0 feed entry point.
     :param provider_name: Trusted-book-provider name; keys the registry row and acquisitions.
-    :param state_file: Legacy cursor file, used only when the feed is not in the registry.
+    :param state_file: Legacy cursor file. Read as a fallback when the feed is not registered, and
+        kept in sync (dual-written) alongside the registry cursor for backwards compatibility.
     :param prices_out: Path to JSONL price sidecar; opened lazily so a zero-row run leaves any
         prior snapshot intact (avoids handing the Solr updater an empty file mid-handoff).
     :param since: Optional ISO 8601 override for the incremental cutoff.
