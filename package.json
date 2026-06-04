@@ -28,6 +28,7 @@
     "build-storybook": "cd stories && npm install --no-audit && npx storybook build"
   },
   "devDependencies": {
+    "@internetarchive/elements": "^0.2.5",
     "@babel/core": "^7.24.7",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.3",
