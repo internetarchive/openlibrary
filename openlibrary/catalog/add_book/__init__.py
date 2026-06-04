@@ -1,5 +1,6 @@
 """Module to load books into Open Library.
 
+from __future__ import annotations
 This is used to load books from various MARC sources, including
 Internet Archive.
 
@@ -22,8 +23,6 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-from __future__ import annotations
-
 
 import itertools
 import logging
