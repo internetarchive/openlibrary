@@ -45,6 +45,7 @@ import time
 from typing import Any
 
 import requests
+import web
 
 try:
     import _init_path  # type: ignore[import-not-found]  # noqa: F401 side effect: add OL package root to sys.path
@@ -52,6 +53,7 @@ except ImportError:
     import scripts._init_path  # noqa: F401 same side effect when imported as a package
 
 from infogami import config  # noqa: F401 side effects may be needed
+from infogami.utils.delegate import create_site
 from openlibrary.config import load_config
 from openlibrary.core.acquisitions import Acquisition
 from openlibrary.core.imports import Batch
@@ -480,6 +482,9 @@ def main(
     """
     if not dry_run:
         load_config(ol_config)
+        # Standalone cron has no request context; build the site so edition
+        # lookups (Edition.from_isbn) work for the post-batch acquisition map.
+        web.ctx.site = create_site()
 
     registry = None if dry_run else FeedRegistry.find(provider_name, feed_url)
     if since:
