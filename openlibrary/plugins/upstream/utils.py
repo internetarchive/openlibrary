@@ -265,7 +265,7 @@ def render_cached_macro(name: str, args: tuple, **kwargs):
         if page.get("do_not_cache") == "True":
             mc.memcache_delete_by_args(name, args, **kwargs)
         return web.template.TemplateResult(page)
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         return "<span>Failed to render macro</span>"
 
 

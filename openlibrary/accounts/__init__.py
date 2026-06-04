@@ -80,7 +80,7 @@ def get_days_registered(user) -> str:
     try:
         reg_date = user.created.date()
         days = (datetime.datetime.now(datetime.UTC).date() - reg_date).days
-    except AttributeError, TypeError:
+    except (AttributeError, TypeError):
         # If the date is incorrectly encoded, assume the patron
         # registered a long time ago before we had this set up.
         return "d90+"
