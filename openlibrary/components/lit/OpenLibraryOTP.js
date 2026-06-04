@@ -1,4 +1,4 @@
-import { LitElement, html, css, nothing } from 'lit';
+import { LitElement, html, css } from 'lit';
 import '@internetarchive/elements/ia-otp-form/ia-otp-form';
 
 /**
@@ -10,6 +10,10 @@ import '@internetarchive/elements/ia-otp-form/ia-otp-form';
  *   2. Enter code   → POST /account/login/otp/redeem  (via ia-otp-form)
  *
  * On success the page navigates to the server-sanitized redirect URL.
+ *
+ * The overlay is appended directly to document.body (a "portal") and managed
+ * imperatively so that it escapes any ancestor stacking contexts. Lit's
+ * declarative render() is only used for the trigger button inside the shadow DOM.
  *
  * Usage:
  *   <ol-otp-login></ol-otp-login>
@@ -40,12 +44,186 @@ export class OpenLibraryOTP extends LitElement {
         this._validationStatus = 'ready';
         this._newCodeSending = false;
         this._previousFocus = null;
+
+        // Bound references kept for addEventListener / removeEventListener symmetry
+        this._boundHandleOverlayClick = this._handleOverlayClick.bind(this);
+        this._boundHandleKeydown = this._handleKeydown.bind(this);
+        this._boundFocusFirst = this._focusFirst.bind(this);
+        this._boundFocusLast = this._focusLast.bind(this);
+        this._boundCloseModal = this._closeModal.bind(this);
+        this._boundHandleEmailInput = (e) => { this._email = e.target.value; };
+        this._boundHandleEmailSubmit = this._handleEmailSubmit.bind(this);
+        this._boundHandleCodeSubmitted = this._handleCodeSubmitted.bind(this);
+        this._boundHandleResend = this._handleResend.bind(this);
+
+        this._buildPortal();
     }
 
+    // ---------------------------------------------------------------------------
+    // Portal construction — runs once; produces stable DOM that we mutate later
+    // ---------------------------------------------------------------------------
+
+    _buildPortal() {
+        const style = document.createElement('style');
+        style.textContent = `
+            .ol-otp-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+            .ol-otp-overlay[open] {
+                display: flex;
+            }
+            .ol-otp-dialog {
+                background: #fff;
+                border-radius: 8px;
+                padding: 2rem;
+                max-width: 400px;
+                width: 90%;
+                position: relative;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                font-family: inherit;
+            }
+            .ol-otp-close-btn {
+                position: absolute;
+                top: 0.75rem;
+                right: 0.75rem;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+                line-height: 1;
+                color: inherit;
+            }
+            .ol-otp-dialog h2 {
+                margin: 0 0 0.5rem;
+                font-size: 1.25rem;
+            }
+            .ol-otp-dialog p {
+                margin: 0 0 1rem;
+                font-size: 0.95rem;
+            }
+            .ol-otp-email-form {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .ol-otp-email-form label {
+                font-size: 0.9rem;
+                font-weight: bold;
+            }
+            .ol-otp-email-form input[type='email'] {
+                padding: 8px;
+                font-size: 1rem;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .ol-otp-email-form button[type='submit'] {
+                padding: 8px 16px;
+                background: var(--ia-button-primary-bg, #4b4bdf);
+                color: var(--ia-button-primary-color, #fff);
+                border: none;
+                border-radius: 4px;
+                font-size: 1rem;
+                font-family: inherit;
+                cursor: pointer;
+                align-self: flex-start;
+            }
+            .ol-otp-email-form button[type='submit']:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            .ol-otp-error {
+                color: var(--color-danger, #c00);
+                font-size: 0.9rem;
+                margin: 0;
+            }
+            ia-otp-form {
+                --font-size-standard: 0.95rem;
+                --font-size-lg: 1.5rem;
+                --color-success: #008000;
+                --color-danger: #c00;
+                --link-color: #4b4bdf;
+                margin-top: 0.5rem;
+            }
+            .ol-otp-focus-sentinel {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                overflow: hidden;
+                clip: rect(0 0 0 0);
+                white-space: nowrap;
+            }
+        `;
+
+        // Overlay
+        this._overlay = document.createElement('div');
+        this._overlay.className = 'ol-otp-overlay';
+
+        // Dialog
+        this._dialog = document.createElement('div');
+        this._dialog.className = 'ol-otp-dialog';
+        this._dialog.setAttribute('role', 'dialog');
+        this._dialog.setAttribute('aria-modal', 'true');
+        this._dialog.setAttribute('aria-label', 'Sign in with a one-time code');
+        this._dialog.setAttribute('tabindex', '-1');
+
+        // Focus sentinels
+        this._sentinelStart = document.createElement('div');
+        this._sentinelStart.className = 'ol-otp-focus-sentinel';
+        this._sentinelStart.setAttribute('tabindex', '0');
+
+        this._sentinelEnd = document.createElement('div');
+        this._sentinelEnd.className = 'ol-otp-focus-sentinel';
+        this._sentinelEnd.setAttribute('tabindex', '0');
+
+        // Close button
+        this._closeBtn = document.createElement('button');
+        this._closeBtn.className = 'ol-otp-close-btn';
+        this._closeBtn.setAttribute('aria-label', 'Close');
+        this._closeBtn.innerHTML = '&times;';
+
+        // Content container — swapped between email and code step
+        this._contentContainer = document.createElement('div');
+
+        this._dialog.append(
+            this._sentinelStart,
+            this._closeBtn,
+            this._contentContainer,
+            this._sentinelEnd,
+        );
+        this._overlay.appendChild(this._dialog);
+
+        // Portal container
+        this._portal = document.createElement('div');
+        this._portal.setAttribute('data-ol-otp-portal', '');
+        this._portal.append(style, this._overlay);
+
+        // Wire permanent listeners (these never need to be re-added)
+        this._overlay.addEventListener('click', this._boundHandleOverlayClick);
+        this._overlay.addEventListener('keydown', this._boundHandleKeydown);
+        this._closeBtn.addEventListener('click', this._boundCloseModal);
+        this._sentinelStart.addEventListener('focus', this._boundFocusLast);
+        this._sentinelEnd.addEventListener('focus', this._boundFocusFirst);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._portal.remove();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Shadow DOM — trigger button only
+    // ---------------------------------------------------------------------------
+
     static styles = css`
-        :host {
-            display: inline-block;
-        }
+        :host { display: inline-block; }
 
         .trigger-btn {
             background: var(--primary-blue, hsl(202, 96%, 37%));
@@ -65,108 +243,6 @@ export class OpenLibraryOTP extends LitElement {
             outline: 2px solid currentColor;
             outline-offset: 2px;
         }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .overlay[open] {
-            display: flex;
-        }
-
-        .dialog {
-            background: #fff;
-            border-radius: 8px;
-            padding: 2rem;
-            max-width: 400px;
-            width: 90%;
-            position: relative;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            line-height: 1;
-            color: inherit;
-        }
-
-        h2 {
-            margin: 0 0 0.5rem;
-            font-size: 1.25rem;
-        }
-        p {
-            margin: 0 0 1rem;
-            font-size: 0.95rem;
-        }
-
-        .email-form {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .email-form label {
-            font-size: 0.9rem;
-            font-weight: bold;
-        }
-        .email-form input[type='email'] {
-            padding: 8px;
-            font-size: 1rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .email-form button[type='submit'] {
-            padding: 8px 16px;
-            background: var(--ia-button-primary-bg, #4b4bdf);
-            color: var(--ia-button-primary-color, #fff);
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            font-family: inherit;
-            cursor: pointer;
-            align-self: flex-start;
-        }
-        .email-form button[type='submit']:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .error {
-            color: var(--color-danger, #c00);
-            font-size: 0.9rem;
-            margin: 0;
-        }
-
-        ia-otp-form {
-            --font-size-standard: 0.95rem;
-            --font-size-lg: 1.5rem;
-            --color-success: #008000;
-            --color-danger: #c00;
-            --link-color: #4b4bdf;
-            margin-top: 0.5rem;
-        }
-
-        /* Visually-hidden focus sentinels used for focus-trapping */
-        .focus-sentinel {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            overflow: hidden;
-            clip: rect(0 0 0 0);
-            white-space: nowrap;
-        }
     `;
 
     render() {
@@ -174,107 +250,150 @@ export class OpenLibraryOTP extends LitElement {
             <button class="trigger-btn" @click=${this._openModal}>
                 Sign in with a one-time code
             </button>
-
-            <div
-                class="overlay"
-                ?open=${this._open}
-                @click=${this._handleOverlayClick}
-                @keydown=${this._handleKeydown}
-            >
-                <div
-                    class="dialog"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-label="Sign in with a one-time code"
-                    tabindex="-1"
-                >
-                    <!-- Focus sentinel: catches Shift+Tab past the first element -->
-                    <div
-                        class="focus-sentinel"
-                        tabindex="0"
-                        @focus=${this._focusLast}
-                    ></div>
-
-                    <button
-                        class="close-btn"
-                        @click=${this._closeModal}
-                        aria-label="Close"
-                    >
-                        &times;
-                    </button>
-                    ${this._step === 'email'
-        ? this._emailTemplate
-        : this._codeTemplate}
-
-                    <!-- Focus sentinel: catches Tab past the last element -->
-                    <div
-                        class="focus-sentinel"
-                        tabindex="0"
-                        @focus=${this._focusFirst}
-                    ></div>
-                </div>
-            </div>
         `;
     }
 
-    get _emailTemplate() {
-        return html`
-            <h2>Sign in with a one-time code</h2>
-            <p>
-                Enter your Internet Archive email and we'll send you a login
-                code.
-            </p>
-            <form class="email-form" @submit=${this._handleEmailSubmit}>
-                <label for="otp-email">Email</label>
-                <input
-                    type="email"
-                    id="otp-email"
-                    .value=${this._email}
-                    @input=${(e) => (this._email = e.target.value)}
-                    autocomplete="email"
-                    required
-                />
-                ${this._issueError
-        ? html`<p class="error">${this._issueError}</p>`
-        : nothing}
-                <button type="submit" ?disabled=${this._submitting}>
-                    ${this._submitting ? 'Sending…' : 'Send me a code'}
-                </button>
-            </form>
-        `;
-    }
+    // ---------------------------------------------------------------------------
+    // Imperative portal updates — called whenever state changes
+    // ---------------------------------------------------------------------------
 
-    get _codeTemplate() {
-        return html`
-            <h2>Enter your code</h2>
-            <p>
-                We sent a 6-digit code to
-                <strong>${this._email}</strong>.
-            </p>
-            <ia-otp-form
-                .validationStatus=${this._validationStatus}
-                .newCodeSending=${this._newCodeSending}
-                @codeSubmitted=${this._handleCodeSubmitted}
-                @newCodeRequested=${this._handleResend}
-            ></ia-otp-form>
-        `;
-    }
+    updated() {
+        if (!this._portal.isConnected) {
+            document.body.appendChild(this._portal);
+        }
 
-    updated(changedProperties) {
-        if (!changedProperties.has('_open')) return;
+        // Toggle overlay visibility
+        this._overlay.toggleAttribute('open', this._open);
+
+        // Render the correct step content
         if (this._open) {
-            // Focus the first interactive element once the dialog renders
-            requestAnimationFrame(() => {
-                const first = this.shadowRoot.querySelector(
-                    '.dialog input, .dialog button:not(.close-btn)'
-                );
-                (first || this.shadowRoot.querySelector('.dialog')).focus();
-            });
-        } else if (this._previousFocus) {
-            this._previousFocus.focus();
-            this._previousFocus = null;
+            if (this._step === 'email') {
+                this._renderEmailStep();
+            } else {
+                this._renderCodeStep();
+            }
         }
     }
+
+    _renderEmailStep() {
+        // Only rebuild if we're not already showing the email step
+        if (this._contentContainer.dataset.step === 'email') {
+            // Just patch the dynamic parts in place
+            const submitBtn = this._contentContainer.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = this._submitting;
+                submitBtn.textContent = this._submitting ? 'Sending…' : 'Send me a code';
+            }
+            const emailInput = this._contentContainer.querySelector('input[type="email"]');
+            if (emailInput && emailInput !== document.activeElement) {
+                emailInput.value = this._email;
+            }
+            // Error message
+            let errorEl = this._contentContainer.querySelector('.ol-otp-error');
+            if (this._issueError) {
+                if (!errorEl) {
+                    errorEl = document.createElement('p');
+                    errorEl.className = 'ol-otp-error';
+                    const submitBtn = this._contentContainer.querySelector('button[type="submit"]');
+                    this._contentContainer.querySelector('.ol-otp-email-form').insertBefore(errorEl, submitBtn);
+                }
+                errorEl.textContent = this._issueError;
+            } else if (errorEl) {
+                errorEl.remove();
+            }
+            return;
+        }
+
+        // Full rebuild of email step
+        this._teardownCodeStep();
+        this._contentContainer.dataset.step = 'email';
+        this._contentContainer.innerHTML = '';
+
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Sign in with a one-time code';
+
+        const p = document.createElement('p');
+        p.textContent = "Enter your Internet Archive email and we'll send you a login code.";
+
+        const form = document.createElement('form');
+        form.className = 'ol-otp-email-form';
+
+        const label = document.createElement('label');
+        label.setAttribute('for', 'otp-email');
+        label.textContent = 'Email';
+
+        const input = document.createElement('input');
+        input.type = 'email';
+        input.id = 'otp-email';
+        input.value = this._email;
+        input.setAttribute('autocomplete', 'email');
+        input.required = true;
+        input.addEventListener('input', this._boundHandleEmailInput);
+
+        const submitBtn = document.createElement('button');
+        submitBtn.type = 'submit';
+        submitBtn.disabled = this._submitting;
+        submitBtn.textContent = this._submitting ? 'Sending…' : 'Send me a code';
+
+        form.append(label, input, submitBtn);
+        form.addEventListener('submit', this._boundHandleEmailSubmit);
+
+        if (this._issueError) {
+            const errorEl = document.createElement('p');
+            errorEl.className = 'ol-otp-error';
+            errorEl.textContent = this._issueError;
+            form.insertBefore(errorEl, submitBtn);
+        }
+
+        this._contentContainer.append(h2, p, form);
+    }
+
+    _renderCodeStep() {
+        if (this._contentContainer.dataset.step === 'code') {
+            // Patch ia-otp-form properties in place
+            const otpForm = this._contentContainer.querySelector('ia-otp-form');
+            if (otpForm) {
+                otpForm.validationStatus = this._validationStatus;
+                otpForm.newCodeSending = this._newCodeSending;
+            }
+            return;
+        }
+
+        this._teardownEmailStep();
+        this._contentContainer.dataset.step = 'code';
+        this._contentContainer.innerHTML = '';
+
+        const h2 = document.createElement('h2');
+        h2.textContent = 'Enter your code';
+
+        const p = document.createElement('p');
+        p.innerHTML = `We sent a 6-digit code to <strong>${this._email}</strong>.`;
+
+        const otpForm = document.createElement('ia-otp-form');
+        otpForm.validationStatus = this._validationStatus;
+        otpForm.newCodeSending = this._newCodeSending;
+        otpForm.addEventListener('codeSubmitted', this._boundHandleCodeSubmitted);
+        otpForm.addEventListener('newCodeRequested', this._boundHandleResend);
+
+        this._contentContainer.append(h2, p, otpForm);
+    }
+
+    _teardownEmailStep() {
+        const form = this._contentContainer.querySelector('.ol-otp-email-form');
+        form?.removeEventListener('submit', this._boundHandleEmailSubmit);
+        const input = this._contentContainer.querySelector('input[type="email"]');
+        input?.removeEventListener('input', this._boundHandleEmailInput);
+    }
+
+    _teardownCodeStep() {
+        const otpForm = this._contentContainer.querySelector('ia-otp-form');
+        otpForm?.removeEventListener('codeSubmitted', this._boundHandleCodeSubmitted);
+        otpForm?.removeEventListener('newCodeRequested', this._boundHandleResend);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Modal lifecycle
+    // ---------------------------------------------------------------------------
 
     _openModal() {
         this._previousFocus = document.activeElement;
@@ -282,10 +401,26 @@ export class OpenLibraryOTP extends LitElement {
         this._step = 'email';
         this._issueError = '';
         this._validationStatus = 'ready';
+
+        requestAnimationFrame(() => {
+            const first = this._contentContainer.querySelector(
+                'input, button:not(.ol-otp-close-btn)'
+            );
+            (first || this._dialog).focus();
+        });
     }
 
     _closeModal() {
         this._open = false;
+        if (this._step === 'email') this._teardownEmailStep();
+        else this._teardownCodeStep();
+        this._contentContainer.innerHTML = '';
+        delete this._contentContainer.dataset.step;
+
+        if (this._previousFocus) {
+            this._previousFocus.focus();
+            this._previousFocus = null;
+        }
     }
 
     _handleOverlayClick(e) {
@@ -302,19 +437,23 @@ export class OpenLibraryOTP extends LitElement {
 
     /** Redirect Tab-past-end back to the first focusable element */
     _focusFirst() {
-        const el = this.shadowRoot.querySelector(
-            '.dialog button.close-btn, .dialog input, .dialog button:not([disabled])'
+        const el = this._dialog.querySelector(
+            'button.ol-otp-close-btn, input, button:not([disabled])'
         );
         el?.focus();
     }
 
     /** Redirect Shift+Tab-past-start back to the last focusable element */
     _focusLast() {
-        const candidates = this.shadowRoot.querySelectorAll(
-            '.dialog button:not([disabled]), .dialog input:not([disabled])'
+        const candidates = this._dialog.querySelectorAll(
+            'button:not([disabled]), input:not([disabled])'
         );
         candidates[candidates.length - 1]?.focus();
     }
+
+    // ---------------------------------------------------------------------------
+    // Fetch handlers
+    // ---------------------------------------------------------------------------
 
     async _handleEmailSubmit(e) {
         e.preventDefault();
@@ -323,9 +462,7 @@ export class OpenLibraryOTP extends LitElement {
         try {
             const resp = await fetch('/account/login/otp/issue', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ email: this._email }),
             });
             const data = await resp.json();
@@ -333,8 +470,7 @@ export class OpenLibraryOTP extends LitElement {
                 this._step = 'code';
                 this._validationStatus = 'ready';
             } else if (resp.status === 429) {
-                this._issueError =
-                    'Too many attempts. Please wait a moment and try again.';
+                this._issueError = 'Too many attempts. Please wait a moment and try again.';
             } else {
                 this._issueError = 'Unable to send code. Please try again.';
             }
@@ -350,9 +486,7 @@ export class OpenLibraryOTP extends LitElement {
         try {
             const resp = await fetch('/account/login/otp/redeem', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({
                     email: this._email,
                     otp: e.detail,
@@ -377,9 +511,7 @@ export class OpenLibraryOTP extends LitElement {
         try {
             await fetch('/account/login/otp/issue', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ email: this._email }),
             });
         } finally {
