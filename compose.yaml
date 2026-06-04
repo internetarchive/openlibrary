@@ -119,6 +119,41 @@ services:
         max-size: "512m"
         max-file: "4"
 
+  solr_loan_updater:
+    image: "${OLIMAGE:-oldev:latest}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    networks:
+      - webnet 
+    environment:
+      - LOCAL_DEV=true
+    command: docker/ol-solr-loan-updater-start.sh
+    volumes:
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  #delete when finished
+  dummy_provider: 
+    image: "${OLIMAGE:-oldev:latest}"
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    networks:
+      - webnet 
+    environment:
+      - LOCAL_DEV=true
+    command: ["python3", "openlibrary/temp/dummy_api.py"]
+    volumes:
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+      
 networks:
   webnet:
   dbnet:

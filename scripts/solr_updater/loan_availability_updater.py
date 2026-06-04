@@ -15,6 +15,8 @@ import datetime
 import json
 import logging
 import time
+#remove after testing. 
+import requests 
 from pathlib import Path
 
 import infogami
@@ -208,6 +210,7 @@ def main(
     poll_interval: int = POLL_INTERVAL,
     dry_run: bool = False,
     reset: bool = False,
+    use_ia: bool= True,
 ):
     """Poll IA loan changes and update Solr ebook_availability fields.
 
@@ -219,9 +222,10 @@ def main(
     :param poll_interval: Seconds to sleep when caught up with the event stream.
     :param dry_run: Fetch and log updates but do not write to Solr.
     :param reset: Ignore existing state and binary-search for the start uid.
+    :param use_ia: If True, use IA's loan changes API; if False, use a local mock for testing.
     """
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
-    logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
+    logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s, use_ia=%s", dry_run, reset, use_ia)
 
     load_config(ol_config)
     lending.setup(infogami.config)
