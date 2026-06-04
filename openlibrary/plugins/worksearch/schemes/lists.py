@@ -1,3 +1,4 @@
+from __future__ import annotations
 # See https://github.com/internetarchive/openlibrary/pull/10283#issuecomment-2940908216
 
 import logging

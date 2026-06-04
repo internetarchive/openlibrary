@@ -1,3 +1,4 @@
+from __future__ import annotations
 import datetime
 import re
 from collections.abc import Iterable
