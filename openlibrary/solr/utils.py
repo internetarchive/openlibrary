@@ -187,21 +187,24 @@ async def solr_insert_documents(
     documents: list[dict],
     solr_base_url: str | None = None,
     skip_id_check=False,
+    timeout: float | None = 30,
 ):
-    """
-    Note: This has only been tested with Solr 8, but might work with Solr 3 as well.
-    """
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
     if skip_id_check:
         params["overwrite"] = "false"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{solr_base_url}/update",
-            timeout=30,  # seconds; the default timeout is silly short
-            params=params,
-            headers={"Content-Type": "application/json"},
-            content=json.dumps(documents),
-        )
-    resp.raise_for_status()
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{solr_base_url}/update",
+                timeout=timeout,
+                params=params,
+                headers={"Content-Type": "application/json"},
+                content=json.dumps(documents),
+            )
+        resp.raise_for_status()
+    except HTTPStatusError as e:
+        response_body = e.response.text if e.response is not None else None
+        logger.error(f"HTTP Status Solr POST Error: {e}; response body: {response_body}")
+        raise

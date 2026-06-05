@@ -72,6 +72,7 @@ async def index_subjects(
         docs,
         solr_base_url=solr_base_url,
         skip_id_check=skip_id_check,
+        timeout=None,  # Don't set a timeout for indexing
     )
     print(
         json.dumps(
