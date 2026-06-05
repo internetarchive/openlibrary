@@ -530,6 +530,7 @@ def build_pagination_links(
     return links
 
 
+@deprecated("migrated to fastapi")
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
