@@ -7690,7 +7690,7 @@ msgid "Checked Out"
 msgstr ""
 
 #: LocateButton.html ReadButton.html
-msgid "Check Worldcat"
+msgid "Check WorldCat"
 msgstr ""
 
 #: LocateButton.html

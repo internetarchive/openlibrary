@@ -14,13 +14,11 @@ from typing import TYPE_CHECKING
 from urllib.parse import unquote
 
 import web
-
 from infogami import config
 from infogami.utils.delegate import create_site
 
 if TYPE_CHECKING:
     from fastapi import Request
-
     from infogami.infobase.client import Site
 
 

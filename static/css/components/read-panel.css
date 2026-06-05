@@ -287,6 +287,15 @@ ul.ebook-download-options li {
   /* stylelint-enable max-nesting-depth */
 }
 
+/* Map icon for standalone Check WorldCat button (outside .dropper-menu) */
+.btn-notice .btn-icon.map,
+.read-options .btn-icon.map {
+  background-image: url(/static/images/icons/icon_map.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
 /* Book-open icon for Borrow/Read buttons */
 .btn-notice .btn-icon.book-open,
 .read-options .btn-icon.book-open {

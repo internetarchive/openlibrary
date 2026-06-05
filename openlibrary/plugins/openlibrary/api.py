@@ -34,7 +34,6 @@ except ImportError:
 
 import qrcode
 import web
-
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
@@ -42,6 +41,7 @@ from infogami.utils import delegate
 from infogami.utils.view import (
     render_template,  # noqa: F401 used for its side effects
 )
+
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
