@@ -139,6 +139,22 @@ Route handlers render templates via `render_template("path/name", args)` which m
 - **Lit web components:** `openlibrary/components/lit/`, built with Vite to `static/build/lit-components/`.
 - **jQuery** is still widely used but new code should avoid it (ESLint no-jquery plugin active).
 
+### Browser Support
+
+We align with [MediaWiki Grade A ("modern")](https://www.mediawiki.org/wiki/Compatibility): evergreen Chrome/Edge/Firefox (last 3 years), Safari ≥ 11.1, iOS ≥ 11.3, Android ≥ 5. The **`browserslist` field in `package.json` is the source of truth** — when it and any doc disagree, trust `browserslist`.
+
+What the toolchain guarantees:
+
+- **Webpack JS** is transpiled by Babel (`@babel/preset-env` + core-js `useBuiltIns: "usage"`) — modern *syntax* and core-js-coverable *built-ins* are handled automatically.
+- **Vue/Lit components** are built by Vite with an explicit `build.target` (see `openlibrary/components/vite*.config.mjs`) — syntax is transpiled, but **runtime APIs are not polyfilled**.
+- **CSS is not transpiled at all** (no PostCSS) — every CSS feature must be natively supported at the floor. Check [caniuse](https://caniuse.com) against the Safari floor before using newer features.
+
+Rules for new code:
+
+- **Do not add polyfills or legacy fallback bundles.** IE11-era polyfills were removed deliberately (#12685).
+- **Web platform APIs are not auto-polyfilled anywhere** — feature-detect (`if ('IntersectionObserver' in window)`) or verify the API is within the floor before using it unguarded.
+- Browsers below the floor get the server-rendered experience: content stays readable, JS enhancements are untested. Don't deliberately break them, but don't spend effort on them either.
+
 ### Search
 
 Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
