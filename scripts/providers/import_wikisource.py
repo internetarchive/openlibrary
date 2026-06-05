@@ -5,6 +5,7 @@ uv pip install -r requirements_scripts.txt && \
     PYTHONPATH=. python ./scripts/providers/import_wikisource.py /olsystem/etc/openlibrary.yml && \
     uv pip uninstall -y -r requirements_scripts.txt
 """
+from __future__ import annotations
 
 import itertools
 import json
