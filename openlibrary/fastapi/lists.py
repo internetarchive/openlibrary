@@ -80,7 +80,7 @@ class CreateListResponse(BaseModel):
 def _get_list_or_404(key: str, raw: bool) -> dict:
     """Fetch a list by key and raise 404 if not found or deleted."""
     if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
-        raise HTTPException(status_code=404, detail="List not found")
+        raise HTTPException(status_code=404, detail="List or Series not found")
     return lst
 
 
@@ -282,7 +282,8 @@ def _update_list_seeds(key: str, payload: dict) -> dict:
     try:
         # Pass the payload safely directly to the legacy processor
         data = {"add": payload.get("add", []), "remove": payload.get("remove", [])}
-        return _LegacyListSeeds.process_seeds_update(lst, data, key)
+        with web_ctx_ip():
+            return _LegacyListSeeds.process_seeds_update(lst, data, key)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
