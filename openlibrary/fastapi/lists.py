@@ -393,7 +393,7 @@ def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: Commo
     key = f"/people/{username}/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
 
 
 @router.get("/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
@@ -401,7 +401,7 @@ def list_subjects_json_public(olid: ListOLID, limit: CommonSubjectsLimit = 20) -
     key = f"/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
 
 
 @router.get("/series/{olid}/subjects.json", response_model=ListSubjectsModel)
@@ -409,4 +409,4 @@ def list_subjects_json_series(olid: ListOLID, limit: CommonSubjectsLimit = 20) -
     key = f"/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")

@@ -1,40 +1,110 @@
-def test_get_list_seeds_public_success(fastapi_client, monkeypatch):
-    """Test fetching seeds for a known public list."""
+"""Tests for the FastAPI list/series seeds endpoints."""
 
-    def mock_get_list_seeds(key):
-        return {"entries": [{"url": "/works/OL123W", "type": "work"}], "size": 1}
+from unittest.mock import MagicMock, patch
 
-    monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", mock_get_list_seeds)
+import pytest
 
-    response = fastapi_client.get("/lists/OL3L/seeds.json")
-    assert response.status_code == 200
-    data = response.json()
-    assert "entries" in data
-    assert data["size"] == 1
+FAKE_SEEDS = {"entries": [{"url": "/works/OL123W", "type": "work"}], "size": 1}
 
 
-def test_get_list_seeds_not_found(fastapi_client, monkeypatch):
-    """Test fetching seeds for a list that does not exist."""
+class TestListSeedsGet:
+    """Tests for GET seeds endpoints (public and user-specific)."""
 
-    def mock_get_list_seeds(key):
-        return None
+    def test_get_list_seeds_public_success(self, fastapi_client, monkeypatch):
+        monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", lambda key: FAKE_SEEDS)
+        response = fastapi_client.get("/lists/OL3L/seeds.json")
+        assert response.status_code == 200
+        assert response.json() == FAKE_SEEDS
 
-    monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", mock_get_list_seeds)
+    def test_get_series_seeds_public_success(self, fastapi_client, monkeypatch):
+        monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", lambda key: FAKE_SEEDS)
+        response = fastapi_client.get("/series/OL3L/seeds.json")
+        assert response.status_code == 200
+        assert response.json() == FAKE_SEEDS
 
-    response = fastapi_client.get("/lists/OL999999L/seeds.json")
-    assert response.status_code == 404
-    assert response.json() == {"detail": "List or Series not found"}
+    def test_get_list_seeds_user_success(self, fastapi_client, monkeypatch):
+        monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", lambda key: FAKE_SEEDS)
+        response = fastapi_client.get("/people/testuser/lists/OL3L/seeds.json")
+        assert response.status_code == 200
+        assert response.json() == FAKE_SEEDS
+
+    def test_get_series_seeds_user_success(self, fastapi_client, monkeypatch):
+        monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", lambda key: FAKE_SEEDS)
+        response = fastapi_client.get("/people/testuser/series/OL3L/seeds.json")
+        assert response.status_code == 200
+        assert response.json() == FAKE_SEEDS
+
+    def test_get_list_seeds_not_found(self, fastapi_client, monkeypatch):
+        monkeypatch.setattr("openlibrary.fastapi.lists.get_list_seeds", lambda key: None)
+        response = fastapi_client.get("/lists/OL999999L/seeds.json")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "List or Series not found"}
 
 
-def test_post_list_seeds_unauthorized(fastapi_client, mock_site):
-    """Test that unauthorized users cannot mutate seeds."""
-    payload = {"add": ["/works/OL123W"], "remove": []}
-    response = fastapi_client.post("/lists/OL3L/seeds.json", json=payload)
-    assert response.status_code in [401, 403]
+class TestListSeedsPost:
+    """Tests for POST seeds endpoints."""
 
+    def test_post_seeds_unauthorized(self, fastapi_client):
+        """Unauthenticated requests to mutate seeds should be rejected."""
+        response = fastapi_client.post("/lists/OL3L/seeds.json", json={"add": ["/works/OL123W"], "remove": []})
+        assert response.status_code == 401
 
-def test_post_list_seeds_authorized(fastapi_client, mock_authenticated_user, mock_site):
-    """Test that a logged-in user successfully hits the permission logic."""
-    payload = {"add": ["/works/OL123W"], "remove": []}
-    response = fastapi_client.post("/lists/OL3L/seeds.json", json=payload)
-    assert response.status_code in [200, 403, 404]
+    @pytest.mark.parametrize(
+        ("url", "payload"),
+        [
+            ("/lists/OL3L/seeds.json", {"add": ["/works/OL123W"], "remove": []}),
+            (
+                "/people/testuser/lists/OL3L/seeds.json",
+                {"add": ["/works/OL123W"], "remove": ["/works/OL456W"]},
+            ),
+            ("/series/OL3L/seeds.json", {"add": ["/works/OL123W"], "remove": []}),
+        ],
+    )
+    def test_post_seeds_success(self, fastapi_client, mock_authenticated_user, url, payload):
+        """Authenticated user with write access can update seeds on any route."""
+        expected = {"status": "ok"}
+
+        with (
+            patch("openlibrary.fastapi.lists.site") as mock_site_context,
+            patch(
+                "openlibrary.fastapi.lists._LegacyListSeeds.process_seeds_update",
+                return_value=expected,
+            ) as mock_process,
+        ):
+            mock_list = MagicMock()
+            mock_site = MagicMock()
+            mock_site.get.return_value = mock_list
+            mock_site.can_write.return_value = True
+            mock_site_context.get.return_value = mock_site
+
+            response = fastapi_client.post(url, json=payload)
+
+        assert response.status_code == 200
+        assert response.json() == expected
+        mock_process.assert_called_once()
+
+    def test_post_seeds_list_not_found(self, fastapi_client, mock_authenticated_user):
+        """POST to a non-existent list should return 404."""
+        with patch("openlibrary.fastapi.lists.site") as mock_site_context:
+            mock_site = MagicMock()
+            mock_site.get.return_value = None
+            mock_site_context.get.return_value = mock_site
+
+            response = fastapi_client.post("/lists/OL999L/seeds.json", json={"add": [], "remove": []})
+
+        assert response.status_code == 404
+        assert response.json() == {"detail": "List or Series not found"}
+
+    def test_post_seeds_forbidden(self, fastapi_client, mock_authenticated_user):
+        """Authenticated user without write access should receive 403."""
+        with patch("openlibrary.fastapi.lists.site") as mock_site_context:
+            mock_list = MagicMock()
+            mock_site = MagicMock()
+            mock_site.get.return_value = mock_list
+            mock_site.can_write.return_value = False
+            mock_site_context.get.return_value = mock_site
+
+            response = fastapi_client.post("/lists/OL3L/seeds.json", json={"add": [], "remove": []})
+
+        assert response.status_code == 403
+        assert response.json() == {"detail": "Permission denied."}
