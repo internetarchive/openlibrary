@@ -60,7 +60,6 @@ table#pageHistory thead tr th {
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory tbody td.number {
-  font-weight: bold;
   text-align: center;
 }
 
@@ -113,22 +112,19 @@ table#pageHistory .compare-against a + a {
   margin-left: 6px;
 }
 
-/* stylelint-disable-next-line selector-max-specificity */
+/* Rev, when, and who links read as plain links: body-sized, blue, underlined */
+/* stylelint-disable selector-max-specificity */
+table#pageHistory td.number a,
+table#pageHistory td.when a,
 table#pageHistory td.who a {
   color: var(--link-blue);
-  text-decoration: none;
+  text-decoration: underline;
 }
+/* stylelint-enable selector-max-specificity */
 
 /* stylelint-disable-next-line selector-max-specificity */
 table#pageHistory td.comment a {
   color: var(--link-blue);
-  text-decoration: none;
-}
-
-/* stylelint-disable-next-line selector-max-specificity */
-table#pageHistory tbody td.number a {
-  color: var(--link-blue);
-  font-size: var(--font-size-label-medium);
   text-decoration: none;
 }
 
@@ -317,16 +313,6 @@ table#pageHistory tbody tr.pick-ab-selected td.number {
       "rev when pick"
       "rev diff pick";
   }
-
-  /* Uniform weight across the rev #, who, when, and comment */
-  /* stylelint-disable selector-max-specificity */
-  table#pageHistory tbody td.number,
-  table#pageHistory td.who,
-  table#pageHistory td.when,
-  table#pageHistory td.comment {
-    font-weight: normal;
-  }
-  /* stylelint-enable selector-max-specificity */
 
   /* Changes / vs current share one left-aligned row */
   /* stylelint-disable-next-line selector-max-specificity */

@@ -56,7 +56,7 @@ $ i18n_strings = {
                         <a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$v.revision</a>
                     </td>
                     <td class="when">
-                        $datestr(v.created)
+                        <a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a>
                     </td>
                     <td class="who">
                         $if v.author:
