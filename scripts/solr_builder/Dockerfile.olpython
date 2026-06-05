@@ -17,7 +17,7 @@ RUN uv pip install \
     cprofilev \
     # Faster python
     setuptools \
-    Cython==3.0.6
+    Cython==3.2.5
 
 # Build cython files
 COPY . /openlibrary
