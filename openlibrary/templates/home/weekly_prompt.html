@@ -1,0 +1,24 @@
+$def with ()
+
+$ username = ctx.user and ctx.user.key.split('/')[-1] or ''
+
+$ stub_nominations = [
+$   {"title": "Sapiens", "coverUrl": "https://covers.openlibrary.org/b/id/8739161-M.jpg", "score": 42, "workKey": "/works/OL17075881W"},
+$   {"title": "A Brief History of Time", "coverUrl": "https://covers.openlibrary.org/b/id/8241163-M.jpg", "score": 31, "workKey": "/works/OL3861477W"},
+$   {"title": "The Selfish Gene", "coverUrl": "https://covers.openlibrary.org/b/id/8571581-M.jpg", "score": 28, "workKey": "/works/OL1881422W"}
+$ ]
+
+<div class="carousel-section weekly-prompt-section">
+  <div class="carousel-section-header">
+    <h2 class="home-h2">$_("This Week's Prompt")</h2>
+  </div>
+
+  <ol-weekly-prompt
+    prompt-title="$_('Non-fiction books that expanded your understanding of the world')"
+    prompt-desc="$_('Staff pick · Week of June 2')"
+    nominations-json="$json_encode(stub_nominations)"
+    total-voters="18"
+    username="$username"
+    prompt-url="/prompts"
+  ></ol-weekly-prompt>
+</div>
