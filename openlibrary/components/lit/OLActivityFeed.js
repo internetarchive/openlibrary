@@ -62,8 +62,8 @@ export class OLActivityFeed extends LitElement {
 
         /* Individual activity card */
         .card {
-            background: #fff;
-            border-radius: 10px;
+            background: var(--white, #fff);
+            border-radius: var(--border-radius-card, 9px);
             box-shadow: 0 1px 4px rgba(0,0,0,.1);
             overflow: hidden;
         }
@@ -104,23 +104,29 @@ export class OLActivityFeed extends LitElement {
         .username:hover { text-decoration: underline; }
 
         .btn-follow {
-            background: #1565c0;
-            color: #fff;
-            border: none;
-            border-radius: 20px;
+            background: var(--primary-blue, #1565c0);
+            color: var(--white, #fff);
+            border: 1.5px solid var(--primary-blue, #1565c0);
+            border-radius: var(--border-radius-pill, 9999px);
             padding: 4px 12px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             flex-shrink: 0;
-            transition: background .15s;
+            transition: background-color .15s, border-color .15s;
         }
-        .btn-follow:hover { background: #0d47a1; }
+        .btn-follow:hover {
+            background: var(--link-blue, #0d47a1);
+            border-color: var(--link-blue, #0d47a1);
+        }
         .btn-follow.following {
-            background: #e0e0e0;
-            color: #444;
+            background: var(--white, #fff);
+            border-color: var(--color-border-subtle, #ccc);
+            color: var(--dark-grey, #444);
         }
-        .btn-follow.following:hover { background: #bdbdbd; }
+        .btn-follow.following:hover {
+            background: var(--lightest-grey, #f5f5f5);
+        }
 
         .action-text {
             font-size: 12px;
@@ -150,7 +156,7 @@ export class OLActivityFeed extends LitElement {
             width: 58px;
             height: 82px;
             object-fit: cover;
-            border-radius: 3px;
+            border-radius: var(--border-radius-thumbnail, 3px);
             flex-shrink: 0;
             box-shadow: 0 1px 3px rgba(0,0,0,.2);
         }
@@ -186,19 +192,22 @@ export class OLActivityFeed extends LitElement {
 
         .btn-primary {
             display: block;
-            background: #1565c0;
-            color: #fff;
-            border: none;
-            border-radius: 20px;
+            background: var(--primary-blue, #1565c0);
+            color: var(--white, #fff);
+            border: 1.5px solid var(--primary-blue, #1565c0);
+            border-radius: var(--border-radius-button, 6px);
             padding: 8px 0;
-            font-size: 13px;
-            font-weight: 600;
+            font-size: var(--font-size-body-medium, 13px);
+            font-weight: 500;
             text-align: center;
             text-decoration: none;
             cursor: pointer;
-            transition: background .15s;
+            transition: background-color .15s, border-color .15s;
         }
-        .btn-primary:hover { background: #0d47a1; }
+        .btn-primary:hover {
+            background: var(--link-blue, #0d47a1);
+            border-color: var(--link-blue, #0d47a1);
+        }
 
         /* Navigation footer */
         .feed-footer {
@@ -209,8 +218,8 @@ export class OLActivityFeed extends LitElement {
 
         .btn-next {
             background: none;
-            border: 1px solid #ccc;
-            border-radius: 50%;
+            border: 1.5px solid var(--color-border-subtle, #ccc);
+            border-radius: var(--border-radius-circle, 50%);
             width: 36px;
             height: 36px;
             font-size: 20px;
@@ -218,21 +227,24 @@ export class OLActivityFeed extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #444;
+            color: var(--dark-grey, #444);
             transition: border-color .15s, color .15s;
         }
-        .btn-next:hover { border-color: #1565c0; color: #1565c0; }
+        .btn-next:hover {
+            border-color: var(--primary-blue, #1565c0);
+            color: var(--primary-blue, #1565c0);
+        }
 
         .btn-more {
-            font-size: 13px;
-            font-weight: 600;
-            color: #1565c0;
+            font-size: var(--font-size-body-medium, 13px);
+            font-weight: 500;
+            color: var(--primary-blue, #1565c0);
             text-decoration: none;
             padding: 8px 4px;
             border-bottom: 2px solid transparent;
             transition: border-color .15s;
         }
-        .btn-more:hover { border-bottom-color: #1565c0; }
+        .btn-more:hover { border-bottom-color: var(--primary-blue, #1565c0); }
 
         .loading {
             padding: 24px;

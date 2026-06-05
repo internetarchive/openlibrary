@@ -4726,6 +4726,10 @@ msgstr ""
 msgid "Latest Blog Posts"
 msgstr ""
 
+#: home/activity_feed.html
+msgid "What's Happening Now"
+msgstr ""
+
 #: home/categories.html
 msgid "Browse by Subject"
 msgstr ""
