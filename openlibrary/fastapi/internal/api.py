@@ -9,16 +9,22 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from typing import Annotated, Any, Literal
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
+from starlette.responses import RedirectResponse
 
+from openlibrary import accounts
 from openlibrary.core import lending, models
+from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
+    get_authenticated_user,
     require_authenticated_user,
 )
 from openlibrary.fastapi.models import (
@@ -305,8 +311,40 @@ async def price_api(
     return await get_price_data_async(isbn or "", asin or "")
 
 
-async def patrons_follows_json():
-    pass
+class FollowEntry(BaseModel):
+    subscriber: str
+    publisher: str
+    disabled: bool
+    updated: datetime | None = None
+    created: datetime | None = None
+
+
+@router.get("/people/{username}/follows.json", response_model=list[FollowEntry])
+async def get_patron_follows(
+    username: Annotated[str, Path(pattern=r"^[^/]+$")],
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    redir_url: Annotated[str, Query()] = "",
+) -> list[FollowEntry] | RedirectResponse:
+    if not user or user.username != username:
+        return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
+    return PubSub.get_following(username)
+
+
+@router.post("/people/{username}/follows.json")
+async def post_patron_follows(
+    username: Annotated[str, Path(pattern=r"^[^/]+$")],
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    publisher: Annotated[str, Form()],
+    redir_url: Annotated[str, Form()] = "/",
+    state: Annotated[str, Form()] = "",
+) -> RedirectResponse:
+    if not user or user.username != username:
+        return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
+    if not accounts.find(username=publisher):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    action = PubSub.subscribe if state == "0" else PubSub.unsubscribe
+    action(user.username, publisher)
+    return RedirectResponse(url=redir_url, status_code=303)
 
 
 async def patrons_observations():
