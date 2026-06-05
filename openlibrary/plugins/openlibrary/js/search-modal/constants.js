@@ -10,7 +10,7 @@
 // scans are excluded from `has_fulltext` for non-print-disabled patrons. Bump
 // these when the corpus shifts materially.
 // `nested: true` marks an option as a subset of the broader option above it
-// ("Readable online"), so the filter indents it and marks it in-scope when the
+// ("Readable Only"), so the filter indents it and marks it in-scope when the
 // parent is selected. `icon` names a glyph in OlAvailabilityFilter._icons.
 export const AVAILABILITY_OPTIONS = [
     {
@@ -22,7 +22,7 @@ export const AVAILABILITY_OPTIONS = [
     },
     {
         value: 'readable',
-        label: 'Readable online',
+        label: 'Readable Only',
         description: 'Anything you can read in your browser',
         count: '4.6M',
         icon: 'globe',
@@ -114,14 +114,12 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageLabel: 'Language',
     languagePlaceholder: 'Search languages…',
     languageHeading: 'Languages',
-    startTyping: 'Start typing to search…',
     searching: 'Searching…',
     noResults: 'No results found',
     topResults: 'Top results',
     untitled: 'Untitled',
     authorLabel: 'Author',
     recentSearches: 'Recent searches',
-    clearRecents: 'Clear',
 };
 
 /**
@@ -153,7 +151,7 @@ export function searchModalStringsFromElement(el) {
  */
 export const AVAILABILITY_TO_PARAMS = {
     all: {},
-    // "Readable online" — everything a patron can read without special access:
+    // "Readable Only" — everything a patron can read without special access:
     // ebook_access:[borrowable TO *] via has_fulltext (public + borrowable).
     readable: { has_fulltext: 'true' },
     // "Borrow online" — readable but not public: borrowable scans only.

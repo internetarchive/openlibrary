@@ -411,12 +411,12 @@
   gap: var(--spacing-inline-sm);
 }
 
+/* Plain (chrome-less) wrapper on mobile/touch — the trigger reads as a
+   bare icon button there. The faux-input look (background, border,
+   radius) is added back at desktop widths in header-bar--desktop.css. */
 .header-bar .search-component .search-bar-component {
   display: flex;
   align-items: stretch;
-  background-color: var(--grey-fafafa);
-  border: 1px solid var(--dark-beige);
-  border-radius: 6px;
   position: relative;
 }
 
@@ -576,15 +576,15 @@
 }
 
 /* ── Search trigger button ───────────────────────────────────────────────
-   The header search is a button that opens the search modal. The
-   faux-input aesthetic (background, border, radius) lives on the
-   `.search-bar-component` wrapper; this button sits inside the pill.
+   The header search is a button that opens the search modal.
 
-   On mobile/touch widths the trigger renders as a compact icon-only pill
-   (the "Search" label is hidden). On desktop (header-bar--desktop.css)
-   it expands to fill the slot and the label is shown beside the icon —
-   the original wide "Search 🔍" bar. `aria-label="Search"` on the button
-   supplies the accessible name in both modes. */
+   On mobile/touch widths the trigger renders as a bare icon-only button
+   (the "Search" label is hidden, no input-like chrome). On desktop
+   (header-bar--desktop.css) the wrapper gains the faux-input aesthetic
+   (background, border, radius), the trigger expands to fill the slot,
+   and the label is shown beside the icon — the original wide "Search 🔍"
+   bar. `aria-label="Search"` on the button supplies the accessible name
+   in both modes. */
 .search-bar-trigger {
   flex: 0 0 auto;
   display: flex;
@@ -618,9 +618,8 @@
 
 /* ── Barcode scanner button ──────────────────────────────────────────────
    Standalone control that sits next to the search pill in the header
-   (not nested inside it), so the `.search-page` rule that hides the pill
-   still leaves the scanner reachable from the search results page. Only
-   surfaced on touch devices since scanning needs a camera. */
+   (not nested inside it). Only surfaced on touch devices since scanning
+   needs a camera. */
 .search-by-barcode {
   flex-shrink: 0;
   display: inline-flex;

@@ -19,7 +19,6 @@ import {
     availabilityOptionsFromElement,
     readStoredLanguages,
     searchModalStringsFromElement,
-    LS_RECENT_SEARCHES_KEY,
     readRecentSearches,
     saveRecentSearch,
     removeRecentSearch,
@@ -188,14 +187,14 @@ export class SearchModal extends LitElement {
         @media (hover: none) and (pointer: coarse) { .close-btn { display: inline-flex; } }
         @media (prefers-reduced-motion: reduce)    { .close-btn { transition: none; } }
 
-        /* ── Active filter chip row ────────────────────────────────── */
+        /* ── Active filter chip row (sits below the filter buttons) ── */
 
         .chips {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: var(--spacing-xs);
-            padding: var(--spacing-xs) var(--spacing-lg);
+            padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-sm);
             border-bottom: 1px solid var(--color-border-subtle);
         }
 
@@ -242,12 +241,19 @@ export class SearchModal extends LitElement {
             border-bottom: 1px solid var(--color-border-subtle);
         }
 
+        /* When the chip row follows, it carries the divider — no border
+           (or doubled spacing) between the two rows. */
+        .filters:has(+ .chips) {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
         /* ── Results ───────────────────────────────────────────────── */
 
         .results {
             flex: 1;
             min-height: 80px;
-            max-height: 320px;
+            max-height: 480px;
             overflow-y: auto;
             padding: var(--spacing-xs) 0;
         }
@@ -268,12 +274,15 @@ export class SearchModal extends LitElement {
             padding: 0;
         }
 
-        /* Sets the author suggestion apart from the "Top results" works below. */
-        .author-suggestion {
-            margin-bottom: var(--spacing-2xs);
-            padding-bottom: var(--spacing-2xs);
-            border-bottom: 1px solid var(--color-border-subtle);
-        }
+        /* Hairline above and below every row. Deliberately fainter than the
+           modal's section dividers (--color-border-subtle) so the lines read
+           as texture rather than structure. Adjacent rows share one line. */
+        .results-list li { border-top: 1px solid var(--lightest-grey); }
+        .results-list li:last-child { border-bottom: 1px solid var(--lightest-grey); }
+
+        /* Sets the author suggestion apart from the "Top results" works below.
+           The row hairlines draw the dividing line; this just adds air. */
+        .author-suggestion { margin-bottom: var(--spacing-2xs); }
 
         .result {
             display: flex;
@@ -378,66 +387,34 @@ export class SearchModal extends LitElement {
             font-weight: 400;
         }
 
-        .empty, .placeholder, .loading {
+        .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
             color: var(--accessible-grey);
             font-size: 14px;
             text-align: center;
         }
 
-        /* ── Recent-searches heading row ───────────────────────────────── */
-
-        .results-heading-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 var(--spacing-lg);
-        }
-
-        /* Overrides .results-heading's padding so the row wrapper owns it. */
-        .results-heading-row .results-heading { padding-left: 0; padding-right: 0; }
-
-        .clear-recents {
-            background: transparent;
-            border: none;
-            color: var(--accessible-grey);
-            font: inherit;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: var(--spacing-2xs) var(--spacing-sm);
-            border-radius: var(--border-radius-button);
-            transition: background-color 150ms ease;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .clear-recents:hover { background: var(--lightest-grey); }
-        }
-
-        .clear-recents:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) { .clear-recents { transition: none; } }
-
         /* ── Recent-search row ──────────────────────────────────────────── */
 
-        /* <li> is the flex container; anchor takes the remaining space. */
+        /* The whole row is one actionable item (a div with role="button",
+           since the remove button is nested inside it and buttons can't nest
+           in anchors). .result supplies the flex layout and hover/focus
+           treatment; the div just needs the pointer cursor anchors get free. */
         .recent-result {
-            display: flex;
-            align-items: center;
+            cursor: pointer;
+            /* Tighter than book/author rows — no cover or avatar to clear,
+               so the rows can sit closer together. */
+            padding-top: var(--spacing-2xs);
+            padding-bottom: var(--spacing-2xs);
         }
-
-        .recent-result .result { flex: 1; min-width: 0; }
 
         .result__recent-icon {
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 36px; /* matches the cover column so the text gutter lines up */
+            height: 28px;
             color: var(--accessible-grey);
         }
 
@@ -450,6 +427,10 @@ export class SearchModal extends LitElement {
             justify-content: center;
             width: 36px;
             height: 36px;
+            /* Keep the full 36px tap target without it propping the
+               tightened row back open. */
+            margin-top: -2px;
+            margin-bottom: -2px;
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
@@ -461,6 +442,12 @@ export class SearchModal extends LitElement {
 
         .recent-result:hover .result__remove-recent,
         .recent-result:focus-within .result__remove-recent { opacity: 1; }
+
+        /* One step darker than the row's hover background, so the button
+           reads as its own target inside the highlighted row. */
+        @media (hover: hover) and (pointer: fine) {
+            .result__remove-recent:hover { background: var(--lighter-grey); }
+        }
 
         .result__remove-recent svg { width: 16px; height: 16px; }
 
@@ -578,21 +565,16 @@ export class SearchModal extends LitElement {
         @media (max-width: 767px) {
             .search-input { font-size: 16px; }
             .results { max-height: none; flex: 1; }
-
-            /* The "Start typing to search…" prompt reads as confusing on a
-               phone where the keyboard is already up — drop it on mobile. */
-            .placeholder { display: none; }
-            .filters { padding: var(--spacing-xs) var(--spacing-md) var(--spacing-sm); }
-            .footer {
-                position: sticky;
-                bottom: 0;
-                background: var(--white);
-                border-top: 1px solid var(--color-border-subtle);
-            }
+            .filters { padding: 0; }
+            /* The footer is pinned by the dialog's flex column (it sits
+               outside the scrolling body), and the dialog itself is sized to
+               the visual viewport (--ol-dialog-fullscreen-height, set in
+               _onViewportResize) so the soft keyboard never covers it. */
+            .footer { background: var(--white); }
 
             /* Inset, rounded search field with the close (X) sitting outside it. */
             .bar {
-                padding: var(--spacing-md);
+                padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
                 border-bottom: none;
             }
             .search-field {
@@ -635,6 +617,19 @@ export class SearchModal extends LitElement {
         this._languages    = readStoredLanguages();
 
         this._recentSearches = readRecentSearches();
+
+        // Sizes the fullscreen dialog to the *visual* viewport so the footer
+        // (See all results) stays visible above the mobile soft keyboard.
+        // The dialog's default 100dvh tracks browser chrome but not the
+        // keyboard — on iOS Safari and Android Chrome alike, the keyboard
+        // shrinks only the visual viewport, leaving the bottom of a
+        // 100dvh-tall dialog hidden behind it.
+        this._onViewportResize = () => {
+            const vv = window.visualViewport;
+            if (!vv) return;
+            this.style.setProperty('--ol-dialog-fullscreen-height', `${Math.round(vv.height)}px`);
+        };
+
         this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
@@ -651,6 +646,7 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
+        window.visualViewport?.removeEventListener('resize', this._onViewportResize);
         super.disconnectedCallback();
     }
 
@@ -670,6 +666,18 @@ export class SearchModal extends LitElement {
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
         }
+        // Track the visual viewport while open so the keyboard sliding up
+        // (or browser chrome collapsing) resizes the dialog with it.
+        window.visualViewport?.addEventListener('resize', this._onViewportResize);
+        this._onViewportResize();
+        // Lit updates are async, which would defer the dialog's showModal()
+        // and the input focus past the trigger click's call stack. Mobile
+        // browsers only raise the soft keyboard for focus() calls made inside
+        // the user gesture, so flush both renders and focus synchronously.
+        // (ol-after-open re-focuses after the animation — that's a no-op here.)
+        this.performUpdate();
+        this.renderRoot.querySelector('ol-dialog')?.performUpdate();
+        this.renderRoot.querySelector('.search-input')?.focus();
     }
 
     _closeModal() { this.open = false; }
@@ -716,6 +724,10 @@ export class SearchModal extends LitElement {
                         <input
                             type="search"
                             class="search-input"
+                            autocomplete="off"
+                            autocorrect="off"
+                            autocapitalize="off"
+                            spellcheck="false"
                             placeholder=${this._i18n.inputPlaceholder}
                             aria-label=${this._i18n.inputAria}
                             .value=${this._query}
@@ -737,8 +749,8 @@ export class SearchModal extends LitElement {
                     >${SearchModal._closeIcon}</button>
                 </div>
 
-                ${hasFilters ? this._renderChips() : nothing}
                 ${this._renderFilters()}
+                ${hasFilters ? this._renderChips() : nothing}
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
@@ -832,7 +844,7 @@ export class SearchModal extends LitElement {
         if (!this._shouldAutocomplete()) {
             return this._recentSearches.length > 0
                 ? this._renderRecentSearches()
-                : html`<div class="results"><div class="placeholder">${this._i18n.startTyping}</div></div>`;
+                : html`<div class="results"></div>`;
         }
 
         if (this._loading && this._results.length === 0) {
@@ -859,21 +871,16 @@ export class SearchModal extends LitElement {
     _renderRecentSearches() {
         return html`
             <div class="results">
-                <div class="results-heading-row">
-                    <h3 class="results-heading">${this._i18n.recentSearches}</h3>
-                    <button
-                        type="button"
-                        class="clear-recents"
-                        @click=${this._clearRecentSearches}
-                    >${this._i18n.clearRecents}</button>
-                </div>
+                <h3 class="results-heading">${this._i18n.recentSearches}</h3>
                 <ul class="results-list">
                     ${repeat(this._recentSearches, s => s, s => html`
-                        <li class="recent-result">
-                            <a
-                                class="result"
-                                href="/search?q=${encodeURIComponent(s)}&mode=${searchMode.read()}"
-                                @click=${(e) => this._onRecentSearchClick(e, s)}
+                        <li>
+                            <div
+                                class="result recent-result"
+                                role="button"
+                                tabindex="0"
+                                @click=${() => this._onRecentSearchClick(s)}
+                                @keydown=${(e) => this._onRecentSearchKeydown(e, s)}
                             >
                                 <span class="result__recent-icon" aria-hidden="true">
                                     ${SearchModal._clockIcon}
@@ -881,13 +888,13 @@ export class SearchModal extends LitElement {
                                 <span class="result__meta">
                                     <span class="result__title">${s}</span>
                                 </span>
-                            </a>
-                            <button
-                                type="button"
-                                class="result__remove-recent"
-                                aria-label="Remove &quot;${s}&quot; from recent searches"
-                                @click=${() => { this._recentSearches = removeRecentSearch(s); }}
-                            >${SearchModal._closeIcon}</button>
+                                <button
+                                    type="button"
+                                    class="result__remove-recent"
+                                    aria-label="Remove &quot;${s}&quot; from recent searches"
+                                    @click=${(e) => { e.stopPropagation(); this._recentSearches = removeRecentSearch(s); }}
+                                >${SearchModal._closeIcon}</button>
+                            </div>
                         </li>
                     `)}
                 </ul>
@@ -897,8 +904,7 @@ export class SearchModal extends LitElement {
 
     // Clicking a recent-search row fills the input and kicks off a search,
     // rather than hard-navigating, so the patron sees inline results first.
-    _onRecentSearchClick(e, query) {
-        e.preventDefault();
+    _onRecentSearchClick(query) {
         this._query = query;
         const input = this.renderRoot.querySelector('.search-input');
         if (input) input.value = query;
@@ -906,9 +912,13 @@ export class SearchModal extends LitElement {
         this._debouncedFetch();
     }
 
-    _clearRecentSearches() {
-        try { localStorage.removeItem(LS_RECENT_SEARCHES_KEY); } catch { /* ignore */ }
-        this._recentSearches = [];
+    // role="button" rows activate on Enter and Space. Keydowns bubbling up
+    // from the nested remove button are ignored.
+    _onRecentSearchKeydown(e, query) {
+        if (e.target !== e.currentTarget) return;
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault(); // keep Space from scrolling the results
+        this._onRecentSearchClick(query);
     }
 
     // Save the current query to recent searches. Called before any navigation.
@@ -935,6 +945,7 @@ export class SearchModal extends LitElement {
                         <img
                             class="result__avatar-photo"
                             src="https://covers.openlibrary.org/a/olid/${author.key}-S.jpg?default=false"
+                            srcset="https://covers.openlibrary.org/a/olid/${author.key}-M.jpg?default=false 2x"
                             alt=""
                             loading="lazy"
                             @error=${this._onAvatarError}
@@ -958,6 +969,12 @@ export class SearchModal extends LitElement {
         const cover  = work.cover_i
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`
             : COVER_PLACEHOLDER;
+        // The S cover (~35px wide) is upscaled in the 36px slot on high-DPI
+        // screens, so retina displays fetch M (~180px) instead — the smallest
+        // size the coverstore offers that stays sharp at 2x.
+        const coverSrcset = work.cover_i
+            ? `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`
+            : nothing;
         return html`<li>
                 <a
                     class="result ${this._navigatingKey === work.key ? 'is-target' : ''}"
@@ -965,7 +982,7 @@ export class SearchModal extends LitElement {
                     @click=${(e) => this._onResultPress(e, work.key)}
                 >
                     <span class="result__cover-link">
-                        <img class="result__cover" src=${cover} alt="" loading="lazy" width="36" height="50"/>
+                        <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50"/>
                         <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
@@ -997,6 +1014,8 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
+        window.visualViewport?.removeEventListener('resize', this._onViewportResize);
+        this.style.removeProperty('--ol-dialog-fullscreen-height');
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.

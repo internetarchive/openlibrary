@@ -1865,9 +1865,13 @@ div#subjectLists p {
   }
 
   /* Mirrors header-bar--desktop.css: restores the wide "Search 🔍" bar
-     at desktop. Mobile/touch widths keep the icon-only pill. */
+     with its faux-input chrome at desktop. Mobile/touch widths keep the
+     bare icon-only button. */
   .header-bar .search-component .search-bar-component {
     width: 100%;
+    background-color: var(--grey-fafafa);
+    border: 1px solid var(--dark-beige);
+    border-radius: 6px;
   }
 
   .header-bar .search-bar-trigger {

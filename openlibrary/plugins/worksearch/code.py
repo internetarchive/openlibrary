@@ -127,7 +127,7 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 # materialize as in the URL.
 AVAILABILITY_TO_PARAMS: dict[str, dict[str, str]] = {
     "all": {},
-    # "Readable online" — readable without special access: ebook_access:[borrowable TO *]
+    # "Readable Only" — readable without special access: ebook_access:[borrowable TO *]
     # via has_fulltext (public + borrowable).
     "readable": {"has_fulltext": "true"},
     # "Borrow online" — readable but not public: borrowable scans only.
@@ -174,7 +174,7 @@ def get_availability_label(value: str) -> str:
     label text in AVAILABILITY_OPTIONS (search-modal/constants.js)."""
     return {
         "all": _("All books"),
-        "readable": _("Readable online"),
+        "readable": _("Readable Only"),
         "borrowable": _("Borrow online"),
         "open": _("Free to read now"),
     }.get(value, value)

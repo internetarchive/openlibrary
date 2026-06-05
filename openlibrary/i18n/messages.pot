@@ -6760,7 +6760,7 @@ msgid "Including print-only books with no digital copy"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
-msgid "Readable online"
+msgid "Readable Only"
 msgstr ""
 
 #: search/availability_i18n.html
@@ -6880,10 +6880,6 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "Search filters"
-msgstr ""
-
-#: search/search_modal_i18n.html
-msgid "Start typing to search…"
 msgstr ""
 
 #: search/search_modal_i18n.html

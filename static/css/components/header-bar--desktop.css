@@ -40,13 +40,16 @@
 }
 
 /* ── Desktop search trigger ─────────────────────────────────────────────
-   At desktop widths we restore the full-width "Search 🔍" bar: the pill
-   expands to fill the search-component slot, the trigger stretches to
-   fill the pill, the label is shown, and the magnifier sits at the
-   right edge. Mobile/touch widths keep the compact icon-only pill from
-   the base file. */
+   At desktop widths we restore the full-width "Search 🔍" bar: the
+   wrapper gains the faux-input chrome and expands to fill the
+   search-component slot, the trigger stretches to fill it, the label is
+   shown, and the magnifier sits at the right edge. Mobile/touch widths
+   keep the bare icon-only button from the base file. */
 .header-bar .search-component .search-bar-component {
   width: 100%;
+  background-color: var(--grey-fafafa);
+  border: 1px solid var(--dark-beige);
+  border-radius: 6px;
 }
 
 .header-bar .search-bar-trigger {

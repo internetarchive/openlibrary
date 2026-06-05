@@ -99,9 +99,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       </button>
     </div>
     $# Barcode scan needs a camera, so it's only surfaced on touch devices
-    $# (hidden on hover-capable pointers via CSS). It sits outside
-    $# .search-bar-component so the search-page hide rule (which targets the
-    $# pill only) keeps the scanner reachable from the search results page.
+    $# (hidden on hover-capable pointers via CSS).
     <a
       id="barcode_scanner_link"
       class="search-by-barcode"

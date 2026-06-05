@@ -44,6 +44,10 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @cssprop --ol-dialog-animation-duration - Open/close animation duration.
  * @cssprop --ol-dialog-top-offset - Distance from viewport top when
  *     `placement="top"`. Default `clamp(40px, 8vh, 96px)`.
+ * @cssprop --ol-dialog-fullscreen-height - Dialog height in fullscreen-on-mobile
+ *     mode. Default `100dvh`. Set this to the visual viewport height (px) to
+ *     keep slotted footer actions above the mobile soft keyboard — `dvh` units
+ *     ignore the keyboard.
  *
  * @fires ol-open - Fires when the dialog starts opening.
  * @fires ol-after-open - Fires after the open animation completes.
@@ -232,7 +236,7 @@ export class OlDialog extends LitElement {
         @media (max-width: 767px) {
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
-                height: 100dvh;
+                height: var(--ol-dialog-fullscreen-height, 100dvh);
                 max-width: none;
                 max-height: none;
                 border-radius: 0;
@@ -241,7 +245,7 @@ export class OlDialog extends LitElement {
             :host([fullscreen-on-mobile][placement="top"]) dialog {
                 margin-block-start: 0;
                 margin-block-end: 0;
-                max-height: 100dvh;
+                max-height: var(--ol-dialog-fullscreen-height, 100dvh);
             }
         }
 

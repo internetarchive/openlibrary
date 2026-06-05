@@ -19,7 +19,7 @@ let _idCounter = 0;
  *     and a hollow "in scope" check on each option that's a subset of the
  *     selection, and
  *   - a hierarchy where a nested option (e.g. "Free to read now") is contained
- *     by the broader option above it (e.g. "Readable online"), so selecting the
+ *     by the broader option above it (e.g. "Readable Only"), so selecting the
  *     parent marks its children as in-scope.
  *
  * It composes `<ol-popover>` directly for animation, focus trap, mobile tray,
