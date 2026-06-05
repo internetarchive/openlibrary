@@ -1,6 +1,8 @@
 """utility to generate db schema for any database engine.
 (should go to web.py)
 """
+from __future__ import annotations
+
 
 from types import MappingProxyType
 from typing import Literal
