@@ -28,12 +28,12 @@ import { LitElement, html, css, nothing } from 'lit';
  */
 export class OLWeeklyPrompt extends LitElement {
     static properties = {
-        promptTitle:     { type: String, attribute: 'prompt-title' },
-        promptDesc:      { type: String, attribute: 'prompt-desc' },
+        promptTitle: { type: String, attribute: 'prompt-title' },
+        promptDesc: { type: String, attribute: 'prompt-desc' },
         nominationsJson: { type: String, attribute: 'nominations-json' },
-        totalVoters:     { type: Number, attribute: 'total-voters' },
-        username:        { type: String },
-        promptUrl:       { type: String, attribute: 'prompt-url' },
+        totalVoters: { type: Number, attribute: 'total-voters' },
+        username: { type: String },
+        promptUrl: { type: String, attribute: 'prompt-url' },
     };
 
     static styles = css`
