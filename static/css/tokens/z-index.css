@@ -2,7 +2,7 @@
  * Z-Index Primitives
  * ======================
  * Raw stacking values. Do NOT use these directly in components — use semantic tokens instead.
- * Gaps in numbering (8–12, 15) are intentional deletions; do not fill them.
+ * Gaps in numbering (6–12, 15) are intentional deletions; do not fill them.
  */
 :root {
   --z-index-level-negative: -1;
@@ -26,10 +26,8 @@
  *   1. Never write a raw z-index number — Stylelint will reject it.
  *   2. Components with internal layering (cover fans, star ratings, etc.)
  *      must use isolation: isolate on their root so values don't leak globally.
- *   3. For new overlays prefer the Popover API / native <dialog> — they use
- *      the browser top layer and need no z-index at all.
  *
- * Layer hierarchy (low → high):
+ * Layer hierarchy (high → low):
  *
  *   toast      --z-index-toast      999999  ← always on top (notifications, lightbox)
  *   overlay    --z-index-overlay    99999   ← above modals (autocomplete inside dialog)
@@ -42,20 +40,6 @@
  *   behind     --z-index-behind     -1      ← behind parent content (decorative/animations)
  */
 :root {
-
-  /* ---- Stacking layers ----
-  *
-  *   ╔══════════════════════╗  toast / lightbox       999999
-  *   ╠══════════════════════╣  autocomplete overlay   99999
-  *   ╠══════════════════════╣  modal + backdrop       9999
-  *   ╠══════════════════════╣  floating menus         999
-  *   ╠══════════════════════╣  fixed chrome           10
-  *   ╠══════════════════════╣  sticky header          3
-  *   ╠══════════════════════╣  raised siblings        2
-  *   ╠══════════════════════╣  base lift              1
-  *   ╚══════════════════════╝  behind parent          -1
-  */
-
   --z-index-behind:   var(--z-index-level-negative); /* -1      – decorative elements behind parent (e.g. .editionCover animation) */
   --z-index-base:     var(--z-index-level-1);        /*  1      – minimum lift above static flow (e.g. cover fan ordinals, chevrons) */
   --z-index-raised:   var(--z-index-level-2);        /*  2      – one step above base (e.g. middle cover in fan, page-banner) */
