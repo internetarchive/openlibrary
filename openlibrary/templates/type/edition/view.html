@@ -197,13 +197,7 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ worldcat_url = ("https://worldcat.org/oclc/" + str(oclc_number)) if oclc_number else (("https://worldcat.org/isbn/" + str(isbn_13 or isbn_10)) if (isbn_13 or isbn_10) else "")
 $ _avail = (edition.availability or {}) if hasattr(edition, 'availability') else {}
-$ _show_unavailable_toast = not bool(
-    edition.get('ocaid') or
-    _avail.get('is_readable') or
-    _avail.get('status') == 'open' or
-    _avail.get('is_lendable') or
-    _avail.get('is_previewable')
-)
+$ _show_unavailable_toast = not bool(edition.get('ocaid') or _avail.get('is_readable') or _avail.get('status') == 'open' or _avail.get('is_lendable') or _avail.get('is_previewable'))
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
   <div class="workDetails">
