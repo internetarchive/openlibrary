@@ -191,6 +191,18 @@ async def solr_insert_documents(
     tolerant_chain=False,
     timeout: float | None = 30,  # noqa: ASYNC109
 ):
+    """
+    :param documents: List of documents to insert into Solr
+    :param solr_base_url: Base URL for Solr, e.g. http://localhost:8983/solr/openlibrary
+    :param skip_id_check: DANGER! If true, Solr will not check for duplicate IDs and will
+    insert documents even if they have the same ID as an existing document. This can lead
+        to data corruption and should only be used if you are sure that there are no
+        duplicate IDs in your dataset -- e.g. when inserting into an empty solr.
+    :param tolerant_chain: If true, use Solr's tolerant update chain, which will allow
+        the update to succeed even if some documents fail to index. This is useful for
+        large batches where you want to maximize the number of documents that get indexed,
+        even if there are some bad apples in the batch.
+    """
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
     if skip_id_check:
