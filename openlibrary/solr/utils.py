@@ -4,10 +4,10 @@ import os
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
+import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
 
 from openlibrary import config
-from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 if TYPE_CHECKING:
@@ -18,6 +18,7 @@ logger = logging.getLogger("openlibrary.solr")
 
 solr_base_url = None
 solr_next: bool | None = None
+httpx_client = httpx.AsyncClient()
 
 
 def load_config(c_config="conf/openlibrary.yml"):
@@ -134,7 +135,7 @@ async def solr_update(
     async def make_request():
         logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
-            resp = await get_solr().async_session.post(
+            resp = await httpx_client.post(
                 f"{solr_base_url}/update",
                 # Large batches especially can take a decent chunk of time
                 timeout=300,
@@ -195,7 +196,7 @@ async def solr_insert_documents(
         params["overwrite"] = "false"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     try:
-        resp = await get_solr().async_session.post(
+        resp = await httpx_client.post(
             f"{solr_base_url}/update",
             timeout=timeout,
             params=params,

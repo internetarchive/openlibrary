@@ -14,9 +14,7 @@ class TestSolrUpdate:
 
     def setup_solr_post(self, monkeypatch, response=None, side_effect=None):
         mock_post = AsyncMock(return_value=response, side_effect=side_effect)
-        mock_solr = MagicMock()
-        mock_solr.async_session.post = mock_post
-        monkeypatch.setattr(utils, "get_solr", lambda: mock_solr)
+        monkeypatch.setattr(utils.httpx_client, "post", mock_post)
         monkeypatch.setattr(retry_module.asyncio, "sleep", AsyncMock())
         return mock_post
 
