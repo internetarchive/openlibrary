@@ -143,7 +143,7 @@ def locate_item(itemid: str) -> tuple[str | None, str | None]:
     return d.get("server"), d.get("dir")
 
 
-def edition_from_item_metadata(itemid: str, metadata: dict) -> "ItemEdition | None":
+def edition_from_item_metadata(itemid: str, metadata: dict) -> ItemEdition | None:
     """Converts the item metadata into a form suitable to be used as edition
     in Open Library.
 
@@ -375,7 +375,7 @@ def get_candidates_url(
 def get_candidate_ocaids(
     day: datetime.date,
     marcs: bool = True,
-) -> Generator[str, None, None]:
+) -> Generator[str]:
     """
     Returns a list of identifiers that were finalized on the provided
     day, which may need to be imported into Open Library.

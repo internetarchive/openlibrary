@@ -1,10 +1,12 @@
 from collections.abc import Iterable
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import openlibrary.book_providers as bp
-from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.solr_types import SolrDocument
-from openlibrary.solr.utils import SolrUpdateRequest
+
+if TYPE_CHECKING:
+    from openlibrary.solr.data_provider import DataProvider
+    from openlibrary.solr.utils import SolrUpdateRequest
 
 
 class AbstractSolrUpdater:

@@ -160,7 +160,7 @@ WHERE {
     def excluded_categories(self) -> list[str]:
         return [self._catformat(c) for c in self.excluded_category_names]
 
-    def exclude_book(self, book: "BookRecord") -> bool:
+    def exclude_book(self, book: BookRecord) -> bool:
         bad_category = any(c for c in book.categories if c in self.excluded_categories)
         if bad_category:
             return True
@@ -604,7 +604,7 @@ def scrape_wikidata_api(
         return
 
     # Get book metadata from the wikidata API using 50 wikidata book IDs at a time
-    for batch in itertools.batched(item_ids, 50):
+    for batch in itertools.batched(item_ids, 50, strict=False):
         # "Title" and "page" (retrieved from the previous query) are often similar, but sometimes not exactly the same.
         # "Page" (the wikisource page ID) will sometimes contain extra info like the year of publishing, etc,
         # and is used to hyperlink back to Wikisource.
@@ -701,7 +701,7 @@ WHERE {
 
         # For some reason, querying 50 titles can sometimes bring back more than 50 results,
         # so we'll still explicitly do wikisource scraping in chunks of exactly 50.
-        for ws_batch in itertools.batched(ids_for_wikisource_api, 50):
+        for ws_batch in itertools.batched(ids_for_wikisource_api, 50, strict=False):
             # Get more info from Wikisource infoboxes that Wikidata statements don't have, like subjects and descriptions
             ws_api_url = update_url_with_params(
                 cfg.wikisource_api_url,
@@ -733,7 +733,7 @@ WHERE {
 
 def fix_contributor_data(imports: dict[str, BookRecord], map: dict[str, list[str]], cfg: LangConfig):
     contributor_ids = list(map.keys())
-    for batch in itertools.batched(contributor_ids, 50):
+    for batch in itertools.batched(contributor_ids, 50, strict=False):
         query = (
             """SELECT DISTINCT
   ?contributor

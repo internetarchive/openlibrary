@@ -24,8 +24,11 @@ npm run watch:lit-components # Watch Lit components
 
 ```bash
 # Python tests (excludes integration tests by default)
-make test-py
-pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+# Preferred: run outside Docker with uv (faster)
+make test-py-uv
+
+# Alternative: run inside Docker
+docker compose run --rm home make test-py
 
 # Run a single Python test file
 pytest openlibrary/core/tests/test_models.py
@@ -138,7 +141,7 @@ Route handlers render templates via `render_template("path/name", args)` which m
 
 ### Search
 
-Apache Solr 9.9 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
+Apache Solr 10 powers search. Config in `conf/solr/`. Indexing logic in `openlibrary/solr/`. The `solr-updater` service keeps the index current.
 
 ### Data Model
 
@@ -155,7 +158,7 @@ When creating PRs, use the template in `.github/pull_request_template.md` for th
 
 ## Code Style
 
-- **Python:** Ruff linter, Black formatter. Line length 162. Target Python 3.12.
+- **Python:** Ruff for linting and `ruff format` for formatting. Line length 162. Target Python 3.14.
 - **JavaScript:** ESLint with single quotes, `prefer-template`, `eqeqeq`. No jQuery in new code.
 - **CSS:** Stylelint enforces strict value rules — no hex colors, no named colors (use variables). Strict values required for `font-family`, `background-color`, `z-index`, `color`.
 - **Branch naming:** `{issue-number}/{type}/{slug}` (e.g., `123/fix/login-redirect`)

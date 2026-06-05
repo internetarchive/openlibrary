@@ -28,12 +28,17 @@ DEPLOY_DIR="/tmp/openlibrary_deploy"
 mkdir -p $DEPLOY_DIR
 
 WEB_HOSTNAMES="ol-web0 ol-web1 ol-web2 ol-web3"
-ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 ol-solr0 ol-solr1 ol-solr2 $WEB_HOSTNAMES"
+# Note: ol-solr0 and ol-solr2 are currently excluded due to a version
+# upgrade pending full reindex
+ALL_HOSTNAMES="ol-home0 ol-covers0 ol-www0 $WEB_HOSTNAMES"
 SERVER_SUFFIX=${SERVER_SUFFIX:-".us.archive.org"}
 
 KILL_CRON=${KILL_CRON:-""}
 LATEST_TAG=$(curl -s https://api.github.com/repos/internetarchive/openlibrary/releases/latest | sed -n 's/.*"tag_name": "\([^"]*\)".*/\1/p')
+# Convert "deploy-2026-05-19-at-19-10" to "2026-05-19T19:10" (replace "-at-" with "T" and the final "-" in the time with ":")
+LATEST_TAG_TIMESTAMP=$(echo "$LATEST_TAG" | sed 's/^deploy-//; s/-at-/T/; s/-\([0-9][0-9]\)$/:\1/')
 RELEASE_DIFF_URL="https://github.com/internetarchive/openlibrary/compare/$LATEST_TAG...master"
+RELEASE_MERGED_PRS_URL="https://github.com/internetarchive/openlibrary/pulls?q=is%3Apr++is%3Amerged+merged%3A$LATEST_TAG_TIMESTAMP..$(date -u +%Y-%m-%dT%H:%M)"
 DEPLOY_TAG="deploy-$(date -u +%Y-%m-%d-at-%H-%M)"
 
 # Install GNU parallel if not there
@@ -465,7 +470,14 @@ deploy_openlibrary() {
     if [[ "$SKIP_OL_TRANSFER_IMAGES" != "1" ]]; then
         echo ""
         echo "Pull the latest docker images..."
-        deploy_images
+        until deploy_images; do
+            read -p "Pulling images failed, retry? [Y/n] " choice
+            choice=${choice:-Y}
+            if [[ ! "$choice" =~ ^[Yy]$ ]]; then
+                echo "Aborting deployment."
+                clean_exit
+            fi
+        done
     fi
 
     if [[ "$TAG_DEPLOY" == "1" ]]; then
@@ -654,7 +666,11 @@ deploy_wizard() {
     # Announce the deploy
     echo "[Now] Announce deploy to #openlibrary-g, #openlibrary, and #open-librarians-g:"
     echo ""
-    echo "Open Library is in the process of deploying its weekly release. See what's changed: $RELEASE_DIFF_URL"
+    echo "Open Library is in the process of deploying its weekly release."
+    echo ""
+    echo "See what's changed: $RELEASE_DIFF_URL"
+    echo "PRs going out: $RELEASE_MERGED_PRS_URL"
+    echo ""
     read -p "Once announced, press Enter to continue..."
     echo ""
 

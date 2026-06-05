@@ -4,13 +4,13 @@
 
 ## Quick Reference
 
-**Stack:** Python 3.12 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 9.9
+**Stack:** Python 3.14 / web.py (Infogami) + FastAPI · Templetor templates · jQuery, Vue 3, Lit · webpack · Solr 10
 
 **Dev setup:** `make git && docker compose up` → http://localhost:8080
 
 ### Key Commands
 
-**Before committing**, run pre-commit on your changed files (requires Python 3.12 on host — `brew install python@3.12`):
+**Before committing**, run pre-commit on your changed files (requires Python 3.14 on host — `brew install python@3.14`):
 
 ```bash
 pre-commit run --files <file1> <file2> ...
@@ -18,17 +18,23 @@ pre-commit run --files <file1> <file2> ...
 
 The `mypy` and `generate-pot` hooks will fail on the host (they need `infogami` which only lives in Docker) — that's expected. Everything else must pass. Common auto-fixes that pre-commit applies and you should do yourself first:
 
-- **Double quotes** — use `"string"` not `'string'` in all new Python code (black/ruff-format enforces this)
+- **Double quotes** — use `"string"` not `'string'` in all new Python code (the Ruff formatter enforces this)
 - **Import order** — imports must be sorted: stdlib → third-party (alphabetical within each group) → local (ruff isort enforces this)
 - **No trailing whitespace** on any line
 - **Single newline at EOF** — no blank lines at end of file
 - **Walrus operator** — prefer `if x := expr:` over `x = expr` / `if x:` (auto-walrus enforces this)
 - **Line length** — max 162 chars
 
-The following commands should always be run inside docker like this: `docker compose run --rm home <command>`
+The following commands should be run inside docker (with `docker compose run --rm home <command>`). The exception is `test-py-uv`, which runs faster outside Docker using `uv`:
 
 ```bash
+make test-py-uv             # Python tests (preferred — runs outside Docker with uv)
 make test-py                # Python tests
+
+# Run a subset of Python tests by specifying a path:
+make test-py-uv PYTEST_ARGS="openlibrary/tests/fastapi/"
+# Or directly: uv run --with-requirements requirements_test.txt pytest openlibrary/tests/fastapi/
+
 npm run test:js             # JS tests
 make lint                   # Python lint (ruff)
 npm run lint                # JS + CSS lint
@@ -38,7 +44,7 @@ npm run watch               # Dev mode with hot reload
 
 ### Code Style
 
-- **Python:** Ruff + Black, line length 162, double quotes
+- **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
 - **JS:** ESLint, single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
 - **Branches:** `{issue-number}/{type}/{slug}`
