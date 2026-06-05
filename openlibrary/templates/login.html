@@ -31,10 +31,19 @@ $if "dev" in ctx.features:
         <div class="ol-signup-form__big-or">$_('OR')</div>
 
     $if ctx.user:
-        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+        $# `ctx.user.displayname` is user-controlled and was previously
+        $# interpolated into a raw HTML <a> tag, then emitted with `$:` --
+        $# anyone who set their displayname to e.g. `</a><script>...</script>`
+        $# got XSS on this page (admins/librarians visit /account/login while
+        $# already logged in; the same payload also fires for anyone who is
+        $# tricked into setting a malicious displayname). websafe() each
+        $# user-controlled component before splicing into the i18n HTML.
+        <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (websafe(ctx.user.key), websafe(ctx.user.displayname)))</p>
         <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'hamburger-logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 
     $else:
+        <ol-otp-login redirect="$(form.redirect.value or '/account/books')"></ol-otp-login>
+        <div class="ol-signup-form__big-or">$_('OR')</div>
         <form id="register" class="login olform" name="login" method="post" data-i18n="$json_encode(i18n_strings)">
             $if form.note:
                 <div class="flash-messages">
@@ -86,5 +95,6 @@ $if "dev" in ctx.features:
             </div>
             <p class="ol-signup-form__login-hint">$:_('Don\'t have an account? <a href="/account/create">Sign up now</a>.')</p>
         </form>
+
     </div>
 </div>

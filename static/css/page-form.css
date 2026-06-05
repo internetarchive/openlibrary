@@ -104,9 +104,9 @@ div#revertLink,
   font-size: 1.5em;
   font-weight: 700;
   color: var(--black);
-  padding: 6px 0 0 40px;
+  padding: var(--spacing-inset-xs) 0 0 40px;
   min-height: 30px;
-  margin: 25px 0 15px;
+  margin: var(--spacing-stack-lg) 0 var(--spacing-stack-md);
 }
 .saved-image-container {
   display: flex;
@@ -149,7 +149,7 @@ div#revertLink,
 }
 
 .ol-cover-form .label {
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-stack-sm);
 }
 
 .ol-cover-form .input {

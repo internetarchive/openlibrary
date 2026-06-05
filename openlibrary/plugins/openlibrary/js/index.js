@@ -4,6 +4,7 @@ import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
+import { queueAction } from './utils';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -11,6 +12,26 @@ exposeGlobally();
 
 window.jQuery = jQuery;
 window.$ = jQuery;
+
+// Global listener for login intent buttons
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.js-login-intent');
+    if (btn) {
+        const action = btn.dataset.action;
+        const title = btn.dataset.title;
+        const type = btn.dataset.type || 'item';
+        const targetUrl = btn.dataset.resumeurl || (window.location.pathname + window.location.search);
+        if (action && title) {
+            queueAction(action, title, targetUrl, type);
+        }
+        if (btn.tagName !== 'A') {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            window.location.href = `/account/login?redirect=${encodeURIComponent(targetUrl)}`;
+        }
+    }
+}, true);
 
 // Init the service worker first since it does caching
 initServiceWorker();

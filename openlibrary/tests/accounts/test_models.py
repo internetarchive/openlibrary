@@ -97,3 +97,59 @@ def test_get(mock_web):
     key = f"test/{retrieved_username}"
     retrieved_account = OpenLibraryAccount.get_by_key(key)
     assert retrieved_account
+
+
+# --- InternetArchiveAccount.verify() ---
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_success(mock_xauth):
+    mock_xauth.return_value = {
+        "success": True,
+        "values": {
+            "email": "test@example.com",
+            "itemname": "@test",
+            "screenname": "test",
+            "s3": {"access": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI"},
+        },
+    }
+    result = InternetArchiveAccount.verify(token="sometoken")
+    assert "error" not in result
+    assert result["email"] == "test@example.com"
+    assert result["s3"]["access"] == "AKIAIOSFODNN7EXAMPLE"
+    assert result["s3"]["secret"] == "wJalrXUtnFEMI"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_invalid_token(mock_xauth):
+    mock_xauth.return_value = {"success": False, "values": {"reason": "invalid_token"}}
+    result = InternetArchiveAccount.verify(token="badtoken")
+    assert result.get("error") == "invalid_token"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_already_activated(mock_xauth):
+    mock_xauth.return_value = {
+        "success": False,
+        "values": {"reason": "account_already_activated"},
+    }
+    result = InternetArchiveAccount.verify(token="usedtoken")
+    assert result.get("error") == "account_already_activated"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_xauth_failure_returns_generic_error(mock_xauth):
+    mock_xauth.return_value = {"success": False, "error": "server_error"}
+    result = InternetArchiveAccount.verify(token="anytoken")
+    assert result.get("error") == "server_error"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_xauth_sends_activate_op(mock_xauth):
+    """Confirm the xauthn activate op and token are forwarded correctly."""
+    mock_xauth.return_value = {"success": False, "values": {"reason": "invalid_token"}}
+    InternetArchiveAccount.verify(token="mytoken")
+    assert mock_xauth.called
+    call_kwargs = mock_xauth.call_args.kwargs
+    assert call_kwargs["op"] == "activate"
+    assert call_kwargs["token"] == "mytoken"

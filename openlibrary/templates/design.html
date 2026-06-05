@@ -17,6 +17,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#select-popover">Select Popover</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
+        <li><a href="#button">$_("Button")</a></li>
         <li><a href="#chip-group">$_("Chip Group")</a></li>
         <li><a href="#markdown-editor">$_("Markdown Editor")</a></li>
       </ul>
@@ -298,6 +299,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </section>
       </article>
 
+      $:render_template("design/button")
+
       <article class="design-pattern" id="chip-group">
         <h2 class="design-pattern__title">$_("Chip Group")</h2>
         <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
@@ -305,7 +308,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Default (medium gap)")</h3>
           <p>$_("Chips are spaced with an 8px gap by default.")</p>
-          <code class="example__code">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
           <div class="example__output">
             <ol-chip-group>
               <ol-chip>$_("Fiction")</ol-chip>
@@ -320,7 +323,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Small gap")</h3>
           <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
-          <code class="example__code">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
           <div class="example__output">
             <ol-chip-group gap="small">
               <ol-chip size="small">$_("Fiction")</ol-chip>
@@ -335,7 +338,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <section class="example">
           <h3 class="example__title">$_("Large gap")</h3>
           <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
-          <code class="example__code">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
           <div class="example__output">
             <ol-chip-group gap="large">
               <ol-chip>$_("Fiction")</ol-chip>
@@ -379,7 +382,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       <article class="design-pattern" id="markdown-editor">
         <h2 class="design-pattern__title">$_("Markdown Editor")</h2>
-        <p class="design-pattern__description">$_("The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea.")</p>
+        <p class="design-pattern__description">$_("The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that outputs Markdown. It syncs its content to a hidden target textarea. A 'View source' toolbar toggle is always available so editors can drop into a raw markdown textarea when WYSIWYG round-trips are awkward.")</p>
 
         <section class="example">
           <h3 class="example__title">$_("Basic usage")</h3>

@@ -1,9 +1,9 @@
 """Reading log check-ins handler and services."""
 
 import json
+from warnings import deprecated
 
 import web
-from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public
@@ -38,7 +38,10 @@ def is_valid_date(year: int, month: int | None, day: int | None) -> bool:
     """
     if not year:
         return False
-
+    if month is not None and not 1 <= int(month) <= 12:
+        return False
+    if day is not None and not 1 <= int(day) <= 31:
+        return False
     return not day or bool(month)
 
 

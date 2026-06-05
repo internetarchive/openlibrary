@@ -11,7 +11,7 @@ body {
 }
 
 .widget {
-  padding: 10px 0;
+  padding: var(--spacing-inset-sm) 0;
 }
 
 .open a {
@@ -26,10 +26,10 @@ body {
   border-radius: 3px;
   width: 130px;
   margin: 0 auto;
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   text-align: center;
   font-size: 0.9em;
-  padding: 5px 0;
+  padding: var(--spacing-inset-xs) 0;
   cursor: pointer;
 }
 

@@ -166,7 +166,7 @@ class SolrInternalsParams(BaseModel):
                 continue
 
             if value and value.startswith("$"):
-                if not re.match(r"^\$[a-zA-Z0-9.-_]+$", value):
+                if not re.match(r"^\$[a-zA-Z0-9._-]+$", value):
                     raise ValueError("Invalid solr internal variable supplied")
                 # Variables shouldn't be quoted
                 params.append(f"{solr_name}={value}")

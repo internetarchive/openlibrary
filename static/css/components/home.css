@@ -4,7 +4,7 @@ div.tutorial__item {
   background-color: var(--book-cover-carousel-cards);
   border: var(--border-card);
   border-radius: var(--border-radius-card);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   min-width: 220px;
 }
 
@@ -68,7 +68,7 @@ div.chartHome a:hover,
 #home-stats-charts .statschart .chartShow {
   width: 145px;
   height: 60px;
-  margin: 0 5px;
+  margin: 0 var(--spacing-inline-sm);
   border-bottom: 1px solid var(--grey);
   cursor: pointer;
 }
@@ -85,11 +85,11 @@ div.chartHome a:hover,
 }
 
 #home-stats-charts .statschart a .ticks {
-  margin-top: 2px;
+  margin-top: var(--spacing-3xs);
   font-family: var(--font-family-serif);
   font-size: 1.125em;
   font-weight: 700;
-  padding-top: 5px;
+  padding-top: var(--spacing-inset-xs);
 }
 
 #home-stats-charts .statschart a .label {
@@ -141,7 +141,7 @@ div.chartHome a:hover,
   min-width: 150px;
   min-height: 100px;
   margin-bottom: 20px;
-  padding: 0 10px;
+  padding: 0 var(--spacing-inset-sm);
 }
 
 .home-resource-section li {

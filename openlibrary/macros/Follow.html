@@ -6,19 +6,22 @@ $   'unfollow': _('Unfollow'),
 $   'errorMsg': _('Failed to update followers. Please try again in a few moments.')
 $ }
 
-$ subscriber = ctx.user and ctx.user.key
+$ user = get_current_user()
+$ subscriber = user and user.key
 $ custom_request_path = request_path if request_path != '' else request.fullpath
 $ link_track_attr = 'data-ol-link-track="%s"' % link_track.replace('"', '&quot;') if link_track else ''
+$ data_attr = get_preserve_intent_attrs(_("Follow"), publisher, "patron", custom_request_path) if not following else ''
+
 <div>
-  $if ctx.user:
+  $if user:
     <form class="follow-form" id="follow_$fid" method="POST" action="$(subscriber)/follows.json"
           property="follow" typeof="Follows" vocab="http://schema.org/">
       <input type="hidden" value="$following" name="state"/>
       <input type="hidden" value="$publisher" name="publisher"/>
       <input type="hidden" value="$custom_request_path" name="redir_url"/>
       $ css_treatment = 'delete' if following else 'primary'
-      <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)" $link_track_attr>$(_("Unfollow") if following else _("Follow"))</button>
+      <button type="submit" class="cta-btn cta-btn--$(css_treatment)" data-i18n="$json_encode(i18n_strings)" $link_track_attr $:data_attr>$(_("Unfollow") if following else _("Follow"))</button>
     </form>
   $else:
-    <a class="cta-btn cta-btn--primary" href="/account/login?redir_url=$(ctx.path)&action=follow:$(publisher)" $link_track_attr>$_("Follow")</a>
+    <a class="cta-btn cta-btn--primary js-login-intent" href="/account/login?redirect=$(urlquote(custom_request_path))" $link_track_attr $:data_attr>$_("Follow")</a>
 </div>

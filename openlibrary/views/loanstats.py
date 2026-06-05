@@ -22,7 +22,7 @@ from ..utils import dateutil
 LENDING_TYPES = "(libraries|regions|countries|collections|subjects|format)"
 
 
-SINCE_DAYS = {
+SINCE_DAYS: dict[str, int | None] = {
     "now": 0,
     "daily": 1,
     "weekly": 7,
@@ -57,9 +57,22 @@ async def get_trending_books(
     fields: Iterable[str] | None = None,
 ):
     logged_books = (
-        Bookshelves.get_recently_logged_books(limit=limit, page=page)
+        Bookshelves.get_recently_logged_books(
+            shelf_ids=[
+                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+            ],
+            limit=limit,
+            page=page,
+        )
         if (since_days == 0 and since_hours == 0)
         else Bookshelves.most_logged_books(
+            shelf_ids=[
+                Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+            ],
             since=dateutil.todays_date_minus(days=since_days, hours=since_hours),
             limit=limit,
             page=page,
@@ -74,13 +87,13 @@ async def get_trending_books(
 
 @cache.memoize("memcache", "stats.trending", expires=dateutil.HOUR_SECS)
 def cached_get_most_logged_books(
-    shelf_id: int | None = None,
-    since_days=1,
-    limit=20,
-    page=1,
+    shelf_ids: list[int] | None = None,
+    since_days: int | None = 1,
+    limit: int = 20,
+    page: int = 1,
 ):
     return Bookshelves.most_logged_books(
-        shelf_id=shelf_id,
+        shelf_ids=shelf_ids,
         since=dateutil.date_n_days_ago(since_days),
         limit=limit,
         page=page,
@@ -92,10 +105,10 @@ def reading_log_leaderboard(limit: int):
     if "env" not in web.ctx:
         delegate.fakeload()
 
-    most_read = Bookshelves.most_logged_books(Bookshelves.PRESET_BOOKSHELVES["Already Read"], limit=limit)
-    most_wanted_all = Bookshelves.most_logged_books(Bookshelves.PRESET_BOOKSHELVES["Want to Read"], limit=limit)
+    most_read = Bookshelves.most_logged_books(shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Already Read"]], limit=limit)
+    most_wanted_all = Bookshelves.most_logged_books(shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Want to Read"]], limit=limit)
     most_wanted_month = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+        shelf_ids=[Bookshelves.PRESET_BOOKSHELVES["Want to Read"]],
         limit=limit,
         since=dateutil.DATE_ONE_MONTH_AGO,
     )
@@ -146,10 +159,26 @@ class activity_stream(app.view):
         mode = mode[1:]  # remove slash
         limit = 20
         if mode == "now":
-            logged_books = Bookshelves.get_recently_logged_books(limit=limit, page=page)
-
+            logged_books = Bookshelves.get_recently_logged_books(
+                shelf_ids=[
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+                ],
+                limit=limit,
+                page=page,
+            )
         else:
-            logged_books = cached_get_most_logged_books(since_days=SINCE_DAYS[mode], limit=limit, page=page)
+            logged_books = cached_get_most_logged_books(
+                shelf_ids=[
+                    Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+                    Bookshelves.PRESET_BOOKSHELVES["Currently Reading"],
+                    Bookshelves.PRESET_BOOKSHELVES["Already Read"],
+                ],
+                since_days=SINCE_DAYS[mode],
+                limit=limit,
+                page=page,
+            )
         Bookshelves.add_solr_works(logged_books)
         return app.render_template("trending", logged_books=logged_books, mode=mode)
 

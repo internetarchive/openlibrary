@@ -191,7 +191,7 @@ $if edition.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ affiliate_links = macros.AffiliateLinks(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices}, async_load=True)
+$ affiliate_links = macros.AffiliateLinksLoadingIndicator(edition.title, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
 $ component_times['affiliate_links component'] = time() - component_times['affiliate_links component']
 
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""

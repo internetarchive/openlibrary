@@ -395,8 +395,8 @@ export class OlSelectPopover extends LitElement {
                 class="default-trigger"
                 aria-label=${ifDefined(count > 0 ? `${this.label}, ${count} selected` : undefined)}
             >
-                ${OlSelectPopover._chevronIcon}
                 <span>${text}</span>
+                ${OlSelectPopover._chevronIcon}
             </button>
         `;
     }
@@ -519,9 +519,10 @@ export class OlSelectPopover extends LitElement {
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
             this._focusFirstItem();
-        } else {
-            // Plain open: focus the filter if present, otherwise let ol-popover's
-            // panel focus take over for keyboard list scanning.
+        } else if (!window.matchMedia('(max-width: 767px)').matches) {
+            // Desktop: focus the filter so the user can type immediately. Skipped
+            // on mobile (matches ol-popover's tray breakpoint) so the soft
+            // keyboard doesn't pop up and shrink the visible list area.
             const filter = this.shadowRoot?.querySelector('.filter-input');
             if (filter) filter.focus();
         }

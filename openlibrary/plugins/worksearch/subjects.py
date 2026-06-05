@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import date
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import web
 
@@ -12,7 +12,9 @@ from openlibrary.core.lending import add_availability_async
 from openlibrary.core.models import Subject, Tag
 from openlibrary.solr.query_utils import query_dict_to_str
 from openlibrary.utils.async_utils import async_bridge
-from openlibrary.utils.solr import SolrRequestLabel
+
+if TYPE_CHECKING:
+    from openlibrary.utils.solr import SolrRequestLabel
 
 __all__ = ["SubjectEngine", "get_subject"]
 
@@ -59,17 +61,27 @@ class subjects(delegate.page):
         return key
 
     def decorate_with_tags(self, subject) -> None:
-        if tag_keys := Tag.find(subject.name):
+        name = subject.name
+        # Split prefixed subjects: "genre:thriller" → tag_type="genre", slug="thriller"
+        if ":" in name:
+            tag_type, slug_raw = name.split(":", 1)
+            slug = Tag.normalize(slug_raw)
+        else:
+            tag_type = subject.subject_type
+            slug = Tag.normalize(name)
+
+        if tag_keys := Tag.find(slug):
             tags = web.ctx.site.get_many(tag_keys)
             subject.disambiguations = tags
 
-            if filtered_tags := [tag for tag in tags if tag.tag_type == subject.subject_type]:
+            if filtered_tags := [tag for tag in tags if tag.tag_type == tag_type]:
                 subject.tag = filtered_tags[0]
                 # Remove matching subject tag from disambiguated tags:
                 subject.disambiguations = list(set(tags) - {subject.tag})
 
             for tag in subject.disambiguations:
-                tag.subject_key = f"/subjects/{tag.name}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{tag.name}"
+                slug = tag.slugs[0] if tag.get("slugs") else Tag.normalize(tag.name)
+                tag.subject_key = f"/subjects/{slug}" if tag.tag_type == "subject" else f"/subjects/{tag.tag_type}:{slug}"
 
 
 def date_range_to_publish_year_filter(published_in: str) -> str:
@@ -275,7 +287,7 @@ class SubjectEngine:
             works=await add_availability_async([self.work_wrapper(d) for d in result.docs]),
         )
 
-        if details:
+        if details and result.facet_counts:
             result.facet_counts = {
                 facet_field: [self.facet_wrapper(facet_field, key, label, count) for key, label, count in facet_counts]
                 for facet_field, facet_counts in result.facet_counts.items()
@@ -334,7 +346,7 @@ class SubjectEngine:
             return web.storage(name=label, key=f"/authors/{value}", count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
             engine = next((d for d in SUBJECTS if d.facet == facet), None)
-            assert engine is not None, "Invalid subject facet: {facet}"
+            assert engine is not None, f"Invalid subject facet: {facet}"
             return web.storage(
                 key=engine.prefix + Tag.normalize(value),
                 name=value,

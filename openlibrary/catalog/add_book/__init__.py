@@ -575,7 +575,7 @@ def check_cover_url_host(cover_url: str | None, allowed_cover_hosts: Iterable[st
 def load_data(  # noqa: PLR0912, PLR0915
     rec: dict,
     account_key: str | None = None,
-    existing_edition: "Edition | None" = None,
+    existing_edition: Edition | None = None,
     save: bool = True,
 ):
     """
@@ -813,7 +813,7 @@ def find_match(rec: dict, edition_pool: dict) -> str | None:
     return find_quick_match(rec) or find_threshold_match(rec, edition_pool)
 
 
-def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "Edition", save: bool) -> bool:
+def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: Edition, save: bool) -> bool:
     """
     Enrich the Edition by adding certain fields present in rec but absent
     in edition.
@@ -896,7 +896,7 @@ def update_edition_with_rec_data(rec: dict, account_key: str | None, edition: "E
     return need_edition_save
 
 
-def update_work_with_rec_data(rec: dict, edition: "Edition", work: dict[str, Any], need_work_save: bool) -> bool:
+def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any], need_work_save: bool) -> bool:
     """
     Enrich the Work by adding certain fields present in rec but absent
     in work.
@@ -933,7 +933,7 @@ def update_work_with_rec_data(rec: dict, edition: "Edition", work: dict[str, Any
     return need_work_save
 
 
-def should_overwrite_promise_item(edition: "Edition", from_marc_record: bool = False) -> bool:
+def should_overwrite_promise_item(edition: Edition, from_marc_record: bool = False) -> bool:
     """
     Returns True for revision 1 promise items with MARC data available.
 

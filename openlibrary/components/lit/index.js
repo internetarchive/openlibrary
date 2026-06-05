@@ -13,3 +13,5 @@ export { OlPopover } from './OlPopover.js';
 export { OlSelectPopover } from './OlSelectPopover.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
+export { OLButton } from './OLButton.js';
+export { OpenLibraryOTP } from './OpenLibraryOTP.js';

@@ -19,7 +19,7 @@ logger = logging.getLogger("openlibrary")
 class ConnectionMiddleware:
     response_type = "json"
 
-    def __init__(self, conn: "client.Connection | ConnectionMiddleware"):
+    def __init__(self, conn: client.Connection | ConnectionMiddleware):
         self.conn = conn
 
     def get_auth_token(self):
