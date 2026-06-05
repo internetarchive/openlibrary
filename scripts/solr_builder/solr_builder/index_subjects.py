@@ -92,10 +92,10 @@ async def index_all_subjects(
     instances=2,
     solr_base_url="http://solr:8983/solr/openlibrary",
     skip_id_check=False,
+    offset=0,
 ):
     done = False
     active_workers: set[Future] = set()
-    offset = 0
     while True:
         if done:
             # Done! Wait for any previous workers that are still going
