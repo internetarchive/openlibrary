@@ -40,6 +40,7 @@ export class OLActivityFeed extends LitElement {
     static properties = {
         apiUrl: { type: String, attribute: 'api-url' },
         cardsPerPage: { type: Number, attribute: 'cards-per-page' },
+        viewerUsername: { type: String, attribute: 'viewer-username' },
         _displayed: { state: true },
         _queue: { state: true },
         _loading: { state: true },
@@ -258,6 +259,7 @@ export class OLActivityFeed extends LitElement {
         super();
         this.apiUrl = '/api/internal/activity.json';
         this.cardsPerPage = 3;
+        this.viewerUsername = '';
         this._displayed = [];
         this._queue = [];
         this._loading = true;
@@ -265,7 +267,6 @@ export class OLActivityFeed extends LitElement {
         this._nextPage = 1;
         this._followed = new Set();
         this._timer = null;
-        this._viewerUsername = document.body?.dataset?.username || null;
     }
 
     connectedCallback() {
@@ -331,7 +332,7 @@ export class OLActivityFeed extends LitElement {
     }
 
     async _toggleFollow(username) {
-        if (!this._viewerUsername) {
+        if (!this.viewerUsername) {
             window.location = `/account/login?redir_url=${encodeURIComponent(window.location.pathname)}`;
             return;
         }
@@ -346,7 +347,7 @@ export class OLActivityFeed extends LitElement {
         body.append('redir_url', window.location.pathname);
 
         try {
-            await fetch(`/people/${this._viewerUsername}/follows`, {
+            await fetch(`/people/${this.viewerUsername}/follows.json`, {
                 method: 'POST',
                 body,
                 redirect: 'manual',
@@ -365,7 +366,7 @@ export class OLActivityFeed extends LitElement {
         const coverSrc = item.cover_id
             ? `${COVERS_BASE}/${item.cover_id}-M.jpg`
             : FALLBACK_COVER;
-        const isViewer = item.username === this._viewerUsername;
+        const isViewer = item.username === this.viewerUsername;
         const following = this._followed.has(item.username);
 
         return html`

@@ -20,6 +20,7 @@ from starlette.responses import RedirectResponse
 from openlibrary import accounts
 from openlibrary.core import lending, models
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
@@ -431,6 +432,13 @@ async def monthly_logins():
     pass
 
 
+def _to_iso(dt: object) -> str:
+    """Return an ISO-8601 string for a datetime/date value, or '' if None."""
+    if dt is None:
+        return ""
+    return dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+
+
 # --- Activity Feed ---
 
 _SHELF_LABELS: dict[int, str] = {
@@ -469,10 +477,7 @@ async def activity_feed_endpoint(
     limit: Annotated[int, Query(ge=1, le=50)] = 12,
     page: Annotated[int, Query(ge=1)] = 1,
 ) -> ActivityResponse:
-    import web
-
-    from openlibrary.core.bookshelves import Bookshelves
-    from openlibrary.core.models import User
+    import web  # noqa: PLC0415
 
     shelf_ids = [
         Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
@@ -519,12 +524,12 @@ async def activity_feed_endpoint(
                 shelf_id=item["bookshelf_id"],
                 shelf_label=_SHELF_LABELS.get(item["bookshelf_id"], "logged"),
                 username=item["username"],
-                avatar_url=User.get_avatar_url(item["username"]),
+                avatar_url=models.User.get_avatar_url(item["username"]),
                 work_key=f"/works/OL{item['work_id']}W",
                 title=work.get("title", ""),
                 cover_id=work.get("cover_i"),
                 author=authors[0] if authors else None,
-                updated=str(item.get("updated") or item.get("created") or ""),
+                updated=_to_iso(item.get("updated") or item.get("created")),
             )
         )
 

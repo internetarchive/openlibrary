@@ -1,5 +1,6 @@
 $def with ()
+$ _viewer = ctx.user.key.split('/')[-1] if ctx.user else ''
 <section class="activity-feed-section" aria-label="$_('What\'s Happening Now')">
   <h2 class="activity-feed-section__title">$_("What's Happening Now")</h2>
-  <ol-activity-feed api-url="/api/internal/activity.json" cards-per-page="3"></ol-activity-feed>
+  <ol-activity-feed api-url="/api/internal/activity.json" cards-per-page="3" viewer-username="$_viewer"></ol-activity-feed>
 </section>
