@@ -22,6 +22,8 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:render_template("home/welcome")
 
+  $:render_template("home/weekly_prompt")
+
   $:render_jinja_template("home/browse_stacks.html.jinja", genres=featured_genres if not test else [], i18n_json=json_encode({"error": _("Couldn't load this shelf. Try again?")}))
 
   $:render_jinja_template("home/library_row.html.jinja", stats=library_stats or [])
