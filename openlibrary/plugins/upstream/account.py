@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,6 +22,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -31,6 +31,8 @@ from openlibrary.accounts import (
     RunAs,
     audit_accounts,
     clear_cookies,
+    encrypt_s3_keys,
+    get_s3_keys,
     valid_email,
 )
 from openlibrary.core import helpers as h
@@ -471,11 +473,16 @@ def _set_login_cookies(
     """Set all session cookies after a successful login (password or OTP)."""
     expires = 3600 * 24 * 365 if remember else ""
 
-    def _setcookie(name, value):
-        web.setcookie(name, value, expires=expires if value else 1)
+    def _setcookie(name, value, **kwargs):
+        web.setcookie(name, value, expires=expires if value else 1, **kwargs)
 
     _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
     _setcookie("pd", "1" if audit.get("special_access") else "")
+
+    if s3_keys := audit.get("s3_keys"):
+        token = encrypt_s3_keys(s3_keys["access"], s3_keys["secret"])
+        web.setcookie("s3", token, expires=expires, secure=True, httponly=True, samesite="Lax")
+
     if ol_account and (ol_user := ol_account.get_user()):
         _setcookie("sfw", "yes" if ol_user.get_safe_mode() == "yes" else "")
         if pref_key := ol_user.preferences().get("yrg_banner_pref"):
@@ -1470,7 +1477,7 @@ def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = site.get().store.get(account._key).get("s3_keys")
+    s3_keys = get_s3_keys(account)
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
     loan_history = s3_loan_api(

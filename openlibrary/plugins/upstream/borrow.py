@@ -12,7 +12,6 @@ from datetime import datetime
 from typing import Literal
 
 import web
-
 from infogami import config
 from infogami.infobase.utils import parse_datetime
 from infogami.utils import delegate
@@ -20,8 +19,9 @@ from infogami.utils.view import (
     add_flash_message,
     public,
 )
+
 from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.accounts.model import OpenLibraryAccount, get_s3_keys
 from openlibrary.app import render_template
 from openlibrary.core import (
     lending,
@@ -175,7 +175,7 @@ class borrow(delegate.page):
         if user:
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
-            s3_keys = site.get().store.get(account._key).get("s3_keys")
+            s3_keys = get_s3_keys(account)
             lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)

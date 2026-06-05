@@ -1,5 +1,6 @@
 """ """
 
+import base64
 import datetime
 import hashlib
 import hmac
@@ -14,11 +15,11 @@ from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
-from validate_email import validate_email
-
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
+from validate_email import validate_email
+
 from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
@@ -83,6 +84,42 @@ def generate_hash(secret_key, text, salt=None) -> str:
 
 def get_secret_key():
     return config.infobase["secret_key"]
+
+
+def _get_fernet():
+    from cryptography.fernet import Fernet
+
+    key = base64.urlsafe_b64encode(hashlib.sha256(get_secret_key().encode()).digest())
+    return Fernet(key)
+
+
+def encrypt_s3_keys(access: str, secret: str) -> str:
+    """Encrypt S3 access:secret into a Fernet token for cookie storage."""
+    return _get_fernet().encrypt(f"{access}:{secret}".encode()).decode()
+
+
+def decrypt_s3_keys(token: str) -> tuple[str, str]:
+    """Decrypt a Fernet token back to (access, secret). Raises on invalid/tampered input."""
+    plaintext = _get_fernet().decrypt(token.encode()).decode()
+    access, secret = plaintext.split(":", 1)
+    return access, secret
+
+
+def get_s3_keys(account) -> dict | None:
+    """Return S3 keys from the session cookie, falling back to the account store.
+
+    New logins set an encrypted ``s3`` cookie; this fallback handles sessions
+    that predate the cookie-based approach.
+    """
+    if token := web.cookies().get("s3"):
+        try:
+            from cryptography.fernet import InvalidToken
+
+            access, secret = decrypt_s3_keys(token)
+            return {"access": access, "secret": secret}
+        except InvalidToken:
+            pass  # tampered or stale cookie; fall through to store
+    return web.ctx.site.store.get(account._key, {}).get("s3_keys")
 
 
 def create_verification_cookie_value() -> str:
@@ -212,6 +249,7 @@ def create_link_doc(key: str, username: str, email: str) -> dict:
 def clear_cookies() -> None:
     web.setcookie("pd", "", expires=-1)
     web.setcookie("sfw", "", expires=-1)
+    web.setcookie("s3", "", expires=-1, secure=True, httponly=True, samesite="Lax")
 
 
 class Link(web.storage):
@@ -1054,12 +1092,12 @@ def audit_accounts(  # noqa: PLR0912
         if ol_account and not ol_account.itemname:
             return {"error": "accounts_not_connected"}
 
+    s3_keys = None
     if "values" in ia_login:
         s3_keys = {
             "access": ia_login["values"].pop("access"),
             "secret": ia_login["values"].pop("secret"),
         }
-        ol_account.save_s3_keys(s3_keys)
 
     # Handle Print Disability Processing
     has_special_access = getattr(ia_account, "has_disability_access", False)
@@ -1091,6 +1129,7 @@ def audit_accounts(  # noqa: PLR0912
         "ia_username": ia_account.screenname,
         "ol_username": ol_account.username,
         "link": ol_account.itemname,
+        "s3_keys": s3_keys,
     }
 
 
