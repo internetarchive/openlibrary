@@ -1,4 +1,5 @@
 """Handlers for adding and editing books."""
+
 from __future__ import annotations
 
 import csv

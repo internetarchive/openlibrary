@@ -315,8 +315,8 @@ msgstr ""
 msgid "YAML Representation:"
 msgstr ""
 
-#: BookPreview.html book_providers/read_button.html books/edit/edition.html
-#: editpage.html import_preview.html
+#: book_providers/read_button.html books/edit/edition.html editpage.html
+#: import_preview.html
 msgid "Preview"
 msgstr ""
 
@@ -4272,7 +4272,7 @@ msgstr ""
 msgid "Provider Name"
 msgstr ""
 
-#: books/edit/edition.html
+#: books/edit/edition.html databarWork.html
 msgid "Buy"
 msgstr ""
 
@@ -6848,6 +6848,12 @@ msgid "Read More"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid ""
+"This book is not currently available on Open Library. <a href="#related-"
+"work-carousel">Browse similar titles available now.</a>"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Read Less"
 msgstr ""
 
@@ -6890,10 +6896,6 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
-
-#: databarWork.html type/edition/view.html type/work/view.html
-msgid "Buy this book"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -7554,7 +7556,7 @@ msgid "by an <em>unknown author</em>"
 msgstr ""
 
 #: BookPreview.html
-msgid "Preview Only"
+msgid "Search Inside Preview"
 msgstr ""
 
 #: BookPreview.html
@@ -7687,8 +7689,12 @@ msgstr ""
 msgid "Checked Out"
 msgstr ""
 
+#: LocateButton.html ReadButton.html
+msgid "Check Worldcat"
+msgstr ""
+
 #: LocateButton.html
-msgid "Locate"
+msgid "Not Available"
 msgstr ""
 
 #: ManageLoansButtons.html
@@ -8141,6 +8147,10 @@ msgstr ""
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
+msgstr ""
+
+#: databarWork.html
+msgid "Buy this book"
 msgstr ""
 
 #: openlibrary/core/bookshelves.py

@@ -464,7 +464,7 @@ def format_languages(languages: Iterable) -> list[dict[str, str]]:
                 # Note this must be last, since it raises errors
                 or get_abbrev_from_full_lang_name(language)
             )
-        except (LanguageNoMatchError, LanguageMultipleMatchError):
+        except LanguageNoMatchError, LanguageMultipleMatchError:
             # get_abbrev_from_full_lang_name raises errors
             raise InvalidLanguage(input_lang)
 

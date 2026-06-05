@@ -4,8 +4,8 @@ Request context management for OpenLibrary.
 This module provides utilities for managing request-scoped context variables
 and parsing request data for both web.py and FastAPI frameworks.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -44,7 +44,7 @@ class RequestContextVars:
 req_context: ContextVar[RequestContextVars] = ContextVar("req_context")
 
 # TODO: Create an async and stateless version of site so we don't have to do this
-site: "ContextVar[Site]" = ContextVar("site")
+site: ContextVar[Site] = ContextVar("site")
 
 
 # Keep in sync with scripts/obfi.sh (obfi_grep_bots) and docker/web_nginx.conf ($is_sus_user_agent).
@@ -203,7 +203,7 @@ def set_context_from_legacy_web_py() -> None:
     )
 
 
-def set_context_from_fastapi(request: "Request") -> None:
+def set_context_from_fastapi(request: Request) -> None:
     """
     Extracts context from a FastAPI request (async) and populates ContextVars.
     Should be called within the middleware stack.

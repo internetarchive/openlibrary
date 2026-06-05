@@ -1,20 +1,28 @@
 """Reading log check-ins handler and services."""
 
 import json
+
 try:
     from warnings import deprecated
 except ImportError:
     import functools as _functools
-    def deprecated(msg, **_kw):  # noqa: E301
+
+    def deprecated(msg, **_kw):
         def _d(f):
             if isinstance(f, type):
                 return f
+
             @_functools.wraps(f)
             def _w(*a, **k):
-                import warnings; warnings.warn(msg, DeprecationWarning, stacklevel=2)
+                import warnings
+
+                warnings.warn(msg, DeprecationWarning, stacklevel=2)
                 return f(*a, **k)
+
             return _w
+
         return _d
+
 
 import web
 

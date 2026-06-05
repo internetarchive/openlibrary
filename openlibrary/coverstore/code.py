@@ -310,7 +310,7 @@ class cover:
         url = f"https://archive.org/metadata/{identifier}/metadata"
         try:
             d = requests.get(url).json().get("result", {})
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return
 
         # Not a text item or no images or scan is not complete yet
@@ -353,7 +353,7 @@ class cover:
         """
         try:
             return coverid < IMAGES_PER_ITEM * config.get("max_coveritem_index", 0)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return False
 
     def get_tar_filename(self, coverid, size):

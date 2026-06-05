@@ -1,6 +1,6 @@
 """Models of various OL objects."""
-from __future__ import annotations
 
+from __future__ import annotations
 
 import functools
 import logging
@@ -82,7 +82,7 @@ class Image:
                 d["author"] = d["author"] and self._site.get(d["author"])
 
             return web.storage(d)
-        except (requests.exceptions.RequestException, OSError):
+        except requests.exceptions.RequestException, OSError:
             # coverstore is down
             return None
 

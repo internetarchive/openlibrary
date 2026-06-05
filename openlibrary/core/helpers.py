@@ -1,6 +1,6 @@
 """Generic helper functions to use in the templates and the webapp."""
-from __future__ import annotations
 
+from __future__ import annotations
 
 import functools
 import json
@@ -163,7 +163,7 @@ def format_date(date: datetime | None, lang: str | None = None) -> str:
     return babel.dates.format_date(date, format="long", locale=locale)
 
 
-def _get_babel_locale(lang: str) -> "Locale":
+def _get_babel_locale(lang: str) -> Locale:
     try:
         return babel.Locale(lang)
     except babel.core.UnknownLocaleError:

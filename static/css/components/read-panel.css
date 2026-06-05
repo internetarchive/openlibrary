@@ -294,7 +294,7 @@ ul.ebook-download-options li {
   mask: url(/static/images/icons/open-book.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: currentColor;
+  background-color: var(--white);
 }
 
 /* Cart icon for Buy button */
@@ -303,7 +303,7 @@ ul.ebook-download-options li {
   mask: url(/static/images/icons/icon_cart.svg);
   -webkit-mask-size: cover;
   mask-size: cover;
-  background-color: currentColor;
+  background-color: var(--white);
 }
 
 /* Buy popover: full-width trigger button */
