@@ -50,7 +50,7 @@ def mock_user_factory(monkeypatch):
         user.is_admin.return_value = is_admin
         user.is_librarian.return_value = is_librarian
         user.is_super_librarian.return_value = is_super_librarian
-        monkeypatch.setattr("openlibrary.fastapi.importapi.get_current_user", lambda: user)
+        monkeypatch.setattr("openlibrary.fastapi.auth.get_current_user", lambda: user)
         return user
 
     return create_user

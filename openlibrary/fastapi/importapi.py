@@ -6,10 +6,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Query, status
+from fastapi import APIRouter, Form, Query
 
-from openlibrary.accounts import get_current_user
-from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
 from openlibrary.plugins.importapi.import_ui import ImportPreviewRequest
 from openlibrary.utils.request_context import req_context, web_ctx_ip
 
@@ -41,7 +40,7 @@ def _build_preview_response(
 
 @router.get("/import/preview.json")
 def import_preview_json_get(
-    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    _: LibrarianDep,
     source: Annotated[
         str | None,
         Query(
@@ -66,12 +65,6 @@ def import_preview_json_get(
 
     Requires admin, librarian, or super-librarian role.
     """
-    user = get_current_user()
-    if not (user and (user.is_admin() or user.is_librarian() or user.is_super_librarian())):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions",
-        )
     x_fwd = req_context.get().x_forwarded_for
     client_ip = x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
     return _build_preview_response(source, provider, identifier, save=False, client_ip=client_ip)
@@ -79,7 +72,7 @@ def import_preview_json_get(
 
 @router.post("/import/preview.json")
 def import_preview_json_post(
-    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    _: LibrarianDep,
     source: Annotated[str | None, Form()] = None,
     provider: Annotated[str | None, Form()] = None,
     identifier: Annotated[str | None, Form()] = None,
@@ -90,12 +83,6 @@ def import_preview_json_post(
 
     Requires admin, librarian, or super-librarian role.
     """
-    user = get_current_user()
-    if not (user and (user.is_admin() or user.is_librarian() or user.is_super_librarian())):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions",
-        )
     x_fwd = req_context.get().x_forwarded_for
     client_ip = x_fwd.split(",")[0].strip() if x_fwd else "127.0.0.1"
     return _build_preview_response(source, provider, identifier, save=save, client_ip=client_ip)
