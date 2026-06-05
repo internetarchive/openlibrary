@@ -22,9 +22,6 @@ from openlibrary.plugins.openlibrary.lists import list_seeds as _LegacyListSeeds
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
 
-# Exposed as a module-level alias so it can be monkeypatched by tests.
-get_list = legacy_lists.get_list
-
 if TYPE_CHECKING:
     from starlette.datastructures import URL
 
