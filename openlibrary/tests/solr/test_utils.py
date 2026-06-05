@@ -1,13 +1,25 @@
 import json
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
-import httpx
+import pytest
 from httpx import ConnectError, Response
 
+from openlibrary.solr import utils
 from openlibrary.solr.utils import SolrUpdateRequest, solr_update
+from openlibrary.utils import retry as retry_module
 
 
 class TestSolrUpdate:
+    pytestmark = pytest.mark.asyncio
+
+    def setup_solr_post(self, monkeypatch, response=None, side_effect=None):
+        mock_post = AsyncMock(return_value=response, side_effect=side_effect)
+        mock_solr = MagicMock()
+        mock_solr.async_session.post = mock_post
+        monkeypatch.setattr(utils, "get_solr", lambda: mock_solr)
+        monkeypatch.setattr(retry_module.asyncio, "sleep", AsyncMock())
+        return mock_post
+
     def sample_response_200(self):
         return Response(
             200,
@@ -79,66 +91,60 @@ class TestSolrUpdate:
             content=b"<html><body><h1>503 Service Unavailable</h1>",
         )
 
-    def test_successful_response(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(return_value=self.sample_response_200())
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_successful_response(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, response=self.sample_response_200())
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
         assert mock_post.call_count == 1
 
-    def test_non_json_solr_503(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(return_value=self.sample_response_503())
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_non_json_solr_503(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, response=self.sample_response_503())
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
         assert mock_post.call_count > 1
 
-    def test_solr_offline(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(side_effect=ConnectError("", request=None))
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_solr_offline(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, side_effect=ConnectError("", request=MagicMock()))
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
         assert mock_post.call_count > 1
 
-    def test_invalid_solr_request(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(return_value=self.sample_global_error())
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_invalid_solr_request(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, response=self.sample_global_error())
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
         assert mock_post.call_count == 1
 
-    def test_bad_apple_in_solr_request(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(return_value=self.sample_individual_error())
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_bad_apple_in_solr_request(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, response=self.sample_individual_error())
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )
 
         assert mock_post.call_count == 1
 
-    def test_other_non_ok_status(self, monkeypatch, monkeytime):
-        mock_post = MagicMock(return_value=Response(500, request=MagicMock(), content="{}"))
-        monkeypatch.setattr(httpx, "post", mock_post)
+    async def test_other_non_ok_status(self, monkeypatch, monkeytime):
+        mock_post = self.setup_solr_post(monkeypatch, response=Response(500, request=MagicMock(), content="{}"))
 
-        solr_update(
+        await solr_update(
             SolrUpdateRequest(commit=True),
             solr_base_url="http://localhost:8983/solr/foobar",
         )

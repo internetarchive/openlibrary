@@ -4,10 +4,10 @@ import os
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, cast
 
-import httpx
 from httpx import HTTPError, HTTPStatusError, TimeoutException
 
 from openlibrary import config
+from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 if TYPE_CHECKING:
@@ -116,7 +116,7 @@ class SolrUpdateRequest:
         self.deletes.clear()
 
 
-def solr_update(
+async def solr_update(
     update_request: SolrUpdateRequest,
     skip_id_check=False,
     solr_base_url: str | None = None,
@@ -131,10 +131,10 @@ def solr_update(
     if skip_id_check:
         params["overwrite"] = "false"
 
-    def make_request():
+    async def make_request():
         logger.debug(f"POSTing update to {solr_base_url}/update {params}")
         try:
-            resp = httpx.post(
+            resp = await get_solr().async_session.post(
                 f"{solr_base_url}/update",
                 # Large batches especially can take a decent chunk of time
                 timeout=300,
@@ -178,7 +178,7 @@ def solr_update(
     )
 
     try:
-        return retry(make_request)
+        return await retry.async_call(make_request)
     except MaxRetriesExceeded as e:
         logger.error(f"Max retries exceeded for Solr POST: {e.last_exception}")
 
@@ -187,7 +187,7 @@ async def solr_insert_documents(
     documents: list[dict],
     solr_base_url: str | None = None,
     skip_id_check=False,
-    timeout: float | None = 30,
+    timeout: float | None = 30,  # noqa: ASYNC109
 ):
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
@@ -195,14 +195,13 @@ async def solr_insert_documents(
         params["overwrite"] = "false"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     try:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{solr_base_url}/update",
-                timeout=timeout,
-                params=params,
-                headers={"Content-Type": "application/json"},
-                content=json.dumps(documents),
-            )
+        resp = await get_solr().async_session.post(
+            f"{solr_base_url}/update",
+            timeout=timeout,
+            params=params,
+            headers={"Content-Type": "application/json"},
+            content=json.dumps(documents),
+        )
         resp.raise_for_status()
     except HTTPStatusError as e:
         response_body = e.response.text if e.response is not None else None
