@@ -5054,7 +5054,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: AffiliateLinks.html home/about.html search/work_search_facets.html
+#: AffiliateLinks.html.jinja home/about.html search/work_search_facets.html
 msgid "More"
 msgstr ""
 
@@ -7944,15 +7944,17 @@ msgstr ""
 msgid "Add another edition?"
 msgstr ""
 
-#: AffiliateLinks.html
+#: AffiliateLinks.html.jinja
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
-#: AffiliateLinks.html
-msgid ""
-"When you buy books using these links the Internet Archive may earn a <a "
-"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+#: AffiliateLinks.html.jinja
+msgid "When you buy books using these links the Internet Archive may earn a"
+msgstr ""
+
+#: AffiliateLinks.html.jinja
+msgid "small commission"
 msgstr ""
 
 #: AffiliateLinksLoadingIndicator.html

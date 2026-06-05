@@ -228,6 +228,11 @@ max-statements = 70
 "tests/test_docker_compose.py" = ["PLC0415"]
 
 
+[tool.djlint]
+# J018: "Internal links should use url_for()" — Open Library doesn't use url_for() anywhere.
+#       This is a Django/Flask convention that doesn't apply here.
+ignore = "J018"
+
 [tool.sqlfluff.core]
 dialect = "postgres"
 # ── Rule Exclusions ──────────────────────────────────────────────────
