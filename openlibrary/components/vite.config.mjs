@@ -20,6 +20,10 @@ export default defineConfig({
         vue({ customElement: true })
     ],
     build: {
+        // Keep syntax compatible with our supported floor (see browserslist in
+        // package.json). Without this, Vite defaults to 'baseline-widely-available'
+        // (~Safari 16), which would ship untranspiled ES2021+ syntax.
+        target: ['es2019', 'safari13'],
         outDir: join(BUILD_DIR, '/production'),
         rollupOptions: {
             input: buildInput,

@@ -14,6 +14,11 @@ const BUILD_DIR = process.env.BUILD_DIR || 'static/build/components';
 
 export default defineConfig({
     build: {
+        // Keep syntax compatible with our supported floor (see browserslist in
+        // package.json). Without this, Vite defaults to 'baseline-widely-available'
+        // (~Safari 16), which would ship untranspiled ES2021+ syntax.
+        target: ['es2019', 'safari13'],
+
         // Output directory for built files
         outDir: join(BUILD_DIR, '/production'),
 
