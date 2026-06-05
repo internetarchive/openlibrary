@@ -18,6 +18,8 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:render_template("home/welcome")
 
+  $:render_template("home/activity_feed")
+
   $if not test:
     $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] readinglog_count:[4 TO *]', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)
     $:macros.QueryCarousel(query="ddc:8* first_publish_year:[* TO 1950] publish_year:[2000 TO *] NOT public_scan_b:false", title=_('Classic Books'), key="public_domain", sort='trending', user_lang_only=True)

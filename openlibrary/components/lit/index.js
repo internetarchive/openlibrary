@@ -21,3 +21,4 @@ export { OlBanner } from './OlBanner.js';
 export { OlToast } from './OlToast.js';
 export { OlToastRegion, showToast } from './OlToastRegion.js';
 export { OpenLibraryOTP } from './OpenLibraryOTP.js';
+export { OLActivityFeed } from './OLActivityFeed.js';
