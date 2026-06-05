@@ -188,12 +188,15 @@ async def solr_insert_documents(
     documents: list[dict],
     solr_base_url: str | None = None,
     skip_id_check=False,
+    tolerant_chain=False,
     timeout: float | None = 30,  # noqa: ASYNC109
 ):
     solr_base_url = solr_base_url or get_solr_base_url()
     params = {}
     if skip_id_check:
         params["overwrite"] = "false"
+    if tolerant_chain:
+        params["update.chain"] = "tolerant-chain"
     logger.debug(f"POSTing update to {solr_base_url}/update {params}")
     try:
         resp = await httpx_client.post(
