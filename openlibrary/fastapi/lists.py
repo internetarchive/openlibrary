@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
 from pydantic import BaseModel
 
 from infogami.infobase import client
@@ -13,14 +13,14 @@ from openlibrary.plugins.openlibrary.lists import (
     ListEditionsModel,
     ListSubjectsModel,
     SpamListError,
+    get_list,
     get_list_editions,
+    get_list_seeds,
     get_list_subjects,
 )
+from openlibrary.plugins.openlibrary.lists import list_seeds as _LegacyListSeeds
 from openlibrary.plugins.openlibrary.lists import lists_delete as _LegacyListsDelete
 from openlibrary.utils.request_context import site, web_ctx_ip
-
-# Exposed as a module-level alias so it can be monkeypatched by tests.
-get_list = legacy_lists.get_list
 
 if TYPE_CHECKING:
     from starlette.datastructures import URL
@@ -80,7 +80,7 @@ class CreateListResponse(BaseModel):
 def _get_list_or_404(key: str, raw: bool) -> dict:
     """Fetch a list by key and raise 404 if not found or deleted."""
     if not (lst := get_list(key, raw=raw)) or lst.get("type", {}).get("key") == "/type/delete":
-        raise HTTPException(status_code=404, detail="List not found")
+        raise HTTPException(status_code=404, detail="List or Series not found")
     return lst
 
 
@@ -262,8 +262,78 @@ def lists_json_post(
     return result
 
 
-async def list_seeds():
-    pass
+def _get_list_seeds_or_404(key: str) -> dict:
+    lst = get_list_seeds(key)
+    if lst is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
+    return lst
+
+
+def _update_list_seeds(key: str, payload: dict) -> dict:
+    s = site.get()
+    lst = s.get(key)
+
+    if lst is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
+
+    if not s.can_write(key):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied.")
+
+    try:
+        # Pass the payload safely directly to the legacy processor
+        data = {"add": payload.get("add", []), "remove": payload.get("remove", [])}
+        with web_ctx_ip():
+            return _LegacyListSeeds.process_seeds_update(lst, data, key)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.get("/people/{username}/lists/{olid}/seeds.json")
+def list_seeds_json_user(username: UsernamePath, olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/people/{username}/lists/{olid}")
+
+
+@router.get("/people/{username}/series/{olid}/seeds.json")
+def series_seeds_json_user(username: UsernamePath, olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/people/{username}/series/{olid}")
+
+
+@router.get("/lists/{olid}/seeds.json")
+def list_seeds_json_public(olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/lists/{olid}")
+
+
+@router.get("/series/{olid}/seeds.json")
+def series_seeds_json_public(olid: ListOLID) -> dict:
+    return _get_list_seeds_or_404(f"/series/{olid}")
+
+
+@router.post("/people/{username}/lists/{olid}/seeds.json")
+def update_list_seeds_json_user(
+    username: UsernamePath, olid: ListOLID, payload: Annotated[dict, Body(...)], _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/people/{username}/lists/{olid}", payload)
+
+
+@router.post("/people/{username}/series/{olid}/seeds.json")
+def update_series_seeds_json_user(
+    username: UsernamePath, olid: ListOLID, payload: Annotated[dict, Body(...)], _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/people/{username}/series/{olid}", payload)
+
+
+@router.post("/lists/{olid}/seeds.json")
+def update_list_seeds_json_public(
+    olid: ListOLID, payload: Annotated[dict, Body(...)], _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/lists/{olid}", payload)
+
+
+@router.post("/series/{olid}/seeds.json")
+def update_series_seeds_json_public(
+    olid: ListOLID, payload: Annotated[dict, Body(...)], _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)]
+) -> dict:
+    return _update_list_seeds(f"/series/{olid}", payload)
 
 
 class GetListEditionsParams:
@@ -323,7 +393,7 @@ def list_subjects_json_user(username: UsernamePath, olid: ListOLID, limit: Commo
     key = f"/people/{username}/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
 
 
 @router.get("/lists/{olid}/subjects.json", response_model=ListSubjectsModel)
@@ -331,7 +401,7 @@ def list_subjects_json_public(olid: ListOLID, limit: CommonSubjectsLimit = 20) -
     key = f"/lists/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
 
 
 @router.get("/series/{olid}/subjects.json", response_model=ListSubjectsModel)
@@ -339,4 +409,4 @@ def list_subjects_json_series(olid: ListOLID, limit: CommonSubjectsLimit = 20) -
     key = f"/series/{olid}"
     if data := get_list_subjects(key, limit):
         return data
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List not found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="List or Series not found")
