@@ -5206,6 +5206,18 @@ msgstr ""
 msgid "eBooks Borrowed"
 msgstr ""
 
+#: home/weekly_prompt.html
+msgid "This Week's Prompt"
+msgstr ""
+
+#: home/weekly_prompt.html
+msgid "Non-fiction books that expanded your understanding of the world"
+msgstr ""
+
+#: home/weekly_prompt.html
+msgid "Staff pick · Week of June 2"
+msgstr ""
+
 #: home/welcome.html
 msgid "Read Free Library Books Online"
 msgstr ""
