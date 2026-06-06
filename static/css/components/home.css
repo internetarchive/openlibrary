@@ -6,6 +6,8 @@ div.tutorial__item {
   border-radius: var(--border-radius-card);
   padding: var(--spacing-inset-sm);
   min-width: 220px;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 /* @width-breakpoint-desktop: 960px */
