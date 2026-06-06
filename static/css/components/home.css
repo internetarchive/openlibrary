@@ -46,8 +46,7 @@ div.tutorial__item img {
 }
 
 /* stylelint-disable selector-max-specificity */
-div.chartHome a:hover,
-#home-stats-charts .statschart:hover a {
+div.chartHome a:hover {
   color: var(--link-blue);
   text-decoration: underline;
 }
@@ -72,6 +71,11 @@ div.chartHome a:hover,
 #home-stats-charts .statschart a {
   color: var(--black);
   text-decoration: none;
+}
+
+#home-stats-charts .statschart:hover a {
+  color: var(--link-blue);
+  text-decoration: underline;
 }
 
 #home-stats-charts .statschart a span {
