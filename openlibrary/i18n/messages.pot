@@ -282,6 +282,14 @@ msgstr ""
 msgid "Button"
 msgstr ""
 
+#: design.html design/toast.html
+msgid "Toast"
+msgstr ""
+
+#: design.html design/banner.html
+msgid "Banner"
+msgstr ""
+
 #: design.html
 msgid "Chip Group"
 msgstr ""
@@ -951,8 +959,9 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
-#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
-#: my_books/dropdown_content.html native_dialog.html
+#: covers/change.html design/banner.html design/toast.html lib/exports.html
+#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
+#: native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -4974,6 +4983,129 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/banner.html
+#, python-format
+msgid ""
+"The %(tag)s component is a callout-style announcement banner. The "
+"announcement is server-rendered into the default slot — already "
+"translated, visible to search engines — while the component owns the "
+"chrome: variant styling, icon, dismissal, and cookie persistence. There "
+"is intentionally no entrance animation; banners appear on every page "
+"view."
+msgstr ""
+
+#: design/banner.html
+msgid "Variants"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid ""
+"Use %(variant)s for semantic variants. Each pairs a tinted surface with a"
+" filled icon circle — the same icon treatment as %(toast)s."
+msgstr ""
+
+#: design/banner.html
+msgid "Open Library is a non-profit project of the Internet Archive."
+msgstr ""
+
+#: design/banner.html
+msgid "Your import finished — 42 books added to your reading log."
+msgstr ""
+
+#: design/banner.html
+msgid "Open Library will be briefly unavailable on June 12 for maintenance."
+msgstr ""
+
+#: design/banner.html
+msgid "Search is currently degraded. Some results may be missing."
+msgstr ""
+
+#: design/banner.html
+msgid "Appearance"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid ""
+"Use %(appearance)s to control the frame. %(outlined)s (default) has a "
+"border and rounded corners. %(plain)s removes both — useful when the "
+"banner abuts the edges of other UI, like the top of the page or a card."
+msgstr ""
+
+#: design/banner.html
+msgid "Outlined (default): border and rounded corners."
+msgstr ""
+
+#: design/banner.html
+msgid "Plain: no border, no border radius."
+msgstr ""
+
+#: design/banner.html
+msgid "Dismissible"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid ""
+"Add %(dismissible)s for a close button. Without %(cookie_name)s, "
+"dismissal only lasts for the current page. Content comes from the page "
+"template, so links and emphasis work as usual."
+msgstr ""
+
+#: design/banner.html
+msgid "Explore our new collections"
+msgstr ""
+
+#: design/banner.html
+msgid "Custom icon"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid "Slot a custom icon via %(slot)s to replace the variant's built-in glyph."
+msgstr ""
+
+#: design/banner.html
+msgid "Set your Yearly Reading Goal"
+msgstr ""
+
+#: design/banner.html
+msgid "Persisted dismissal"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid ""
+"The component owns no persistence — it only fires %(event)s with its "
+"%(dismiss_id)s. Two pieces of site plumbing make dismissals stick: the "
+"template guards rendering on the dismissal cookie (so dismissed banners "
+"are never served), and a site-level listener (%(glue)s) POSTs dismissals "
+"to %(endpoint)s, which sets that cookie. Per-banner TTL rides on the "
+"element as %(ttl)s — an OL convention, not component API. Dismiss this "
+"banner, reload, and it stays hidden until reset."
+msgstr ""
+
+#: design/banner.html
+msgid "Set your 2026 Yearly Reading Goal"
+msgstr ""
+
+#: design/banner.html
+msgid "Reset dismissed demo banner"
+msgstr ""
+
+#: design/banner.html
+msgid "Dismiss event"
+msgstr ""
+
+#: design/banner.html
+#, python-format
+msgid ""
+"The banner fires %(event)s once when dismissed, before it is removed from"
+" the DOM. Banners without a %(dismiss_id)s are page-only: they still fire"
+" the event, but the site listener ignores them."
+msgstr ""
+
 #: design/button.html merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
 msgstr ""
@@ -5034,6 +5166,107 @@ msgstr ""
 
 #: design/popover.html
 msgid "top-center"
+msgstr ""
+
+#: design/toast.html
+#, python-format
+msgid ""
+"The %(tag)s component is a transient notification message. It announces "
+"itself to screen readers, auto-dismisses after a timeout (pausing on "
+"hover/focus), and removes itself from the DOM when closed. Message "
+"content is set via the %(message)s and %(description)s attributes, "
+"already translated; rich content can be slotted instead. The component's "
+"only owned string is the close button label, overridable via %(attr)s."
+msgstr ""
+
+#: design/toast.html
+msgid "Types"
+msgstr ""
+
+#: design/toast.html
+#, python-format
+msgid ""
+"Use %(type)s for semantic variants. Errors are announced assertively "
+"(%(role)s)."
+msgstr ""
+
+#: design/toast.html
+msgid "Saved to your reading log"
+msgstr ""
+
+#: design/toast.html
+msgid "Subjects successfully updated"
+msgstr ""
+
+#: design/toast.html
+msgid "Could not update list. Please try again later."
+msgstr ""
+
+#: design/toast.html
+msgid "Description and rich content"
+msgstr ""
+
+#: design/toast.html
+#, python-format
+msgid ""
+"Use %(description)s for an optional secondary line. For uncommon rich "
+"content (links, custom markup), author the markup in an inert "
+"%(template)s element in the page template — where %(i18n)s extraction "
+"works — and pass that element to %(helper)s; its content is cloned into "
+"the toast. Node(s) built in JS also work. Nothing is ever parsed from a "
+"runtime string as HTML."
+msgstr ""
+
+#: design/toast.html
+msgid "Relaunch to update"
+msgstr ""
+
+#: design/toast.html
+msgid "Could not save."
+msgstr ""
+
+#: design/toast.html
+msgid "Get help"
+msgstr ""
+
+#: design/toast.html
+msgid "Imperative use (fixed bottom-center stack)"
+msgstr ""
+
+#: design/toast.html
+#, python-format
+msgid ""
+"JavaScript callers use the exported %(helper)s helper, which stacks "
+"toasts in a shared fixed %(region)s anchored to the bottom-center of the "
+"viewport. New toasts slide up from below; older ones push up behind, "
+"scaled back. Toasts dismiss themselves after %(timeout)s milliseconds "
+"(default 2500) unless %(persistent)s. Hover or focus the stack to expand "
+"it — expanding pauses every toast's dismiss timer. The message is set as "
+"an attribute — always text, never HTML — and should already be "
+"translated."
+msgstr ""
+
+#: design/toast.html
+msgid "Add toast"
+msgstr ""
+
+#: design/toast.html
+msgid "Add persistent error toast"
+msgstr ""
+
+#: design/toast.html
+msgid "Add rich content toast"
+msgstr ""
+
+#: design/toast.html
+msgid "Close event"
+msgstr ""
+
+#: design/toast.html
+#, python-format
+msgid ""
+"The toast fires %(event)s once when it begins closing, with the reason in"
+" %(detail)s."
 msgstr ""
 
 #: email/case_created.html
