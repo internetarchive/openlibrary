@@ -105,12 +105,12 @@ class NothingEncoder(json.JSONEncoder):
 
 
 def json_encode(d, **kw) -> str:
-    """Calls json.dumps on the given data d and escapes HTML special characters to prevent XSS.
+    """Calls json.dumps on the given data d.
     If d is a Nothing object, passes an empty list to json.dumps.
 
     Returns the json.dumps results.
     """
-    return json.dumps([] if isinstance(d, Nothing) else d, **kw).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
 def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = False) -> list:
