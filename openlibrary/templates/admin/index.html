@@ -245,8 +245,7 @@ $ }
 
   <div class="clearfix"></div>
 
-  $# Conditional check since the graphite source is currently unreliable, hiding the stat when it returns nothing
-  $if counts.get("visitors") and counts["visitors"].get_summary(28):
+  $if counts["visitors"].get_summary(28):
     <h2>$_("Unique Visitors")</h2>
     <img alt="$_('Unique visitors IPs per day graph')" src="https://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
 

@@ -7,7 +7,6 @@ $if stats:
       </div>
 
       <div id="home-stats-charts">
-        $# Conditional check since the graphite source is currently unreliable, hiding the stat when it returns nothing
         $if stats["visitors"].get_summary(28):
           <div class="statschart" onclick="window.location.href='//archive.org/stats';" title="$_('See all visitors to OpenLibrary.org')">
             <div id="visitors-graph" style="width:150px;height:60px;" title="$_('Area graph of recent unique visitors')"></div>
@@ -37,7 +36,6 @@ $if stats:
       </div>
     </div>
 
-    $# Conditional check since the graphite source is currently unreliable, hiding the stat when it returns nothing
     $if stats["visitors"].get_summary(28):
       <script type="text/json+graph" id="graph-json-visitors-graph">$:json_encode(stats["visitors"].get_counts(28, True))</script>
     <script type="text/json+graph" id="graph-json-members-graph">$:json_encode(stats["members"].get_counts(28, True))</script>
