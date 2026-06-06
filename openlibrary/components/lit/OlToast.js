@@ -35,13 +35,13 @@ import { LitElement, html, css } from 'lit';
  * @prop {String}  message     - The (already translated) message text.
  * @prop {String}  description - Optional secondary line, rendered smaller and muted.
  * @prop {Boolean} persistent - Toast stays until explicitly closed (no timer).
- * @prop {Number}  timeout    - Milliseconds before auto-dismiss. Default: 2500.
+ * @prop {Number}  timeout    - Milliseconds before auto-dismiss. Default: 4000.
  * @prop {String}  labelClose - Aria label for the close button (default: "Close")
  *
  * @slot - Rich message content (links, custom markup). Overrides message/description.
  *
  * @fires ol-toast-close - Fired once when the toast begins closing.
- *                         detail: { reason: "timeout" | "close-button" | "escape" | "dismiss" }
+ *                         detail: { reason: "timeout" | "close-button" | "dismiss" }
  *
  * @example
  * // Imperative, fixed bottom-center stack (message already translated)
@@ -285,7 +285,7 @@ export class OlToast extends LitElement {
         this.message = '';
         this.description = '';
         this.persistent = false;
-        this.timeout = 2500;
+        this.timeout = 4000;
         this.labelClose = 'Close';
         this._timerId = null;
         this._remainingMs = 0;
@@ -295,12 +295,6 @@ export class OlToast extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this._handleKeydown = (e) => {
-            if (e.key === 'Escape') {
-                this.close('escape');
-            }
-        };
-        document.addEventListener('keydown', this._handleKeydown);
         if (!this.persistent) {
             this._remainingMs = this.timeout;
             this.resumeTimer();
@@ -315,7 +309,6 @@ export class OlToast extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        document.removeEventListener('keydown', this._handleKeydown);
         this._clearTimer();
     }
 
@@ -337,9 +330,15 @@ export class OlToast extends LitElement {
         }
     }
 
-    /** Resume (or start) the auto-dismiss timer from the remaining time. */
+    /**
+     * Resume (or start) the auto-dismiss timer from the remaining time.
+     * No-op while the parent region's stack is expanded — the region owns
+     * the pause then, and moving the pointer between toasts (which fires
+     * mouseleave on the one being left) must not restart its timer.
+     */
     resumeTimer() {
         if (this.persistent || this._closing || this._timerId) return;
+        if (this.closest('ol-toast-region')?.expanded) return;
         this._timerStartedAt = Date.now();
         this._timerId = setTimeout(() => this.close('timeout'), Math.max(0, this._remainingMs));
     }
@@ -347,7 +346,7 @@ export class OlToast extends LitElement {
     /**
      * Close the toast: fire ol-toast-close, run the exit transition, and
      * remove the element from the DOM.
-     * @param {String} reason - "timeout" | "close-button" | "escape" | "dismiss"
+     * @param {String} reason - "timeout" | "close-button" | "dismiss"
      */
     close(reason = 'dismiss') {
         if (this._closing) return;

@@ -53,6 +53,16 @@ export class OlToastRegion extends LitElement {
         this._expanded = false;
     }
 
+    /**
+     * Whether the stack is currently expanded (hovered or focused). While
+     * true the region owns the toasts' timers: OlToast.resumeTimer() checks
+     * this so that mouseleave between toasts can't restart a timer mid-hover.
+     * @returns {Boolean}
+     */
+    get expanded() {
+        return this._expanded;
+    }
+
     connectedCallback() {
         super.connectedCallback();
         this.setAttribute('role', 'region');

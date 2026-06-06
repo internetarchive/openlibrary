@@ -37,7 +37,7 @@ showToast(document.querySelector('#save-error-toast'), { type: 'error', persiste
 
   <section class="example">
     <h3 class="example__title">$_("Imperative use (fixed bottom-center stack)")</h3>
-    <p>$:_("JavaScript callers use the exported %(helper)s helper, which stacks toasts in a shared fixed %(region)s anchored to the bottom-center of the viewport. New toasts slide up from below; older ones push up behind, scaled back. Toasts dismiss themselves after %(timeout)s milliseconds (default 2500) unless %(persistent)s. Hover or focus the stack to expand it — expanding pauses every toast's dismiss timer. The message is set as an attribute — always text, never HTML — and should already be translated.", helper="<code>showToast()</code>", region="<code>&lt;ol-toast-region&gt;</code>", timeout="<code>timeout</code>", persistent="<code>persistent</code>")</p>
+    <p>$:_("JavaScript callers use the exported %(helper)s helper, which stacks toasts in a shared fixed %(region)s anchored to the bottom-center of the viewport. New toasts slide up from below; older ones push up behind, scaled back. Toasts dismiss themselves after %(timeout)s milliseconds (default 4000) unless %(persistent)s. Hover or focus the stack to expand it — expanding pauses every toast's dismiss timer. The message is set as an attribute — always text, never HTML — and should already be translated.", helper="<code>showToast()</code>", region="<code>&lt;ol-toast-region&gt;</code>", timeout="<code>timeout</code>", persistent="<code>persistent</code>")</p>
     <pre class="example__code"><code class="language-html">import { showToast } from './OlToastRegion.js';
 
 showToast(i18nStrings.updateSuccess, { type: 'success' });
@@ -90,7 +90,7 @@ showToast(i18nStrings.failedSubmitCheckIn, { type: 'error', persistent: true });
     <h3 class="example__title">$_("Close event")</h3>
     <p>$:_("The toast fires %(event)s once when it begins closing, with the reason in %(detail)s.", event="<code>ol-toast-close</code>", detail="<code>event.detail.reason</code>")</p>
     <pre class="example__code"><code class="language-html">toast.addEventListener('ol-toast-close', (e) =&gt; {
-  console.log(e.detail.reason); // "timeout" | "close-button" | "escape" | "dismiss"
+  console.log(e.detail.reason); // "timeout" | "close-button" | "dismiss"
 });</code></pre>
   </section>
 </article>
