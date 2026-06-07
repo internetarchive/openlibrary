@@ -35,7 +35,7 @@ import { deriveAuthors } from './authorSuggestion.js';
 // `author_key` rides along with `author_name` so each result's author can link
 // to the author page (and so deriveAuthors() can surface author rows for the
 // top results whose author the query names).
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
+const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions', 'lending_edition_s', 'printdisabled_edition_s', 'ia'];
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -969,17 +969,27 @@ export class SearchModal extends LitElement {
         const cover  = work.cover_i
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`
             : COVER_PLACEHOLDER;
-        // The S cover (~35px wide) is upscaled in the 36px slot on high-DPI
-        // screens, so retina displays fetch M (~180px) instead — the smallest
-        // size the coverstore offers that stays sharp at 2x.
         const coverSrcset = work.cover_i
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`
             : nothing;
+
+        // Promote to the specific edition that satisfies the active
+        // availability filter — so "Borrowable" lands on the borrowable
+        // edition page directly rather than the work page.
+        let href = work.key;
+        if (this._availability === 'borrowable' && work.lending_edition_s) {
+            href = `/books/${work.lending_edition_s}`;
+        } else if (this._availability === 'readable' && work.ia?.[0]) {
+            href = `https://archive.org/details/${work.ia[0]}`;
+        } else if (this._availability === 'open' && work.printdisabled_edition_s) {
+            href = `/books/${work.printdisabled_edition_s}`;
+        }
+
         return html`<li>
                 <a
-                    class="result ${this._navigatingKey === work.key ? 'is-target' : ''}"
-                    href=${work.key}
-                    @click=${(e) => this._onResultPress(e, work.key)}
+                    class="result ${this._navigatingKey === href ? 'is-target' : ''}"
+                    href=${href}
+                    @click=${(e) => this._onResultPress(e, href)}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50"/>
