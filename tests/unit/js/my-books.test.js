@@ -22,7 +22,7 @@ describe('CheckInComponents class', () => {
         jest.clearAllMocks();
     });
 
-    it('stores the event id from the server response after a successful check-in via prompt', async () => {
+    it('stores the event id from the server response after a successful check-in via prompt', async() => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: jest.fn().mockResolvedValue({ status: 'ok', id: 789 }),
@@ -46,7 +46,7 @@ describe('CheckInComponents class', () => {
         expect(components.checkInForm.getEventId()).toBe('789');
     });
 
-    it('stores the event id from the server response after a successful check-in via form submit button', async () => {
+    it('stores the event id from the server response after a successful check-in via form submit button', async() => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             json: jest.fn().mockResolvedValue({ status: 'ok', id: 456 }),
@@ -67,7 +67,7 @@ describe('CheckInComponents class', () => {
         expect(components.checkInForm.getEventId()).toBe('456');
     });
 
-    it('does not set event id when server response has no id field', async () => {
+    it('does not set event id when server response has no id field', async() => {
         global.fetch = jest.fn().mockResolvedValue({
             ok: true,
             // Server returns ok but no id (edge case)
