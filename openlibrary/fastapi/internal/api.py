@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
 
 from openlibrary.core import lending, models
+from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.fastapi.auth import (
@@ -25,6 +26,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
+from openlibrary.plugins.openlibrary.api import bestbook_award as legacy_bestbook_award
 from openlibrary.plugins.openlibrary.api import get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -327,12 +329,56 @@ async def public_observations(
     return {"observations": {w: get_observation_metrics(w) for w in olid}}
 
 
-async def bestbook_award():
-    pass
+class BestbookAwardResponse(BaseModel):
+    success: bool | None = Field(None, description="Whether the award operation succeeded")
+    award: int | None = Field(None, description="Award id returned by the award insert")
+    rows: int | None = Field(None, description="Number of rows affected by award removal")
+    errors: str | None = Field(None, description="Award operation error message")
 
 
-async def bestbook_count():
-    pass
+class BestbookCountResponse(BaseModel):
+    count: int = Field(..., description="Number of bestbook awards matching the filters")
+
+
+BestbookAwardOp = Literal["add", "remove", "update"]
+
+
+@router.post(
+    "/works/OL{work_id}W/awards.json",
+    response_model=BestbookAwardResponse,
+    response_model_exclude_none=True,
+)
+async def post_bestbook_award(
+    work_id: Annotated[int, Path(gt=0)],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    query_op: Annotated[BestbookAwardOp | None, Query(alias="op")] = None,
+    query_edition_key: Annotated[str | None, Query(alias="edition_key")] = None,
+    query_topic: Annotated[str | None, Query(alias="topic")] = None,
+    query_comment: Annotated[str | None, Query(alias="comment")] = None,
+    form_op: Annotated[BestbookAwardOp | None, Form(alias="op")] = None,
+    form_edition_key: Annotated[str | None, Form(alias="edition_key")] = None,
+    form_topic: Annotated[str | None, Form(alias="topic")] = None,
+    form_comment: Annotated[str | None, Form(alias="comment")] = None,
+) -> dict:
+    """Store, update, or remove a bestbook award for a work."""
+    return legacy_bestbook_award.process_bestbook_award(
+        work_id=work_id,
+        op=form_op if form_op is not None else query_op or "add",
+        edition_key=form_edition_key if form_edition_key is not None else query_edition_key,
+        topic=form_topic if form_topic is not None else query_topic,
+        comment=form_comment if form_comment is not None else query_comment or "",
+        username=user.username,
+    )
+
+
+@router.get("/awards/count.json", response_model=BestbookCountResponse)
+async def get_bestbook_count(
+    work_id: Annotated[str | None, Query()] = None,
+    username: Annotated[str | None, Query()] = None,
+    topic: Annotated[str | None, Query()] = None,
+) -> BestbookCountResponse:
+    """Get a count of bestbook awards matching the optional filters."""
+    return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
 async def unlink_ia_ol():
