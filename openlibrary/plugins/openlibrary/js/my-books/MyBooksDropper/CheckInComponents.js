@@ -95,7 +95,7 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then(async (resp) => {
+                .then(async(resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
                     }
@@ -151,7 +151,7 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then(async (resp) => {
+                .then(async(resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
                     }
