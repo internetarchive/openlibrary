@@ -18,6 +18,7 @@ from openlibrary.utils import normalize_subject_name
 
 logger = logging.getLogger("openlibrary.solr")
 
+
 class ListSolrUpdater(AbstractSolrUpdater):
     key_prefix = "/lists/"
     thing_type = "/type/list"
