@@ -444,6 +444,7 @@ class Bookshelves(db.CommonExtras):
                 rows=limit,
                 facet=False,
                 extra_params=[
+                    # These must be in fq to avoid user-query sanitization
                     ("fq", filter_query),
                     *[("fq", f) for f in (fq or [])],
                 ],
