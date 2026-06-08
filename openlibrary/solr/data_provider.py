@@ -348,7 +348,7 @@ class ExternalDataProvider(DataProvider):
         return []
 
     def get_editions_of_work(self, work):
-        resp = requests.get(f"http://{self.ol_host}{work['key']}/editions.json", params={"limit": 500}).json()
+        resp = requests.get(f"http://{self.ol_host}{work['key']}/editions.json", params={"limit": 500}, timeout=(10, 30)).json()
         if "next" in resp["links"]:
             logger.warning(f"Too many editions for {work['key']}")
         return resp["entries"]

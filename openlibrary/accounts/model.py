@@ -818,7 +818,7 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data, headers=headers or {})
+        response = requests.post(url, params=params, json=data, headers=headers or {}, timeout=(10, 30))
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -848,6 +848,7 @@ class InternetArchiveAccount(web.storage):
                     "Content-Type": "application/json",
                     "authorization": f"LOW {access_key}:{secret_key}",
                 },
+                timeout=(10, 30),
             )
             response.raise_for_status()
             return response.json()

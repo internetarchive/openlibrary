@@ -191,7 +191,7 @@ class reload:
             s = s.removesuffix("/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = requests.get(s).text
+                response = requests.get(s, timeout=(10, 30)).text
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()

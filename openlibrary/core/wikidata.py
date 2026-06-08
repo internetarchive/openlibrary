@@ -196,7 +196,7 @@ def get_wikidata_entity(qid: str, bust_cache: bool = False, fetch_missing: bool 
 def _get_from_web(id: str) -> WikidataEntity | None:
     headers = {"User-Agent": "OpenLibrary.org Wikidata Integration"}
     try:
-        response = requests.get(f"{WIKIDATA_API_URL}{id}", headers=headers)
+        response = requests.get(f"{WIKIDATA_API_URL}{id}", headers=headers, timeout=(10, 30))
         response.raise_for_status()
         if response.status_code == 200:
             entity = WikidataEntity.from_dict(response=response.json(), updated=datetime.now())

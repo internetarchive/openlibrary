@@ -353,7 +353,7 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = requests.get(url, params=json_data)
+            response = requests.get(url, params=json_data, timeout=(10, 30))
             response.raise_for_status()
             print("http_notify", repr(url), repr(key), repr(response.text), file=web.debug)
         except Exception:

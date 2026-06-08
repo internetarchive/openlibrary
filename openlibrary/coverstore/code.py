@@ -307,7 +307,7 @@ class cover:
     def get_ia_cover_url(self, identifier: str, size: Literal["S", "M", "L", ""] = "M"):
         url = f"https://archive.org/metadata/{identifier}/metadata"
         try:
-            d = requests.get(url).json().get("result", {})
+            d = requests.get(url, timeout=(10, 30)).json().get("result", {})
         except OSError, ValueError:
             return
 
@@ -522,7 +522,7 @@ def render_list_preview_image(lst_key: str):
     W, _H = background.size
     image = []
     for cover in five_covers:
-        response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg")
+        response = requests.get(f"https://covers.openlibrary.org/b/id/{cover.id}-M.jpg", timeout=(10, 30))
         image_bytes = io.BytesIO(response.content)
 
         img = Image.open(image_bytes)

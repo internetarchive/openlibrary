@@ -202,7 +202,7 @@ class RawMarcMetadataProvider(AbstractMetadataProvider):
         url, offset = identifier.rsplit(":", 1)
 
         headers = {"Range": f"bytes={offset}-"}
-        response = requests.get(url, headers=headers, stream=True)
+        response = requests.get(url, headers=headers, stream=True, timeout=(10, 30))
         if response.status_code != 206:
             raise ValueError(f"Failed to fetch MARC record from {url}: {response.status_code}")
 

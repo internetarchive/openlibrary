@@ -56,7 +56,7 @@ def make_pd_org_query() -> list:
     params = "q=collection:print_disability_access&fl[]=identifier,title&rows=1000&page=1&output=json"
     url = f"https://{base_url}/advancedsearch.php?{params}"
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=(10, 30))
         response.raise_for_status()
     except requests.HTTPError:
         return []

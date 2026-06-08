@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 class Nagios:
     def __init__(self, url):
         try:
-            self.data = BeautifulSoup(requests.get(url).content, "lxml")
+            self.data = BeautifulSoup(requests.get(url, timeout=(10, 30)).content, "lxml")
         except Exception as m:
             print(m)
             self.data = None

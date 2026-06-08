@@ -372,7 +372,7 @@ class robotstxt(delegate.page):
 
 @functools.cache
 def fetch_ia_js(filename: str) -> str:
-    return requests.get(f"https://archive.org/includes/{filename}").text
+    return requests.get(f"https://archive.org/includes/{filename}", timeout=(10, 30)).text
 
 
 class ia_js_cdn(delegate.page):

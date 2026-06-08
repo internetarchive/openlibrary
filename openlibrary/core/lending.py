@@ -233,7 +233,7 @@ def s3_loan_api(s3_keys, ocaid=None, action="browse", **kwargs):
 
     data = s3_keys | kwargs
 
-    response = requests.post(url + params, data=data)
+    response = requests.post(url + params, data=data, timeout=(10, 30))
     # We want this to be just `409` but first
     # `www/common/Lending.inc#L111-114` needs to
     # be updated on petabox

@@ -121,7 +121,7 @@ class add_cover(delegate.page):
 
         try:
             files = {"data": data}
-            response = requests.post(upload_url, data=params, files=files)
+            response = requests.post(upload_url, data=params, files=files, timeout=(10, 30))
             return web.storage(response.json())
         except requests.HTTPError as e:
             logger.exception("Covers upload failed")

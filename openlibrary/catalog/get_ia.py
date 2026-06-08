@@ -18,7 +18,7 @@ def urlopen_keep_trying(url: str, headers=None, **kwargs):
     """Tries to request the url three times, raises HTTPError if 403, 404, or 416.  Returns a requests.Response"""
     for i in range(3):
         try:
-            resp = requests.get(url, headers=headers, **kwargs)
+            resp = requests.get(url, headers=headers, timeout=(10, 30), **kwargs)
             resp.raise_for_status()
             return resp
         except requests.HTTPError as error:

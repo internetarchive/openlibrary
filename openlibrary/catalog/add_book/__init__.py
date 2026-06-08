@@ -320,7 +320,7 @@ def add_cover(cover_url, ekey, account_key=None):
     reply = None
     for _ in range(10):
         try:
-            response = requests.post(upload_url, data=params)
+            response = requests.post(upload_url, data=params, timeout=(10, 30))
         except requests.HTTPError:
             sleep(2)
             continue
