@@ -120,6 +120,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     untitled: 'Untitled',
     authorLabel: 'Author',
     recentSearches: 'Recent searches',
+    removeRecent: 'Remove "%s" from recent searches',
 };
 
 /**

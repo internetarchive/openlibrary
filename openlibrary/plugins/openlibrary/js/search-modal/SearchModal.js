@@ -1,6 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
-// The <ol-*> custom elements this modal uses (ol-dialog, ol-availability-filter,
+// The <ol-*> custom elements this modal uses (ol-dialog, ol-toggle,
 // ol-select-popover, ol-chip, ol-chip-group) are registered by the site-wide
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
@@ -35,7 +35,7 @@ import { deriveAuthors } from './authorSuggestion.js';
 // `author_key` rides along with `author_name` so each result's author can link
 // to the author page (and so deriveAuthors() can surface author rows for the
 // top results whose author the query names).
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions', 'lending_edition_s', 'printdisabled_edition_s', 'ia'];
+const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -60,6 +60,7 @@ export class SearchModal extends LitElement {
         _results: { state: true },
         _authorSuggestions: { state: true },
         _numFound: { state: true },
+        _readableCount: { state: true },
         _loading: { state: true },
         _hasSearched: { state: true },
         _languageItems: { state: true },
@@ -187,6 +188,20 @@ export class SearchModal extends LitElement {
         @media (hover: none) and (pointer: coarse) { .close-btn { display: inline-flex; } }
         @media (prefers-reduced-motion: reduce)    { .close-btn { transition: none; } }
 
+        /* ── Filter section (filter buttons + active chip row) ─────── */
+
+        /* The filter buttons and active-filter chips read as one box: the
+           padding and divider live on the wrapper, and a gap spaces the rows.
+           When there are no chips the buttons keep the same breathing room
+           above the divider. */
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-sm);
+            border-bottom: 1px solid var(--color-border-subtle);
+        }
+
         /* ── Active filter chip row (sits below the filter buttons) ── */
 
         .chips {
@@ -194,8 +209,6 @@ export class SearchModal extends LitElement {
             flex-wrap: wrap;
             align-items: center;
             gap: var(--spacing-xs);
-            padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
         }
 
         /* The chip group takes the row's width so "Clear all" is pushed to
@@ -237,15 +250,6 @@ export class SearchModal extends LitElement {
             display: flex;
             flex-wrap: wrap;
             gap: var(--spacing-xs);
-            padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
-        }
-
-        /* When the chip row follows, it carries the divider — no border
-           (or doubled spacing) between the two rows. */
-        .filters:has(+ .chips) {
-            padding-bottom: 0;
-            border-bottom: none;
         }
 
         /* ── Results ───────────────────────────────────────────────── */
@@ -565,11 +569,12 @@ export class SearchModal extends LitElement {
         @media (max-width: 767px) {
             .search-input { font-size: 16px; }
             .results { max-height: none; flex: 1; }
-            .filters { padding: 0; }
+            /* Inset the filter section to line up with the search field's
+               rounded box above (the .bar uses --spacing-md here), so the
+               controls don't abut the viewport edge. */
+            .filter-section { padding-inline: var(--spacing-md); }
             /* The footer is pinned by the dialog's flex column (it sits
-               outside the scrolling body), and the dialog itself is sized to
-               the visual viewport (--ol-dialog-fullscreen-height, set in
-               _onViewportResize) so the soft keyboard never covers it. */
+               outside the scrolling body). */
             .footer { background: var(--white); }
 
             /* Inset, rounded search field with the close (X) sitting outside it. */
@@ -593,6 +598,10 @@ export class SearchModal extends LitElement {
         this._results      = [];
         this._authorSuggestions = [];
         this._numFound     = null;
+        // Live count of how many of the current query's hits are readable, shown
+        // on the "Readable Only" toggle once a search lands. null before the
+        // first search (the toggle falls back to the static corpus figure).
+        this._readableCount = null;
         this._loading      = false;
         this._hasSearched  = false;
         this._langsLoading = false;
@@ -612,23 +621,15 @@ export class SearchModal extends LitElement {
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
         this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
 
+        // Availability is now a binary All / Readable Only toggle. Honor only an
+        // explicit stored 'readable'; everything else — no preference, or a
+        // legacy 'open'/'borrowable' value from before the toggle — collapses to
+        // the default 'all' (toggle off).
         const _storedAvailability = ssGet(SS_AVAILABILITY_KEY);
-        this._availability = _storedAvailability !== null ? _storedAvailability : 'readable';
+        this._availability = _storedAvailability === 'readable' ? 'readable' : DEFAULT_AVAILABILITY;
         this._languages    = readStoredLanguages();
 
         this._recentSearches = readRecentSearches();
-
-        // Sizes the fullscreen dialog to the *visual* viewport so the footer
-        // (See all results) stays visible above the mobile soft keyboard.
-        // The dialog's default 100dvh tracks browser chrome but not the
-        // keyboard — on iOS Safari and Android Chrome alike, the keyboard
-        // shrinks only the visual viewport, leaving the bottom of a
-        // 100dvh-tall dialog hidden behind it.
-        this._onViewportResize = () => {
-            const vv = window.visualViewport;
-            if (!vv) return;
-            this.style.setProperty('--ol-dialog-fullscreen-height', `${Math.round(vv.height)}px`);
-        };
 
         this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
         this._activeFetchKey = null;
@@ -646,7 +647,6 @@ export class SearchModal extends LitElement {
 
     disconnectedCallback() {
         window.removeEventListener('pageshow', this._onPageShow);
-        window.visualViewport?.removeEventListener('resize', this._onViewportResize);
         super.disconnectedCallback();
     }
 
@@ -666,10 +666,6 @@ export class SearchModal extends LitElement {
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
         }
-        // Track the visual viewport while open so the keyboard sliding up
-        // (or browser chrome collapsing) resizes the dialog with it.
-        window.visualViewport?.addEventListener('resize', this._onViewportResize);
-        this._onViewportResize();
         // Lit updates are async, which would defer the dialog's showModal()
         // and the input focus past the trigger click's call stack. Mobile
         // browsers only raise the soft keyboard for focus() calls made inside
@@ -695,10 +691,9 @@ export class SearchModal extends LitElement {
     // ── Render ────────────────────────────────────────────────────────────
 
     render() {
-        const hasFilters = (
-            this._availability !== DEFAULT_AVAILABILITY ||
-            this._languages.length > 0
-        );
+        // Availability is shown by the always-visible toggle, so it no longer
+        // appears as a chip; the chip row is for language filters only.
+        const hasFilters = this._languages.length > 0;
 
         return html`
             <ol-dialog
@@ -749,8 +744,10 @@ export class SearchModal extends LitElement {
                     >${SearchModal._closeIcon}</button>
                 </div>
 
-                ${this._renderFilters()}
-                ${hasFilters ? this._renderChips() : nothing}
+                <div class="filter-section">
+                    ${this._renderFilters()}
+                    ${hasFilters ? this._renderChips() : nothing}
+                </div>
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
@@ -772,15 +769,6 @@ export class SearchModal extends LitElement {
         // default chip here — no `variant=` — so the modal row matches the
         // /search filter bar.
         const chips = [];
-
-        if (this._availability !== DEFAULT_AVAILABILITY) {
-            const opt = this._availabilityOptions.find(o => o.value === this._availability);
-            if (opt) chips.push({
-                key: `availability:${opt.value}`,
-                label: opt.label,
-                onRemove: () => this._setAvailability(DEFAULT_AVAILABILITY),
-            });
-        }
 
         for (const value of this._languages) {
             // Fall back to the raw code when the language isn't in our current
@@ -820,14 +808,25 @@ export class SearchModal extends LitElement {
     }
 
     _renderFilters() {
+        // Binary availability: off = "All books", on = "Readable Only". The
+        // label comes from the (localized) 'readable' option so the toggle reads
+        // the same as the old dropdown's Readable Only row.
+        const readable = this._availabilityOptions.find(o => o.value === 'readable');
+        // Before any search, the sublabel shows the static corpus figure (e.g.
+        // "4.6M") for a sense of scale. Once a search lands, it shows how many of
+        // *these* results are readable, scoped to the current query + language.
+        const sublabel = this._hasSearched && typeof this._readableCount === 'number'
+            ? this._readableCount.toLocaleString()
+            : (readable?.count ?? '');
         return html`
             <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
-                <ol-availability-filter
-                    label=${this._i18n.availabilityLabel}
-                    .items=${this._availabilityOptions}
-                    .selected=${this._availability}
-                    @ol-availability-filter-change=${this._onAvailabilityChange}
-                ></ol-availability-filter>
+                <ol-toggle
+                    variant="card"
+                    label=${readable?.label ?? this._i18n.availabilityLabel}
+                    sublabel=${sublabel}
+                    ?checked=${this._availability === 'readable'}
+                    @ol-toggle-change=${this._onAvailabilityToggle}
+                ></ol-toggle>
                 <ol-select-popover
                     label=${this._i18n.languageLabel}
                     placeholder=${this._i18n.languagePlaceholder}
@@ -891,7 +890,7 @@ export class SearchModal extends LitElement {
                                 <button
                                     type="button"
                                     class="result__remove-recent"
-                                    aria-label="Remove &quot;${s}&quot; from recent searches"
+                                    aria-label=${sprintf(this._i18n.removeRecent, s)}
                                     @click=${(e) => { e.stopPropagation(); this._recentSearches = removeRecentSearch(s); }}
                                 >${SearchModal._closeIcon}</button>
                             </div>
@@ -973,16 +972,17 @@ export class SearchModal extends LitElement {
             ? `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`
             : nothing;
 
-        // Promote to the specific edition that satisfies the active
-        // availability filter — so "Borrowable" lands on the borrowable
-        // edition page directly rather than the work page.
+        // When Readable Only is on, promote the hit to the specific edition that
+        // satisfied the filter — its OL edition page — so the result opens on the
+        // readable copy rather than the work page, while keeping the user on OL.
+        // The edition comes from the block-join subquery, which already applied
+        // both the availability and language filters at the edition level (see
+        // SEARCH_FIELDS note), so editions.docs[0] is the readable, in-language
+        // copy. Falls back to the work page when no such edition is present.
         let href = work.key;
-        if (this._availability === 'borrowable' && work.lending_edition_s) {
-            href = `/books/${work.lending_edition_s}`;
-        } else if (this._availability === 'readable' && work.ia?.[0]) {
-            href = `https://archive.org/details/${work.ia[0]}`;
-        } else if (this._availability === 'open' && work.printdisabled_edition_s) {
-            href = `/books/${work.printdisabled_edition_s}`;
+        if (this._availability === 'readable') {
+            const editionKey = work.editions?.docs?.[0]?.key;
+            if (editionKey) href = editionKey;
         }
 
         return html`<li>
@@ -1024,8 +1024,6 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
-        window.visualViewport?.removeEventListener('resize', this._onViewportResize);
-        this.style.removeProperty('--ol-dialog-fullscreen-height');
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1051,6 +1049,7 @@ export class SearchModal extends LitElement {
             this._results           = [];
             this._authorSuggestions = [];
             this._numFound          = null;
+            this._readableCount     = null;
             this._loading           = false;
             this._hasSearched       = false;
             return;
@@ -1066,7 +1065,9 @@ export class SearchModal extends LitElement {
         }
     }
 
-    _onAvailabilityChange(e) { this._setAvailability(e.detail.selected); }
+    _onAvailabilityToggle(e) {
+        this._setAvailability(e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY);
+    }
 
     _onLanguagesChange(e) {
         this._languages = [...e.detail.selected];
@@ -1124,6 +1125,14 @@ export class SearchModal extends LitElement {
         const fetchKey = url;
         this._activeFetchKey = fetchKey;
 
+        // When the readable filter is off, the main numFound is the all-books
+        // total and says nothing about the readable subset, so fetch that count
+        // separately. When it's on, the main numFound already *is* the readable
+        // count (set in the .then below) — no extra round-trip needed.
+        if (this._availability !== 'readable') {
+            this._fetchReadableCount(trimmed, fetchKey);
+        }
+
         fetch(url)
             .then(r => r.ok ? r.json() : Promise.reject(new Error(`Search failed: ${r.status}`)))
             .then(data => {
@@ -1131,6 +1140,7 @@ export class SearchModal extends LitElement {
                 this._results           = data.docs || [];
                 this._authorSuggestions = deriveAuthors(this._results, trimmed);
                 this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
+                if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
             })
@@ -1139,8 +1149,28 @@ export class SearchModal extends LitElement {
                 this._results           = [];
                 this._authorSuggestions = [];
                 this._numFound          = null;
+                if (this._availability === 'readable') this._readableCount = null;
                 this._loading           = false;
                 this._hasSearched       = true;
+            });
+    }
+
+    // Counts how many of the current query's hits are readable (has_fulltext),
+    // for the "Readable Only" toggle sublabel. limit=0 returns just the count —
+    // no docs — so it's a cheap second round-trip. The `editions` field opts
+    // into the edition-level block-join so this count matches what flipping the
+    // toggle on actually yields (see the SEARCH_FIELDS note above). Shares the
+    // main search's fetchKey so a stale count never lands after the query moves on.
+    _fetchReadableCount(query, fetchKey) {
+        fetch(this._buildReadableCountUrl(query))
+            .then(r => r.ok ? r.json() : Promise.reject(new Error(`Count failed: ${r.status}`)))
+            .then(data => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._readableCount = typeof data.numFound === 'number' ? data.numFound : null;
+            })
+            .catch(() => {
+                if (this._activeFetchKey !== fetchKey) return;
+                this._readableCount = null;
             });
     }
 
@@ -1152,6 +1182,23 @@ export class SearchModal extends LitElement {
         params.set('_spellcheck_count', '0');
         params.set('mode', searchMode.read());
         this._appendFilterParams(params);
+        return `/search.json?${params.toString()}`;
+    }
+
+    // Same query + language context as the main search, but forced to the
+    // readable subset (has_fulltext) and limit=0 so Solr returns only the count.
+    // Mirrors _buildSearchJsonUrl's params minus the result-shaping ones.
+    _buildReadableCountUrl(query) {
+        const params = new URLSearchParams();
+        params.set('q', query);
+        params.set('limit', '0');
+        params.set('fields', 'key,editions');
+        params.set('_spellcheck_count', '0');
+        params.set('mode', searchMode.read());
+        params.set('has_fulltext', 'true');
+        for (const lang of this._languages) {
+            params.append('language', lang);
+        }
         return `/search.json?${params.toString()}`;
     }
 

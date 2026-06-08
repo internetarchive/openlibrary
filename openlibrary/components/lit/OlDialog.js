@@ -44,10 +44,6 @@ import { slotHasContent } from './utils/slot-utils.js';
  * @cssprop --ol-dialog-animation-duration - Open/close animation duration.
  * @cssprop --ol-dialog-top-offset - Distance from viewport top when
  *     `placement="top"`. Default `clamp(40px, 8vh, 96px)`.
- * @cssprop --ol-dialog-fullscreen-height - Dialog height in fullscreen-on-mobile
- *     mode. Default `100dvh`. Set this to the visual viewport height (px) to
- *     keep slotted footer actions above the mobile soft keyboard — `dvh` units
- *     ignore the keyboard.
  *
  * @fires ol-open - Fires when the dialog starts opening.
  * @fires ol-after-open - Fires after the open animation completes.
@@ -236,7 +232,7 @@ export class OlDialog extends LitElement {
         @media (max-width: 767px) {
             :host([fullscreen-on-mobile]) dialog {
                 width: 100vw;
-                height: var(--ol-dialog-fullscreen-height, 100dvh);
+                height: 100dvh;
                 max-width: none;
                 max-height: none;
                 border-radius: 0;
@@ -245,7 +241,7 @@ export class OlDialog extends LitElement {
             :host([fullscreen-on-mobile][placement="top"]) dialog {
                 margin-block-start: 0;
                 margin-block-end: 0;
-                max-height: var(--ol-dialog-fullscreen-height, 100dvh);
+                max-height: 100dvh;
             }
         }
 
@@ -379,12 +375,12 @@ export class OlDialog extends LitElement {
 
         this._setInitialFocus();
 
-        dialog.addEventListener('animationend', () => {
+        this._afterAnimation(dialog, () => {
             this.dispatchEvent(new CustomEvent('ol-after-open', {
                 bubbles: true,
                 composed: true,
             }));
-        }, { once: true });
+        });
     }
 
     /**
@@ -439,7 +435,7 @@ export class OlDialog extends LitElement {
 
         dialog.classList.add('closing');
 
-        dialog.addEventListener('animationend', () => {
+        this._afterAnimation(dialog, () => {
             dialog.classList.remove('closing');
             dialog.close();
 
@@ -449,7 +445,54 @@ export class OlDialog extends LitElement {
                 bubbles: true,
                 composed: true,
             }));
-        }, { once: true });
+        });
+    }
+
+    /**
+     * Runs `done` once the dialog's current open/close animation finishes.
+     *
+     * The open/close transitions are CSS animations, so the obvious hook is the
+     * `animationend` event. But under `prefers-reduced-motion: reduce` the
+     * stylesheet sets `animation: none`, and an element with no animation never
+     * dispatches `animationend` — so a naive listener would leave the dialog
+     * stuck open (never calling `dialog.close()`, never restoring focus). We
+     * read the resolved animation duration instead: 0 (reduced motion, or no
+     * animation) runs `done` immediately, otherwise we wait on `animationend`
+     * with a timer fallback in case the event is dropped (e.g. backgrounded tab).
+     *
+     * @param {HTMLDialogElement} dialog
+     * @param {() => void} done
+     */
+    _afterAnimation(dialog, done) {
+        const durationMs = this._animationDurationMs(dialog);
+        if (durationMs <= 0) {
+            done();
+            return;
+        }
+
+        let finished = false;
+        const finish = () => {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timer);
+            dialog.removeEventListener('animationend', finish);
+            done();
+        };
+        const timer = setTimeout(finish, durationMs + 50);
+        dialog.addEventListener('animationend', finish);
+    }
+
+    /**
+     * The dialog's resolved animation-duration in milliseconds (first value of
+     * the list). Returns 0 when no animation is set (e.g. reduced motion).
+     * @param {HTMLDialogElement} dialog
+     * @returns {Number}
+     */
+    _animationDurationMs(dialog) {
+        const raw = getComputedStyle(dialog).animationDuration.split(',')[0].trim();
+        if (raw.endsWith('ms')) return parseFloat(raw) || 0;
+        if (raw.endsWith('s')) return (parseFloat(raw) || 0) * 1000;
+        return 0;
     }
 
     _restoreFocus() {

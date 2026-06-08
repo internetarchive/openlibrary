@@ -17,3 +17,4 @@ export { OlAvailabilityFilter } from './OlAvailabilityFilter.js';
 export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 export { OLButton } from './OLButton.js';
+export { OlToggle } from './OlToggle.js';
