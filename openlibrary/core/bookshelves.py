@@ -13,6 +13,7 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+from openlibrary.utils.request_context import site
 
 from . import db
 
@@ -100,7 +101,7 @@ class Bookshelves(db.CommonExtras):
         # get all patrons with public reading logs
         return [
             p
-            for p in web.ctx.site.get_many([f"/people/{r.username}/preferences" for r in results])
+            for p in site.get().get_many([f"/people/{r.username}/preferences" for r in results])
             if p.dict().get("notifications", {}).get("public_readlog") == "yes"
         ]
 
@@ -310,7 +311,7 @@ class Bookshelves(db.CommonExtras):
     def add_storage_items_for_deletes(cls, reading_log_keys, solr_docs: list[web.Storage]):
         missing = {w for w, e in reading_log_keys} - {doc["key"] for doc in solr_docs}
         # Get them from the DB
-        missing_docs = web.ctx.site.get_many(list(missing))
+        missing_docs = site.get().get_many(list(missing))
 
         # Push some dummy books
         for doc in missing_docs:
