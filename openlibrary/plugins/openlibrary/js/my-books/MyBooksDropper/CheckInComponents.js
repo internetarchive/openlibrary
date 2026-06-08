@@ -95,9 +95,13 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then((resp) => {
+                .then(async (resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
+                    }
+                    const data = await resp.json();
+                    if (data.id) {
+                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
@@ -147,9 +151,13 @@ export class CheckInComponents {
 
             const eventData = this.prepareEventRequest(year, month, day);
             this.postCheckIn(eventData, this.checkInForm.getFormAction())
-                .then((resp) => {
+                .then(async (resp) => {
                     if (!resp.ok) {
                         throw Error(`Check-in request failed. Status: ${resp.status}`);
+                    }
+                    const data = await resp.json();
+                    if (data.id) {
+                        this.checkInForm.setEventId(data.id);
                     }
                     this.updateDateAndShowDisplay(year, month, day);
                 })
