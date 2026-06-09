@@ -170,7 +170,7 @@ class ExperimentsProcessor:
 
         try:
             query_params = dict(web.input(_method="GET"))
-        except (AttributeError, KeyError, ValueError):
+        except AttributeError, KeyError, ValueError:
             query_params = {}
 
         experiments = evaluate_experiments_for_request(
