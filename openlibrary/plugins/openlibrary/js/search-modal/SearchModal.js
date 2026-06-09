@@ -626,7 +626,7 @@ export class SearchModal extends LitElement {
 
         this._recentSearches = readRecentSearches();
 
-        this._debouncedFetch = debounce(() => this._fetchResults(), 250, false);
+        this._debouncedFetch = debounce(() => this._fetchResults(), 400, false);
         this._activeFetchKey = null;
         this._allLangsLoaded = false;
     }
