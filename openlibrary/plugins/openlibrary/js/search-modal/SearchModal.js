@@ -82,7 +82,7 @@ export class SearchModal extends LitElement {
             align-items: center;
             gap: var(--spacing-sm);
             padding: var(--spacing-md) var(--spacing-lg);
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         /* Wraps the icon + input (+ ESC pill). Transparent on desktop so the
@@ -135,7 +135,7 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-button);
             color: var(--accessible-grey);
             font: inherit;
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             font-weight: 600;
             letter-spacing: 0.04em;
             cursor: pointer;
@@ -147,7 +147,7 @@ export class SearchModal extends LitElement {
         }
 
         .esc-pill:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -178,7 +178,7 @@ export class SearchModal extends LitElement {
         }
 
         .close-btn:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -219,7 +219,7 @@ export class SearchModal extends LitElement {
         }
 
         .clear-all:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -242,8 +242,8 @@ export class SearchModal extends LitElement {
             /* Vertical breathing room so focus rings / the active scale aren't
                clipped by the scroll container; the negative margin keeps the
                row's position in the column unchanged. */
-            padding-block: 4px;
-            margin-block: -4px;
+            padding-block: var(--spacing-2xs);
+            margin-block: calc(var(--spacing-2xs) * -1);
             scrollbar-width: none;
         }
 
@@ -268,7 +268,7 @@ export class SearchModal extends LitElement {
             margin: 0;
             padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-2xs);
             color: var(--accessible-grey);
-            font-size: 11px;
+            font-size: var(--font-size-label-small);
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
@@ -312,7 +312,7 @@ export class SearchModal extends LitElement {
         .result:focus-visible {
             outline: none;
             background: var(--lightest-grey);
-            box-shadow: inset 2px 0 0 var(--color-focus-ring);
+            box-shadow: inset var(--focus-width) 0 0 var(--color-focus-ring);
         }
 
         @media (prefers-reduced-motion: reduce) { .result { transition: none; } }
@@ -347,7 +347,7 @@ export class SearchModal extends LitElement {
             overflow: hidden;
             color: var(--accessible-grey);
             background: var(--lightest-grey);
-            border-radius: 50%;
+            border-radius: var(--border-radius-avatar);
         }
 
         .result__avatar svg { width: 20px; height: 20px; }
@@ -363,8 +363,8 @@ export class SearchModal extends LitElement {
         .result__meta {
             flex: 1;
             min-width: 0;
-            font-size: 14px;
-            line-height: 1.35;
+            font-size: var(--font-size-body-medium);
+            line-height: var(--line-height-meta);
         }
 
         .result__title {
@@ -389,14 +389,14 @@ export class SearchModal extends LitElement {
         .result__year {
             display: block;
             color: var(--accessible-grey);
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             font-weight: 400;
         }
 
         .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
             color: var(--accessible-grey);
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
             text-align: center;
         }
 
@@ -457,7 +457,7 @@ export class SearchModal extends LitElement {
         .result__remove-recent svg { width: 16px; height: 16px; }
 
         .result__remove-recent:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
             opacity: 1;
         }
@@ -472,15 +472,13 @@ export class SearchModal extends LitElement {
 
         /* Pressing a result navigates the whole window, and the next page can
            take a moment to start painting. During that gap the chosen row
-           holds full opacity while the rest dim back, its cover darkens under
-           a spinner, and the row scales down — matching the header search
-           field's press feedback (scale 0.985). */
+           holds full opacity while the rest dim back and its cover darkens
+           under a spinner. */
         .results.is-navigating .result { opacity: 0.4; }
 
         .results.is-navigating .result.is-target {
             opacity: 1;
             background: var(--lightest-grey);
-            transform: scale(0.985);
         }
 
         .result.is-target .result__cover,
@@ -509,7 +507,7 @@ export class SearchModal extends LitElement {
             height: 18px;
             border: 2px solid var(--white);
             border-right-color: transparent;
-            border-radius: 50%;
+            border-radius: var(--border-radius-circle);
         }
 
         .result.is-target .result__spinner { opacity: 1; }
@@ -533,7 +531,7 @@ export class SearchModal extends LitElement {
             display: flex;
             justify-content: flex-end;
             padding: var(--spacing-sm) var(--spacing-lg);
-            border-top: 1px solid var(--color-border-subtle);
+            border-top: var(--border-divider);
         }
 
         .see-all {
@@ -543,7 +541,7 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-button);
             color: var(--white);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-label-large);
             font-weight: 600;
             cursor: pointer;
             transition: filter 150ms ease;
@@ -554,7 +552,7 @@ export class SearchModal extends LitElement {
         }
 
         .see-all:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -568,7 +566,7 @@ export class SearchModal extends LitElement {
         /* ── Mobile overrides ──────────────────────────────────────── */
 
         @media (max-width: 767px) {
-            .search-input { font-size: 16px; }
+            .search-input { font-size: var(--font-size-body-large); }
             .results { max-height: none; flex: 1; }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */

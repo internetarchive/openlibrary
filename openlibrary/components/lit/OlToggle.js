@@ -116,7 +116,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             inset-inline-start: var(--toggle-knob-inset);
             width: var(--toggle-knob-size);
             height: var(--toggle-knob-size);
-            border-radius: 50%;
+            border-radius: var(--border-radius-circle);
             background: var(--_toggle-knob);
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
             transition: transform 150ms ease;
@@ -139,7 +139,7 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
         .toggle__text {
             display: inline-flex;
             align-items: baseline;
-            gap: 6px;
+            gap: var(--spacing-xs);
             line-height: var(--line-height-chip);
         }
 

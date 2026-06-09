@@ -45,10 +45,10 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
     static styles = css`
         :host {
-            --chip-padding-block: 6px;
-            --chip-padding-inline: 12px;
+            --chip-padding-block: var(--spacing-xs);
+            --chip-padding-inline: var(--spacing-md);
             --chip-icon-size: 14px;
-            --chip-icon-gap: 4px;
+            --chip-icon-gap: var(--spacing-2xs);
 
             /* Color slots. Default = idle, unselected neutral chip; overridden
                below by [selected] and by each domain [variant]. */
@@ -62,8 +62,8 @@ export class OLChip extends FocusableHostMixin(LitElement) {
         }
 
         :host([size="small"]) {
-            --chip-padding-block: 4px;
-            --chip-padding-inline: 8px;
+            --chip-padding-block: var(--spacing-2xs);
+            --chip-padding-inline: var(--spacing-sm);
             --chip-icon-size: 12px;
         }
 
@@ -193,7 +193,7 @@ export class OLChip extends FocusableHostMixin(LitElement) {
 
         /* Count */
         .count {
-            margin-inline-start: 4px;
+            margin-inline-start: var(--spacing-2xs);
             color: var(--_chip-count-fg);
             font-size: 0.85em;
             font-variant-numeric: tabular-nums;

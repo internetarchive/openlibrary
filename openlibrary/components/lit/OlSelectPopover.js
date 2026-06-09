@@ -104,7 +104,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             border-radius: var(--border-radius-button);
             color: var(--darker-grey);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-label-large);
             line-height: 1.4;
             cursor: pointer;
             white-space: nowrap;
@@ -145,7 +145,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         .default-trigger:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
@@ -186,7 +186,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         .filter {
             position: relative;
             padding: var(--spacing-inset-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .filter-input {
@@ -197,7 +197,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-input);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
             color: inherit;
         }
 
@@ -214,7 +214,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         /* iOS zooms in on focus when the input font is < 16px; bump it up on
            mobile to suppress that. */
         @media (max-width: 767px) {
-            .filter-input { font-size: 16px; }
+            .filter-input { font-size: var(--font-size-body-large); }
         }
 
         .filter-icon {
@@ -251,21 +251,21 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             flex-shrink: 0;
             max-height: 200px;
             overflow-y: auto;
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--accessible-grey);
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         .item {
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
         }
 
         .item-row {
@@ -309,7 +309,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         .item-checkbox:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
             border-radius: 2px;
         }
@@ -326,7 +326,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             padding: var(--spacing-inset-md);
             text-align: center;
             color: var(--accessible-grey);
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
         }
 
         /* ── Footer ──────────────────────────────────────────────── */
@@ -335,7 +335,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             display: flex;
             justify-content: center;
             padding: var(--spacing-inset-sm);
-            border-top: 1px solid var(--color-border-subtle);
+            border-top: var(--border-divider);
         }
 
         .clear-button {
@@ -345,7 +345,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             border-radius: var(--border-radius-button);
             color: var(--accessible-grey);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-label-large);
             font-weight: 500;
             cursor: pointer;
         }
@@ -361,7 +361,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
         }
 
         .clear-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
     `;
