@@ -418,4 +418,6 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
     }
 }
 
-customElements.define('ol-options-popover', OlOptionsPopover);
+if (!customElements.get('ol-options-popover')) {
+    customElements.define('ol-options-popover', OlOptionsPopover);
+}

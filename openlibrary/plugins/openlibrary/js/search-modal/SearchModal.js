@@ -987,6 +987,10 @@ export class SearchModal extends LitElement {
     _onDialogClosed() {
         this.open = false;
         this._navigatingKey = null;
+        // Drop any in-flight spinner so a search interrupted by closing the
+        // modal doesn't show a stale "Searching…" on reopen. The next keystroke
+        // would clear it, but reopening to a frozen spinner looks broken.
+        this._loading = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1017,6 +1021,12 @@ export class SearchModal extends LitElement {
             this._hasSearched       = false;
             return;
         }
+        // Drop the previous query's author suggestion immediately. Stale book
+        // results linger for the debounce window (which avoids a list flicker),
+        // but an author row names one specific person — keeping it under a new,
+        // unrelated query is actively misleading. It repopulates when the fetch
+        // resolves.
+        this._authorSuggestions = [];
         this._loading = true;
         this._debouncedFetch();
     }
@@ -1076,7 +1086,13 @@ export class SearchModal extends LitElement {
 
     _fetchResults() {
         const trimmed = this._query.trim();
-        if (!this._shouldAutocomplete()) return;
+        // Nothing to fetch (query too short, or a stopword) — make sure we don't
+        // leave a spinner spinning. _onRecentSearchClick can land here with a
+        // saved query that no longer autocompletes.
+        if (!this._shouldAutocomplete()) {
+            this._loading = false;
+            return;
+        }
 
         const url      = this._buildSearchJsonUrl(trimmed);
         const fetchKey = url;

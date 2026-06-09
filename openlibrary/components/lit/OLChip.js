@@ -283,4 +283,6 @@ export class OLChip extends FocusableHostMixin(LitElement) {
     }
 }
 
-customElements.define('ol-chip', OLChip);
+if (!customElements.get('ol-chip')) {
+    customElements.define('ol-chip', OLChip);
+}

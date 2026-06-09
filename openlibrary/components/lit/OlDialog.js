@@ -628,6 +628,17 @@ export class OlDialog extends LitElement {
         this._hasFooterContent = slotHasContent(event.target);
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        // firstUpdated() attaches these on first render, but it only ever runs
+        // once. If the element is disconnected and reconnected, re-attach here
+        // so Escape (cancel) and backdrop dismissal keep working. On the first
+        // connect the dialog isn't rendered yet, so this no-ops and firstUpdated
+        // does the work; addEventListener dedupes identical listeners, so any
+        // overlap is harmless.
+        this._attachDialogListeners();
+    }
+
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('keydown', this._handleKeyDown, true);
@@ -638,15 +649,17 @@ export class OlDialog extends LitElement {
         }
     }
 
-    firstUpdated() {
+    _attachDialogListeners() {
         const dialog = this.dialog;
-        if (dialog) {
-            dialog.addEventListener('cancel', this._handleCancel);
-            dialog.addEventListener('click', this._handleBackdropClick);
+        if (!dialog) return;
+        dialog.addEventListener('cancel', this._handleCancel);
+        dialog.addEventListener('click', this._handleBackdropClick);
+    }
 
-            if (this.open) {
-                this._openDialog();
-            }
+    firstUpdated() {
+        this._attachDialogListeners();
+        if (this.open) {
+            this._openDialog();
         }
     }
 
@@ -697,4 +710,6 @@ export class OlDialog extends LitElement {
     }
 }
 
-customElements.define('ol-dialog', OlDialog);
+if (!customElements.get('ol-dialog')) {
+    customElements.define('ol-dialog', OlDialog);
+}
