@@ -53,7 +53,7 @@ $ layout = get_remembered_layout()
 
     $if search_response.error:
       $ add_flash_message("error", _("The search engine returned an error."))
-      $if query_param('debug'):
+      $if ctx.user and ctx.user.is_admin() and query_param('debug'):
         <div class="ol-message ol-message--warning">
           <h3>$_("Solr Debugging:")</h3>
           $search_response.error['msg']
