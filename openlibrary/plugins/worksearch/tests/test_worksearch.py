@@ -147,6 +147,30 @@ def test_prepare_solr_query_params_open_access_editions_fq_positive_unwrapped():
     assert "(*:* -ebook_access:public)" not in editions_fq
 
 
+def test_prepare_solr_query_params_multiple_languages_or_into_single_fq():
+    """Multiple selected languages are additive: a work in *any* of them should
+    match, so they must be OR-ed into one fq. Emitting one fq per value AND-s
+    them (Solr ANDs separate fqs), which would require a work to be in every
+    selected language at once."""
+    scheme = WorkSearchScheme()
+    params, _ = _prepare_solr_query_params(scheme, {"q": "1984", "language": ["eng", "spa"]})
+    fqs = [v for k, v in params if k == "fq"]
+    assert 'language:("eng" OR "spa")' in fqs
+    # Never emitted as two separate (AND-ed) clauses.
+    assert 'language:"eng"' not in fqs
+    assert 'language:"spa"' not in fqs
+
+
+def test_prepare_solr_query_params_language_mirrored_into_editions_fq():
+    """The language constraint must reach editions.fq so a work matches only
+    when the *same edition* is in a selected language. Without this, "English"
+    + "Borrowable" could match a work through a Chinese borrowable edition —
+    the cross-edition leak this filtering fixes. The OR-clause keeps the field
+    name first so the editions.fq `split(":", 1)` still resolves `language`."""
+    editions_fq = _editions_fq_for({"q": "1984", "language": ["eng", "spa"]})
+    assert 'language:("eng" OR "spa")' in editions_fq
+
+
 def _with_req_context(fn):
     """Run `fn` with a req_context set (the readable-count query reads
     solr_editions off it)."""

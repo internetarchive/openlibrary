@@ -26,8 +26,12 @@ function fold(s) {
 }
 
 /**
- * True when the query names the author: a substring match either way, or a
- * shared word (3+ chars, to skip initials/particles like "de").
+ * True when the query names the author. Matches on word boundaries only, so a
+ * query can't match mid-word ("art" must not surface "Bart …"):
+ *  - the full name starts with the query ("leo tol" → "Leo Tolstoy"),
+ *  - the query contains the full name as whole words ("books by leo tolstoy"),
+ *  - or a query word is a prefix of a name word, 3+ chars to skip
+ *    initials/particles like "de" ("asimov"/"asim" → "Isaac Asimov").
  *
  * @param {string} query
  * @param {string} name
@@ -37,9 +41,12 @@ export function queryMatchesName(query, name) {
     const q    = fold(query).trim();
     const full = fold(name).trim();
     if (!q || !full) return false;
-    if (full.includes(q) || q.includes(full)) return true;
-    const nameTokens = new Set(full.split(/\s+/).filter(Boolean));
-    return q.split(/\s+/).some(token => token.length >= 3 && nameTokens.has(token));
+    if (full.startsWith(q)) return true;
+    if (` ${q} `.includes(` ${full} `)) return true;
+    const nameTokens = full.split(/\s+/).filter(Boolean);
+    return q.split(/\s+/).some(
+        token => token.length >= 3 && nameTokens.some(nt => nt.startsWith(token)),
+    );
 }
 
 /**

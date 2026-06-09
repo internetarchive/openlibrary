@@ -71,9 +71,9 @@ describe('searchModalStringsFromElement', () => {
         expect(s.clearAll).toBe('Clear all');
     });
 
-    test('preserves the %s placeholder in removeFilter', () => {
-        const el = elWith(JSON.stringify({ removeFilter: 'Retirer le filtre : %s' }));
-        expect(searchModalStringsFromElement(el).removeFilter).toBe('Retirer le filtre : %s');
+    test('preserves the %s placeholder in removeRecent', () => {
+        const el = elWith(JSON.stringify({ removeRecent: 'Retirer « %s » des recherches récentes' }));
+        expect(searchModalStringsFromElement(el).removeRecent).toBe('Retirer « %s » des recherches récentes');
     });
 
     test('falls back to the full English set when the attribute is absent', () => {

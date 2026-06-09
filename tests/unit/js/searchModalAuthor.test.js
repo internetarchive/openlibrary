@@ -27,6 +27,15 @@ describe('queryMatchesName', () => {
         expect(queryMatchesName('le guin', 'Ursula K. Le Guin')).toBe(true);
     });
 
+    test('matches a query that is a prefix of a name word (progressive typing)', () => {
+        expect(queryMatchesName('asim', 'Isaac Asimov')).toBe(true);
+        expect(queryMatchesName('leo tol', 'Leo Tolstoy')).toBe(true);
+    });
+
+    test('does not match a query mid-word inside a name token', () => {
+        expect(queryMatchesName('art', 'Bart Giamatti')).toBe(false);
+    });
+
     test('does not match a title that happens to skew to one author', () => {
         expect(queryMatchesName('dune', 'Frank Herbert')).toBe(false);
         expect(queryMatchesName('the great gatsby', 'F. Scott Fitzgerald')).toBe(false);
