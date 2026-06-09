@@ -109,19 +109,31 @@ ol-banner > .ol-banner__content {
 ol-banner[dismissible]:not([hydrated])::after {
   content: "";
   flex-shrink: 0;
-  width: 1.2em;
+  /* Match the hydrated close button's footprint so it appears without shift */
+  width: 28px;
 }
 
 ol-banner > .ol-banner__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  padding: 0 var(--spacing-inset-xs);
+  box-sizing: border-box;
+  /* Comfortable hit area (WCAG 2.2 target minimum) */
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
   background: none;
   border: none;
   border-radius: var(--border-radius-sm);
   color: var(--accessible-grey);
-  font-size: 1.2em;
-  line-height: 1.4;
   cursor: pointer;
+}
+
+ol-banner > .ol-banner__close svg {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -141,4 +153,13 @@ ol-banner > .ol-banner__close:focus-visible {
 
 ol-banner > .ol-banner__close:active {
   transform: scale(0.92);
+}
+
+/* Warning's icon is a self-contained, filled caution-triangle (see OlBanner.js)
+   rather than the circular badge the other variants use, so drop the circle
+   background and let the SVG be the whole shape. (Placed last to keep selector
+   specificity ascending — see no-descending-specificity.) */
+ol-banner[variant="warning"] > .ol-banner__icon,
+ol-banner[variant="warning"]:not([hydrated])::before {
+  background: transparent;
 }

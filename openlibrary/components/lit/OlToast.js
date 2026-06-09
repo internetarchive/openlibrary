@@ -21,12 +21,13 @@ import { LitElement, html, css } from 'lit';
  * Placed declaratively, the toast renders in-flow where the parent puts it.
  * For the common imperative case (show a toast in the fixed bottom-center
  * stack after a fetch resolves), use the `showToast` helper exported from
- * `OlToastRegion.js` — the region coordinates Sonner-style stacking by
- * setting `data-stacked` / `data-expanded` attributes and `--ol-toast-*`
- * custom properties on each toast.
+ * `OlToastRegion.js` — the region arranges the toasts into a bottom-anchored
+ * vertical list by setting the `data-stacked` attribute and an
+ * `--ol-toast-offset` custom property on each toast.
  *
- * All motion is transition-driven (transform/opacity only): enter uses
- * @starting-style, exit and stack re-shuffles transition between states.
+ * All motion is transition-driven (transform/opacity only): a `data-mounted`
+ * attribute flipped one frame after connecting runs the enter transition;
+ * exit and list re-shuffles transition between offset states.
  *
  * @element ol-toast
  *
@@ -41,7 +42,7 @@ import { LitElement, html, css } from 'lit';
  * @slot - Rich message content (links, custom markup). Overrides message/description.
  *
  * @fires ol-toast-close - Fired once when the toast begins closing.
- *                         detail: { reason: "timeout" | "close-button" | "dismiss" }
+ *                         detail: { reason: "timeout" | "close-button" | "programmatic" }
  *
  * @example
  * // Imperative, fixed bottom-center stack (message already translated)
@@ -63,6 +64,10 @@ export class OlToast extends LitElement {
         persistent: { type: Boolean },
         timeout: { type: Number },
         labelClose: { type: String, attribute: 'label-close' },
+        // Internal: gates rendering the message into the role=status/alert
+        // live region until one frame after mount, so screen readers
+        // announce it as a mutation rather than as already-present content.
+        _announce: { state: true },
     };
 
     static styles = css`
@@ -80,7 +85,6 @@ export class OlToast extends LitElement {
             transition:
                 transform 400ms var(--ol-toast-ease),
                 opacity 400ms var(--ol-toast-ease);
-            will-change: transform;
 
             /* Enter starting point: hidden, sitting below its final spot.
                The component flips data-mounted one frame after connecting,
@@ -96,36 +100,30 @@ export class OlToast extends LitElement {
         }
 
         /* --- Stacked mode: managed by <ol-toast-region> ------------------
-           The region sets data-stacked / data-expanded / data-hidden and the
-           --ol-toast-index / --ol-toast-offset custom properties. The stack
-           is anchored to the bottom edge: the newest toast (index 0) slides
-           up from below into the anchor slot, pushing older toasts up and
-           back — nudged away and scaled down behind it. On hover the region
-           expands the stack into a full list. */
+           A plain vertical list anchored to the bottom edge — no depth, no
+           scaling. The region positions each toast by setting
+           --ol-toast-offset (the cumulative height of the newer toasts below
+           it): the newest sits in the bottom slot, older ones stack straight
+           up with a fixed gap. A new toast slides up from below into the
+           bottom slot while the others slide up to make room (the region
+           bumps their offset and the transition carries them). */
         :host([data-stacked]) {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             width: auto;
-            transform-origin: bottom center;
-            /* Enter starting point: just below the stack's anchor slot */
+            /* Enter starting point: just below the bottom slot */
             transform: translateY(calc(100% + var(--ol-toast-gap, 14px)));
         }
 
         :host([data-stacked][data-mounted]) {
-            transform:
-                translateY(calc(var(--ol-toast-index, 0) * -1 * var(--ol-toast-peek, 14px)))
-                scale(calc(1 - var(--ol-toast-index, 0) * 0.05));
+            transform: translateY(calc(-1 * var(--ol-toast-offset, 0px)));
         }
 
-        :host([data-stacked][data-expanded][data-mounted]) {
-            transform: translateY(calc(-1 * var(--ol-toast-offset, 0px))) scale(1);
-        }
-
-        /* Invisible bridge over the gap above each expanded toast, so the
-           pointer never "leaves" the stack while moving between toasts */
-        :host([data-stacked][data-expanded])::after {
+        /* Invisible bridge over the gap above each toast, so the pointer
+           never "leaves" the stack while moving between toasts */
+        :host([data-stacked])::after {
             content: '';
             position: absolute;
             left: 0;
@@ -134,13 +132,7 @@ export class OlToast extends LitElement {
             height: var(--ol-toast-gap, 14px);
         }
 
-        /* Deep toasts (4th and beyond) fade out rather than tower up */
-        :host([data-hidden]) {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Exit: fade while drifting back toward the bottom edge */
+        /* Exit: fade while drifting back down */
         :host([data-closing]) {
             opacity: 0;
             pointer-events: none;
@@ -151,12 +143,6 @@ export class OlToast extends LitElement {
         }
 
         :host([data-stacked][data-closing]) {
-            transform:
-                translateY(calc(var(--ol-toast-index, 0) * -1 * var(--ol-toast-peek, 14px) + 12px))
-                scale(calc(1 - var(--ol-toast-index, 0) * 0.05));
-        }
-
-        :host([data-stacked][data-expanded][data-closing]) {
             transform: translateY(calc(-1 * var(--ol-toast-offset, 0px) + 12px));
         }
 
@@ -239,15 +225,26 @@ export class OlToast extends LitElement {
         }
 
         .toast__close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
-            padding: 0 var(--spacing-inset-xs);
+            box-sizing: border-box;
+            /* Comfortable hit area (WCAG 2.2 target minimum) */
+            min-width: 28px;
+            min-height: 28px;
+            padding: 0;
             background: none;
             border: none;
             border-radius: var(--border-radius-sm);
             color: var(--accessible-grey);
-            font-size: 1.2em;
-            line-height: 1.4;
             cursor: pointer;
+        }
+
+        .toast__close svg {
+            display: block;
+            width: 20px;
+            height: 20px;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -271,13 +268,16 @@ export class OlToast extends LitElement {
     `;
 
     /** "i" glyph shown on info toasts (the circle is drawn in CSS) */
-    static _infoIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12.01" y2="6"/><line x1="12" y1="11" x2="12" y2="18"/></svg>`;
+    static _infoIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="4.5" x2="12.01" y2="4.5"/><line x1="12" y1="11" x2="12" y2="18"/></svg>`;
 
     /** Check glyph shown on success toasts (the circle is drawn in CSS) */
-    static _successIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+    static _successIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
 
-    /** Cross glyph shown on error toasts (the circle is drawn in CSS) */
-    static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
+    /** Exclamation glyph shown on error toasts (the circle is drawn in CSS) */
+    static _errorIcon = html`<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="6" x2="12" y2="13"/><line x1="12" y1="19.5" x2="12.01" y2="19.5"/></svg>`;
+
+    /** Close (X) icon — the stroke-based glyph shared with ol-dialog */
+    static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
     constructor() {
         super();
@@ -287,6 +287,7 @@ export class OlToast extends LitElement {
         this.persistent = false;
         this.timeout = 4000;
         this.labelClose = 'Close';
+        this._announce = false;
         this._timerId = null;
         this._remainingMs = 0;
         this._timerStartedAt = 0;
@@ -302,14 +303,28 @@ export class OlToast extends LitElement {
         // Let the browser paint one frame in the pre-mount (off-screen)
         // position — including any data-stacked attributes the region sets
         // on slotchange — then flip data-mounted to run the enter transition.
+        // Populating the (already-mounted, empty) live region in the same
+        // frame is what makes screen readers announce the message.
         requestAnimationFrame(() => {
-            requestAnimationFrame(() => this.setAttribute('data-mounted', ''));
+            requestAnimationFrame(() => {
+                this.setAttribute('data-mounted', '');
+                this._announce = true;
+            });
         });
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this._clearTimer();
+    }
+
+    updated(changed) {
+        // Populating the body grows the toast; tell an enclosing
+        // <ol-toast-region> to re-place the stack so offsets stay correct
+        // even when a toast is added while the stack is expanded.
+        if (changed.has('_announce') && this._announce) {
+            this.dispatchEvent(new CustomEvent('ol-toast-resize', { bubbles: true }));
+        }
     }
 
     _clearTimer() {
@@ -346,9 +361,9 @@ export class OlToast extends LitElement {
     /**
      * Close the toast: fire ol-toast-close, run the exit transition, and
      * remove the element from the DOM.
-     * @param {String} reason - "timeout" | "close-button" | "dismiss"
+     * @param {String} reason - "timeout" | "close-button" | "programmatic"
      */
-    close(reason = 'dismiss') {
+    close(reason = 'programmatic') {
         if (this._closing) return;
         this._closing = true;
         this._clearTimer();
@@ -386,16 +401,18 @@ export class OlToast extends LitElement {
             >
                 <span class="toast__icon">${icon}</span>
                 <span class="toast__body">
-                    <slot>
-                        <span class="toast__message">${this.message}</span>
-                        ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
-                    </slot>
+                    ${this._announce ? html`
+                        <slot>
+                            <span class="toast__message">${this.message}</span>
+                            ${this.description ? html`<span class="toast__description">${this.description}</span>` : ''}
+                        </slot>
+                    ` : ''}
                 </span>
                 <button
                     class="toast__close"
                     aria-label=${this.labelClose}
                     @click=${() => this.close('close-button')}
-                >&times;</button>
+                >${OlToast._closeIcon}</button>
             </div>
         `;
     }
