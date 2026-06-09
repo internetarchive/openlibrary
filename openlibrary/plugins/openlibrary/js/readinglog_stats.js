@@ -13,6 +13,9 @@ import 'chartjs-plugin-datalabels';
 /**
  * @typedef {object} Work
  * @property {string} key
+ * @property {number | null} first_publish_year
+ * @property {string | null} [first_publish_decade]
+ * @property {string | null} [first_publish_century]
  */
 
 /**
@@ -57,7 +60,8 @@ export function init(config) {
         const excluded = [];
 
         for (const work of config.works) {
-            const allKeys = getPath(work, chartConfig.key) || [];
+            const result = getPath(work, chartConfig.key);
+            const allKeys = Array.isArray(result) ? result : (result ? [result] : []);
             const validKeys = uniq(
                 allKeys.filter(key => !isUndefined(key) && !includes(chartConfig.exclude, key))
             );
@@ -200,6 +204,8 @@ export function init(config) {
     // Add full authors to the works objects for easy reference
     for (const work of config.works) {
         work.authors = work.author_keys.map(key => authors_by_id[key]);
+        work.first_publish_decade = work.first_publish_year ? `${Math.floor(work.first_publish_year / 10) * 10}s` : null;
+        work.first_publish_century = work.first_publish_year ? `${Math.floor(work.first_publish_year / 100) * 100}s` : null;
     }
 
     for (const container of document.querySelectorAll(config.charts_selector)) {

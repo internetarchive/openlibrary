@@ -530,6 +530,7 @@ def build_pagination_links(
     return links
 
 
+@deprecated("migrated to fastapi")
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
@@ -730,7 +731,7 @@ class list_view_yaml(list_view_json):
 
 
 def get_list_seeds(key):
-    if lst := web.ctx.site.get(key):
+    if lst := site.get().get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
             "links": {"self": key + "/seeds", "list": key},
@@ -739,6 +740,7 @@ def get_list_seeds(key):
         }
 
 
+@deprecated("migrated to fastapi")
 class list_seeds(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/seeds"
     encoding = "json"

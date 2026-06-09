@@ -50,6 +50,7 @@ $def reading_log_selections(work_key, edition_key, users_work_read_status):
       <input type="hidden" name="bookshelf_id" value="4"/>
       $if edition_key:
         <input type="hidden" name="edition_id" value="$(edition_key)"/>
+      $code: pass  # NOTE: Label for the reading log shelf for books the user stopped reading before finishing (bookshelf ID 4). Used as a button label and shelf name.
       <button class="nostyle-btn $(btn_visibilities[4])" type="submit" data-ol-link-track="ReadingLog|StoppedReading">$_('Stopped Reading')</button>
     </form>
   </div>

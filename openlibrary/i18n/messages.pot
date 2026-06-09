@@ -1364,6 +1364,10 @@ msgstr ""
 msgid "Read"
 msgstr ""
 
+#. Display name for the "stopped-reading" reading log shelf used in page
+#. headings and breadcrumbs.
+#. Label for the reading log shelf for books the user stopped reading before
+#. finishing (bookshelf ID 4). Used as a button label and shelf name.
 #. Label for the reading log shelf for books the user stopped reading
 #. (bookshelf ID 4). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
@@ -2287,6 +2291,14 @@ msgstr ""
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
+msgstr ""
+
+#: account/readinglog_stats.html
+msgid "Works by Decade Published"
+msgstr ""
+
+#: account/readinglog_stats.html
+msgid "Works by Century Published"
 msgstr ""
 
 #: account/readinglog_stats.html
@@ -4251,6 +4263,9 @@ msgstr ""
 msgid "Already Read (%(count)d)"
 msgstr ""
 
+#. Page title for the "Stopped Reading" shelf page.
+#. Example: "Stopped Reading (8)". %(count)d is the number of books on this
+#. shelf.
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Stopped Reading (%(count)d)"
@@ -8603,6 +8618,9 @@ msgstr ""
 msgid "Have read"
 msgstr ""
 
+#. Short label displayed next to the count of readers who stopped reading this
+#. book before finishing, shown in the stats bar on a book page. Example: "348
+#. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
 msgstr ""

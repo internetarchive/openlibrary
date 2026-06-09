@@ -781,7 +781,16 @@ class InternetArchiveAccount(web.storage):
                 raise e
 
     @classmethod
-    def xauth(cls, op, test=None, s3_key=None, s3_secret=None, xauth_url=None, **data):
+    def xauth(
+        cls,
+        op,
+        test=None,
+        s3_key=None,
+        s3_secret=None,
+        xauth_url=None,
+        headers=None,
+        **data,
+    ):
         """
         See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
         """
@@ -809,7 +818,7 @@ class InternetArchiveAccount(web.storage):
         if test:
             params["developer"] = test
 
-        response = requests.post(url, params=params, json=data)
+        response = requests.post(url, params=params, json=data, headers=headers or {})
         if response.status_code == 403:
             raise OLAuthenticationError("security_error")
         if response.status_code == 504 and op == "create":
@@ -871,6 +880,26 @@ class InternetArchiveAccount(web.storage):
             if reason == "account_not_verified":
                 response["values"]["reason"] = "ia_account_not_verified"
         return response
+
+    @classmethod
+    def issue_otp(cls, email, service="ol", originating_ip=None):
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
+        return cls.xauth(
+            "issue_otp",
+            email=email.strip().lower(),
+            service=service,
+            headers=headers,
+        )
+
+    @classmethod
+    def redeem_otp(cls, email, otp, originating_ip=None):
+        headers = {"X-Originating-IP": originating_ip} if originating_ip else None
+        return cls.xauth(
+            "redeem_otp",
+            email=email.strip().lower(),
+            password=otp,
+            headers=headers,
+        )
 
     @classmethod
     def verify(cls, token, welcome_email=True, test=False):

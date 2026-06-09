@@ -47,7 +47,7 @@ repos:
       - id: validate-pyproject
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.14
+    rev: v0.15.15
     hooks:
       - id: ruff-check
         args: [--fix]
@@ -59,7 +59,7 @@ repos:
     - id: cython-lint
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.2
+    rev: v2.1.0
     hooks:
       - id: mypy  # See pyproject.toml for args
         additional_dependencies:
@@ -82,7 +82,7 @@ repos:
         args: [--fix]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.9.1
+    rev: v10.4.1
     hooks:
       - id: eslint
         types: [file]
@@ -127,7 +127,7 @@ repos:
       require_serial: true
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.1.0
+    rev: 4.2.1
     hooks:
       - id: sqlfluff-lint
         args: [--dialect, postgres]

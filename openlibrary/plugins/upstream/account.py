@@ -115,7 +115,12 @@ class xauth(delegate.page):
         service. This service is spoofable to return successful and
         unsuccessful login attempts depending on the provided GET parameters
         """
-        i = web.input(email="", op=None)
+        i = web.input(email="", op=None, password="")
+        # xauth() sends JSON body; web.input() only reads query params + form bodies
+        try:
+            body = json.loads(web.data() or "{}")
+        except json.JSONDecodeError, ValueError:
+            body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
             result = {
@@ -138,7 +143,53 @@ class xauth(delegate.page):
                 },
                 "version": 1,
             }
+        elif i.op == "issue_otp":
+            # Pretend to send an OTP email; accept any email in dev
+            result = {"success": True, "version": 1}
+        elif i.op == "redeem_otp":
+            # Accept "123456" as the dev OTP code
+            if body.get("password") == "123456":
+                result = {
+                    "success": True,
+                    "version": 1,
+                    "values": {
+                        "email": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    },
+                }
+            else:
+                result = {
+                    "success": False,
+                    "version": 1,
+                    "error": "invalid_otp",
+                }
         return delegate.RawText(json.dumps(result), content_type="application/json")
+
+
+class s3auth(delegate.page):
+    path = "/internal/fake/s3auth"
+
+    def GET(self):
+        """Fake S3 auth endpoint for local dev. Accepts the dummy keys
+        issued by the fake xauth so the OTP redeem flow can complete."""
+        auth = web.ctx.env.get("HTTP_AUTHORIZATION", "")
+        # Fake keys are "foo:foo" — accept them
+        if "LOW foo:foo" in auth:
+            return delegate.RawText(
+                json.dumps(
+                    {
+                        "authorized": True,
+                        "username": "openlibrary@example.org",
+                        "itemname": "@openlibrary",
+                        "screenname": "openlibrary",
+                        "s3": {"access": "foo", "secret": "foo"},
+                    }
+                ),
+                content_type="application/json",
+            )
+        return delegate.RawText(json.dumps({"authorized": False}), content_type="application/json")
 
 
 class internal_audit(delegate.page):
@@ -408,6 +459,80 @@ class otp_service_redeem(delegate.page):
         return delegate.RawText(json.dumps({"error": "otp_mismatch"}))
 
 
+def _set_login_cookies(
+    audit: dict,
+    ol_account: OpenLibraryAccount | None,
+    remember: bool = False,
+) -> None:
+    """Set all session cookies after a successful login (password or OTP)."""
+    expires = 3600 * 24 * 365 if remember else ""
+
+    def _setcookie(name, value):
+        web.setcookie(name, value, expires=expires if value else 1)
+
+    _setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+    _setcookie("pd", "1" if audit.get("special_access") else "")
+    if ol_account and (ol_user := ol_account.get_user()):
+        _setcookie("sfw", "yes" if ol_user.get_safe_mode() == "yes" else "")
+        if pref_key := ol_user.preferences().get("yrg_banner_pref"):
+            web.setcookie(pref_key, "1", expires=3600 * 24 * 365)
+
+
+class account_login_otp_issue(delegate.page):
+    path = "/account/login/otp/issue"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="")
+        if not i.email:
+            return delegate.RawText(json.dumps({"error": "missing_email"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.issue_otp(i.email, originating_ip=originating_ip)
+        if result.get("success"):
+            return delegate.RawText(json.dumps({"success": True}))
+        code = result.get("code", 200)
+        if code == 429:
+            web.ctx.status = "429 Too Many Requests"
+            return delegate.RawText(json.dumps({"error": "rate_limited"}))
+        return delegate.RawText(json.dumps({"error": result.get("error", "otp_issue_failed")}))
+
+
+class account_login_otp_redeem(delegate.page):
+    path = "/account/login/otp/redeem"
+
+    def POST(self):
+        web.header("Content-Type", "application/json")
+        i = web.input(email="", otp="", redirect="")
+        if not i.email or not i.otp:
+            return delegate.RawText(json.dumps({"error": "missing_fields"}))
+        originating_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR") or web.ctx.ip
+        result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
+        if not result.get("success"):
+            return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
+        s3 = result.get("values", {}).get("s3", {})
+        access = s3.get("access")
+        secret = s3.get("secret")
+        if not access or not secret:
+            return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
+        audit = audit_accounts(
+            None,
+            None,
+            require_link=True,
+            s3_access_key=access,
+            s3_secret_key=secret,
+        )
+        if error := audit.get("error"):
+            return delegate.RawText(json.dumps({"error": error}))
+        email = audit.get("ia_email") or audit.get("ol_email")
+        _set_login_cookies(audit, OpenLibraryAccount.get_by_email(email))
+        redirect = i.redirect
+        # Reject non-path redirects (open redirect prevention) and login loops
+        _blacklist = ["/account/login", "/account/create"]
+        if not redirect or not redirect.startswith("/") or redirect.startswith("//") or any(path in redirect for path in _blacklist):
+            redirect = "/account/books"
+        return delegate.RawText(json.dumps({"success": True, "redirect": redirect}))
+
+
 class account_login(delegate.page):
     """Account login.
 
@@ -519,29 +644,19 @@ class account_login(delegate.page):
             )
         email = email or audit.get("ia_email") or audit.get("ol_email")
 
-        if ol_account := OpenLibraryAccount.get_by_email(email):
-            ol_user = ol_account.get_user()
-            self.set_cookies(
-                remember=remember,
-                **{
-                    config.login_cookie_name: web.ctx.conn.get_auth_token(),
-                    "pd": "1" if audit.get("special_access") else "",
-                    "sfw": "yes" if ol_user.get_safe_mode() == "yes" else "",
-                },
-            )
-            if pref_key := ol_user.preferences().get("yrg_banner_pref"):
-                web.setcookie(pref_key, "1", expires=3600 * 24 * 365)
+        ol_account = OpenLibraryAccount.get_by_email(email)
+        _set_login_cookies(audit, ol_account, remember=remember)
 
-            if web.cookies().get("pda"):
-                add_flash_message(
-                    "info",
-                    _(
-                        "Thank you for registering an Open Library account and "
-                        "requesting special print disability access. You should receive "
-                        "an email detailing next steps in the process."
-                    ),
-                )
-                web.setcookie("pda", "", expires=1)
+        if ol_account and web.cookies().get("pda"):
+            add_flash_message(
+                "info",
+                _(
+                    "Thank you for registering an Open Library account and "
+                    "requesting special print disability access. You should receive "
+                    "an email detailing next steps in the process."
+                ),
+            )
+            web.setcookie("pda", "", expires=1)
 
         blacklist = [
             "/account/login",
