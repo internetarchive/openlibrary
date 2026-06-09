@@ -110,13 +110,14 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             white-space: nowrap;
         }
 
-        /* Active: solid primary-blue fill, white text — matches the active
-           ol-toggle card variant in the same filter row. The chevron inherits
-           currentColor, so it turns white automatically. */
+        /* Active: soft blue tint fill with a darker primary-blue border and
+           dark-blue text — matches the active ol-toggle card variant in the
+           same filter row (and the selected row in this popover's own list).
+           The chevron inherits currentColor, so it picks up the blue too. */
         .default-trigger--active {
-            background: var(--primary-blue);
-            border-color: var(--primary-blue);
-            color: var(--white);
+            background: hsla(202, 96%, 37%, 0.08);
+            border-color: hsla(202, 96%, 37%, 0.35);
+            color: var(--link-blue);
         }
 
         .trigger-label {
@@ -131,8 +132,8 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             }
 
             .default-trigger--active:hover {
-                background: var(--link-blue);
-                border-color: var(--link-blue);
+                background: hsla(202, 96%, 37%, 0.12);
+                border-color: hsla(202, 96%, 37%, 0.5);
             }
         }
 

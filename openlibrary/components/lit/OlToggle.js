@@ -196,31 +196,31 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             font-weight: 400;
         }
 
-        /* Card + checked: solid primary-blue fill, white text (like a
-           selected ol-chip). The track inverts to a translucent white so the
-           knob stays visible against the blue surface. */
+        /* Card + checked: soft blue tint fill (matching the selected row in
+           the sibling ol-select-popover) with a darker primary-blue border and
+           dark-blue text, so the active state reads clearly without the harsh
+           solid-blue block. The switch track stays solid primary-blue so the
+           on-state remains obvious against the pale surface. */
         :host([variant="card"][checked]) {
-            --_toggle-bg: var(--primary-blue);
-            --_toggle-fg: var(--white);
-            --_toggle-sublabel-fg: #c6e1f0;
-            --_toggle-border: var(--primary-blue);
-            --_toggle-track: rgba(255, 255, 255, 0.35);
+            --_toggle-bg: hsla(202, 96%, 37%, 0.08);
+            --_toggle-fg: var(--link-blue);
+            --_toggle-sublabel-fg: var(--primary-blue);
+            --_toggle-border: hsla(202, 96%, 37%, 0.35);
+            --_toggle-track: var(--primary-blue);
             --_toggle-knob: var(--white);
         }
 
-        /* Hover backgrounds for the card variant, matching the sibling
-           ol-button and ol-select-popover trigger: the neutral card fills
-           with --lightest-grey, and the checked (primary-blue) card darkens
-           to --link-blue — the same shift ol-button[variant="primary"] makes
-           on hover. */
+        /* Hover backgrounds for the card variant: the neutral card fills with
+           --lightest-grey, and the checked card deepens its blue tint and
+           border (matching the selected-row hover in ol-select-popover). */
         @media (hover: hover) and (pointer: fine) {
             :host([variant="card"]:not([disabled])) .toggle:hover {
                 --_toggle-bg: var(--lightest-grey);
             }
 
             :host([variant="card"][checked]:not([disabled])) .toggle:hover {
-                --_toggle-bg: var(--link-blue);
-                --_toggle-border: var(--link-blue);
+                --_toggle-bg: hsla(202, 96%, 37%, 0.12);
+                --_toggle-border: hsla(202, 96%, 37%, 0.5);
             }
         }
     `;
