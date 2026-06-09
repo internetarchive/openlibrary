@@ -2,62 +2,32 @@
  * Filter options for the header search modal.
  */
 
-// Counts are rounded from production openlibrary.org facets (NOT fetched live)
-// — they give the user a sense of scale without an extra round-trip and stay
-// stable across renders. Last verified 2026-06-02: all=23.2M, readable=4.62M
-// (public+borrowable), open/public=1.86M, borrowable=2.75M. The nested counts
-// sum to their parent exactly (1.86M + 2.75M = 4.62M); print-disabled-only
-// scans are excluded from `has_fulltext` for non-print-disabled patrons. Bump
-// these when the corpus shifts materially.
-// `nested: true` marks an option as a subset of the broader option above it
-// ("Readable Only"), so the filter indents it and marks it in-scope when the
-// parent is selected. `icon` names a glyph in OlAvailabilityFilter._icons.
+// Availability values and their display labels. The labels are the English
+// source/fallback for the localized strings in search/availability_i18n.html;
+// keep the two in sync. The header modal and the search-page filter row both
+// surface availability as a binary "Readable Only" toggle, so only the
+// `readable` label is rendered today; the full set mirrors the taxonomy in
+// AVAILABILITY_TO_PARAMS and feeds availabilityFromParams' URL round-tripping.
 export const AVAILABILITY_OPTIONS = [
-    {
-        value: 'all',
-        label: 'All books',
-        description: 'Including print-only books with no digital copy',
-        count: '23M',
-        icon: 'book',
-    },
-    {
-        value: 'readable',
-        label: 'Readable Only',
-        description: 'Anything you can read in your browser',
-        count: '4.6M',
-        icon: 'globe',
-    },
-    {
-        value: 'open',
-        label: 'Free to read now',
-        description: 'Public domain & openly licensed',
-        count: '1.9M',
-        nested: true,
-        icon: 'unlock',
-    },
-    {
-        value: 'borrowable',
-        label: 'Borrow online',
-        description: 'Digital loan - one reader at a time, may have a waitlist',
-        count: '2.8M',
-        nested: true,
-        icon: 'clock',
-    },
+    { value: 'all', label: 'All books' },
+    { value: 'readable', label: 'Readable Only' },
+    { value: 'open', label: 'Free to read now' },
+    { value: 'borrowable', label: 'Borrow online' },
 ];
 
 export const DEFAULT_AVAILABILITY = 'all';
 
 /**
- * Returns a copy of AVAILABILITY_OPTIONS with each option's `label` and
- * `description` replaced by the translated strings in `i18nStrings` (keyed by
- * the option's `value`). The English strings above are the source/fallback:
- * any value the translations omit keeps its built-in text, so a missing or
- * partial translation never blanks out an option.
+ * Returns a copy of AVAILABILITY_OPTIONS with each option's `label` replaced by
+ * the translated string in `i18nStrings` (keyed by the option's `value`). The
+ * English strings above are the source/fallback: any value the translations
+ * omit keeps its built-in text, so a missing or partial translation never
+ * blanks out an option.
  *
  * The translated strings are rendered server-side via search/availability_i18n
  * (Templetor `$_()`), since the JS-side `ugettext` is only a pass-through.
  *
- * @param {Object<string, {label?: string, description?: string}>|null} i18nStrings
+ * @param {Object<string, {label?: string}>|null} i18nStrings
  * @returns {typeof AVAILABILITY_OPTIONS}
  */
 export function localizeAvailabilityOptions(i18nStrings) {
@@ -65,11 +35,7 @@ export function localizeAvailabilityOptions(i18nStrings) {
     return AVAILABILITY_OPTIONS.map((opt) => {
         const t = i18nStrings[opt.value];
         if (!t) return opt;
-        return {
-            ...opt,
-            label: t.label || opt.label,
-            description: t.description || opt.description,
-        };
+        return { ...opt, label: t.label || opt.label };
     });
 }
 
@@ -95,8 +61,7 @@ export function availabilityOptionsFromElement(el) {
  * English source/fallback for the header search modal's chrome strings (labels,
  * placeholders, aria-labels, status messages). Rendered server-side by
  * search/search_modal_i18n.html via `$_()`; this object is what ships when no
- * translation is present. `%s` in `removeFilter` is filled in at runtime with
- * the filter label (see SearchModal._renderChips).
+ * translation is present.
  */
 export const DEFAULT_SEARCH_MODAL_STRINGS = {
     dialogAria: 'Search Open Library',
@@ -106,8 +71,6 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     seeAll: 'See all results',
     seeAllOne: 'See all %s result',
     seeAllMany: 'See all %s results',
-    activeFiltersAria: 'Active filters',
-    removeFilter: 'Remove filter: %s',
     clearAll: 'Clear all',
     filtersAria: 'Search filters',
     availabilityLabel: 'Availability',

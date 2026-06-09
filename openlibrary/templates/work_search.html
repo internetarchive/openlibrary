@@ -39,16 +39,15 @@ $ bodyclass.append('search-page')
           <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
     </form>
 
-        $# Option lists and current selections are wired client-side by
-        $# SearchFilterBar.js, which seeds `selected` from the URL query so the
-        $# popovers stay in sync with the sidebar facets across page loads.
-        $# data-i18n carries the translated availability-filter strings;
-        $# SearchFilterBar.js reads it from this container element.
-        <div class="search-filter-row" id="search-filter-row" data-i18n="$:render_template('search/availability_i18n')">
-          <ol-availability-filter
-            label="$_('Availability')"
-            aria-label="$_('Filter by availability')"
-          ></ol-availability-filter>
+        $# Current selections are wired client-side by SearchFilterBar.js, which
+        $# seeds the toggle/popover from the URL query so they stay in sync with
+        $# the sidebar facets across page loads.
+        <div class="search-filter-row" id="search-filter-row">
+          <ol-toggle
+            variant="card"
+            label="$_('Readable Only')"
+            accessible-label="$_('Filter by availability')"
+          ></ol-toggle>
           <ol-select-popover
             label="$_('Language')"
             placeholder="$_('Search languages…')"

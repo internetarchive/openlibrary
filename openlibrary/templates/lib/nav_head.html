@@ -87,8 +87,8 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
   <div class="search-component">
     <div class="search-bar-component">
-      $# data-i18n carries the translated availability-filter strings and
-      $# data-i18n-ui the modal's chrome strings; SearchModal.js reads both from
+      $# data-i18n carries the translated availability labels (for the "Readable
+      $# Only" toggle) and data-i18n-ui the modal's chrome strings; SearchModal.js reads both from
       $# this trigger element. The visual "Search" label is hidden on
       $# mobile/touch widths (the trigger renders as a compact icon-only
       $# pill there) and shown at desktop to give the full wide search bar.

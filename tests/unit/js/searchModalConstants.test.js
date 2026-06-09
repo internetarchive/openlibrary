@@ -12,27 +12,24 @@ describe('localizeAvailabilityOptions', () => {
         expect(localizeAvailabilityOptions(null)).toBe(AVAILABILITY_OPTIONS);
     });
 
-    test('overrides label/description by option value', () => {
-        const localized = localizeAvailabilityOptions({
-            readable: { label: 'Lire maintenant', description: 'Lecture libre' },
-        });
-        const readable = localized.find((o) => o.value === 'readable');
-        expect(readable.label).toBe('Lire maintenant');
-        expect(readable.description).toBe('Lecture libre');
-        // Untranslated values keep their English text...
-        expect(localized.find((o) => o.value === 'all').label).toBe('All books');
-        // ...and the non-translatable fields are preserved.
-        expect(readable.value).toBe('readable');
-        expect(readable.count).toBe('4.6M');
-    });
-
-    test('falls back per-field when a translation omits one', () => {
+    test('overrides label by option value', () => {
         const localized = localizeAvailabilityOptions({
             readable: { label: 'Lire maintenant' },
         });
         const readable = localized.find((o) => o.value === 'readable');
         expect(readable.label).toBe('Lire maintenant');
-        expect(readable.description).toBe('Anything you can read in your browser');
+        // Untranslated values keep their English text...
+        expect(localized.find((o) => o.value === 'all').label).toBe('All books');
+        // ...and the non-translatable `value` is preserved.
+        expect(readable.value).toBe('readable');
+    });
+
+    test('keeps the English label when a translation omits it', () => {
+        const localized = localizeAvailabilityOptions({
+            readable: {},
+        });
+        const readable = localized.find((o) => o.value === 'readable');
+        expect(readable.label).toBe('Readable Only');
     });
 
     test('does not mutate the shared defaults', () => {

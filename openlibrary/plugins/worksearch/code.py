@@ -136,10 +136,6 @@ AVAILABILITY_TO_PARAMS: dict[str, dict[str, str]] = {
     "open": {"public_scan": "true"},
 }
 
-# Every URL param that any availability value can set. Used to clear the
-# availability filter (chip removal) without touching unrelated params.
-AVAILABILITY_PARAM_KEYS: tuple[str, ...] = tuple({key for params in AVAILABILITY_TO_PARAMS.values() for key in params})
-
 
 def _param_first(param: dict, key: str) -> str:
     """web.input can give back either a string or list depending on the field's
@@ -170,19 +166,15 @@ def get_active_availability(param: dict) -> str:
 
 @public
 def get_availability_label(value: str) -> str:
-    """Translated chip label for an availability value. Keep in sync with the
-    label text in AVAILABILITY_OPTIONS (search-modal/constants.js)."""
+    """Translated label for an availability value, used in the search-results
+    document title. Keep in sync with the label text in AVAILABILITY_OPTIONS
+    (search-modal/constants.js)."""
     return {
         "all": _("All books"),
         "readable": _("Readable Only"),
         "borrowable": _("Borrow online"),
         "open": _("Free to read now"),
     }.get(value, value)
-
-
-@public
-def get_availability_param_keys() -> tuple[str, ...]:
-    return AVAILABILITY_PARAM_KEYS
 
 
 @public

@@ -1,15 +1,13 @@
 $def with ()
-$# Translated availability-filter labels/descriptions for the header search
-$# modal (lib/nav_head.html) and the search-results filter row (work_search.html).
-$# Rendered into a `data-i18n` attribute and read client-side by
-$# search-modal/constants.js (availabilityOptionsFromElement). The English source
-$# strings here must match the fallback AVAILABILITY_OPTIONS in that same file.
-$# Counts are not translated — they're rendered separately by the popover and
-$# carried in AVAILABILITY_OPTIONS, not here.
+$# Translated availability labels for the header search modal's "Readable Only"
+$# toggle (lib/nav_head.html). Rendered into a `data-i18n` attribute and read
+$# client-side by search-modal/constants.js (availabilityOptionsFromElement).
+$# The English source strings here must match the fallback AVAILABILITY_OPTIONS
+$# in that same file.
 $ availability_i18n = {
-$     "all":        {"label": _("All books"),         "description": _("Including print-only books with no digital copy")},
-$     "readable":   {"label": _("Readable Only"),     "description": _("Anything you can read in your browser")},
-$     "open":       {"label": _("Free to read now"),  "description": _("Public domain & openly licensed")},
-$     "borrowable": {"label": _("Borrow online"),     "description": _("Digital loan - one reader at a time, may have a waitlist")},
+$     "all":        {"label": _("All books")},
+$     "readable":   {"label": _("Readable Only")},
+$     "open":       {"label": _("Free to read now")},
+$     "borrowable": {"label": _("Borrow online")},
 $ }
 $json_encode(availability_i18n)

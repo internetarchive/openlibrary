@@ -1,30 +1,24 @@
 /**
- * Wires the availability + language filter popovers on the search results page
- * (openlibrary/templates/work_search.html). The popovers render empty from the
- * template; this module seeds them with options and the current selection,
- * navigates to an updated /search URL when a filter changes, and keeps the
- * cross-page sticky-filter state in sessionStorage so the header search modal
- * and the search-page filters stay in sync.
+ * Wires the availability toggle + language filter popover on the search results
+ * page (openlibrary/templates/work_search.html). They render empty from the
+ * template; this module seeds them with the current selection, navigates to an
+ * updated /search URL when a filter changes, and keeps the cross-page
+ * sticky-filter state in sessionStorage so the header search modal and the
+ * search-page filters stay in sync.
  *
  * Persistence model — URL is the source of truth on /search:
  *
  *  - On init, if the URL carries any filter param (availability params or
  *    `language`), sessionStorage is mirrored from the URL. This way the modal
- *    will reflect a filter change made via the popovers, chips, or the sidebar
- *    language facet (which navigates the page with a new `language=` param)
- *    the next time it opens.
+ *    will reflect a filter change made via the toggle, the language popover, or
+ *    the sidebar language facet (which navigates the page with a new `language=`
+ *    param) the next time it opens.
  *
  *  - On init, if the URL carries NO filter params and sessionStorage has a
  *    non-default value, we replace-navigate to /search with those sticky
  *    filters applied. This handles arriving at /search from a search box
  *    submit on another page or from `?q=foo` typed straight into the address
  *    bar — the user gets the filters they last set in this session.
- *
- *  - The chips rendered server-side (work_search_selected_facets.html) emit
- *    `ol-chip-select` when clicked; we listen for that to update sessionStorage
- *    synchronously before the chip's `<a href>` navigation proceeds. Without
- *    this, clearing the last filter via a chip would immediately bounce back
- *    via the sticky-apply branch above.
  *
  * The full language catalogue is fetched lazily on first popover open.
  */
@@ -36,7 +30,6 @@ import {
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
     availabilityFromParams,
-    availabilityOptionsFromElement,
     readStoredLanguages,
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
@@ -116,28 +109,6 @@ function navigateWithParams(mutate) {
 }
 
 /**
- * Server-side chips (work_search_selected_facets.html) carry
- * `data-filter-kind`/`data-filter-value` attributes. OLChip emits
- * `ol-chip-select` synchronously when clicked, before its `<a href>` default
- * navigation runs, so updating sessionStorage in this listener keeps the next
- * page load consistent (otherwise removing the last filter via a chip would
- * bounce back via maybeApplyStickyFilters).
- */
-function wireChipRemovalSync() {
-    document.body.addEventListener('ol-chip-select', (e) => {
-        const chip = e.target.closest('ol-chip');
-        if (!chip) return;
-        const kind = chip.dataset.filterKind;
-        if (kind === 'availability') {
-            writeStoredAvailability(DEFAULT_AVAILABILITY);
-        } else if (kind === 'language') {
-            const value = chip.dataset.filterValue;
-            writeStoredLanguages(readStoredLanguages().filter(v => v !== value));
-        }
-    });
-}
-
-/**
  * Fill in option lists and wire change handlers for the filter row.
  * @param {HTMLElement} container - the `.search-filter-row` element
  */
@@ -155,23 +126,23 @@ export function initSearchFilterBar(container) {
     // popovers are seeded so a stale sessionStorage doesn't leak into them.
     syncSessionStorageFromUrl(currentParams);
 
-    wireChipRemovalSync();
-
-    const availabilityEl = container.querySelector('ol-availability-filter');
+    const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
 
     if (availabilityEl) {
-        // Translated labels/descriptions are rendered into the container's
-        // data-i18n attribute (search/availability_i18n.html); fall back to
-        // English defaults if it's absent.
-        availabilityEl.items = availabilityOptionsFromElement(container);
-        availabilityEl.selected = availabilityFromParams((name) => currentParams.get(name));
-        availabilityEl.addEventListener('ol-availability-filter-change', (e) => {
-            writeStoredAvailability(e.detail.selected);
-            const mapped = AVAILABILITY_TO_PARAMS[e.detail.selected] || {};
+        // Binary availability: the toggle reads as "on" whenever any
+        // readable-scoped filter is in the URL (readable / open / borrowable),
+        // and "off" for the all-books default. Flipping it on applies the broad
+        // `readable` filter; flipping it off clears every availability param.
+        availabilityEl.checked =
+            availabilityFromParams((name) => currentParams.get(name)) !== DEFAULT_AVAILABILITY;
+        availabilityEl.addEventListener('ol-toggle-change', (e) => {
+            const value = e.detail.checked ? 'readable' : DEFAULT_AVAILABILITY;
+            writeStoredAvailability(value);
+            const mapped = AVAILABILITY_TO_PARAMS[value] || {};
             navigateWithParams((params) => {
                 AVAILABILITY_PARAM_KEYS.forEach((key) => params.delete(key));
-                Object.entries(mapped).forEach(([key, value]) => params.set(key, value));
+                Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
     }

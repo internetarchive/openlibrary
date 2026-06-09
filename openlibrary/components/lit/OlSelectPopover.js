@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { classMap } from 'lit/directives/class-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlPopover.js';
@@ -109,9 +110,29 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             white-space: nowrap;
         }
 
+        /* Active: solid primary-blue fill, white text — matches the active
+           ol-toggle card variant in the same filter row. The chevron inherits
+           currentColor, so it turns white automatically. */
+        .default-trigger--active {
+            background: var(--primary-blue);
+            border-color: var(--primary-blue);
+            color: var(--white);
+        }
+
+        .trigger-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 18ch;
+        }
+
         @media (hover: hover) and (pointer: fine) {
             .default-trigger:hover {
                 background: var(--lightest-grey);
+            }
+
+            .default-trigger--active:hover {
+                background: var(--link-blue);
+                border-color: var(--link-blue);
             }
         }
 
@@ -424,17 +445,30 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
     }
 
     _renderDefaultTrigger() {
-        const count = (this.selected || []).length;
-        const text = count > 0
-            ? `${this.label} (${count})`
-            : this.label;
+        const selected = this.selected || [];
+        const count = selected.length;
+
+        let text;
+        let ariaLabel;
+        if (count === 0) {
+            text = this.label;
+            ariaLabel = undefined;
+        } else if (count === 1) {
+            const match = (this.items || []).find(it => it.value === selected[0]);
+            text = (match && match.label) || selected[0];
+            ariaLabel = `${this.label}: ${text}`;
+        } else {
+            text = `${this.label} (${count})`;
+            ariaLabel = `${this.label}, ${count} selected`;
+        }
+
         return html`
             <button
                 type="button"
-                class="default-trigger"
-                aria-label=${ifDefined(count > 0 ? `${this.label}, ${count} selected` : undefined)}
+                class=${classMap({ 'default-trigger': true, 'default-trigger--active': count > 0 })}
+                aria-label=${ifDefined(ariaLabel)}
             >
-                <span>${text}</span>
+                <span class="trigger-label">${text}</span>
                 ${OlSelectPopover._chevronIcon}
             </button>
         `;

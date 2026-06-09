@@ -11,15 +11,13 @@ $code:
     user_lang = get_request_lang()
     facet_tooltips = {
         'first_publish_year': _('First published in'),
-        'language': _('Written in'),
         'publisher_facet': _('Published by'),
         'author_key': _('Author'),
     }
-    # Facets the chips bar handles itself rather than via the facet_map loop.
-    # `has_fulltext` / `public_scan` / `print_disabled` are collapsed into a
-    # single Availability chip (see get_active_availability), and the language
-    # chips are rendered up-front so they don't depend on facet_counts being
-    # loaded (it isn't on the initial work_search.html render — facet=False).
+    # Facets surfaced by the filter row rather than as chips here, mirroring the
+    # header search modal: `has_fulltext` / `public_scan` / `print_disabled` by
+    # the availability toggle, and `language` by the language popover. Excluded
+    # from the facet_map chip loop below.
     special_handled = {'has_fulltext', 'public_scan_b', 'language'}
 
     def del_facet_url(k, v):
@@ -27,11 +25,6 @@ $code:
             return changequery(page=None, _path=path, query=dict(query), **{k:[i for i in param.get(k, []) if i != v]})
         else:
             return changequery(page=None, _path=path, query=dict(query), **{k:None})
-
-    def clear_availability_url():
-        # Clear every URL param any availability value can set, in one go.
-        cleared = {k: None for k in get_availability_param_keys()}
-        return changequery(page=None, _path=path, query=dict(query), **cleared)
 
     active_availability = get_active_availability(param) if param else 'all'
     selected_languages = list(param.get('language', [])) if param else []
@@ -64,11 +57,10 @@ $code:
         return chips
 
     other_chips = build_other_chips()
-    show_chips_bar = (
-        active_availability != 'all'
-        or selected_languages
-        or other_chips
-    )
+    # Availability and language are surfaced by the filter row (the toggle and
+    # the language popover), mirroring the header search modal — they get no
+    # chips here. Only the remaining facets (author, subject, year, …) do.
+    show_chips_bar = bool(other_chips)
 
 $if param and not search_response.error:
     $ title = []
@@ -81,28 +73,6 @@ $if param and not search_response.error:
 
     $if show_chips_bar:
         <div class="selected-search-facets">
-        $if active_availability != 'all':
-            $ avail_label = get_availability_label(active_availability)
-            <ol-chip
-                selected
-                size="small"
-                data-filter-kind="availability"
-                data-filter-value="$active_availability"
-                accessible-label="$_('Availability'): $avail_label"
-                href="$clear_availability_url()"
-            >$avail_label</ol-chip>
-
-        $for lang_code in selected_languages:
-            $ lang_label = get_language_name('/languages/' + lang_code, user_lang)
-            <ol-chip
-                selected
-                size="small"
-                data-filter-kind="language"
-                data-filter-value="$lang_code"
-                accessible-label="$_('Written in'): $lang_label"
-                href="$del_facet_url('language', lang_code)"
-            >$lang_label</ol-chip>
-
         $# Other facets (author, subject, year, etc.). Most render immediately
         $# off the URL params — facet_counts is used only to prettify the
         $# display label where available. `author_key` is the exception: see
@@ -118,9 +88,9 @@ $if param and not search_response.error:
         $if search_response.facet_counts:
             $# Legacy non-UI facets: only render when facet_counts is loaded
             $# (these aren't sticky filters owned by the new filter row).
-            $# When an availability value is active the new Availability chip
-            $# already represents has_fulltext — skip the legacy chip to avoid
-            $# showing two chips for the same param ("Borrowable" + "Ebooks").
+            $# When an availability value is active the toggle in the filter row
+            $# already represents has_fulltext — skip the legacy chip so we don't
+            $# show a redundant "Ebooks" chip for the same param.
             $if 'has_fulltext' in param and active_availability == 'all':
                 $ counts = search_response.facet_counts.get('has_fulltext', [])
                 $for k, display, count in counts:

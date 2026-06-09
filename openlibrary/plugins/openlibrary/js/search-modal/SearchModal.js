@@ -1,7 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
 // The <ol-*> custom elements this modal uses (ol-dialog, ol-toggle,
-// ol-select-popover, ol-chip, ol-chip-group) are registered by the site-wide
+// ol-select-popover) are registered by the site-wide
 // Lit bundle: build/lit-components/production/ol-components.js, loaded from
 // openlibrary/templates/site/footer.html. Do NOT re-import those component
 // modules here — re-running customElements.define() throws NotSupportedError.
@@ -198,23 +198,12 @@ export class SearchModal extends LitElement {
             display: flex;
             flex-direction: column;
             gap: var(--spacing-sm);
-            padding: var(--spacing-xs) var(--spacing-lg) var(--spacing-sm);
+            /* No horizontal padding here: the filter row scrolls on mobile and
+               needs the full viewport width as its scroll track. The inline
+               inset lives on .filters instead (as scroll-container padding) so
+               items still line up with the search field above. */
+            padding: var(--spacing-xs) 0 var(--spacing-sm);
             border-bottom: 1px solid var(--color-border-subtle);
-        }
-
-        /* ── Active filter chip row (sits below the filter buttons) ── */
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        /* The chip group takes the row's width so "Clear all" is pushed to
-           the far end by its margin-left: auto. */
-        .chips ol-chip-group {
-            flex: 1;
         }
 
         .clear-all {
@@ -246,10 +235,34 @@ export class SearchModal extends LitElement {
 
         /* ── Filter button row ─────────────────────────────────────── */
 
+        /* A single horizontal-scrolling row: filters keep their natural size
+           and overflow off-screen (mobile, or future extra filters) rather
+           than wrapping. "Clear all" sits at the far right via margin-left:auto
+           when there's spare room, and falls in line after the filters when the
+           row overflows. */
         .filters {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: var(--spacing-xs);
+            overflow-x: auto;
+            /* Inline inset (matches the search field above). Lives here rather
+               than on .filter-section so the scroll track spans the full width
+               and the trailing inset shows after scrolling. */
+            padding-inline: var(--spacing-lg);
+            /* Vertical breathing room so focus rings / the active scale aren't
+               clipped by the scroll container; the negative margin keeps the
+               row's position in the column unchanged. */
+            padding-block: 4px;
+            margin-block: -4px;
+            scrollbar-width: none;
+        }
+
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filters > * {
+            flex-shrink: 0;
         }
 
         /* ── Results ───────────────────────────────────────────────── */
@@ -569,17 +582,13 @@ export class SearchModal extends LitElement {
         @media (max-width: 767px) {
             .search-input { font-size: 16px; }
             .results { max-height: none; flex: 1; }
-            /* Inset the filter section to line up with the search field's
-               rounded box above (the .bar uses --spacing-md here), so the
-               controls don't abut the viewport edge. */
-            .filter-section { padding-inline: var(--spacing-md); }
             /* The footer is pinned by the dialog's flex column (it sits
                outside the scrolling body). */
             .footer { background: var(--white); }
 
             /* Inset, rounded search field with the close (X) sitting outside it. */
             .bar {
-                padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+                padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
                 border-bottom: none;
             }
             .search-field {
@@ -691,10 +700,6 @@ export class SearchModal extends LitElement {
     // ── Render ────────────────────────────────────────────────────────────
 
     render() {
-        // Availability is shown by the always-visible toggle, so it no longer
-        // appears as a chip; the chip row is for language filters only.
-        const hasFilters = this._languages.length > 0;
-
         return html`
             <ol-dialog
                 ?open=${this.open}
@@ -746,7 +751,6 @@ export class SearchModal extends LitElement {
 
                 <div class="filter-section">
                     ${this._renderFilters()}
-                    ${hasFilters ? this._renderChips() : nothing}
                 </div>
                 ${this._renderResults()}
 
@@ -762,62 +766,22 @@ export class SearchModal extends LitElement {
         `;
     }
 
-    _renderChips() {
-        // Each active filter is a selected <ol-chip>: the `selected` state
-        // gives it the built-in close icon (and the default blue fill),
-        // and clicking it (ol-chip-select) removes the filter. We use the
-        // default chip here — no `variant=` — so the modal row matches the
-        // /search filter bar.
-        const chips = [];
-
-        for (const value of this._languages) {
-            // Fall back to the raw code when the language isn't in our current
-            // item list. This happens for codes that aren't in
-            // DEFAULT_LANGUAGE_OPTIONS until /languages.json resolves; without
-            // a fallback the chip would silently disappear, leaving the user
-            // unable to dismiss an active filter.
-            const opt = this._languageItems.find(o => o.value === value);
-            chips.push({
-                key: `language:${value}`,
-                label: opt?.label || value,
-                onRemove: () => this._removeLanguage(value),
-            });
-        }
-
-        return html`
-            <div class="chips">
-                <ol-chip-group gap="small" aria-label=${this._i18n.activeFiltersAria}>
-                    ${repeat(chips, c => c.key, c => html`
-                        <ol-chip
-                            selected
-                            size="small"
-                            accessible-label=${sprintf(this._i18n.removeFilter, c.label)}
-                            @ol-chip-select=${c.onRemove}
-                        >${c.label}</ol-chip>
-                    `)}
-                </ol-chip-group>
-                ${chips.length >= 2 ? html`
-                    <button
-                        type="button"
-                        class="clear-all"
-                        @click=${this._clearAllFilters}
-                    >${this._i18n.clearAll}</button>
-                ` : nothing}
-            </div>
-        `;
-    }
-
     _renderFilters() {
         // Binary availability: off = "All books", on = "Readable Only". The
         // label comes from the (localized) 'readable' option so the toggle reads
         // the same as the old dropdown's Readable Only row.
         const readable = this._availabilityOptions.find(o => o.value === 'readable');
-        // Before any search, the sublabel shows the static corpus figure (e.g.
-        // "4.6M") for a sense of scale. Once a search lands, it shows how many of
-        // *these* results are readable, scoped to the current query + language.
+        // The sublabel shows how many of the current query's results are readable,
+        // scoped to the query + language. We only show it once a search lands and a
+        // live count is in hand — before that there's no honest number to display
+        // (the whole-corpus figure ignores the query/language), so we show nothing.
         const sublabel = this._hasSearched && typeof this._readableCount === 'number'
             ? this._readableCount.toLocaleString()
-            : (readable?.count ?? '');
+            : '';
+        // "Clear all" only earns its place once there's more than one filter to
+        // clear — i.e. readable-only is on *and* a language is selected. With a
+        // single filter active the user just toggles/deselects it directly.
+        const showClearAll = this._availability === 'readable' && this._languages.length > 0;
         return html`
             <div class="filters" role="group" aria-label=${this._i18n.filtersAria}>
                 <ol-toggle
@@ -835,6 +799,13 @@ export class SearchModal extends LitElement {
                     .selected=${this._languages}
                     @ol-select-popover-change=${this._onLanguagesChange}
                 ></ol-select-popover>
+                ${showClearAll ? html`
+                    <button
+                        type="button"
+                        class="clear-all"
+                        @click=${this._clearAllFilters}
+                    >${this._i18n.clearAll}</button>
+                ` : nothing}
             </div>
         `;
     }
@@ -1078,12 +1049,6 @@ export class SearchModal extends LitElement {
     _setAvailability(value) {
         this._availability = value;
         ssSet(SS_AVAILABILITY_KEY, value);
-        this._refetchIfActive();
-    }
-
-    _removeLanguage(value) {
-        this._languages = this._languages.filter(v => v !== value);
-        ssSet(SS_LANGUAGES_KEY, JSON.stringify(this._languages));
         this._refetchIfActive();
     }
 

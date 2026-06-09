@@ -1465,9 +1465,9 @@ msgstr ""
 msgid "Solr Editions"
 msgstr ""
 
-#: search/search_modal_i18n.html search/work_search_selected_facets.html
-#: type/work/editions_datatable.html work_search.html
-msgid "Availability"
+#: design/toggle.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html work_search.html
+msgid "Readable Only"
 msgstr ""
 
 #: work_search.html
@@ -5114,11 +5114,6 @@ msgid ""
 " %(sublabel)s."
 msgstr ""
 
-#: design/toggle.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html
-msgid "Readable Only"
-msgstr ""
-
 #: design/toggle.html
 msgid "Card variant"
 msgstr ""
@@ -6834,28 +6829,12 @@ msgstr ""
 msgid "All books"
 msgstr ""
 
-#: search/availability_i18n.html
-msgid "Including print-only books with no digital copy"
-msgstr ""
-
-#: search/availability_i18n.html
-msgid "Anything you can read in your browser"
-msgstr ""
-
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Free to read now"
 msgstr ""
 
-#: search/availability_i18n.html
-msgid "Public domain & openly licensed"
-msgstr ""
-
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Borrow online"
-msgstr ""
-
-#: search/availability_i18n.html
-msgid "Digital loan - one reader at a time, may have a waitlist"
 msgstr ""
 
 #: search/inside.html
@@ -6941,20 +6920,15 @@ msgid "See all %s results"
 msgstr ""
 
 #: search/search_modal_i18n.html
-msgid "Active filters"
-msgstr ""
-
-#: search/search_modal_i18n.html
-#, python-format
-msgid "Remove filter: %s"
-msgstr ""
-
-#: search/search_modal_i18n.html
 msgid "Clear all"
 msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "Search filters"
+msgstr ""
+
+#: search/search_modal_i18n.html type/work/editions_datatable.html
+msgid "Availability"
 msgstr ""
 
 #: search/search_modal_i18n.html
@@ -7138,10 +7112,6 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
-
-#: search/work_search_selected_facets.html
-msgid "Written in"
 msgstr ""
 
 #: search/work_search_selected_facets.html
