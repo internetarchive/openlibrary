@@ -1,4 +1,4 @@
-$def with (q_param, search_response, get_doc, param, page, rows, has_solr_editions_enabled)
+$def with (q_param, search_response, get_doc, param, page, rows, readable_count, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
 $ bodyclass = ctx.setdefault('bodyclass', [])
@@ -42,11 +42,16 @@ $ bodyclass.append('search-page')
         $# Current selections are wired client-side by SearchFilterBar.js, which
         $# seeds the toggle/popover from the URL query so they stay in sync with
         $# the sidebar facets across page loads.
+        $# The readable-results count is computed server-side (search.GET) and
+        $# rendered into the sublabel here, so it's present on first paint with no
+        $# async flash-in or layout shift. Empty when there's nothing to count.
+        $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
         <div class="search-filter-row" id="search-filter-row">
           <ol-toggle
             variant="card"
             label="$_('Readable Only')"
             accessible-label="$_('Filter by availability')"
+            sublabel="$readable_sublabel"
           ></ol-toggle>
           <ol-select-popover
             label="$_('Language')"

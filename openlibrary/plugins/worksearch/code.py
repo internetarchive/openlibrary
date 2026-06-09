@@ -177,6 +177,35 @@ def get_availability_label(value: str) -> str:
     }.get(value, value)
 
 
+def _get_readable_count(param: dict, search_response) -> int | None:
+    """Count of the current search's results that are readable in-browser, for
+    the "Readable Only" toggle sublabel on work_search.html. Mirrors the
+    'readable' availability filter (has_fulltext=true). Reuses the main result
+    count when the search is already readable-scoped; otherwise runs one cheap
+    rows=0 count query. Returns None when there's nothing to count.
+
+    Note we can't use the has_fulltext facet count here: has_fulltext is indexed
+    as ebook_access > UNCLASSIFIED (includes printdisabled), but the toggle's
+    filter is ebook_access:[borrowable TO *], so the facet would over-count.
+    """
+    if not param or not search_response.num_found:
+        return None
+    if get_active_availability(param) == "readable":
+        return search_response.num_found  # the main query already counted it
+    readable_param = {k: v for k, v in param.items() if k != "public_scan"}
+    readable_param["has_fulltext"] = "true"
+    resp = run_solr_query(
+        WorkSearchScheme(solr_editions=req_context.get().solr_editions),
+        readable_param,
+        rows=0,
+        spellcheck_count=0,
+        fields=["key", "editions"],  # opt into the same edition block-join as /search
+        facet=False,
+        request_label="BOOK_SEARCH_READABLE_COUNT",
+    )
+    return resp.num_found
+
+
 @public
 def get_request_lang() -> str:
     """The request's UI language, safe to call from templates rendered on
@@ -842,6 +871,8 @@ class search(delegate.page):
         else:
             search_response = SearchResponse(facet_counts=None, sort="", docs=[], num_found=0, solr_select="")
 
+        readable_count = _get_readable_count(param, search_response)
+
         return render.work_search(
             " ".join(q_list),
             search_response,
@@ -849,6 +880,7 @@ class search(delegate.page):
             param,
             page,
             rows,
+            readable_count,
             has_solr_editions_enabled=req_context.get().solr_editions,
         )
 

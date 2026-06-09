@@ -109,33 +109,6 @@ function navigateWithParams(mutate) {
 }
 
 /**
- * Fetch how many of the current search's results are readable, for the
- * availability toggle's sublabel — the same affordance the header search modal
- * shows. We start from the live URL params (so the count honours the query,
- * language, and any sidebar facets the server already applied), clear the
- * availability params, and force `has_fulltext=true` so the number always
- * reflects what turning the toggle on yields. `limit=0` asks Solr for just the
- * count; the `editions` field opts into the same edition-level block-join the
- * toggle applies, so the count matches the filtered result set.
- *
- * @param {URLSearchParams} params - the current /search URL params
- * @returns {Promise<number|null>} the readable count, or null on failure
- */
-function fetchReadableCount(params) {
-    const countParams = new URLSearchParams(params);
-    AVAILABILITY_PARAM_KEYS.forEach((key) => countParams.delete(key));
-    countParams.set('has_fulltext', 'true');
-    countParams.delete('page');
-    countParams.set('limit', '0');
-    countParams.set('fields', 'key,editions');
-    countParams.set('_spellcheck_count', '0');
-    return fetch(`/search.json?${countParams.toString()}`)
-        .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`Count failed: ${r.status}`))))
-        .then((data) => (typeof data.numFound === 'number' ? data.numFound : null))
-        .catch(() => null);
-}
-
-/**
  * Fill in option lists and wire change handlers for the filter row.
  * @param {HTMLElement} container - the `.search-filter-row` element
  */
@@ -172,17 +145,8 @@ export function initSearchFilterBar(container) {
                 Object.entries(mapped).forEach(([key, val]) => params.set(key, val));
             });
         });
-
-        // Mirror the modal: show the readable-results count in the sublabel once
-        // a search is active. A bare /search (no query) has no scope to count,
-        // so the sublabel stays empty there.
-        if ((currentParams.get('q') || '').trim()) {
-            fetchReadableCount(currentParams).then((count) => {
-                if (typeof count === 'number') {
-                    availabilityEl.sublabel = count.toLocaleString();
-                }
-            });
-        }
+        // The readable-count sublabel is rendered server-side (work_search.html),
+        // so it's already present on first paint — nothing to fetch here.
     }
 
     if (languageEl) {
