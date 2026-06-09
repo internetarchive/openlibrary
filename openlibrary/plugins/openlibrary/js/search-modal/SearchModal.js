@@ -140,7 +140,6 @@ export class SearchModal extends LitElement {
             letter-spacing: 0.04em;
             cursor: pointer;
             white-space: nowrap;
-            transition: background-color 150ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -153,7 +152,6 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: none) and (pointer: coarse) { .esc-pill { display: none; } }
-        @media (prefers-reduced-motion: reduce)     { .esc-pill { transition: none; } }
 
         /* ── Close button (mobile) ─────────────────────────────────── */
 
@@ -172,7 +170,6 @@ export class SearchModal extends LitElement {
             border-radius: var(--border-radius-button);
             color: var(--accessible-grey);
             cursor: pointer;
-            transition: background-color 150ms ease;
         }
 
         .close-btn svg {
@@ -186,7 +183,6 @@ export class SearchModal extends LitElement {
         }
 
         @media (hover: none) and (pointer: coarse) { .close-btn { display: inline-flex; } }
-        @media (prefers-reduced-motion: reduce)    { .close-btn { transition: none; } }
 
         /* ── Filter section (filter buttons + active chip row) ─────── */
 
@@ -217,7 +213,6 @@ export class SearchModal extends LitElement {
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 150ms ease;
         }
 
         @media (hover: hover) and (pointer: fine) {
@@ -227,10 +222,6 @@ export class SearchModal extends LitElement {
         .clear-all:focus-visible {
             outline: 2px solid var(--color-focus-ring);
             outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .clear-all { transition: none; }
         }
 
         /* ── Filter button row ─────────────────────────────────────── */
