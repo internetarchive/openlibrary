@@ -199,7 +199,6 @@ export class SearchModal extends LitElement {
                inset lives on .filters instead (as scroll-container padding) so
                items still line up with the search field above. */
             padding: var(--spacing-xs) 0 var(--spacing-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
         }
 
         .clear-all {
@@ -263,7 +262,6 @@ export class SearchModal extends LitElement {
             min-height: 80px;
             max-height: 480px;
             overflow-y: auto;
-            padding: var(--spacing-xs) 0;
         }
 
         .results-heading {
@@ -272,7 +270,7 @@ export class SearchModal extends LitElement {
             color: var(--accessible-grey);
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.06em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
@@ -282,11 +280,10 @@ export class SearchModal extends LitElement {
             padding: 0;
         }
 
-        /* Hairline above and below every row. Deliberately fainter than the
+        /* Hairline above every row. Deliberately fainter than the
            modal's section dividers (--color-border-subtle) so the lines read
            as texture rather than structure. Adjacent rows share one line. */
         .results-list li { border-top: 1px solid var(--lightest-grey); }
-        .results-list li:last-child { border-bottom: 1px solid var(--lightest-grey); }
 
         /* Sets the author suggestion apart from the "Top results" works below.
            The row hairlines draw the dividing line; this just adds air. */
@@ -422,7 +419,6 @@ export class SearchModal extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 36px; /* matches the cover column so the text gutter lines up */
             height: 28px;
             color: var(--accessible-grey);
         }
