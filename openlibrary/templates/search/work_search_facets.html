@@ -77,7 +77,9 @@ $def facet_entry(display, count, facet_url, hide_entry=False):
         $:_('Focus your results using these <a href="/search/howto">filters</a>')
     </div>
     $for header, label in get_facet_map():
-        $if header=='has_fulltext' and 'has_fulltext' in param:
+        $# Readability (has_fulltext) is owned by the "Readable Only" toggle in
+        $# the filter row now, so it's no longer offered as a sidebar facet.
+        $if header=='has_fulltext':
             $continue
         $if header=='public_scan_b':
             $continue
