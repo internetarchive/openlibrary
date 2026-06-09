@@ -600,7 +600,6 @@
   font-family: inherit;
   font-size: 1em;
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
 /* Hidden on mobile/touch; the desktop file flips this back to `block`

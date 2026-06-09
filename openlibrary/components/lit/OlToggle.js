@@ -207,6 +207,22 @@ export class OlToggle extends FocusableHostMixin(LitElement) {
             --_toggle-track: rgba(255, 255, 255, 0.35);
             --_toggle-knob: var(--white);
         }
+
+        /* Hover backgrounds for the card variant, matching the sibling
+           ol-button and ol-select-popover trigger: the neutral card fills
+           with --lightest-grey, and the checked (primary-blue) card darkens
+           to --link-blue — the same shift ol-button[variant="primary"] makes
+           on hover. */
+        @media (hover: hover) and (pointer: fine) {
+            :host([variant="card"]:not([disabled])) .toggle:hover {
+                --_toggle-bg: var(--lightest-grey);
+            }
+
+            :host([variant="card"][checked]:not([disabled])) .toggle:hover {
+                --_toggle-bg: var(--link-blue);
+                --_toggle-border: var(--link-blue);
+            }
+        }
     `;
 
     constructor() {

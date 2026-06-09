@@ -105,6 +105,38 @@ CSS custom properties inherit through the shadow boundary, so design tokens work
 
 ## Animations
 
+### Hover state changes are instant
+
+Don't transition the background-color, color, or border-color of a hover
+state. A hover should snap in the instant the pointer arrives — easing it in
+makes the control feel laggy and unresponsive, and on a fast pointer sweep the
+fade is just visual noise. Transitions belong on press feedback (`transform`
+on `:active`), enter/exit animations, and loading states — not on `:hover`
+color changes.
+
+```css
+/* Bad - hover background eases in, feels laggy */
+.button {
+  background: var(--white);
+  transition: background-color 0.15s ease;
+}
+.button:hover {
+  background: var(--lightest-grey);
+}
+
+/* Good - hover is instant; only the press-scale animates */
+.button {
+  background: var(--white);
+  transition: transform 0.08s;
+}
+.button:hover {
+  background: var(--lightest-grey);
+}
+.button:active {
+  transform: scale(0.97);
+}
+```
+
 ### Practical Tips
 
 | Scenario | Solution |

@@ -308,8 +308,9 @@ export class SearchModal extends LitElement {
             padding: var(--spacing-sm) var(--spacing-lg);
             color: inherit;
             text-decoration: none;
+            /* Hover background is instant (see docs/ai/design.md); only the
+               result fade-in and press-transform animate. */
             transition:
-                background-color 100ms ease,
                 opacity 160ms ease,
                 transform 100ms ease;
         }
@@ -454,7 +455,7 @@ export class SearchModal extends LitElement {
             color: var(--accessible-grey);
             cursor: pointer;
             opacity: 0;
-            transition: opacity 100ms ease, background-color 150ms ease;
+            transition: opacity 100ms ease;
         }
 
         .recent-result:hover .result__remove-recent,
