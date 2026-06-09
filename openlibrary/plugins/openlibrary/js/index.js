@@ -4,6 +4,8 @@ import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
 import '../../../../static/css/js-all.css';
+import initPWAInstallPrompt from './pwa-install-prompt.js';
+
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
 import { queueAction } from './utils';
@@ -39,6 +41,8 @@ document.addEventListener('click', function(e) {
 
 // Init the service worker first since it does caching
 initServiceWorker();
+
+initPWAInstallPrompt();
 
 // This to the best of our knowledge needs to be run synchronously,
 // because it sends the initial pageview to analytics.
