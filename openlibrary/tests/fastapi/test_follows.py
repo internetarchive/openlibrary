@@ -3,9 +3,6 @@ from unittest.mock import patch
 
 import pytest
 
-from openlibrary.fastapi.auth import AuthenticatedUser, get_authenticated_user
-from openlibrary.fastapi.internal.api import FollowEntry
-
 FAKE_FOLLOWING = [
     {
         "subscriber": "testuser",
@@ -17,93 +14,78 @@ FAKE_FOLLOWING = [
 ]
 
 
-@pytest.fixture
-def mock_auth_user(fastapi_client):
-    fake_user = AuthenticatedUser(
-        username="testuser",
-        user_key="/people/testuser",
-        timestamp="2026-01-01T00:00:00",
-    )
-    fastapi_client.app.dependency_overrides[get_authenticated_user] = lambda: fake_user
-    yield fake_user
-    fastapi_client.app.dependency_overrides.pop(get_authenticated_user, None)
-
-
 class TestGetPatronFollows:
-    def test_get_follows_returns_following(self, fastapi_client, mock_auth_user):
+    def test_returns_following_list(self, fastapi_client, mock_optional_authenticated_user):
         with patch("openlibrary.fastapi.internal.api.PubSub.get_following", return_value=FAKE_FOLLOWING):
             response = fastapi_client.get("/people/testuser/follows.json")
 
         assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
-        assert len(data) == 1
-        FollowEntry(**data[0])
-        assert data[0]["publisher"] == "author1"
-        assert data[0]["subscriber"] == "testuser"
-        assert data[0]["disabled"] is False
-        assert data[0]["updated"] == "2026-01-01T12:00:00"
-        assert data[0]["created"] == "2026-01-01T12:00:00"
+        assert response.json() == [
+            {
+                "subscriber": "testuser",
+                "publisher": "author1",
+                "disabled": False,
+                "updated": "2026-01-01T12:00:00",
+                "created": "2026-01-01T12:00:00",
+            }
+        ]
 
-    def test_get_follows_requires_authentication(self, fastapi_client):
-        response = fastapi_client.get("/people/testuser/follows.json", follow_redirects=False)
-
-        assert response.status_code == 303
-
-    def test_get_follows_redirects_for_wrong_user(self, fastapi_client, mock_auth_user):
-        response = fastapi_client.get("/people/otheruser/follows.json", follow_redirects=False)
-
-        assert response.status_code == 303
-        assert response.headers["location"].startswith("/account/login")
-
-    def test_get_follows_redirects_with_redir_url(self, fastapi_client):
-        response = fastapi_client.get("/people/testuser/follows.json?redir_url=/books", follow_redirects=False)
-
-        assert response.status_code == 303
-        assert "redir_url=%2Fbooks" in response.headers["location"]
-
-    def test_get_follows_empty_list(self, fastapi_client, mock_auth_user):
+    def test_empty_list(self, fastapi_client, mock_optional_authenticated_user):
         with patch("openlibrary.fastapi.internal.api.PubSub.get_following", return_value=[]):
             response = fastapi_client.get("/people/testuser/follows.json")
 
         assert response.status_code == 200
         assert response.json() == []
 
+    def test_unauthenticated_redirects_to_login(self, fastapi_client):
+        response = fastapi_client.get("/people/testuser/follows.json", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert response.headers["location"].startswith("/account/login")
+
+    def test_wrong_user_redirects_to_login(self, fastapi_client, mock_optional_authenticated_user):
+        response = fastapi_client.get("/people/otheruser/follows.json", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert response.headers["location"].startswith("/account/login")
+
+    def test_redirect_preserves_redir_url(self, fastapi_client):
+        response = fastapi_client.get("/people/testuser/follows.json?redir_url=/books", follow_redirects=False)
+
+        assert response.status_code == 303
+        assert "redir_url=%2Fbooks" in response.headers["location"]
+
 
 class TestPostPatronFollows:
-    def test_post_follows_subscribes(self, fastapi_client, mock_auth_user):
+    @pytest.mark.parametrize(
+        ("state", "expected_method"),
+        [
+            ("0", "subscribe"),
+            ("1", "unsubscribe"),
+            ("", "unsubscribe"),  # missing/empty state defaults to unsubscribe
+        ],
+    )
+    def test_routes_state_to_subscribe_or_unsubscribe(
+        self,
+        fastapi_client,
+        mock_optional_authenticated_user,
+        state,
+        expected_method,
+    ):
         with (
-            patch("openlibrary.fastapi.internal.api.accounts.find") as mock_find,
-            patch("openlibrary.fastapi.internal.api.PubSub.subscribe") as mock_subscribe,
+            patch("openlibrary.fastapi.internal.api.accounts.find", return_value=True),
+            patch(f"openlibrary.fastapi.internal.api.PubSub.{expected_method}") as mock_action,
         ):
-            mock_find.return_value = True
             response = fastapi_client.post(
                 "/people/testuser/follows.json",
-                data={"publisher": "author1", "state": "0"},
+                data={"publisher": "author1", "state": state},
                 follow_redirects=False,
             )
 
         assert response.status_code == 303
-        mock_find.assert_called_once_with(username="author1")
-        mock_subscribe.assert_called_once_with("testuser", "author1")
+        mock_action.assert_called_once_with("testuser", "author1")
 
-    def test_post_follows_unsubscribes(self, fastapi_client, mock_auth_user):
-        with (
-            patch("openlibrary.fastapi.internal.api.accounts.find") as mock_find,
-            patch("openlibrary.fastapi.internal.api.PubSub.unsubscribe") as mock_unsubscribe,
-        ):
-            mock_find.return_value = True
-            response = fastapi_client.post(
-                "/people/testuser/follows.json",
-                data={"publisher": "author1", "state": "1"},
-                follow_redirects=False,
-            )
-
-        assert response.status_code == 303
-        mock_find.assert_called_once_with(username="author1")
-        mock_unsubscribe.assert_called_once_with("testuser", "author1")
-
-    def test_post_follows_redirects_to_login_when_unauthenticated(self, fastapi_client):
+    def test_unauthenticated_redirects_to_login(self, fastapi_client):
         response = fastapi_client.post(
             "/people/testuser/follows.json",
             data={"publisher": "author1", "redir_url": "/"},
@@ -113,7 +95,7 @@ class TestPostPatronFollows:
         assert response.status_code == 303
         assert response.headers["location"].startswith("/account/login")
 
-    def test_post_follows_wrong_user_preserves_redir_url(self, fastapi_client, mock_auth_user):
+    def test_wrong_user_redirects_to_login_and_preserves_redir_url(self, fastapi_client, mock_optional_authenticated_user):
         response = fastapi_client.post(
             "/people/otheruser/follows.json",
             data={"publisher": "author1", "redir_url": "/books/OL1M", "state": "0"},
@@ -123,17 +105,7 @@ class TestPostPatronFollows:
         assert response.status_code == 303
         assert "redir_url=%2Fbooks%2FOL1M" in response.headers["location"]
 
-    def test_post_follows_redirects_to_login_for_wrong_user(self, fastapi_client, mock_auth_user):
-        response = fastapi_client.post(
-            "/people/otheruser/follows.json",
-            data={"publisher": "author1", "redir_url": "/"},
-            follow_redirects=False,
-        )
-
-        assert response.status_code == 303
-        assert response.headers["location"].startswith("/account/login")
-
-    def test_post_follows_nonexistent_publisher_returns_404(self, fastapi_client, mock_auth_user):
+    def test_nonexistent_publisher_returns_404(self, fastapi_client, mock_optional_authenticated_user):
         with patch("openlibrary.fastapi.internal.api.accounts.find", return_value=None):
             response = fastapi_client.post(
                 "/people/testuser/follows.json",
@@ -142,12 +114,11 @@ class TestPostPatronFollows:
 
         assert response.status_code == 404
 
-    def test_post_follows_follows_redirect_url(self, fastapi_client, mock_auth_user):
+    def test_success_redirects_to_redir_url(self, fastapi_client, mock_optional_authenticated_user):
         with (
-            patch("openlibrary.fastapi.internal.api.accounts.find") as mock_find,
+            patch("openlibrary.fastapi.internal.api.accounts.find", return_value=True),
             patch("openlibrary.fastapi.internal.api.PubSub.subscribe"),
         ):
-            mock_find.return_value = True
             response = fastapi_client.post(
                 "/people/testuser/follows.json",
                 data={"publisher": "author1", "redir_url": "/books/OL1M", "state": "0"},

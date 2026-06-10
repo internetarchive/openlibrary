@@ -5,7 +5,11 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
+from openlibrary.fastapi.auth import (
+    AuthenticatedUser,
+    get_authenticated_user,
+    require_authenticated_user,
+)
 from openlibrary.plugins.worksearch.code import SearchResponse
 
 
@@ -41,6 +45,25 @@ def mock_authenticated_user(fastapi_client):
     fastapi_client.app.dependency_overrides[require_authenticated_user] = lambda: fake_user
     yield fake_user
     fastapi_client.app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def mock_optional_authenticated_user(fastapi_client):
+    """Override get_authenticated_user for endpoints that use optional auth.
+
+    Use this fixture for endpoints that depend on get_authenticated_user
+    (which returns AuthenticatedUser | None) and handle the unauthenticated
+    case themselves — typically by returning a redirect to /account/login —
+    rather than raising 401. The fixture only clears the override it set.
+    """
+    fake_user = AuthenticatedUser(
+        username="testuser",
+        user_key="/people/testuser",
+        timestamp="2026-01-01T00:00:00",
+    )
+    fastapi_client.app.dependency_overrides[get_authenticated_user] = lambda: fake_user
+    yield fake_user
+    fastapi_client.app.dependency_overrides.pop(get_authenticated_user, None)
 
 
 @pytest.fixture
