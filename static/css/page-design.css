@@ -245,6 +245,9 @@ pre.example__code code[class*="language-"] {
 .component-api__table th,
 .component-api__table td {
   padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  /* Override the site-wide `tbody { font-size: 0.9em }` so header and body
+     cells render at the same size. */
+  font-size: var(--font-size-body-medium);
   /* The table's own border supplies the top and left edges; cells draw the
      interior grid with their right and bottom borders. */
   border-bottom: var(--border-table);
@@ -261,6 +264,9 @@ pre.example__code code[class*="language-"] {
 }
 
 .component-api__table td {
+  /* White cells paint over the site-wide `tbody tr` beige tint, keeping these
+     tables clean while the rest of the site keeps that background. */
+  background: var(--white);
   color: var(--dark-grey);
 }
 

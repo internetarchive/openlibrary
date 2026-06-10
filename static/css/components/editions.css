@@ -268,13 +268,11 @@ table#editions .highlight,
   }
 }
 
-table#editions tbody tr,
-.editions-table tbody tr {
+tbody tr {
   background: hsl(52, 31%, 95%); /* mix(@beige, @white, 30%) */
 }
 
-table#editions tbody,
-.editions-table tbody {
+tbody {
   font-size: 0.9em;
 }
 
