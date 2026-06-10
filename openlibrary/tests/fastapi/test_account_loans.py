@@ -46,7 +46,7 @@ def _mock_legacy_context():
 class TestAccountLoansPages:
     def test_loans_page_renders_legacy_template(self, fastapi_client, mock_optional_authenticated_user):
         legacy_user = FakeLegacyUser()
-        template = web.storage(rawtext="<main>Loans page</main>")
+        template = web.storage(rawtext="<section>Loans page</section>")
 
         with (
             _mock_legacy_context(),
@@ -57,12 +57,12 @@ class TestAccountLoansPages:
 
         assert response.status_code == 200
         assert response.headers["content-type"].startswith("text/html")
-        assert response.text == "<main>Loans page</main>"
+        assert response.text == "<section>Loans page</section>"
         get_page.assert_called_once_with(legacy_user)
 
     def test_loan_history_page_forwards_page_query(self, fastapi_client, mock_optional_authenticated_user):
         legacy_user = FakeLegacyUser()
-        template = web.storage(rawtext="<main>Loan history page</main>")
+        template = web.storage(rawtext="<section>Loan history page</section>")
 
         with (
             _mock_legacy_context(),
@@ -72,7 +72,7 @@ class TestAccountLoansPages:
             response = fastapi_client.get("/account/loan-history?page=3")
 
         assert response.status_code == 200
-        assert response.text == "<main>Loan history page</main>"
+        assert response.text == "<section>Loan history page</section>"
         get_page.assert_called_once_with(legacy_user, 3)
 
     @pytest.mark.parametrize(
