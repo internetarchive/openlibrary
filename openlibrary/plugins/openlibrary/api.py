@@ -336,6 +336,7 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
     return metadata
 
 
+@deprecated("migrated to fastapi")
 class patrons_follows_json(delegate.page):
     path = r"(/people/[^/]+)/follows"
     encoding = "json"
