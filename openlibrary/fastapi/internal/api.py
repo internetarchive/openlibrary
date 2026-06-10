@@ -360,6 +360,11 @@ async def post_bestbook_award(
     form_comment: Annotated[str | None, Form(alias="comment")] = None,
 ) -> dict:
     """Store, update, or remove a bestbook award for a work."""
+    """
+    This endpoint accepts both form data and query parameters, and uses an op parameter to indicate the requested operation.
+    This is not the preferred API design; new endpoints should use standard HTTP methods instead.
+    This structure is maintained only for backward compatibility with the legacy endpoint. Do not copy this pattern for new code.
+    """
     return bestbook_award.process_bestbook_award(
         work_id=work_id,
         op=form_op if form_op is not None else query_op or "add",
