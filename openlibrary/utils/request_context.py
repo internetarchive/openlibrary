@@ -14,6 +14,8 @@ from urllib.parse import unquote
 import web
 
 from infogami import config
+from infogami.utils import features
+from infogami.utils.context import context as legacy_context
 from infogami.utils.delegate import create_site
 
 if TYPE_CHECKING:
@@ -233,6 +235,104 @@ def set_context_from_fastapi(request: Request) -> None:
             is_bot=is_bot,
         )
     )
+
+
+def _fastapi_request_env(request: Request) -> web.storage:
+    env = web.storage(
+        REQUEST_METHOD=request.method,
+        PATH_INFO=request.url.path,
+        QUERY_STRING=request.url.query,
+        HTTP_HOST=request.url.netloc,
+    )
+
+    for key, value in request.headers.items():
+        header_key = "HTTP_" + key.upper().replace("-", "_")
+        if header_key not in {"HTTP_CONTENT_TYPE", "HTTP_CONTENT_LENGTH"}:
+            env[header_key] = value
+
+    if content_type := request.headers.get("content-type"):
+        env.CONTENT_TYPE = content_type
+    if content_length := request.headers.get("content-length"):
+        env.CONTENT_LENGTH = content_length
+
+    return env
+
+
+@contextmanager
+def legacy_web_ctx_from_fastapi(request: Request):
+    """
+    Temporarily populate the legacy ``web.ctx`` values needed by Templetor and
+    older model helpers while handling a FastAPI request.
+    """
+    current_site = site.get()
+    query = f"?{request.url.query}" if request.url.query else ""
+    env = _fastapi_request_env(request)
+    original_legacy_context = legacy_context.copy()
+    original = {
+        name: getattr(web.ctx, name, None)
+        for name in (
+            "conn",
+            "encoding",
+            "env",
+            "environ",
+            "features",
+            "fullpath",
+            "headers",
+            "home",
+            "homepath",
+            "host",
+            "ip",
+            "lang",
+            "method",
+            "path",
+            "protocol",
+            "query",
+            "render_once",
+            "site",
+            "status",
+        )
+    }
+    missing = {name for name in original if name not in web.ctx}
+
+    web.ctx.conn = current_site._conn
+    web.ctx.encoding = "json" if request.url.path.endswith(".json") else None
+    web.ctx.env = env
+    web.ctx.environ = env
+    web.ctx.fullpath = request.url.path + query
+    web.ctx.headers = []
+    web.ctx.home = f"{request.url.scheme}://{request.url.netloc}"
+    web.ctx.homepath = ""
+    web.ctx.host = request.url.netloc
+    web.ctx.ip = request.client.host if request.client else None
+    web.ctx.lang = getattr(request.state, "lang", None) or "en"
+    web.ctx.method = request.method
+    web.ctx.path = request.url.path
+    web.ctx.protocol = request.url.scheme
+    web.ctx.query = query
+    web.ctx.render_once = {}
+    web.ctx.site = current_site
+    web.ctx.status = "200 OK"
+
+    legacy_context.load()
+    legacy_context.error = None
+    legacy_context.stylesheets = []
+    legacy_context.javascripts = []
+    legacy_context.user = current_site.get_user()
+    legacy_context.site = config.site
+    legacy_context.path = web.ctx.path
+    legacy_context.rescue_mode = request.query_params.get("rescue", "false").lower() == "true"
+    features.loadhook()
+
+    try:
+        yield
+    finally:
+        legacy_context.clear()
+        legacy_context.update(original_legacy_context)
+        for name, value in original.items():
+            if name in missing:
+                web.ctx.pop(name, None)
+            else:
+                setattr(web.ctx, name, value)
 
 
 def create_context_for_script() -> RequestContextVars:
