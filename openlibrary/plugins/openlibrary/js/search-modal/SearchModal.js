@@ -35,7 +35,12 @@ import { deriveAuthors } from './authorSuggestion.js';
 // `author_key` rides along with `author_name` so each result's author can link
 // to the author page (and so deriveAuthors() can surface author rows for the
 // top results whose author the query names).
-const SEARCH_FIELDS = ['key', 'cover_i', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
+// `ia` lets _renderResult fall back to the Internet Archive scanned cover when a
+// book has no OL-uploaded cover (cover_i is null) — mirroring the rest of the
+// site (Edition.get_cover_url → get_ia_cover). Requesting `ia` also propagates
+// it into the `editions:[subquery]` docs (see WorkSearchScheme), so both the
+// work-level `ia` and the top edition's `ia` are available. See issue #12893.
+const SEARCH_FIELDS = ['key', 'cover_i', 'ia', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -916,18 +921,46 @@ export class SearchModal extends LitElement {
             </li>`;
     }
 
+    // Direct archive.org cover URLs (used as the IA fallback in _renderResult)
+    // have no `?default=` graceful-fallback param, so a missing scan 404s with a
+    // broken image. Swap in the placeholder once; the guard avoids a reload loop
+    // if the placeholder itself ever fails.
+    _onCoverError(e) {
+        const img = e.currentTarget;
+        if (img.dataset.coverFallback) return;
+        img.dataset.coverFallback = '1';
+        img.srcset = '';
+        img.src = COVER_PLACEHOLDER;
+    }
+
     // The whole row is a single link to the work — the author is surfaced in
     // its own suggestion row, so there's no separate author link here (which
     // also keeps this a plain anchor with no nested-link concern).
     _renderResult(work) {
         const author = work.author_name?.[0] || '';
         const year   = work.first_publish_year || '';
-        const cover  = work.cover_i
-            ? `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`
-            : COVER_PLACEHOLDER;
-        const coverSrcset = work.cover_i
-            ? `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`
-            : nothing;
+
+        // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
+        // get_ia_cover): prefer an OL-uploaded cover (cover_i), else fall back to
+        // the book's Internet Archive scan (ia), else the placeholder. Without
+        // the IA fallback, IA-only books (lending/print-disabled scans with no
+        // uploaded cover) render a blank placeholder here while every other
+        // surface shows the scanned cover. See issue #12893.
+        const ia = work.ia?.[0] || work.editions?.docs?.[0]?.ia?.[0];
+        let cover, coverSrcset;
+        if (work.cover_i) {
+            cover       = `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`;
+            coverSrcset = `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`;
+        } else if (ia) {
+            // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
+            // archive.org URLs have no `?default=` fallback, so a missing scan
+            // 404s and the <img> @error handler swaps in the placeholder.
+            cover       = `https://archive.org/download/${ia}/page/cover_w116_h58.jpg`;
+            coverSrcset = `https://archive.org/download/${ia}/page/cover_w180_h360.jpg 2x`;
+        } else {
+            cover       = COVER_PLACEHOLDER;
+            coverSrcset = nothing;
+        }
 
         // When Readable Only is on, promote the hit to the specific edition that
         // satisfied the filter — its OL edition page — so the result opens on the
@@ -949,7 +982,7 @@ export class SearchModal extends LitElement {
                     @click=${(e) => this._onResultPress(e, href)}
                 >
                     <span class="result__cover-link">
-                        <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50"/>
+                        <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
                         <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
