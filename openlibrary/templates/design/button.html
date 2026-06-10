@@ -1,7 +1,7 @@
 $def with (api)
 
 <article class="design-pattern" id="button">
-  <h2 class="design-pattern__title">$_("Button")</h2>
+  <h2 class="design-pattern__title">Button</h2>
   <p class="design-pattern__description">The <code>ol-button</code> component is a presentation-only button primitive. It renders a real <code>&lt;button&gt;</code> into the light DOM, so styles apply pre-hydration without a flash. It carries no application logic — variants, sizes, and a loading state only.</p>
 
   <section class="example">
@@ -10,7 +10,7 @@ $def with (api)
 &lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt;
 &lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button>$_("Primary")</ol-button>
+      <ol-button>Primary</ol-button>
       <ol-button variant="secondary">Secondary</ol-button>
       <ol-button variant="destructive">Destructive</ol-button>
     </div>
@@ -32,7 +32,7 @@ $def with (api)
     <h3 class="example__title">Disabled</h3>
     <pre class="example__code"><code class="language-html">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button disabled>$_("Primary")</ol-button>
+      <ol-button disabled>Primary</ol-button>
       <ol-button variant="secondary" disabled>Secondary</ol-button>
       <ol-button variant="destructive" disabled>Destructive</ol-button>
     </div>
@@ -43,9 +43,9 @@ $def with (api)
     <p>Toggle the <code>loading</code> attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button loading>$_("Save")</ol-button>
-      <ol-button variant="secondary" loading>$_("Cancel")</ol-button>
-      <ol-button variant="destructive" loading>$_("Delete")</ol-button>
+      <ol-button loading>Save</ol-button>
+      <ol-button variant="secondary" loading>Cancel</ol-button>
+      <ol-button variant="destructive" loading>Delete</ol-button>
     </div>
   </section>
 
@@ -53,7 +53,7 @@ $def with (api)
     <h3 class="example__title">Interactive loading demo</h3>
     <p>Click the button to trigger a 1.5s fake request. The button disables itself while loading.</p>
     <div class="example__output">
-      <ol-button id="demo-button-loading">$_("Save")</ol-button>
+      <ol-button id="demo-button-loading">Save</ol-button>
     </div>
     <script>
       document.getElementById('demo-button-loading').addEventListener('click', function(e) {
@@ -69,7 +69,7 @@ $def with (api)
     <h3 class="example__title">Full width</h3>
     <pre class="example__code"><code class="language-html">&lt;ol-button full-width&gt;Continue&lt;/ol-button&gt;</code></pre>
     <div class="example__output">
-      <ol-button full-width>$_("Continue")</ol-button>
+      <ol-button full-width>Continue</ol-button>
     </div>
   </section>
 
@@ -84,8 +84,8 @@ $def with (api)
       <form id="demo-button-form" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
         <label for="demo-button-form-input">Your name:</label>
         <input id="demo-button-form-input" name="name" required>
-        <ol-button type="submit">$_("Submit")</ol-button>
-        <ol-button type="reset" variant="secondary">$_("Reset")</ol-button>
+        <ol-button type="submit">Submit</ol-button>
+        <ol-button type="reset" variant="secondary">Reset</ol-button>
       </form>
       <p>Last submitted: <strong id="demo-button-form-output">&mdash;</strong></p>
     </div>

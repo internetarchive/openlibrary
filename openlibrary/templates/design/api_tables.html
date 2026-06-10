@@ -8,19 +8,19 @@ $# and the page falls back to its hand-written live demos.
 
 $if api and (api['properties'] or api['events'] or api['slots'] or api['cssProperties'] or api['cssParts']):
   <section class="example component-api">
-    <h3 class="example__title">$_("API Reference")</h3>
+    <h3 class="example__title">API Reference</h3>
 
     $if api['properties']:
-      <h4 class="component-api__group">$_("Properties")</h4>
+      <h4 class="component-api__group">Properties</h4>
       <div class="component-api__table-wrap">
       <table class="component-api__table">
         <thead>
           <tr>
-            <th>$_("Property")</th>
-            <th>$_("Attribute")</th>
-            <th>$_("Type")</th>
-            <th>$_("Default")</th>
-            <th>$_("Description")</th>
+            <th>Property</th>
+            <th>Attribute</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
@@ -52,14 +52,14 @@ $if api and (api['properties'] or api['events'] or api['slots'] or api['cssPrope
       </div>
 
     $if api['events']:
-      <h4 class="component-api__group">$_("Events")</h4>
+      <h4 class="component-api__group">Events</h4>
       <div class="component-api__table-wrap">
       <table class="component-api__table">
         <thead>
           <tr>
-            <th>$_("Event")</th>
-            <th>$_("Type")</th>
-            <th>$_("Description")</th>
+            <th>Event</th>
+            <th>Type</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
@@ -79,13 +79,13 @@ $if api and (api['properties'] or api['events'] or api['slots'] or api['cssPrope
       </div>
 
     $if api['slots']:
-      <h4 class="component-api__group">$_("Slots")</h4>
+      <h4 class="component-api__group">Slots</h4>
       <div class="component-api__table-wrap">
       <table class="component-api__table">
         <thead>
           <tr>
-            <th>$_("Slot")</th>
-            <th>$_("Description")</th>
+            <th>Slot</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
@@ -95,7 +95,7 @@ $if api and (api['properties'] or api['events'] or api['slots'] or api['cssPrope
                 $if slot['name']:
                   <code>$slot['name']</code>
                 $else:
-                  <span class="component-api__default-slot">$_("(default)")</span>
+                  <span class="component-api__default-slot">(default)</span>
               </td>
               <td>$slot['description']</td>
             </tr>
@@ -104,14 +104,14 @@ $if api and (api['properties'] or api['events'] or api['slots'] or api['cssPrope
       </div>
 
     $if api['cssProperties']:
-      <h4 class="component-api__group">$_("CSS Custom Properties")</h4>
+      <h4 class="component-api__group">CSS Custom Properties</h4>
       <div class="component-api__table-wrap">
       <table class="component-api__table">
         <thead>
           <tr>
-            <th>$_("Property")</th>
-            <th>$_("Default")</th>
-            <th>$_("Description")</th>
+            <th>Property</th>
+            <th>Default</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
@@ -131,13 +131,13 @@ $if api and (api['properties'] or api['events'] or api['slots'] or api['cssPrope
       </div>
 
     $if api['cssParts']:
-      <h4 class="component-api__group">$_("CSS Parts")</h4>
+      <h4 class="component-api__group">CSS Parts</h4>
       <div class="component-api__table-wrap">
       <table class="component-api__table">
         <thead>
           <tr>
-            <th>$_("Part")</th>
-            <th>$_("Description")</th>
+            <th>Part</th>
+            <th>Description</th>
           </tr>
         </thead>
         <tbody>
