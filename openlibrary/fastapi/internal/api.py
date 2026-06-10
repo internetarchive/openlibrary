@@ -26,8 +26,7 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import bestbook_award as legacy_bestbook_award
-from openlibrary.plugins.openlibrary.api import get_price_data_async
+from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -361,7 +360,7 @@ async def post_bestbook_award(
     form_comment: Annotated[str | None, Form(alias="comment")] = None,
 ) -> dict:
     """Store, update, or remove a bestbook award for a work."""
-    return legacy_bestbook_award.process_bestbook_award(
+    return bestbook_award.process_bestbook_award(
         work_id=work_id,
         op=form_op if form_op is not None else query_op or "add",
         edition_key=form_edition_key if form_edition_key is not None else query_edition_key,
