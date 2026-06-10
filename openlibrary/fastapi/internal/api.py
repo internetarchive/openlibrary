@@ -19,8 +19,8 @@ from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
-from openlibrary.core.follows import PubSub
 from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.fastapi.auth import (
