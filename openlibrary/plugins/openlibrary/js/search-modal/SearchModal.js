@@ -80,6 +80,20 @@ export class SearchModal extends LitElement {
             color: var(--darker-grey);
         }
 
+        /* Visually hidden but available to screen readers (used by the
+           aria-live results-count region). Standard clip-rect technique. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            border: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+        }
+
         /* ── Search input row ──────────────────────────────────────── */
 
         .bar {
@@ -698,7 +712,7 @@ export class SearchModal extends LitElement {
                 fullscreen-on-mobile
                 width="large"
                 placement="top"
-                aria-label=${this._i18n.dialogAria}
+                label=${this._i18n.dialogAria}
                 style="
                     --ol-dialog-padding: 0;
                     --ol-dialog-top-offset: 54px;
@@ -738,6 +752,16 @@ export class SearchModal extends LitElement {
                         aria-label=${this._i18n.closeAria}
                         @click=${this._closeModal}
                     >${SearchModal._closeIcon}</button>
+                </div>
+
+                <!-- Visually-hidden live region: announces the result count to
+                     screen readers as the list updates (sighted users just see
+                     it appear). Rendered unconditionally so the region is already
+                     in the a11y tree before its text changes — a live region
+                     inserted at the same time as its content isn't reliably
+                     announced. -->
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    ${this._resultsAnnouncement()}
                 </div>
 
                 <div class="filter-section">
@@ -817,7 +841,7 @@ export class SearchModal extends LitElement {
         }
 
         return html`
-            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}">
+            <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
                     <ul class="results-list author-suggestion">
                         ${repeat(this._authorSuggestions, a => a.key, a => this._renderAuthorSuggestion(a))}
@@ -831,7 +855,7 @@ export class SearchModal extends LitElement {
 
     _renderRecentSearches() {
         return html`
-            <div class="results">
+            <div class="results" @keydown=${this._onResultsKeydown}>
                 <h3 class="results-heading">${this._i18n.recentSearches}</h3>
                 <ul class="results-list">
                     ${repeat(this._recentSearches, s => s, s => html`
@@ -1062,7 +1086,56 @@ export class SearchModal extends LitElement {
         if (e.key === 'Enter' && this._query.trim().length >= MIN_QUERY_LENGTH) {
             e.preventDefault();
             this._onSeeAllResults();
+            return;
         }
+        // ArrowDown/Up step from the input into the result rows — ↓ to the first
+        // row, ↑ to the last — so the suggestions are reachable by arrow key the
+        // way the old header autocomplete was, alongside (not instead of) Tab.
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            const rows = this._focusableRows();
+            if (rows.length === 0) return;
+            e.preventDefault();
+            (e.key === 'ArrowDown' ? rows[0] : rows[rows.length - 1]).focus();
+        }
+    }
+
+    // The actionable rows in the results region (book + author links and recent-
+    // search rows), in DOM order. Both carry the `.result` class and are natively
+    // focusable, so arrow navigation just walks this list.
+    _focusableRows() {
+        return [...this.renderRoot.querySelectorAll('.results .result')];
+    }
+
+    // ArrowUp/Down move focus between adjacent rows; stepping off either end
+    // returns focus to the input so the patron can keep editing the query.
+    // (Enter on a focused row activates the native link/button as usual.)
+    _onResultsKeydown(e) {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        const row = e.target.closest('.result');
+        if (!row) return;
+        const rows = this._focusableRows();
+        const idx  = rows.indexOf(row);
+        if (idx === -1) return;
+        e.preventDefault();
+        const next = e.key === 'ArrowDown' ? idx + 1 : idx - 1;
+        if (next < 0 || next >= rows.length) {
+            this.renderRoot.querySelector('.search-input')?.focus();
+        } else {
+            rows[next].focus();
+        }
+    }
+
+    // Screen-reader announcement for the live region: the result count once a
+    // search lands, "no results" when a search came back empty, and nothing
+    // while idle/typing/loading (so the region stays quiet until there's news).
+    _resultsAnnouncement() {
+        if (!this._shouldAutocomplete()) return '';
+        if (this._results.length === 0) {
+            return this._hasSearched && !this._loading ? this._i18n.noResults : '';
+        }
+        const shown = this._results.length;
+        const total = typeof this._numFound === 'number' ? this._numFound : shown;
+        return sprintf(this._i18n.resultsAnnounce, shown.toLocaleString(), total.toLocaleString());
     }
 
     _onAvailabilityToggle(e) {

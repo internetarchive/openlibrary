@@ -79,6 +79,11 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     languageHeading: 'Languages',
     searching: 'Searching…',
     noResults: 'No results found',
+    // Screen-reader-only live announcement when results land: first %s = rows
+    // shown in the modal, second %s = total matches. e.g. "Showing 7 of 134,731
+    // results". Sighted users see the list appear; this gives assistive tech the
+    // same feedback (see the aria-live region in SearchModal.render).
+    resultsAnnounce: 'Showing %s of %s results',
     topResults: 'Top results',
     untitled: 'Untitled',
     authorLabel: 'Author',
