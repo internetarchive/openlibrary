@@ -275,15 +275,15 @@ msgid "Read More"
 msgstr ""
 
 #: design.html
+msgid "Chip Group"
+msgstr ""
+
+#: design.html
 msgid "Chip"
 msgstr ""
 
 #: design.html design/button.html
 msgid "Button"
-msgstr ""
-
-#: design.html
-msgid "Chip Group"
 msgstr ""
 
 #: design.html
@@ -443,18 +443,17 @@ msgid "This is short content that fits within 5 lines, so no button appears."
 msgstr ""
 
 #: design.html
-#, python-format
 msgid ""
-"The ol-chip component is a pill-shaped interactive element for filters, "
-"tags, and selections. It fires an %(event)s event on click."
+"The ol-chip-group component is a flex-wrap container that provides "
+"consistent spacing for groups of chips."
 msgstr ""
 
 #: design.html
-msgid "Default (medium)"
+msgid "Default (medium gap)"
 msgstr ""
 
 #: design.html
-msgid "Basic chips at the default medium size."
+msgid "Chips are spaced with an 8px gap by default."
 msgstr ""
 
 #: design.html
@@ -468,6 +467,75 @@ msgstr ""
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
 #: design.html lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
+msgstr ""
+
+#: design.html
+msgid "Poetry"
+msgstr ""
+
+#: design.html
+msgid "Drama"
+msgstr ""
+
+#: design.html
+msgid "Small gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for tighter spacing (4px)."
+msgstr ""
+
+#: design.html
+msgid "Large gap"
+msgstr ""
+
+#: design.html
+#, python-format
+msgid "Use %(gap)s for wider spacing (12px)."
+msgstr ""
+
+#: design.html
+msgid "Wrapping behavior"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chips automatically wrap to the next line when they exceed the container "
+"width."
+msgstr ""
+
+#: design.html
+msgid "Essays"
+msgstr ""
+
+#: design.html
+msgid "Biography"
+msgstr ""
+
+#: design.html
+msgid "With mixed chip states"
+msgstr ""
+
+#: design.html
+msgid ""
+"Chip groups work with any combination of chip sizes, states, and link "
+"chips."
+msgstr ""
+
+#: design.html
+#, python-format
+msgid ""
+"The ol-chip component is a pill-shaped interactive element for filters, "
+"tags, and selections. It fires an %(event)s event on click."
+msgstr ""
+
+#: design.html
+msgid "Default (medium)"
+msgstr ""
+
+#: design.html
+msgid "Basic chips at the default medium size."
 msgstr ""
 
 #: design.html
@@ -485,18 +553,6 @@ msgstr ""
 #: design.html
 #, python-format
 msgid "Use %(size)s for a compact chip."
-msgstr ""
-
-#: design.html
-msgid "Poetry"
-msgstr ""
-
-#: design.html
-msgid "Drama"
-msgstr ""
-
-#: design.html
-msgid "Essays"
 msgstr ""
 
 #: design.html
@@ -536,62 +592,6 @@ msgstr ""
 
 #: design.html
 msgid "Toggle me too"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-chip-group component is a flex-wrap container that provides "
-"consistent spacing for groups of chips."
-msgstr ""
-
-#: design.html
-msgid "Default (medium gap)"
-msgstr ""
-
-#: design.html
-msgid "Chips are spaced with an 8px gap by default."
-msgstr ""
-
-#: design.html
-msgid "Small gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for tighter spacing (4px)."
-msgstr ""
-
-#: design.html
-msgid "Large gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for wider spacing (12px)."
-msgstr ""
-
-#: design.html
-msgid "Wrapping behavior"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chips automatically wrap to the next line when they exceed the container "
-"width."
-msgstr ""
-
-#: design.html
-msgid "Biography"
-msgstr ""
-
-#: design.html
-msgid "With mixed chip states"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chip groups work with any combination of chip sizes, states, and link "
-"chips."
 msgstr ""
 
 #: design.html
@@ -3160,7 +3160,7 @@ msgstr ""
 msgid "Query"
 msgstr ""
 
-#: admin/inspect/store.html
+#: admin/inspect/store.html design/api_tables.html
 msgid "Type"
 msgstr ""
 
@@ -4972,6 +4972,62 @@ msgstr ""
 
 #: covers/saved.html
 msgid "Finished"
+msgstr ""
+
+#: design/api_tables.html
+msgid "API Reference"
+msgstr ""
+
+#: design/api_tables.html type/type/view.html
+msgid "Properties"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Property"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Attribute"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Default"
+msgstr ""
+
+#: design/api_tables.html type/tag/view.html type/user/edit.html
+msgid "Description"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Events"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Event"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Slots"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Slot"
+msgstr ""
+
+#: design/api_tables.html
+msgid "(default)"
+msgstr ""
+
+#: design/api_tables.html
+msgid "CSS Custom Properties"
+msgstr ""
+
+#: design/api_tables.html
+msgid "CSS Parts"
+msgstr ""
+
+#: design/api_tables.html
+msgid "Part"
 msgstr ""
 
 #: design/button.html merge/authors.html recentchanges/merge/view.html
@@ -7803,10 +7859,6 @@ msgstr ""
 msgid "<strong>Type:</strong> %(tag_type)s"
 msgstr ""
 
-#: type/tag/view.html type/user/edit.html
-msgid "Description"
-msgstr ""
-
 #: type/tag/view.html
 msgid "Tag Body"
 msgstr ""
@@ -7838,10 +7890,6 @@ msgstr ""
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
-
-#: type/type/view.html
-msgid "Properties"
 msgstr ""
 
 #: type/type/view.html
