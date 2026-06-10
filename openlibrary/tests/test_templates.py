@@ -1,6 +1,8 @@
 import glob
+import re
 from pathlib import Path
 from tokenize import TokenError
+from typing import Literal
 
 import pytest
 from web.template import Template
@@ -8,14 +10,17 @@ from web.template import Template
 from openlibrary.core.jinja import get_jinja_env
 
 
-def get_template_filenames():
-    """
-    Returns a list of template filenames that are valid and can be parsed.
-    """
+def get_template_paths(suffix: Literal[".html", ".html.jinja"]) -> list[Path]:
+    """Return all templates with the given suffix under ``templates/`` and ``macros/``.
 
-    template_files = glob.glob("openlibrary/templates/**/*.html", recursive=True)
-    template_files += glob.glob("openlibrary/macros/**/*.html", recursive=True)
-    return map(Path, template_files)
+    Mirrors the directory layout used by the Templetor compile test so a
+    single helper covers every place a template (Templetor or Jinja) can
+    live in the project.
+    """
+    template_files = []
+    for pattern_root in ("openlibrary/templates", "openlibrary/macros"):
+        template_files += glob.glob(f"{pattern_root}/**/*{suffix}", recursive=True)
+    return sorted(set(map(Path, template_files)))
 
 
 def try_parse_template(template_text: str, filename: Path) -> tuple[bool, str | Exception | None]:
@@ -28,16 +33,13 @@ def try_parse_template(template_text: str, filename: Path) -> tuple[bool, str | 
         return False, e
 
 
-@pytest.mark.parametrize("filename", get_template_filenames(), ids=str)
+@pytest.mark.parametrize("filename", get_template_paths(".html"), ids=str)
 def test_valid_template(filename: Path):
     parsed, err = try_parse_template(filename.read_text(encoding="utf-8"), filename)
     assert parsed, err
 
 
-import re
-
-
-@pytest.mark.parametrize("filename", get_template_filenames(), ids=str)
+@pytest.mark.parametrize("filename", get_template_paths(".html"), ids=str)
 def test_noopener_noreferrer(filename: Path):
     content = filename.read_text(encoding="utf-8")
     # Find all anchor tags
@@ -54,18 +56,6 @@ def test_login_template_does_not_bind_password_value():
     assert "$form.password.value" not in template
 
 
-def get_jinja_template_paths() -> list[Path]:
-    """Return all ``*.html.jinja`` templates under ``templates/`` and ``macros/``.
-
-    Mirrors the directory layout used by the Templetor compile test so a
-    single helper covers every place a Jinja template can live in the
-    project.
-    """
-    template_files = glob.glob("openlibrary/templates/**/*.html.jinja", recursive=True)
-    template_files += glob.glob("openlibrary/macros/**/*.html.jinja", recursive=True)
-    return sorted(set(map(Path, template_files)))
-
-
 def test_all_jinja_templates_compile(subtests):
     """Every ``.html.jinja`` template in the project should compile.
 
@@ -75,7 +65,7 @@ def test_all_jinja_templates_compile(subtests):
     """
 
     env = get_jinja_env()
-    template_paths = get_jinja_template_paths()
+    template_paths = get_template_paths(".html.jinja")
     assert template_paths, "Expected to find at least one .html.jinja template"
 
     for path in template_paths:
