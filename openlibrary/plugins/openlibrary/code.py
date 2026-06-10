@@ -84,6 +84,7 @@ delegate.app.add_processor(
     )
 )
 delegate.app.add_processor(processors.PreferenceProcessor())
+delegate.app.add_processor(processors.ExperimentsProcessor())
 # Refer to https://github.com/internetarchive/openlibrary/pull/10005 to force patron's to login
 # delegate.app.add_processor(processors.RequireLogoutProcessor())
 # IMPORTANT: setup_contextvars must run AFTER other processors but BEFORE the handler
@@ -1137,7 +1138,6 @@ def setup_template_globals():
             "is_bot": is_bot,
             "time": time,
             "input": web.input,
-            "dumps": json.dumps,
         }
     )
 

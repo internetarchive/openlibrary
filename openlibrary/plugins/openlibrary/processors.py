@@ -7,8 +7,10 @@ from urllib.parse import quote
 import web
 
 from infogami import config
+from infogami.utils.context import context
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
+from openlibrary.core.experiments import evaluate_experiments_for_request
 from openlibrary.core.processors import (
     ReadableUrlProcessor,  # noqa: F401 side effects may be needed
 )
@@ -152,6 +154,34 @@ class CookieValidationProcessor:
             if web.ctx.env.get("HTTP_X_OL_VERIFY_HUMAN") == "1":
                 next_url = web.ctx.env.get("REQUEST_URI") or web.ctx.env.get("HTTP_X_REQUEST_URI") or web.ctx.path
                 raise web.seeother("/verify_human?next=" + quote(next_url))
+
+        return handler()
+
+
+class ExperimentsProcessor:
+    """Processor to evaluate A/B testing feature flags and inject them
+    into the global web.ctx so they are available to macros and templates.
+    """
+
+    def __call__(self, handler):
+        session_value = web.cookies().get(config.get("login_cookie_name", "session"))
+        forwarded_for = web.ctx.env.get("HTTP_X_FORWARDED_FOR")
+        client_ip = web.ctx.ip
+
+        try:
+            query_params = dict(web.input(_method="GET"))
+        except AttributeError, KeyError, ValueError:
+            query_params = {}
+
+        experiments = evaluate_experiments_for_request(
+            session_value=session_value,
+            forwarded_for=forwarded_for,
+            client_ip=client_ip,
+            query_params=query_params,
+        )
+
+        web.ctx["experiments"] = experiments
+        context["experiments"] = experiments
 
         return handler()
 

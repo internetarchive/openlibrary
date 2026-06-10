@@ -28,12 +28,12 @@
     "build-storybook": "cd stories && npm install --no-audit && npx storybook build"
   },
   "devDependencies": {
-    "@internetarchive/elements": "^0.2.5",
     "@babel/core": "^7.24.7",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.3",
     "@ericblade/quagga2": "^1.7.4",
     "@eslint/js": "^9.39.4",
+    "@internetarchive/elements": "^0.2.5",
     "@tiptap/core": "^3.20.4",
     "@tiptap/extension-image": "^3.22.1",
     "@tiptap/extension-placeholder": "^3.20.4",
