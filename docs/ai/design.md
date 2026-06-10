@@ -153,7 +153,7 @@ color changes.
 
 ### Prevent iOS Safari auto-zoom on input focus
 
-iOS Safari auto-zooms the viewport when the user focuses any text input with `font-size < 16px`. The page stays zoomed after the input blurs, which is jarring and breaks fixed-position layout. Fix: set `font-size: 16px` on every text input that can receive focus on mobile.
+iOS Safari auto-zooms the viewport when the user focuses any text-entry control with `font-size < 16px`. The page stays zoomed after the control blurs, which is jarring and breaks fixed-position layout. Fix: set `font-size: 16px` on every focusable text-entry control on mobile — this covers `<input>`, `<textarea>`, `<select>`, and `contenteditable` elements, not just `<input>`.
 
 ```css
 .search-modal__input {
@@ -162,7 +162,9 @@ iOS Safari auto-zooms the viewport when the user focuses any text input with `fo
 }
 ```
 
-If you need the input to look smaller, scale it visually rather than dropping below 16px (e.g., reduce padding, use `transform: scale()` only on non-text affordances).
+If you need the control to look smaller, scale it visually rather than dropping below 16px (e.g., reduce padding, use `transform: scale()` only on non-text affordances).
+
+This fix relies on the page declaring `<meta name="viewport" content="width=device-width, initial-scale=1">` (set site-wide in the base layout). Do **not** suppress auto-zoom with `maximum-scale=1` or `user-scalable=no` on the viewport meta — that disables pinch-zoom entirely, which is an accessibility failure for low-vision users. The 16px rule is the correct fix.
 
 ### Gate hover styles to hover-capable pointers
 
