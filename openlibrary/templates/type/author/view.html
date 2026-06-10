@@ -74,7 +74,7 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
         $ data['olids'] = olids
 
         <div class="message" style="display: none;">
-            <div id="preMerge" style="display: none;" data-keys="$dumps(data)">
+            <div id="preMerge" style="display: none;" data-keys="$json_encode(data)">
                 <p class="larger collapse"><strong>$_('Merging Authors...')</strong></p>
                 <p class="collapse adjust"><img src="/static/images/ajax-loader-bar.gif" width="220" height="19" alt="$_('In progress...')"/></p>
                 <p class="smaller lightgreen collapse">$_('Duplicates')</p>
