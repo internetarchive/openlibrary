@@ -1,4 +1,4 @@
-$def with()
+$def with (api)
 
 <article class="design-pattern" id="button">
   <h2 class="design-pattern__title">$_("Button")</h2>
@@ -113,4 +113,6 @@ $def with()
     <h3 class="example__title">Rendering notes</h3>
     <p>The component uses light DOM — there is no shadow root. Styles live in a plain stylesheet (components/ol-button.css) that is loaded render-blocking by every page entry point that uses the button. Pre-upgrade the host element is styled via attribute selectors so the button is visible immediately; once upgraded, the component inserts a real <code>&lt;button&gt;</code> child and the host collapses to a transparent wrapper.</p>
   </section>
+
+  $:render_template("design/api_tables", api)
 </article>

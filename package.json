@@ -9,11 +9,13 @@
     "watch:js": "env NODE_ENV=development npx webpack --watch --progress",
     "watch:css": "env NODE_ENV=development npx webpack --config webpack.config.css.js --watch --progress",
     "watch:lit-components": "BUILD_DIR=static/build/lit-components npx vite build -c openlibrary/components/vite-lit.config.mjs --watch",
+    "watch:lit-manifest": "npx cem analyze --watch",
     "build-assets": "make js && make css && make components && make lit-components",
     "build-assets:css": "make css",
     "build-assets:components": "make components",
     "build-assets:js": "make js",
     "build-assets:lit-components": "make lit-components",
+    "build-assets:lit-manifest": "npx cem analyze",
     "svg-min": "svgo --config config/svgo.config.js static/images/**/*.svg static/images/*.svg",
     "lint": "npx concurrently --group npm:lint:js npm:lint:css",
     "lint:js": "eslint .",
@@ -31,6 +33,7 @@
     "@babel/core": "^7.24.7",
     "@babel/eslint-parser": "^7.28.6",
     "@babel/preset-env": "^7.29.3",
+    "@custom-elements-manifest/analyzer": "^0.11.0",
     "@ericblade/quagga2": "^1.7.4",
     "@eslint/js": "^9.39.4",
     "@internetarchive/elements": "^0.2.5",
@@ -131,5 +134,6 @@
     "Safari >= 11.1",
     "iOS >= 11.3",
     "Android >= 5"
-  ]
+  ],
+  "customElements": "openlibrary/components/lit/custom-elements.json"
 }

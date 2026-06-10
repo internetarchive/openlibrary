@@ -14,10 +14,19 @@ import { LitElement, html, css } from 'lit';
  *   <p>Long content here...</p>
  * </ol-read-more>
  *
- * @property {String} background-color - Background color for the gradient fade (default: white)
- * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {String} maxHeight - Collapsed height of the content before truncating (default: "80px")
+ * @prop {String} moreText - Label for the expand toggle (default: "Read more")
+ * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
+ * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
+ * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ *
+ * @slot - The collapsible content
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
+ *
+ * @cssprop [--ol-readmore-link-color=hsl(202, 96%, 28%)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
+ * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
  * @example
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">

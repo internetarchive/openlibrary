@@ -1,0 +1,2698 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OLButton.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OLButton - A pure-presentation button primitive.\n\nRenders a real <button> element into the light DOM so global CSS styles\nit both before and after hydration. Handles variants, sizes, loading,\ndisabled, and form submission for type=\"submit\" / type=\"reset\".\n\nContains no application-specific logic, copy, or translations. The\nconsuming page owns what the button *does* — this component only owns\nhow it looks and basic interaction semantics.",
+          "name": "OLButton",
+          "slots": [
+            {
+              "description": "Default slot carries the button label.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'primary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'button'",
+              "description": "\"button\" | \"submit\" | \"reset\". Default: \"button\"",
+              "attribute": "type",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "loading",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows a spinner and disables interaction.",
+              "attribute": "loading",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables interaction.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "fullWidth",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Button expands to fill its container.",
+              "attribute": "full-width",
+              "reflects": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "variant",
+              "type": {
+                "text": "String"
+              },
+              "default": "'primary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "fieldName": "variant"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "fieldName": "size"
+            },
+            {
+              "name": "type",
+              "type": {
+                "text": "String"
+              },
+              "default": "'button'",
+              "description": "\"button\" | \"submit\" | \"reset\". Default: \"button\"",
+              "fieldName": "type"
+            },
+            {
+              "name": "loading",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Shows a spinner and disables interaction.",
+              "fieldName": "loading"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables interaction.",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "full-width",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Button expands to fill its container.",
+              "fieldName": "fullWidth"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLButton",
+          "declaration": {
+            "name": "OLButton",
+            "module": "openlibrary/components/lit/OLButton.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-button",
+          "declaration": {
+            "name": "OLButton",
+            "module": "openlibrary/components/lit/OLButton.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OLChip.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OLChip - A pill-shaped interactive chip web component\n\nSupports two sizes, a selected state with a close icon,\nclick events, and optional link behavior via href.",
+          "name": "OLChip",
+          "slots": [
+            {
+              "description": "The chip's label content",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "method",
+              "name": "_handleClick"
+            },
+            {
+              "kind": "method",
+              "name": "_renderIcons"
+            },
+            {
+              "kind": "method",
+              "name": "_renderCount"
+            },
+            {
+              "kind": "field",
+              "name": "selected",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the chip is in a selected state",
+              "attribute": "selected",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Chip size: \"small\" or \"medium\" (default)",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "href",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "When set, the chip renders as a link",
+              "attribute": "href"
+            },
+            {
+              "kind": "field",
+              "name": "count",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Optional count displayed to the right of the label",
+              "attribute": "count"
+            },
+            {
+              "kind": "field",
+              "name": "accessibleLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Override aria-label on the inner interactive element",
+              "attribute": "accessible-label"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-chip-select",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired on click. detail: { selected: Boolean }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "selected",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the chip is in a selected state",
+              "fieldName": "selected"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Chip size: \"small\" or \"medium\" (default)",
+              "fieldName": "size"
+            },
+            {
+              "name": "href",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "When set, the chip renders as a link",
+              "fieldName": "href"
+            },
+            {
+              "name": "count",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Optional count displayed to the right of the label",
+              "fieldName": "count"
+            },
+            {
+              "name": "accessible-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Override aria-label on the inner interactive element",
+              "fieldName": "accessibleLabel"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-chip",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLChip",
+          "declaration": {
+            "name": "OLChip",
+            "module": "openlibrary/components/lit/OLChip.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-chip",
+          "declaration": {
+            "name": "OLChip",
+            "module": "openlibrary/components/lit/OLChip.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OLChipGroup.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OLChipGroup - A flex-wrap container for ol-chip components\n\nProvides consistent spacing and wrapping behavior for groups of chips.",
+          "name": "OLChipGroup",
+          "slots": [
+            {
+              "description": "One or more <ol-chip> elements",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "gap",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Gap size: \"small\" (4px), \"medium\" (8px, default), or \"large\" (12px)",
+              "attribute": "gap",
+              "reflects": true
+            }
+          ],
+          "attributes": [
+            {
+              "name": "gap",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Gap size: \"small\" (4px), \"medium\" (8px, default), or \"large\" (12px)",
+              "fieldName": "gap"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-chip-group",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLChipGroup",
+          "declaration": {
+            "name": "OLChipGroup",
+            "module": "openlibrary/components/lit/OLChipGroup.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-chip-group",
+          "declaration": {
+            "name": "OLChipGroup",
+            "module": "openlibrary/components/lit/OLChipGroup.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OLMarkdownEditor.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "OLMarkdownEditor",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_handleDocumentClick",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleToolbarMouseDown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_focusEditor",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "formatHeading",
+              "parameters": [
+                {
+                  "name": "level"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "formatText",
+              "parameters": [
+                {
+                  "name": "type"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "insertRule"
+            },
+            {
+              "kind": "method",
+              "name": "insertHtmlBlock"
+            },
+            {
+              "kind": "method",
+              "name": "formatQuote"
+            },
+            {
+              "kind": "method",
+              "name": "formatInlineCode"
+            },
+            {
+              "kind": "method",
+              "name": "formatCodeBlock"
+            },
+            {
+              "kind": "method",
+              "name": "formatList",
+              "parameters": [
+                {
+                  "name": "type"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "toggleLinkPopover"
+            },
+            {
+              "kind": "method",
+              "name": "handleLinkInput",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "handleLinkKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "applyLink"
+            },
+            {
+              "kind": "method",
+              "name": "removeLink"
+            },
+            {
+              "kind": "method",
+              "name": "toggleImagePopover"
+            },
+            {
+              "kind": "method",
+              "name": "handleImageInput",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "handleImageKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "applyImage"
+            },
+            {
+              "kind": "method",
+              "name": "_isActive",
+              "parameters": [
+                {
+                  "name": "type"
+                },
+                {
+                  "name": "options",
+                  "default": "{}"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_toggleSource"
+            },
+            {
+              "kind": "method",
+              "name": "_handleSourceInput",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_renderButton",
+              "parameters": [
+                {
+                  "name": "{ title, icon, action, isActive = false, isDisabled = false, customColor = null }"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "editor",
+              "privacy": "public",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "attribute": "editor"
+            },
+            {
+              "kind": "field",
+              "name": "targetElement",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "showLinkPopover",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "showLinkPopover"
+            },
+            {
+              "kind": "field",
+              "name": "linkInputValue",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "linkInputValue"
+            },
+            {
+              "kind": "field",
+              "name": "showImagePopover",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "showImagePopover"
+            },
+            {
+              "kind": "field",
+              "name": "imageUrlValue",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "imageUrlValue"
+            },
+            {
+              "kind": "field",
+              "name": "_errorMsg",
+              "privacy": "public",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "attribute": "_errorMsg"
+            },
+            {
+              "kind": "field",
+              "name": "showOverflowMenu",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "showOverflowMenu"
+            },
+            {
+              "kind": "field",
+              "name": "showSource",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "showSource"
+            },
+            {
+              "kind": "field",
+              "name": "targetId",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "target-id"
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "height",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "attribute": "height"
+            },
+            {
+              "kind": "field",
+              "name": "enableHtmlBlock",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "attribute": "enable-html-block"
+            },
+            {
+              "kind": "field",
+              "name": "enableCode",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "attribute": "enable-code"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-markdown-editor-change",
+              "type": {
+                "text": "CustomEvent"
+              }
+            }
+          ],
+          "attributes": [
+            {
+              "name": "target-id",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "targetId"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "height",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "height"
+            },
+            {
+              "name": "editor",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "fieldName": "editor"
+            },
+            {
+              "name": "showLinkPopover",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "showLinkPopover"
+            },
+            {
+              "name": "linkInputValue",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "linkInputValue"
+            },
+            {
+              "name": "showImagePopover",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "showImagePopover"
+            },
+            {
+              "name": "imageUrlValue",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "imageUrlValue"
+            },
+            {
+              "name": "_errorMsg",
+              "type": {
+                "text": "null"
+              },
+              "default": "null",
+              "fieldName": "_errorMsg"
+            },
+            {
+              "name": "showOverflowMenu",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "showOverflowMenu"
+            },
+            {
+              "name": "showSource",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "showSource"
+            },
+            {
+              "name": "enable-html-block",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "enableHtmlBlock"
+            },
+            {
+              "name": "enable-code",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "enableCode"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-markdown-editor",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLMarkdownEditor",
+          "declaration": {
+            "name": "OLMarkdownEditor",
+            "module": "openlibrary/components/lit/OLMarkdownEditor.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-markdown-editor",
+          "declaration": {
+            "name": "OLMarkdownEditor",
+            "module": "openlibrary/components/lit/OLMarkdownEditor.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OLReadMore.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OLReadMore - A web component for expandable/collapsible content\n\nUses height-based truncation via `max-height` attribute.\n\nImportant: The default max-height is 80px. If you want to use a different max-height, you must\nalso set a min-height on the component with an inline style. The value of the min-height should\nbe the max-height + 41px or max-height + 27px if using a small label size.\n\nExample:\n<ol-read-more max-height=\"100px\" style=\"min-height: 141px\">\n  <p>Long content here...</p>\n</ol-read-more>",
+          "name": "OLReadMore",
+          "cssProperties": [
+            {
+              "description": "Color of the more/less toggle button",
+              "name": "--ol-readmore-link-color",
+              "default": "hsl(202, 96%, 28%)"
+            },
+            {
+              "description": "Solid color the fade gradient blends toward (match the surrounding background)",
+              "name": "--ol-readmore-gradient-color",
+              "default": "white"
+            },
+            {
+              "description": "Transparent end of the fade gradient",
+              "name": "--ol-readmore-gradient-color-transparent",
+              "default": "rgba(255, 255, 255, 0)"
+            }
+          ],
+          "cssParts": [
+            {
+              "description": "The toggle button element (targets both \"more\" and \"less\" buttons)",
+              "name": "toggle-btn"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The collapsible content",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "method",
+              "name": "_updateBackgroundColor"
+            },
+            {
+              "kind": "method",
+              "name": "_checkIfTruncationNeeded"
+            },
+            {
+              "kind": "method",
+              "name": "_handleMoreClick"
+            },
+            {
+              "kind": "method",
+              "name": "_handleLessClick"
+            },
+            {
+              "kind": "method",
+              "name": "_getContentStyle"
+            },
+            {
+              "kind": "field",
+              "name": "maxHeight",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'80px'",
+              "description": "Collapsed height of the content before truncating (default: \"80px\")",
+              "attribute": "max-height"
+            },
+            {
+              "kind": "field",
+              "name": "moreText",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Read More'",
+              "description": "Label for the expand toggle (default: \"Read more\")",
+              "attribute": "more-text"
+            },
+            {
+              "kind": "field",
+              "name": "lessText",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Read Less'",
+              "description": "Label for the collapse toggle (default: \"Read less\")",
+              "attribute": "less-text"
+            },
+            {
+              "kind": "field",
+              "name": "backgroundColor",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Background color for the gradient fade (default: white)",
+              "attribute": "background-color"
+            },
+            {
+              "kind": "field",
+              "name": "labelSize",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Size of the toggle button text: \"medium\" (default) or \"small\" (12px)",
+              "attribute": "label-size"
+            },
+            {
+              "kind": "field",
+              "name": "_expanded",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_expanded"
+            },
+            {
+              "kind": "field",
+              "name": "_unnecessary",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_unnecessary"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "max-height",
+              "type": {
+                "text": "String"
+              },
+              "default": "'80px'",
+              "description": "Collapsed height of the content before truncating (default: \"80px\")",
+              "fieldName": "maxHeight"
+            },
+            {
+              "name": "more-text",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Read More'",
+              "description": "Label for the expand toggle (default: \"Read more\")",
+              "fieldName": "moreText"
+            },
+            {
+              "name": "less-text",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Read Less'",
+              "description": "Label for the collapse toggle (default: \"Read less\")",
+              "fieldName": "lessText"
+            },
+            {
+              "name": "background-color",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "Background color for the gradient fade (default: white)",
+              "fieldName": "backgroundColor"
+            },
+            {
+              "name": "label-size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "Size of the toggle button text: \"medium\" (default) or \"small\" (12px)",
+              "fieldName": "labelSize"
+            },
+            {
+              "name": "_expanded",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_expanded"
+            },
+            {
+              "name": "_unnecessary",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_unnecessary"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-read-more",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OLReadMore",
+          "declaration": {
+            "name": "OLReadMore",
+            "module": "openlibrary/components/lit/OLReadMore.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-read-more",
+          "declaration": {
+            "name": "OLReadMore",
+            "module": "openlibrary/components/lit/OLReadMore.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlPagination.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A pagination component that displays page numbers with navigation controls.",
+          "name": "OlPagination",
+          "members": [
+            {
+              "kind": "field",
+              "name": "_leftArrowIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 18-6-6 6-6\"/></svg>`",
+              "description": "Left chevron arrow icon"
+            },
+            {
+              "kind": "field",
+              "name": "_rightArrowIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m9 18 6-6-6-6\"/></svg>`",
+              "description": "Right chevron arrow icon"
+            },
+            {
+              "kind": "method",
+              "name": "_interpolateLabel",
+              "parameters": [
+                {
+                  "name": "template",
+                  "description": "The label template (e.g., \"Go to page {page}\")",
+                  "type": {
+                    "text": "String"
+                  }
+                },
+                {
+                  "name": "values",
+                  "description": "Key-value pairs to substitute (e.g., { page: 5 })",
+                  "type": {
+                    "text": "Object"
+                  }
+                }
+              ],
+              "description": "Interpolate a label template by replacing {key} placeholders with values.",
+              "return": {
+                "type": {
+                  "text": "String"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_getPageUrl",
+              "parameters": [
+                {
+                  "name": "page",
+                  "description": "The page number",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "description": "Build URL for a specific page number.\nUses baseUrl if provided, otherwise falls back to the current window location.\nThis preserves all existing query parameters (like changequery() does).",
+              "return": {
+                "type": {
+                  "text": "String|null"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_getVisiblePages",
+              "description": "Calculate which page numbers to display based on current page and total pages.\nAlways shows exactly 5 page numbers max, adjusting position based on current page:\n- Near start: 1, 2, 3, 4 ... last (5 total)\n- Middle: 1 ... current-1, current, current+1 ... last (5 total)\n- Near end: 1 ... last-3, last-2, last-1, last (5 total)",
+              "return": {
+                "type": {
+                  "text": "Array"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_getFocusableElements",
+              "description": "Get all focusable elements in the pagination",
+              "return": {
+                "type": {
+                  "text": "Array"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_handleKeyDown",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "KeyboardEvent"
+                  }
+                }
+              ],
+              "description": "Handle keyboard navigation within the pagination"
+            },
+            {
+              "kind": "method",
+              "name": "_goToPage",
+              "parameters": [
+                {
+                  "name": "page",
+                  "description": "The page number to navigate to",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "description": "Navigate to a specific page"
+            },
+            {
+              "kind": "method",
+              "name": "_handlePageClick",
+              "parameters": [
+                {
+                  "name": "e",
+                  "description": "Click event",
+                  "type": {
+                    "text": "Event"
+                  }
+                },
+                {
+                  "name": "page",
+                  "description": "The page number",
+                  "type": {
+                    "text": "Number"
+                  }
+                }
+              ],
+              "description": "Handle click on anchor-based page links.\nDispatches the ol-pagination-change event to allow interception.\nIf the event is cancelled via preventDefault(), anchor navigation is also prevented."
+            },
+            {
+              "kind": "method",
+              "name": "_renderPaginationItem",
+              "parameters": [
+                {
+                  "name": "{ page, label, className = '', content }"
+                },
+                {
+                  "description": "Render options",
+                  "name": "options",
+                  "type": {
+                    "text": "@param {Number} options.page - Target page number\n     * @param {String} options.label - Aria label for the item\n     * @param {String} options.className - Additional CSS class\n     * @param {TemplateResult} options.content - Content to render inside the item\n     * "
+                  }
+                }
+              ],
+              "description": "Render a pagination item (button or anchor based on URL mode)",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderPageButton",
+              "parameters": [
+                {
+                  "name": "page",
+                  "description": "Page number or 'ellipsis-left'/'ellipsis-right'",
+                  "type": {
+                    "text": "Number|String"
+                  }
+                }
+              ],
+              "description": "Render a single page button/link or ellipsis",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_renderNavArrow",
+              "parameters": [
+                {
+                  "name": "direction",
+                  "description": "'prev' or 'next'",
+                  "type": {
+                    "text": "String"
+                  }
+                }
+              ],
+              "description": "Render a navigation arrow (previous or next)",
+              "return": {
+                "type": {
+                  "text": "TemplateResult"
+                }
+              }
+            },
+            {
+              "kind": "field",
+              "name": "mode",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'full'",
+              "description": "Display mode: \"full\" (default) shows page numbers with arrows, \"arrows\" shows only previous/next arrows (useful when total is unknown)",
+              "attribute": "mode"
+            },
+            {
+              "kind": "field",
+              "name": "totalPages",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "1",
+              "description": "Total number of pages (required for \"full\" mode)",
+              "attribute": "total-pages"
+            },
+            {
+              "kind": "field",
+              "name": "currentPage",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "1",
+              "description": "Currently selected page (1-indexed)",
+              "attribute": "current-page"
+            },
+            {
+              "kind": "field",
+              "name": "hasNextPage",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether a next page exists. Only used in \"arrows\" mode. In \"full\" mode, this is derived from totalPages.",
+              "attribute": "has-next-page"
+            },
+            {
+              "kind": "field",
+              "name": "baseUrl",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Optional base URL for generating page links. When omitted, falls back to the current page URL, preserving all existing query parameters (similar to changequery). Always renders anchor tags for SEO-friendly navigation.",
+              "attribute": "base-url"
+            },
+            {
+              "kind": "field",
+              "name": "_focusedIndex",
+              "privacy": "public",
+              "type": {
+                "text": "number"
+              },
+              "default": "-1",
+              "attribute": "_focusedIndex"
+            },
+            {
+              "kind": "field",
+              "name": "labelPreviousPage",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to previous page'",
+              "description": "Aria label for \"previous page\" button (default: \"Go to previous page\")",
+              "attribute": "label-previous-page"
+            },
+            {
+              "kind": "field",
+              "name": "labelNextPage",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to next page'",
+              "description": "Aria label for \"next page\" button (default: \"Go to next page\")",
+              "attribute": "label-next-page"
+            },
+            {
+              "kind": "field",
+              "name": "labelGoToPage",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to page {page}'",
+              "description": "Aria label template for page buttons, use {page} as placeholder (default: \"Go to page {page}\")",
+              "attribute": "label-go-to-page"
+            },
+            {
+              "kind": "field",
+              "name": "labelCurrentPage",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Page {page}, current page'",
+              "description": "Aria label template for current page, use {page} as placeholder (default: \"Page {page}, current page\")",
+              "attribute": "label-current-page"
+            },
+            {
+              "kind": "field",
+              "name": "labelPagination",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Pagination'",
+              "description": "Aria label for the navigation landmark (default: \"Pagination\")",
+              "attribute": "label-pagination"
+            }
+          ],
+          "events": [
+            {
+              "description": "Fired when a page is selected. detail: { page: Number }",
+              "name": "ol-pagination-change"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "mode",
+              "type": {
+                "text": "String"
+              },
+              "default": "'full'",
+              "description": "Display mode: \"full\" (default) shows page numbers with arrows, \"arrows\" shows only previous/next arrows (useful when total is unknown)",
+              "fieldName": "mode"
+            },
+            {
+              "name": "total-pages",
+              "type": {
+                "text": "Number"
+              },
+              "default": "1",
+              "description": "Total number of pages (required for \"full\" mode)",
+              "fieldName": "totalPages"
+            },
+            {
+              "name": "current-page",
+              "type": {
+                "text": "Number"
+              },
+              "default": "1",
+              "description": "Currently selected page (1-indexed)",
+              "fieldName": "currentPage"
+            },
+            {
+              "name": "has-next-page",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether a next page exists. Only used in \"arrows\" mode. In \"full\" mode, this is derived from totalPages.",
+              "fieldName": "hasNextPage"
+            },
+            {
+              "name": "base-url",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Optional base URL for generating page links. When omitted, falls back to the current page URL, preserving all existing query parameters (similar to changequery). Always renders anchor tags for SEO-friendly navigation.",
+              "fieldName": "baseUrl"
+            },
+            {
+              "name": "label-previous-page",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to previous page'",
+              "description": "Aria label for \"previous page\" button (default: \"Go to previous page\")",
+              "fieldName": "labelPreviousPage"
+            },
+            {
+              "name": "label-next-page",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to next page'",
+              "description": "Aria label for \"next page\" button (default: \"Go to next page\")",
+              "fieldName": "labelNextPage"
+            },
+            {
+              "name": "label-go-to-page",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Go to page {page}'",
+              "description": "Aria label template for page buttons, use {page} as placeholder (default: \"Go to page {page}\")",
+              "fieldName": "labelGoToPage"
+            },
+            {
+              "name": "label-current-page",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Page {page}, current page'",
+              "description": "Aria label template for current page, use {page} as placeholder (default: \"Page {page}, current page\")",
+              "fieldName": "labelCurrentPage"
+            },
+            {
+              "name": "label-pagination",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Pagination'",
+              "description": "Aria label for the navigation landmark (default: \"Pagination\")",
+              "fieldName": "labelPagination"
+            },
+            {
+              "name": "_focusedIndex",
+              "type": {
+                "text": "number"
+              },
+              "default": "-1",
+              "fieldName": "_focusedIndex"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-pagination",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlPagination",
+          "declaration": {
+            "name": "OlPagination",
+            "module": "openlibrary/components/lit/OlPagination.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-pagination",
+          "declaration": {
+            "name": "OlPagination",
+            "module": "openlibrary/components/lit/OlPagination.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlPopover.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A reusable popover component that anchors to a trigger element.\n\nRenders a trigger slot and a popover panel that opens/closes with animation.\nThe popover uses `position: fixed` to escape overflow clipping and animates\nfrom the trigger's location using `transform-origin`.\n\nSelf-manages open state by default — clicking the slotted trigger toggles\nthe popover, Escape and outside-click close it. Consumers can drive `open`\nimperatively for programmatic control. The `ol-popover-close` event is\ncancelable: call `event.preventDefault()` to keep the popover open.\n\nAutomatically flips and shifts when the panel would overflow the viewport.\nRepositions on scroll and resize. On mobile viewports, renders as a bottom\ntray with a drag handle, swipe-to-dismiss, and body scroll locking.\n\nTraps focus within the popover while open and restores focus to the\npreviously-focused element on close. The host's `aria-label` is forwarded\nto the inner dialog as its accessible name.",
+          "name": "OlPopover",
+          "slots": [
+            {
+              "description": "The trigger element (button, icon, etc.)",
+              "name": "trigger"
+            },
+            {
+              "description": "Default slot for popover content",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "method",
+              "name": "_show"
+            },
+            {
+              "kind": "method",
+              "name": "_hide"
+            },
+            {
+              "kind": "method",
+              "name": "_onTransitionEnd",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_cleanup",
+              "description": "Central cleanup called when the popover finishes closing.\nRemoves all global listeners, unlocks scroll, and restores focus."
+            },
+            {
+              "kind": "method",
+              "name": "_restoreFocus"
+            },
+            {
+              "kind": "method",
+              "name": "_syncTriggerAria"
+            },
+            {
+              "kind": "method",
+              "name": "_getFocusableElements"
+            },
+            {
+              "kind": "method",
+              "name": "_onSentinelFocus",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_computePosition",
+              "parameters": [
+                {
+                  "name": "panelW"
+                },
+                {
+                  "name": "panelH"
+                }
+              ],
+              "description": "Compute the final position of the popover panel, flipping and shifting\nas needed to keep it within the viewport."
+            },
+            {
+              "kind": "method",
+              "name": "_parsePlacement",
+              "parameters": [
+                {
+                  "name": "placement"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_triggerEl",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_addScrollResizeListeners"
+            },
+            {
+              "kind": "method",
+              "name": "_removeScrollResizeListeners"
+            },
+            {
+              "kind": "method",
+              "name": "_onScrollResize"
+            },
+            {
+              "kind": "method",
+              "name": "_onTriggerClick"
+            },
+            {
+              "kind": "method",
+              "name": "_onOutsideClick",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onBackdropClick"
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydownGlobal",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_requestClose",
+              "parameters": [
+                {
+                  "name": "reason"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchStart",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchMove",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onTouchEnd"
+            },
+            {
+              "kind": "method",
+              "name": "_clearDragStyles"
+            },
+            {
+              "kind": "method",
+              "name": "_lockBodyScroll"
+            },
+            {
+              "kind": "method",
+              "name": "_unlockBodyScroll"
+            },
+            {
+              "kind": "method",
+              "name": "_removeListeners"
+            },
+            {
+              "kind": "field",
+              "name": "open",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the popover is currently open",
+              "attribute": "open",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "placement",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'bottom-center'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}-{align}\" where side is \"top\" or \"bottom\" and align is \"start\", \"center\", or \"end\". Default: \"bottom-center\"",
+              "attribute": "placement"
+            },
+            {
+              "kind": "field",
+              "name": "offset",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and popover (default: 4)",
+              "attribute": "offset"
+            },
+            {
+              "kind": "field",
+              "name": "autoClose",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether outside clicks close the popover. Escape always closes for accessibility. Default: true",
+              "attribute": "auto-close"
+            },
+            {
+              "kind": "field",
+              "name": "_position",
+              "privacy": "public",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "attribute": "_position"
+            },
+            {
+              "kind": "field",
+              "name": "_transformOrigin",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top left'",
+              "attribute": "_transformOrigin"
+            },
+            {
+              "kind": "field",
+              "name": "_animState",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'closed'",
+              "attribute": "_animState"
+            },
+            {
+              "kind": "field",
+              "name": "_mobile",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_mobile"
+            },
+            {
+              "kind": "field",
+              "name": "_panelId",
+              "default": "`ol-popover-${++_idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_prevFocus",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_rafId",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_savedBodyStyle",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_savedScrollY",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_touchStartY",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_touchStartTime",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_isDragging",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_isHandleDrag",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_lastDragY",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-popover-open",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired when the popover opens. detail: { placement: String }"
+            },
+            {
+              "name": "ol-popover-close",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Cancelable. Fired when the popover requests to close. Call `preventDefault()` to keep it open. Note: the swipe-dismiss close fires after the gesture completes and is not cancelable. detail: { reason: 'escape' | 'outside-click' | 'swipe' | 'trigger' }"
+            }
+          ],
+          "attributes": [
+            {
+              "description": "Forwarded to the inner dialog as its accessible name.",
+              "name": "aria-label"
+            },
+            {
+              "name": "open",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Whether the popover is currently open",
+              "fieldName": "open"
+            },
+            {
+              "name": "placement",
+              "type": {
+                "text": "String"
+              },
+              "default": "'bottom-center'",
+              "description": "Preferred placement relative to the trigger. Format: \"{side}-{align}\" where side is \"top\" or \"bottom\" and align is \"start\", \"center\", or \"end\". Default: \"bottom-center\"",
+              "fieldName": "placement"
+            },
+            {
+              "name": "offset",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4",
+              "description": "Gap in px between trigger and popover (default: 4)",
+              "fieldName": "offset"
+            },
+            {
+              "name": "auto-close",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "true",
+              "description": "Whether outside clicks close the popover. Escape always closes for accessibility. Default: true",
+              "fieldName": "autoClose"
+            },
+            {
+              "name": "_position",
+              "type": {
+                "text": "object"
+              },
+              "default": "{ top: 0, left: 0 }",
+              "fieldName": "_position"
+            },
+            {
+              "name": "_transformOrigin",
+              "type": {
+                "text": "string"
+              },
+              "default": "'top left'",
+              "fieldName": "_transformOrigin"
+            },
+            {
+              "name": "_animState",
+              "type": {
+                "text": "string"
+              },
+              "default": "'closed'",
+              "fieldName": "_animState"
+            },
+            {
+              "name": "_mobile",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_mobile"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-popover",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlPopover",
+          "declaration": {
+            "name": "OlPopover",
+            "module": "openlibrary/components/lit/OlPopover.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-popover",
+          "declaration": {
+            "name": "OlPopover",
+            "module": "openlibrary/components/lit/OlPopover.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlSelectPopover.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A trigger button paired with a popover containing a multi-select list of items,\nan optional filter input, and a \"clear selections\" footer.\n\nComposes `<ol-popover>` internally for animation, focus trap, mobile tray, and\nEscape/outside-click dismissal. The list is grouped: when items are selected,\na \"SELECTED\" group renders above a \"SUGGESTIONS\" group. Group membership is\nreactive — checking an item moves it to the SELECTED group immediately.",
+          "name": "OlSelectPopover",
+          "slots": [
+            {
+              "description": "Optional custom trigger element. When omitted, a styled default button renders showing `label` plus a \"(n)\" badge when items are selected and a chevron icon.",
+              "name": "trigger"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_chevronIcon",
+              "static": true,
+              "default": "html`<svg class=\"trigger-chevron\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
+              "description": "Chevron icon for the default trigger"
+            },
+            {
+              "kind": "field",
+              "name": "_searchIcon",
+              "static": true,
+              "default": "html`<svg class=\"filter-icon\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg>`",
+              "description": "Search icon for the filter input"
+            },
+            {
+              "kind": "method",
+              "name": "_renderDefaultTrigger"
+            },
+            {
+              "kind": "method",
+              "name": "_renderPanel"
+            },
+            {
+              "kind": "method",
+              "name": "_renderItem",
+              "parameters": [
+                {
+                  "name": "item"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "_showSearch",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_onTriggerKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onPopoverOpen"
+            },
+            {
+              "kind": "method",
+              "name": "_onPopoverClose"
+            },
+            {
+              "kind": "method",
+              "name": "_onQueryInput",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onItemToggle",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onClear"
+            },
+            {
+              "kind": "method",
+              "name": "_onListKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_focusFirstItem"
+            },
+            {
+              "kind": "method",
+              "name": "_emitChange",
+              "parameters": [
+                {
+                  "name": "nextSelected"
+                },
+                {
+                  "name": "added"
+                },
+                {
+                  "name": "removed"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "items",
+              "privacy": "public",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "List of `{ value, label }` objects. Settable as JSON attribute (`items='[{\"value\":\"en\",\"label\":\"English\"}]'`) or property.",
+              "attribute": "items"
+            },
+            {
+              "kind": "field",
+              "name": "selected",
+              "privacy": "public",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "Array of selected `value`s. Reflects to attribute as JSON.",
+              "attribute": "selected",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Default trigger button text (e.g. \"Language\").",
+              "attribute": "label"
+            },
+            {
+              "kind": "field",
+              "name": "searchThreshold",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "8",
+              "description": "Show the filter input when `items.length` exceeds this value. Default `8`. Use `0` to always show, a large number (e.g. `999`) to never show. Attribute: `search-threshold`.",
+              "attribute": "search-threshold"
+            },
+            {
+              "kind": "field",
+              "name": "placeholder",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Filter…'",
+              "description": "Filter input placeholder.",
+              "attribute": "placeholder"
+            },
+            {
+              "kind": "field",
+              "name": "unselectedHeading",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Heading for the list when nothing is selected (e.g. \"LANGUAGES\"). Falls back to `suggestionsHeading` if unset.",
+              "attribute": "unselected-heading"
+            },
+            {
+              "kind": "field",
+              "name": "selectedHeading",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'SELECTED'",
+              "description": "Heading for the SELECTED group (default \"SELECTED\").",
+              "attribute": "selected-heading"
+            },
+            {
+              "kind": "field",
+              "name": "suggestionsHeading",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'SUGGESTIONS'",
+              "description": "Heading for the suggestions group when ≥1 item is selected (default \"SUGGESTIONS\").",
+              "attribute": "suggestions-heading"
+            },
+            {
+              "kind": "field",
+              "name": "clearLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Clear selections'",
+              "description": "Label for the clear-selections button (default \"Clear selections\").",
+              "attribute": "clear-label"
+            },
+            {
+              "kind": "field",
+              "name": "noMatchesLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'No matches'",
+              "description": "Empty-state text when the filter has no matches (default \"No matches\").",
+              "attribute": "no-matches-label"
+            },
+            {
+              "kind": "field",
+              "name": "_query",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "_query"
+            },
+            {
+              "kind": "field",
+              "name": "_panelId",
+              "default": "`ol-select-popover-${++_idCounter}`"
+            },
+            {
+              "kind": "field",
+              "name": "_isOpen",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "_pendingFocusFirst",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-select-popover-clear",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires when the clear-selections button is clicked. A change event also fires with the cleared selection."
+            },
+            {
+              "name": "ol-select-popover-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fires when the selection changes. detail: { selected: String[], added: String|null, removed: String|null }"
+            }
+          ],
+          "attributes": [
+            {
+              "description": "Accessible name for the popover dialog. Falls back to `label` if unset.",
+              "name": "aria-label"
+            },
+            {
+              "name": "items",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "List of `{ value, label }` objects. Settable as JSON attribute (`items='[{\"value\":\"en\",\"label\":\"English\"}]'`) or property.",
+              "fieldName": "items"
+            },
+            {
+              "name": "selected",
+              "type": {
+                "text": "Array"
+              },
+              "default": "[]",
+              "description": "Array of selected `value`s. Reflects to attribute as JSON.",
+              "fieldName": "selected"
+            },
+            {
+              "name": "label",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Default trigger button text (e.g. \"Language\").",
+              "fieldName": "label"
+            },
+            {
+              "name": "search-threshold",
+              "type": {
+                "text": "Number"
+              },
+              "default": "8",
+              "description": "Show the filter input when `items.length` exceeds this value. Default `8`. Use `0` to always show, a large number (e.g. `999`) to never show. Attribute: `search-threshold`.",
+              "fieldName": "searchThreshold"
+            },
+            {
+              "name": "placeholder",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Filter…'",
+              "description": "Filter input placeholder.",
+              "fieldName": "placeholder"
+            },
+            {
+              "name": "unselected-heading",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Heading for the list when nothing is selected (e.g. \"LANGUAGES\"). Falls back to `suggestionsHeading` if unset.",
+              "fieldName": "unselectedHeading"
+            },
+            {
+              "name": "selected-heading",
+              "type": {
+                "text": "String"
+              },
+              "default": "'SELECTED'",
+              "description": "Heading for the SELECTED group (default \"SELECTED\").",
+              "fieldName": "selectedHeading"
+            },
+            {
+              "name": "suggestions-heading",
+              "type": {
+                "text": "String"
+              },
+              "default": "'SUGGESTIONS'",
+              "description": "Heading for the suggestions group when ≥1 item is selected (default \"SUGGESTIONS\").",
+              "fieldName": "suggestionsHeading"
+            },
+            {
+              "name": "clear-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Clear selections'",
+              "description": "Label for the clear-selections button (default \"Clear selections\").",
+              "fieldName": "clearLabel"
+            },
+            {
+              "name": "no-matches-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "'No matches'",
+              "description": "Empty-state text when the filter has no matches (default \"No matches\").",
+              "fieldName": "noMatchesLabel"
+            },
+            {
+              "name": "_query",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "_query"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-select-popover",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlSelectPopover",
+          "declaration": {
+            "name": "OlSelectPopover",
+            "module": "openlibrary/components/lit/OlSelectPopover.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-select-popover",
+          "declaration": {
+            "name": "OlSelectPopover",
+            "module": "openlibrary/components/lit/OlSelectPopover.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OpenLibraryOTP.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OTP login flow for Open Library.\n\nRenders a trigger button that opens a modal dialog. The modal walks the\npatron through two steps:\n  1. Enter email  → POST /account/login/otp/issue\n  2. Enter code   → POST /account/login/otp/redeem  (via ia-otp-form)\n\nOn success the page navigates to the server-sanitized redirect URL.\n\nThe overlay is appended directly to document.body (a \"portal\") and managed\nimperatively so that it escapes any ancestor stacking contexts. Lit's\ndeclarative render() is only used for the trigger button inside the shadow DOM.\n\nUsage:\n  <ol-otp-login></ol-otp-login>\n  <ol-otp-login redirect=\"/account/books\"></ol-otp-login>",
+          "name": "OpenLibraryOTP",
+          "members": [
+            {
+              "kind": "method",
+              "name": "_buildPortal"
+            },
+            {
+              "kind": "method",
+              "name": "_renderEmailStep"
+            },
+            {
+              "kind": "method",
+              "name": "_renderCodeStep"
+            },
+            {
+              "kind": "method",
+              "name": "_teardownEmailStep"
+            },
+            {
+              "kind": "method",
+              "name": "_teardownCodeStep"
+            },
+            {
+              "kind": "method",
+              "name": "_openModal"
+            },
+            {
+              "kind": "method",
+              "name": "_closeModal"
+            },
+            {
+              "kind": "method",
+              "name": "_handleOverlayClick",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_focusFirst",
+              "description": "Redirect Tab-past-end back to the first focusable element"
+            },
+            {
+              "kind": "method",
+              "name": "_focusLast",
+              "description": "Redirect Shift+Tab-past-start back to the last focusable element"
+            },
+            {
+              "kind": "method",
+              "name": "_handleEmailSubmit",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleCodeSubmitted",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_handleResend"
+            },
+            {
+              "kind": "field",
+              "name": "redirect",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'/account/books'",
+              "description": "Hint for post-login destination; sanitized server-side",
+              "attribute": "redirect"
+            },
+            {
+              "kind": "field",
+              "name": "_open",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_open"
+            },
+            {
+              "kind": "field",
+              "name": "_step",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'email'",
+              "attribute": "_step"
+            },
+            {
+              "kind": "field",
+              "name": "_email",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "_email"
+            },
+            {
+              "kind": "field",
+              "name": "_submitting",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_submitting"
+            },
+            {
+              "kind": "field",
+              "name": "_issueError",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "attribute": "_issueError"
+            },
+            {
+              "kind": "field",
+              "name": "_validationStatus",
+              "privacy": "public",
+              "type": {
+                "text": "string"
+              },
+              "default": "'ready'",
+              "attribute": "_validationStatus"
+            },
+            {
+              "kind": "field",
+              "name": "_newCodeSending",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_newCodeSending"
+            },
+            {
+              "kind": "field",
+              "name": "_previousFocus",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleOverlayClick"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleKeydown"
+            },
+            {
+              "kind": "field",
+              "name": "_boundFocusFirst"
+            },
+            {
+              "kind": "field",
+              "name": "_boundFocusLast"
+            },
+            {
+              "kind": "field",
+              "name": "_boundCloseModal"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleEmailInput"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleEmailSubmit"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleCodeSubmitted"
+            },
+            {
+              "kind": "field",
+              "name": "_boundHandleResend"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "redirect",
+              "type": {
+                "text": "String"
+              },
+              "default": "'/account/books'",
+              "description": "Hint for post-login destination; sanitized server-side",
+              "fieldName": "redirect"
+            },
+            {
+              "name": "_open",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_open"
+            },
+            {
+              "name": "_step",
+              "type": {
+                "text": "string"
+              },
+              "default": "'email'",
+              "fieldName": "_step"
+            },
+            {
+              "name": "_email",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "_email"
+            },
+            {
+              "name": "_submitting",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_submitting"
+            },
+            {
+              "name": "_issueError",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "fieldName": "_issueError"
+            },
+            {
+              "name": "_validationStatus",
+              "type": {
+                "text": "string"
+              },
+              "default": "'ready'",
+              "fieldName": "_validationStatus"
+            },
+            {
+              "name": "_newCodeSending",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_newCodeSending"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-otp-login",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OpenLibraryOTP",
+          "declaration": {
+            "name": "OpenLibraryOTP",
+            "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-otp-login",
+          "declaration": {
+            "name": "OpenLibraryOTP",
+            "module": "openlibrary/components/lit/OpenLibraryOTP.js"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -6,7 +6,6 @@
 
 .design-pattern-library {
   padding: var(--spacing-inset-md);
-  max-width: 860px;
 }
 
 .design-pattern-library__layout {
@@ -61,6 +60,15 @@
 .design-pattern-nav__list a:hover {
   background-color: var(--lightest-grey);
   color: var(--link-blue);
+}
+
+/* Nested component links (e.g. Chip under Chip Group). On mobile the nav is a
+   horizontal scroller, so the sublist just sits inline after its parent. */
+.design-pattern-nav__sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: contents;
 }
 
 /* Main content area */
@@ -159,6 +167,15 @@ pre.example__code code[class*="language-"] {
     padding: 6px 12px;
   }
 
+  /* Desktop: nested links stack under their parent, indented and marked with a
+     vertical guide line (matches the parent/child grouping in the sidebar). */
+  .design-pattern-nav__sublist {
+    display: block;
+    margin: var(--spacing-stack-xs) 0 0 12px;
+    padding-left: 12px;
+    border-left: var(--border-divider);
+  }
+
   pre.example__code {
     word-break: normal;
   }
@@ -191,6 +208,91 @@ pre.example__code code[class*="language-"] {
 }
 .color-block-link-unclicked {
   background-color: var(--link-blue);
+}
+
+/* Auto-generated API reference tables (from the Custom Elements Manifest) */
+.component-api {
+  margin-bottom: 48px;
+}
+
+.component-api__group {
+  font-size: var(--font-size-body-large);
+  margin: var(--spacing-stack-md) 0;
+  color: var(--dark-grey);
+}
+
+/* Tables can be wider than the page (long type/default values, nowrap headers);
+   this wrapper lets them scroll horizontally instead of overflowing the layout. */
+.component-api__table-wrap {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.component-api__table {
+  width: 100%;
+  /* Separate (not collapse) so the rounded outer border clips cleanly with
+     overflow: hidden — collapsed borders bleed past the radius at the corners. */
+  border-collapse: separate;
+  border-spacing: 0;
+  border: var(--border-table);
+  border-radius: var(--border-radius-card);
+  overflow: hidden;
+  /* Opaque so the page's beige background doesn't show through the cells. */
+  background: var(--white);
+  font-size: var(--font-size-body-medium);
+}
+
+.component-api__table th,
+.component-api__table td {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  /* The table's own border supplies the top and left edges; cells draw the
+     interior grid with their right and bottom borders. */
+  border-bottom: var(--border-table);
+  border-right: var(--border-table);
+  vertical-align: top;
+}
+
+.component-api__table th {
+  text-align: start;
+  font-weight: 600;
+  color: var(--dark-grey);
+  white-space: nowrap;
+  background: var(--grey-fafafa);
+}
+
+.component-api__table td {
+  color: var(--dark-grey);
+}
+
+.component-api__table code {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  color: var(--dark-grey);
+}
+
+/* The description column carries the prose; let it claim the slack so the
+   short columns stay compact and single-line. */
+.component-api__table td:last-child {
+  width: 100%;
+}
+
+/* Drop the redundant edges so they don't double up with the table border. */
+.component-api__table th:last-child,
+.component-api__table td:last-child {
+  border-right: none;
+}
+
+.component-api__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.component-api__empty {
+  color: var(--grey);
+}
+
+.component-api__default-slot {
+  font-style: italic;
+  color: var(--mid-grey);
 }
 
 @import "legacy.css";

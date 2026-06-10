@@ -1,5 +1,8 @@
-$def with()
+$def with (components)
 $# /developers/design
+$# `components` maps each component tag name (e.g. "ol-chip") to its cleaned
+$# Custom Elements Manifest API, built in design.py. Passed to design/api_tables
+$# to render auto-generated API reference tables alongside the hand-written demos.
 $ _x = ctx.setdefault('cssfile', 'design')
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.30.0/themes/prism.min.css">
@@ -16,9 +19,13 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#popover">$_("Popover")</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
         <li><a href="#read-more">$_("Read More")</a></li>
-        <li><a href="#chip">$_("Chip")</a></li>
+        <li>
+          <a href="#chip-group">$_("Chip Group")</a>
+          <ul class="design-pattern-nav__sublist">
+            <li><a href="#chip">$_("Chip")</a></li>
+          </ul>
+        </li>
         <li><a href="#button">$_("Button")</a></li>
-        <li><a href="#chip-group">$_("Chip Group")</a></li>
         <li><a href="#markdown-editor">$_("Markdown Editor")</a></li>
       </ul>
     </nav>
@@ -114,11 +121,13 @@ $ _x = ctx.setdefault('cssfile', 'design')
             <ol-pagination mode="arrows" current-page="1" has-next-page></ol-pagination>
           </div>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-pagination"))
       </article>
 
-      $:render_template("design/popover")
+      $:render_template("design/popover", components.get("ol-popover"))
 
-      $:render_template("design/select-popover")
+      $:render_template("design/select-popover", components.get("ol-select-popover"))
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">$_("Read More")</h2>
@@ -208,6 +217,89 @@ $ _x = ctx.setdefault('cssfile', 'design')
             </ol-read-more>
           </div>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-read-more"))
+      </article>
+
+      <article class="design-pattern" id="chip-group">
+        <h2 class="design-pattern__title">$_("Chip Group")</h2>
+        <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
+
+        <section class="example">
+          <h3 class="example__title">$_("Default (medium gap)")</h3>
+          <p>$_("Chips are spaced with an 8px gap by default.")</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Small gap")</h3>
+          <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group gap="small">
+              <ol-chip size="small">$_("Fiction")</ol-chip>
+              <ol-chip size="small">$_("Science")</ol-chip>
+              <ol-chip size="small">$_("History")</ol-chip>
+              <ol-chip size="small">$_("Poetry")</ol-chip>
+              <ol-chip size="small">$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Large gap")</h3>
+          <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip-group gap="large">
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("Wrapping behavior")</h3>
+          <p>$_("Chips automatically wrap to the next line when they exceed the container width.")</p>
+          <div class="example__output" style="max-width: 300px;">
+            <ol-chip-group>
+              <ol-chip>$_("Fiction")</ol-chip>
+              <ol-chip>$_("Science")</ol-chip>
+              <ol-chip>$_("History")</ol-chip>
+              <ol-chip>$_("Poetry")</ol-chip>
+              <ol-chip>$_("Drama")</ol-chip>
+              <ol-chip>$_("Essays")</ol-chip>
+              <ol-chip>$_("Biography")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">$_("With mixed chip states")</h3>
+          <p>$_("Chip groups work with any combination of chip sizes, states, and link chips.")</p>
+          <div class="example__output">
+            <ol-chip-group>
+              <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
+              <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
+              <ol-chip href="/subjects/science" count="512">$_("Science")</ol-chip>
+              <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
+            </ol-chip-group>
+          </div>
+        </section>
+
+        $:render_template("design/api_tables", components.get("ol-chip-group"))
       </article>
 
       <article class="design-pattern" id="chip">
@@ -297,88 +389,11 @@ $ _x = ctx.setdefault('cssfile', 'design')
             });
           </script>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-chip"))
       </article>
 
-      $:render_template("design/button")
-
-      <article class="design-pattern" id="chip-group">
-        <h2 class="design-pattern__title">$_("Chip Group")</h2>
-        <p class="design-pattern__description">$_("The ol-chip-group component is a flex-wrap container that provides consistent spacing for groups of chips.")</p>
-
-        <section class="example">
-          <h3 class="example__title">$_("Default (medium gap)")</h3>
-          <p>$_("Chips are spaced with an 8px gap by default.")</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group>
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("Small gap")</h3>
-          <p>$:_("Use %(gap)s for tighter spacing (4px).", gap='<code>gap="small"</code>')</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="small"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group gap="small">
-              <ol-chip size="small">$_("Fiction")</ol-chip>
-              <ol-chip size="small">$_("Science")</ol-chip>
-              <ol-chip size="small">$_("History")</ol-chip>
-              <ol-chip size="small">$_("Poetry")</ol-chip>
-              <ol-chip size="small">$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("Large gap")</h3>
-          <p>$:_("Use %(gap)s for wider spacing (12px).", gap='<code>gap="large"</code>')</p>
-          <pre class="example__code"><code class="language-html">&lt;ol-chip-group gap="large"&gt;...chips...&lt;/ol-chip-group&gt;</code></pre>
-          <div class="example__output">
-            <ol-chip-group gap="large">
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("Wrapping behavior")</h3>
-          <p>$_("Chips automatically wrap to the next line when they exceed the container width.")</p>
-          <div class="example__output" style="max-width: 300px;">
-            <ol-chip-group>
-              <ol-chip>$_("Fiction")</ol-chip>
-              <ol-chip>$_("Science")</ol-chip>
-              <ol-chip>$_("History")</ol-chip>
-              <ol-chip>$_("Poetry")</ol-chip>
-              <ol-chip>$_("Drama")</ol-chip>
-              <ol-chip>$_("Essays")</ol-chip>
-              <ol-chip>$_("Biography")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">$_("With mixed chip states")</h3>
-          <p>$_("Chip groups work with any combination of chip sizes, states, and link chips.")</p>
-          <div class="example__output">
-            <ol-chip-group>
-              <ol-chip href="/subjects/fiction" count="1,024">$_("Fiction")</ol-chip>
-              <ol-chip href="/subjects/history" count="76" selected>$_("History")</ol-chip>
-              <ol-chip href="/subjects/science" count="512">$_("Science")</ol-chip>
-              <ol-chip href="/subjects/poetry" count="33">$_("Poetry")</ol-chip>
-            </ol-chip-group>
-          </div>
-        </section>
-      </article>
+      $:render_template("design/button", components.get("ol-button"))
 
       <article class="design-pattern" id="markdown-editor">
         <h2 class="design-pattern__title">$_("Markdown Editor")</h2>
@@ -478,6 +493,8 @@ The response includes `title`, `authors`, and a `description` field formatted as
             });
           </script>
         </section>
+
+        $:render_template("design/api_tables", components.get("ol-markdown-editor"))
       </article>
     </main>
   </div>
