@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { FOCUSABLE_SELECTOR, findFocusableIndex, getDeepActiveElement, getFocusableFromSlot, isFocusable } from './utils/focus-utils.js';
+import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 import { slotHasContent } from './utils/slot-utils.js';
 
 /**
@@ -303,6 +304,7 @@ export class OlDialog extends LitElement {
         .body {
             padding: var(--ol-dialog-padding);
             overflow-y: auto;
+            overscroll-behavior: contain;
         }
 
         .footer {
@@ -329,6 +331,13 @@ export class OlDialog extends LitElement {
 
         /** @type {HTMLElement|null} Element that had focus before dialog opened */
         this._previouslyFocusedElement = null;
+
+        /** @type {boolean} Whether this dialog currently holds a body scroll lock */
+        this._scrollLocked = false;
+
+        /** @type {boolean} Whether visual-viewport height syncing is active */
+        this._viewportSyncActive = false;
+        this._syncViewportHeight = this._syncViewportHeight.bind(this);
 
         this._handleCancel = this._handleCancel.bind(this);
         this._handleBackdropClick = this._handleBackdropClick.bind(this);
@@ -369,6 +378,15 @@ export class OlDialog extends LitElement {
         }));
 
         dialog.showModal();
+
+        // Native showModal() locks scroll on desktop but NOT background touch-scroll
+        // on iOS Safari, so on mobile we pin <body> ourselves. On desktop the native
+        // lock suffices and skipping this avoids a scrollbar-width layout shift.
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            lockBodyScroll();
+            this._scrollLocked = true;
+            this._attachViewportSync();
+        }
 
         // Capture phase to intercept Tab before Safari's native handling.
         document.addEventListener('keydown', this._handleKeyDown, true);
@@ -439,6 +457,8 @@ export class OlDialog extends LitElement {
             dialog.classList.remove('closing');
             dialog.close();
 
+            this._detachViewportSync();
+            this._releaseScrollLock();
             this._restoreFocus();
 
             this.dispatchEvent(new CustomEvent('ol-after-close', {
@@ -642,11 +662,54 @@ export class OlDialog extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         document.removeEventListener('keydown', this._handleKeyDown, true);
+        // Safety net: if the element is torn down while still open, don't leave the
+        // body pinned.
+        this._detachViewportSync();
+        this._releaseScrollLock();
         const dialog = this.dialog;
         if (dialog) {
             dialog.removeEventListener('cancel', this._handleCancel);
             dialog.removeEventListener('click', this._handleBackdropClick);
         }
+    }
+
+    /** Releases the body scroll lock if this dialog holds one. Idempotent. */
+    _releaseScrollLock() {
+        if (this._scrollLocked) {
+            unlockBodyScroll();
+            this._scrollLocked = false;
+        }
+    }
+
+    /**
+     * On a fullscreen mobile dialog, pin the dialog to the visual viewport. CSS
+     * `100dvh` doesn't shrink when the on-screen keyboard opens, leaving the dialog
+     * taller than the visible area — iOS then pans the visual viewport (it always
+     * allows this while an input is focused), exposing the page behind the dialog.
+     * Sizing to `visualViewport.height` removes that taller-than-visible region.
+     */
+    _attachViewportSync() {
+        if (!this.fullscreenOnMobile || !window.visualViewport) return;
+        window.visualViewport.addEventListener('resize', this._syncViewportHeight);
+        window.visualViewport.addEventListener('scroll', this._syncViewportHeight);
+        this._viewportSyncActive = true;
+        this._syncViewportHeight();
+    }
+
+    _syncViewportHeight() {
+        const dialog = this.dialog;
+        const vv = window.visualViewport;
+        if (!dialog || !vv) return;
+        dialog.style.height = `${vv.height}px`;
+    }
+
+    _detachViewportSync() {
+        if (!this._viewportSyncActive) return;
+        window.visualViewport.removeEventListener('resize', this._syncViewportHeight);
+        window.visualViewport.removeEventListener('scroll', this._syncViewportHeight);
+        this._viewportSyncActive = false;
+        const dialog = this.dialog;
+        if (dialog) dialog.style.height = '';
     }
 
     _attachDialogListeners() {

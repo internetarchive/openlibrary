@@ -1,5 +1,6 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
+import { lockBodyScroll, unlockBodyScroll } from './utils/scroll-lock.js';
 
 let _idCounter = 0;
 
@@ -255,11 +256,10 @@ export class OlPopover extends LitElement {
         this._transformOrigin = 'top left';
         this._animState = 'closed';
         this._mobile = false;
+        this._scrollLocked = false;
         this._panelId = `ol-popover-${++_idCounter}`;
         this._prevFocus = null;
         this._rafId = null;
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
 
         // Touch drag state
         this._touchStartY = 0;
@@ -357,7 +357,8 @@ export class OlPopover extends LitElement {
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (this._mobile) {
-            this._lockBodyScroll();
+            lockBodyScroll();
+            this._scrollLocked = true;
         }
 
         // On desktop, render panel off-screen first so we can measure it.
@@ -441,7 +442,7 @@ export class OlPopover extends LitElement {
      */
     _cleanup() {
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
         this._restoreFocus();
     }
 
@@ -814,33 +815,12 @@ export class OlPopover extends LitElement {
 
     // ── Body scroll lock ────────────────────────────────────────
 
-    _lockBodyScroll() {
-        // If another popover already holds the lock, don't trample its saved styles.
-        if (document.body.style.position === 'fixed') return;
-
-        this._savedScrollY = window.scrollY;
-        this._savedBodyStyle = {
-            position: document.body.style.position,
-            top: document.body.style.top,
-            left: document.body.style.left,
-            right: document.body.style.right,
-            width: document.body.style.width,
-            overflow: document.body.style.overflow,
-        };
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${this._savedScrollY}px`;
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        document.body.style.overflow = 'hidden';
-    }
-
-    _unlockBodyScroll() {
-        if (!this._savedBodyStyle) return;
-        Object.assign(document.body.style, this._savedBodyStyle);
-        window.scrollTo(0, this._savedScrollY);
-        this._savedBodyStyle = null;
-        this._savedScrollY = 0;
+    /** Releases the body scroll lock if this popover holds one. Idempotent. */
+    _releaseScrollLock() {
+        if (this._scrollLocked) {
+            unlockBodyScroll();
+            this._scrollLocked = false;
+        }
     }
 
     // ── Listener management ─────────────────────────────────────
@@ -862,7 +842,7 @@ export class OlPopover extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this._removeListeners();
-        this._unlockBodyScroll();
+        this._releaseScrollLock();
     }
 }
 
