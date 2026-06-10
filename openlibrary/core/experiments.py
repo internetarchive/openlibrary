@@ -17,20 +17,11 @@ class ExperimentConfig(TypedDict, total=False):
     audience: Literal["all", "logged_in", "logged_out"]
 
 
-ACTIVE_EXPERIMENTS: dict[str, ExperimentConfig] = {
-    "Sample_Experiment_1": {
-        "variants": {"control": 30, "a": 35, "b": 35},
-        "audience": Audience.ALL,
-    },
-    "Sample_Experiment_2": {
-        "variants": {"control": 50, "treatment": 50},
-        "audience": Audience.LOGGED_OUT,
-    },
-    "Sample_Experiment_3": {
-        "variants": {"control": 50, "treatment": 50},
-        "audience": Audience.LOGGED_IN,
-    },
-}
+# Register real experiments here. Empty by default so no assignments
+# are emitted to clients until an experiment is explicitly configured.
+# Example entry:
+#   "My_Experiment": {"variants": {"control": 50, "treatment": 50}, "audience": Audience.ALL}
+ACTIVE_EXPERIMENTS: dict[str, ExperimentConfig] = {}
 
 
 def get_variant(experiment_name: str, user_identifier: str | None, is_logged_in: bool = False) -> str:
