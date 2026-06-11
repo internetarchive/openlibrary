@@ -5766,13 +5766,15 @@ msgstr ""
 
 #: design/popover.html
 msgid "Menu popover"
-msgstr ""
+msgstr "Menu contextuel"
 
 #: design/popover.html
 msgid ""
 "Popovers animate from the trigger using transform-origin. Click the "
 "button to see the scale + fade entrance."
 msgstr ""
+"Les popover s’animent depuis le déclencheur via transform-origin. Cliquez"
+" sur le bouton pour voir l’entrée avec effet d’échelle et de fondu."
 
 #: design/popover.html
 #, fuzzy
@@ -5796,7 +5798,7 @@ msgstr "Supprimer"
 
 #: design/popover.html
 msgid "Placement options"
-msgstr ""
+msgstr "Options de placement"
 
 #: design/popover.html
 #, python-format
@@ -5805,10 +5807,13 @@ msgid ""
 "%(transform_origin)s automatically matches so the animation always "
 "expands from the trigger."
 msgstr ""
+"Utilisez %(placement)s pour contrôler où le popover apparaît. Le "
+"%(transform_origin)s correspond automatiquement pour que l’animation "
+"s’élève toujours depuis le déclencheur."
 
 #: design/popover.html
 msgid "bottom-start"
-msgstr ""
+msgstr "bas-gauche"
 
 #: design/popover.html
 #, fuzzy
@@ -5825,6 +5830,13 @@ msgid ""
 "already translated; rich content can be slotted instead. The component's "
 "only owned string is the close button label, overridable via %(attr)s."
 msgstr ""
+"Le composant %(tag)s est un message de notification temporaire. Il "
+"s’annonce aux lecteurs d’écran, se ferme automatiquement après un délai "
+"(en pause au survol/focus), et se retire du DOM à la fermeture. Le "
+"contenu est défini via les attributs %(message)s et %(description)s, déjà"
+" traduits ; du contenu riche peut être inséré dans un slot. La seule "
+"chaîne propre au composant est l’intitulé du bouton de fermeture, "
+"remplacable via %(attr)s."
 
 #: design/toast.html
 #, fuzzy
@@ -5837,6 +5849,8 @@ msgid ""
 "Use %(type)s for semantic variants. Errors are announced assertively "
 "(%(role)s)."
 msgstr ""
+"Utilisez %(type)s pour les variantes sémantiques. Les erreurs sont "
+"annoncées de manière assertive (%(role)s)."
 
 #: design/toast.html
 #, fuzzy
@@ -5845,7 +5859,7 @@ msgstr "Rechercher votre journal de lecture"
 
 #: design/toast.html
 msgid "Subjects successfully updated"
-msgstr ""
+msgstr "Sujets mis à jour avec succès"
 
 #: design/toast.html
 #, fuzzy
@@ -5867,14 +5881,21 @@ msgid ""
 "the toast. Node(s) built in JS also work. Nothing is ever parsed from a "
 "runtime string as HTML."
 msgstr ""
+"Utilisez %(description)s pour une deuxième ligne optionnelle. Pour du "
+"contenu riche peu courant (liens, balises personnalisées), rédigez le "
+"balisage dans un élément %(template)s inerte dans le modèle de page — où "
+"l’extraction %(i18n)s fonctionne — et passez cet élément à %(helper)s ; "
+"son contenu est cloné dans le toast. Les nœuds créés en JS fonctionnent "
+"aussi. Rien n’est jamais analysé depuis une chaîne d’exécution comme "
+"HTML."
 
 #: design/toast.html
 msgid "Relaunch to update"
-msgstr ""
+msgstr "Redémarrer pour mettre à jour"
 
 #: design/toast.html
 msgid "Could not save."
-msgstr ""
+msgstr "Impossible d’enregistrer."
 
 #: design/toast.html
 #, fuzzy
@@ -5883,7 +5904,7 @@ msgstr "Comment pouvons nous vous aidez ?"
 
 #: design/toast.html
 msgid "Imperative use (fixed bottom-center stack)"
-msgstr ""
+msgstr "Utilisation impérative (pile centrée en bas)"
 
 #: design/toast.html
 #, python-format
@@ -5897,6 +5918,14 @@ msgid ""
 "as an attribute — always text, never HTML — and should already be "
 "translated."
 msgstr ""
+"Les appelants JavaScript utilisent l’assistant exporté %(helper)s, qui "
+"empile les toasts dans un %(region)s fixe partagé ancré au bas-centre de "
+"la fenêtre. Les nouveaux toasts glissent vers le haut depuis le bas ; les"
+" anciens montent pour faire de la place, formant une liste verticale "
+"simple. Les toasts se ferment après %(timeout)s millisecondes (4000 par "
+"défaut) sauf si %(persistent)s. Survolez ou focalisez la liste pour "
+"mettre en pause chaque minuterie. Le message est défini comme attribut — "
+"toujours du texte, jamais du HTML — et doit être déjà traduit."
 
 #: design/toast.html
 #, fuzzy
@@ -5905,11 +5934,11 @@ msgstr "Ajouter à la liste"
 
 #: design/toast.html
 msgid "Add persistent error toast"
-msgstr ""
+msgstr "Ajouter un toast d’erreur persistant"
 
 #: design/toast.html
 msgid "Add rich content toast"
-msgstr ""
+msgstr "Ajouter un toast avec contenu riche"
 
 #: design/toast.html
 #, fuzzy
@@ -5922,6 +5951,8 @@ msgid ""
 "The toast fires %(event)s once when it begins closing, with the reason in"
 " %(detail)s."
 msgstr ""
+"Le toast déclenche %(event)s une fois lors de la fermeture, avec la "
+"raison dans %(detail)s."
 
 #: email/case_created.html
 #, fuzzy
@@ -5941,7 +5972,7 @@ msgstr ""
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Conditions d’accès spécial pour handicap de lecture"
 
 #: history/sources.html
 #, fuzzy
@@ -6024,11 +6055,11 @@ msgstr "Manuels scolaires"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Livres dans l’environnement local"
 
 #: home/loans.html
 #, fuzzy, python-format
@@ -6046,6 +6077,8 @@ msgid ""
 "You have reached the borrowing limit. Please return a book to checkout "
 "something new."
 msgstr ""
+"Vous avez atteint la limite d’emprunt. Veuillez rendre un livre pour en "
+"emprunter un nouveau."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -6125,7 +6158,7 @@ msgstr "Fixer un objectif annuel de lecture"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "Apprenez à définir un objectif de lecture annuel et à suivre vos lectures"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
@@ -6166,7 +6199,7 @@ msgstr "Bienvenue sur Open Library"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Découvrez des opportunités pour améliorer la bibliothèque"
 
 #: home/welcome.html
 msgid "Send us feedback"
@@ -6305,11 +6338,11 @@ msgstr "Modifié par %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Super !"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Votre nouvel enregistrement est dans la bibliothèque. Merci !"
 
 #: lib/message_addbook.html
 msgid ""
@@ -6325,7 +6358,7 @@ msgstr "Ajouter une couverture"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Prendre une photo rapide de la couverture à partager ?"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -6334,7 +6367,7 @@ msgstr "Ajouter une nouvelle liste"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Aidez la bibliothèque à se connecter avec d’autres systèmes, comme Amazon."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -6351,7 +6384,7 @@ msgstr ""
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Une ou deux phrases suffisent."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -6529,7 +6562,7 @@ msgstr "Open Library"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -6682,11 +6715,11 @@ msgstr "Liste de diffusion"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tableau de qualité des données"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Critères de qualité"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -6826,7 +6859,7 @@ msgstr "Emprunter le livre"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar du propriétaire de la liste"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -6834,15 +6867,15 @@ msgstr "Vous"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Cet utilisateur n’a pas activé le suivi"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Suivre"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -6926,7 +6959,7 @@ msgstr ""
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
-msgstr ""
+msgstr "Mes listes (%(count)d)"
 
 #: lists/showcase.html
 #, fuzzy
@@ -6939,7 +6972,7 @@ msgstr "de"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Chargement<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
@@ -6959,7 +6992,7 @@ msgstr "Veuillez sélectionner des auteurs à fusionner."
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "Sélectionner le profil le plus ancien comme principal -"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
@@ -6991,7 +7024,7 @@ msgstr "Fusionner"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "date de naissance/décès"
 
 #: merge/authors.html
 msgid "Open in a new window"
@@ -7028,10 +7061,12 @@ msgstr "Fusionner des œuvres"
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
 msgstr ""
+"Échec de l’envoi du commentaire. Veuillez réessayer dans quelques "
+"instants."
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(Optionnel) Pourquoi fermez-vous cette demande ?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
@@ -7083,7 +7118,7 @@ msgstr "Fusionner"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "Refusé"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -7116,7 +7151,7 @@ msgstr "Mettre à jour les critiques"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "Non assigné"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -7168,7 +7203,7 @@ msgstr "Ajouté un commentaire…"
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "Répondre"
 
 #: merge_request_table/table_row.html
 #, python-format
@@ -7176,6 +7211,8 @@ msgid ""
 "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
 "class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
+"DR n°%(id)s ouvert le %(date)s par <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -7234,6 +7271,8 @@ msgid ""
 "Removing this book from your shelves will delete your check-ins for this "
 "work.  Continue?"
 msgstr ""
+"Retirer ce livre de vos étagères supprimera vos enregistrements pour "
+"cette œuvre. Continuer ?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -7330,16 +7369,16 @@ msgstr "Supprimer l'événement"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Échec de la suppression. Veuillez réessayer dans quelques instants."
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Échec de l’enregistrement. Veuillez réessayer dans quelques instants."
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Lu le <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
@@ -7513,7 +7552,7 @@ msgstr "par"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Tout annuler"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -7614,7 +7653,7 @@ msgstr "Fusionner les doublons"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s fusionné(e) dans l’enregistrement %(record_type)s principal."
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -7652,7 +7691,7 @@ msgstr[1] "%(count)d entrées modifiées."
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Annulation de <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, fuzzy, python-format
@@ -7700,7 +7739,7 @@ msgstr "Fusionner des auteurs"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Aucun <strong>auteur</strong> ne correspond directement à votre recherche"
 
 #: search/inside.html
 #, python-format
@@ -7715,6 +7754,8 @@ msgstr "Recherche plein texte"
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
 msgstr ""
+"Aucun texte de <strong>recherche interne</strong> ne correspond à votre "
+"recherche"
 
 #: search/inside.html
 #, python-format
@@ -7736,7 +7777,7 @@ msgstr "Détails"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Grille"
 
 #: search/layout_options.html
 #, fuzzy
@@ -7753,7 +7794,7 @@ msgstr "Rechercher les listes"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Aucune <strong>liste</strong> ne correspond directement à votre recherche"
 
 #: search/publishers.html
 msgid "Publishers Search"
@@ -7762,7 +7803,7 @@ msgstr "Recherche d'éditeur"
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Sur la feuille numéro %(page_num)d :"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -7779,15 +7820,15 @@ msgstr "Au hasard"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Nom (bêta : bibliothécaires uniquement)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Date de naissance (le plus ancien) (bêta : bibliothécaires uniquement)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Date de naissance (le plus jeune) (bêta : bibliothécaires uniquement)"
 
 #: search/sort_options.html
 #, fuzzy
@@ -7841,7 +7882,7 @@ msgstr "Mai"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Titre de l’œuvre (bêta : bibliothécaires uniquement)"
 
 #: search/sort_options.html
 msgid "Sorting by"
@@ -7857,7 +7898,7 @@ msgstr "Rechercher les thèmes"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Aucun <strong>sujet</strong> ne correspond directement à votre recherche"
 
 #: search/subjects.html
 msgid "time"
@@ -8096,7 +8137,7 @@ msgstr "Ceci apparaît sous la liste de liens."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Pour plus d’informations"
 
 #: type/author/edit.html
 msgid "Edit Author"
@@ -8157,10 +8198,12 @@ msgid ""
 "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
 "Please list one name per line."
 msgstr ""
+"Par exemple : Lev Nikolayeïvitch Tolstoï était aussi connu sous le nom de"
+" Léon Tolstoï. Veuillez indiquer un nom par ligne."
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Identifiants"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
@@ -8237,7 +8280,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io :"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -8551,11 +8594,11 @@ msgstr "Rechercher les livres"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Position (optionnelle), ex. : 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Notes (optionnelles)"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
