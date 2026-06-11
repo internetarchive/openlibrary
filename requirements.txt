@@ -24,7 +24,7 @@ prometheus-fastapi-instrumentator==7.1.0
 psycopg2==2.9.12
 pydantic==2.13.4
 pymarc==5.3.1
-python-amazon-paapi==6.2.0
+git+https://github.com/mekarpeles/python-amazon-paapi.git@proxy-support
 python-dateutil==2.9.0.post0
 python-memcached==1.62
 python-multipart==0.0.28

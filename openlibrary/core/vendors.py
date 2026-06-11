@@ -401,76 +401,12 @@ class AmazonCreatorsAPI:
             tag=tag,
             country=getattr(Country, country),
             throttling=0,
+            proxy=(
+                _build_authenticated_proxy_url(proxy_url, proxy_creds)
+                if proxy_url and proxy_creds
+                else (proxy_url or None)
+            ),
         )
-
-        # Inject proxy into underlying SDK rest client, mirroring the PA-API approach.
-        # Required for ol-home0 which has no direct internet access. See #10310.
-        if proxy_url:
-            try:
-                from creatorsapi_python_sdk.configuration import (
-                    Configuration as CreatorsConfig,
-                )
-                from creatorsapi_python_sdk.rest import (
-                    RESTClientObject as CreatorsRESTClient,
-                )
-                from urllib3 import make_headers
-
-                configuration = CreatorsConfig()
-                configuration.proxy = proxy_url
-                configuration.proxy_headers = make_headers(proxy_basic_auth=proxy_creds)
-                rest_client = CreatorsRESTClient(configuration=configuration)
-                # _api_client is the ApiClient instance stored directly on
-                # AmazonCreatorsApi; replace its rest_client to route all
-                # outbound HTTP through the proxy.
-                self.api._api_client.rest_client = rest_client
-
-                # Also inject a proxy-aware OAuth2 token manager.  The SDK's
-                # OAuth2TokenManager.refresh_token() calls bare requests.post()
-                # which reads HTTP_PROXY from the environment.  After this PR
-                # lands, HTTP_PROXY will be a bare (unauthenticated) squid URL;
-                # Amazon's token endpoint requires authenticated proxy access, so
-                # the bare URL would produce a 403.  We inject a custom token
-                # manager subclass that patches requests.post() during refresh
-                # to use a session with embedded proxy credentials.
-                if proxy_creds:
-                    from creatorsapi_python_sdk.auth.oauth2_config import OAuth2Config
-                    from creatorsapi_python_sdk.auth.oauth2_token_manager import OAuth2TokenManager
-
-                    session = requests.Session()
-                    session.proxies = _build_authenticated_proxy_config(
-                        proxy_url, proxy_creds
-                    )
-
-                    class ProxyAwareTokenManager(OAuth2TokenManager):
-                        """Routes OAuth2 token refresh through authenticated proxy."""
-
-                        def refresh_token(self):
-                            from unittest.mock import patch
-                            from creatorsapi_python_sdk.auth import (
-                                oauth2_token_manager,
-                            )
-
-                            with patch.object(
-                                oauth2_token_manager.requests,
-                                "post",
-                                side_effect=session.post,
-                            ):
-                                return super().refresh_token()
-
-                    api_client = self.api._api_client
-                    oauth_config = OAuth2Config(
-                        api_client.credential_id,
-                        api_client.credential_secret,
-                        api_client.version,
-                        api_client.auth_endpoint,
-                    )
-                    api_client._token_manager = ProxyAwareTokenManager(oauth_config)
-
-            except (ImportError, AttributeError):
-                logger.warning(
-                    "AmazonCreatorsAPI: could not inject proxy — falling back to environment-level proxy (HTTPS_PROXY)",
-                    exc_info=True,
-                )
 
     def get_product(self, asin: str, serialize: bool = False, **kwargs):
         if products := self.get_products([asin], **kwargs):
@@ -952,13 +888,13 @@ def betterworldbooks_fmt(
     }
 
 
-def _build_authenticated_proxy_config(proxy_url: str, proxy_creds: str) -> dict[str, str]:
+def _build_authenticated_proxy_url(proxy_url: str, proxy_creds: str) -> str:
     """
-    Parses proxy URL and credentials, returning a proxies dict with embedded auth.
+    Parses proxy URL and credentials, returning a proxy URL with embedded auth.
 
     :param str proxy_url: HTTP proxy URL (e.g., 'http://proxy.example.com:3128')
     :param str proxy_creds: Proxy credentials in 'user:password' format
-    :return: Dict of {"http": auth_proxy_url, "https": auth_proxy_url}
+    :return: Proxy URL including credentials
     """
     from urllib.parse import quote, urlparse, urlunparse
 
@@ -968,4 +904,4 @@ def _build_authenticated_proxy_config(proxy_url: str, proxy_creds: str) -> dict[
     if parsed.port:
         netloc += f":{parsed.port}"
     auth_proxy_url = urlunparse(parsed._replace(netloc=netloc))
-    return {"http": auth_proxy_url, "https": auth_proxy_url}
+    return auth_proxy_url
