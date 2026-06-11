@@ -1800,8 +1800,6 @@ msgid ""
 "form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" "
 "rel=\"noopener noreferrer\">Terms of Service</a>."
 msgstr ""
-"Регистрируясь, вы соглашаетесь с <a href='//archive.org/about/terms.php' "
-"target='_blank'>Условиями использования</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -2480,9 +2478,6 @@ msgid ""
 "href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
 "purpose\">these instructions</a>."
 msgstr ""
-"Демографические данные берутся из <a "
-"href=\"https://www.wikidata.org/\">Wikidata</a>. Вот <a id=\"wd-query-"
-"sample\" href=\"\">пример</a> используемого запроса."
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
@@ -3660,7 +3655,7 @@ msgstr ""
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
-msgstr "Пожалуйста, оставьте краткую заметку о том, что вы изменили:"
+msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
@@ -3745,7 +3740,7 @@ msgstr "Удалить учётную запись"
 #: admin/people/view.html
 #, fuzzy, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr "Последний раз обновлено <span>%(date)s</span>"
+msgstr ""
 
 #: admin/people/view.html
 msgid "login as this user"
@@ -4420,8 +4415,8 @@ msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
 " <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
-"<a href=\"%(daisy_url)s\"><strong>Скачать DAISY.zip</strong></a> для этой"
-" книги"
+"<a href=\"%(daisy_url)s\"><strong>Скачать DAISY.zip</strong></a> для <a "
+"href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
@@ -4443,7 +4438,11 @@ msgid ""
 "different devices. Protected DAISYs can only be opened using a key issued"
 " by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
-msgstr "В Open Library есть два типа DAISY: <i>открытые</i> и <i>защищённые</i>."
+msgstr ""
+"В Open Library есть два типа DAISY: <i>открытые</i> и <i>защищённые</i>. "
+"Открытые DAISY доступны всем на многих устройствах. Защищённые DAISY "
+"можно открыть только с ключом, выданным <a "
+"href=\"http://www.loc.gov/nls/\">программой NLS Библиотеки Конгресса</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -4462,7 +4461,9 @@ msgid ""
 "within the book, to chapters or specific pages."
 msgstr ""
 "Цифровой формат DAISY помогает людям, которым сложно пользоваться "
-"обычными книгами."
+"обычными печатными материалами. Цифровые <span "
+"class=\"highlight\">аудиокниги</span> DAISY дают преимущества обычных "
+"аудиокниг с навигацией по главам и страницам."
 
 #: books/daisy.html
 #, fuzzy
@@ -4504,9 +4505,12 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
-"Помимо <a href=\"/subjects/accessible_book\" title=\"Тема: Доступные "
-"книги\">доступных книг</a>, в Open Library также есть книги в формате "
-"DAISY."
+"В дополнение к<a href=\"/subjects/accessible_book\" title=\"Subject: "
+"Accessible book\"> открытым DAISY</a>, Open Library предлагает "
+"ограниченный выбор<a href=\"/subjects/protected_DAISY\" title=\"Subject: "
+"Protected DAISY\"> защищённых DAISY</a> для владельцев ключей NLS "
+"Библиотеки Конгресса. Эти материалы предоставлены<a "
+"href=\"//archive.org/\"> Internet Archive</a>."
 
 #: books/daisy.html
 msgid ""
@@ -4589,9 +4593,6 @@ msgid ""
 "Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
 "rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 msgstr ""
-"Вы можете искать автора по имени (например, <em>Джоан Роулинг</em>) или "
-"по Open Library ID (например, <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -4773,7 +4774,8 @@ msgid ""
 "href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
 "Например: <i><a href=\"/subjects/cheese\">сыр</a>, <a "
-"href=\"/subjects/cats\">кошки</a></i>"
+"href=\"/subjects/roman_empire\">Римская империя</a>, <a "
+"href=\"/subjects/psychology\">психология</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -4786,7 +4788,8 @@ msgid ""
 "Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 msgstr ""
 "Например: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Теодор "
-"Рузвельт</a></i>"
+"Рузвельт</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Джулиан "
+"Норвичская</a>, <a href=\"/subjects/person:Tintin\">Тентен</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -4799,7 +4802,8 @@ msgid ""
 "href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
 "Например: <i><a href=\"/subjects/place:London\">Лондон</a>, <a "
-"href=\"/subjects/place:Paris\">Париж</a></i>"
+"href=\"/subjects/place:Atlantis\">Атлантида</a>, <a "
+"href=\"/subjects/place:Omaha\">Омаха</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -4810,7 +4814,10 @@ msgid ""
 "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
 "href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
 "href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr "Например: <i><a href=\"/subjects/time:1984\">1984</a></i>"
+msgstr ""
+"Например: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">Средние века</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -5043,9 +5050,6 @@ msgid ""
 "href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
 "noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
-"Вы можете искать автора по имени (например, <em>Джоан Роулинг</em>) или "
-"по Open Library ID (например, <a href=\"/authors/OL23919A\" "
-"target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -5400,8 +5404,8 @@ msgid ""
 "Learn more by reading our <a href=\"/help/faq/editing#picture\" "
 "target=\"blank\">%(guidelines)s</a>."
 msgstr ""
-"Узнайте больше из нашего <a href=\"/help/faq/editing#picture\" "
-"target=\"_blank\" rel=\"noopener noreferrer\">FAQ</a>."
+"Узнайте больше из наших <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 #, fuzzy
@@ -7982,7 +7986,7 @@ msgstr "Сократить"
 #: search/work_search_facets.html
 #, fuzzy
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr "Найдите именно то, что вам нужно используя эти"
+msgstr ""
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
@@ -8888,11 +8892,6 @@ msgid ""
 "target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to "
 "Creative Commons will open in a new window\">CC0</a>. Yippee!"
 msgstr ""
-"Сохраняя изменения в этой вики, вы соглашаетесь с тем, что ваш вклад "
-"свободно передается миру в соответствии с <a "
-"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
-"target=\"_blank\" title=\"This link to Creative Commons will open in a "
-"new window\">CC0</a>. Ура!"
 
 #: type/tag/form.html
 #, fuzzy
