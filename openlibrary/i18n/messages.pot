@@ -5126,6 +5126,22 @@ msgstr ""
 msgid "By Thomas R. Willemain"
 msgstr ""
 
+#: design/tooltip.html
+msgid "Prescott's Microbiology"
+msgstr ""
+
+#: design/tooltip.html
+msgid "By Joanne Willey, Linda Sherwood, and Chris Woolverton"
+msgstr ""
+
+#: design/tooltip.html
+msgid "Encyclopaedia of hand-weaving"
+msgstr ""
+
+#: design/tooltip.html
+msgid "By Stanislaw Adam Zielinski"
+msgstr ""
+
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
