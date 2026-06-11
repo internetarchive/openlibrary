@@ -7,8 +7,10 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Basic tooltip")</h3>
       <p>$_("Hover or focus the button to see the tooltip. Default placement is top with a 150ms show delay.")</p>
-      <pre class="example__code"><code class="language-html">&lt;ol-tooltip content="Edit this item"&gt;&lt;button&gt;Edit&lt;/button&gt;&lt;/ol-tooltip&gt;</code></pre>
-      <div class="example__output" style="display: flex; gap: 24px; align-items: center; padding: 16px;">
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip content="Edit this item"&gt;
+  &lt;button&gt;Edit&lt;/button&gt;
+&lt;/ol-tooltip&gt;</code></pre>
+      <div class="example__output" style="display: flex; gap: 24px; align-items: center;">
         <ol-tooltip content="Edit this item">
           <button class="demo-btn">$_("Edit")</button>
         </ol-tooltip>
@@ -25,7 +27,7 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Placement options")</h3>
       <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges. Add %(arrow)s to show the directional arrow (hidden by default).", placement="<code>placement</code>", arrow="<code>arrow</code>")</p>
-      <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 24px 16px;">
+      <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
         <ol-tooltip content="I'm on top" placement="top" arrow>
           <button class="demo-btn">$_("top")</button>
         </ol-tooltip>
@@ -44,8 +46,11 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Rich content via slot")</h3>
       <p>$:_("Use %(slot)s for HTML content inside the tooltip.", slot="<code>slot=\"content\"</code>")</p>
-      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;&lt;button&gt;Info&lt;/button&gt;&lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;&lt;/ol-tooltip&gt;</code></pre>
-      <div class="example__output" style="padding: 16px;">
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;
+  &lt;button&gt;Info&lt;/button&gt;
+  &lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;
+&lt;/ol-tooltip&gt;</code></pre>
+      <div class="example__output">
         <ol-tooltip>
           <button class="demo-btn">$_("Info")</button>
           <span slot="content">$:_("Keyboard shortcut: %(shortcut)s", shortcut="<strong>Ctrl+K</strong>")</span>
@@ -56,16 +61,39 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Book hovercard")</h3>
       <p>$:_("Slotted content lives in the light DOM, so it is styled by page CSS, not the component. Inherited properties like %(color)s cascade in from the tooltip; structural styles (weight, size, muted text) come from the consuming page's stylesheet.", color="<code>color</code>")</p>
-      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;&lt;img class="book-tip__trigger" src="&hellip;"&gt;&lt;div slot="content" class="book-tip"&gt;&hellip;&lt;/div&gt;&lt;/ol-tooltip&gt;</code></pre>
-      <div class="example__output" style="display: flex; gap: 24px; align-items: center; padding: 16px;">
-        <ol-tooltip placement="top">
-          <img class="book-tip__trigger" src="//covers.openlibrary.org/b/id/11720583-M.jpg" alt="$_('Statistical methods for planners')">
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;
+  &lt;img class="book-tip__trigger" src="&hellip;"&gt;
+  &lt;div slot="content" class="book-tip"&gt;&hellip;&lt;/div&gt;
+&lt;/ol-tooltip&gt;</code></pre>
+      <div class="example__output" style="display: flex; gap: 12px; align-items: flex-end;">
+        <ol-tooltip placement="bottom" arrow>
+          <img class="book-tip__trigger" tabindex="0" src="//covers.openlibrary.org/b/id/11720583-M.jpg" alt="$_('Statistical methods for planners')">
           <div slot="content" class="book-tip">
             <div class="book-tip__heading">
               <span class="book-tip__title">$_("Statistical methods for planners")</span>
               <span class="book-tip__year">(1980)</span>
             </div>
             <div class="book-tip__byline">$_("By Thomas R. Willemain")</div>
+          </div>
+        </ol-tooltip>
+        <ol-tooltip placement="bottom" arrow>
+          <img class="book-tip__trigger" tabindex="0" src="//covers.openlibrary.org/b/id/15144117-M.jpg" alt="$_('Prescott\'s Microbiology')">
+          <div slot="content" class="book-tip">
+            <div class="book-tip__heading">
+              <span class="book-tip__title">$_("Prescott's Microbiology")</span>
+              <span class="book-tip__year">(2013)</span>
+            </div>
+            <div class="book-tip__byline">$_("By Joanne Willey, Linda Sherwood, and Chris Woolverton")</div>
+          </div>
+        </ol-tooltip>
+        <ol-tooltip placement="bottom" arrow>
+          <img class="book-tip__trigger" tabindex="0" src="//covers.openlibrary.org/b/id/14918485-M.jpg" alt="$_('Encyclopaedia of hand-weaving')">
+          <div slot="content" class="book-tip">
+            <div class="book-tip__heading">
+              <span class="book-tip__title">$_("Encyclopaedia of hand-weaving")</span>
+              <span class="book-tip__year">(1959)</span>
+            </div>
+            <div class="book-tip__byline">$_("By Stanislaw Adam Zielinski")</div>
           </div>
         </ol-tooltip>
       </div>

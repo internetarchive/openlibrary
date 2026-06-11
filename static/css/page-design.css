@@ -214,6 +214,13 @@ pre.example__code code[class*="language-"] {
   height: auto;
   border-radius: var(--border-radius-sm);
   cursor: pointer;
+  box-shadow: 0 0 0 0 var(--lightest-grey);
+  transition: box-shadow 0.15s ease;
+}
+.book-tip__trigger:hover,
+.book-tip__trigger:focus-visible {
+  box-shadow: 0 0 0 6px var(--lightest-grey);
+  outline: none;
 }
 .book-tip__title {
   font-weight: 600;
