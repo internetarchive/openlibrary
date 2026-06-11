@@ -2606,7 +2606,7 @@ msgstr "Fixer un objectif annuel de lecture"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
-msgstr ""
+msgstr "Abonnements"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 #, fuzzy
@@ -2637,7 +2637,7 @@ msgstr ""
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "Définir mon objectif"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
@@ -2724,21 +2724,23 @@ msgstr ""
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "Vérification de sécurité du compte — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "Vérification de sécurité du compte"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "Date de l'incident : 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid ""
 "Check whether your Open Library account was in a set of accounts "
 "requiring attention."
 msgstr ""
+"Vérifiez si votre compte Open Library figure dans un ensemble de comptes "
+"nécessitant une attention particulière."
 
 #: account/security/check_email.html
 msgid ""
@@ -2746,6 +2748,9 @@ msgid ""
 "href=\"/account/login?redirect=/account/security/2026-04-28T18\">log "
 "in</a> to check whether your account was affected."
 msgstr ""
+"Veuillez <a "
+"href=\"/account/login?redirect=/account/security/2026-04-28T18\">vous "
+"connecter</a> pour vérifier si votre compte a été affecté."
 
 #: account/security/check_email.html
 #, fuzzy
@@ -2758,16 +2763,21 @@ msgid ""
 "recent communications from Open Library and consider updating your "
 "password."
 msgstr ""
+"Votre compte a été trouvé dans notre liste de comptes affectés. Veuillez "
+"consulter les communications récentes d'Open Library et envisager de "
+"mettre à jour votre mot de passe."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "Votre compte ne figure <em>pas</em> dans l'ensemble des comptes affectés."
 
 #: account/security/check_email.html
 msgid ""
 "Your account was <em>not</em> found in the affected accounts list. No "
 "action is required."
 msgstr ""
+"Votre compte n'a <em>pas</em> été trouvé dans la liste des comptes "
+"affectés. Aucune action n'est requise."
 
 #: account/verify/activated.html
 msgid "Account already activated"
@@ -2797,6 +2807,8 @@ msgstr ""
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
 msgstr ""
+"Saisissez votre adresse e-mail et cliquez sur ce bouton pour renvoyer un "
+"e-mail de vérification :"
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -2821,16 +2833,16 @@ msgstr ""
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "Attacher le débogueur"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Attacher le débogueur sur Python %(version_number)s"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "Démarrer un débogueur sur le port 3000."
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
@@ -2851,6 +2863,8 @@ msgid ""
 "IP address %(address)s has been added to the textarea. Please click Save "
 "to block that IP."
 msgstr ""
+"L'adresse IP %(address)s a été ajoutée au champ texte. Cliquez sur "
+"Enregistrer pour bloquer cette IP."
 
 #: admin/block.html
 #, fuzzy
@@ -2859,7 +2873,7 @@ msgstr "Adresse IP"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "Graphiques de performance"
 
 #: admin/graphs.html
 #, fuzzy
@@ -2873,11 +2887,11 @@ msgstr "De tous les temps"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "Répartition des temps de chargement de page"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "Moyenne Infobase"
 
 #: admin/history.html admin/imports.html authors/infobox.html
 #: type/author/edit.html
@@ -2906,7 +2920,7 @@ msgstr "Ajouter un nouveau livre à Open Library"
 
 #: admin/imports-add.html
 msgid "Please add IA identifiers to be imported, one per line."
-msgstr ""
+msgstr "Veuillez ajouter les identifiants IA à importer, un par ligne."
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
 #: admin/people/edits.html admin/permissions.html design/button.html
@@ -2916,7 +2930,7 @@ msgstr "Envoyer"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
-msgstr ""
+msgstr "Nouveaux livres importés par jour"
 
 #: PublishingHistory.html admin/imports.html publishers/view.html
 msgid "You need to have JavaScript turned on to see the nifty chart!"
@@ -2936,7 +2950,7 @@ msgstr "Mes listes de lecture :"
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>Taux d'importation actuel :</strong> %(num)d imports/heure."
 
 #: admin/imports.html
 #, fuzzy
@@ -2945,7 +2959,7 @@ msgstr "Année :"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "Résumé par date"
 
 #: admin/imports.html
 #, fuzzy
@@ -2964,7 +2978,7 @@ msgstr "# Livres notés"
 
 #: admin/imports.html
 msgid "#books failed to import"
-msgstr ""
+msgstr "Nombre de livres ayant échoué à l'importation"
 
 #: admin/imports.html
 #, fuzzy
@@ -2978,7 +2992,7 @@ msgstr "Comptes récents"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
+msgstr "Identifiant"
 
 #: admin/imports.html admin/imports_by_date.html
 #, fuzzy
@@ -3020,6 +3034,8 @@ msgid ""
 "<span class=\"login-counts\">0</span> patrons have logged in at least "
 "once over the past 30 days."
 msgstr ""
+"<span class=\"login-counts\">0</span> utilisateurs se sont connectés au "
+"moins une fois au cours des 30 derniers jours."
 
 #: admin/index.html
 msgid "Stats"
@@ -3027,7 +3043,7 @@ msgstr "Statistiques"
 
 #: admin/index.html
 msgid "Edits Per Day"
-msgstr ""
+msgstr "Modifications par jour"
 
 #: admin/index.html admin/people/index.html
 msgid "Edits"
@@ -3035,15 +3051,15 @@ msgstr "Modifications"
 
 #: admin/index.html
 msgid "Yesterday"
-msgstr ""
+msgstr "Hier"
 
 #: admin/index.html
 msgid "Last 7 days"
-msgstr ""
+msgstr "7 derniers jours"
 
 #: admin/index.html
 msgid "Last 28 days"
-msgstr ""
+msgstr "28 derniers jours"
 
 #: admin/index.html
 #, fuzzy
@@ -3056,7 +3072,7 @@ msgstr "Bot"
 
 #: admin/index.html
 msgid "New Accounts Per Day"
-msgstr ""
+msgstr "Nouveaux comptes par jour"
 
 #: admin/index.html
 #, fuzzy
@@ -3133,7 +3149,7 @@ msgstr "Mettre à jour les critiques"
 
 #: admin/index.html
 msgid "Patrons Following"
-msgstr ""
+msgstr "Utilisateurs abonnés"
 
 #: admin/index.html
 #, fuzzy
@@ -3142,7 +3158,7 @@ msgstr "Listes créées"
 
 #: admin/index.html
 msgid "Patrons Creating Notes"
-msgstr ""
+msgstr "Utilisateurs créant des notes"
 
 #: admin/index.html
 #, fuzzy
@@ -3151,7 +3167,7 @@ msgstr "# Livres notés"
 
 #: admin/index.html
 msgid "Star Rating Patrons"
-msgstr ""
+msgstr "Utilisateurs attribuant des notes"
 
 #: admin/index.html home/stats.html
 msgid "Unique Visitors"
@@ -3169,11 +3185,11 @@ msgstr "Emprunter"
 
 #: admin/index.html
 msgid "Borrows, last 3 months graph"
-msgstr ""
+msgstr "Emprunts, graphique des 3 derniers mois"
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
-msgstr ""
+msgstr "Emprunts, graphique des 2 dernières années"
 
 #: admin/index.html
 #, fuzzy
@@ -3228,7 +3244,7 @@ msgstr "Rejoint le %(date)s"
 #: admin/loans_table.html
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
-msgstr ""
+msgstr "N°%(num_position)d parmi %(num_waitlist)d personnes en attente de ce livre"
 
 #: ManageLoansButtons.html admin/loans_table.html
 #, fuzzy, python-format
@@ -3277,11 +3293,11 @@ msgstr "Inspecter memcache"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "Demandes d'accès pour handicap de lecture"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "Répartition par autorité qualifiante"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3295,7 +3311,7 @@ msgstr "courriel"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "Traité"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3304,7 +3320,7 @@ msgstr "Détails"
 
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
-msgstr ""
+msgstr "[Centre d'administration] Permissions du site"
 
 #: admin/permissions.html
 #, fuzzy
@@ -3313,7 +3329,7 @@ msgstr "Autorisation"
 
 #: admin/permissions.html
 msgid "Change the policy of who can edit the site."
-msgstr ""
+msgstr "Modifier la politique déterminant qui peut modifier le site."
 
 #: admin/permissions.html
 #, fuzzy
@@ -3322,7 +3338,7 @@ msgstr "Combien de nouveaux membres d'Open Library avons-nous accueillis ?"
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "Ceci s'applique aux enregistrements /authors/*, /books/* et /works/*."
 
 #: admin/permissions.html
 #, fuzzy
@@ -3331,7 +3347,7 @@ msgstr "Être bibliothécaire"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "Ceci s'applique à /about/*, /help/*, /dev/*, /docs/* etc."
 
 #: admin/permissions.html
 #, fuzzy
@@ -3343,6 +3359,8 @@ msgid ""
 "This updates \"permission\" and \"child_permission\" fields of /, /works,"
 " /books and /authors records in the database."
 msgstr ""
+"Ceci met à jour les champs « permission » et « child_permission » des "
+"enregistrements /, /works, /books et /authors dans la base de données."
 
 #: admin/solr.html
 #, fuzzy
@@ -3364,6 +3382,8 @@ msgid ""
 "On update, these keys will be added to solr update queue and it'll take "
 "about 15 minutes for them to get reindexed in Solr."
 msgstr ""
+"Lors de la mise à jour, ces clés seront ajoutées à la file de mise à jour"
+" Solr et leur réindexation prendra environ 15 minutes."
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
@@ -3383,16 +3403,20 @@ msgid ""
 "Please enter the SPAM regular expressions in the textarea below, one per "
 "line."
 msgstr ""
+"Veuillez saisir les expressions régulières SPAM dans le champ texte ci-"
+"dessous, une par ligne."
 
 #: admin/spamwords.html
 msgid ""
 "Be sure to escape any meta characters that are meant to be character "
 "literals."
 msgstr ""
+"Veillez à échapper tous les métacaractères destinés à être des caractères"
+" littéraux."
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "Si vous ajoutez un domaine, préfixez-le comme suit :"
 
 #: admin/spamwords.html
 msgid ""
@@ -3409,16 +3433,20 @@ msgstr "Mots de spam"
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
+"Veuillez saisir les domaines à bloquer dans le champ texte ci-dessous, un"
+" par ligne."
 
 #: admin/sync.html
 msgid "Sync"
-msgstr ""
+msgstr "Synchroniser"
 
 #: admin/sync.html
 msgid ""
 "Sync the metadata of various types of Open Library items (e.g. lists, "
 "subjects, works) with Archive.org."
 msgstr ""
+"Synchroniser les métadonnées de divers types d'éléments Open Library (ex."
+" : listes, sujets, œuvres) avec Archive.org."
 
 #: admin/sync.html
 #, fuzzy
@@ -3434,6 +3462,11 @@ msgid ""
 "injected into the archive.org metadata of the edition's corresponding "
 "archive.org item."
 msgstr ""
+"Cet outil ajoutera votre œuvre à une liste Open Library appelée `Staff "
+"Picks` sous l'utilisateur `openlibrary`. Il transformera ensuite l'œuvre "
+"ajoutée en une liste de toutes ses éditions lisibles. Pour chaque édition"
+" Open Library, un champ de métadonnées appelé `openlibrary_subject` sera "
+"injecté dans les métadonnées archive.org de l'élément correspondant."
 
 #: admin/sync.html
 #, fuzzy
@@ -3455,6 +3488,8 @@ msgid ""
 "Updates an edition on archive.org by writing in its latest  "
 "openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
+"Met à jour une édition sur archive.org en y inscrivant les dernières "
+"valeurs des identifiants openlibrary_edition et openlibrary_work"
 
 #: admin/sync.html
 #, fuzzy
@@ -3476,12 +3511,16 @@ msgid ""
 "Add one memcache key per line in the text area. Each key must include a "
 "'-' as the last character."
 msgstr ""
+"Ajoutez une clé memcache par ligne dans le champ texte. Chaque clé doit "
+"se terminer par un '-'."
 
 #: admin/inspect/memcache.html
 msgid ""
 "For example, <code>observations-</code> should be entered in the text "
 "area if the key is <code>observations</code>."
 msgstr ""
+"Par exemple, <code>observations-</code> doit être saisi dans le champ "
+"texte si la clé est <code>observations</code>."
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -3515,15 +3554,15 @@ msgstr "Inspecter la base de données"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "Obtenir"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "Clé"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "Requête"
 
 #: admin/inspect/store.html
 #, fuzzy
@@ -3582,11 +3621,11 @@ msgstr "# de modifications"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "il y a x minutes"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -3601,7 +3640,7 @@ msgstr "Centre d'administration"
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "L'adresse IP %(ip)s est <a href=\"/admin/block\">bloquée</a>."
 
 #: admin/ip/view.html
 #, fuzzy, python-format
@@ -3616,7 +3655,7 @@ msgstr "Veuillez sélectionner des auteurs à fusionner."
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html
 #: recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "Quand vous voyez des chiffres ici, c'est l'adresse IP de l'éditeur anonyme"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy, python-format
@@ -3632,7 +3671,7 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
+msgstr "Spam annulé"
 
 #: admin/people/edits.html
 #, fuzzy, python-format
@@ -3674,15 +3713,15 @@ msgstr "Aucun utilisateur enregistré avec cette adresse de courriel."
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "ID IA :"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "ex. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "Aucun compte trouvé avec cet ID."
 
 #: admin/people/index.html
 msgid "Recent Accounts"
@@ -3703,7 +3742,7 @@ msgstr "Modifier l'historique"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "bloquer et annuler toutes les modifications"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3717,7 +3756,7 @@ msgstr "Dernière mise à jour le <span class=\"time\">%(date)s</span>"
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "se connecter en tant que cet utilisateur"
 
 #: admin/people/view.html
 #, python-format
@@ -3725,10 +3764,12 @@ msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
 "href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
+"Activé le <span class=\"time\">%(date)s</span> depuis <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "débloquer ce compte"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3790,7 +3831,7 @@ msgstr "Anonymiser le compte :"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Simulation"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
@@ -3998,7 +4039,7 @@ msgstr "Livre audio"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Lire gratuitement en ligne depuis %s"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -4007,7 +4048,7 @@ msgstr "Télécharger un fichier HTML de Project Gutenberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Images numérisées"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
