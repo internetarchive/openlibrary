@@ -5455,7 +5455,7 @@ msgstr "Ou cole uma imagem da área de transferência"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Colar imagem da área de transferência"
 
 #: covers/add.html
 #, fuzzy
@@ -5464,11 +5464,11 @@ msgstr "Adicionar outra imagem"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Enviar imagem"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Enviar imagem"
 
 #: covers/add.html
 #, fuzzy
@@ -5492,7 +5492,7 @@ msgstr ""
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Clique para fechar"
 
 #: covers/author_photo.html
 #, fuzzy, python-format
@@ -5549,7 +5549,7 @@ msgstr "Gerenciar"
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Ou use uma imagem de %s"
 
 #: covers/manage.html
 msgid ""
@@ -5590,10 +5590,16 @@ msgid ""
 "is intentionally no entrance animation; banners appear on every page "
 "view."
 msgstr ""
+"O componente %(tag)s é um banner de anúncio no estilo chamada. O anúncio "
+"é renderizado no servidor no slot padrão — já traduzido, visível para "
+"mecanismos de busca — enquanto o componente controla o visual: estilo das"
+" variantes, ícone, dispensa e persistência em cookie. Não há animação de "
+"entrada intencionalmente; os banners aparecem em cada carregamento de "
+"página."
 
 #: design/banner.html
 msgid "Variants"
-msgstr ""
+msgstr "Variantes"
 
 #: design/banner.html
 #, python-format
@@ -5601,26 +5607,35 @@ msgid ""
 "Use %(variant)s for semantic variants. Each pairs a tinted surface with a"
 " filled icon circle — the same icon treatment as %(toast)s."
 msgstr ""
+"Use %(variant)s para variantes semânticas. Cada uma combina uma "
+"superfície com matiz e um círculo de ícone preenchido — o mesmo "
+"tratamento de ícones que %(toast)s."
 
 #: design/banner.html
 msgid "Open Library is a non-profit project of the Internet Archive."
-msgstr ""
+msgstr "Open Library é um projeto sem fins lucrativos do Internet Archive."
 
 #: design/banner.html
 msgid "Your import finished — 42 books added to your reading log."
 msgstr ""
+"Sua importação foi concluída — 42 livros adicionados ao seu registro de "
+"leitura."
 
 #: design/banner.html
 msgid "Open Library will be briefly unavailable on June 12 for maintenance."
 msgstr ""
+"O Open Library ficará brevemente indisponível em 12 de junho para "
+"manutenção."
 
 #: design/banner.html
 msgid "Search is currently degraded. Some results may be missing."
 msgstr ""
+"A busca está temporariamente degradada. Alguns resultados podem estar "
+"ausentes."
 
 #: design/banner.html
 msgid "Appearance"
-msgstr ""
+msgstr "Aparência"
 
 #: design/banner.html
 #, python-format
@@ -5629,18 +5644,22 @@ msgid ""
 "border and rounded corners. %(plain)s removes both — useful when the "
 "banner abuts the edges of other UI, like the top of the page or a card."
 msgstr ""
+"Use %(appearance)s para controlar o quadro. %(outlined)s (padrão) tem "
+"borda e cantos arredondados. %(plain)s remove ambos — útil quando o "
+"banner é adjacente a outras partes da interface, como o topo da página ou"
+" um cartão."
 
 #: design/banner.html
 msgid "Outlined (default): border and rounded corners."
-msgstr ""
+msgstr "Com borda (padrão): borda e cantos arredondados."
 
 #: design/banner.html
 msgid "Plain: no border, no border radius."
-msgstr ""
+msgstr "Simples: sem borda nem arredondamento."
 
 #: design/banner.html
 msgid "Dismissible"
-msgstr ""
+msgstr "Dispensável"
 
 #: design/banner.html
 #, python-format
@@ -5649,6 +5668,9 @@ msgid ""
 "dismissal only lasts for the current page. Content comes from the page "
 "template, so links and emphasis work as usual."
 msgstr ""
+"Adicione %(dismissible)s para um botão de fechar. Sem %(cookie_name)s, a "
+"dispensa dura apenas na página atual. O conteúdo vem do template da "
+"página, portanto links e ênfases funcionam normalmente."
 
 #: design/banner.html
 #, fuzzy
@@ -5657,12 +5679,14 @@ msgstr "Explorar coleções"
 
 #: design/banner.html
 msgid "Custom icon"
-msgstr ""
+msgstr "Ícone personalizado"
 
 #: design/banner.html
 #, python-format
 msgid "Slot a custom icon via %(slot)s to replace the variant's built-in glyph."
 msgstr ""
+"Insira um ícone personalizado via %(slot)s para substituir o glifo padrão"
+" da variante."
 
 #: design/banner.html
 #, fuzzy
@@ -5671,7 +5695,7 @@ msgstr "Exportar seu registro de leitura"
 
 #: design/banner.html
 msgid "Persisted dismissal"
-msgstr ""
+msgstr "Dispensa persistida"
 
 #: design/banner.html
 #, python-format
@@ -5684,6 +5708,14 @@ msgid ""
 "element as %(ttl)s — an OL convention, not component API. Dismiss this "
 "banner, reload, and it stays hidden until reset."
 msgstr ""
+"O componente não gerencia persistência — ele apenas dispara %(event)s com"
+" seu %(dismiss_id)s. Dois mecanismos do site tornam as dispensas "
+"permanentes: o template impede a renderização ao verificar o cookie de "
+"dispensa (banners dispensados nunca são servidos), e um listener no nível"
+" do site (%(glue)s) envia POST de dispensas para %(endpoint)s, que define"
+" esse cookie. O TTL por banner fica no elemento como %(ttl)s — uma "
+"convenção do OL, não API do componente. Dispense este banner, recarregue "
+"e ele permanece oculto até ser resetado."
 
 #: design/banner.html
 #, fuzzy
@@ -5692,11 +5724,11 @@ msgstr "Exportar seu registro de leitura"
 
 #: design/banner.html
 msgid "Reset dismissed demo banner"
-msgstr ""
+msgstr "Resetar banner de demonstração dispensado"
 
 #: design/banner.html
 msgid "Dismiss event"
-msgstr ""
+msgstr "Evento de dispensa"
 
 #: design/banner.html
 #, python-format
@@ -5705,6 +5737,9 @@ msgid ""
 " the DOM. Banners without a %(dismiss_id)s are page-only: they still fire"
 " the event, but the site listener ignores them."
 msgstr ""
+"O banner dispara %(event)s uma vez ao ser dispensado, antes de ser "
+"removido do DOM. Banners sem %(dismiss_id)s são apenas para a página: "
+"ainda disparam o evento, mas o listener do site os ignora."
 
 #: design/button.html merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
@@ -5722,16 +5757,22 @@ msgid ""
 "transform-origin, closes on Escape or outside click, and respects "
 "prefers-reduced-motion."
 msgstr ""
+"O componente ol-popover fornece um painel popover animado e reutilizável "
+"ancorado a um elemento gatilho. Ele anima a partir do gatilho usando "
+"transform-origin, fecha no Escape ou clique fora, e respeita prefers-"
+"reduced-motion."
 
 #: design/popover.html
 msgid "Menu popover"
-msgstr ""
+msgstr "Menu popover"
 
 #: design/popover.html
 msgid ""
 "Popovers animate from the trigger using transform-origin. Click the "
 "button to see the scale + fade entrance."
 msgstr ""
+"Os popovers animam a partir do gatilho usando transform-origin. Clique no"
+" botão para ver a entrada com escala + desvanecer."
 
 #: design/popover.html
 #, fuzzy
@@ -5755,7 +5796,7 @@ msgstr "Eliminar"
 
 #: design/popover.html
 msgid "Placement options"
-msgstr ""
+msgstr "Opções de posicionamento"
 
 #: design/popover.html
 #, python-format
@@ -5764,10 +5805,13 @@ msgid ""
 "%(transform_origin)s automatically matches so the animation always "
 "expands from the trigger."
 msgstr ""
+"Use %(placement)s para controlar onde o popover aparece. O "
+"%(transform_origin)s é ajustado automaticamente para que a animação "
+"sempre se expanda a partir do gatilho."
 
 #: design/popover.html
 msgid "bottom-start"
-msgstr ""
+msgstr "inferior-início"
 
 #: design/popover.html
 #, fuzzy
@@ -5784,6 +5828,13 @@ msgid ""
 "already translated; rich content can be slotted instead. The component's "
 "only owned string is the close button label, overridable via %(attr)s."
 msgstr ""
+"O componente %(tag)s é uma notificação temporária. Ela se anuncia para "
+"leitores de tela, se dispensa automaticamente após um tempo limite "
+"(pausando ao passar o mouse ou focar) e se remove do DOM ao fechar. O "
+"conteúdo da mensagem é definido via atributos %(message)s e "
+"%(description)s, já traduzidos; conteúdo rico pode ser inserido via slot."
+" A única string do componente é o rótulo do botão fechar, substituível "
+"via %(attr)s."
 
 #: design/toast.html
 #, fuzzy
@@ -5796,6 +5847,8 @@ msgid ""
 "Use %(type)s for semantic variants. Errors are announced assertively "
 "(%(role)s)."
 msgstr ""
+"Use %(type)s para variantes semânticas. Erros são anunciados de forma "
+"assertiva (%(role)s)."
 
 #: design/toast.html
 #, fuzzy
@@ -5804,7 +5857,7 @@ msgstr "Exportar seu registro de leitura"
 
 #: design/toast.html
 msgid "Subjects successfully updated"
-msgstr ""
+msgstr "Assuntos atualizados com sucesso"
 
 #: design/toast.html
 #, fuzzy
@@ -5826,14 +5879,20 @@ msgid ""
 "the toast. Node(s) built in JS also work. Nothing is ever parsed from a "
 "runtime string as HTML."
 msgstr ""
+"Use %(description)s para uma linha secundária opcional. Para conteúdo "
+"rico incomum (links, marcação personalizada), crie a marcação em um "
+"elemento %(template)s inerte no template da página — onde a extração "
+"%(i18n)s funciona — e passe esse elemento para %(helper)s; seu conteúdo é"
+" clonado na notificação. Nó(s) criados em JS também funcionam. Nada é "
+"nunca interpretado de uma string em tempo de execução como HTML."
 
 #: design/toast.html
 msgid "Relaunch to update"
-msgstr ""
+msgstr "Reiniciar para atualizar"
 
 #: design/toast.html
 msgid "Could not save."
-msgstr ""
+msgstr "Não foi possível salvar."
 
 #: design/toast.html
 #, fuzzy
@@ -5842,7 +5901,7 @@ msgstr "Como podemos ajudar?"
 
 #: design/toast.html
 msgid "Imperative use (fixed bottom-center stack)"
-msgstr ""
+msgstr "Uso imperativo (pilha fixa no centro inferior)"
 
 #: design/toast.html
 #, python-format
@@ -5856,6 +5915,14 @@ msgid ""
 "as an attribute — always text, never HTML — and should already be "
 "translated."
 msgstr ""
+"Os chamadores JavaScript usam o helper exportado %(helper)s, que empilha "
+"notificações em uma %(region)s fixa compartilhada ancorada ao centro "
+"inferior da viewport. Novas notificações deslizam de baixo; as antigas "
+"sobem para dar espaço, formando uma lista vertical simples. As "
+"notificações se dispensam após %(timeout)s milissegundos (padrão 4000), "
+"exceto se %(persistent)s. Passe o mouse ou foque na lista para pausar o "
+"temporizador de cada notificação. A mensagem é definida como atributo — "
+"sempre texto, nunca HTML — e já deve estar traduzida."
 
 #: design/toast.html
 #, fuzzy
@@ -5864,11 +5931,11 @@ msgstr "Adicionar a lista"
 
 #: design/toast.html
 msgid "Add persistent error toast"
-msgstr ""
+msgstr "Adicionar notificação de erro persistente"
 
 #: design/toast.html
 msgid "Add rich content toast"
-msgstr ""
+msgstr "Adicionar notificação com conteúdo rico"
 
 #: design/toast.html
 #, fuzzy
@@ -5881,6 +5948,8 @@ msgid ""
 "The toast fires %(event)s once when it begins closing, with the reason in"
 " %(detail)s."
 msgstr ""
+"A notificação dispara %(event)s uma vez ao começar a fechar, com o motivo"
+" em %(detail)s."
 
 #: email/case_created.html
 #, fuzzy
@@ -5889,7 +5958,7 @@ msgstr "Enviar"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Obrigado pela sua mensagem. Entraremos em contato assim que possível."
 
 #: email/case_created.html
 msgid ""
@@ -5897,10 +5966,12 @@ msgid ""
 "messages, but rest assured we will, and we'll get back to you if "
 "required."
 msgstr ""
+"Pode demorar um pouco para respondermos, pois recebemos muitas mensagens,"
+" mas certamente iremos lê-la e responder se necessário."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Qualificação para acesso especial para deficiência visual"
 
 #: history/sources.html
 #, fuzzy
@@ -5983,11 +6054,11 @@ msgstr "Apostilas"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance e MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Livros no ambiente local"
 
 #: home/loans.html
 #, fuzzy, python-format
@@ -6005,6 +6076,8 @@ msgid ""
 "You have reached the borrowing limit. Please return a book to checkout "
 "something new."
 msgstr ""
+"Você atingiu o limite de empréstimos. Por favor, devolva um livro para "
+"pegar outro."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -6024,7 +6097,7 @@ msgstr "Ver todos os visitantes de OpenLibrary.org"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
-msgstr ""
+msgstr "Gráfico de área de visitantes únicos recentes"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
@@ -6041,7 +6114,7 @@ msgstr "Pessoas estão constantemente atualizando o catálogo"
 
 #: home/stats.html
 msgid "Area graph of recent catalog edits"
-msgstr ""
+msgstr "Gráfico de área de edições recentes do catálogo"
 
 #: home/stats.html
 msgid "Catalog Edits"
@@ -6053,7 +6126,7 @@ msgstr "Membros podem criar listas"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
-msgstr ""
+msgstr "Gráfico de área de listas criadas recentemente"
 
 #: home/stats.html
 msgid "Lists Created"
@@ -6065,7 +6138,7 @@ msgstr "Somos uma biblioteca, logo, emprestamos livros também"
 
 #: home/stats.html
 msgid "Area graph of ebooks borrowed recently"
-msgstr ""
+msgstr "Gráfico de área de e-books emprestados recentemente"
 
 #: home/stats.html
 msgid "eBooks Borrowed"
@@ -6088,7 +6161,7 @@ msgstr "Exportar seu registro de leitura"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "Saiba como definir uma meta de leitura anual e acompanhar o que você lê"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
@@ -6113,7 +6186,7 @@ msgstr "Busca de Texto Completo"
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "Encontre resultados correspondentes no texto de milhões de livros"
 
 #: home/welcome.html
 msgid "Be an Open Librarian"
@@ -6130,7 +6203,7 @@ msgstr "Bem-vindo a Open Library"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Descubra oportunidades para melhorar a biblioteca"
 
 #: home/welcome.html
 msgid "Send us feedback"
@@ -6269,11 +6342,11 @@ msgstr "Editado por %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Ótimo!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Seu novo registro está na biblioteca. Obrigado!"
 
 #: lib/message_addbook.html
 msgid ""
@@ -6281,6 +6354,9 @@ msgid ""
 "improve your new record quickly, and make it much easier for other people"
 " to find later."
 msgstr ""
+"Há algumas outras coisas simples que você pode adicionar agora para "
+"melhorar rapidamente seu novo registro e facilitar sua localização por "
+"outras pessoas."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -6289,7 +6365,7 @@ msgstr "Adicionar foto de capa"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Tirar uma foto rápida da capa para compartilhar?"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -6298,7 +6374,7 @@ msgstr "Adicionar nova lista"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Ajude a biblioteca a se conectar com outros sistemas, como a Amazon."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -6307,15 +6383,15 @@ msgstr "Temas comuns"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "São como tags."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Descreva o que o livro trata"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Uma ou duas frases já são suficientes."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -6473,7 +6549,7 @@ msgstr "Deletar nota"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -6492,7 +6568,7 @@ msgstr "Open Library"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -6550,7 +6626,7 @@ msgstr "Sair"
 
 #: lib/nav_head.html
 msgid "Pending Merge Requests"
-msgstr ""
+msgstr "Solicitações de merge pendentes"
 
 #: lib/nav_head.html search/sort_options.html
 #, fuzzy
@@ -6650,11 +6726,11 @@ msgstr "Lista de email"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tabela de qualidade dos dados"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Critérios de qualidade"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -6794,7 +6870,7 @@ msgstr "Pedir emprestado"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar do proprietário da lista"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -6802,15 +6878,15 @@ msgstr "Você"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Este leitor não habilitou a opção de ser seguido"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Seguir"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -6876,11 +6952,11 @@ msgstr "Tem certeza que quer remover <strong>%(title)s</strong> de sua lista?"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "Este leitor ainda não criou nenhuma lista."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr ""
+msgstr "Você ainda não criou nenhuma lista."
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
