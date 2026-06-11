@@ -27,6 +27,9 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Placement options")</h3>
       <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges. Add %(arrow)s to show the directional arrow (hidden by default).", placement="<code>placement</code>", arrow="<code>arrow</code>")</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip content="I'm on top" placement="top" arrow&gt;
+  &lt;button&gt;top&lt;/button&gt;
+&lt;/ol-tooltip&gt;</code></pre>
       <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
         <ol-tooltip content="I'm on top" placement="top" arrow>
           <button class="demo-btn">$_("top")</button>
@@ -61,7 +64,7 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Book hovercard")</h3>
       <p>$:_("Slotted content lives in the light DOM, so it is styled by page CSS, not the component. Inherited properties like %(color)s cascade in from the tooltip; structural styles (weight, size, muted text) come from the consuming page's stylesheet.", color="<code>color</code>")</p>
-      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip placement="bottom" arrow&gt;
   &lt;img class="book-tip__trigger" src="&hellip;"&gt;
   &lt;div slot="content" class="book-tip"&gt;&hellip;&lt;/div&gt;
 &lt;/ol-tooltip&gt;</code></pre>
