@@ -1077,6 +1077,224 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlBanner.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A callout-style announcement banner.\n\nRenders into the **light DOM** (no shadow root) so the banner is fully\nstyled at first paint by `static/css/components/ol-banner.css` — before\nthe component JS runs — and degrades gracefully without JavaScript.\nBanners are server-rendered page chrome, often above the fold, so\nfirst-paint fidelity outranks style encapsulation here (see ol-button\nfor the same trade-off and hydration pattern).\n\nThe announcement content is server-rendered as children — already\ntranslated via $_(), visible to search engines. On upgrade, the\ncomponent captures those children, re-renders them inside its own\nstructure, and adds the variant icon and close button. Its only owned\nstring is the close button label (override via `label-close` for i18n).\n\nThe component owns no persistence. Dismissing fires `ol-banner-dismiss`\n(with the optional `dismiss-id` in the detail) and removes the element —\nwhat that means is the host application's business. In Open Library:\n  - Visibility is decided server-side: the template only renders the\n    banner if its dismissal cookie is absent (see design/banner.html).\n  - Persistence is handled by a site-level listener (js/banner/index.js)\n    that POSTs dismissals to /hide_banner.\n\nBanners appear on every page view, so there is deliberately no entrance\nanimation (the frequency principle) — only a brief exit transition on\ndismiss.",
+          "name": "OlBanner",
+          "slots": [
+            {
+              "description": "The (already translated, server-rendered) announcement content.",
+              "name": ""
+            },
+            {
+              "description": "Optional custom icon (a child with slot=\"icon\"), replacing the variant's built-in one. Light-DOM convention, not a real slot.",
+              "name": "icon"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_neutralIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"12\" y1=\"4.5\" x2=\"12.01\" y2=\"4.5\"/><line x1=\"12\" y1=\"11\" x2=\"12\" y2=\"18\"/></svg>`",
+              "description": "\"i\" glyph shown on neutral banners (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_successIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polyline points=\"20 6 9 17 4 12\"/></svg>`",
+              "description": "Check glyph shown on success banners (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_warningIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path style=\"fill: var(--banner-accent)\" d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 9v4\"/><path fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 17h.01\"/></svg>`",
+              "description": "Caution-triangle (yield) shown on warning banners: a filled, rounded\ntriangle in the variant accent with a white exclamation. Self-contained\n(its own filled shape, not the CSS circle badge), so the warning icon\nreads as a distinct shape from the round danger badge."
+            },
+            {
+              "kind": "field",
+              "name": "_dangerIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"12\" y1=\"6\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"19.5\" x2=\"12.01\" y2=\"19.5\"/></svg>`",
+              "description": "Exclamation glyph shown on danger banners (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_icons",
+              "type": {
+                "text": "object"
+              },
+              "static": true,
+              "default": "{ neutral: OlBanner._neutralIcon, success: OlBanner._successIcon, warning: OlBanner._warningIcon, danger: OlBanner._dangerIcon, }"
+            },
+            {
+              "kind": "field",
+              "name": "_closeIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>`",
+              "description": "Close (X) icon — the stroke-based glyph shared with ol-dialog / ol-toast"
+            },
+            {
+              "kind": "method",
+              "name": "dismiss",
+              "description": "Dismiss the banner: fire ol-banner-dismiss, run the exit transition,\nand remove the element from the DOM. Persistence is the host app's\nconcern — listen for the event (it bubbles) and use detail.dismissId."
+            },
+            {
+              "kind": "field",
+              "name": "variant",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'neutral'",
+              "description": "\"neutral\" (default) | \"success\" | \"warning\" | \"danger\"",
+              "attribute": "variant",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "appearance",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'outlined'",
+              "description": "\"outlined\" (default) shows a border and rounded corners; \"plain\" removes both, for banners that abut the edges of other UI.",
+              "attribute": "appearance",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "dismissId",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Opaque identifier passed in the dismiss event's detail, for the host app's persistence layer.",
+              "attribute": "dismiss-id"
+            },
+            {
+              "kind": "field",
+              "name": "dismissible",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Show a close button.",
+              "attribute": "dismissible",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "labelClose",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Close'",
+              "description": "Aria label for the close button (default: \"Close\")",
+              "attribute": "label-close"
+            },
+            {
+              "kind": "field",
+              "name": "_closing",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-banner-dismiss",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired once when the banner is dismissed. detail: { dismissId: String }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "variant",
+              "type": {
+                "text": "String"
+              },
+              "default": "'neutral'",
+              "description": "\"neutral\" (default) | \"success\" | \"warning\" | \"danger\"",
+              "fieldName": "variant"
+            },
+            {
+              "name": "appearance",
+              "type": {
+                "text": "String"
+              },
+              "default": "'outlined'",
+              "description": "\"outlined\" (default) shows a border and rounded corners; \"plain\" removes both, for banners that abut the edges of other UI.",
+              "fieldName": "appearance"
+            },
+            {
+              "name": "dismiss-id",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Opaque identifier passed in the dismiss event's detail, for the host app's persistence layer.",
+              "fieldName": "dismissId"
+            },
+            {
+              "name": "dismissible",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Show a close button.",
+              "fieldName": "dismissible"
+            },
+            {
+              "name": "label-close",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Close'",
+              "description": "Aria label for the close button (default: \"Close\")",
+              "fieldName": "labelClose"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-banner",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlBanner",
+          "declaration": {
+            "name": "OlBanner",
+            "module": "openlibrary/components/lit/OlBanner.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-banner",
+          "declaration": {
+            "name": "OlBanner",
+            "module": "openlibrary/components/lit/OlBanner.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlPagination.js",
       "declarations": [
         {
@@ -2383,6 +2601,434 @@
           "declaration": {
             "name": "OlSelectPopover",
             "module": "openlibrary/components/lit/OlSelectPopover.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlToast.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A transient notification message (\"toast\").\n\nThe common case sets the message via the `message` (and optional `description`)\nattributes, which the component styles consistently. For uncommon rich\ncontent (links, custom markup), provide light-DOM children instead — the\nattribute-driven markup is the default slot's fallback, so slotted content\nautomatically replaces it.\n\nThe toast announces itself to screen readers, auto-dismisses after\n`timeout` milliseconds (unless `persistent`), and removes itself from the\nDOM when closed. The dismiss timer pauses while the toast is hovered or\nfocused.\n\nThe component owns no user-facing copy except the close button label\n(override via `label-close` for i18n). Message content is provided by the\ncaller, already translated.\n\nPlaced declaratively, the toast renders in-flow where the parent puts it.\nFor the common imperative case (show a toast in the fixed bottom-center\nstack after a fetch resolves), use the `showToast` helper exported from\n`OlToastRegion.js` — the region arranges the toasts into a bottom-anchored\nvertical list by setting the `data-stacked` attribute and an\n`--ol-toast-offset` custom property on each toast.\n\nAll motion is transition-driven (transform/opacity only): a `data-mounted`\nattribute flipped one frame after connecting runs the enter transition;\nexit and list re-shuffles transition between offset states.",
+          "name": "OlToast",
+          "slots": [
+            {
+              "description": "Rich message content (links, custom markup). Overrides message/description.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "_infoIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"12\" y1=\"4.5\" x2=\"12.01\" y2=\"4.5\"/><line x1=\"12\" y1=\"11\" x2=\"12\" y2=\"18\"/></svg>`",
+              "description": "\"i\" glyph shown on info toasts (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_successIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><polyline points=\"20 6 9 17 4 12\"/></svg>`",
+              "description": "Check glyph shown on success toasts (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_errorIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"12\" y1=\"6\" x2=\"12\" y2=\"13\"/><line x1=\"12\" y1=\"19.5\" x2=\"12.01\" y2=\"19.5\"/></svg>`",
+              "description": "Exclamation glyph shown on error toasts (the circle is drawn in CSS)"
+            },
+            {
+              "kind": "field",
+              "name": "_closeIcon",
+              "static": true,
+              "default": "html`<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"/><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"/></svg>`",
+              "description": "Close (X) icon — the stroke-based glyph shared with ol-dialog"
+            },
+            {
+              "kind": "method",
+              "name": "_clearTimer"
+            },
+            {
+              "kind": "method",
+              "name": "pauseTimer",
+              "description": "Pause the auto-dismiss timer, keeping the remaining time. Called on\nhover/focus, and by <ol-toast-region> while the stack is expanded."
+            },
+            {
+              "kind": "method",
+              "name": "resumeTimer",
+              "description": "Resume (or start) the auto-dismiss timer from the remaining time.\nNo-op while the parent region's stack is expanded — the region owns\nthe pause then, and moving the pointer between toasts (which fires\nmouseleave on the one being left) must not restart its timer."
+            },
+            {
+              "kind": "method",
+              "name": "close",
+              "parameters": [
+                {
+                  "name": "reason",
+                  "default": "'programmatic'",
+                  "description": "\"timeout\" | \"close-button\" | \"programmatic\"",
+                  "type": {
+                    "text": "String"
+                  }
+                }
+              ],
+              "description": "Close the toast: fire ol-toast-close, run the exit transition, and\nremove the element from the DOM."
+            },
+            {
+              "kind": "field",
+              "name": "type",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'info'",
+              "description": "\"info\" (default) | \"success\" | \"error\". Errors use role=\"alert\" / assertive announcements.",
+              "attribute": "type",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "message",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "The (already translated) message text.",
+              "attribute": "message"
+            },
+            {
+              "kind": "field",
+              "name": "description",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Optional secondary line, rendered smaller and muted.",
+              "attribute": "description"
+            },
+            {
+              "kind": "field",
+              "name": "persistent",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Toast stays until explicitly closed (no timer).",
+              "attribute": "persistent"
+            },
+            {
+              "kind": "field",
+              "name": "timeout",
+              "privacy": "public",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4000",
+              "description": "Milliseconds before auto-dismiss. Default: 4000.",
+              "attribute": "timeout"
+            },
+            {
+              "kind": "field",
+              "name": "labelClose",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Close'",
+              "description": "Aria label for the close button (default: \"Close\")",
+              "attribute": "label-close"
+            },
+            {
+              "kind": "field",
+              "name": "_announce",
+              "privacy": "public",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "attribute": "_announce"
+            },
+            {
+              "kind": "field",
+              "name": "_timerId",
+              "type": {
+                "text": "null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "_remainingMs",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_timerStartedAt",
+              "type": {
+                "text": "number"
+              },
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "_closing",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-toast-resize",
+              "type": {
+                "text": "CustomEvent"
+              }
+            },
+            {
+              "name": "ol-toast-close",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired once when the toast begins closing. detail: { reason: \"timeout\" | \"close-button\" | \"programmatic\" }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "type",
+              "type": {
+                "text": "String"
+              },
+              "default": "'info'",
+              "description": "\"info\" (default) | \"success\" | \"error\". Errors use role=\"alert\" / assertive announcements.",
+              "fieldName": "type"
+            },
+            {
+              "name": "message",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "The (already translated) message text.",
+              "fieldName": "message"
+            },
+            {
+              "name": "description",
+              "type": {
+                "text": "String"
+              },
+              "default": "''",
+              "description": "Optional secondary line, rendered smaller and muted.",
+              "fieldName": "description"
+            },
+            {
+              "name": "persistent",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Toast stays until explicitly closed (no timer).",
+              "fieldName": "persistent"
+            },
+            {
+              "name": "timeout",
+              "type": {
+                "text": "Number"
+              },
+              "default": "4000",
+              "description": "Milliseconds before auto-dismiss. Default: 4000.",
+              "fieldName": "timeout"
+            },
+            {
+              "name": "label-close",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Close'",
+              "description": "Aria label for the close button (default: \"Close\")",
+              "fieldName": "labelClose"
+            },
+            {
+              "name": "_announce",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false",
+              "fieldName": "_announce"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-toast",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlToast",
+          "declaration": {
+            "name": "OlToast",
+            "module": "openlibrary/components/lit/OlToast.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-toast",
+          "declaration": {
+            "name": "OlToast",
+            "module": "openlibrary/components/lit/OlToast.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlToastRegion.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A fixed bottom-center region that arranges its <ol-toast> children into a\nplain vertical list anchored to the bottom edge: the newest toast occupies\nthe bottom slot and older ones stack straight up with a fixed gap. Adding a\ntoast slides it up from below into the bottom slot while the others slide up\nto make room. Hovering or focusing the list pauses every toast's dismiss\ntimer. There is no depth, scaling, or collapse/expand — just a spaced list.\n\nThe region owns the placement, not the toasts: it sets each child's\n`data-stacked` attribute and an `--ol-toast-offset` custom property (the\ncumulative height of the newer toasts below it). The toasts' own\ntransitions animate between offset states.\n\nMost callers should use the exported showToast helper rather\nthan instantiating the region directly.",
+          "name": "OlToastRegion",
+          "members": [
+            {
+              "kind": "field",
+              "name": "expanded",
+              "description": "Whether the user is currently interacting with the list (hovered or\nfocused). While true the region owns the toasts' timers — it has paused\nthem all — and OlToast.resumeTimer() checks this so that mouseleave\nbetween toasts can't restart a single timer mid-hover.",
+              "return": {
+                "type": {
+                  "text": "Boolean"
+                }
+              },
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_toasts",
+              "return": {
+                "type": {
+                  "text": "Array<OlToast>"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "_layout",
+              "description": "Place each toast in the bottom-anchored list. Newest (last in DOM) sits\nin the bottom slot; --ol-toast-offset carries the cumulative height of\nthe newer toasts below it, so placement is a pure transform transition —\nno layout work."
+            },
+            {
+              "kind": "method",
+              "name": "_expand"
+            },
+            {
+              "kind": "method",
+              "name": "_collapse",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "field",
+              "name": "labelRegion",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Notifications'",
+              "description": "Aria label for the landmark (default: \"Notifications\")",
+              "attribute": "label-region"
+            },
+            {
+              "kind": "field",
+              "name": "_expanded",
+              "type": {
+                "text": "boolean"
+              },
+              "default": "false"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "label-region",
+              "type": {
+                "text": "String"
+              },
+              "default": "'Notifications'",
+              "description": "Aria label for the landmark (default: \"Notifications\")",
+              "fieldName": "labelRegion"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-toast-region",
+          "customElement": true
+        },
+        {
+          "kind": "function",
+          "name": "showToast",
+          "parameters": [
+            {
+              "name": "content",
+              "description": "-\nAlready-translated message text, a <template> whose content is cloned\nin, or rich slot content as Node(s)",
+              "type": {
+                "text": "String|HTMLTemplateElement|Node|Array<Node|String>"
+              }
+            },
+            {
+              "name": "options",
+              "default": "{}",
+              "optional": true,
+              "type": {
+                "text": "@param {String} [options.description] - Optional secondary line (smaller, muted).\n *     Only applies when content is a string; slotted content replaces it.\n * @param {String} [options.type] - \"info\" | \"success\" | \"error\"\n * @param {Boolean} [options.persistent] - Stay until explicitly closed\n * @param {Number} [options.timeout] - Auto-dismiss delay in ms\n * @param {String} [options.labelClose] - Translated close button label\n * "
+              }
+            }
+          ],
+          "description": "Show a toast in the shared fixed bottom-center stack, creating the\n<ol-toast-region> on first use.\n\nThe common case passes a string, set as the `message` attribute — always\nrendered as text, never HTML — so callers can safely pass user- or\nserver-derived strings. Pass already-translated strings (e.g. from the\npage's i18nStrings payload).\n\nFor rich content, author the markup in a page template — where $_() i18n\nextraction works — inside an inert <template> element, and pass that\nelement; its content is cloned into the toast's slot:\n\n    <template id=\"save-error-toast\">\n      $_(\"Could not save.\") <a href=\"/help\">$_(\"Get help\")</a>\n    </template>\n\n    showToast(document.querySelector('#save-error-toast'), { type: 'error' });\n\nNodes built in JS (or an array of Nodes and strings) also work; strings in\nthe array become text nodes. No path ever parses a runtime string as HTML.\n\nPlain-DOM equivalent for code outside this bundle:\n\n    const toast = document.createElement('ol-toast');\n    toast.setAttribute('message', message);\n    toast.setAttribute('type', 'error');\n    let region = document.querySelector('ol-toast-region');\n    if (!region) document.body.appendChild(region = document.createElement('ol-toast-region'));\n    region.appendChild(toast);",
+          "return": {
+            "type": {
+              "text": "OlToast"
+            }
+          }
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlToastRegion",
+          "declaration": {
+            "name": "OlToastRegion",
+            "module": "openlibrary/components/lit/OlToastRegion.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-toast-region",
+          "declaration": {
+            "name": "OlToastRegion",
+            "module": "openlibrary/components/lit/OlToastRegion.js"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "showToast",
+          "declaration": {
+            "name": "showToast",
+            "module": "openlibrary/components/lit/OlToastRegion.js"
           }
         }
       ]
