@@ -40,7 +40,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         try:
             ol = get_ol(servername=servername)
             if item.data:
-                return ol.import_data(item.data)
+                return ol.import_data(item.data, headers={"Content-Type": "application/json"})
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except OSError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
