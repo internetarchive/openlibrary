@@ -18,6 +18,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#read-more">$_("Read More")</a></li>
         <li><a href="#chip">$_("Chip")</a></li>
         <li><a href="#button">$_("Button")</a></li>
+        <li><a href="#toast">$_("Toast")</a></li>
+        <li><a href="#banner">$_("Banner")</a></li>
         <li><a href="#chip-group">$_("Chip Group")</a></li>
         <li><a href="#markdown-editor">$_("Markdown Editor")</a></li>
       </ul>
@@ -300,6 +302,10 @@ $ _x = ctx.setdefault('cssfile', 'design')
       </article>
 
       $:render_template("design/button")
+
+      $:render_template("design/toast")
+
+      $:render_template("design/banner")
 
       <article class="design-pattern" id="chip-group">
         <h2 class="design-pattern__title">$_("Chip Group")</h2>
