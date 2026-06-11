@@ -226,7 +226,8 @@ class OpenLibrary:
         }
         return self._request("/api/import/ia", method="POST", data=data).text
 
-    def import_data(self, data, headers=None):
+def import_data(self, data, headers=None):
+        headers = {"Content-Type": "application/json", **(headers or {})}
         return self._request("/api/import", method="POST", data=data, headers=headers).text
 
 
