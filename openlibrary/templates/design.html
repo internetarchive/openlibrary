@@ -27,6 +27,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
           </ul>
         </li>
         <li><a href="#button">Button</a></li>
+        <li><a href="#toast">Toast</a></li>
+        <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
       </ul>
     </nav>
@@ -395,6 +397,10 @@ $ _x = ctx.setdefault('cssfile', 'design')
       </article>
 
       $:render_template("design/button", components.get("ol-button"))
+
+      $:render_template("design/toast")
+
+      $:render_template("design/banner")
 
       <article class="design-pattern" id="markdown-editor">
         <h2 class="design-pattern__title">Markdown Editor</h2>

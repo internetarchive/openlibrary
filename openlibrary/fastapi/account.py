@@ -208,11 +208,25 @@ async def login(
     # Generate auth token (same way web.py does it via Account.generate_login_code())
     login_code = generate_login_code_for_user(ol_username)
 
+    blacklist = [
+        "/account/login",
+        "/account/create",
+        "/account/verify",
+    ]
+    is_valid_redirect = True
+    redirect_url = _safe_redirect(form_data.redirect, default="")
+    if not redirect_url or any(path in redirect_url for path in blacklist):
+        is_valid_redirect = False
+        redirect_url = "/"
+
     # Create response with redirect
     response = Response(
         status_code=status.HTTP_303_SEE_OTHER,
-        headers={"Location": _safe_redirect(form_data.redirect)},
+        headers={"Location": redirect_url},
     )
+
+    if is_valid_redirect:
+        response.delete_cookie("pending_action")
 
     # Set session cookie (same as web.py)
     response.set_cookie(

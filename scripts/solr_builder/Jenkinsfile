@@ -11,11 +11,8 @@ pipeline {
     }
   }
   parameters {
-    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres')
-    booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
-
+    booleanParam(name: 'WIPE_OLD_POSTGRES', defaultValue: false, description: 'If true, removes the current postgres. Otherwise assumes a postgres is already filled and running')
     booleanParam(name: 'WIPE_OLD_SOLR', defaultValue: false, description: 'If true, removes the current solr')
-    booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
     booleanParam(name: 'INDEX_WORKS', defaultValue: true, description: 'If true, reindexes works into solr')
     booleanParam(name: 'INDEX_ORPHANS', defaultValue: true, description: 'If true, reindexes orphans into solr')
     booleanParam(name: 'INDEX_SUBJECTS', defaultValue: true, description: 'If true, reindexes subjects into solr')
@@ -36,7 +33,7 @@ pipeline {
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
-      when { expression { return !params.REUSE_POSTGRES } }
+      when { expression { return params.WIPE_OLD_POSTGRES } }
       environment {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
@@ -52,7 +49,6 @@ pipeline {
       }
       stages {
         stage('Wipe old postgres') {
-          when { expression { return params.WIPE_OLD_POSTGRES } }
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop running db',
@@ -159,7 +155,7 @@ pipeline {
       stages {
         stage('Restart Postgres') {
           // Have to restart to because the previous workspace was destroyed on cleanup
-          when { expression { return params.REUSE_POSTGRES } }
+          when { expression { return !params.WIPE_OLD_POSTGRES } }
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
               sh(label: 'Stop the db containers',
@@ -204,7 +200,7 @@ pipeline {
         stage('Reindexing') {
           parallel {
             stage('Reindex from ol dump') {
-              when { expression { return params.INTO_SOLR_FROM_DUMP } }
+              when { expression { return params.INDEX_WORKS || params.INDEX_ORPHANS || params.INDEX_SUBJECTS || params.INDEX_AUTHORS || params.INDEX_LISTS } }
               stages {
                 stage('Insert works') {
                   when { expression { return params.INDEX_WORKS } }
