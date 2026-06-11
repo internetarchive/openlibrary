@@ -669,6 +669,8 @@ class account_login(delegate.page):
 
         if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
             redirect = "/account/books"
+        else:
+            web.setcookie("pending_action", "", expires=-1)
         stats.increment("ol.account.xauth.login")
         raise web.seeother(redirect)
 
