@@ -71,9 +71,9 @@ async def update_keys(
     """
     logger.debug("BEGIN update_keys")
 
-    def _solr_update(update_state: SolrUpdateRequest):
+    async def _solr_update(update_state: SolrUpdateRequest):
         if update == "update":
-            return solr_update(update_state, skip_id_check)
+            return await solr_update(update_state, skip_id_check)
         elif update == "pprint":
             print(update_state.to_solr_requests_json(sep="\n", indent=4))
         elif update == "print":
@@ -132,7 +132,7 @@ async def update_keys(
                     for doc in update_state.adds:
                         await f.write(f"{json.dumps(doc)}\n")
             else:
-                _solr_update(update_state)
+                await _solr_update(update_state)
         net_update += update_state
 
     logger.debug("END update_keys")
