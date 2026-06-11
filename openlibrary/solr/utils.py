@@ -144,24 +144,21 @@ async def solr_update(
                 content=content,
             )
 
-            if resp.status_code == 400:
+            if resp.status_code in (200, 400):
                 resp_json = resp.json()
 
-                indiv_errors = resp_json.get("responseHeader", {}).get("errors", [])
-                if indiv_errors:
+                if indiv_errors := resp_json.get("responseHeader", {}).get("errors", []):
                     for e in indiv_errors:
                         logger.error(f"Individual Solr POST Error: {e}")
 
-                global_error = resp_json.get("error")
-                if global_error:
+                if global_error := resp_json.get("error"):
                     logger.error(f"Global Solr POST Error: {global_error.get('msg')}")
 
-                if not (indiv_errors or global_error):
-                    # We can handle the above errors. Any other 400 status codes
-                    # are fatal and should cause a retry
+                if not indiv_errors and not global_error:
                     resp.raise_for_status()
             else:
                 resp.raise_for_status()
+
         except HTTPStatusError as e:
             logger.error(f"HTTP Status Solr POST Error: {e}")
             raise

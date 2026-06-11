@@ -55,7 +55,7 @@ class TestSolrUpdate:
 
     def sample_individual_error(self):
         return Response(
-            400,
+            200,
             request=MagicMock(),
             content=json.dumps(
                 {
@@ -63,8 +63,8 @@ class TestSolrUpdate:
                         "errors": [
                             {
                                 "type": "ADD",
-                                "id": "/books/OL1M",
-                                "message": "[doc=/books/OL1M] missing required field: type",
+                                "id": "/works/OL16086453W",
+                                "message": "ERROR: [doc=/works/OL16086453W] unknown field 'foo'",
                             }
                         ],
                         "maxErrors": -1,
