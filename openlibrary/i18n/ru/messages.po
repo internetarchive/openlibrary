@@ -721,7 +721,7 @@ msgstr ""
 
 #: design.html
 msgid "Code blocks and inline code"
-msgstr ""
+msgstr "Блоки кода и встроенный код"
 
 #: design.html
 #, python-format
@@ -730,6 +730,10 @@ msgid ""
 "buttons in the toolbar. Code support is off by default because only the "
 "wiki page renderer is guaranteed to render fenced code blocks."
 msgstr ""
+"Добавьте атрибут %(attr)s для отображения кнопок встроенного кода и "
+"блоков кода на панели инструментов. Поддержка кода отключена по "
+"умолчанию, так как только рендерер вики-страниц гарантированно отображает"
+" блоки с ограждением."
 
 #: design.html
 #, fuzzy
@@ -742,6 +746,8 @@ msgid ""
 "The editor fires an %(event)s event on every change. The raw Markdown "
 "string is available in %(detail)s."
 msgstr ""
+"Редактор генерирует событие %(event)s при каждом изменении. Строка "
+"Markdown доступна в %(detail)s."
 
 #: diff.html
 #, python-format
@@ -852,7 +858,7 @@ msgstr "Просмотр редактирования %s"
 
 #: history.html
 msgid "Compare this version..."
-msgstr ""
+msgstr "Сравнить эту версию..."
 
 #: history.html
 #, fuzzy
@@ -871,29 +877,29 @@ msgstr "Предпросмотр книги"
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "Показать необработанные данные импорта"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "Будет создана новая запись %(thing_type)s"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "Изменения в %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "Внутренняя ошибка"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "Произошла ошибка"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "Извините, при обработке вашего запроса возникла проблема:"
 
 #: internalerror.html
 #, python-format
@@ -901,6 +907,8 @@ msgid ""
 "The reference code %s and Sentry trace ID %s have been created to track "
 "this error and we will investigate as we're able."
 msgstr ""
+"Для отслеживания этой ошибки созданы код %s и идентификатор Sentry %s. Мы"
+" изучим её при первой возможности."
 
 #: internalerror.html
 #, python-format
@@ -908,16 +916,20 @@ msgid ""
 "The reference code %s has been created to track this error and we will "
 "investigate as we're able."
 msgstr ""
+"Для отслеживания этой ошибки создан код %s. Мы изучим её при первой "
+"возможности."
 
 #: internalerror.html
 msgid ""
 "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
 "page</a>?"
 msgstr ""
+"Вернуться на <a class=\"go-back-link\" href=\"javascript:;\">предыдущую "
+"страницу</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "Вы перенаправляетесь к вашей книге"
 
 #: interstitial.html
 #, python-format
@@ -925,11 +937,13 @@ msgid ""
 "This book is provided by %(book_provider)s, a third-party Open Library "
 "Trusted Book Provider"
 msgstr ""
+"Эта книга предоставлена %(book_provider)s — сторонним доверенным "
+"поставщиком книг Open Library"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "Через %(time)s секунд вы будете автоматически перенаправлены на: %(url)s"
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
@@ -941,7 +955,7 @@ msgstr "Отмена"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "Продолжить без ожидания"
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
@@ -963,6 +977,8 @@ msgid ""
 "This is a development instance, the default credentials are automatically"
 " filled."
 msgstr ""
+"Это экземпляр для разработки, учётные данные по умолчанию заполнены "
+"автоматически."
 
 #: login.html
 #, fuzzy
@@ -979,6 +995,8 @@ msgid ""
 "Log in to use your free Open Library card to borrow digital books from "
 "the nonprofit Internet Archive"
 msgstr ""
+"Войдите, чтобы воспользоваться бесплатной картой Open Library для "
+"получения цифровых книг из некоммерческого Internet Archive"
 
 #: account/create.html login.html
 #, fuzzy
@@ -1030,7 +1048,7 @@ msgstr "Забыли пароль?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "Показать/скрыть пароль"
 
 #: login.html
 msgid "Remember me"
@@ -1126,6 +1144,8 @@ msgid ""
 "Only logged users are allowed to add records on Open Library. Please <a "
 "href=\"%s\">log in</a> to add a book."
 msgstr ""
+"Добавлять записи в Open Library могут только авторизованные пользователи."
+" Пожалуйста, <a href=\"%s\">войдите</a>, чтобы добавить книгу."
 
 #: permission_denied.html
 #, python-format
@@ -1133,6 +1153,8 @@ msgid ""
 "Only logged users are allowed to modify records on Open Library. Please "
 "<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
+"Изменять записи в Open Library могут только авторизованные пользователи. "
+"Пожалуйста, <a href=\"%s\">войдите</a>, чтобы редактировать эту страницу."
 
 #: permission_denied.html
 #, python-format
@@ -1217,11 +1239,11 @@ msgstr "Статус сервера"
 
 #: status.html
 msgid "Testing Environment"
-msgstr ""
+msgstr "Среда тестирования"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "Развёртывание запущено!"
 
 #: status.html
 #, fuzzy
@@ -1230,15 +1252,15 @@ msgstr "В процессе..."
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "Статус GitHub обновлён."
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "Номера PR или URL, разделённые пробелом/запятой"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "Добавить PR"
 
 #: status.html
 #, fuzzy
@@ -1259,7 +1281,7 @@ msgstr "Автор"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "Назначено"
 
 #: status.html
 #, fuzzy
@@ -1268,7 +1290,7 @@ msgstr "Панель администратора"
 
 #: status.html
 msgid "Branch HEAD"
-msgstr ""
+msgstr "HEAD ветки"
 
 #: status.html
 #, fuzzy
@@ -1292,7 +1314,7 @@ msgstr "Неизвестный автор"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "На 1 коммит позади"
 
 #: status.html
 #, fuzzy, python-format
@@ -1310,7 +1332,7 @@ msgstr "Пример"
 
 #: status.html
 msgid "Disable"
-msgstr ""
+msgstr "Отключить"
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
@@ -1333,15 +1355,15 @@ msgstr "Разработка"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "В наборе тестирования нет PR."
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "Результат последней сборки"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "Просмотреть PR на GitHub"
 
 #: status.html
 #, fuzzy
@@ -1355,19 +1377,19 @@ msgstr "Имя"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "Системная информация"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "Включённые функции"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "Изменить тег для этой темы"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "Создать тег для этой темы"
 
 #: subjects.html
 #, fuzzy
@@ -1389,7 +1411,7 @@ msgstr "Поиск книг по рубрике %(name)s."
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "Уточнения"
 
 #: trending.html
 #, fuzzy
@@ -1426,11 +1448,11 @@ msgstr "Чтение книг"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Смотрите, что читатели из сообщества добавляют на свои книжные полки"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "Самые ранние данные о трендах — с октября 2017 года"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
@@ -1471,12 +1493,12 @@ msgstr "Журнал чтения"
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "Кто-то отметил как %(shelf)s %(k_hours_ago)s"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "Зарегистрировано %(count)i раз %(time_unit)s"
 
 #: verify_human.html
 #, fuzzy
@@ -1485,11 +1507,11 @@ msgstr "Подтверждение электронной почты не уда
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "Пожалуйста, подтвердите, что вы не робот, чтобы продолжить."
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "Подтвердите, что вы человек"
 
 #: verify_human.html
 #, fuzzy
@@ -1547,6 +1569,8 @@ msgid ""
 "on <a target=\"_blank\" rel=\"noopener noreferrer\" "
 "href=\"%(link)s\">openlibrary.org</a>"
 msgstr ""
+"на <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"%(link)s\">openlibrary.org</a>"
 
 #: work_search.html
 #, fuzzy
@@ -1567,7 +1591,7 @@ msgstr "Электронные книги"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "Это видно только суперлибрариям."
 
 #: work_search.html
 #, fuzzy
@@ -1576,20 +1600,20 @@ msgstr "Больше изданий"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "Поисковая система вернула ошибку."
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Отладка Solr:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "Полный URL:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "Нет <strong>%(path_id)s</strong>, напрямую соответствующих вашему запросу."
 
 #: work_search.html
 #, fuzzy
@@ -1613,7 +1637,7 @@ msgstr[2] ""
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Поиск в Solr занял %(count)s секунд"
 
 #: about/index.html
 #, fuzzy
@@ -1625,10 +1649,12 @@ msgid ""
 "Open Library is made possible because of a dedicated team of staff and "
 "over 100 volunteers from around the globe."
 msgstr ""
+"Open Library существует благодаря преданной команде сотрудников и более "
+"чем 100 волонтёрам со всего мира."
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "Хотите присоединиться к нам?"
 
 #: about/index.html
 #, fuzzy
@@ -1646,7 +1672,7 @@ msgstr "Статистика"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "Стипендиаты"
 
 #: about/index.html
 #, fuzzy
@@ -1655,7 +1681,7 @@ msgstr "Станьте волонтером"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "Отдел:"
 
 #: about/index.html
 #, fuzzy
@@ -1669,11 +1695,11 @@ msgstr "Размеры"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "Инженерия"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "Библиотековедение"
 
 #: about/index.html
 msgid ""
@@ -1682,6 +1708,9 @@ msgid ""
 "href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
 "information form</a>."
 msgstr ""
+"Если вы волонтёр Open Library и хотите быть указаны в списке команды, "
+"заполните <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">форму "
+"информации о команде Open Library</a>."
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
@@ -1698,7 +1727,7 @@ msgstr "Имя пользователя может содержать тольк
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "Необходимо выбрать подходящую программу"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
@@ -1713,6 +1742,8 @@ msgid ""
 "Get your free Open Library card and borrow digital books from the "
 "nonprofit Internet Archive"
 msgstr ""
+"Получите бесплатную карту Open Library и берите цифровые книги в "
+"некоммерческом Internet Archive"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
@@ -1742,20 +1773,25 @@ msgid ""
 "overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print "
 "disability access</a> through a qualifying program."
 msgstr ""
+"Я хочу подать заявку* на <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\" rel=\"noopener noreferrer\">специальный "
+"доступ для лиц с нарушением зрения</a> через подходящую программу."
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Выберите подходящую программу"
 
 #: account/create.html
 msgid ""
 "* Please use the email address associated with this qualifying program. "
 "You will receive an email after activation with next steps."
 msgstr ""
+"* Используйте адрес электронной почты, связанный с этой программой. После"
+" активации вы получите письмо с дальнейшими инструкциями."
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Зарегистрироваться по электронной почте"
 
 #: account/create.html
 #, fuzzy
@@ -1769,7 +1805,7 @@ msgstr ""
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Уже есть аккаунт? <a href=\"/account/login\">Войти</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -1794,6 +1830,9 @@ msgid ""
 "href=\"https://www.goodreads.com/review/import\">Goodreads "
 "Import/Export</a>"
 msgstr ""
+"Инструкции по экспорту данных: <a "
+"href=\"https://www.goodreads.com/review/import\">Импорт/экспорт "
+"Goodreads</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
@@ -1828,7 +1867,7 @@ msgstr "Мои заметки к книгам"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "Скачать копию ваших заметок о книгах."
 
 #: account/import.html
 #, fuzzy
@@ -1842,7 +1881,7 @@ msgstr "Экспортировать ваш журнал чтения"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "Скачать копию ваших тегов рецензий."
 
 #: account/import.html
 #, fuzzy
@@ -1851,11 +1890,11 @@ msgstr "Обновить отзывы"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "Экспорт обзора списков"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "Скачать сводку ваших списков и их содержимого."
 
 #: account/import.html
 #, fuzzy
@@ -1869,11 +1908,11 @@ msgstr "Экспортировать ваш журнал чтения"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "Скачать копию ваших звёздных оценок."
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "Что такое звёздные оценки?"
 
 #: account/import.html
 #, fuzzy
@@ -1892,11 +1931,11 @@ msgstr "ISBN"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "В истории заимствований не найдено займов."
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">Найдите книгу</a> для заимствования."
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
