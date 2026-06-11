@@ -101,13 +101,15 @@ msgstr "Imports"
 
 #: BatchImportNavigation.html batch_import.html
 msgid "New Batch Import"
-msgstr ""
+msgstr "Nouvel import en lot"
 
 #: batch_import.html
 msgid ""
 "Attach a JSONL formatted document with import records or copy/paste the "
 "JSONL text into the textarea."
 msgstr ""
+"Joignez un document au format JSONL contenant des enregistrements "
+"d'import ou copiez-collez le texte JSONL dans la zone de texte."
 
 #: batch_import.html
 #, fuzzy
@@ -121,11 +123,11 @@ msgstr ""
 
 #: batch_import.html
 msgid "Attach a file:"
-msgstr ""
+msgstr "Joindre un fichier :"
 
 #: batch_import.html
 msgid "Or copy/paste JSONL text:"
-msgstr ""
+msgstr "Ou copiez/collez le texte JSONL :"
 
 #: batch_import.html import_preview.html
 #, fuzzy
@@ -140,21 +142,25 @@ msgstr "La mise à jour du mot de passe a échoué."
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
 msgstr ""
+"Aucun import ne sera mis en file d'attente tant que *chaque* "
+"enregistrement ne sera pas validé avec succès."
 
 #: batch_import.html
 msgid ""
 "Please update the JSONL file and reload this page (there should be no "
 "need to reattach the file)."
 msgstr ""
+"Veuillez mettre à jour le fichier JSONL et recharger cette page (il ne "
+"devrait pas être nécessaire de rattacher le fichier)."
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "Erreurs de validation :"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "Ligne %d :"
 
 #: batch_import.html
 #, fuzzy
@@ -163,19 +169,19 @@ msgstr "Filtrer les résultats pour %(facet)s"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "Enregistrements soumis :"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "Total en file d'attente :"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "Total ignoré :"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "Non mis en file d'attente car déjà présents dans la file :"
 
 #: batch_import.html
 #, fuzzy
@@ -184,11 +190,11 @@ msgstr "Statistiques de l'auteur"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "Imports en lot en attente"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "batch_id"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
 #: batch_import_view.html
@@ -220,7 +226,7 @@ msgstr "Statistiques de l'auteur"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "ID de lot :"
 
 #: batch_import_view.html
 #, fuzzy
@@ -260,11 +266,11 @@ msgstr "Imports"
 #: account/import.html admin/imports.html admin/imports_by_date.html
 #: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
-msgstr ""
+msgstr "Erreur"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "ID IA"
 
 #: batch_import_view.html
 #, fuzzy
@@ -273,7 +279,7 @@ msgstr "Date"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "Clé OL"
 
 #: batch_import_view.html
 #, fuzzy
@@ -302,7 +308,7 @@ msgstr "Lire plus"
 
 #: design.html
 msgid "Chip"
-msgstr ""
+msgstr "Chip"
 
 #: design.html design/button.html
 #, fuzzy
@@ -316,21 +322,23 @@ msgstr "Aujourd'hui"
 
 #: design.html design/banner.html
 msgid "Banner"
-msgstr ""
+msgstr "Bannière"
 
 #: design.html
 msgid "Chip Group"
-msgstr ""
+msgstr "Groupe de chips"
 
 #: design.html
 msgid "Markdown Editor"
-msgstr ""
+msgstr "Éditeur Markdown"
 
 #: design.html
 msgid ""
 "The ol-pagination component provides support for both event-based and "
 "URL-based navigation."
 msgstr ""
+"Le composant ol-pagination prend en charge la navigation par événements "
+"et par URL."
 
 #: design.html
 #, fuzzy
@@ -343,6 +351,8 @@ msgid ""
 "When a page is clicked, the component fires an %(update_page)s event with"
 " the page number in %(event_detail)s."
 msgstr ""
+"Lorsqu'une page est cliquée, le composant déclenche un événement "
+"%(update_page)s avec le numéro de page dans %(event_detail)s."
 
 #: design.html
 #, fuzzy
@@ -351,25 +361,27 @@ msgstr "Choisissez un rôle"
 
 #: design.html
 msgid "URL-based Navigation"
-msgstr ""
+msgstr "Navigation par URL"
 
 #: design.html
 msgid ""
 "When base-url is provided, pagination renders anchor tags for SEO-"
 "friendly links."
 msgstr ""
+"Lorsque base-url est fourni, la pagination génère des balises d'ancre "
+"pour des liens optimisés pour le référencement."
 
 #: design.html
 msgid "First page (no previous arrow)"
-msgstr ""
+msgstr "Première page (pas de flèche précédente)"
 
 #: design.html
 msgid "Middle page (both arrows visible)"
-msgstr ""
+msgstr "Page intermédiaire (les deux flèches visibles)"
 
 #: design.html
 msgid "Last page (no next arrow)"
-msgstr ""
+msgstr "Dernière page (pas de flèche suivante)"
 
 #: design.html
 #, fuzzy
@@ -378,11 +390,11 @@ msgstr "Pages"
 
 #: design.html
 msgid "5 pages (no ellipsis needed)"
-msgstr ""
+msgstr "5 pages (pas de points de suspension nécessaires)"
 
 #: design.html
 msgid "100 pages with ellipsis:"
-msgstr ""
+msgstr "100 pages avec points de suspension :"
 
 #: design.html
 #, fuzzy
@@ -394,46 +406,50 @@ msgid ""
 "When total pages is unknown, use arrows mode to show only previous/next "
 "navigation."
 msgstr ""
+"Lorsque le nombre total de pages est inconnu, utilisez le mode flèches "
+"pour n'afficher que la navigation précédent/suivant."
 
 #: design.html
 msgid "Arrows mode (has next page)"
-msgstr ""
+msgstr "Mode flèches (page suivante disponible)"
 
 #: design.html
 msgid "Arrows mode (no next page)"
-msgstr ""
+msgstr "Mode flèches (pas de page suivante)"
 
 #: design.html
 msgid "Arrows mode (first page, has next)"
-msgstr ""
+msgstr "Mode flèches (première page, suivante disponible)"
 
 #: design.html
 msgid ""
 "The ol-read-more component provides expandable/collapsible content with "
 "two truncation modes: height-based and line-based."
 msgstr ""
+"Le composant ol-read-more fournit un contenu extensible/réductible avec "
+"deux modes de troncature : par hauteur et par lignes."
 
 #: design.html
 msgid "Height-based truncation"
-msgstr ""
+msgstr "Troncature par hauteur"
 
 #: design.html
 #, python-format
 msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
+msgstr "Utilisez %(max_height)s pour limiter le contenu par hauteur en pixels."
 
 #: design.html
 msgid "Line-based truncation"
-msgstr ""
+msgstr "Troncature par lignes"
 
 #: design.html
 #, python-format
 msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
+msgstr "Utilisez %(max_lines)s pour limiter le contenu par nombre de lignes."
 
 #: design.html
 msgid "Custom button text"
-msgstr ""
+msgstr "Texte de bouton personnalisé"
 
 #: design.html
 #, python-format
@@ -441,6 +457,8 @@ msgid ""
 "Use %(more_text)s and %(less_text)s to customize the toggle button "
 "labels. We'll use the i18n strings for this example."
 msgstr ""
+"Utilisez %(more_text)s et %(less_text)s pour personnaliser les libellés "
+"du bouton bascule."
 
 #: SearchResultsWork.html design.html
 #, fuzzy
@@ -454,7 +472,7 @@ msgstr "Afficher toutes les requêtes"
 
 #: design.html
 msgid "Custom background color"
-msgstr ""
+msgstr "Couleur d'arrière-plan personnalisée"
 
 #: design.html
 #, python-format
@@ -462,27 +480,33 @@ msgid ""
 "Use %(background_color)s to match the gradient fade to your container "
 "background."
 msgstr ""
+"Utilisez %(background_color)s pour adapter le fondu dégradé à l'arrière-"
+"plan de votre conteneur."
 
 #: design.html
 msgid "Small label size"
-msgstr ""
+msgstr "Petite taille de libellé"
 
 #: design.html
 #, python-format
 msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
+msgstr "Utilisez %(label_size)s pour un bouton bascule plus petit."
 
 #: design.html
 msgid "Content shorter than limit (no button)"
-msgstr ""
+msgstr "Contenu plus court que la limite (pas de bouton)"
 
 #: design.html
 msgid "When content fits within the limit, no toggle button is shown."
 msgstr ""
+"Lorsque le contenu tient dans la limite, aucun bouton bascule n'est "
+"affiché."
 
 #: design.html
 msgid "This is short content that fits within 5 lines, so no button appears."
 msgstr ""
+"Voici un contenu court qui tient en 5 lignes, donc aucun bouton "
+"n'apparaît."
 
 #: design.html
 #, python-format
@@ -490,14 +514,17 @@ msgid ""
 "The ol-chip component is a pill-shaped interactive element for filters, "
 "tags, and selections. It fires an %(event)s event on click."
 msgstr ""
+"Le composant ol-chip est un élément interactif en forme de pilule pour "
+"les filtres, tags et sélections. Il déclenche un événement %(event)s au "
+"clic."
 
 #: design.html
 msgid "Default (medium)"
-msgstr ""
+msgstr "Par défaut (moyen)"
 
 #: design.html
 msgid "Basic chips at the default medium size."
-msgstr ""
+msgstr "Chips simples à la taille moyenne par défaut."
 
 #: design.html
 #, fuzzy
@@ -522,6 +549,8 @@ msgstr "Choisissez un rôle"
 #: design.html
 msgid "A selected chip displays a checkmark icon and uses an active color scheme."
 msgstr ""
+"Un chip sélectionné affiche une icône de coche et utilise un schéma de "
+"couleurs actif."
 
 #: design.html
 #, fuzzy
@@ -531,11 +560,11 @@ msgstr "De tous les temps"
 #: design.html
 #, python-format
 msgid "Use %(size)s for a compact chip."
-msgstr ""
+msgstr "Utilisez %(size)s pour un chip compact."
 
 #: design.html
 msgid "Poetry"
-msgstr ""
+msgstr "Poésie"
 
 #: design.html
 #, fuzzy
@@ -555,7 +584,7 @@ msgstr "Titre de l'œuvre"
 #: design.html
 #, python-format
 msgid "Use %(count)s to display a number alongside the label."
-msgstr ""
+msgstr "Utilisez %(count)s pour afficher un nombre à côté du libellé."
 
 #: design.html
 #, fuzzy
@@ -568,6 +597,8 @@ msgid ""
 "When %(href)s is provided, the chip renders as an anchor tag instead of a"
 " button."
 msgstr ""
+"Lorsque %(href)s est fourni, le chip est rendu comme une balise d'ancre "
+"plutôt qu'un bouton."
 
 #: design.html
 #, fuzzy
@@ -580,56 +611,62 @@ msgid ""
 "Clicking a chip fires an %(event)s event. Toggle the selected state by "
 "listening to the event."
 msgstr ""
+"Cliquer sur un chip déclenche un événement %(event)s. Basculez l'état "
+"sélectionné en écoutant l'événement."
 
 #: design.html
 msgid "Toggle me"
-msgstr ""
+msgstr "Basculez-moi"
 
 #: design.html
 msgid "Toggle me too"
-msgstr ""
+msgstr "Moi aussi"
 
 #: design.html
 msgid ""
 "The ol-chip-group component is a flex-wrap container that provides "
 "consistent spacing for groups of chips."
 msgstr ""
+"Le composant ol-chip-group est un conteneur flex-wrap qui fournit un "
+"espacement cohérent pour les groupes de chips."
 
 #: design.html
 msgid "Default (medium gap)"
-msgstr ""
+msgstr "Par défaut (espacement moyen)"
 
 #: design.html
 msgid "Chips are spaced with an 8px gap by default."
-msgstr ""
+msgstr "Les chips sont espacés de 8 px par défaut."
 
 #: design.html
 msgid "Small gap"
-msgstr ""
+msgstr "Petit espacement"
 
 #: design.html
 #, python-format
 msgid "Use %(gap)s for tighter spacing (4px)."
-msgstr ""
+msgstr "Utilisez %(gap)s pour un espacement plus serré (4 px)."
 
 #: design.html
 msgid "Large gap"
-msgstr ""
+msgstr "Grand espacement"
 
 #: design.html
 #, python-format
 msgid "Use %(gap)s for wider spacing (12px)."
-msgstr ""
+msgstr "Utilisez %(gap)s pour un espacement plus large (12 px)."
 
 #: design.html
 msgid "Wrapping behavior"
-msgstr ""
+msgstr "Comportement de retour à la ligne"
 
 #: design.html
 msgid ""
 "Chips automatically wrap to the next line when they exceed the container "
 "width."
 msgstr ""
+"Les chips passent automatiquement à la ligne suivante lorsqu'ils "
+"dépassent la largeur du conteneur."
 
 #: design.html
 #, fuzzy
@@ -638,13 +675,15 @@ msgstr "Graphiques"
 
 #: design.html
 msgid "With mixed chip states"
-msgstr ""
+msgstr "Avec des états de chips mixtes"
 
 #: design.html
 msgid ""
 "Chip groups work with any combination of chip sizes, states, and link "
 "chips."
 msgstr ""
+"Les groupes de chips fonctionnent avec toute combinaison de tailles, "
+"d'états et de chips de lien."
 
 #: design.html
 msgid ""
@@ -653,6 +692,10 @@ msgid ""
 "'View source' toolbar toggle is always available so editors can drop into"
 " a raw markdown textarea when WYSIWYG round-trips are awkward."
 msgstr ""
+"Le composant ol-markdown-editor est un éditeur WYSIWYG basé sur Tiptap "
+"qui produit du Markdown. Il synchronise son contenu avec une zone de "
+"texte cible cachée. Un bouton 'Voir la source' est toujours disponible "
+"dans la barre d'outils."
 
 #: design.html
 #, fuzzy
@@ -665,10 +708,13 @@ msgid ""
 "Provide a %(target_id)s pointing to an existing textarea. The editor "
 "reads initial content from the textarea and syncs changes back to it."
 msgstr ""
+"Fournissez un %(target_id)s pointant vers une zone de texte existante. "
+"L'éditeur lit le contenu initial de la zone de texte et lui synchronise "
+"les modifications."
 
 #: design.html
 msgid "Mixed Markdown and HTML"
-msgstr ""
+msgstr "Markdown et HTML mélangés"
 
 #: design.html
 #, python-format
@@ -677,6 +723,9 @@ msgid ""
 "toolbar. HTML blocks appear with a preview and an Edit button to modify "
 "the source."
 msgstr ""
+"Ajoutez l'attribut %(attr)s pour exposer le bouton de bloc HTML dans la "
+"barre d'outils. Les blocs HTML apparaissent avec un aperçu et un bouton "
+"Modifier pour changer la source."
 
 #: design.html
 msgid "Code blocks and inline code"
@@ -1717,8 +1766,9 @@ msgid ""
 "rel=\"noopener noreferrer\">Terms of Service</a>."
 msgstr ""
 "Je reconnais que mon utilisation d'Open Library est soumise aux <a "
-"href='//archive.org/about/terms.php' target='_new'>termes "
-"d'utilisation</a> d'Internet Archive."
+"href='//archive.org/about/terms.php' target='_new' class=\"ol-signup-"
+"form__link\" rel=\"noopener noreferrer\">termes d'utilisation</a> "
+"d'Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -2375,9 +2425,6 @@ msgid ""
 "href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
 "purpose\">these instructions</a>."
 msgstr ""
-"Statistiques démographiques fournies par <a "
-"href=\"https://www.wikidata.org/\">Wikidata</a>. Voici un <a id=\"wd-"
-"query-sample\" href=\"\">exemple</a> de requête utilisée."
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
@@ -3523,7 +3570,7 @@ msgstr "Créé par %(user)s"
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
-msgstr "Veuillez laisser une courte description de ce que vous avez modifié :"
+msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
@@ -3608,7 +3655,7 @@ msgstr "Supprimer le compte"
 #: admin/people/view.html
 #, fuzzy, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr "Dernière mise à jour le <span>%(date)s</span>"
+msgstr "Dernière mise à jour le <span class=\"time\">%(date)s</span>"
 
 #: admin/people/view.html
 msgid "login as this user"
@@ -4179,7 +4226,7 @@ msgstr ""
 "placer irrévocablement sous licence <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
 "target=\"_blank\" title=\"Ouvrir les termes de la Creative Commons dans "
-"une nouvelle fenêtre\">CC0</a>. Youpi !"
+"une nouvelle fenêtre\" rel=\"noopener noreferrer\">CC0</a>. Youpi !"
 
 #: books/add.html
 #, fuzzy
@@ -4437,7 +4484,8 @@ msgid ""
 msgstr ""
 "Vous pouvez effectuer une recherche par nom d'auteur (comme <em>j k "
 "rowling</em>) ou par identifiant Open Library (comme <a "
-"href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
+"href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -4875,9 +4923,6 @@ msgid ""
 "href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
 "noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
-"Vous pouvez effectuer une recherche par nom d'auteur (comme <em>j k "
-"rowling</em>) ou par identifiant Open Library (comme <a "
-"href=\"/authors/OL23919A\" target=\"_blank\"><em>OL23919A</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -7683,7 +7728,7 @@ msgstr "Zoomer"
 #: search/work_search_facets.html
 #, fuzzy
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr "Affinez les résultats avec ces"
+msgstr ""
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
@@ -8586,7 +8631,7 @@ msgstr ""
 "placer irrévocablement sous licence <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
 "target=\"_blank\" title=\"Ouvrir les termes de la Creative Commons dans "
-"une nouvelle fenêtre\">CC0</a>. Youpi !"
+"une nouvelle fenêtre\" rel=\"noopener noreferrer\">CC0</a>. Youpi !"
 
 #: type/tag/form.html
 #, fuzzy
@@ -8740,10 +8785,6 @@ msgid ""
 "to-read\">want to read</a>, and have <a href=\"%(username)s/books"
 "/stopped-reading\">stopped reading</a>!"
 msgstr ""
-"Vous partagez publiquement les livres que vous êtes <a "
-"href=\"%(username)s/books/currently-reading\">en train de lire</a>, <a "
-"href=\"%(username)s/books/already-read\">avez déjà lu</a>, et <a "
-"href=\"%(username)s/books/want-to-read\">avez envie de lire</a>."
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -8766,10 +8807,6 @@ msgid ""
 "read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
 "reading\">stopped reading</a>!"
 msgstr ""
-"Voici les livres que %(user)s est <a href=\"%(username)s/books/currently-"
-"reading\">en train de lire</a>, <a href=\"%(username)s/books/already-"
-"read\">a déjà lu</a>, et <a href=\"%(username)s/books/want-to-read\">a "
-"envie de lire</a> !"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -9058,7 +9095,7 @@ msgid "Go to next page"
 msgstr ""
 
 #: OlPagination.html
-#, fuzzy, python-brace-format, python-format
+#, fuzzy, python-brace-format
 msgid "Go to page {page}"
 msgstr "Page %(page)s"
 
