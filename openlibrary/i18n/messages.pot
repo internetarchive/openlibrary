@@ -5048,8 +5048,9 @@ msgstr ""
 #: design/tooltip.html
 msgid ""
 "The ol-tooltip component displays contextual information on hover or "
-"focus. It supports configurable placement, show delay, arrow visibility, "
-"and warm-mode grouping where moving between tooltips skips the delay."
+"focus. It supports configurable placement, show delay, and arrow "
+"visibility. The tooltip appears after a short delay and is shown and "
+"hidden instantly."
 msgstr ""
 
 #: design/tooltip.html
