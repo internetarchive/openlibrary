@@ -86,7 +86,7 @@ $jsdef render_work_autocomplete_item(item):
 
         <div class="formElement">
             <div class="label"><label for="edition-subtitle">$_("Subtitle")</label>
-                <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
+                <span class="tip">$_("Usually distinguished by different or smaller type.") $:_("For example: <i>envisioning the next 50 years</i>")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
@@ -109,7 +109,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-publish_places">$_("Where was the book published?")</label>
-                        <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
+                        <span class="tip">$_("City, Country please.") $:_("For example: <i>New York, USA; Sydney, Australia</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
@@ -142,7 +142,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-edition_name">$_("Edition Name (if applicable):")</label>
-                        <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+                        <span class="tip">$:_("For example: <i>Centennial edition</i>; <i>First edition</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
@@ -152,7 +152,7 @@ $jsdef render_work_autocomplete_item(item):
                 <div class="formElement">
                     <div class="label">
                         <label for="edition-series">$_("Series Name (if applicable)")</label>
-                        <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
+                        <span class="tip">$_("The name of the publisher's series.") $:_("For example: <i>The Story of Civilization, Part III</i>")</span>
                     </div>
                     <div class="input">
                         <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or '')"/>
@@ -182,7 +182,7 @@ $jsdef render_work_autocomplete_item(item):
         <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
-            <div class="formElement" id="roles" data-config="$dumps({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
+            <div class="formElement" id="roles" data-config="$json_encode({'Please select a role.': _('Please select a role.'), 'You need to give this ROLE a name.': _('You need to give this ROLE a name.')})">
                 <div class="label">
                     <label for="select-role">$_("List the people involved")</label>
                     <span class="tip"></span>
@@ -263,8 +263,9 @@ $jsdef render_work_autocomplete_item(item):
                     <span class="tip"></span>
                 </div>
                 $if book.languages:
+                    $ user_lang = get_lang() or 'en'
                     $for i, lang in enumerate(book.languages):
-                        $:render_language_field(i, lang, get_language_name(lang))
+                        $:render_language_field(i, lang, get_language_name(lang, user_lang))
                 $else:
                     $:render_language_field(0, storage(name="", key=""), None)
                 <a href="javascript:;" class="mia__add small">$_('Add another language?')</a>
@@ -307,8 +308,9 @@ $jsdef render_work_autocomplete_item(item):
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
                     $if book.translated_from:
+                        $ user_lang = get_lang() or 'en'
                         $for i, lang in enumerate(book.translated_from):
-                            $:render_translated_from_language_field(i, lang, get_language_name(lang))
+                            $:render_translated_from_language_field(i, lang, get_language_name(lang, user_lang))
                     $else:
                         $:render_translated_from_language_field(0, storage(name="", key=""), None)
                 </div>
@@ -326,7 +328,8 @@ $jsdef render_work_autocomplete_item(item):
                 <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
-                <textarea name="edition--description" class="markdown" id="edition-description" rows="3" cols="50">$book.description</textarea>
+                <textarea name="edition--description" id="edition-description">$book.description</textarea>
+                <ol-markdown-editor target-id="edition-description"></ol-markdown-editor>
             </div>
         </div>
 
@@ -359,11 +362,12 @@ $jsdef render_work_autocomplete_item(item):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+                <label for="edition--notes">$_("Any notes about this specific edition?")</label>
+            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>$_("A Plume Book")</i>.</span>
             </div>
             <div class="input">
-                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+                <textarea name="edition--notes" id="edition--notes">$book.notes</textarea>
+                <ol-markdown-editor target-id="edition--notes"></ol-markdown-editor>
             </div>
         </div>
 
@@ -387,13 +391,13 @@ $jsdef render_work_autocomplete_item(item):
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
                     $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).')
+                    $:_('You can search by title or by Open Library ID (like <a href="/works/OL262757W" target="_blank" rel="noopener noreferrer"><em>OL262757W</em></a>).')
                     <br/>
                     $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
             $ config = {'addnew': is_librarian, 'new_name': _('-- Move to a new work')}
-            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$dumps(config)">
+            <div class="multi-input-autocomplete multi-input-autocomplete--works" data-config="$json_encode(config)">
                 $if book.works:
                     $for i, work in enumerate(book.works):
                         $:render_work_field(i, work)
@@ -425,7 +429,7 @@ $ config = ({
     $ 'ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4': _('ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4'),
     $ 'Invalid ID format': _('Invalid ID format')
 $ })
-<fieldset class="major" id="identifiers" data-config="$dumps(config)">
+<fieldset class="major" id="identifiers" data-config="$json_encode(config)">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
 
@@ -447,7 +451,7 @@ $ })
     </div>
 </fieldset>
 
-<fieldset class="major" id="classifications" data-config="$dumps({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
+<fieldset class="major" id="classifications" data-config="$json_encode({'Please select a classification.': _('Please select a classification.'), 'You need to give a value to CLASS.': _('You need to give a value to CLASS.')})">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
@@ -465,7 +469,7 @@ $ })
                             <select name="name" id="select-classification">
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
-                                    <option value="$d.name">$d.label</option>
+                                    <option value="$d.name" data-full-label="$d.label">$truncate(d.label, 45)</option>
 
                                 <!-- <option>---</option> -->
                                 <!-- <option value="__add__">$_("Add a new classification type")</option> -->
@@ -480,7 +484,8 @@ $ })
                     </tr>
                     <tbody id="classifications-display">
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
-                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").html()}}</strong></td>
+                            $# TODO: Move JS out of template
+                            <td align="right"><strong>{{\$("#select-classification").find("option[value='" + name + "']").attr("data-full-label")}}</strong></td>
                             <td>{{value}}
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
@@ -532,7 +537,7 @@ $ })
             <div class="formElement">
                 <div class="label">
                     <label for="edition--pagination">$_("Pagination?")</label>
-                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank" rel="noopener noreferrer">$_("Help")</a></span>
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
@@ -568,7 +573,7 @@ $ })
                         <table cellpadding="1">
                         <tbody>
                             <tr>
-                                <td rowspan="3"><img src="/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
+                                <td rowspan="3"><img src="/static/images/dimensions.png" alt="$_('dimensions')" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
                                 <td><input name="edition--physical_dimensions--height" type="number" step="any" min="0.001"
                                            id="dimensions-height" size="6" value="$dimensions.height"/></td>

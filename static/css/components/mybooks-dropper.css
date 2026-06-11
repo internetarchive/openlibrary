@@ -2,7 +2,7 @@
 .old-style-lists h3 {
   font-size: 0.75em;
   text-align: left;
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   min-width: 150px;
   font-weight: bold;
 }
@@ -17,7 +17,7 @@
 }
 
 .old-style-lists .generic-dropper__dropclick {
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   text-decoration: none;
 }
 
@@ -38,7 +38,7 @@
 
 .generic-dropper__primary .reading-log .activated-check {
   color: var(--green);
-  margin-right: 2px;
+  margin-right: var(--spacing-inline-xs);
 }
 
 /* Styling for the My Books dropper's dropdown content: */
@@ -50,7 +50,7 @@
 }
 
 .generic-dropper__dropdown p {
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-stack-xs);
   margin-top: 0;
   color: var(--grey);
 }
@@ -67,7 +67,7 @@
 
 .generic-dropper__dropdown .create {
   border-top: 1px solid var(--lightest-grey);
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
   text-decoration: none;
   font-weight: bold;
   margin-bottom: 0;
@@ -77,7 +77,7 @@
 
 .generic-dropper__dropdown .reading-lists .reading-list-title {
   background: var(--white);
-  padding: 5px 0 0 10px;
+  padding: var(--spacing-inset-xs) 0 0 var(--spacing-inset-sm);
   margin: 0;
   font-size: var(--font-size-label-medium);
 }
@@ -101,7 +101,7 @@
   .my-lists
   .list
   .list__status-indicator {
-  margin-right: 8px;
+  margin-right: var(--spacing-inline-md);
   min-width: 13px;
 }
 
@@ -128,7 +128,7 @@
   .list__status-indicator::after {
   content: "";
   display: block;
-  margin-top: 4px;
+  margin-top: var(--spacing-stack-xs);
   width: 1em;
   height: 1em;
   border-radius: var(--border-radius-circle);

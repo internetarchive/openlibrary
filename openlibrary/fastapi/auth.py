@@ -11,10 +11,12 @@ import logging
 from typing import Annotated
 from urllib.parse import unquote
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import APIKeyCookie
 from pydantic import BaseModel, Field
 
 from infogami import config
+from openlibrary.accounts import get_current_user
 from openlibrary.accounts.model import get_secret_key, verify_hash
 
 logger = logging.getLogger(__name__)
@@ -38,6 +40,14 @@ class AuthenticatedUser(BaseModel):
             ]
         }
     }
+
+
+# Define the session cookie as a FastAPI security scheme so it appears
+# in the auto-generated OpenAPI/Swagger documentation.
+session_cookie = APIKeyCookie(
+    name=config.get("login_cookie_name", "session"),
+    auto_error=False,
+)
 
 
 def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser | None:
@@ -88,7 +98,7 @@ def authenticate_user_from_cookie(cookie_value: str | None) -> AuthenticatedUser
 
 
 async def get_authenticated_user(
-    session: Annotated[str | None, Cookie(alias=config.get("login_cookie_name", "session"))] = None,
+    session: Annotated[str | None, Depends(session_cookie)],
 ) -> AuthenticatedUser | None:
     """FastAPI dependency to get the authenticated user from the session cookie.
 
@@ -127,3 +137,31 @@ async def require_authenticated_user(
         )
 
     return user
+
+
+async def require_librarian(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency that requires librarian-level access.
+
+    Checks that the authenticated user has admin, librarian, or super-librarian role.
+    Returns 403 if the user lacks sufficient permissions.
+
+    Usage:
+        @router.get("/protected")
+        async def protected_route(
+            _: Annotated[AuthenticatedUser, Depends(require_librarian)],
+        ):
+            return {"message": "You have librarian access!"}
+    """
+    user = get_current_user()
+    if not (user and (user.is_admin() or user.is_librarian() or user.is_super_librarian())):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
+LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]

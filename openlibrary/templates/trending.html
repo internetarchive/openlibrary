@@ -23,7 +23,7 @@ $ page = int(input(page=1).page)
         $ valid_entries = (entry for entry in logged_books if entry.get('work'))
         $for entry in valid_entries:
           $if 'bookshelf_id' in entry:
-            $ shelf = {1: _("Want to Read"), 2: _("Currently Reading"), 3: _("Read")}[entry['bookshelf_id']]
+            $ shelf = {1: _("Want to Read"), 2: _("Currently Reading"), 3: _("Read"), 4: _("Stopped Reading")}[entry['bookshelf_id']]
             $ extra = _("Someone marked as %(shelf)s %(k_hours_ago)s", shelf=shelf, k_hours_ago=datestr(entry['created']))
           $else:
             $ extra = _('Logged %(count)i times %(time_unit)s', count=entry['cnt'], time_unit=pages[mode])
@@ -31,7 +31,5 @@ $ page = int(input(page=1).page)
           $:macros.SearchResultsWork(entry['work'], extra=extra, availability=entry['work'].get('availability'), seq_index=loop.index0)
     </ul>
   </div>
-  <div class="ol-pagination-wrapper">
-    $:macros.OlPagination(page, total_pages=200 // 20)
-  </div>
+  $:macros.OlPagination(page, total_pages=200 // 20)
 </div>

@@ -16,6 +16,7 @@ from sentry_sdk import set_tag
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 import infogami
+from openlibrary.fastapi.middleware.experiments import ABTestingMiddleware
 from openlibrary.utils.request_context import set_context_from_fastapi
 from openlibrary.utils.sentry import Sentry, init_sentry
 
@@ -163,6 +164,7 @@ def create_app() -> FastAPI | None:
         version="0.0.1",
         debug=os.environ.get("LOCAL_DEV", "false").lower() == "true",
         lifespan=lifespan,
+        strict_content_type=False,  # A breaking change and not applicable to our app. See: https://fastapi.tiangolo.com/advanced/strict-content-type/
     )
 
     app.add_middleware(
@@ -177,6 +179,8 @@ def create_app() -> FastAPI | None:
 
     # Needed for the staging nginx proxy
     app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+
+    app.add_middleware(ABTestingMiddleware)
 
     @app.middleware("http")
     async def add_fastapi_header(request: Request, call_next):
@@ -211,8 +215,10 @@ def create_app() -> FastAPI | None:
         return {"status": "ok"}
 
     from openlibrary.fastapi.account import router as account_router
+    from openlibrary.fastapi.books import router as books_router
     from openlibrary.fastapi.cdn import router as cdn_router
     from openlibrary.fastapi.checkins import router as checkins_router
+    from openlibrary.fastapi.importapi import router as importapi_router
     from openlibrary.fastapi.internal.api import router as internal_router
     from openlibrary.fastapi.languages import router as languages_router
     from openlibrary.fastapi.lists import router as lists_router
@@ -227,8 +233,10 @@ def create_app() -> FastAPI | None:
 
     # Include routers
     app.include_router(account_router)
+    app.include_router(books_router)
     app.include_router(cdn_router)
     app.include_router(checkins_router)
+    app.include_router(importapi_router)
     app.include_router(internal_router)
     app.include_router(languages_router)
     app.include_router(lists_router)

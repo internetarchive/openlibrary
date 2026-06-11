@@ -3,7 +3,7 @@
 .book > .cta-button-group,
 .book > .cta-btn,
 .book form .cta-button-group {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 .book .book-cover {

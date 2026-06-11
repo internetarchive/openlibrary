@@ -6,8 +6,11 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
+from warnings import deprecated
 
 import web
+from pydantic import BaseModel
+from starlette.datastructures import URL
 
 import openlibrary.core.helpers as h
 from infogami.infobase import client, common
@@ -113,7 +116,7 @@ class ListRecord:
         else:
             raise ValueError("Invalid seed")
 
-    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict, None, None]:
+    def get_annotated_seeds(self) -> Generator[AnnotatedSeedDict]:
         for seed in self.seeds:
             if isinstance(seed, dict):
                 if "thing" in seed:
@@ -172,6 +175,10 @@ class ListRecord:
         }
 
 
+class SpamListError(ValueError):
+    """Raised when a list is detected as spam."""
+
+
 class lists_home(delegate.page):
     path = "/lists"
 
@@ -224,7 +231,6 @@ def get_seed_info(doc):
     }
 
 
-@public
 def get_list_data(list, seed, include_cover_url=True):
     list_items = []
     for s in list.get_seeds():
@@ -240,9 +246,10 @@ def get_list_data(list, seed, include_cover_url=True):
     )
     if include_cover_url:
         cover = list.get_cover() or list.get_default_cover()
-        d["cover_url"] = (cover and cover.url("S")) or "/images/icons/avatar_book-sm.png"
+
+        d["cover_url"] = (cover and cover.url("S")) or "/static/images/icons/avatar_book-sm.png"
         if "None" in d["cover_url"]:
-            d["cover_url"] = "/images/icons/avatar_book-sm.png"
+            d["cover_url"] = "/static/images/icons/avatar_book-sm.png"
 
     d["owner"] = None
     if owner := list.get_owner():
@@ -257,7 +264,7 @@ def get_user_lists(seed_info):
         return []
     user_lists = user.get_lists(sort=True)
     seed = seed_info["seed"] if seed_info else None
-    return [get_list_data(user_list, seed) for user_list in user_lists]
+    return [get_list_data(user_list, seed, include_cover_url=False) for user_list in user_lists]
 
 
 @public
@@ -401,9 +408,10 @@ class lists_edit(delegate.page):
                 # Cast is needed since the infogami code isn't typed yet
                 records_to_save.append(cast(dict, work.dict()))
 
+        action = "create-series" if list_type_plural == "series" else "create-list"
         web.ctx.site.save_many(
             records_to_save,
-            action="lists",
+            action=action,
             comment=web.input(_comment="")._comment or None,
         )
 
@@ -455,6 +463,7 @@ class lists_add(delegate.page):
         return lists_edit().POST(user_key, list_type_plural, None)
 
 
+@deprecated("migrated to fastapi")
 class lists_delete(delegate.page):
     path = r"((?:/people/[^/]+)?/lists/OL\d+L)/delete"
     encoding = "json"
@@ -480,28 +489,54 @@ class lists_delete(delegate.page):
         return delegate.RawText('{"status": "ok"}')
 
     @staticmethod
-    def process_delete(doc, key):
+    def process_delete(doc, key: str):
         # Deletes list preview from memcache, if it exists
         cache_key = "core.patron_lists.%s" % web.safestr(doc.key)
         cache.memcache_cache.delete(cache_key)
 
         delete_doc = {"key": key, "type": {"key": "/type/delete"}}
-        web.ctx.site.save(delete_doc, action="lists", comment="Deleted list.")
+        site.get().save(delete_doc, action="delete-list", comment="Deleted list.")
 
 
+def build_pagination_links(
+    page_url: URL,
+    total: int,
+    count: int,
+    offset: int,
+    limit: int,
+) -> dict[str, str]:
+    """Build pagination links (next and prev) for list endpoints.
+
+    Args:
+        page_url: The page URL used as the base for constructing next/prev links.
+        total: Total number of items available.
+        count: Number of items returned in the current page.
+        offset: Current pagination offset.
+        limit: Page size.
+
+    Returns:
+        Dict with optional "next" and "prev" keys containing paginated URLs.
+    """
+    links: dict[str, str] = {}
+
+    if offset + count < total:
+        next_offset = offset + limit
+        links["next"] = _pagination_url(page_url, limit=limit, offset=next_offset)
+
+    if offset:
+        prev_offset = max(0, offset - limit)
+        links["prev"] = _pagination_url(page_url, limit=limit, offset=prev_offset)
+
+    return links
+
+
+@deprecated("migrated to fastapi")
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
     content_type = "application/json"
 
     def GET(self, path):
-        if path.startswith("/subjects/"):
-            doc = subjects.get_subject(path)
-        else:
-            doc = web.ctx.site.get(path)
-        if not doc:
-            raise web.notfound()
-
         i = web.input(offset=0, limit=50)
         offset = h.safeint(i.offset, 0)
         limit = h.safeint(i.limit, 50)
@@ -509,11 +544,31 @@ class lists_json(delegate.page):
         limit = min(limit, 100)
         offset = max(offset, 0)
 
-        lists = self.get_lists_data(doc, path, limit=limit, offset=offset)
+        lists = self.get_lists_data(
+            path,
+            limit=limit,
+            offset=offset,
+            query_path=web.ctx.path,
+        )
+        if lists is None:
+            raise web.notfound()
         return delegate.RawText(self.dumps(lists))
 
     @staticmethod
-    def get_lists_data(doc, path, limit=50, offset=0):
+    def get_lists_data(
+        path,
+        limit: int = 50,
+        offset: int = 0,
+        query_path: str | None = None,
+    ) -> dict | None:
+        if path.startswith("/subjects/"):
+            doc = subjects.get_subject(path)
+        else:
+            doc = site.get().get(path)
+
+        if not doc:
+            return None
+
         lists = doc.get_lists(limit=limit, offset=offset)
         size = len(lists)
 
@@ -521,19 +576,23 @@ class lists_json(delegate.page):
             # There could be more lists than len(lists)
             size = len(doc.get_lists(limit=1000))
 
-        d = {
-            "links": {"self": path},
+        links = {"self": path}
+        page_url = URL(query_path or f"{path}/lists")
+        links.update(
+            build_pagination_links(
+                page_url,
+                size,
+                len(lists),
+                offset,
+                limit,
+            )
+        )
+
+        return {
+            "links": links,
             "size": size,
             "entries": [lst.preview() for lst in lists],
         }
-        if offset + len(lists) < size:
-            d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
-
-        if offset:
-            offset = max(0, offset - limit)
-            d["links"]["prev"] = web.changequery(limit=limit, offset=offset)
-
-        return d
 
     def forbidden(self):
         headers = {"Content-Type": self.get_content_type()}
@@ -583,12 +642,12 @@ class lists_json(delegate.page):
         )
 
         if spamcheck.is_spam(lst):
-            raise ValueError("Spam list")
+            raise SpamListError
 
         return site.save(
             lst.dict(),
             comment="Created new list.",
-            action="lists",
+            action="create-list",
             data={"list": {"key": lst.key}, "seeds": seeds},
         )
 
@@ -614,8 +673,13 @@ class lists_yaml(lists_json):
 
 
 def get_list(key: str, raw: bool = False) -> dict | None:
-    lst = web.ctx.site.get(key)
+    lst = site.get().get(key)
+
     if not lst:
+        return None
+
+    # Check for delete type before accessing properties that return Nothing
+    if lst.type.key == "/type/delete":
         return None
 
     if raw:
@@ -645,6 +709,7 @@ def get_list(key: str, raw: bool = False) -> dict | None:
     }
 
 
+@deprecated("migrated to fastapi")
 class list_view_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)"
     encoding = "json"
@@ -665,9 +730,8 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 
-@public
 def get_list_seeds(key):
-    if lst := web.ctx.site.get(key):
+    if lst := site.get().get(key):
         seeds = [seed.dict() for seed in lst.get_seeds()]
         return {
             "links": {"self": key + "/seeds", "list": key},
@@ -676,6 +740,7 @@ def get_list_seeds(key):
         }
 
 
+@deprecated("migrated to fastapi")
 class list_seeds(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/seeds"
     encoding = "json"
@@ -739,7 +804,10 @@ class list_seeds(delegate.page):
             "remove": data["remove"],
         }
 
-        return lst._save(comment="Updated list.", action="lists", data=changeset_data)
+        # Distinguish between list and series seed updates for logging/audit purposes.
+        action = "edit-series-seeds" if "/series/" in key else "edit-list-seeds"
+
+        return lst._save(comment="Updated list.", action=action, data=changeset_data)
 
 
 class list_seed_yaml(list_seeds):
@@ -747,22 +815,78 @@ class list_seed_yaml(list_seeds):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def get_list_editions(key, offset=0, limit=50, api=False):
-    if lst := cast(List | None, web.ctx.site.get(key)):
-        offset = offset or 0  # enforce sane int defaults
-        all_editions = list(lst.get_editions())
-        editions = all_editions[offset : offset + limit]
-        if api:
-            return make_collection(
-                size=len(all_editions),
-                entries=[e.dict() for e in editions],
-                limit=limit,
-                offset=offset,
-                key=key,
-            )
-        return editions
+def _pagination_url(url: URL, **kwargs) -> str:
+    u = url.include_query_params(**kwargs)
+    return f"{u.path}?{u.query}" if u.query else u.path
 
 
+class ListEditionsLinks(BaseModel):
+    self: str
+    next: str | None = None
+    prev: str | None = None
+    list: str | None = None
+
+
+class ListEditionsModel(BaseModel):
+    size: int
+    start: int
+    end: int
+    entries: list[dict]
+    links: ListEditionsLinks
+
+
+class ListSubjectEntry(BaseModel):
+    name: str
+    count: int
+    url: str
+
+
+class ListSubjectsLinks(BaseModel):
+    self: str
+    list: str
+
+
+class ListSubjectsModel(BaseModel):
+    subjects: list[ListSubjectEntry]
+    places: list[ListSubjectEntry]
+    people: list[ListSubjectEntry]
+    times: list[ListSubjectEntry]
+    links: ListSubjectsLinks
+
+
+def get_list_editions(
+    key: str,
+    url: URL,
+    offset: int = 0,
+    limit: int = 50,
+) -> ListEditionsModel | None:
+    if not (lst := site.get().get(key)):
+        return None
+
+    all_editions = list(lst.get_editions())
+    editions = all_editions[offset : offset + limit]
+
+    entries = [e.dict() for e in editions]
+    size = len(all_editions)
+    end = offset + limit
+
+    links = ListEditionsLinks(
+        self=_pagination_url(url),
+        next=(_pagination_url(url, limit=limit, offset=end) if offset + len(editions) < size else None),
+        prev=(_pagination_url(url, limit=limit, offset=max(0, offset - limit)) if offset else None),
+        list=key or None,
+    )
+
+    return ListEditionsModel(
+        size=size,
+        start=offset,
+        end=end,
+        entries=entries,
+        links=links,
+    )
+
+
+@deprecated("migrated to fastapi")
 class list_editions_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/editions"
     encoding = "json"
@@ -773,10 +897,15 @@ class list_editions_json(delegate.page):
         i = web.input(limit=50, offset=0)
         limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-        editions = get_list_editions(key, offset=offset, limit=limit, api=True)
+        editions = get_list_editions(
+            key,
+            url=URL(web.ctx.fullpath),
+            offset=offset,
+            limit=limit,
+        )
         if not editions:
             raise web.notfound()
-        return delegate.RawText(formats.dump(editions, self.encoding), content_type=self.content_type)
+        return delegate.RawText(formats.dump(editions.dict(), self.encoding), content_type=self.content_type)
 
 
 class list_editions_yaml(list_editions_json):
@@ -784,65 +913,42 @@ class list_editions_yaml(list_editions_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 
-def make_collection(size, entries, limit, offset, key=None):
-    d = {
-        "size": size,
-        "start": offset,
-        "end": offset + limit,
-        "entries": entries,
-        "links": {
-            "self": web.changequery(),
-        },
-    }
-
-    if offset + len(entries) < size:
-        d["links"]["next"] = web.changequery(limit=limit, offset=offset + limit)
-
-    if offset:
-        d["links"]["prev"] = web.changequery(limit=limit, offset=max(0, offset - limit))
-
-    if key:
-        d["links"]["list"] = key
-
-    return d
-
-
+@deprecated("migrated to fastapi")
 class list_subjects_json(delegate.page):
     path = r"((?:/people/[^/]+)?/(?:lists|series)/OL\d+L)/subjects"
     encoding = "json"
     content_type = "application/json"
 
     def GET(self, key):
-        lst = cast(List | None, web.ctx.site.get(key))
-        if not lst:
+        data = get_list_subjects(key, limit=h.safeint(web.input(limit=20).limit, 20))
+        if not data:
             raise web.notfound()
-
-        i = web.input(limit=20)
-        limit = h.safeint(i.limit, 20)
-
-        data = self.get_subjects_data(lst, key, limit=limit)
-
-        text = formats.dump(data, self.encoding)
+        text = formats.dump(data.dict(), self.encoding)
         return delegate.RawText(text, content_type=self.content_type)
 
-    @staticmethod
-    def get_subjects_data(lst, key, limit):
-        data = lst.get_subjects(limit=limit)
-        for sub_key, subjects_ in data.items():
-            data[sub_key] = [list_subjects_json._process_subject(s) for s in subjects_]
 
-        data = dict(data)
-        data["links"] = {"self": key + "/subjects", "list": key}
-        return data
+def _process_subject(s: dict) -> ListSubjectEntry:
+    key = s["key"]
+    if key.startswith("subject:"):
+        key = "/subjects/" + key.removeprefix("subject:")
+    else:
+        key = "/subjects/" + key
+    return ListSubjectEntry(name=s["name"], count=s["count"], url=key)
 
-    @staticmethod
-    def _process_subject(s):
-        key = s["key"]
-        if key.startswith("subject:"):
-            key = "/subjects/" + web.lstrips(key, "subject:")
-        else:
-            key = "/subjects/" + key
-        return {"name": s["name"], "count": s["count"], "url": key}
+
+def get_list_subjects(key: str, limit: int = 20) -> ListSubjectsModel | None:
+    lst = cast(List | None, site.get().get(key))
+    if not lst or getattr(getattr(lst, "type", None), "key", None) == "/type/delete":
+        return None
+
+    data = lst.get_subjects(limit=limit)
+    return ListSubjectsModel(
+        subjects=[_process_subject(s) for s in data.get("subjects", [])],
+        places=[_process_subject(s) for s in data.get("places", [])],
+        people=[_process_subject(s) for s in data.get("people", [])],
+        times=[_process_subject(s) for s in data.get("times", [])],
+        links=ListSubjectsLinks(self=key + "/subjects", list=key),
+    )
 
 
 class list_subjects_yaml(list_subjects_json):
@@ -1055,15 +1161,14 @@ def get_active_lists_in_random(limit=20, preload=True):
     return [web.ctx.site.new(xlist["key"], xlist) for xlist in lists]
 
 
-@public
-def get_lists(keys: list[str]):
+async def get_lists_async(keys: list[str]):
     # Fetches and caches the lists through Solr, rather than through the DB.
     from openlibrary.core.lists.model import List
-    from openlibrary.plugins.worksearch.code import run_solr_query
+    from openlibrary.plugins.worksearch.code import run_solr_query_async
     from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
 
     or_query = " OR ".join(f'"{k}"' for k in keys)
-    response = run_solr_query(
+    response = await run_solr_query_async(
         param={"q": f"seed:({or_query})"},
         scheme=ListSearchScheme(),
         fields=["key"],
@@ -1075,7 +1180,7 @@ def get_lists(keys: list[str]):
     )
     lists = cast(list[List], site.get().get_many([doc["key"] for doc in response.docs]))
 
-    return [get_list_data(lst, None) for lst in lists]
+    return [get_list_data(lst, None, include_cover_url=False) for lst in lists]
 
 
 class lists_preview(delegate.page):

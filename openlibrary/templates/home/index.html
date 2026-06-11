@@ -16,7 +16,7 @@ $add_metatag(property="og:site_name", content="Open Library")
 
   $:macros.BookPreview('')
 
-  $:render_template("home/welcome", test=test)
+  $:render_template("home/welcome")
 
   $if not test:
     $:macros.QueryCarousel(query='trending_score_hourly_sum:[1 TO *] readinglog_count:[4 TO *]', title=_('Trending Books'), key="trending", sort='trending', has_fulltext_only=False, user_lang_only=True)
@@ -34,6 +34,9 @@ $add_metatag(property="og:site_name", content="Open Library")
     $:macros.QueryCarousel(title=_('Thrillers'), key="thrillers", query="subject:thrillers ebook_access:[borrowable TO *] trending_score_hourly_sum:[1 TO *]", url="/subjects/thrillers", sort='trending,trending_score_hourly_sum', user_lang_only=True)
     $:macros.QueryCarousel(title=_('Textbooks'), key="textbooks", query="subject_key:textbooks publish_year:[1990 TO *] ebook_access:[borrowable TO *]", url="/subjects/textbooks", sort='trending', user_lang_only=True)
     $:macros.QueryCarousel(title=_("Authors Alliance & MIT Press"), key="authorsalliance_mit_press", query='(subject:authorsalliance OR publisher:"MIT Press" OR subject:mitpress) ebook_access:[borrowable TO *]', sort='trending', user_lang_only=True)
+
+  $if "dev" in ctx.features:
+    $:macros.QueryCarousel(title=_('Books in Local Environment'), query='*', use_cache=False)
 
   $:render_template("home/categories", test=test)
 

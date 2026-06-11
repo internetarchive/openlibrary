@@ -42,14 +42,13 @@ async def search_facets_partial(
     - param: dict with search parameters (q, author_key, subject_facet, etc.)
     - path: str (e.g., '/search')
     - query: str (e.g., '?q=python')
-    # TODO: Make this fully async
     """
     try:
         parsed_data = json.loads(data)
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return SearchFacetsPartial(data=parsed_data, sfw=sfw == "yes").generate()
+    return await SearchFacetsPartial.generate_async(data=parsed_data, sfw=sfw == "yes")
 
 
 @router.get("/partials/AffiliateLinks.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -67,7 +66,17 @@ async def affiliate_links_partial(
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
 
-    return AffiliateLinksPartial(data=parsed_data).generate()
+    args = parsed_data.get("args", [])
+    if len(args) < 2:
+        raise HTTPException(status_code=400, detail="Expected at least 2 arguments")
+
+    title, opts = args[0], args[1]
+    return await AffiliateLinksPartial.generate_async(
+        title=title,
+        isbn=opts.get("isbn", None),
+        asin=opts.get("asin", None),
+        prices=opts.get("prices", False),
+    )
 
 
 @router.get("/partials/BPListsSection.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -80,7 +89,7 @@ async def book_page_lists_partial(
 
     At least one of workId or editionId must be provided.
     """
-    return BookPageListsPartial(workId=workId, editionId=editionId).generate()
+    return await BookPageListsPartial.generate_async(workId=workId, editionId=editionId)
 
 
 @router.get("/partials/FulltextSearchSuggestion.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -93,13 +102,12 @@ async def fulltext_search_suggestion_partial(
 
     The data parameter is the raw search query string.
     """
-    partial = FullTextSuggestionsPartial(query=data)
-    result = partial.generate()
+    result = await FullTextSuggestionsPartial.generate_async(query=data)
 
-    if not partial.has_error:
+    if not result.has_error:
         response.headers["Cache-Control"] = "public, max-age=300"
 
-    return result
+    return result.body
 
 
 @router.get("/partials/ReadingGoalProgress.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -113,7 +121,7 @@ async def reading_goal_progress_partial(
     The year parameter is optional; defaults to the current year.
     """
     # Despite the face we are not yet using the user, it gives us faster auth checking and api documentation.
-    return ReadingGoalProgressPartial(year=year or datetime.now().year).generate()
+    return ReadingGoalProgressPartial.generate(year=year or datetime.now().year)
 
 
 @router.get("/partials/MyBooksDropperLists.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -129,7 +137,7 @@ async def my_books_dropper_lists_partial(
     """
     # Despite the fact we are not yet using the user directly, it gives us faster
     # auth checking and api documentation.
-    return MyBooksDropperListsPartial().generate()
+    return MyBooksDropperListsPartial.generate()
 
 
 @router.get("/partials/LazyCarousel.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -139,7 +147,7 @@ async def lazy_carousel_partial(
     """
     Get lazily-loaded carousel HTML.
     """
-    return LazyCarouselPartial(params=params).generate()
+    return await LazyCarouselPartial.generate_async(params=params)
 
 
 @router.get("/partials/CarouselLoadMore.json", include_in_schema=SHOW_PARTIALS_IN_SCHEMA)
@@ -153,4 +161,4 @@ async def carousel_load_more_partial(
     queryType (SEARCH | BROWSE | TRENDING | SUBJECTS), q, limit, page,
     sorts, subject, hasFulltextOnly, key, layout, published_in.
     """
-    return CarouselCardPartial(params=params).generate()
+    return await CarouselCardPartial.generate_async(params=params)

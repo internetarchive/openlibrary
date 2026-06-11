@@ -9,9 +9,11 @@ COMPONENTS_DIR=openlibrary/components
 OSP_DUMP_LOCATION=/solr-updater-data/osp_totals.db
 
 
-.PHONY: all clean distclean git css js components lit-components i18n lint
+.PHONY: all clean distclean git css js components lit-components i18n lint frontend
 
 all: git css js components lit-components i18n
+
+frontend: css js components lit-components
 
 css:
 	mkdir -p $(BUILD)/css_new
@@ -77,8 +79,13 @@ lint:
 	# See the pyproject.toml file for ruff's settings
 	python -m ruff check .
 
+PYTEST_ARGS = . --ignore=infogami --ignore=vendor --ignore=node_modules --doctest-modules
+
 test-py:
-	pytest . --ignore=infogami --ignore=vendor --ignore=node_modules
+	pytest $(PYTEST_ARGS)
+
+test-py-uv:
+	uv run --with-requirements requirements_test.txt pytest $(PYTEST_ARGS)
 
 test-i18n:
 	# Valid locale codes should be added as arguments to validate

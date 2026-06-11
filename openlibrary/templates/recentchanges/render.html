@@ -55,6 +55,8 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
     </tbody>
 </table>
 
+$# TODO: Migrate to OlPaginationArrows once ol-pagination supports hash fragments,
+$# or update this page to follow the same URL convention as other pagination (#12159).
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:

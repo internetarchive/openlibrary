@@ -1,23 +1,23 @@
 .measurements {
   width: 100%;
-  margin: 10px 0 30px;
+  margin: var(--spacing-stack-sm) 0 var(--spacing-stack-xl);
   color: var(--dark-grey);
 }
 .measurements th {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
   text-align: right;
   vertical-align: bottom;
-  padding: 0 8px;
+  padding: 0 var(--spacing-inset-sm);
 }
 .measurements td {
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
   text-align: right;
   vertical-align: bottom;
   font-size: 0.75em;
 }
 .measurements td.type {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-size: 0.6875em;
 }
 .measurements .major .amount {

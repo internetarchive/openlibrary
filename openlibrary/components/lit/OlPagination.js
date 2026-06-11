@@ -5,8 +5,12 @@ import { LitElement, html, css } from 'lit';
  *
  * @element ol-pagination
  *
- * @prop {Number} totalPages - Total number of pages
+ * @prop {String} mode - Display mode: "full" (default) shows page numbers with arrows,
+ *                       "arrows" shows only previous/next arrows (useful when total is unknown)
+ * @prop {Number} totalPages - Total number of pages (required for "full" mode)
  * @prop {Number} currentPage - Currently selected page (1-indexed)
+ * @prop {Boolean} hasNextPage - Whether a next page exists. Only used in "arrows" mode.
+ *                               In "full" mode, this is derived from totalPages.
  * @prop {String} baseUrl - Optional base URL for generating page links. When omitted,
  *                          falls back to the current page URL, preserving all existing
  *                          query parameters (similar to changequery). Always renders
@@ -22,8 +26,12 @@ import { LitElement, html, css } from 'lit';
  * @fires ol-pagination-change - Fired when a page is selected. detail: { page: Number }
  *
  * @example
- * <!-- Uses current page URL, preserving query params -->
+ * <!-- Full mode (default): page numbers with arrows -->
  * <ol-pagination total-pages="50" current-page="1"></ol-pagination>
+ *
+ * @example
+ * <!-- Arrows mode: only prev/next, no total needed -->
+ * <ol-pagination mode="arrows" current-page="3" has-next-page></ol-pagination>
  *
  * @example
  * <!-- Explicit base URL -->
@@ -49,8 +57,10 @@ import { LitElement, html, css } from 'lit';
  */
 export class OlPagination extends LitElement {
     static properties = {
+        mode: { type: String },
         totalPages: { type: Number, attribute: 'total-pages' },
         currentPage: { type: Number, attribute: 'current-page' },
+        hasNextPage: { type: Boolean, attribute: 'has-next-page' },
         baseUrl: { type: String, attribute: 'base-url' },
         labelPreviousPage: { type: String, attribute: 'label-previous-page' },
         labelNextPage: { type: String, attribute: 'label-next-page' },
@@ -63,30 +73,37 @@ export class OlPagination extends LitElement {
     static styles = css`
         :host {
             display: block;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: var(--font-family-body);
         }
 
         .pagination {
             display: flex;
             font-size: 14px;
-            gap: 2px;
+            gap: var(--spacing-inline-xs);
         }
 
         .pagination-item {
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.2em 0.6em;
+            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
             border: 1px solid transparent;
-            border-radius: 4px;
+            border-radius: var(--border-radius-button);
             background: transparent;
             color: var(--darker-grey, #444);
             cursor: pointer;
             text-decoration: none;
+            font-variant-numeric: tabular-nums;
         }
 
-        .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
-            background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+        @media (hover: hover) and (pointer: fine) {
+            .pagination-item:hover:not([aria-disabled="true"]):not([aria-current="page"]) {
+                background: var(--icon-link-grey, rgba(0, 0, 0, 0.1));
+            }
+        }
+
+        .pagination-item:active:not([aria-disabled="true"]):not([aria-current="page"]) {
+            transform: scale(0.92);
         }
 
         .pagination-item:focus {
@@ -94,7 +111,7 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-item:focus-visible {
-            outline: 2px solid var(--color-focus-ring, #5B8DD9);
+            outline: var(--focus-width) solid var(--color-focus-ring, #5B8DD9);
             outline-offset: 2px;
         }
 
@@ -111,7 +128,7 @@ export class OlPagination extends LitElement {
         }
 
         .pagination-arrow {
-            padding: 0 0.15em;
+            padding: 0 var(--spacing-inline-xs);
         }
 
         .ellipsis {
@@ -132,8 +149,10 @@ export class OlPagination extends LitElement {
 
     constructor() {
         super();
+        this.mode = 'full';
         this.totalPages = 1;
         this.currentPage = 1;
+        this.hasNextPage = false;
         this.baseUrl = '';
         this._focusedIndex = -1;
 
@@ -243,7 +262,8 @@ export class OlPagination extends LitElement {
      * @param {Number} page - The page number to navigate to
      */
     _goToPage(page) {
-        if (page < 1 || page > this.totalPages || page === this.currentPage) {
+        const maxPage = this.mode === 'arrows' ? Infinity : this.totalPages;
+        if (page < 1 || page > maxPage || page === this.currentPage) {
             return;
         }
 
@@ -343,9 +363,21 @@ export class OlPagination extends LitElement {
         const isPrev = direction === 'prev';
         const isDisabled = isPrev
             ? this.currentPage === 1
-            : this.currentPage === this.totalPages;
+            : this.mode === 'arrows' ? !this.hasNextPage : this.currentPage === this.totalPages;
 
-        if (isDisabled) return html``;
+        if (isDisabled && this.mode !== 'arrows') return html``;
+
+        if (isDisabled) {
+            const label = isPrev ? this.labelPreviousPage : this.labelNextPage;
+            const icon = isPrev ? OlPagination._leftArrowIcon : OlPagination._rightArrowIcon;
+            return html`
+                <span
+                    class="pagination-item pagination-arrow"
+                    aria-disabled="true"
+                    aria-label=${label}
+                >${icon}</span>
+            `;
+        }
 
         const page = isPrev ? this.currentPage - 1 : this.currentPage + 1;
         const label = isPrev ? this.labelPreviousPage : this.labelNextPage;
@@ -360,7 +392,8 @@ export class OlPagination extends LitElement {
     }
 
     render() {
-        const visiblePages = this._getVisiblePages();
+        const isArrows = this.mode === 'arrows';
+        const visiblePages = isArrows ? [] : this._getVisiblePages();
 
         return html`
             <nav

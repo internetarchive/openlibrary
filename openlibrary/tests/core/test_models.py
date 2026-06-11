@@ -1,6 +1,8 @@
 import pytest
+import web
 
 from openlibrary.core import models
+from openlibrary.mocks import mock_infobase
 
 
 class MockSite:
@@ -150,10 +152,6 @@ class TestWork:
         work2 = {"key": work2_key, "location": work3_key, "type": type_redir}
         work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
         work4 = {"key": work4_key, "type": type_work}
-
-        import web
-
-        from openlibrary.mocks import mock_infobase
 
         site = mock_infobase.MockSite()
         site.save(web.storage(work1))

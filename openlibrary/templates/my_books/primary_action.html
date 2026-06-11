@@ -1,20 +1,35 @@
-$def with(work_key, edition_key, user_key, read_status, page_url)
+$def with(work_key, edition_key, user_key, read_status, page_url, title="")
 
-$def reading_log_cta(work_key, edition_key, user_key, read_status):
+$def reading_log_cta(work_key, edition_key, user_key, read_status, title):
   <form class="reading-log primary-action" method="POST" action="$(work_key)/bookshelves.json">
-    $if read_status == 3:
+    $if read_status == 4:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user stopped reading (bookshelf ID 4). Used as a button label and shelf name.
+      $ message = _("Stopped Reading")
+      $ track_value = "ReadingLog|StoppedReading"
+    $elif read_status == 3:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user has finished reading (bookshelf ID 3). Used as a button label and shelf name.
       $ message = _("Already Read")
+      $ track_value = "ReadingLog|AlreadyRead"
     $elif read_status == 2:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user is actively reading (bookshelf ID 2). Used as a button label and shelf name.
       $ message = _("Currently Reading")
+      $ track_value = "ReadingLog|CurrentlyReading"
     $elif user_key:
+      $code: pass  # NOTE: Label for the reading log shelf for books the user plans to read in the future (bookshelf ID 1). Used as a button label and shelf name.
       $ message = _("Want to Read")
+      $ track_value = "ReadingLog|WantToRead"
     $else:
       $ message = _("Add to List")
+      $ track_value = "ReadingLog|AddToList"
 
     $ action_value = 'remove' if read_status else 'add'
     $ bookshelf_id_value = read_status or '1'
     $ activated_status = 'activated' if read_status else 'unactivated'
     $ checkmark_visibility = '' if read_status else 'hidden'
+
+    $ intent_action = _("Want to Read") if not user_key else message
+    $ data_attr = get_preserve_intent_attrs(intent_action, title, "book")
+    $ login_class = "js-login-intent" if not user_key else ""
 
     <input type="hidden" name="action" value="$(action_value)"/>
     <input type="hidden" name="bookshelf_id" value="$(bookshelf_id_value)"/>
@@ -24,22 +39,23 @@ $def reading_log_cta(work_key, edition_key, user_key, read_status):
     $if user_key:
       <input type="hidden" name="user-key" value="$(user_key)" />
 
-    <button class="book-progress-btn primary-action $(activated_status)" type="submit">
+    <button class="book-progress-btn primary-action $(activated_status) $(login_class)" type="submit" disabled data-ol-link-track="$(track_value)" $:data_attr>
       <span class="activated-check $(checkmark_visibility)">✓</span>
       <span class="btn-text">$(message)</span>
     </button>
   </form>
 
-$def list_cta(user_key, page_url):
+$def list_cta(user_key, page_url, title):
+  $ data_attr = get_preserve_intent_attrs(_('Add to List'), title, "book")
   $if user_key:
-    <h3 class="primary-action">$_('Add to List')</h3>
+    <h3 class="primary-action" $:data_attr>$_('Add to List')</h3>
   $else:
     $# XXX: Check if classes are needed here
-    <a href="/account/login?redirect=$page_url" class="dropclick plain">
+    <a href="/account/login?redirect=$page_url" class="dropclick plain js-login-intent" $:data_attr>
       <h3>$_('Add to List')</h3>
     </a>
 
 $if work_key:
-  $:reading_log_cta(work_key, edition_key, user_key, read_status)
+  $:reading_log_cta(work_key, edition_key, user_key, read_status, title)
 $else:
-  $:list_cta(user_key, page_url)
+  $:list_cta(user_key, page_url, title)

@@ -52,11 +52,11 @@ div.message {
   float: left;
   clear: both;
   width: 100%;
-  margin-bottom: 15px;
+  margin-bottom: var(--spacing-stack-md);
   background: var(--light-yellow);
 }
 div.message p {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 div.siteSearch {
   -webkit-box-ordinal-group: 4;
@@ -113,10 +113,10 @@ th.toggle-all {
   border: 2px;
 }
 .import-table th {
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 .import-table td {
-  padding: 5px 10px;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 .import-table thead th {
   position: sticky;
@@ -141,7 +141,7 @@ th.toggle-all {
 }
 
 #myProgress {
-  margin-top: 5px;
+  margin-top: var(--spacing-stack-xs);
   border-radius: var(--border-radius-card);
   width: 100%;
   background-color: var(--lightest-grey);
@@ -150,7 +150,7 @@ th.toggle-all {
 #myBar {
   width: 0%;
   border-radius: var(--border-radius-card);
-  padding: 4px;
+  padding: var(--spacing-inset-xs);
   background-color: var(--green);
   text-align: center;
   color: var(--white);
@@ -188,7 +188,7 @@ tr.table-row.selected {
 .login-big-or {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
   max-width: 600px;
 }
 
@@ -203,6 +203,31 @@ tr.table-row.selected {
 
 textarea.toc-editor {
   white-space: pre;
+}
+
+#select-classification {
+  max-width: 300px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media only screen and (max-width: 768px) {
+  /* --width-breakpoint-tablet */
+  table.classifications.identifiers tr {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--lightest-grey);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  table.classifications.identifiers td:first-child {
+    width: 100%;
+    text-align: left !important;
+    font-weight: bold;
+    color: var(--grey-555);
+    margin-bottom: 4px;
+  }
 }
 
 @import "components/ol-message.css";

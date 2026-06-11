@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+import web
 
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
@@ -136,8 +137,6 @@ EDITION_KEY_TESTS = {
 
 @pytest.mark.parametrize(("query", "edQuery"), EDITION_KEY_TESTS.items())
 def test_q_to_solr_params_edition_key(query, edQuery):
-    import web
-
     web.ctx.lang = "en"
     s = WorkSearchScheme()
 
