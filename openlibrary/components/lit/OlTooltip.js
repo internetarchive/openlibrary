@@ -18,8 +18,8 @@ import { LitElement, html, css, nothing } from 'lit';
  * @prop {Number} showDelay - Milliseconds to wait before showing (default: 150).
  *     Set to 0 for an instant tooltip.
  * @prop {Number} hideDelay - Milliseconds to wait before hiding (default: 0)
- * @prop {Number} offset - Gap in px between trigger and tooltip (default: 8)
- * @prop {Boolean} withoutArrow - Hides the directional arrow
+ * @prop {Number} offset - Gap in px between trigger and tooltip (default: 4)
+ * @prop {Boolean} arrow - Shows the directional arrow (hidden by default)
  * @prop {Boolean} disabled - Prevents the tooltip from showing
  *
  * @fires ol-tooltip-show - Fired when the tooltip opens
@@ -48,7 +48,7 @@ export class OlTooltip extends LitElement {
         showDelay: { type: Number, attribute: 'show-delay' },
         hideDelay: { type: Number, attribute: 'hide-delay' },
         offset: { type: Number },
-        withoutArrow: { type: Boolean, attribute: 'without-arrow' },
+        arrow: { type: Boolean },
         disabled: { type: Boolean },
         _visible: { state: true },
         _position: { state: true },
@@ -112,8 +112,8 @@ export class OlTooltip extends LitElement {
         this.placement = 'top';
         this.showDelay = 150;
         this.hideDelay = 0;
-        this.offset = 8;
-        this.withoutArrow = false;
+        this.offset = 4;
+        this.arrow = false;
         this.disabled = false;
         this._visible = false;
         this._position = { top: 0, left: 0 };
@@ -167,7 +167,7 @@ export class OlTooltip extends LitElement {
                 style="top: ${this._position.top}px; left: ${this._position.left}px;"
             >
                 <slot name="content">${this.content}</slot>
-                ${!this.withoutArrow ? html`
+                ${this.arrow ? html`
                     <div
                         class="arrow"
                         aria-hidden="true"
@@ -277,7 +277,7 @@ export class OlTooltip extends LitElement {
         const viewW = window.innerWidth;
         const viewH = window.innerHeight;
         const pad = 8;
-        const arrowSize = this.withoutArrow ? 0 : 4;
+        const arrowSize = this.arrow ? 4 : 0;
 
         const [reqSide, reqAlign] = this._parsePlacement(this.placement);
 

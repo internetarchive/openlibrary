@@ -201,4 +201,19 @@ pre.example__code code[class*="language-"] {
   font-size: var(--font-size-body-large);
 }
 
+/* Rich tooltip content, styled by the consuming page (see design/tooltip.html). */
+.book-tip__heading {
+  margin-bottom: var(--spacing-2xs);
+}
+.book-tip__title {
+  font-weight: 600;
+}
+.book-tip__year {
+  color: var(--lighter-grey);
+}
+.book-tip__byline {
+  color: var(--lighter-grey);
+  font-size: var(--font-size-label-medium);
+}
+
 @import "legacy.css";

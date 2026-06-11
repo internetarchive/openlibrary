@@ -5067,7 +5067,8 @@ msgstr ""
 #, python-format
 msgid ""
 "Use %(placement)s to control where the tooltip appears. It automatically "
-"flips when near viewport edges."
+"flips when near viewport edges. Add %(arrow)s to show the directional "
+"arrow (hidden by default)."
 msgstr ""
 
 #: design/tooltip.html
@@ -5102,6 +5103,27 @@ msgstr ""
 #: design/tooltip.html
 #, python-format
 msgid "Keyboard shortcut: %(shortcut)s"
+msgstr ""
+
+#: design/tooltip.html
+msgid "Book hovercard"
+msgstr ""
+
+#: design/tooltip.html
+#, python-format
+msgid ""
+"Slotted content lives in the light DOM, so it is styled by page CSS, not "
+"the component. Inherited properties like %(color)s cascade in from the "
+"tooltip; structural styles (weight, size, muted text) come from the "
+"consuming page's stylesheet."
+msgstr ""
+
+#: design/tooltip.html
+msgid "Project Hail Mary"
+msgstr ""
+
+#: design/tooltip.html
+msgid "By Andy Weir"
 msgstr ""
 
 #: email/case_created.html

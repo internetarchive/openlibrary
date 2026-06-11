@@ -7,7 +7,7 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Basic tooltip")</h3>
       <p>$_("Hover or focus the button to see the tooltip. Default placement is top with a 150ms show delay.")</p>
-      <code class="example__code">&lt;ol-tooltip content="Edit this item"&gt;&lt;button&gt;Edit&lt;/button&gt;&lt;/ol-tooltip&gt;</code>
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip content="Edit this item"&gt;&lt;button&gt;Edit&lt;/button&gt;&lt;/ol-tooltip&gt;</code></pre>
       <div class="example__output" style="display: flex; gap: 24px; align-items: center; padding: 32px 16px;">
         <ol-tooltip content="Edit this item">
           <button class="demo-btn">$_("Edit")</button>
@@ -24,18 +24,18 @@ $def with()
 
     <section class="example">
       <h3 class="example__title">$_("Placement options")</h3>
-      <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges.", placement="<code>placement</code>")</p>
+      <p>$:_("Use %(placement)s to control where the tooltip appears. It automatically flips when near viewport edges. Add %(arrow)s to show the directional arrow (hidden by default).", placement="<code>placement</code>", arrow="<code>arrow</code>")</p>
       <div class="example__output" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 48px 16px;">
-        <ol-tooltip content="I'm on top" placement="top">
+        <ol-tooltip content="I'm on top" placement="top" arrow>
           <button class="demo-btn">$_("top")</button>
         </ol-tooltip>
-        <ol-tooltip content="I'm on the bottom" placement="bottom">
+        <ol-tooltip content="I'm on the bottom" placement="bottom" arrow>
           <button class="demo-btn">$_("bottom")</button>
         </ol-tooltip>
-        <ol-tooltip content="I'm on the left" placement="left">
+        <ol-tooltip content="I'm on the left" placement="left" arrow>
           <button class="demo-btn">$_("left")</button>
         </ol-tooltip>
-        <ol-tooltip content="I'm on the right" placement="right">
+        <ol-tooltip content="I'm on the right" placement="right" arrow>
           <button class="demo-btn">$_("right")</button>
         </ol-tooltip>
       </div>
@@ -44,11 +44,29 @@ $def with()
     <section class="example">
       <h3 class="example__title">$_("Rich content via slot")</h3>
       <p>$:_("Use %(slot)s for HTML content inside the tooltip.", slot="<code>slot=\"content\"</code>")</p>
-      <code class="example__code">&lt;ol-tooltip&gt;&lt;button&gt;Info&lt;/button&gt;&lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;&lt;/ol-tooltip&gt;</code>
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;&lt;button&gt;Info&lt;/button&gt;&lt;span slot="content"&gt;Rich &lt;strong&gt;HTML&lt;/strong&gt;&lt;/span&gt;&lt;/ol-tooltip&gt;</code></pre>
       <div class="example__output" style="padding: 32px 16px;">
         <ol-tooltip>
           <button class="demo-btn">$_("Info")</button>
           <span slot="content">$:_("Keyboard shortcut: %(shortcut)s", shortcut="<strong>Ctrl+K</strong>")</span>
+        </ol-tooltip>
+      </div>
+    </section>
+
+    <section class="example">
+      <h3 class="example__title">$_("Book hovercard")</h3>
+      <p>$:_("Slotted content lives in the light DOM, so it is styled by page CSS, not the component. Inherited properties like %(color)s cascade in from the tooltip; structural styles (weight, size, muted text) come from the consuming page's stylesheet.", color="<code>color</code>")</p>
+      <pre class="example__code"><code class="language-html">&lt;ol-tooltip&gt;&lt;button&gt;&hellip;&lt;/button&gt;&lt;div slot="content" class="book-tip"&gt;&hellip;&lt;/div&gt;&lt;/ol-tooltip&gt;</code></pre>
+      <div class="example__output" style="display: flex; gap: 24px; align-items: center; padding: 32px 16px;">
+        <ol-tooltip placement="top">
+          <button class="demo-btn">$_("Project Hail Mary")</button>
+          <div slot="content" class="book-tip">
+            <div class="book-tip__heading">
+              <span class="book-tip__title">$_("Project Hail Mary")</span>
+              <span class="book-tip__year">(2021)</span>
+            </div>
+            <div class="book-tip__byline">$_("By Andy Weir")</div>
+          </div>
         </ol-tooltip>
       </div>
     </section>
