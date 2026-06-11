@@ -47,7 +47,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         except OLError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
             if e.code < 500:
-                return e.tex
+                return e.text
 
 
 def do_import(item, servername=None, require_marc=True):
