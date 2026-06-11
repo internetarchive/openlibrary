@@ -1228,43 +1228,16 @@ class my_follows(delegate.page):
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 
-def get_account_loans_page(user):
-    from openlibrary.core.lending import get_loans_of_user
-
-    user.update_loan_status()
-    username = user["key"].split("/")[-1]
-    mb = MyBooksTemplate(username, "loans")
-    docs = get_loans_of_user(user.key)
-    template = render["account/loans"](user, docs)
-    return mb.render(header_title=_("Loans"), template=template)
-
-
 def get_account_loans_json(user) -> dict[str, Any]:
     user.update_loan_status()
     loans = borrow.get_loans(user)
     return {"loans": loans}
 
 
-def _get_account_loan_history_context(user, page: int):
+def get_account_loan_history_data(user, page: int) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
     mb = MyBooksTemplate(username, key="loan_history")
-    return mb, get_loan_history_data(page=page, mb=mb)
-
-
-def get_account_loan_history_data(user, page: int) -> dict[str, Any]:
-    _, loan_history_data = _get_account_loan_history_context(user, page)
-    return loan_history_data
-
-
-def get_account_loan_history_page(user, page: int):
-    mb, loan_history_data = _get_account_loan_history_context(user, page)
-    template = render["account/loan_history"](
-        docs=loan_history_data["docs"],
-        current_page=page,
-        show_next=loan_history_data["show_next"],
-        ia_base_url=CONFIG_IA_DOMAIN,
-    )
-    return mb.render(header_title=_("Loan History"), template=template)
+    return get_loan_history_data(page=page, mb=mb)
 
 
 def get_account_loan_history_json(user, page: int) -> dict[str, Any]:
@@ -1274,14 +1247,20 @@ def get_account_loan_history_json(user, page: int) -> dict[str, Any]:
     return {"loans_history": loan_history_data}
 
 
-@deprecated("migrated to fastapi")
 class account_loans(delegate.page):
     path = "/account/loans"
 
     @require_login
     def GET(self):
+        from openlibrary.core.lending import get_loans_of_user
+
         user = accounts.get_current_user()
-        return get_account_loans_page(user)
+        user.update_loan_status()
+        username = user["key"].split("/")[-1]
+        mb = MyBooksTemplate(username, "loans")
+        docs = get_loans_of_user(user.key)
+        template = render["account/loans"](user, docs)
+        return mb.render(header_title=_("Loans"), template=template)
 
 
 @deprecated("migrated to fastapi")
@@ -1296,7 +1275,6 @@ class account_loans_json(delegate.page):
         return delegate.RawText(json.dumps(get_account_loans_json(user)))
 
 
-@deprecated("migrated to fastapi")
 class account_loan_history(delegate.page):
     path = "/account/loan-history"
 
@@ -1305,7 +1283,16 @@ class account_loan_history(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
-        return get_account_loan_history_page(user, page)
+        username = user["key"].split("/")[-1]
+        mb = MyBooksTemplate(username, key="loan_history")
+        loan_history_data = get_loan_history_data(page=page, mb=mb)
+        template = render["account/loan_history"](
+            docs=loan_history_data["docs"],
+            current_page=page,
+            show_next=loan_history_data["show_next"],
+            ia_base_url=CONFIG_IA_DOMAIN,
+        )
+        return mb.render(header_title=_("Loan History"), template=template)
 
 
 @deprecated("migrated to fastapi")

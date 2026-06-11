@@ -6,14 +6,12 @@ from __future__ import annotations
 
 import os
 from typing import Annotated, Any
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
-from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from infogami import config
-from infogami.utils.view import render_site
 from openlibrary import accounts
 from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user
 from openlibrary.core import stats
@@ -37,27 +35,6 @@ def _safe_redirect(url: str, default: str = "/") -> str:
     if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
         return default
     return url
-
-
-def _request_path_with_query(request: Request) -> str:
-    if request.url.query:
-        return f"{request.url.path}?{request.url.query}"
-    return request.url.path
-
-
-def _redirect_to_login(request: Request) -> RedirectResponse:
-    redirect = quote(_request_path_with_query(request), safe="")
-    return RedirectResponse(f"/account/login?redirect={redirect}", status_code=status.HTTP_303_SEE_OTHER)
-
-
-def _render_legacy_template(template_result: Any, path: str) -> str:
-    if hasattr(template_result, "rawtext"):
-        return str(template_result.rawtext)
-
-    if "title" not in template_result:
-        template_result.title = path.lstrip("/") or path
-
-    return str(render_site(config.site, template_result))
 
 
 def _require_legacy_current_user():
@@ -186,23 +163,6 @@ async def optional_auth_endpoint(
         }
 
 
-@router.get("/account/loans", response_class=HTMLResponse, response_model=None)
-def account_loans_page(
-    request: Request,
-    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
-) -> HTMLResponse | RedirectResponse:
-    if user is None:
-        return _redirect_to_login(request)
-
-    with legacy_web_ctx_from_fastapi(request):
-        legacy_user = accounts.get_current_user()
-        if legacy_user is None:
-            return _redirect_to_login(request)
-        html = _render_legacy_template(legacy_account.get_account_loans_page(legacy_user), request.url.path)
-
-    return HTMLResponse(html)
-
-
 @router.get("/account/loans.json")
 def account_loans_json(
     request: Request,
@@ -210,24 +170,6 @@ def account_loans_json(
 ) -> dict[str, Any]:
     with legacy_web_ctx_from_fastapi(request):
         return legacy_account.get_account_loans_json(_require_legacy_current_user())
-
-
-@router.get("/account/loan-history", response_class=HTMLResponse, response_model=None)
-def account_loan_history_page(
-    request: Request,
-    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
-    page: Annotated[int, Query(ge=1)] = 1,
-) -> HTMLResponse | RedirectResponse:
-    if user is None:
-        return _redirect_to_login(request)
-
-    with legacy_web_ctx_from_fastapi(request):
-        legacy_user = accounts.get_current_user()
-        if legacy_user is None:
-            return _redirect_to_login(request)
-        html = _render_legacy_template(legacy_account.get_account_loan_history_page(legacy_user, page), request.url.path)
-
-    return HTMLResponse(html)
 
 
 @router.get("/account/loan-history.json")

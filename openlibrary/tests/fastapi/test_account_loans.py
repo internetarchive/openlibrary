@@ -9,7 +9,6 @@ import web
 from starlette.requests import Request
 
 from infogami.utils.context import context as legacy_context
-from openlibrary.fastapi.auth import AuthenticatedUser, get_authenticated_user
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.utils import request_context
 
@@ -27,72 +26,11 @@ class FakeEdition:
         return {"key": "/books/OL1M", "title": "Serialized Edition"}
 
 
-@pytest.fixture
-def mock_optional_authenticated_user(fastapi_client):
-    fake_user = AuthenticatedUser(
-        username="testuser",
-        user_key="/people/testuser",
-        timestamp="2026-01-01T00:00:00",
-    )
-    fastapi_client.app.dependency_overrides[get_authenticated_user] = lambda: fake_user
-    yield fake_user
-    fastapi_client.app.dependency_overrides.clear()
-
-
 def _mock_legacy_context():
     return patch("openlibrary.fastapi.account.legacy_web_ctx_from_fastapi", return_value=nullcontext())
 
 
-class TestAccountLoansPages:
-    def test_loans_page_renders_legacy_template(self, fastapi_client, mock_optional_authenticated_user):
-        legacy_user = FakeLegacyUser()
-        template = web.storage(rawtext="<section>Loans page</section>")
-
-        with (
-            _mock_legacy_context(),
-            patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.fastapi.account.legacy_account.get_account_loans_page", return_value=template) as get_page,
-        ):
-            response = fastapi_client.get("/account/loans")
-
-        assert response.status_code == 200
-        assert response.headers["content-type"].startswith("text/html")
-        assert response.text == "<section>Loans page</section>"
-        get_page.assert_called_once_with(legacy_user)
-
-    def test_loan_history_page_forwards_page_query(self, fastapi_client, mock_optional_authenticated_user):
-        legacy_user = FakeLegacyUser()
-        template = web.storage(rawtext="<section>Loan history page</section>")
-
-        with (
-            _mock_legacy_context(),
-            patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.fastapi.account.legacy_account.get_account_loan_history_page", return_value=template) as get_page,
-        ):
-            response = fastapi_client.get("/account/loan-history?page=3")
-
-        assert response.status_code == 200
-        assert response.text == "<section>Loan history page</section>"
-        get_page.assert_called_once_with(legacy_user, 3)
-
-    @pytest.mark.parametrize(
-        ("path", "location"),
-        [
-            ("/account/loans", "/account/login?redirect=%2Faccount%2Floans"),
-            ("/account/loan-history?page=2", "/account/login?redirect=%2Faccount%2Floan-history%3Fpage%3D2"),
-        ],
-    )
-    def test_html_pages_redirect_unauthenticated_users_to_login(self, fastapi_client, path, location):
-        response = fastapi_client.get(path, follow_redirects=False)
-
-        assert response.status_code == 303
-        assert response.headers["location"] == location
-
-    def test_loan_history_page_rejects_invalid_page(self, fastapi_client, mock_optional_authenticated_user):
-        response = fastapi_client.get("/account/loan-history?page=0")
-
-        assert response.status_code == 422
-
+class TestLegacyContextBridge:
     def test_legacy_context_bridge_populates_infogami_template_context(self):
         legacy_user = FakeLegacyUser()
         legacy_site = Mock(_conn=Mock())
@@ -105,7 +43,7 @@ class TestAccountLoansPages:
                 "type": "http",
                 "method": "GET",
                 "scheme": "http",
-                "path": "/account/loans",
+                "path": "/account/loans.json",
                 "query_string": b"rescue=true",
                 "headers": [(b"host", b"testserver")],
                 "client": ("127.0.0.1", 1234),
@@ -117,10 +55,11 @@ class TestAccountLoansPages:
 
         try:
             with request_context.legacy_web_ctx_from_fastapi(request):
-                assert web.ctx.path == "/account/loans"
+                assert web.ctx.path == "/account/loans.json"
+                assert web.ctx.encoding == "json"
                 assert web.ctx.render_once == {}
                 assert web.ctx.site == legacy_site
-                assert legacy_context.path == "/account/loans"
+                assert legacy_context.path == "/account/loans.json"
                 assert legacy_context.user == legacy_user
                 assert legacy_context.rescue_mode is True
 
