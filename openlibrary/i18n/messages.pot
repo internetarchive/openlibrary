@@ -5241,76 +5241,6 @@ msgstr ""
 msgid "top-center"
 msgstr ""
 
-#: design/toggle.html
-#, python-format
-msgid ""
-"The %(tag)s component is a switch with a bold label and an optional "
-"greyed sublabel. The whole control is one %(role)s button, so the entire "
-"surface is clickable and Enter/Space activate it. It owns its on/off "
-"state: clicking flips %(checked)s and fires %(event)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Default"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid ""
-"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
-" %(sublabel)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Card variant"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid ""
-"Use %(variant)s for a bordered container. When checked, it fills with a "
-"solid primary-blue background and white text — the same treatment as a "
-"selected %(chip)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Custom label content"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid ""
-"Put content in the default slot to customize the label instead of using "
-"%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
-" has an accessible name."
-msgstr ""
-
-#: design/toggle.html
-msgid "Dark mode"
-msgstr ""
-
-#: design/toggle.html
-msgid "easier on the eyes"
-msgstr ""
-
-#: design/toggle.html
-msgid "Disabled"
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Add %(disabled)s to block interaction."
-msgstr ""
-
-#: design/toggle.html
-#, python-format
-msgid "Toggling fires %(event)s with the new state in %(detail)s."
-msgstr ""
-
-#: design/toggle.html
-msgid "Checked:"
-msgstr ""
-
 #: design/toast.html
 #, python-format
 msgid ""
@@ -5410,6 +5340,76 @@ msgstr ""
 msgid ""
 "The toast fires %(event)s once when it begins closing, with the reason in"
 " %(detail)s."
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"The %(tag)s component is a switch with a bold label and an optional "
+"greyed sublabel. The whole control is one %(role)s button, so the entire "
+"surface is clickable and Enter/Space activate it. It owns its on/off "
+"state: clicking flips %(checked)s and fires %(event)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Default"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
+" %(sublabel)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Card variant"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Use %(variant)s for a bordered container. When checked, it fills with a "
+"solid primary-blue background and white text — the same treatment as a "
+"selected %(chip)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Custom label content"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid ""
+"Put content in the default slot to customize the label instead of using "
+"%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
+" has an accessible name."
+msgstr ""
+
+#: design/toggle.html
+msgid "Dark mode"
+msgstr ""
+
+#: design/toggle.html
+msgid "easier on the eyes"
+msgstr ""
+
+#: design/toggle.html
+msgid "Disabled"
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Add %(disabled)s to block interaction."
+msgstr ""
+
+#: design/toggle.html
+#, python-format
+msgid "Toggling fires %(event)s with the new state in %(detail)s."
+msgstr ""
+
+#: design/toggle.html
+msgid "Checked:"
 msgstr ""
 
 #: email/case_created.html
