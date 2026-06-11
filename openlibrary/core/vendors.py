@@ -429,86 +429,42 @@ class AmazonCreatorsAPI:
                 # which reads HTTP_PROXY from the environment.  After this PR
                 # lands, HTTP_PROXY will be a bare (unauthenticated) squid URL;
                 # Amazon's token endpoint requires authenticated proxy access, so
-                # the bare URL would produce a 403.  We override refresh_token()
-                # here to use a requests.Session with the authenticated proxy URL
-                # embedded directly, bypassing the env-var lookup entirely.
+                # the bare URL would produce a 403.  We inject a custom token
+                # manager subclass that patches requests.post() during refresh
+                # to use a session with embedded proxy credentials.
                 if proxy_creds:
-                    from urllib.parse import (
-                        quote as _urlquote,
-                    )
-                    from urllib.parse import (
-                        urlparse as _urlparse,
-                    )
-                    from urllib.parse import (
-                        urlunparse as _urlunparse,
+                    from creatorsapi_python_sdk.auth.oauth2_config import OAuth2Config
+                    from creatorsapi_python_sdk.auth.oauth2_token_manager import OAuth2TokenManager
+
+                    session = requests.Session()
+                    session.proxies = _build_authenticated_proxy_config(
+                        proxy_url, proxy_creds
                     )
 
-                    from creatorsapi_python_sdk.auth.oauth2_config import (
-                        OAuth2Config as _OAuth2Config,
-                    )
-                    from creatorsapi_python_sdk.auth.oauth2_token_manager import (
-                        OAuth2TokenManager as _OAuth2TokenManager,
-                    )
-
-                    _user, _, _password = proxy_creds.partition(":")
-                    _parsed = _urlparse(proxy_url)
-                    _netloc = f"{_urlquote(_user, safe='')}:{_urlquote(_password, safe='')}@{_parsed.hostname}"
-                    if _parsed.port:
-                        _netloc += f":{_parsed.port}"
-                    _auth_proxy_url = _urlunparse(_parsed._replace(netloc=_netloc))
-                    _proxies = {"http": _auth_proxy_url, "https": _auth_proxy_url}
-
-                    class _ProxyAwareTokenManager(_OAuth2TokenManager):
+                    class ProxyAwareTokenManager(OAuth2TokenManager):
                         """Routes OAuth2 token refresh through authenticated proxy."""
 
                         def refresh_token(self):
-                            import requests as _req
+                            from unittest.mock import patch
+                            from creatorsapi_python_sdk.auth import (
+                                oauth2_token_manager,
+                            )
 
-                            session = _req.Session()
-                            session.proxies = _proxies
-                            try:
-                                if self.config.is_lwa():
-                                    resp = session.post(
-                                        self.config.get_cognito_endpoint(),
-                                        json={
-                                            "grant_type": self.config.get_grant_type(),
-                                            "client_id": self.config.get_credential_id(),
-                                            "client_secret": self.config.get_credential_secret(),
-                                            "scope": self.config.get_scope(),
-                                        },
-                                        headers={"Content-Type": "application/json"},
-                                    )
-                                else:
-                                    resp = session.post(
-                                        self.config.get_cognito_endpoint(),
-                                        data={
-                                            "grant_type": self.config.get_grant_type(),
-                                            "client_id": self.config.get_credential_id(),
-                                            "client_secret": self.config.get_credential_secret(),
-                                            "scope": self.config.get_scope(),
-                                        },
-                                        headers={"Content-Type": "application/x-www-form-urlencoded"},
-                                    )
-                                if resp.status_code != 200:
-                                    raise Exception(f"OAuth2 token request failed with status {resp.status_code}: {resp.text}")
-                                data = resp.json()
-                                if "access_token" not in data:
-                                    raise Exception("No access token received from OAuth2 endpoint")
-                                self.access_token = data["access_token"]
-                                self.expires_at = time.time() + data.get("expires_in", 3600) - 30
-                                return self.access_token
-                            except Exception:
-                                self.clear_token()
-                                raise
+                            with patch.object(
+                                oauth2_token_manager.requests,
+                                "post",
+                                side_effect=session.post,
+                            ):
+                                return super().refresh_token()
 
                     api_client = self.api._api_client
-                    _oauth_config = _OAuth2Config(
+                    oauth_config = OAuth2Config(
                         api_client.credential_id,
                         api_client.credential_secret,
                         api_client.version,
                         api_client.auth_endpoint,
                     )
-                    api_client._token_manager = _ProxyAwareTokenManager(_oauth_config)
+                    api_client._token_manager = ProxyAwareTokenManager(oauth_config)
 
             except (ImportError, AttributeError):
                 logger.warning(
@@ -994,3 +950,22 @@ def betterworldbooks_fmt(
         "price_amt": price,
         "qlt": qlt,
     }
+
+
+def _build_authenticated_proxy_config(proxy_url: str, proxy_creds: str) -> dict[str, str]:
+    """
+    Parses proxy URL and credentials, returning a proxies dict with embedded auth.
+
+    :param str proxy_url: HTTP proxy URL (e.g., 'http://proxy.example.com:3128')
+    :param str proxy_creds: Proxy credentials in 'user:password' format
+    :return: Dict of {"http": auth_proxy_url, "https": auth_proxy_url}
+    """
+    from urllib.parse import quote, urlparse, urlunparse
+
+    user, _, password = proxy_creds.partition(":")
+    parsed = urlparse(proxy_url)
+    netloc = f"{quote(user, safe='')}:{quote(password, safe='')}@{parsed.hostname}"
+    if parsed.port:
+        netloc += f":{parsed.port}"
+    auth_proxy_url = urlunparse(parsed._replace(netloc=netloc))
+    return {"http": auth_proxy_url, "https": auth_proxy_url}
