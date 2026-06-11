@@ -3311,7 +3311,7 @@ msgstr "Wer kann Open-Library-Seiten bearbeiten?"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "Dies gilt für /about/*, /help/*, /dev/*, /docs/* usw."
 
 #: admin/permissions.html
 msgid "Update permissions"
@@ -3322,6 +3322,8 @@ msgid ""
 "This updates \"permission\" and \"child_permission\" fields of /, /works,"
 " /books and /authors records in the database."
 msgstr ""
+"Dies aktualisiert die Felder \"permission\" und \"child_permission\" der "
+"/, /works, /books und /authors-Datensätze in der Datenbank."
 
 #: admin/solr.html
 #, fuzzy
@@ -3343,6 +3345,9 @@ msgid ""
 "On update, these keys will be added to solr update queue and it'll take "
 "about 15 minutes for them to get reindexed in Solr."
 msgstr ""
+"Bei der Aktualisierung werden diese Schlüssel der Solr-"
+"Aktualisierungswarteschlange hinzugefügt. Die Neuindizierung in Solr "
+"dauert etwa 15 Minuten."
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
@@ -3362,16 +3367,20 @@ msgid ""
 "Please enter the SPAM regular expressions in the textarea below, one per "
 "line."
 msgstr ""
+"Bitte geben Sie die SPAM-Regulärausdrücke im Textfeld unten ein, einen "
+"pro Zeile."
 
 #: admin/spamwords.html
 msgid ""
 "Be sure to escape any meta characters that are meant to be character "
 "literals."
 msgstr ""
+"Stellen Sie sicher, dass alle Metazeichen, die als buchstäbliche Zeichen "
+"gemeint sind, maskiert werden."
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "Wenn Sie eine Domain hinzufügen, stellen Sie Folgendes der Domain voran:"
 
 #: admin/spamwords.html
 msgid ""
@@ -3388,16 +3397,20 @@ msgstr "Spambegriffe"
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
 msgstr ""
+"Bitte geben Sie die zu sperrenden Domains im Textfeld unten ein, eine pro"
+" Zeile."
 
 #: admin/sync.html
 msgid "Sync"
-msgstr ""
+msgstr "Synchronisieren"
 
 #: admin/sync.html
 msgid ""
 "Sync the metadata of various types of Open Library items (e.g. lists, "
 "subjects, works) with Archive.org."
 msgstr ""
+"Metadaten verschiedener Open-Library-Elemente (z. B. Listen, Themen, "
+"Werke) mit Archive.org synchronisieren."
 
 #: admin/sync.html
 #, fuzzy
@@ -3413,6 +3426,11 @@ msgid ""
 "injected into the archive.org metadata of the edition's corresponding "
 "archive.org item."
 msgstr ""
+"Dieses Hilfsprogramm fügt Ihr Werk einer Open-Library-Liste namens `Staff"
+" Picks` unter dem Nutzer `openlibrary` hinzu. Anschließend wird das Werk "
+"in eine Liste aller lesbaren Ausgaben expandiert. Für jede Open-Library-"
+"Ausgabe wird ein Metadatenfeld `openlibrary_subject` in die archive.org-"
+"Metadaten des entsprechenden archive.org-Elements eingefügt."
 
 #: admin/sync.html
 #, fuzzy
@@ -3434,6 +3452,8 @@ msgid ""
 "Updates an edition on archive.org by writing in its latest  "
 "openlibrary_edition and openlibrary_work identifier values"
 msgstr ""
+"Aktualisiert eine Ausgabe auf archive.org durch Eintragen der neuesten "
+"openlibrary_edition- und openlibrary_work-Bezeichner"
 
 #: admin/sync.html
 #, fuzzy
@@ -3455,12 +3475,16 @@ msgid ""
 "Add one memcache key per line in the text area. Each key must include a "
 "'-' as the last character."
 msgstr ""
+"Geben Sie einen Memcache-Schlüssel pro Zeile im Textfeld ein. Jeder "
+"Schlüssel muss '-' als letztes Zeichen enthalten."
 
 #: admin/inspect/memcache.html
 msgid ""
 "For example, <code>observations-</code> should be entered in the text "
 "area if the key is <code>observations</code>."
 msgstr ""
+"Wenn der Schlüssel z. B. <code>observations</code> lautet, geben Sie "
+"<code>observations-</code> im Textfeld ein."
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -3494,15 +3518,15 @@ msgstr "Speicher untersuchen"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "Abrufen"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "Schlüssel"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "Abfrage"
 
 #: admin/inspect/store.html
 #, fuzzy
@@ -3561,7 +3585,7 @@ msgstr "Anzahl der Änderungen"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "vor x Minuten"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
@@ -3616,7 +3640,7 @@ msgstr "Als Spam zurückgesetzt"
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "[Administrationszentrum] Bearbeitungen von %(user)s"
 
 #: admin/people/edits.html
 msgid "people"
@@ -3654,7 +3678,7 @@ msgstr "IA ID:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "z. B. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
@@ -3679,7 +3703,7 @@ msgstr "Verlauf"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "alle Bearbeitungen sperren und rückgängig machen"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3693,7 +3717,7 @@ msgstr "<span class=\"time\">%(date)s</span> zuletzt aktualisiert"
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "als dieser Nutzer anmelden"
 
 #: admin/people/view.html
 #, python-format
@@ -3701,10 +3725,12 @@ msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
 "href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
+"Aktiviert am <span class=\"time\">%(date)s</span> von <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "dieses Konto entsperren"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3766,7 +3792,7 @@ msgstr "Konto anonymisieren:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Testlauf"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
@@ -3789,7 +3815,7 @@ msgstr "Wartende Ausleihen"
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d Bearbeitungen"
 
 #: admin/people/view.html
 msgid "Debug Info"
@@ -3797,7 +3823,7 @@ msgstr "Debug-Informationen"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "Kontoinformationen"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3837,7 +3863,7 @@ msgstr "Inklusive <i>%(topwork)s</i>"
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "Auf %(site)s ansehen"
 
 #: authors/infobox.html
 msgid "Born"
@@ -3962,7 +3988,7 @@ msgstr "Mehr auf OpenStax"
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "Eine Lesung aus %s anhören"
 
 #: book_providers/read_button.html
 msgid "Audiobook"
@@ -3971,7 +3997,7 @@ msgstr "Hörbuch"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Kostenlos online lesen auf %s"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -3980,7 +4006,7 @@ msgstr "HTML von Project Gutenberg herunterladen"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Gescannte Bilder"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -4004,7 +4030,7 @@ msgstr "Kindle-Datei von Project Gutenberg herunterladen"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "Text- und Indexdateien"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -4069,7 +4095,7 @@ msgstr "Ein MOBI aus dem Internet Archive herunterladen"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "MOBI (für Kindle)"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -4078,11 +4104,11 @@ msgstr "Ein ePub aus dem Internet Archive herunterladen"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (für die meisten anderen E-Reader)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Bei Wikisource lesen"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
@@ -4133,7 +4159,7 @@ msgstr "Bitte einen Wert für die gewählte Identifikationsnummer eingeben"
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Sind Sie sicher, dass dies das Veröffentlichungsdatum ist?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
@@ -4174,7 +4200,7 @@ msgstr "Zum Beispiel:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
@@ -4214,7 +4240,7 @@ msgstr "ISBN"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 #, fuzzy
@@ -4223,7 +4249,7 @@ msgstr "Mehr auf LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 #, fuzzy
@@ -4247,6 +4273,11 @@ msgid ""
 "target=\"_blank\" rel=\"noopener noreferrer\" "
 "title=\"%(cc_link_title)s\">CC0</a>."
 msgstr ""
+"Durch das Speichern einer Änderung in diesem Wiki stimmen Sie zu, dass "
+"Ihr Beitrag der Welt unter <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a> frei zur Verfügung gestellt wird."
 
 #: books/add.html
 #, fuzzy
@@ -4377,6 +4408,11 @@ msgid ""
 " by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
 msgstr ""
+"Es gibt zwei Arten von DAISYs auf Open Library: <i>offene</i> und "
+"<i>geschützte</i>. Offene DAISYs können von jedem weltweit auf vielen "
+"verschiedenen Geräten gelesen werden. Geschützte DAISYs können nur mit "
+"einem Schlüssel des <a href=\"http://www.loc.gov/nls/\">Library of "
+"Congress NLS-Programms</a> geöffnet werden."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -4393,6 +4429,11 @@ msgid ""
 "books</span> offer the benefits of regular audiobooks, with navigation "
 "within the book, to chapters or specific pages."
 msgstr ""
+"Das DAISY-Digitalformat hilft Menschen mit Schwierigkeiten beim Nutzen "
+"gedruckter Medien. Digitale DAISY-<span "
+"class=\"highlight\">Hörbücher</span> bieten die Vorteile normaler "
+"Hörbücher mit Navigation innerhalb des Buches zu Kapiteln oder bestimmten"
+" Seiten."
 
 #: books/daisy.html
 msgid "More information at daisy.org"
@@ -4410,6 +4451,11 @@ msgid ""
 "circulated to eligible borrowers in the United States through a national "
 "network of cooperating libraries."
 msgstr ""
+"Der <a href=\"http://www.loc.gov/nls/\">National Library Service for the "
+"Blind and Physically Handicapped (NLS)</a> der Library of Congress "
+"verwaltet ein kostenloses Bibliotheksprogramm mit Braille- und "
+"Audiomaterialien, das über ein nationales Netz kooperierender "
+"Bibliotheken an berechtigte Nutzer in den USA verteilt wird."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
@@ -4428,6 +4474,12 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
+"Neben<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible "
+"book\"> zahlreichen offenen DAISYs</a> listet Open Library eine kleinere "
+"Auswahl<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected "
+"DAISY\"> geschützter DAISY-Titel</a>, die für Inhaber eines Library-of-"
+"Congress-NLS-Schlüssels zugänglich sind. Diese Titel werden vom<a "
+"href=\"//archive.org/\"> Internet Archive</a> bereitgestellt."
 
 #: books/daisy.html
 msgid ""
@@ -4537,14 +4589,18 @@ msgid ""
 "librarians and admins, like you! Any series you set will be visible by "
 "everyone, however. Please report any issues you have on Slack or GitHub."
 msgstr ""
+"Serien befinden sich derzeit in der Beta-Phase und dieser Bereich ist nur"
+" für Super-Bibliothekarinnen/-bibliothekare und Admins wie Sie sichtbar! "
+"Alle von Ihnen festgelegten Serien sind jedoch für alle sichtbar. Bitte "
+"melden Sie Probleme auf Slack oder GitHub."
 
 #: books/edit.html
 msgid "Is this work part of a larger series?"
-msgstr ""
+msgstr "Ist dieses Werk Teil einer größeren Serie?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Z. B. Harry Potter, Das Schwert der Wahrheit"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 #, fuzzy
@@ -4562,6 +4618,9 @@ msgid ""
 "Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
 " LCCN, go to the edition tab."
 msgstr ""
+"Diese Bezeichner gelten für alle Ausgaben dieses Werks, z. B. Wikidata-"
+"Werkbezeichner. Für ausgabenspezifische Bezeichner wie ISBN oder LCCN "
+"gehen Sie zum Ausgaben-Tab."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
@@ -4775,7 +4834,7 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "Zum Beispiel: <i>Die nächsten 50 Jahre im Blick</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
@@ -4783,7 +4842,7 @@ msgstr "Veröffentlichungsinformationen"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Zum Beispiel <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
@@ -4795,7 +4854,7 @@ msgstr "Ort und Land bitte."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "Zum Beispiel: <i>New York, USA; Sydney, Australien</i>"
 
 #: books/edit/edition.html
 msgid "What is the copyright date?"
@@ -4811,7 +4870,7 @@ msgstr "Name der Ausgabe (falls zutreffend):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "Zum Beispiel: <i>Jubiläumsausgabe</i>; <i>Erste Ausgabe</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
@@ -4823,7 +4882,7 @@ msgstr "Der Name der Verlags-Reihe."
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "Zum Beispiel: <i>Die Geschichte der Zivilisation, Teil III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
@@ -4859,7 +4918,7 @@ msgstr "Geschrieben von:"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Zum Beispiel: <em>herausgegeben von David Anderson</em>"
 
 #: books/edit/edition.html languages/index.html
 msgid "Languages"
@@ -4915,6 +4974,10 @@ msgid ""
 "descriptions. We don't have a great user interface for this yet, so "
 "editing this data could be difficult. Watch out!"
 msgstr ""
+"Dieses Inhaltsverzeichnis enthält zusätzliche Informationen wie Autoren "
+"oder Beschreibungen. Wir haben dafür noch keine benutzerfreundliche "
+"Oberfläche, daher kann das Bearbeiten dieser Daten schwierig sein. "
+"Vorsicht!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -4949,6 +5012,8 @@ msgid ""
 "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a "
 "href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 msgstr ""
+"Zum Beispiel: <i>Eaters of the Dead</i> ist ein alternativer Titel für "
+"<i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -5090,7 +5155,7 @@ msgstr "Hilfe"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Zum Beispiel: <em>xii, 346 S.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
@@ -5186,7 +5251,7 @@ msgstr "Seitenzahl?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "Zum Beispiel: <i>23, xi oder 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
@@ -5250,7 +5315,7 @@ msgstr "Geben Sie ihrem Link eine Label"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Zum Beispiel: <em>New York Times Rezension</em>"
 
 #: books/edit/web.html
 msgid "URL"
@@ -5312,6 +5377,8 @@ msgid ""
 "Learn more by reading our <a href=\"/help/faq/editing#picture\" "
 "target=\"blank\">%(guidelines)s</a>."
 msgstr ""
+"Erfahren Sie mehr in unseren <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 #, fuzzy
@@ -5335,11 +5402,11 @@ msgstr "Hochladen..."
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Oder fügen Sie ein Bild aus der Zwischenablage ein"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Bild aus Zwischenablage einfügen"
 
 #: covers/add.html
 #, fuzzy
@@ -5434,7 +5501,7 @@ msgstr "Verwalten"
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Oder verwenden Sie ein Bild von %s"
 
 #: covers/manage.html
 msgid ""
@@ -5480,16 +5547,22 @@ msgid ""
 "transform-origin, closes on Escape or outside click, and respects "
 "prefers-reduced-motion."
 msgstr ""
+"Die ol-popover-Komponente bietet ein wiederverwendbares animiertes "
+"Popover-Panel, das an einem Auslöseelement verankert ist. Es animiert vom"
+" Auslöser über transform-origin, schließt sich bei Escape oder Klick "
+"außerhalb und berücksichtigt prefers-reduced-motion."
 
 #: design/popover.html
 msgid "Menu popover"
-msgstr ""
+msgstr "Menü-Popover"
 
 #: design/popover.html
 msgid ""
 "Popovers animate from the trigger using transform-origin. Click the "
 "button to see the scale + fade entrance."
 msgstr ""
+"Popovers animieren vom Auslöser über transform-origin. Klicken Sie auf "
+"die Schaltfläche, um den Skalierungs- und Einblendeffekt zu sehen."
 
 #: design/popover.html
 #, fuzzy
@@ -5514,7 +5587,7 @@ msgstr "Entfernen"
 
 #: design/popover.html
 msgid "Placement options"
-msgstr ""
+msgstr "Platzierungsoptionen"
 
 #: design/popover.html
 #, python-format
@@ -5523,10 +5596,13 @@ msgid ""
 "%(transform_origin)s automatically matches so the animation always "
 "expands from the trigger."
 msgstr ""
+"Verwenden Sie %(placement)s, um zu steuern, wo das Popover erscheint. Der"
+" %(transform_origin)s passt sich automatisch an, sodass die Animation "
+"immer vom Auslöser ausgeht."
 
 #: design/popover.html
 msgid "bottom-start"
-msgstr ""
+msgstr "bottom-start"
 
 #: design/popover.html
 #, fuzzy
@@ -5541,6 +5617,8 @@ msgstr "Abschicken"
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
 msgstr ""
+"Vielen Dank für Ihre Nachricht. Wir werden uns so schnell wie möglich bei"
+" Ihnen melden."
 
 #: email/case_created.html
 msgid ""
@@ -5548,10 +5626,12 @@ msgid ""
 "messages, but rest assured we will, and we'll get back to you if "
 "required."
 msgstr ""
+"Es kann etwas dauern, bis wir sie lesen, da wir viele Nachrichten "
+"erhalten, aber wir werden sie lesen und uns bei Bedarf bei Ihnen melden."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Qualifikation für besonderen Druckbehinderungszugang"
 
 #: history/sources.html
 #, fuzzy
@@ -5635,11 +5715,11 @@ msgstr "Lehrbücher"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Bücher in lokaler Umgebung"
 
 #: home/loans.html
 #, fuzzy, python-format
@@ -5657,6 +5737,8 @@ msgid ""
 "You have reached the borrowing limit. Please return a book to checkout "
 "something new."
 msgstr ""
+"Sie haben das Ausleihlimit erreicht. Bitte geben Sie ein Buch zurück, um "
+"etwas Neues auszuleihen."
 
 #: home/stats.html
 msgid "Around the Library"
