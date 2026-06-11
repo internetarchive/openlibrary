@@ -872,24 +872,26 @@ msgstr "Rohe Importdaten anzeigen"
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "Neuer %(thing_type)s-Datensatz wird erstellt"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "Änderungen an %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "Interner Fehler"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "Ein Problem ist aufgetreten"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
 msgstr ""
+"Es tut uns leid, beim Bearbeiten Ihrer Anfrage ist ein Problem "
+"aufgetreten:"
 
 #: internalerror.html
 #, python-format
@@ -897,6 +899,9 @@ msgid ""
 "The reference code %s and Sentry trace ID %s have been created to track "
 "this error and we will investigate as we're able."
 msgstr ""
+"Der Referenzcode %s und die Sentry-Trace-ID %s wurden zur Verfolgung "
+"dieses Fehlers erstellt und wir werden ihn untersuchen, sobald wir "
+"können."
 
 #: internalerror.html
 #, python-format
@@ -904,16 +909,20 @@ msgid ""
 "The reference code %s has been created to track this error and we will "
 "investigate as we're able."
 msgstr ""
+"Der Referenzcode %s wurde zur Verfolgung dieses Fehlers erstellt und wir "
+"werden ihn untersuchen, sobald wir können."
 
 #: internalerror.html
 msgid ""
 "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
 "page</a>?"
 msgstr ""
+"Zurück zur <a class=\"go-back-link\" href=\"javascript:;\">vorherigen "
+"Seite</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "Sie werden zu Ihrem Buch weitergeleitet"
 
 #: interstitial.html
 #, python-format
@@ -921,11 +930,13 @@ msgid ""
 "This book is provided by %(book_provider)s, a third-party Open Library "
 "Trusted Book Provider"
 msgstr ""
+"Dieses Buch wird von %(book_provider)s bereitgestellt, einem "
+"vertrauenswürdigen Drittanbieter von Open Library"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "In %(time)s Sekunden werden Sie automatisch weitergeleitet zu: %(url)s"
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
@@ -937,7 +948,7 @@ msgstr "Abbrechen"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "Ohne Warten fortfahren"
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
@@ -974,6 +985,8 @@ msgid ""
 "Log in to use your free Open Library card to borrow digital books from "
 "the nonprofit Internet Archive"
 msgstr ""
+"Melden Sie sich an, um Ihre kostenlose Open-Library-Karte zu nutzen und "
+"digitale Bücher von der gemeinnützigen Internet Archive auszuleihen"
 
 #: account/create.html login.html
 msgid "OR"
@@ -1022,7 +1035,7 @@ msgstr "Passwort vergessen?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "Passwortsichtbarkeit umschalten"
 
 #: login.html
 msgid "Remember me"
@@ -1088,7 +1101,7 @@ msgstr "Suchen Sie ein Template/Macro?"
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "Berechtigung von %(key)s"
 
 #: permission.html
 msgid "Permission of"
@@ -1117,6 +1130,8 @@ msgid ""
 "Only logged users are allowed to add records on Open Library. Please <a "
 "href=\"%s\">log in</a> to add a book."
 msgstr ""
+"Nur angemeldete Nutzer dürfen Datensätze zu Open Library hinzufügen. "
+"Bitte <a href=\"%s\">melden Sie sich an</a>, um ein Buch hinzuzufügen."
 
 #: permission_denied.html
 #, python-format
@@ -1124,6 +1139,9 @@ msgid ""
 "Only logged users are allowed to modify records on Open Library. Please "
 "<a href=\"%s\">log in</a> to edit this page."
 msgstr ""
+"Nur angemeldete Nutzer dürfen Datensätze auf Open Library bearbeiten. "
+"Bitte <a href=\"%s\">melden Sie sich an</a>, um diese Seite zu "
+"bearbeiten."
 
 #: permission_denied.html
 #, python-format
@@ -1208,11 +1226,11 @@ msgstr "Serverstatus"
 
 #: status.html
 msgid "Testing Environment"
-msgstr ""
+msgstr "Testumgebung"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "Deployment ausgelöst!"
 
 #: status.html
 #, fuzzy
@@ -1221,15 +1239,15 @@ msgstr "In Bearbeitung..."
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "GitHub-Status aktualisiert."
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "PR-Nummern oder URLs, durch Leerzeichen/Komma getrennt"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "PR(s) hinzufügen"
 
 #: status.html
 #, fuzzy
@@ -1250,7 +1268,7 @@ msgstr "Autor"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "Zugewiesen an"
 
 #: status.html
 #, fuzzy
@@ -1284,7 +1302,7 @@ msgstr "Unbekannter Autor"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "1 Commit zurück"
 
 #: status.html
 #, fuzzy, python-format
@@ -1302,7 +1320,7 @@ msgstr "Beispiel"
 
 #: status.html
 msgid "Disable"
-msgstr ""
+msgstr "Deaktivieren"
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
@@ -1325,15 +1343,15 @@ msgstr "Antworten"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "Keine PRs im Testset."
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "Letztes Build-Ergebnis"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "PRs auf GitHub ansehen"
 
 #: status.html
 #, fuzzy
@@ -1347,11 +1365,11 @@ msgstr "Name"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "Systeminformationen"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "Aktivierte Funktionen"
 
 #: subjects.html
 #, fuzzy
@@ -1381,7 +1399,7 @@ msgstr "Suche nach Büchern mit dem Thema %(name)s."
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "Disambiguierungen"
 
 #: trending.html
 msgid "Now"
@@ -1474,11 +1492,11 @@ msgstr "E-Mail-Überprüfung fehlgeschlagen"
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "Bitte bestätigen Sie, dass Sie ein Mensch sind, um fortzufahren."
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "Bestätigen Sie, dass Sie ein Mensch sind"
 
 #: verify_human.html
 #, fuzzy
@@ -1570,16 +1588,16 @@ msgstr "RÜLPS! SuchmaschinenFEHLER!"
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Solr-Debugging:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "Vollständige URL:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "Keine <strong>%(path_id)s</strong> entspricht direkt Ihrer Suche."
 
 #: work_search.html
 #, fuzzy
@@ -1602,7 +1620,7 @@ msgstr[1] "%(count)s Treffer"
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Solr-Suche dauerte %(count)s Sekunden"
 
 # | msgid "Sign Up to Open Library"
 #: about/index.html
@@ -1614,10 +1632,12 @@ msgid ""
 "Open Library is made possible because of a dedicated team of staff and "
 "over 100 volunteers from around the globe."
 msgstr ""
+"Open Library ist dank eines engagierten Teams aus Mitarbeitern und über "
+"100 Freiwilligen aus aller Welt möglich."
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "Möchten Sie mitmachen?"
 
 #: about/index.html
 #, fuzzy
@@ -1645,7 +1665,7 @@ msgstr "Freiwillige"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "Abteilung:"
 
 #: about/index.html
 #, fuzzy
@@ -1659,7 +1679,7 @@ msgstr "Maße"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "Entwicklung"
 
 #: about/index.html
 #, fuzzy
@@ -1673,6 +1693,10 @@ msgid ""
 "href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
 "information form</a>."
 msgstr ""
+"Wenn Sie als Freiwillige/r für Open Library tätig sind und im Team "
+"aufgeführt werden möchten, füllen Sie das <a "
+"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open-Library-"
+"Teamformular</a> aus."
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
@@ -1689,7 +1713,7 @@ msgstr "Der Benutzername darf nur Ziffern und Buchstaben enthalten"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "Es muss ein qualifizierendes Programm ausgewählt werden"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
@@ -1704,6 +1728,8 @@ msgid ""
 "Get your free Open Library card and borrow digital books from the "
 "nonprofit Internet Archive"
 msgstr ""
+"Holen Sie sich Ihre kostenlose Open-Library-Karte und leihen Sie digitale"
+" Bücher von der gemeinnützigen Internet Archive aus"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
@@ -1733,20 +1759,27 @@ msgid ""
 "overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print "
 "disability access</a> through a qualifying program."
 msgstr ""
+"Ich möchte* <a href=\"https://help.archive.org/help/program-overview/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\">besonderen Zugang für "
+"Menschen mit Druckbehinderung</a> über ein qualifizierendes Programm "
+"beantragen."
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Qualifizierendes Programm auswählen"
 
 #: account/create.html
 msgid ""
 "* Please use the email address associated with this qualifying program. "
 "You will receive an email after activation with next steps."
 msgstr ""
+"* Bitte verwenden Sie die mit diesem qualifizierenden Programm verknüpfte"
+" E-Mail-Adresse. Sie erhalten nach der Aktivierung eine E-Mail mit den "
+"nächsten Schritten."
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Mit E-Mail registrieren"
 
 #: account/create.html
 #, fuzzy
@@ -1762,7 +1795,7 @@ msgstr ""
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Bereits ein Konto? <a href=\"/account/login\">Anmelden</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -1786,6 +1819,9 @@ msgid ""
 "href=\"https://www.goodreads.com/review/import\">Goodreads "
 "Import/Export</a>"
 msgstr ""
+"Anweisungen zum Datenexport finden Sie unter: <a "
+"href=\"https://www.goodreads.com/review/import\">Goodreads "
+"Import/Export</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
@@ -2324,7 +2360,7 @@ msgstr "Lese-Logbuch durchsuchen"
 #: account/reading_log.html type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— Nur <a href=\"%(url)s\">E-Books anzeigen</a>?"
 
 #: account/reading_log.html
 #, fuzzy, python-format
@@ -2666,21 +2702,23 @@ msgstr ""
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "Kontosicherheitsprüfung — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "Kontosicherheitsprüfung"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "Vorfalldatum: 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid ""
 "Check whether your Open Library account was in a set of accounts "
 "requiring attention."
 msgstr ""
+"Prüfen Sie, ob Ihr Open-Library-Konto zu den Konten gehört, die "
+"Aufmerksamkeit erfordern."
 
 #: account/security/check_email.html
 msgid ""
@@ -2688,6 +2726,9 @@ msgid ""
 "href=\"/account/login?redirect=/account/security/2026-04-28T18\">log "
 "in</a> to check whether your account was affected."
 msgstr ""
+"Bitte <a "
+"href=\"/account/login?redirect=/account/security/2026-04-28T18\">melden "
+"Sie sich an</a>, um zu prüfen, ob Ihr Konto betroffen ist."
 
 #: account/security/check_email.html
 #, fuzzy
@@ -2700,16 +2741,21 @@ msgid ""
 "recent communications from Open Library and consider updating your "
 "password."
 msgstr ""
+"Ihr Konto wurde in unserer Liste betroffener Konten gefunden. Bitte "
+"überprüfen Sie aktuelle Mitteilungen von Open Library und erwägen Sie, "
+"Ihr Passwort zu aktualisieren."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "Ihr Konto ist <em>nicht</em> in der betroffenen Gruppe."
 
 #: account/security/check_email.html
 msgid ""
 "Your account was <em>not</em> found in the affected accounts list. No "
 "action is required."
 msgstr ""
+"Ihr Konto wurde <em>nicht</em> in der Liste betroffener Konten gefunden. "
+"Es ist keine Maßnahme erforderlich."
 
 #: account/verify/activated.html
 msgid "Account already activated"
@@ -2765,16 +2811,16 @@ msgstr ""
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "Debugger anhängen"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Debugger an Python %(version_number)s anhängen"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "Debugger auf Port 3000 starten."
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
@@ -2795,6 +2841,8 @@ msgid ""
 "IP address %(address)s has been added to the textarea. Please click Save "
 "to block that IP."
 msgstr ""
+"IP-Adresse %(address)s wurde dem Textfeld hinzugefügt. Klicken Sie auf "
+"Speichern, um diese IP zu sperren."
 
 #: admin/block.html
 #, fuzzy
@@ -2803,7 +2851,7 @@ msgstr "IP-Adresse"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "Leistungsdiagramme"
 
 #: admin/graphs.html
 #, fuzzy
@@ -2817,11 +2865,11 @@ msgstr "Gesamtzeit"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "Aufschlüsselung der Seitenladezeiten"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "Infobase-Mittelwert"
 
 #: admin/history.html admin/imports.html authors/infobox.html
 #: type/author/edit.html
@@ -2880,7 +2928,7 @@ msgstr "Meine Leselisten:"
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>Aktuelle Importrate:</strong> %(num)d Importe/Stunde."
 
 #: admin/imports.html
 #, fuzzy
@@ -2889,7 +2937,7 @@ msgstr "Jahr:"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "Zusammenfassung nach Datum"
 
 #: admin/imports.html
 #, fuzzy
@@ -2965,6 +3013,8 @@ msgid ""
 "<span class=\"login-counts\">0</span> patrons have logged in at least "
 "once over the past 30 days."
 msgstr ""
+"<span class=\"login-counts\">0</span> Nutzer haben sich in den letzten 30"
+" Tagen mindestens einmal angemeldet."
 
 #: admin/index.html
 msgid "Stats"
@@ -3135,7 +3185,7 @@ msgstr "ePub"
 
 #: admin/loans_table.html
 msgid "No current loans."
-msgstr ""
+msgstr "Keine aktuellen Ausleihen."
 
 #: admin/loans_table.html
 #, python-format
@@ -3159,6 +3209,8 @@ msgstr "Beigetreten %(date)s"
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
 msgstr ""
+"#%(num_position)d von %(num_waitlist)d Personen auf der Warteliste für "
+"dieses Buch"
 
 #: ManageLoansButtons.html admin/loans_table.html
 #, fuzzy, python-format
@@ -3207,11 +3259,11 @@ msgstr "Memcache untersuchen"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "Zugriffsanfragen für Druckbehinderung"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "Aufschlüsselung nach qualifizierender Behörde"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3225,7 +3277,7 @@ msgstr "E-Mail"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "Erfüllt"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3251,7 +3303,7 @@ msgstr "Wer kann Open-Library-Einträge bearbeiten?"
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "Dies gilt für /authors/*, /books/* und /works/*-Datensätze."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library pages?"
