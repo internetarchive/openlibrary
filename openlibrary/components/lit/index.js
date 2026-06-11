@@ -17,4 +17,7 @@ export { OLChip } from './OLChip.js';
 export { OLChipGroup } from './OLChipGroup.js';
 export { OLButton } from './OLButton.js';
 export { OlToggle } from './OlToggle.js';
+export { OlBanner } from './OlBanner.js';
+export { OlToast } from './OlToast.js';
+export { OlToastRegion, showToast } from './OlToastRegion.js';
 export { OpenLibraryOTP } from './OpenLibraryOTP.js';

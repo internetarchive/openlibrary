@@ -75,8 +75,14 @@ def monkeytime(monkeypatch):
         nonlocal cur_time
         cur_time += secs
 
+    async def async_sleep(secs, result=None):
+        nonlocal cur_time
+        cur_time += secs
+        return result
+
     monkeypatch.setattr("time.time", time)
     monkeypatch.setattr("time.sleep", sleep)
+    monkeypatch.setattr("asyncio.sleep", async_sleep)
 
 
 @pytest.fixture

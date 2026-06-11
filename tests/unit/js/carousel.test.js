@@ -84,6 +84,31 @@ describe('Carousel', () => {
         expect(carousel.loadMore.allDone).toBe(false);
     });
 
+    test('uses i18n strings from data-config, even without the hidden input', async() => {
+        document.querySelector('input[name="carousel-i18n-strings"]').remove();
+        document.querySelector('.carousel').dataset.config = JSON.stringify({
+            i18n: { loading: 'Cargando...' },
+            loadMore: {
+                queryType: 'SUBJECTS',
+                q: 'subject:science',
+                pageMode: 'offset',
+                limit: 18,
+                key: 'science'
+            }
+        });
+        carousel = new Carousel($('.carousel'));
+        const request = $.Deferred();
+        $.ajax = jest.fn(() => request.promise());
+        carousel.loadMore.locked = true;
+
+        carousel.fetchPartials();
+        request.reject(new Error('Request failed'));
+        await flushPromises();
+
+        expect(slick.addSlide).toHaveBeenCalledWith('<div class="carousel__item carousel__loading-end">Cargando...</div>');
+        expect(carousel.loadMore.locked).toBe(false);
+    });
+
     test('does not remain locked when the i18n input is missing', async() => {
         document.querySelector('input[name="carousel-i18n-strings"]').remove();
         carousel = new Carousel($('.carousel'));

@@ -528,6 +528,12 @@ jQuery(function() {
             .then(module => module.initDismissibleBanners(banners));
     }
 
+    // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
+    if (document.querySelector('ol-banner[dismiss-id]')) {
+        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+            .then(module => module.initOlBannerDismissals());
+    }
+
     const returnForms = document.querySelectorAll('.return-form');
     if (returnForms.length) {
         import(/* webpackChunkName: "return-form" */ './return-form')
