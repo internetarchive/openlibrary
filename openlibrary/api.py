@@ -226,8 +226,8 @@ class OpenLibrary:
         }
         return self._request("/api/import/ia", method="POST", data=data).text
 
-    def import_data(self, data):
-        return self._request("/api/import", method="POST", data=data).text
+    def import_data(self, data, headers=None):
+        return self._request("/api/import", method="POST", data=data, headers=headers).text
 
 
 def marshal(data):
