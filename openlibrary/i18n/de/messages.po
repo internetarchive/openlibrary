@@ -6360,6 +6360,13 @@ msgid ""
 " an account</a>, your IP address is concealed and you can more easily "
 "keep track of all your edits and additions."
 msgstr ""
+"<strong>Sie sind nicht <a href=\"/account/login\" title=\"Jetzt "
+"anmelden\">angemeldet</a>.</strong> Open Library wird Ihre IP-Adresse "
+"aufzeichnen und sie in die öffentlich zugängliche Bearbeitungshistorie "
+"dieser Seite aufnehmen. Wenn Sie <a href=\"/account/create\" title"
+"=\"Open-Library-Konto erstellen\">ein Konto erstellen</a>, wird Ihre IP-"
+"Adresse verborgen und Sie können Ihre Bearbeitungen und Ergänzungen "
+"leichter verfolgen."
 
 #: librarian_dashboard/data_quality_table.html
 #, fuzzy
@@ -6374,11 +6381,11 @@ msgstr "Mailingliste"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Datenqualitätstabelle"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Qualitätskriterien"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -6387,7 +6394,7 @@ msgstr "Alle anzeigen"
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
-msgstr ""
+msgstr "%(list)s - Ausgaben"
 
 # | msgid "Explore authors"
 #: lists/export_as_html.html type/list/embed.html type/list/view_body.html
@@ -6521,7 +6528,7 @@ msgstr "Buch leihen"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar des Listenbesitzers"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -6529,11 +6536,11 @@ msgstr "Sie"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Dieser Nutzer hat das Folgen nicht aktiviert"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
@@ -6618,7 +6625,7 @@ msgstr "Lernen Sie, Ihre erste Liste zu erstellen."
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "von <a href=\"%s\">Ihnen</a>"
 
 #: lists/showcase.html
 #, fuzzy, python-format
@@ -6864,6 +6871,8 @@ msgid ""
 "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
 "class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
+"MR #%(id)s eröffnet am %(date)s von <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
@@ -6920,6 +6929,8 @@ msgid ""
 "Removing this book from your shelves will delete your check-ins for this "
 "work.  Continue?"
 msgstr ""
+"Wenn Sie dieses Buch aus Ihren Regalen entfernen, werden Ihre Check-ins "
+"für dieses Werk gelöscht. Fortfahren?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -7033,7 +7044,7 @@ msgstr ""
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Gelesen <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
@@ -7090,7 +7101,7 @@ msgstr "Etwas anderes probieren?"
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "Verlag: %(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html
 #: search/advancedsearch.html type/edition/view.html type/work/view.html
@@ -7212,7 +7223,7 @@ msgstr "von"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Alles rückgängig machen"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -7295,12 +7306,12 @@ msgstr "Geänderte Einträge"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "Doppelte %(record_type)s-Datensätze zusammengeführt."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "Siehe <a href=\"%s\">Details</a>."
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -7321,7 +7332,7 @@ msgstr "Duplikate zusammenführen"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s mit dem primären %(record_type)s-Datensatz zusammengeführt."
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -7360,7 +7371,7 @@ msgstr[1] "%(count)d Einträge geändert."
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Rückgängig machen von <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, fuzzy, python-format
@@ -7392,7 +7403,7 @@ msgstr "Volltextsuche?"
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Open Library nach \"%(query)s\" durchsuchen"
 
 #: search/authors.html
 msgid "Search Authors"
@@ -7409,7 +7420,7 @@ msgstr "Autoren zusammenführen"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Keine <strong>Autoren</strong> entsprechen direkt Ihrer Suche"
 
 # | msgid "Welcome to Open Library"
 #: search/inside.html
@@ -7424,7 +7435,7 @@ msgstr "Volltextsuche"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Kein <strong>Volltext</strong> entspricht Ihrer Suche"
 
 #: search/inside.html
 #, python-format
@@ -7446,7 +7457,7 @@ msgstr "Details"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Rasteransicht"
 
 #: search/layout_options.html
 #, fuzzy
@@ -7464,7 +7475,7 @@ msgstr "Listen durchsuchen"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Keine <strong>Listen</strong> entsprechen direkt Ihrer Suche"
 
 #: search/publishers.html
 msgid "Publishers Search"
@@ -7473,7 +7484,7 @@ msgstr "Verlagssuche"
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Auf Blatt Nummer %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -7567,7 +7578,7 @@ msgstr "Themen durchsuchen"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Kein <strong>Thema</strong> entspricht direkt Ihrer Suche"
 
 #: search/subjects.html
 msgid "time"
@@ -7883,6 +7894,8 @@ msgid ""
 "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
 "Please list one name per line."
 msgstr ""
+"Zum Beispiel: Lew Nikolajewitsch Tolstoi war auch als Leo Tolstoy "
+"bekannt. Bitte geben Sie einen Namen pro Zeile an."
 
 #: type/author/edit.html
 msgid "Identifiers"
@@ -7939,7 +7952,7 @@ msgstr "Weitere hinzufügen?"
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "%(author)s-Bücher suchen"
 
 #: type/author/view.html
 #, fuzzy, python-format
@@ -7963,7 +7976,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -8061,7 +8074,7 @@ msgstr "Zuerst veröffentlicht in %s"
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
-msgstr ""
+msgstr "Buch %s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -8243,7 +8256,7 @@ msgstr "Code"
 
 #: type/language/view.html
 msgid "Current"
-msgstr ""
+msgstr "Aktuell"
 
 #: type/language/view.html
 #, python-format
@@ -8288,7 +8301,7 @@ msgstr "Ein Buch suchen"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Position (optional), z. B. 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
@@ -8448,6 +8461,8 @@ msgid ""
 "This series contains %(limit)d or more works. Currently, only the first "
 "%(limit)d works are displayed."
 msgstr ""
+"Diese Serie enthält %(limit)d oder mehr Werke. Derzeit werden nur die "
+"ersten %(limit)d Werke angezeigt."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
@@ -8496,7 +8511,7 @@ msgstr "Ort"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Barcode-Regex"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -8579,10 +8594,12 @@ msgstr "Tags:"
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
 msgstr ""
+"Tags, die von Open-Library-Bibliothekarinnen/-bibliothekaren kuratiert "
+"werden."
 
 #: type/tag/index.html
 msgid "View subject page"
-msgstr ""
+msgstr "Themenseite ansehen"
 
 #: type/tag/index.html
 msgid "Previous"
@@ -8602,17 +8619,19 @@ msgstr "Listen-Name"
 msgid ""
 "Human-readable display name (e.g. \"Computer Science\", \"Horror "
 "Fiction\")"
-msgstr ""
+msgstr "Lesbarer Anzeigename (z. B. \"Informatik\", \"Horrorfiktion\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Tag-Slugs"
 
 #: type/tag/tag_form_inputs.html
 msgid ""
 "Comma-separated URL slugs that map to this tag (auto-populated from "
 "name). E.g. \"computer_science, cs\""
 msgstr ""
+"Kommagetrennte URL-Slugs, die diesem Tag zugeordnet sind (automatisch aus"
+" dem Namen befüllt). Z. B. \"informatik, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -8636,7 +8655,7 @@ msgstr "Art des Tags"
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Typ:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -8649,7 +8668,7 @@ msgstr "Art des Tags"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL-Slugs"
 
 #: type/tag/view.html
 #, python-format
@@ -8697,7 +8716,7 @@ msgstr "Rückverweise"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)s bearbeiten"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
@@ -8860,6 +8879,8 @@ msgid ""
 "Templates in the website are disabled now. Editing them will not have any"
 " effect on the live website."
 msgstr ""
+"Templates auf der Website sind derzeit deaktiviert. Das Bearbeiten hat "
+"keinen Effekt auf die Live-Website."
 
 # | msgid "View revision %s"
 #: EditionNavBar.html
@@ -8891,7 +8912,7 @@ msgstr "Verwandte Bücher"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Zum nächsten Abschnitt"
 
 #: Follow.html
 #, fuzzy
@@ -8911,7 +8932,7 @@ msgstr "Rückgabedatum"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Auf Volltext-Treffer prüfen"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -8926,24 +8947,24 @@ msgstr "Volltextsuche"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s Bücher mit übereinstimmenden Passagen gefunden"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Alle %(results_count)s Volltext-Treffer anzeigen"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "Pfeil nach rechts"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, fuzzy, python-format
@@ -9030,7 +9051,7 @@ msgstr "Meine persönlichen Notizen zu dieser Ausgabe:"
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "von %(authors)s"
 
 #: ObservationsModal.html
 msgid "My Book Review"
@@ -9044,17 +9065,17 @@ msgstr "Vorherige Version ansehen"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Zur nächsten Seite"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "Zur Seite {page}"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Seite {page}, aktuelle Seite"
 
 #: Profile.html
 #, fuzzy
@@ -9092,19 +9113,19 @@ msgstr "Indicator lädt"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Karussell konnte nicht geladen werden."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Erneut versuchen?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Keine Bücher entsprechen den aktuellen Filtern."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Ohne Filter erneut versuchen?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -9175,7 +9196,7 @@ msgstr "Hinzugefügt zu"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Buch %(position)s"
 
 #: SearchResultsWork.html
 #, python-format
@@ -9234,7 +9255,7 @@ msgstr "Open Library Homepage"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "QR-Code-Symbol"
 
 #: ShareModal.html
 #, fuzzy
@@ -9243,23 +9264,23 @@ msgstr "Code"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "eine 1-Stern-Bewertung hinterlassen für"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "eine 2-Stern-Bewertung hinterlassen für"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "eine 3-Stern-Bewertung hinterlassen für"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "eine 4-Stern-Bewertung hinterlassen für"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "eine 5-Stern-Bewertung hinterlassen für"
 
 #: StarRatings.html
 msgid "Clear my rating"
@@ -9282,12 +9303,12 @@ msgstr "Bewertung"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s Möchten lesen"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -9378,7 +9399,7 @@ msgstr "Seite %s"
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "Trend: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
@@ -9417,7 +9438,7 @@ msgstr ""
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Kein Wikipedia-Link in Ihrer Sprache"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
@@ -9429,7 +9450,7 @@ msgstr "WolrdCat nach einer Ausgabe in Ihrer Nähe durchsuchen"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
@@ -9463,7 +9484,7 @@ msgstr "Vorlage bearbeiten"
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "Band %(num)d ansehen"
 
 #: openlibrary/core/bookshelves.py
 #, fuzzy
@@ -9482,7 +9503,7 @@ msgstr "Listen durchsuchen"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "Arabisch"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
@@ -9574,7 +9595,7 @@ msgstr "Rezensionen"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "Kinder"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9588,7 +9609,7 @@ msgstr "Version"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "Kriminal- und Detektivgeschichten"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9597,7 +9618,7 @@ msgstr "Orte"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "Musik"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -9616,7 +9637,7 @@ msgstr "Diese Ausgabe"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Hat Werk (verwaist)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
