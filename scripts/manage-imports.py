@@ -47,12 +47,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         except OLError as e:
             logger.warning(f"Failed to contact OL server. error={e!r}")
             if e.code < 500:
-                return e.text
-
-
-def _init_worker(configfile):
-    """Initialize each pool worker with the application config (required for spawn start method)."""
-    load_config(configfile)
+                return e.tex
 
 
 def do_import(item, servername=None, require_marc=True):
@@ -161,7 +156,7 @@ def import_all(args, **kwargs):
     configfile = kwargs.get("configfile")
 
     # Use multiprocessing to call do_import on each item
-    with multiprocessing.Pool(processes=8, initializer=_init_worker, initargs=(configfile,)) as pool:
+    with multiprocessing.Pool(processes=8, initializer=load_config, initargs=(configfile,)) as pool:
         while True:
             logger.info("find_pending START")
             items = ImportItem.find_pending()
