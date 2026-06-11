@@ -5119,11 +5119,11 @@ msgid ""
 msgstr ""
 
 #: design/tooltip.html
-msgid "Project Hail Mary"
+msgid "Statistical methods for planners"
 msgstr ""
 
 #: design/tooltip.html
-msgid "By Andy Weir"
+msgid "By Thomas R. Willemain"
 msgstr ""
 
 #: email/case_created.html

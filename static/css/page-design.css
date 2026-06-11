@@ -202,8 +202,18 @@ pre.example__code code[class*="language-"] {
 }
 
 /* Rich tooltip content, styled by the consuming page (see design/tooltip.html). */
+.book-tip {
+  font-size: var(--font-size-body-medium);
+}
 .book-tip__heading {
   margin-bottom: var(--spacing-2xs);
+}
+.book-tip__trigger {
+  display: block;
+  width: 120px;
+  height: auto;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
 }
 .book-tip__title {
   font-weight: 600;
