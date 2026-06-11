@@ -11,6 +11,8 @@
 ## You probably want to run:
 ## COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" docker compose up -d
 ##
+## COMPOSE_FILE="compose.yaml:compose.override.yaml:compose.near-prod.yaml" docker compose up -d affiliate-server squid
+##
 
 services:
   solr:
@@ -44,6 +46,33 @@ services:
     volumes:
       # Override with own copy of solr data
       - solr-replica-data:/var/solr
+
+  affiliate-server:
+    image: "${OLIMAGE:-openlibrary/olbase:latest}"
+    environment:
+      - AFFILIATE_CONFIG=./conf/openlibrary.yml
+    command: docker/ol-affiliate-server-start.sh
+    ports:
+      - 31337:31337
+    networks:
+      - webnet
+    volumes:
+      - ${OL_MOUNT_DIR:-.}:/openlibrary
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
+
+  squid:
+    image: ubuntu/squid:5.2-22.04_beta
+    ports:
+      - 3128:3128
+    networks:
+      - webnet
+    logging:
+      options:
+        max-size: "512m"
+        max-file: "4"
 
 volumes:
   solr-replica-data:
