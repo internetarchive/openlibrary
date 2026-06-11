@@ -76,11 +76,11 @@ export class OlTooltip extends LitElement {
             z-index: 1000;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;
-            background: var(--grey-darker, #333);
-            color: var(--white, #fff);
+            background: var(--dark-grey);
+            color: var(--white);
             font-size: 13px;
-            line-height: 1.4;
-            border-radius: var(--border-radius-small, 6px);
+            line-height: var(--line-height-snug);
+            border-radius: var(--border-radius-tooltip);
             pointer-events: none;
             user-select: none;
             width: max-content;
@@ -245,6 +245,10 @@ export class OlTooltip extends LitElement {
         this.removeEventListener('keydown', this._onKeydown);
         document.removeEventListener('touchstart', this._onTouchOutside, true);
         this._clearTimers();
+        // Don't leave the static pointer dangling at a detached element
+        if (OlTooltip._activeInstance === this) {
+            OlTooltip._activeInstance = null;
+        }
     }
 
     render() {
