@@ -9708,7 +9708,7 @@ msgstr "Das Werk ist bisher in keiner Liste vertreten."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Ich habe noch keine"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
@@ -9767,6 +9767,9 @@ msgid ""
 "Servers are experiencing unusually high traffic, please try again later "
 "or email openlibrary@archive.org for help."
 msgstr ""
+"Die Server verzeichnen ungewöhnlich hohen Datenverkehr. Bitte versuchen "
+"Sie es später erneut oder senden Sie eine E-Mail an "
+"openlibrary@archive.org für Hilfe."
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -9775,7 +9778,7 @@ msgstr "Ihr Email-Provider wird nicht anerkannt."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "Passwortanforderungen nicht erfüllt."
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -9794,7 +9797,7 @@ msgstr ""
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Anfrage fehlgeschlagen mit Fehlercode: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
@@ -9802,6 +9805,9 @@ msgid ""
 "print disability access. You should receive an email detailing next steps"
 " in the process."
 msgstr ""
+"Vielen Dank für die Registrierung eines Open-Library-Kontos und die "
+"Anfrage für besonderen Druckbehinderungszugang. Sie erhalten eine E-Mail "
+"mit den nächsten Schritten im Prozess."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
@@ -9814,17 +9820,19 @@ msgstr "E-Mail-Adresse bereits registriert"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Ein Internet-Archive-Konto mit dieser E-Mail-Adresse existiert bereits"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
 "Verification failed. The link may be invalid or expired. Please try "
 "registering again."
 msgstr ""
+"Verifizierung fehlgeschlagen. Der Link ist möglicherweise ungültig oder "
+"abgelaufen. Bitte versuchen Sie sich erneut zu registrieren."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "Ihre E-Mail-Adresse wurde verifiziert. Sie sind jetzt angemeldet."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
@@ -9839,11 +9847,13 @@ msgstr "Dieses Buch kaufen"
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
 msgstr ""
+"%s konnte nicht zurückgegeben werden. Bitte versuchen Sie es später "
+"erneut oder kontaktieren Sie info@archive.org."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%s wurde zurückgegeben."
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid ""
@@ -9908,6 +9918,9 @@ msgid ""
 "action=\"%(raw_action)s\"><strong>%(action)s</strong> "
 "<em>%(name)s</em></a>"
 msgstr ""
+"Weiter <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
