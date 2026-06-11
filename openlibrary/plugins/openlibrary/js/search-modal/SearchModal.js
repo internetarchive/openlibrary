@@ -673,6 +673,13 @@ export class SearchModal extends LitElement {
             e.preventDefault();
             this._openModal();
         });
+        // Open the modal when text is dragged over the trigger so the patron
+        // can complete the drop into the search input. Without this the modal
+        // never opens during a drag (clicking ends the drag) and the drop is lost.
+        trigger.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (!this.open) this._openModal();
+        });
     }
 
     _openModal() {
@@ -738,6 +745,8 @@ export class SearchModal extends LitElement {
                             .value=${this._query}
                             @input=${this._onQueryInput}
                             @keydown=${this._onInputKeydown}
+                            @drop=${this._onDrop}
+                            @dragover=${this._onDragOver}
                         />
                         <button
                             type="button"
@@ -1059,6 +1068,24 @@ export class SearchModal extends LitElement {
     // The author photo is requested with ?default=false, so a missing photo
     // 404s and fires this — hide the <img> to reveal the person glyph beneath.
     _onAvatarError(e) { e.target.hidden = true; }
+
+    _onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+    }
+
+    _onDrop(e) {
+        e.preventDefault();
+        const text = e.dataTransfer.getData('text/plain');
+        if (!text) return;
+        this._query = text;
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) input.value = text;
+        if (this._shouldAutocomplete()) {
+            this._loading = true;
+            this._debouncedFetch();
+        }
+    }
 
     _onQueryInput(e) {
         this._query = e.target.value;
