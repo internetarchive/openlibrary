@@ -153,9 +153,10 @@ def import_all(args, **kwargs):
 
     servername = kwargs.get("servername")
     require_marc = False
+    configfile = kwargs.get("configfile")
 
     # Use multiprocessing to call do_import on each item
-    with multiprocessing.Pool(processes=8) as pool:
+    with multiprocessing.Pool(processes=8, initializer=load_config, initargs=(configfile,)) as pool:
         while True:
             logger.info("find_pending START")
             items = ImportItem.find_pending()
@@ -193,7 +194,7 @@ def main():
     from infogami import config
 
     cmd = sys.argv[1]
-    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org")}
+    args, flags = [], {"servername": config.get("servername", "https://openlibrary.org"), "configfile": configfile}
     for i in sys.argv[2:]:
         if i.startswith("--"):
             flags[i[2:]] = True
