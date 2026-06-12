@@ -36,7 +36,7 @@ msgid "or"
 msgstr ""
 
 #: account.html databarHistory.html databarTemplate.html databarView.html
-#: design/popover.html my_books/check_ins/check_in_prompt.html
+#: my_books/check_ins/check_in_prompt.html
 #: reading_goals/reading_goal_progress.html subjects.html
 #: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
@@ -257,405 +257,6 @@ msgstr ""
 msgid "Not yet imported"
 msgstr ""
 
-#: design.html
-msgid "Web Component Library"
-msgstr ""
-
-#: OlPagination.html OlPaginationArrows.html design.html type/edition/view.html
-#: type/work/view.html
-msgid "Pagination"
-msgstr ""
-
-#: design.html
-msgid "Popover"
-msgstr ""
-
-#: design.html type/edition/view.html type/work/view.html
-msgid "Read More"
-msgstr ""
-
-#: design.html
-msgid "Chip"
-msgstr ""
-
-#: design.html design/button.html
-msgid "Button"
-msgstr ""
-
-#: design.html design/toast.html
-msgid "Toast"
-msgstr ""
-
-#: design.html design/banner.html
-msgid "Banner"
-msgstr ""
-
-#: design.html
-msgid "Chip Group"
-msgstr ""
-
-#: design.html
-msgid "Markdown Editor"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-pagination component provides support for both event-based and "
-"URL-based navigation."
-msgstr ""
-
-#: design.html
-msgid "Event-based"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"When a page is clicked, the component fires an %(update_page)s event with"
-" the page number in %(event_detail)s."
-msgstr ""
-
-#: design.html
-msgid "Selected page:"
-msgstr ""
-
-#: design.html
-msgid "URL-based Navigation"
-msgstr ""
-
-#: design.html
-msgid ""
-"When base-url is provided, pagination renders anchor tags for SEO-"
-"friendly links."
-msgstr ""
-
-#: design.html
-msgid "First page (no previous arrow)"
-msgstr ""
-
-#: design.html
-msgid "Middle page (both arrows visible)"
-msgstr ""
-
-#: design.html
-msgid "Last page (no next arrow)"
-msgstr ""
-
-#: design.html
-msgid "3 pages"
-msgstr ""
-
-#: design.html
-msgid "5 pages (no ellipsis needed)"
-msgstr ""
-
-#: design.html
-msgid "100 pages with ellipsis:"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode"
-msgstr ""
-
-#: design.html
-msgid ""
-"When total pages is unknown, use arrows mode to show only previous/next "
-"navigation."
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (has next page)"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (no next page)"
-msgstr ""
-
-#: design.html
-msgid "Arrows mode (first page, has next)"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-read-more component provides expandable/collapsible content with "
-"two truncation modes: height-based and line-based."
-msgstr ""
-
-#: design.html
-msgid "Height-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
-
-#: design.html
-msgid "Line-based truncation"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
-
-#: design.html
-msgid "Custom button text"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(more_text)s and %(less_text)s to customize the toggle button "
-"labels. We'll use the i18n strings for this example."
-msgstr ""
-
-#: SearchResultsWork.html design.html
-msgid "Show more"
-msgstr ""
-
-#: SearchResultsWork.html design.html
-msgid "Show less"
-msgstr ""
-
-#: design.html
-msgid "Custom background color"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Use %(background_color)s to match the gradient fade to your container "
-"background."
-msgstr ""
-
-#: design.html
-msgid "Small label size"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
-
-#: design.html
-msgid "Content shorter than limit (no button)"
-msgstr ""
-
-#: design.html
-msgid "When content fits within the limit, no toggle button is shown."
-msgstr ""
-
-#: design.html
-msgid "This is short content that fits within 5 lines, so no button appears."
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"The ol-chip component is a pill-shaped interactive element for filters, "
-"tags, and selections. It fires an %(event)s event on click."
-msgstr ""
-
-#: design.html
-msgid "Default (medium)"
-msgstr ""
-
-#: design.html
-msgid "Basic chips at the default medium size."
-msgstr ""
-
-#: design.html
-msgid "Fiction"
-msgstr ""
-
-#: design.html openlibrary/plugins/openlibrary/home.py
-msgid "Science"
-msgstr ""
-
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
-#: design.html lib/history.html openlibrary/plugins/openlibrary/home.py
-msgid "History"
-msgstr ""
-
-#: design.html
-msgid "Selected state"
-msgstr ""
-
-#: design.html
-msgid "A selected chip displays a checkmark icon and uses an active color scheme."
-msgstr ""
-
-#: design.html
-msgid "Small size"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(size)s for a compact chip."
-msgstr ""
-
-#: design.html
-msgid "Poetry"
-msgstr ""
-
-#: design.html
-msgid "Drama"
-msgstr ""
-
-#: design.html
-msgid "Essays"
-msgstr ""
-
-#: design.html
-msgid "With count"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(count)s to display a number alongside the label."
-msgstr ""
-
-#: design.html
-msgid "As a link"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"When %(href)s is provided, the chip renders as an anchor tag instead of a"
-" button."
-msgstr ""
-
-#: design.html
-msgid "Interactive toggle"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Clicking a chip fires an %(event)s event. Toggle the selected state by "
-"listening to the event."
-msgstr ""
-
-#: design.html
-msgid "Toggle me"
-msgstr ""
-
-#: design.html
-msgid "Toggle me too"
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-chip-group component is a flex-wrap container that provides "
-"consistent spacing for groups of chips."
-msgstr ""
-
-#: design.html
-msgid "Default (medium gap)"
-msgstr ""
-
-#: design.html
-msgid "Chips are spaced with an 8px gap by default."
-msgstr ""
-
-#: design.html
-msgid "Small gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for tighter spacing (4px)."
-msgstr ""
-
-#: design.html
-msgid "Large gap"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid "Use %(gap)s for wider spacing (12px)."
-msgstr ""
-
-#: design.html
-msgid "Wrapping behavior"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chips automatically wrap to the next line when they exceed the container "
-"width."
-msgstr ""
-
-#: design.html
-msgid "Biography"
-msgstr ""
-
-#: design.html
-msgid "With mixed chip states"
-msgstr ""
-
-#: design.html
-msgid ""
-"Chip groups work with any combination of chip sizes, states, and link "
-"chips."
-msgstr ""
-
-#: design.html
-msgid ""
-"The ol-markdown-editor component is a WYSIWYG editor built on Tiptap that"
-" outputs Markdown. It syncs its content to a hidden target textarea. A "
-"'View source' toolbar toggle is always available so editors can drop into"
-" a raw markdown textarea when WYSIWYG round-trips are awkward."
-msgstr ""
-
-#: design.html
-msgid "Basic usage"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Provide a %(target_id)s pointing to an existing textarea. The editor "
-"reads initial content from the textarea and syncs changes back to it."
-msgstr ""
-
-#: design.html
-msgid "Mixed Markdown and HTML"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Add the %(attr)s attribute to expose the HTML block button in the "
-"toolbar. HTML blocks appear with a preview and an Edit button to modify "
-"the source."
-msgstr ""
-
-#: design.html
-msgid "Code blocks and inline code"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"Add the %(attr)s attribute to expose the inline code and code block "
-"buttons in the toolbar. Code support is off by default because only the "
-"wiki page renderer is guaranteed to render fenced code blocks."
-msgstr ""
-
-#: design.html
-msgid "Change event"
-msgstr ""
-
-#: design.html
-#, python-format
-msgid ""
-"The editor fires an %(event)s event on every change. The raw Markdown "
-"string is available in %(detail)s."
-msgstr ""
-
 #: diff.html
 #, python-format
 msgid "Diff on %s"
@@ -842,9 +443,9 @@ msgstr ""
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
-#: admin/permissions.html books/add.html databarEdit.html design/button.html
-#: interstitial.html merge/authors.html my_books/dropdown_content.html
-#: type/list/edit.html type/series/edit.html type/tag/form.html
+#: admin/permissions.html books/add.html databarEdit.html interstitial.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr ""
 
@@ -959,9 +560,8 @@ msgstr ""
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
-#: covers/change.html design/banner.html design/toast.html lib/exports.html
-#: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr ""
 
@@ -1996,7 +1596,7 @@ msgid "Yes! Please!"
 msgstr ""
 
 #: EditButtons.html account/notifications.html account/privacy.html
-#: admin/block.html admin/spamwords.html covers/manage.html design/button.html
+#: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
 msgstr ""
 
@@ -2005,8 +1605,7 @@ msgstr ""
 msgid "Reviews"
 msgstr ""
 
-#: account/observations.html admin/inspect/memcache.html design/button.html
-#: design/popover.html
+#: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
 msgstr ""
 
@@ -2343,7 +1942,7 @@ msgstr ""
 msgid "Followers"
 msgstr ""
 
-#: account/view.html design/popover.html type/edition/modal_links.html
+#: account/view.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
 msgstr ""
@@ -2415,7 +2014,7 @@ msgstr ""
 msgid "Please enter a new password for your Open Library account."
 msgstr ""
 
-#: account/password/reset.html design/button.html
+#: account/password/reset.html
 msgid "Reset"
 msgstr ""
 
@@ -2615,7 +2214,7 @@ msgid "Please add IA identifiers to be imported, one per line."
 msgstr ""
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
-#: admin/people/edits.html admin/permissions.html design/button.html
+#: admin/people/edits.html admin/permissions.html
 #: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr ""
@@ -3925,7 +3524,7 @@ msgstr ""
 msgid "None of these match the book I want to add."
 msgstr ""
 
-#: books/check.html design/button.html
+#: books/check.html
 msgid "Continue"
 msgstr ""
 
@@ -4983,292 +4582,6 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
-#: design/banner.html
-#, python-format
-msgid ""
-"The %(tag)s component is a callout-style announcement banner. The "
-"announcement is server-rendered into the default slot — already "
-"translated, visible to search engines — while the component owns the "
-"chrome: variant styling, icon, dismissal, and cookie persistence. There "
-"is intentionally no entrance animation; banners appear on every page "
-"view."
-msgstr ""
-
-#: design/banner.html
-msgid "Variants"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid ""
-"Use %(variant)s for semantic variants. Each pairs a tinted surface with a"
-" filled icon circle — the same icon treatment as %(toast)s."
-msgstr ""
-
-#: design/banner.html
-msgid "Open Library is a non-profit project of the Internet Archive."
-msgstr ""
-
-#: design/banner.html
-msgid "Your import finished — 42 books added to your reading log."
-msgstr ""
-
-#: design/banner.html
-msgid "Open Library will be briefly unavailable on June 12 for maintenance."
-msgstr ""
-
-#: design/banner.html
-msgid "Search is currently degraded. Some results may be missing."
-msgstr ""
-
-#: design/banner.html
-msgid "Appearance"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid ""
-"Use %(appearance)s to control the frame. %(outlined)s (default) has a "
-"border and rounded corners. %(plain)s removes both — useful when the "
-"banner abuts the edges of other UI, like the top of the page or a card."
-msgstr ""
-
-#: design/banner.html
-msgid "Outlined (default): border and rounded corners."
-msgstr ""
-
-#: design/banner.html
-msgid "Plain: no border, no border radius."
-msgstr ""
-
-#: design/banner.html
-msgid "Dismissible"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid ""
-"Add %(dismissible)s for a close button. Without %(cookie_name)s, "
-"dismissal only lasts for the current page. Content comes from the page "
-"template, so links and emphasis work as usual."
-msgstr ""
-
-#: design/banner.html
-msgid "Explore our new collections"
-msgstr ""
-
-#: design/banner.html
-msgid "Custom icon"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid "Slot a custom icon via %(slot)s to replace the variant's built-in glyph."
-msgstr ""
-
-#: design/banner.html
-msgid "Set your Yearly Reading Goal"
-msgstr ""
-
-#: design/banner.html
-msgid "Persisted dismissal"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid ""
-"The component owns no persistence — it only fires %(event)s with its "
-"%(dismiss_id)s. Two pieces of site plumbing make dismissals stick: the "
-"template guards rendering on the dismissal cookie (so dismissed banners "
-"are never served), and a site-level listener (%(glue)s) POSTs dismissals "
-"to %(endpoint)s, which sets that cookie. Per-banner TTL rides on the "
-"element as %(ttl)s — an OL convention, not component API. Dismiss this "
-"banner, reload, and it stays hidden until reset."
-msgstr ""
-
-#: design/banner.html
-msgid "Set your 2026 Yearly Reading Goal"
-msgstr ""
-
-#: design/banner.html
-msgid "Reset dismissed demo banner"
-msgstr ""
-
-#: design/banner.html
-msgid "Dismiss event"
-msgstr ""
-
-#: design/banner.html
-#, python-format
-msgid ""
-"The banner fires %(event)s once when dismissed, before it is removed from"
-" the DOM. Banners without a %(dismiss_id)s are page-only: they still fire"
-" the event, but the site listener ignores them."
-msgstr ""
-
-#: design/button.html merge/authors.html recentchanges/merge/view.html
-msgid "Primary"
-msgstr ""
-
-#: design/popover.html
-msgid "Popover component"
-msgstr ""
-
-#: design/popover.html
-msgid ""
-"The ol-popover component provides a reusable animated popover panel "
-"anchored to a trigger element. It animates from the trigger using "
-"transform-origin, closes on Escape or outside click, and respects "
-"prefers-reduced-motion."
-msgstr ""
-
-#: design/popover.html
-msgid "Menu popover"
-msgstr ""
-
-#: design/popover.html
-msgid ""
-"Popovers animate from the trigger using transform-origin. Click the "
-"button to see the scale + fade entrance."
-msgstr ""
-
-#: design/popover.html
-msgid "Options"
-msgstr ""
-
-#: design/popover.html
-msgid "Duplicate"
-msgstr ""
-
-#: design/popover.html
-msgid "Archive"
-msgstr ""
-
-#: design/popover.html
-msgid "Move"
-msgstr ""
-
-#: design/popover.html
-msgid "Placement options"
-msgstr ""
-
-#: design/popover.html
-#, python-format
-msgid ""
-"Use %(placement)s to control where the popover appears. The "
-"%(transform_origin)s automatically matches so the animation always "
-"expands from the trigger."
-msgstr ""
-
-#: design/popover.html
-msgid "bottom-start"
-msgstr ""
-
-#: design/popover.html
-msgid "top-center"
-msgstr ""
-
-#: design/toast.html
-#, python-format
-msgid ""
-"The %(tag)s component is a transient notification message. It announces "
-"itself to screen readers, auto-dismisses after a timeout (pausing on "
-"hover/focus), and removes itself from the DOM when closed. Message "
-"content is set via the %(message)s and %(description)s attributes, "
-"already translated; rich content can be slotted instead. The component's "
-"only owned string is the close button label, overridable via %(attr)s."
-msgstr ""
-
-#: design/toast.html
-msgid "Types"
-msgstr ""
-
-#: design/toast.html
-#, python-format
-msgid ""
-"Use %(type)s for semantic variants. Errors are announced assertively "
-"(%(role)s)."
-msgstr ""
-
-#: design/toast.html
-msgid "Saved to your reading log"
-msgstr ""
-
-#: design/toast.html
-msgid "Subjects successfully updated"
-msgstr ""
-
-#: design/toast.html
-msgid "Could not update list. Please try again later."
-msgstr ""
-
-#: design/toast.html
-msgid "Description and rich content"
-msgstr ""
-
-#: design/toast.html
-#, python-format
-msgid ""
-"Use %(description)s for an optional secondary line. For uncommon rich "
-"content (links, custom markup), author the markup in an inert "
-"%(template)s element in the page template — where %(i18n)s extraction "
-"works — and pass that element to %(helper)s; its content is cloned into "
-"the toast. Node(s) built in JS also work. Nothing is ever parsed from a "
-"runtime string as HTML."
-msgstr ""
-
-#: design/toast.html
-msgid "Relaunch to update"
-msgstr ""
-
-#: design/toast.html
-msgid "Could not save."
-msgstr ""
-
-#: design/toast.html
-msgid "Get help"
-msgstr ""
-
-#: design/toast.html
-msgid "Imperative use (fixed bottom-center stack)"
-msgstr ""
-
-#: design/toast.html
-#, python-format
-msgid ""
-"JavaScript callers use the exported %(helper)s helper, which stacks "
-"toasts in a shared fixed %(region)s anchored to the bottom-center of the "
-"viewport. New toasts slide up from below; older ones slide up to make "
-"room, forming a simple vertical list. Toasts dismiss themselves after "
-"%(timeout)s milliseconds (default 4000) unless %(persistent)s. Hover or "
-"focus the list to pause every toast's dismiss timer. The message is set "
-"as an attribute — always text, never HTML — and should already be "
-"translated."
-msgstr ""
-
-#: design/toast.html
-msgid "Add toast"
-msgstr ""
-
-#: design/toast.html
-msgid "Add persistent error toast"
-msgstr ""
-
-#: design/toast.html
-msgid "Add rich content toast"
-msgstr ""
-
-#: design/toast.html
-msgid "Close event"
-msgstr ""
-
-#: design/toast.html
-#, python-format
-msgid ""
-"The toast fires %(event)s once when it begins closing, with the reason in"
-" %(detail)s."
-msgstr ""
-
 #: email/case_created.html
 msgid "Sent!"
 msgstr ""
@@ -5601,6 +4914,11 @@ msgstr ""
 
 #: lib/header_dropdown.html
 msgid "New!"
+msgstr ""
+
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
+msgid "History"
 msgstr ""
 
 #: lib/history.html
@@ -6265,6 +5583,10 @@ msgstr ""
 
 #: merge/authors.html
 msgid "<b>Are you sure</b> you want to merge these records?"
+msgstr ""
+
+#: merge/authors.html recentchanges/merge/view.html
+msgid "Primary"
 msgstr ""
 
 #: merge/authors.html
@@ -7522,6 +6844,10 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
+msgid "Read More"
+msgstr ""
+
+#: type/edition/view.html type/work/view.html
 msgid "Read Less"
 msgstr ""
 
@@ -7620,6 +6946,11 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
+msgstr ""
+
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html
+#: type/work/view.html
+msgid "Pagination"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
@@ -8532,6 +7863,14 @@ msgid "Book %(position)s"
 msgstr ""
 
 #: SearchResultsWork.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html
+msgid "Show less"
+msgstr ""
+
+#: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
 msgstr ""
@@ -8922,6 +8261,10 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
+msgstr ""
+
+#: openlibrary/plugins/openlibrary/home.py
+msgid "Science"
 msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
