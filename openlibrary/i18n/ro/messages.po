@@ -5326,136 +5326,136 @@ msgstr "Închis"
 
 #: merge_request_table/table_header.html
 msgid "Status ▾"
-msgstr ""
+msgstr "Stare ▾"
 
 #: merge_request_table/table_header.html
 msgid "Request Status"
-msgstr ""
+msgstr "Starea cererii"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Merged"
-msgstr ""
+msgstr "Fuzionat"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "Respins"
 
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
-msgstr ""
+msgstr "Expeditor ▾"
 
 #: merge_request_table/table_header.html
 msgid "Filter submitters"
-msgstr ""
+msgstr "Filtrează expeditorii"
 
 #: merge_request_table/table_header.html
 msgid "Submitted by me"
-msgstr ""
+msgstr "Trimise de mine"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
-msgstr ""
+msgstr "Recenzent ▾"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer"
-msgstr ""
+msgstr "Recenzent"
 
 #: merge_request_table/table_header.html
 msgid "Filter reviewers"
-msgstr ""
+msgstr "Filtrează recenzenții"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "Neatasat nimănui"
 
 #: merge_request_table/table_header.html
 msgid "Sort ▾"
-msgstr ""
+msgstr "Sortare ▾"
 
 #: merge_request_table/table_header.html
 msgid "Sort"
-msgstr ""
+msgstr "Sortare"
 
 #: merge_request_table/table_header.html
 msgid "Newest"
-msgstr ""
+msgstr "Cele mai noi"
 
 #: merge_request_table/table_header.html
 msgid "Oldest"
-msgstr ""
+msgstr "Cele mai vechi"
 
 #: merge_request_table/table_row.html
 msgid "An untitled work"
-msgstr ""
+msgstr "O operă fără titlu"
 
 #: merge_request_table/table_row.html
 msgid "An unnamed author"
-msgstr ""
+msgstr "Un autor fără nume"
 
 #: merge_request_table/table_row.html
 msgid "Open request"
-msgstr ""
+msgstr "Cerere deschisă"
 
 #: merge_request_table/table_row.html
 msgid "Closed request"
-msgstr ""
+msgstr "Cerere închisă"
 
 #: merge_request_table/table_row.html
 msgid "No comments yet."
-msgstr ""
+msgstr "Niciun comentariu încă."
 
 #: merge_request_table/table_row.html
 msgid "Add a comment..."
-msgstr ""
+msgstr "Adaugă un comentariu..."
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "Răspunde"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s deschis %(date)s de <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
-msgstr ""
+msgstr "Faceți clic pentru a închide această cerere de fuzionare"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
+msgstr "Revizuire <!-- (cerere de fuzionare) -->"
 
 #: merge_request_table/table_row.html
 msgid "comments"
-msgstr ""
+msgstr "comentarii"
 
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
-msgstr ""
+msgstr "Elimină de pe raft"
 
 #: my_books/dropdown_content.html
 msgid "My Reading Lists:"
-msgstr ""
+msgstr "Listele mele de lectură:"
 
 #: my_books/dropdown_content.html
 msgid "Loading"
-msgstr ""
+msgstr "Se încarcă"
 
 #: my_books/dropdown_content.html
 msgid "Use this Work"
-msgstr ""
+msgstr "Folosește această operă"
 
 #: CreateListModal.html my_books/dropdown_content.html
 msgid "Create a new list"
-msgstr ""
+msgstr "Creează o listă nouă"
 
 #: CreateListModal.html my_books/dropdown_content.html type/permission/edit.html type/usergroup/edit.html
 msgid "Description:"
-msgstr ""
+msgstr "Descriere:"
 
 #: CreateListModal.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html
 msgid "Create new list"
-msgstr ""
+msgstr "Creează o listă nouă"
 
 #: my_books/dropdown_content.html
 #, fuzzy
@@ -5464,144 +5464,144 @@ msgstr "Se încarcă..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "Eliminarea acestei cărți de pe rafturile tale va șterge înregistrările tale de progres pentru această operă. Continuați?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
-msgstr ""
+msgstr "Adaugă la listă"
 
 #: my_books/check_ins/check_in_form.html
 msgid "January"
-msgstr ""
+msgstr "Ianuarie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "February"
-msgstr ""
+msgstr "Februarie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "March"
-msgstr ""
+msgstr "Martie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "April"
-msgstr ""
+msgstr "Aprilie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "May"
-msgstr ""
+msgstr "Mai"
 
 #: my_books/check_ins/check_in_form.html
 msgid "June"
-msgstr ""
+msgstr "Iunie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "July"
-msgstr ""
+msgstr "Iulie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "August"
-msgstr ""
+msgstr "August"
 
 #: my_books/check_ins/check_in_form.html
 msgid "September"
-msgstr ""
+msgstr "Septembrie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "October"
-msgstr ""
+msgstr "Octombrie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "November"
-msgstr ""
+msgstr "Noiembrie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "December"
-msgstr ""
+msgstr "Decembrie"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr ""
+msgstr "Adaugă o dată opțională de înregistrare. Datele de înregistrare sunt folosite pentru urmărirea obiectivelor anuale de lectură."
 
 #: my_books/check_ins/check_in_form.html
 msgid "End Date:"
-msgstr ""
+msgstr "Data de final:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year:"
-msgstr ""
+msgstr "An:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year"
-msgstr ""
+msgstr "An"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month:"
-msgstr ""
+msgstr "Lună:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month"
-msgstr ""
+msgstr "Lună"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day:"
-msgstr ""
+msgstr "Zi:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day"
-msgstr ""
+msgstr "Zi"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
-msgstr ""
+msgstr "Șterge evenimentul"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Nu s-a putut șterge înregistrarea. Vă rugăm să încercați din nou în câteva momente."
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Nu s-a putut trimite înregistrarea. Vă rugăm să încercați din nou în câteva momente."
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Citit <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
-msgstr ""
+msgstr "Când ai terminat această carte?"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Other"
-msgstr ""
+msgstr "Altele"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Check-In"
-msgstr ""
+msgstr "Înregistrare progres"
 
 #: observations/review_component.html
 msgid "Community Reviews"
-msgstr ""
+msgstr "Recenzii comunitate"
 
 #: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
-msgstr ""
+msgstr "Nicio recenzie din comunitate nu a fost trimisă pentru această operă."
 
 #: observations/review_component.html
 msgid "+ Add your community review"
-msgstr ""
+msgstr "+ Adaugă recenzia ta din comunitate"
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
-msgstr ""
+msgstr "+ Autentifică-te pentru a adăuga recenzia ta din comunitate"
 
 #: publishers/index.html publishers/notfound.html
 msgid "Publishers"
-msgstr ""
+msgstr "Editori"
 
 #: publishers/index.html publishers/view.html
 msgid "Publisher Search"
-msgstr ""
+msgstr "Căutare editor"
 
 #: publishers/index.html publishers/view.html
 msgid "Try a keyword."
@@ -5610,20 +5610,20 @@ msgstr "Încercați un cuvânt cheie."
 #: publishers/notfound.html
 #, python-format
 msgid "We couldn't find any books published by %(publisher)s."
-msgstr ""
+msgstr "Nu am putut găsi nicio carte publicată de %(publisher)s."
 
 #: publishers/notfound.html subjects/notfound.html
 msgid "Try something else?"
-msgstr ""
+msgstr "Încercați altceva?"
 
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "Editor: %(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
-msgstr ""
+msgstr "Editor"
 
 #: SearchResultsWork.html publishers/view.html
 #, python-format
@@ -5635,15 +5635,15 @@ msgstr[2] ""
 
 #: publishers/view.html
 msgid "0 ebooks"
-msgstr ""
+msgstr "0 e-books"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Publishing History"
-msgstr ""
+msgstr "Istoricul publicării"
 
 #: publishers/view.html
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "Acesta este un grafic care arată când a publicat cărți acest editor. Pe axa X este timpul, iar pe axa Y este numărul de ediții publicate. <a href=\"#subjectRelated\">Faceți clic aici pentru a sări graficul</a>."
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
