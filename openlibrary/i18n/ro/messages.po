@@ -4634,31 +4634,31 @@ msgstr "Încarcă o imagine de copertă"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Faceți rapid o fotografie a copertei pentru a o partaja?"
 
 #: lib/message_addbook.html
 msgid "Add an ISBN"
-msgstr ""
+msgstr "Adaugă un ISBN"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Ajutați biblioteca să se conecteze cu alte sisteme, precum Amazon."
 
 #: lib/message_addbook.html
 msgid "Add some subjects"
-msgstr ""
+msgstr "Adaugă câteva subiecte"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "Sunt ca niște etichete."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Descrie despre ce este cartea"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "O propoziție sau două este suficient."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -4810,7 +4810,7 @@ msgstr "Note de lansare"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -4934,7 +4934,7 @@ msgstr "Căutați după codul de bare"
 
 #: lib/not_logged.html
 msgid "<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>.</strong> Open Library will record your IP address and include it in this page's publicly accessible edit history. If you <a href=\"/account/create\" title=\"Create an Open Library account\">create an account</a>, your IP address is concealed and you can more easily keep track of all your edits and additions."
-msgstr ""
+msgstr "<strong>Nu ești <a href=\"/account/login\" title=\"Autentifică-te acum\">autentificat</a>.</strong> Open Library va înregistra adresa ta IP și o va include în istoricul public al acestei pagini. Dacă <a href=\"/account/create\" title=\"Creează un cont Open Library\">creezi un cont</a>, adresa ta IP este ascunsă și poți urmări mai ușor toate modificările și adăugirile tale."
 
 #: librarian_dashboard/data_quality_table.html
 #, fuzzy
@@ -4948,24 +4948,24 @@ msgstr "Urmăresc"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tabel calitate date"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Criterii de calitate"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
-msgstr ""
+msgstr "Vezi tot"
 
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
-msgstr ""
+msgstr "%(list)s - Ediții"
 
 #: lists/export_as_html.html type/list/embed.html type/list/view_body.html
 msgid "Unknown authors"
-msgstr ""
+msgstr "Autori necunoscuți"
 
 #: lists/export_as_html.html
 msgid "Title unknown"
@@ -4973,16 +4973,16 @@ msgstr "Titlu necunoscut"
 
 #: lists/export_as_html.html
 msgid "First publish date unknown"
-msgstr ""
+msgstr "Data primei publicări necunoscută"
 
 #: lists/export_as_html.html
 msgid "Name unknown"
-msgstr ""
+msgstr "Nume necunoscut"
 
 #: lists/header.html
 #, python-format
 msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Liste"
 
 #: lists/header.html
 #, python-format
@@ -5026,24 +5026,24 @@ msgstr[2] ""
 
 #: lists/header.html
 msgid "Hm. Can't find it."
-msgstr ""
+msgstr "Hmm. Nu pot găsi."
 
 #: lists/home.html
 msgid "Create a list of any Subjects, Authors, Works or specific Editions."
-msgstr ""
+msgstr "Creați o listă cu orice Subiecte, Autori, Opere sau Ediții specifice."
 
 #: lists/home.html
 msgid "Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See all your lists and any activity using the \"Lists\" link on your Account page."
-msgstr ""
+msgstr "Odată ce ai creat o listă, poți <strong>urmări actualizările</strong> sau <strong>exporta</strong> toate edițiile dintr-o listă ca HTML, BibTeX sau JSON. Vizualizați toate listele și activitatea dvs. folosind linkul \"Liste\" de pe pagina contului."
 
 #: lists/home.html
 #, python-format
 msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr ""
+msgstr "Pentru primele 2000+ e-books cel mai solicitate în California pentru persoanele cu dizabilități de tipărire <a href=\"%(url)s\">faceți clic aici</a>."
 
 #: lists/home.html
 msgid "Find a list by name"
-msgstr ""
+msgstr "Găsiți o listă după nume"
 
 #: lists/home.html
 msgid "Active Lists"
@@ -5052,7 +5052,7 @@ msgstr "Liste active"
 #: lists/home.html
 #, python-format
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr ""
+msgstr "de la <a href=\"%(key)s\">%(owner)s</a>"
 
 #: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html type/list/view_body.html
 #, python-format
@@ -5065,11 +5065,11 @@ msgstr[2] ""
 #: lists/home.html lists/preview.html lists/snippet.html
 #, python-format
 msgid "Last modified %(date)s"
-msgstr ""
+msgstr "Modificat ultima dată %(date)s"
 
 #: lists/home.html lists/snippet.html
 msgid "No description."
-msgstr ""
+msgstr "Fără descriere."
 
 #: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
 msgid "Recent Activity"
@@ -5077,27 +5077,27 @@ msgstr "Activitate recentă"
 
 #: lists/list_follow.html
 msgid "Cover of book"
-msgstr ""
+msgstr "Copertă carte"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatarul proprietarului listei"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
-msgstr ""
+msgstr "Tu"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Acest utilizator nu a activat urmărirea"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Urmărește"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -5111,26 +5111,26 @@ msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "See this list"
-msgstr ""
+msgstr "Vezi această listă"
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "Remove from your list?"
-msgstr ""
+msgstr "Elimini din lista ta?"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
+msgstr "de la <a href=\"%(link)s\">Tine</a>"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
+msgstr "de la <a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
 msgid "%(owner)s / Lists"
-msgstr ""
+msgstr "%(owner)s / Liste"
 
 #: lists/lists.html type/list/view_body.html
 msgid "Yes, I'm sure"
@@ -5150,20 +5150,20 @@ msgstr "Șterge lista"
 
 #: lists/lists.html
 msgid "Are you sure you want to delete this list?"
-msgstr ""
+msgstr "Ești sigur că vrei să ștergi această listă?"
 
 #: lists/lists.html
 msgid "Remove this seed?"
-msgstr ""
+msgstr "Eliminați această intrare?"
 
 #: lists/lists.html
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
-msgstr ""
+msgstr "Ești sigur că vrei să elimini <strong>%(title)s</strong> din această listă?"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "Acest cititor nu a creat încă nicio listă."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
@@ -5176,7 +5176,7 @@ msgstr "Aflați cum puteți să creați prima dumneavoastră listă."
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "de <a href=\"%s\">Tine</a>"
 
 #: lists/showcase.html
 #, python-format
@@ -5189,140 +5189,140 @@ msgstr "Nu aveți nicio listă."
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
+msgstr "de la"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Se încarcă<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
-msgstr ""
+msgstr "Fuzionează autori"
 
 #: merge/authors.html
 msgid "No authors selected."
-msgstr ""
+msgstr "Niciun autor selectat."
 
 #: merge/authors.html
 msgid "Please select a primary author record."
-msgstr ""
+msgstr "Selectați o înregistrare principală de autor."
 
 #: merge/authors.html
 msgid "Please select some authors to merge."
-msgstr ""
+msgstr "Selectați autorii de fuzionat."
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "Selectați cel mai vechi profil ca principal -"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
-msgstr ""
+msgstr "Selectați înregistrările de autori care trebuie fuzionate cu cel principal"
 
 #: merge/authors.html
 msgid "Press MERGE AUTHORS."
-msgstr ""
+msgstr "Apăsați FUZIONEAZĂ AUTORI."
 
 #: merge/authors.html
 msgid "No primary record"
-msgstr ""
+msgstr "Fără înregistrare principală"
 
 #: merge/authors.html
 msgid "You must select a primary record to point the duplicates toward."
-msgstr ""
+msgstr "Trebuie să selectați o înregistrare principală spre care să indice duplicatele."
 
 #: merge/authors.html
 msgid "Please Be Careful..."
-msgstr ""
+msgstr "Atenție vă rugăm..."
 
 #: merge/authors.html
 msgid "<b>Are you sure</b> you want to merge these records?"
-msgstr ""
+msgstr "<b>Ești sigur</b> că vrei să fuzionezi aceste înregistrări?"
 
 #: merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
-msgstr ""
+msgstr "Principal"
 
 #: merge/authors.html
 msgid "Merge"
-msgstr ""
+msgstr "Fuzionează"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "dată naștere/deces"
 
 #: merge/authors.html
 msgid "Open in a new window"
-msgstr ""
+msgstr "Deschide într-o fereastră nouă"
 
 #: merge/authors.html search/work_search_selected_facets.html
 msgid "First published in"
-msgstr ""
+msgstr "Publicată prima dată în"
 
 #: merge/authors.html
 msgid "Visit this author's page in a new window"
-msgstr ""
+msgstr "Vizitați pagina acestui autor într-o fereastră nouă"
 
 #: merge/authors.html
 msgid "Comment:"
-msgstr ""
+msgstr "Comentariu:"
 
 #: merge/authors.html
 msgid "Comment..."
-msgstr ""
+msgstr "Comentariu..."
 
 #: merge/authors.html
 msgid "Request Merge"
-msgstr ""
+msgstr "Solicită fuzionare"
 
 #: merge/authors.html
 msgid "Reject Merge"
-msgstr ""
+msgstr "Respinge fuzionarea"
 
 #: merge/works.html
 msgid "Merge Works"
-msgstr ""
+msgstr "Fuzionează opere"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "Nu s-a putut trimite comentariul. Vă rugăm să încercați din nou în câteva momente."
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(Opțional) De ce închideți această cerere?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
-msgstr ""
+msgstr "Se afișează numai cererile lui %(username)s."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show all requests"
-msgstr ""
+msgstr "Afișează toate cererile"
 
 #: merge_request_table/merge_request_table.html
 msgid "Showing all requests."
-msgstr ""
+msgstr "Se afișează toate cererile."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show my requests"
-msgstr ""
+msgstr "Afișează cererile mele"
 
 #: merge_request_table/merge_request_table.html
 msgid "Community Edit Requests"
-msgstr ""
+msgstr "Cereri de editare din comunitate"
 
 #: merge_request_table/merge_request_table.html
 msgid "No entries here!"
-msgstr ""
+msgstr "Nicio intrare aici!"
 
 #: merge_request_table/table_header.html
 msgid "Open"
-msgstr ""
+msgstr "Deschide"
 
 #: merge_request_table/table_header.html
 msgid "Closed"
-msgstr ""
+msgstr "Închis"
 
 #: merge_request_table/table_header.html
 msgid "Status ▾"
