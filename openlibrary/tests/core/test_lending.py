@@ -166,15 +166,26 @@ class TestGetLendingState:
             assert lending.get_lending_state(doc) == "locate"
 
     def test_get_lending_state_waiting_loan(self, mock_site):
+        # Case A: User is on waitlist, but it is not their turn yet (position > 1 or status != available)
         mock_user = Mock()
         mock_user.is_printdisabled.return_value = False
-        mock_user.get_user_waiting_loans.return_value = {"status": "waiting"}
+        mock_user.get_user_waiting_loans.return_value = {"status": "waiting", "position": 2}
         mock_user.get_loan_for.return_value = None
 
         mock_ia_provider = Mock()
         mock_ia_provider.short_name = "ia"
 
-        with patch("openlibrary.book_providers.get_book_provider") as mock_gbp:
-            mock_gbp.ia = mock_ia_provider
-            doc = {"ocaid": "foo", "availability": {"is_lendable": True, "available_to_waitlist": True}}
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            # General availability says waitlist is closed (i.e. 'checkedout')
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_waitlist": False}}
+            # Proves that without check_loan_status=True, we ignore the waitlist and return "checkedout"
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=False) == "checkedout"
+            # Proves that enabling check_loan_status=True successfully resolves to "waitlist"
             assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "waitlist"
+
+        # Case B: It is the user's turn to borrow (position 1, status available)
+        mock_user.get_user_waiting_loans.return_value = {"status": "available", "position": 1}
+        with patch("openlibrary.book_providers.get_book_provider_by_name", return_value=mock_ia_provider):
+            # General availability has the book as borrowable now that it's their turn
+            doc = {"key": "/books/OL1M", "ocaid": "foo", "availability": {"is_lendable": True, "available_to_borrow": True}}
+            assert lending.get_lending_state(doc, user=mock_user, check_loan_status=True) == "borrowable"
