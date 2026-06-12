@@ -6024,31 +6024,31 @@ msgstr "Top evaluat"
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
+msgstr "Orice"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Titlul operei (beta: doar bibliotecar)"
 
 #: search/sort_options.html
 msgid "Sorting by"
-msgstr ""
+msgstr "Sortare după"
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "Amestecat"
 
 #: search/subjects.html
 msgid "Search Subjects"
-msgstr ""
+msgstr "Căutați subiecte"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Niciun <strong>subiect</strong> nu s-a potrivit direct cu căutarea dvs."
 
 #: search/subjects.html
 msgid "time"
-msgstr ""
+msgstr "timp"
 
 #: search/subjects.html
 msgid "subject"
@@ -6076,11 +6076,11 @@ msgstr "muncă"
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
-msgstr ""
+msgstr "Fuzionați autorii duplicați din această căutare"
 
 #: search/work_search_facets.html type/work/editions.html
 msgid "Merge duplicates"
-msgstr ""
+msgstr "Fuzionați duplicatele"
 
 #: search/work_search_facets.html
 #, fuzzy
@@ -6090,47 +6090,47 @@ msgstr "Liste"
 #: search/work_search_facets.html
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
+msgstr "Filtrați rezultatele pentru %(facet)s"
 
 #: search/work_search_facets.html
 msgid "Filter results for ebook availability"
-msgstr ""
+msgstr "Filtrați rezultatele după disponibilitatea ebook"
 
 #: search/work_search_facets.html
 msgid "yes"
-msgstr ""
+msgstr "da"
 
 #: search/work_search_facets.html
 msgid "no"
-msgstr ""
+msgstr "nu"
 
 #: search/work_search_facets.html
 msgid "Zoom In"
-msgstr ""
+msgstr "Mărire"
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
+msgstr "Rafinați rezultatele folosind aceste <a href=\"/search/howto\">filtre</a>"
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
-msgstr ""
+msgstr "Scrisă în"
 
 #: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
+msgstr "Publicată de"
 
 #: search/work_search_selected_facets.html
 msgid "eBook"
-msgstr ""
+msgstr "eBook"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBook"
-msgstr ""
+msgstr "eBook clasic"
 
 #: search/work_search_selected_facets.html
 msgid "Only Classic eBooks"
-msgstr ""
+msgstr "Doar eBook-uri clasice"
 
 #: search/work_search_selected_facets.html
 #, fuzzy
@@ -6140,15 +6140,15 @@ msgstr "Cărți electronice clasice"
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
-msgstr ""
+msgstr "%(title)s - căutare"
 
 #: site/alert.html
 msgid "Internet Archive logo"
-msgstr ""
+msgstr "Sigla Internet Archive"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "Se pare că ești offline."
 
 #: site/head.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
@@ -6156,47 +6156,47 @@ msgstr "Open Library este un catalog de bibliotecă deschis și editabil, care �
 
 #: site/stats.html
 msgid "Debug Stats"
-msgstr ""
+msgstr "Statistici de depanare"
 
 #: stats/readinglog.html
 msgid "Reading Log Stats"
-msgstr ""
+msgstr "Statistici jurnal lectură"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "# Cărți înregistrate"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "Numărul total de cărți înregistrate folosind funcția Jurnal lectură"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "Toată perioada"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "# Utilizatori unici care înregistrează cărți"
 
 #: stats/readinglog.html
 msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr ""
+msgstr "Numărul total de utilizatori unici care au înregistrat cel puțin o carte folosind funcția Jurnal lectură"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "# Cărți marcate cu stea"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "Numărul total de cărți care au fost marcate cu stea"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "Total # Evaluatori unici (toată perioada)"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "Cele mai dorite cărți (luna aceasta)"
 
 #: stats/readinglog.html
 #, python-format
@@ -6208,27 +6208,27 @@ msgstr[2] ""
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "Cele mai dorite cărți (toată perioada)"
 
 #: stats/readinglog.html
 msgid "Most Logged Books"
-msgstr ""
+msgstr "Cărți cel mai des înregistrate"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "Cărți cel mai mult citite (toată perioada)"
 
 #: stats/readinglog.html
 msgid "Most Rated Books"
-msgstr ""
+msgstr "Cărți cel mai bine evaluate"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "Cărți cel mai bine evaluate (toată perioada)"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "Nu am găsit nicio carte despre"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
@@ -6237,11 +6237,11 @@ msgstr "OpenAPI"
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "Editați %(title)s"
 
 #: type/about/edit.html
 msgid "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "Aceasta apare doar în capul documentului și este atașată etichetelor de marcaj"
 
 #: type/about/edit.html
 msgid "Intro"
@@ -6249,135 +6249,135 @@ msgstr "Introducere"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "Aceasta apare în prima coloană."
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "Aceasta apare în a doua coloană, în partea de sus."
 
 #: type/about/edit.html
 msgid "Mailing List"
-msgstr ""
+msgstr "Listă de corespondență"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "Aceasta apare sub lista de linkuri."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Pentru mai multe informații"
 
 #: type/author/edit.html
 msgid "Edit Author"
-msgstr ""
+msgstr "Editați autorul"
 
 #: type/author/edit.html
 msgid "Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>."
-msgstr ""
+msgstr "Vă rugăm să folosiți ordinea naturală. De exemplu: <strong>Leo Tolstoy</strong> nu <strong>Tolstoy, Leo</strong>."
 
 #: type/author/edit.html
 msgid "A short bio?"
-msgstr ""
+msgstr "O scurtă biografie?"
 
 #: type/author/edit.html
 msgid "If you \"borrow\" information from somewhere, please make sure to cite the source."
-msgstr ""
+msgstr "Dacă \"împrumutați\" informații din altă parte, asigurați-vă că citați sursa."
 
 #: type/author/edit.html
 msgid "Date of birth"
-msgstr ""
+msgstr "Data nașterii"
 
 #: type/author/edit.html
 msgid "Date of death"
-msgstr ""
+msgstr "Data decesului"
 
 #: type/author/edit.html
 msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr ""
+msgstr "Nu stocăm încă date structurate, deci se recomandă o dată de forma \"21 mai 2000\"."
 
 #: type/author/edit.html
 msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr ""
+msgstr "Acesta este un câmp depreciat. Puteți îmbunătăți această înregistrare eliminând această dată și completând câmpurile \"Data nașterii\" și \"Data decesului\". Mulțumim!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "Autorul este cunoscut și sub alte nume?"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "De exemplu: Lev Nikolayevich Tolstoy era cunoscut și ca Leo Tolstoy. Vă rugăm să listați câte un nume pe linie."
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Identificatori"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "Scopul identificatorilor autorului"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "Autor al %(book_titles)s"
 
 #: type/author/view.html
 msgid "Merging Authors..."
-msgstr ""
+msgstr "Fuzionarea autorilor..."
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "În curs..."
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "Reîncărcați pagina?"
 
 #: type/author/view.html
 msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
+msgstr "OK. Fuzionarea este în curs. <i>Va dura <u>câteva minute pentru a finaliza</u> actualizarea.</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "Argh!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "Fuzionarea nu a funcționat. Este greșeala noastră și am notat-o."
 
 #: type/author/view.html
 msgid "Add another?"
-msgstr ""
+msgstr "Adăugați altul?"
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "Căutați cărțile lui %(author)s"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
+msgstr "— Afișați <a href=\"%(url)s\">tot</a> de la acest autor?"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "Places"
-msgstr ""
+msgstr "Locuri"
 
 #: Profile.html type/author/view.html
 msgid "Time"
-msgstr ""
+msgstr "Timp"
 
 #: type/author/view.html
 msgid "OLID"
-msgstr ""
+msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
