@@ -1096,6 +1096,7 @@ def setup_template_globals():
         get_book_provider_by_name,
         get_cover_url,
     )
+    from openlibrary.core.lending import get_lending_state
 
     def get_supported_languages():
         return {
@@ -1142,6 +1143,7 @@ def setup_template_globals():
             "ol_features": ol_features,
             "render_jinja_template": render_jinja_template,
             "get_sentry": get_sentry,
+            "get_lending_state": get_lending_state,
             # bad use of globals
             "is_bot": is_bot,
             "time": time,
