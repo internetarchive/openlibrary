@@ -75,6 +75,7 @@ services:
       dockerfile: docker/Dockerfile.oldev
     environment:
       - OL_SOLR_NEXT=true
+      - LOCAL_DEV=true
     depends_on:
       solr:
         condition: service_healthy

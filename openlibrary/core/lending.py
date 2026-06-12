@@ -19,6 +19,7 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import cache, stats
+from openlibrary.core.env import get_ol_env
 from openlibrary.plugins.upstream.utils import urlencode
 from openlibrary.utils import dateutil, uniq
 from openlibrary.utils.async_utils import async_bridge
@@ -113,7 +114,6 @@ def compose_ia_url(
     query=None,
     sorts=None,
     advanced: bool = True,
-    rate_limit_exempt: bool = True,
     safe_mode: bool = False,
 ) -> str | None:
     """This needs to be exposed by a generalized API endpoint within
@@ -175,7 +175,8 @@ def compose_ia_url(
         ("page", page),
         ("output", "json"),
     ]
-    if rate_limit_exempt:
+    if not get_ol_env().LOCAL_DEV:
+        # This flag is only available on prod
         params.append(("service", "metadata__unlimited"))
     if not sorts or not isinstance(sorts, list):
         sorts = [""]

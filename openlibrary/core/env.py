@@ -7,6 +7,9 @@ class OLEnv:
     def OL_EXPOSE_SOLR_INTERNALS_PARAMS(self) -> bool:
         return os.environ.get("OL_EXPOSE_SOLR_INTERNALS_PARAMS") == "true"
 
+    @cached_property
+    def LOCAL_DEV(self) -> bool:
+        return os.environ.get("LOCAL_DEV") == "true"
 
 _ol_env = OLEnv()
 

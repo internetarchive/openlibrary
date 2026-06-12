@@ -22,6 +22,7 @@ from web import DB
 
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -132,7 +133,8 @@ class DataProvider:
                         "rows": len(ocaids),
                         "fl": ",".join(IA_METADATA_FIELDS),
                         "output": "json",
-                        "service": "metadata__unlimited",
+                        # This is only available from prod
+                        **({} if get_ol_env().LOCAL_DEV else {"service": "metadata__unlimited"}),
                     },
                 )
             r.raise_for_status()
