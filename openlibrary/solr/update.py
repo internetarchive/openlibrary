@@ -142,7 +142,7 @@ async def update_keys(
 def load_configs(
     c_host: str,
     c_config: str,
-    c_data_provider: (DataProvider | Literal["default", "legacy", "external"]) = "default",
+    c_data_provider: (DataProvider | Literal["default", "external"]) = "default",
 ) -> DataProvider:
     host = c_host.removeprefix("http://").strip("/")
     set_query_host(host)
@@ -167,7 +167,7 @@ async def main(
     ol_config="openlibrary.yml",
     output_file: str | None = None,
     commit=True,
-    data_provider: Literal["default", "legacy", "external"] = "default",
+    data_provider: Literal["default", "external"] = "default",
     solr_base: str | None = None,
     solr_next=False,
     update: Literal["update", "print", "pprint"] = "update",
