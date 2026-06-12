@@ -7492,71 +7492,71 @@ msgstr "Distribuiți pe %(share_link)s"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
-msgstr ""
+msgstr "Incorporați această carte în site-ul dvs."
 
 #: ShareModal.html
 msgid "Embed icon"
-msgstr ""
+msgstr "Pictogramă incorporare"
 
 #: ShareModal.html
 msgid "Embed"
-msgstr ""
+msgstr "Incorporare"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "Copiați URL-ul în clipboard"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "Pictogramă copiere URL"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "Copiați URL-ul"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "Deschideți codul QR"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "Pictogramă cod QR"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "Cod QR"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "lăsând o recenzie de 1 stea pentru"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "lăsând o recenzie de 2 stele pentru"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "lăsând o recenzie de 3 stele pentru"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "lăsând o recenzie de 4 stele pentru"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "lăsând o recenzie de 5 stele pentru"
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "Ștergeți evaluarea mea"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "rating"
-msgstr ""
+msgstr "evaluare"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "ratings"
-msgstr ""
+msgstr "evaluări"
 
 #. Shows the count of readers who added this book to their "Want to read"
 #. shelf, displayed on search result pages. %(want_to_read_count)s is a
@@ -7570,7 +7570,7 @@ msgstr "%(want_to_read_count)s doresc să citesc"
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -7590,7 +7590,7 @@ msgstr "În curs de citire"
 #. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
-msgstr ""
+msgstr "Am citit"
 
 #. Short label displayed next to the count of readers who stopped reading this
 #. book before finishing, shown in the stats bar on a book page. Example: "348
@@ -7607,19 +7607,19 @@ msgstr "Subiecte"
 
 #: Subnavigation.html
 msgid "Developer Center (Home)"
-msgstr ""
+msgstr "Centrul dezvoltatorilor (Acasă)"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Web API"
 
 #: Subnavigation.html
 msgid "Client Library"
-msgstr ""
+msgstr "Bibliotecă client"
 
 #: Subnavigation.html
 msgid "Data Dumps"
-msgstr ""
+msgstr "Exporturi date"
 
 #: Subnavigation.html
 msgid "Report an Issue"
@@ -7627,73 +7627,73 @@ msgstr "Raportați o problemă"
 
 #: Subnavigation.html
 msgid "Licensing"
-msgstr ""
+msgstr "Licențiere"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "Bun venit"
 
 #: Subnavigation.html
 msgid "Searching Open Library"
-msgstr ""
+msgstr "Căutarea în Open Library"
 
 #: Subnavigation.html
 msgid "Reading Books"
-msgstr ""
+msgstr "Citirea cărților"
 
 #: Subnavigation.html
 msgid "Adding & Editing Books"
-msgstr ""
+msgstr "Adăugarea și editarea cărților"
 
 #: Subnavigation.html
 msgid "Using Subjects"
-msgstr ""
+msgstr "Utilizarea subiectelor"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
+msgstr "Întrebări frecvente Open Library"
 
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "Pagina %s"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "Tendință: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
-msgstr ""
+msgstr "Tipul paginii"
 
 #: TypeChanger.html
 msgid "Huh?"
-msgstr ""
+msgstr "Poftim?"
 
 #: TypeChanger.html
 msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr ""
+msgstr "Fiecare element Open Library este definit de tipul de conținut pe care îl afișează, de obicei prin definiția conținutului (ex. Autori, Ediții, Opere), dar uneori prin utilizarea conținutului (ex. macro, șablon, text brut). Schimbarea acestuia pentru o pagină existentă va modifica prezentarea și câmpurile de date disponibile pentru editarea conținutului."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
-msgstr ""
+msgstr "Vă rugăm să fiți atent când schimbați Tipul paginii!"
 
 #: TypeChanger.html
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr ""
+msgstr "(Soluție simplă: Dacă nu ești sigur că trebuie schimbat, nu-l schimba.)"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Niciun link Wikipedia în limba dvs."
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "Verificați bibliotecile din apropiere"
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
-msgstr ""
+msgstr "Verificați WorldCat pentru o ediție din apropierea dvs."
 
 #: WorldcatLink.html
 msgid "WorldCat"
@@ -7701,41 +7701,41 @@ msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
-msgstr ""
+msgstr "Vedeți istoricul de editare al acestei pagini"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "Vizualizați această pagină (ieșiți din modul Comparație)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "Vizualizați această pagină (ieșiți din modul Editare)"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "Ultima editare de %(author_link)s"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
-msgstr ""
+msgstr "Ultima editare anonimă"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "Vedeți istoricul de editare al acestui șablon"
 
 #: databarTemplate.html
 msgid "Edit this template"
-msgstr ""
+msgstr "Editați acest șablon"
 
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "Vizualizați Volumul %(num)d"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
-msgstr ""
+msgstr "[Înregistrare ștearsă]"
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
@@ -7748,7 +7748,7 @@ msgstr "Căutare"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "Arabă"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
@@ -7809,7 +7809,7 @@ msgstr "Chineză"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "Filipino"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
@@ -7861,11 +7861,11 @@ msgstr "Știință"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "Cel puțin 1 subiect"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 author"
-msgstr ""
+msgstr "Cel puțin 1 autor"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -7874,11 +7874,11 @@ msgstr "o ediție"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Are operă (orfană)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publication year"
-msgstr ""
+msgstr "Are an de publicare"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -7897,52 +7897,52 @@ msgstr "Publicat pentru prima dată"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 2 editions"
-msgstr ""
+msgstr "Cel puțin 2 ediții"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has dewey decimal"
-msgstr ""
+msgstr "Are clasificare Dewey"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has LoC classification"
-msgstr ""
+msgstr "Are clasificare LoC"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
+msgstr "Are număr de pagini"
 
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
+msgstr "Sigur doriți să eliminați <strong>%(title)s</strong> din lista dvs.?"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " - include livrarea"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "Această operă nu apare pe nicio listă."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Nu am încă unul"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "Adresa de email introdusă este invalidă"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
@@ -7950,31 +7950,31 @@ msgstr "Acest cont a fost blocat"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "Acest cont a fost blocat"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Niciun cont găsit cu acest email. Vă rugăm să încercați din nou"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "Parola introdusă este incorectă. Vă rugăm să încercați din nou"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "Parolă greșită. Vă rugăm să încercați din nou"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr ""
+msgstr "Vă rugăm să vă verificați contul Open Library înainte de a vă conecta"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Vă rugăm să vă verificați contul Internet Archive înainte de a vă conecta"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Vă rugăm să completați toate câmpurile și să încercați din nou"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
