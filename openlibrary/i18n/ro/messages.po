@@ -7978,72 +7978,72 @@ msgstr "Vă rugăm să completați toate câmpurile și să încercați din nou"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
-msgstr ""
+msgstr "Această adresă de email este deja înregistrată"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This username is already registered"
-msgstr ""
+msgstr "Acest nume de utilizator este deja înregistrat"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "A apărut o problemă și nu am putut să vă conectăm."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "S-a încercat conectarea cu credențiale s3 Internet Archive invalide."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "Serverele experimentează trafic neobișnuit de mare, vă rugăm să încercați din nou mai târziu sau trimiteți un email la openlibrary@archive.org pentru ajutor."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
-msgstr ""
+msgstr "Furnizorul de email nu este recunoscut."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "Cerințele pentru parolă nu sunt îndeplinite."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "A apărut o problemă și nu am putut să vă conectăm"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "Încercarea de conectare sau înregistrare a întâlnit o eroare neașteptată, vă rugăm să încercați din nou sau să contactați info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Solicitarea a eșuat cu codul de eroare: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Vă mulțumim pentru înregistrarea unui cont Open Library și solicitarea accesului special pentru dizabilități de lectură tipărită. Ar trebui să primiți un email cu detalii despre pașii următori în proces."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "Nume de utilizator indisponibil"
 
 #: openlibrary/plugins/upstream/account.py openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
-msgstr ""
+msgstr "Email deja înregistrat"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Un cont Internet Archive există deja cu acest email"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "Verificarea a eșuat. Linkul poate fi invalid sau expirat. Vă rugăm să încercați să vă înregistrați din nou."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "Emailul dvs. a fost verificat. Sunteți acum conectat."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
-msgstr ""
+msgstr "Preferințele de notificare au fost actualizate cu succes."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy
@@ -8053,7 +8053,7 @@ msgstr ""
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Imposibil de returnat %s. Vă rugăm să încercați din nou mai târziu sau să contactați info@archive.org."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy, python-format
@@ -8062,7 +8062,7 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Contul dvs. a atins limita de împrumut. Vă rugăm să încercați din nou mai târziu sau să contactați info@archive.org."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
@@ -8070,15 +8070,15 @@ msgstr "Nume de utilizator"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
-msgstr ""
+msgstr "Niciun utilizator înregistrat cu această adresă de email"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "Email de unică folosință nepermis"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "Furnizorul dvs. de email nu este recunoscut."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
@@ -8086,15 +8086,15 @@ msgstr "Nume de utilizator deja folosit"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "Trebuie să aibă între 3 și 20 de litere și cifre"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Screen Name"
-msgstr ""
+msgstr "Nume de ecran"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "Public și nu poate fi schimbat ulterior."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -8102,7 +8102,7 @@ msgstr "Parolă nevalidă"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
-msgstr ""
+msgstr "Adresa dvs. de email"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
@@ -8111,7 +8111,7 @@ msgstr "Alegeți o parolă"
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "Continuați <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
