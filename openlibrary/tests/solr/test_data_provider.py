@@ -3,14 +3,14 @@ from unittest.mock import MagicMock
 import pytest
 
 from infogami.infobase.client import Thing
-from openlibrary.solr.data_provider import BetterDataProvider
+from openlibrary.solr.data_provider import DatabaseDataProvider
 
 
 class TestBetterDataProvider:
     @pytest.mark.asyncio
     async def test_get_document(self):
         mock_site = MagicMock()
-        dp = BetterDataProvider(
+        dp = DatabaseDataProvider(
             site=mock_site,
             db=MagicMock(),
         )
@@ -33,7 +33,7 @@ class TestBetterDataProvider:
     @pytest.mark.asyncio
     async def test_clear_cache(self):
         mock_site = MagicMock()
-        dp = BetterDataProvider(
+        dp = DatabaseDataProvider(
             site=mock_site,
             db=MagicMock(),
         )

@@ -39,7 +39,7 @@ OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
 def get_data_provider(type="default"):
     """Returns the data provider of given type."""
     if type == "default":
-        return BetterDataProvider()
+        return DatabaseDataProvider()
     else:
         raise ValueError("unknown data provider type: %s" % type)
 
@@ -294,7 +294,14 @@ class ExternalDataProvider(DataProvider):
             return response.json()
 
 
-class BetterDataProvider(DataProvider):
+class DatabaseDataProvider(DataProvider):
+    """
+    This data provider assumes we are running in a full prod or local OL environment
+    with database access.
+    
+    It uses the infogami site to fetch data directly from the database, as well as
+    makes queries to solr for some data (like trending data) that is not in the database.
+    """
     def __init__(
         self,
         site: Site | None = None,
