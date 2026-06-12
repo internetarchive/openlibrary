@@ -2789,7 +2789,7 @@ msgstr "Seleziona alcuni autori da fondere."
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "blocca e ripristina tutte le modifiche"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy, python-format
@@ -2803,17 +2803,17 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
+msgstr "accedi come questo utente"
 
 #: admin/people/edits.html
 #, fuzzy, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "Attivato il <span class=\"time\">%(date)s</span> da <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/edits.html
 #, fuzzy
 msgid "people"
-msgstr "Persone"
+msgstr "sblocca questo account"
 
 #: admin/people/edits.html
 #, fuzzy
@@ -2874,7 +2874,7 @@ msgstr "Cronologia delle modifiche"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "Esecuzione simulata"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3153,7 +3153,7 @@ msgstr "Audio libro"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Leggi gratuitamente online da %s"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -3162,7 +3162,7 @@ msgstr "Scarica un HTML da Project Gutenberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Immagini scansionate"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -3186,7 +3186,7 @@ msgstr "Scarica un file Kindle da Project Gutenberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "File di testo e indice"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -3242,7 +3242,7 @@ msgstr "Di più su Standard Ebooks"
 #: book_providers/wikisource_download_options.html
 #, fuzzy
 msgid "Download PDF from Wikisource"
-msgstr "Scarica PDF da OpenStax"
+msgstr "MOBI (per Kindle)"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3251,7 +3251,7 @@ msgstr "Scarica un file MOBI da Internet Arvchive"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "EPUB (per la maggior parte degli altri e-reader)"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3264,7 +3264,7 @@ msgstr ""
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Leggi su Wikisource"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
@@ -3294,11 +3294,11 @@ msgstr "L'ID deve essere esattamente di 13 caratteri [0-9]. Per esempio 978-3-16
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "Formato LCCN non valido"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "Formato numero di controllo OCLC/WorldCat non valido"
 
 #: books/add.html
 #, fuzzy
@@ -3307,7 +3307,7 @@ msgstr "Seleziona un identificatore."
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Sei sicuro che sia la data di pubblicazione?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
@@ -3339,7 +3339,7 @@ msgstr "Per esempio:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
@@ -3377,7 +3377,7 @@ msgstr "ISBN"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 #, fuzzy
@@ -3386,7 +3386,7 @@ msgstr "Di più su LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 #, fuzzy
@@ -3408,7 +3408,7 @@ msgstr ""
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Questo link a Creative Commons si aprirà in una nuova finestra"
 
 #: books/add.html
 msgid "Add this book now"
@@ -3462,7 +3462,7 @@ msgstr "Pubblicato per la prima volta nel %(year)d"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "Nessuna di queste corrisponde al libro che voglio aggiungere."
 
 #: books/check.html
 #, fuzzy
@@ -3489,24 +3489,24 @@ msgstr "Open Library"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "Non è disponibile alcun file DAISY per "
 
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "Scarica il <a href=\"%(daisy_url)s\"><strong>DAISY.zip</strong></a> per <a href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "Libri per chi non legge a stampa?"
 
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
-msgstr ""
+msgstr "L'<a href=\"//archive.org\">Internet Archive</a> è orgogliosa di distribuire oltre 1 milione di libri gratuiti in un formato chiamato DAISY, progettato per chi trova difficile usare i normali supporti a stampa."
 
 #: books/daisy.html
 msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr ""
+msgstr "Ci sono due tipi di DAISY su Open Library: <i>aperti</i> e <i>protetti</i>. I DAISY aperti possono essere letti da chiunque nel mondo su molti dispositivi diversi. I DAISY protetti possono essere aperti solo con una chiave rilasciata dal <a href=\"http://www.loc.gov/nls/\">programma NLS della Library of Congress</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -3519,7 +3519,7 @@ msgstr "Cos'è questo?"
 
 #: books/daisy.html
 msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
-msgstr ""
+msgstr "Il formato digitale DAISY aiuta le persone che hanno difficoltà con i normali supporti a stampa. I <span class=\"highlight\">libri parlati</span> digitali DAISY offrono i vantaggi dei normali audiolibri, con navigazione all'interno del libro, verso capitoli o pagine specifiche."
 
 #: books/daisy.html
 #, fuzzy
@@ -3533,11 +3533,11 @@ msgstr "Cos'è questo?"
 
 #: books/daisy.html
 msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
-msgstr ""
+msgstr "Il <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> della Library of Congress amministra un programma bibliotecario gratuito di materiali braille e audio distribuiti a utenti idonei negli Stati Uniti attraverso una rete nazionale di biblioteche cooperative."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "Sei idoneo alla registrazione?"
 
 #: books/daisy.html
 #, fuzzy
@@ -3546,11 +3546,11 @@ msgstr "Visualizza la lista su Open Library."
 
 #: books/daisy.html
 msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
-msgstr ""
+msgstr "Oltre a <a href=\"/subjects/accessible_book\" title=\"Soggetto: Libro accessibile\">numerosi DAISY aperti</a>, Open Library elenca una selezione più ridotta di <a href=\"/subjects/protected_DAISY\" title=\"Soggetto: DAISY protetto\">titoli DAISY protetti</a> accessibili a chi ha una chiave NLS della Library of Congress. Questi titoli sono offerti dall'<a href=\"//archive.org/\">Internet Archive</a>."
 
 #: books/daisy.html
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
-msgstr ""
+msgstr "Cerchi un titolo specifico? Il modo migliore per trovarlo è <a href=\"/search\">cercarlo</a>."
 
 #: books/daisy.html lib/exports.html
 #, fuzzy
@@ -3559,7 +3559,7 @@ msgstr "Come possiamo aiutare?"
 
 #: books/daisy.html
 msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
-msgstr ""
+msgstr " Leggi le nostre <a href=\"/help/faq\">FAQ sull'accesso ai libri tramite Open Library</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
@@ -3623,15 +3623,15 @@ msgstr "Fusioni di opere"
 
 #: books/edit.html
 msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
-msgstr ""
+msgstr "Le serie sono attualmente in beta e questa sezione è visibile solo ai super bibliotecari e agli amministratori come te! Qualsiasi serie che imposti sarà comunque visibile a tutti. Segnala eventuali problemi su Slack o GitHub."
 
 #: books/edit.html
 msgid "Is this work part of a larger series?"
-msgstr ""
+msgstr "Quest'opera fa parte di una serie più ampia?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Es. Harry Potter, La Spada della Verità"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 #, fuzzy
@@ -3645,7 +3645,7 @@ msgstr "Conosci un identificatore per questa edizione?"
 
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr ""
+msgstr "Questi identificatori si applicano a tutte le edizioni di quest'opera, ad esempio gli identificatori di opera Wikidata. Per gli identificatori specifici dell'edizione, come ISBN o LCCN, vai alla scheda edizione."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
@@ -3701,7 +3701,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Stopped Reading (%(count)d)"
-msgstr ""
+msgstr "Lettura interrotta (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/lists.py
 #, fuzzy, python-format
@@ -3763,7 +3763,7 @@ msgstr "Separa con virgole."
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr ""
+msgstr "Ad esempio: <i><a href=\"/subjects/cheese\">formaggio</a>, <a href=\"/subjects/roman_empire\">Impero Romano</a>, <a href=\"/subjects/psychology\">psicologia</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -3771,7 +3771,7 @@ msgstr "Una persona? Persone?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
-msgstr ""
+msgstr "Ad esempio: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -3779,7 +3779,7 @@ msgstr "Sono stati citati dei luoghi?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
-msgstr ""
+msgstr "Ad esempio: <i><a href=\"/subjects/place:London\">Londra</a>, <a href=\"/subjects/place:Atlantis\">Atlantide</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -3787,7 +3787,7 @@ msgstr "Quando è ambientato?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr ""
+msgstr "Ad esempio: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">Il Medioevo</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -3823,7 +3823,7 @@ msgstr "Solitamente contraddistinto da un carattere diverso o più piccolo."
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "Ad esempio: <i>immaginare i prossimi 50 anni</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
@@ -3831,7 +3831,7 @@ msgstr "Informazioni di pubblicazione"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Ad esempio: <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
@@ -3843,7 +3843,7 @@ msgstr "Città, Stato."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "Ad esempio: <i>New York, USA; Sydney, Australia</i>"
 
 #: books/edit/edition.html
 msgid "What is the copyright date?"
@@ -3859,7 +3859,7 @@ msgstr "Nome dell'edizione (se applicabile):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "Ad esempio: <i>Edizione del centenario</i>; <i>Prima edizione</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
@@ -3871,7 +3871,7 @@ msgstr "Nome della collana dell'editore."
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "Ad esempio: <i>La storia della civiltà, parte III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
@@ -3907,7 +3907,7 @@ msgstr "Dichiarazione di autorità (da ...)"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Ad esempio: <em>a cura di David Anderson</em>"
 
 #: books/edit/edition.html languages/index.html
 msgid "Languages"
@@ -3955,7 +3955,7 @@ msgstr "Usa un \"*\" per un'indentazione, un \"|\" per aggiungere una colonna e 
 
 #: books/edit/edition.html
 msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr ""
+msgstr "Questo indice contiene informazioni aggiuntive come autori o descrizioni. Non abbiamo ancora un'ottima interfaccia per questo, quindi modificare questi dati potrebbe essere difficile. Attenzione!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -3980,7 +3980,7 @@ msgstr "Usa questo campo se il titolo è diverso sulla copertina o sul dorso. Se
 
 #: books/edit/edition.html
 msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr ""
+msgstr "Ad esempio: <i>Eaters of the Dead</i> è un titolo alternativo per <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -4113,7 +4113,7 @@ msgstr "Aiuto"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Ad esempio: <em>xii, 346p.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
@@ -4174,7 +4174,7 @@ msgstr "Prima frase"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "La frase iniziale che apre il paragrafo introduttivo"
 
 #: books/edit/edition.html
 msgid "Admin Only"
@@ -4195,7 +4195,7 @@ msgstr "Fornisci l'URL di un'immagine."
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "Quel brano è troppo lungo."
 
 #: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
@@ -4207,7 +4207,7 @@ msgstr "Numero pagina?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "Ad esempio: <i>23, xi oppure 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
@@ -4270,11 +4270,11 @@ msgstr "Dai al tuo collegamento un'etichetta"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Ad esempio: <em>recensione del New York Times</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 #, fuzzy
@@ -4323,7 +4323,7 @@ msgstr "Fornisci l'URL di un'immagine."
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "Leggi di più nella nostra <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 #, fuzzy
@@ -4342,15 +4342,15 @@ msgstr "Scegli una JPG, GIF o PNG dal tuo computer,"
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "Carica"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Oppure incolla un'immagine dagli appunti"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Incolla immagine dagli appunti"
 
 #: covers/add.html
 #, fuzzy
@@ -4359,11 +4359,11 @@ msgstr "Aggiungi un'altra immagine"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Carica immagine"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Carica immagine"
 
 #: covers/add.html
 #, fuzzy
@@ -4387,7 +4387,7 @@ msgstr ""
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Clicca per chiudere"
 
 #: covers/author_photo.html
 #, fuzzy, python-format
@@ -4444,7 +4444,7 @@ msgstr "Gestisci"
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Oppure usa un'immagine da %s"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
@@ -4478,15 +4478,15 @@ msgstr "Invia"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Grazie per il tuo messaggio. Ti risponderemo prima possibile."
 
 #: email/case_created.html
 msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
+msgstr "Potremmo impiegare un po' di tempo a leggerlo perché riceviamo molti messaggi, ma stai tranquillo che lo faremo e ti risponderemo se necessario."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Requisiti per l'accesso speciale per disabilità di stampa"
 
 #: history/sources.html
 #, fuzzy
@@ -4554,11 +4554,11 @@ msgstr "Libri di testo"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Libri nell'ambiente locale"
 
 #: home/loans.html
 #, python-format
@@ -4569,7 +4569,7 @@ msgstr[1] ""
 
 #: home/loans.html
 msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr ""
+msgstr "Hai raggiunto il limite di prestiti. Restituisci un libro per prenderne in prestito uno nuovo."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -4646,7 +4646,7 @@ msgstr ""
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "Scopri come impostare un obiettivo di lettura annuale e tener traccia di ciò che leggi"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
@@ -4687,7 +4687,7 @@ msgstr "Benvenuti su Open Library"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Scopri opportunità per migliorare la biblioteca"
 
 #: home/welcome.html
 msgid "Send us feedback"
@@ -4830,15 +4830,15 @@ msgstr "Modificato da %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Ottimo!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Il tuo nuovo record è in biblioteca. Grazie!"
 
 #: lib/message_addbook.html
 msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr ""
+msgstr "Ci sono alcune altre cose semplici che puoi aggiungere mentre sei qui per migliorare rapidamente il tuo nuovo record e renderlo molto più facile da trovare per gli altri."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4847,7 +4847,7 @@ msgstr "Aggiungi copertine"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Vuoi scattare una foto rapida della copertina da condividere?"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4856,7 +4856,7 @@ msgstr "Aggiungi nuova lista"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Aiuta la biblioteca a connettersi con altri sistemi, come Amazon."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4865,7 +4865,7 @@ msgstr "Cerca argomento"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "Sono come le etichette."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
