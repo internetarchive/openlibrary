@@ -2411,67 +2411,67 @@ msgstr "Schimbă politica de editare a site-ului."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library records?"
-msgstr ""
+msgstr "Cine poate edita înregistrările Open Library?"
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "Aceasta se aplică înregistrărilor /authors/*, /books/* și /works/*."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library pages?"
-msgstr ""
+msgstr "Cine poate edita paginile Open Library?"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "Aceasta se aplică paginilor /about/*, /help/*, /dev/*, /docs/* etc."
 
 #: admin/permissions.html
 msgid "Update permissions"
-msgstr ""
+msgstr "Actualizează permisiunile"
 
 #: admin/permissions.html
 msgid "This updates \"permission\" and \"child_permission\" fields of /, /works, /books and /authors records in the database."
-msgstr ""
+msgstr "Aceasta actualizează câmpurile \"permission\" și \"child_permission\" ale înregistrărilor /, /works, /books și /authors din baza de date."
 
 #: admin/solr.html
 msgid "Solr Admin"
-msgstr ""
+msgstr "Admin Solr"
 
 #: admin/solr.html
 msgid "Enter the keys of pages to be updated in OL search engine."
-msgstr ""
+msgstr "Introduceți cheile paginilor de actualizat în motorul de căutare OL."
 
 #: admin/solr.html
 msgid "Example:"
-msgstr ""
+msgstr "Exemplu:"
 
 #: admin/solr.html
 msgid "On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr."
-msgstr ""
+msgstr "La actualizare, aceste chei vor fi adăugate în coada de actualizare Solr și va dura aproximativ 15 minute pentru reindexare."
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
-msgstr ""
+msgstr "Introduceți cheile de reindexat în Solr"
 
 #: admin/solr.html
 msgid "Write one entry per line"
-msgstr ""
+msgstr "Scrieți câte o intrare pe linie"
 
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
-msgstr ""
+msgstr "[Centru de administrare] Cuvinte spam"
 
 #: admin/spamwords.html
 msgid "Please enter the SPAM regular expressions in the textarea below, one per line."
-msgstr ""
+msgstr "Introduceți expresiile regulate SPAM în câmpul de text de mai jos, câte una pe linie."
 
 #: admin/spamwords.html
 msgid "Be sure to escape any meta characters that are meant to be character literals."
-msgstr ""
+msgstr "Asigurați-vă că specificați caracterele meta care sunt literale."
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "Dacă adăugați un domeniu, adăugați înainte următoarele la domeniu:"
 
 #: admin/spamwords.html
 msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
@@ -2479,31 +2479,31 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Spam Domains"
-msgstr ""
+msgstr "Domenii spam"
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
+msgstr "Introduceți domeniile de blocat în câmpul de text de mai jos, câte unul pe linie."
 
 #: admin/sync.html
 msgid "Sync"
-msgstr ""
+msgstr "Sincronizare"
 
 #: admin/sync.html
 msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr ""
+msgstr "Sincronizați metadatele diferitelor tipuri de elemente Open Library (ex. liste, subiecte, opere) cu Archive.org."
 
 #: admin/sync.html
 msgid "Add Works to Staff Picks"
-msgstr ""
+msgstr "Adaugă opere la Selecțiile personalului"
 
 #: admin/sync.html
 msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr ""
+msgstr "Această funcție va adăuga opera ta pe o listă Open Library numită 'Staff Picks' sub utilizatorul 'openlibrary'. Va exploda opera adăugată într-o listă a tuturor edițiilor sale lizibile și va injecta câmpul de metadate 'openlibrary_subject' în metadatele archive.org ale fiecărui element corespunzător."
 
 #: admin/sync.html
 msgid "add"
-msgstr ""
+msgstr "adaugă"
 
 #: admin/sync.html
 #, fuzzy
@@ -2517,211 +2517,211 @@ msgstr "o ediție"
 
 #: admin/sync.html
 msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
+msgstr "Actualizează o ediție pe archive.org prin scrierea celor mai recente valori de identificator openlibrary_edition și openlibrary_work"
 
 #: admin/sync.html
 msgid "TODO"
-msgstr ""
+msgstr "DE FĂCUT"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
-msgstr ""
+msgstr "[Centru de administrare] Inspectează Memcache"
 
 #: admin/inspect/memcache.html
 msgid "Inspect Memcache"
-msgstr ""
+msgstr "Inspectează Memcache"
 
 #: admin/inspect/memcache.html
 msgid "Add one memcache key per line in the text area. Each key must include a '-' as the last character."
-msgstr ""
+msgstr "Adăugați câte o cheie memcache pe linie în câmpul text. Fiecare cheie trebuie să includă un \"-\" ca ultim caracter."
 
 #: admin/inspect/memcache.html
 msgid "For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>."
-msgstr ""
+msgstr "De exemplu, <code>observations-</code> trebuie introdus în câmpul text dacă cheia este <code>observations</code>."
 
 #: admin/inspect/memcache.html
 msgid "Keys:"
-msgstr ""
+msgstr "Chei:"
 
 #: admin/inspect/memcache.html
 msgid "Result"
-msgstr ""
+msgstr "Rezultat"
 
 #: admin/inspect/memcache.html
 msgid "No keys selected."
-msgstr ""
+msgstr "Nicio cheie selectată."
 
 #: admin/inspect/memcache.html
 msgid "Not found."
-msgstr ""
+msgstr "Negăsit."
 
 #: admin/inspect/store.html
 msgid "Admin Center / Inspect"
-msgstr ""
+msgstr "Centru de administrare / Inspectare"
 
 #: admin/inspect/store.html
 msgid "Inspect Store"
-msgstr ""
+msgstr "Inspectare magazin"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "Obține"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "Cheie"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "Interogare"
 
 #: admin/inspect/store.html
 msgid "Type"
-msgstr ""
+msgstr "Tip"
 
 #: admin/inspect/store.html
 msgid "Value"
-msgstr ""
+msgstr "Valoare"
 
 #: admin/inspect/store.html
 msgid "Documents"
-msgstr ""
+msgstr "Documente"
 
 #: admin/inspect/store.html
 msgid "Json"
-msgstr ""
+msgstr "Json"
 
 #: admin/inspect/store.html
 msgid "No results found."
-msgstr ""
+msgstr "Niciun rezultat găsit."
 
 #: admin/ip/index.html
 msgid "[Admin Center] IP Addresses"
-msgstr ""
+msgstr "[Centru de administrare] Adrese IP"
 
 #: admin/ip/index.html
 msgid "IP Addresses"
-msgstr ""
+msgstr "Adrese IP"
 
 #: admin/ip/index.html
 msgid "List of Banned IPs"
-msgstr ""
+msgstr "Lista IP-urilor blocate"
 
 #: admin/ip/index.html admin/people/index.html
 msgid "Date/Time"
-msgstr ""
+msgstr "Dată/Oră"
 
 #: admin/ip/index.html
 msgid "IP address"
-msgstr ""
+msgstr "Adresă IP"
 
 #: admin/ip/index.html
 msgid "Admin Comment"
-msgstr ""
+msgstr "Comentariu admin"
 
 #: admin/ip/index.html
 msgid "# of edits"
-msgstr ""
+msgstr "Nr. de modificări"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "x minute în urmă"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: admin/ip/index.html
 msgid "comment"
-msgstr ""
+msgstr "comentariu"
 
 #: admin/ip/view.html admin/people/view.html
 msgid "[Admin Center]"
-msgstr ""
+msgstr "[Centru de administrare]"
 
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "IP-ul %(ip)s este <a href=\"/admin/block\">blocat</a>."
 
 #: admin/ip/view.html
 #, python-format
 msgid "Block %(ip)s"
-msgstr ""
+msgstr "Blochează %(ip)s"
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Please select the changesets to revert."
-msgstr ""
+msgstr "Selectați seturile de modificări de revertat."
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "Când vedeți numere aici, aceea este adresa IP a editorului anonim"
 
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
-msgstr ""
+msgstr "Revertat de %(revert_author)s"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr ""
+msgstr "Vă rugăm să lăsați o scurtă notă despre ce ați modificat: <span class=\"small gray\">(Opțional, dar foarte util!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
+msgstr "Spam revertat"
 
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "[Centru de administrare] Modificări ale %(user)s"
 
 #: admin/people/edits.html
 msgid "people"
-msgstr ""
+msgstr "persoane"
 
 #: admin/people/edits.html
 msgid "edits"
-msgstr ""
+msgstr "modificări"
 
 #: admin/people/index.html
 msgid "[Admin Center] People"
-msgstr ""
+msgstr "[Centru de administrare] Persoane"
 
 #: admin/people/index.html
 msgid "Find Account"
-msgstr ""
+msgstr "Găsește cont"
 
 #: admin/people/index.html admin/people/view.html
 msgid "Email Address:"
-msgstr ""
+msgstr "Adresă email:"
 
 #: admin/people/index.html
 msgid "Find"
-msgstr ""
+msgstr "Găsește"
 
 #: admin/people/index.html
 msgid "No account found with this email."
-msgstr ""
+msgstr "Niciun cont găsit cu acest email."
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "ID IA:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "ex. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "Niciun cont găsit cu acest ID."
 
 #: admin/people/index.html
 msgid "Recent Accounts"
-msgstr ""
+msgstr "Conturi recente"
 
 #: admin/people/index.html
 msgid "email"
-msgstr ""
+msgstr "email"
 
 #: admin/people/index.html
 msgid "profile"
