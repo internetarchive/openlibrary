@@ -2775,7 +2775,7 @@ msgstr "Centro amministrazione"
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "L'IP %(ip)s è <a href='/admin/block'>bloccato</a>."
 
 #: admin/ip/view.html
 #, fuzzy, python-format
@@ -2845,7 +2845,7 @@ msgstr "Non esiste un utente registrato con questo indirizzo."
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "IA ID:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
@@ -2853,7 +2853,7 @@ msgstr "es. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "Nessun account trovato con questo ID."
 
 #: admin/people/index.html
 msgid "Recent Accounts"
