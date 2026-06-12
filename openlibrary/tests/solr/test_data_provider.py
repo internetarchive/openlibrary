@@ -6,7 +6,7 @@ from infogami.infobase.client import Thing
 from openlibrary.solr.data_provider import DatabaseDataProvider
 
 
-class TestBetterDataProvider:
+class TestDatabaseDataProvider:
     @pytest.mark.asyncio
     async def test_get_document(self):
         mock_site = MagicMock()

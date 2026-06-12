@@ -224,20 +224,18 @@ def is_allowed_itemid(identifier: str):
 
 
 async def update_keys(keys: Iterable[str]):
-    if not keys:
-        return 0
-
     # FIXME: Some kind of hack introduced to work around DB connectivity issue
     logger.debug("Args: %s" % str(args))
     update.load_configs(args["ol_url"], args["ol_config"], "default")
 
     keys = [k for k in keys if update.can_update_key(k)]
+    if not keys:
+        return 0
 
     count = 0
-    for chunk in itertools.batched(keys, 100):
-        chunk = list(chunk)
+    for chunk in itertools.batched(keys, 100, strict=False):
         count += len(chunk)
-        await update.update_keys(chunk, commit=False)
+        await update.update_keys(list(chunk), commit=False)
 
         # Caches should not persist between different calls to update_keys!
         update.data_provider.clear_cache()
