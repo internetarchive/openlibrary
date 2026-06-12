@@ -42,6 +42,8 @@ components:
 	mv $(BUILD)/components_new $(BUILD)/components
 
 lit-components:
+	# Regenerate the Custom Elements Manifest (committed; consumed by /developers/design)
+	npx cem analyze
 	mkdir -p $(BUILD)/lit-components_new
 	BUILD_DIR=$(BUILD)/lit-components_new NODE_ENV=production npx vite build -c openlibrary/components/vite-lit.config.mjs
 	mkdir -p $(BUILD)/lit-components
