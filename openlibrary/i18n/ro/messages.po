@@ -6381,67 +6381,67 @@ msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
+msgstr "Linkuri <span class=\"gray small sansserif\">din afara Open Library</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "Niciun link încă."
 
 #: type/author/view.html
 msgid "Add one"
-msgstr ""
+msgstr "Adăugați unul"
 
 #: type/author/view.html
 msgid "Alternative names"
-msgstr ""
+msgstr "Nume alternative"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "Această pagină a fost ștearsă"
 
 #: type/delete/view.html
 msgid "What would you like to do?"
-msgstr ""
+msgstr "Ce doriți să faceți?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "Înapoi de unde am venit"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "Vizualizați versiunea anterioară"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "Vedeți istoricul paginii"
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
+msgstr "Recreați-o"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr ""
+msgstr "Adăugați cartea IA la Selecțiile personalului"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Sincronizați ID-ul Archive.org"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Vizualizați cartea pe Archive.org"
 
 #: SearchResultsWork.html type/edition/admin_bar.html
 msgid "Orphaned Edition"
-msgstr ""
+msgstr "Ediție orfană"
 
 #: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
-msgstr ""
+msgstr "Editați această pagină"
 
 #: type/edition/modal_links.html
 msgid "Review"
-msgstr ""
+msgstr "Recenzie"
 
 #: type/edition/modal_links.html
 #, fuzzy
@@ -6455,12 +6455,12 @@ msgstr "Nicio notă găsită."
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
-msgstr ""
+msgstr "O ediție a"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "Prima publicare în %s"
 
 #: type/edition/title_and_author.html
 #, fuzzy, python-format
@@ -6480,30 +6480,30 @@ msgstr "Citit"
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Această operă nu are încă o descriere. Puteți <b><a href='%(url)s'>adăuga una</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Această ediție nu are încă o descriere. Puteți <b><a href='%(url)s'>adăuga una</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
-msgstr ""
+msgstr "Data publicării"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "Afișați alte cărți de la %(publisher)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "Căutați alte cărți de la %(publisher)s"
 
 #: openlibrary/plugins/worksearch/code.py type/edition/view.html type/work/view.html
 msgid "Language"
-msgstr ""
+msgstr "Limbă"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pages"
@@ -6511,31 +6511,31 @@ msgstr "Pagini"
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
+msgstr "ISBN-uri"
 
 #: databarWork.html type/edition/view.html type/work/view.html
 msgid "Buy this book"
-msgstr ""
+msgstr "Cumpărați această carte"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "Detalii carte"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
-msgstr ""
+msgstr "Prima propoziție"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
-msgstr ""
+msgstr "Note ediție"
 
 #: type/edition/view.html type/work/view.html
 msgid "Published in"
-msgstr ""
+msgstr "Publicată în"
 
 #: type/edition/view.html type/work/view.html
 msgid "Series"
-msgstr ""
+msgstr "Serie"
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
@@ -6547,19 +6547,19 @@ msgstr "Gen"
 
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
-msgstr ""
+msgstr "Alte titluri"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "Data drepturilor de autor"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
-msgstr ""
+msgstr "Traducere a"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translated From"
-msgstr ""
+msgstr "Tradusă din"
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
@@ -6571,11 +6571,11 @@ msgstr "Format"
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "Paginare"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
-msgstr ""
+msgstr "Număr de pagini"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
@@ -6583,41 +6583,41 @@ msgstr "Greutate"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
-msgstr ""
+msgstr "Identificatori ediție"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "Înregistrări sursă"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "Descriere operă"
 
 #: type/edition/view.html type/work/view.html
 msgid "Original languages"
-msgstr ""
+msgstr "Limbi originale"
 
 #: type/edition/view.html type/work/view.html
 msgid "Excerpts"
-msgstr ""
+msgstr "Extrase"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "Pagina %(page)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "adăugat de %(authorlink)s."
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
+msgstr "adăugat anonim."
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -6627,7 +6627,7 @@ msgstr "Istoric împrumuturi"
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
-msgstr ""
+msgstr "%(language)s [depreciat]"
 
 #: type/language/view.html
 msgid "languages"
@@ -6635,16 +6635,16 @@ msgstr "limbi"
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
+msgstr "Cod"
 
 #: type/language/view.html
 msgid "Current"
-msgstr ""
+msgstr "Curent"
 
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "Încercați o <a href=\"%(href)s\">căutare de cărți lizibile în %(language)s</a>?"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -6654,12 +6654,12 @@ msgstr "Creați o listă"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "Editare serie: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "Editare listă: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -6672,23 +6672,23 @@ msgstr "Editează lista"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "Mută..."
 
 #: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
-msgstr ""
+msgstr "Căutați o carte"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Poziție (opțional), ex. 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Note (opțional)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "List Name"
-msgstr ""
+msgstr "Numele listei"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -6697,11 +6697,11 @@ msgstr "Nume de utilizator"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
-msgstr ""
+msgstr "Descriere (opțional)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Add another book"
-msgstr ""
+msgstr "Adăugați altă carte"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -6710,68 +6710,68 @@ msgstr "Creați o listă"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr ""
+msgstr "Vizitați Open Library"
 
 #: type/list/embed.html
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr ""
+msgstr "Deschideți în Cititorul de cărți online. Descărcările sunt disponibile în format ePub, DAISY, PDF, TXT de pe pagina principală a cărții"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "Această carte este împrumutată"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "Împrumutată"
 
 #: type/list/embed.html
 msgid "Borrow book"
-msgstr ""
+msgstr "Împrumutați cartea"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "DAISY protejat"
 
 #: BookByline.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
-msgstr ""
+msgstr "de %(name)s"
 
 #: type/list/exports.html
 msgid "BibTex"
-msgstr ""
+msgstr "BibTex"
 
 #: type/list/exports.html
 msgid "Export"
-msgstr ""
+msgstr "Exportați"
 
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "ca %(json_link)s, %(html_link)s sau %(bibtex_link)s"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "Abonați-vă"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "Urmăriți activitatea prin <a rel=\"nofollow\" href=\"%s\">flux Atom</a>"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "Exportul nu este disponibil"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "Pot fi exportate doar liste cu până la %(max)s ediții. Aceasta are %(count)s."
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "Încercați să eliminați câteva elemente pentru mai mult focus sau consultați <a href=\"%s\">descărcarea în bloc</a> a catalogului."
 
 #: type/list/view_body.html
 #, python-format
