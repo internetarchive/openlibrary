@@ -2725,97 +2725,97 @@ msgstr "email"
 
 #: admin/people/index.html
 msgid "profile"
-msgstr ""
+msgstr "profil"
 
 #: admin/people/index.html admin/people/view.html
 msgid "Edit History"
-msgstr ""
+msgstr "Istoricul modificărilor"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "blochează și revertează toate modificările"
 
 #: admin/people/view.html
 msgid "block this account"
-msgstr ""
+msgstr "blochează acest cont"
 
 #: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr ""
+msgstr "Înregistrat pe <span class=\"time\">%(date)s</span>."
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "autentifică-te ca acest utilizator"
 
 #: admin/people/view.html
 #, python-format
 msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
+msgstr "Activat pe <span class=\"time\">%(date)s</span> de la <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "deblochează acest cont"
 
 #: admin/people/view.html
 msgid "activate account"
-msgstr ""
+msgstr "activează contul"
 
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
-msgstr ""
+msgstr "Nume:"
 
 #: admin/people/view.html
 msgid "view profile"
-msgstr ""
+msgstr "vizualizează profilul"
 
 #: admin/people/view.html
 msgid "Change"
-msgstr ""
+msgstr "Schimbă"
 
 #: admin/people/view.html
 msgid "Admin"
-msgstr ""
+msgstr "Admin"
 
 #: admin/people/view.html
 msgid "Make Human"
-msgstr ""
+msgstr "Marchează ca uman"
 
 #: admin/people/view.html
 msgid "Make Bot"
-msgstr ""
+msgstr "Marchează ca bot"
 
 #: admin/people/view.html
 msgid "Not available"
-msgstr ""
+msgstr "Indisponibil"
 
 #: admin/people/view.html
 msgid "# Edits"
-msgstr ""
+msgstr "Nr. de modificări"
 
 #: admin/people/view.html
 msgid "Member Since:"
-msgstr ""
+msgstr "Membru din:"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "Ultima autentificare:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "Etichete:"
 
 #: admin/people/view.html
 msgid "Anonymize Account:"
-msgstr ""
+msgstr "Anonimizare cont:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Rulare simulată"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
-msgstr ""
+msgstr "Anonimizează contul"
 
 #: admin/people/view.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
@@ -2823,32 +2823,32 @@ msgstr "Împrumuturi"
 
 #: admin/people/view.html
 msgid "Account not activated yet."
-msgstr ""
+msgstr "Contul nu a fost activat încă."
 
 #: admin/people/view.html
 msgid "Waiting Loans"
-msgstr ""
+msgstr "Împrumuturi în așteptare"
 
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d modificări"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "Informații de depanare"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "Informații cont"
 
 #: admin/people/view.html
 msgid "Verifications Links"
-msgstr ""
+msgstr "Linkuri de verificare"
 
 #: admin/people/view.html
 msgid "None found"
-msgstr ""
+msgstr "Niciuna găsită"
 
 #: SearchNavigation.html authors/index.html lib/nav_foot.html merge/authors.html publishers/view.html
 msgid "Authors"
@@ -2856,7 +2856,7 @@ msgstr "Autori"
 
 #: authors/index.html
 msgid "Search for an Author"
-msgstr ""
+msgstr "Caută un autor"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
@@ -2865,41 +2865,41 @@ msgstr "Căutare"
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
-msgstr ""
+msgstr "despre %(subjects)s"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
-msgstr ""
+msgstr "inclusiv <i>%(topwork)s</i>"
 
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "Vizualizează pe %(site)s"
 
 #: authors/infobox.html
 msgid "Born"
-msgstr ""
+msgstr "Născut"
 
 #: authors/infobox.html
 msgid "Died"
-msgstr ""
+msgstr "Decedat"
 
 #: book_providers/cita_press_download_options.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/librivox_download_options.html book_providers/openstax_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html book_providers/wikisource_download_options.html
 msgid "Download Options"
-msgstr ""
+msgstr "Opțiuni de descărcare"
 
 #: book_providers/cita_press_download_options.html
 msgid "Download PDF from Cita Press"
-msgstr ""
+msgstr "Descarcă PDF de la Cita Press"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Mai mult la Cita Press"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Descarcă HTML de la Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
@@ -2907,19 +2907,19 @@ msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a text version from Project Gutenberg"
-msgstr ""
+msgstr "Descarcă versiunea text de la Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "Text simplu"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Descarcă ePub de la Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Descarcă fișier Kindle de la Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Kindle"
@@ -2927,23 +2927,23 @@ msgstr "Kindle"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Mai mult la Project Gutenberg"
 
 #: book_providers/ia_download_options.html
 msgid "Download a PDF from Internet Archive"
-msgstr ""
+msgstr "Descarcă PDF de la Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "Download a text version from Internet Archive"
-msgstr ""
+msgstr "Descarcă versiunea text de la Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "Download an ePub from Internet Archive"
-msgstr ""
+msgstr "Descarcă ePub de la Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "Download a MOBI file from Internet Archive"
-msgstr ""
+msgstr "Descarcă fișier MOBI de la Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
@@ -2951,65 +2951,65 @@ msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
+msgstr "Descarcă DAISY deschis de la Internet Archive (format pentru persoane cu dizabilități de tipărire)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
-msgstr ""
+msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr ""
+msgstr "Descarcă fișier ZIP al întregii cărți de la Internet Archive"
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "Întreaga carte MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "Obține feed-ul RSS de la LibriVox"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "Feed RSS"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "Mai mult la LibriVox"
 
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
-msgstr ""
+msgstr "Descarcă PDF de la OpenStax"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "Mai mult la OpenStax"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "Ascultă o lectură de la %s"
 
 #: book_providers/read_button.html
 msgid "Audiobook"
-msgstr ""
+msgstr "Carte audio"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Citește gratuit online de la %s"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Descarcă toate imaginile scanate de la Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Imagini scanate"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Descarcă toate imaginile color de la Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
@@ -3017,39 +3017,39 @@ msgstr "Imagini color"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Descarcă toate fișierele HTML de la Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
-msgstr ""
+msgstr "Descarcă toate fișierele text și index de la Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "Fișiere text și index"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Descarcă tot textul OCR de la Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "OCR text"
-msgstr ""
+msgstr "Text OCR"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Mai mult la Project Runeberg"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Descarcă HTML de la Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Descarcă ePub de la Standard Ebooks."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Descarcă fișier Kindle de la Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
@@ -3057,7 +3057,7 @@ msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Descarcă fișier Kobo de la Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
@@ -3065,7 +3065,7 @@ msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "Vizualizează codul sursă al acestei Standard Ebook pe GitHub"
 
 #: Subnavigation.html book_providers/standard_ebooks_download_options.html
 msgid "Source Code"
