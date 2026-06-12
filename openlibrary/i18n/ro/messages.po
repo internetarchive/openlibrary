@@ -7113,28 +7113,28 @@ msgstr "Disponibilitate"
 
 #: type/work/editions_datatable.html
 msgid "No editions available"
-msgstr ""
+msgstr "Nicio ediție disponibilă"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
+msgstr "Adăugați o altă ediție?"
 
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "Căutați această ediție de vânzare la %(store)s"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "Când cumpărați cărți folosind aceste linkuri, Internet Archive poate câștiga un <a class=\"nostyle\" href=\"/help/faq/about#selling\">mic comision</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
-msgstr ""
+msgstr "Se obțin prețuri"
 
 #: BatchImportNavigation.html
 msgid "Pending Imports"
-msgstr ""
+msgstr "Importuri în așteptare"
 
 #: BookByline.html
 #, python-format
@@ -7146,27 +7146,27 @@ msgstr[2] ""
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
-msgstr ""
+msgstr "de un <em>autor necunoscut</em>"
 
 #: BookPreview.html
 msgid "Preview Only"
-msgstr ""
+msgstr "Doar previzualizare"
 
 #: BookPreview.html
 msgid "Preview Book"
-msgstr ""
+msgstr "Previzualizare carte"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "Șabloanele din site sunt dezactivate în prezent. Editarea lor nu va avea niciun efect pe site-ul live."
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "Mergeți la secțiunea anterioară"
 
 #: EditionNavBar.html
 msgid "Overview"
-msgstr ""
+msgstr "Prezentare generală"
 
 #: EditionNavBar.html
 #, python-format
@@ -7186,11 +7186,11 @@ msgstr[2] ""
 
 #: EditionNavBar.html
 msgid "Related Books"
-msgstr ""
+msgstr "Cărți similare"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Mergeți la secțiunea următoare"
 
 #: Follow.html
 #, fuzzy
@@ -7199,93 +7199,93 @@ msgstr "Urmăresc"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Actualizarea urmăritorilor a eșuat. Vă rugăm să încercați din nou în câteva momente."
 
 #: FormatExpiry.html
 msgid "Expires"
-msgstr ""
+msgstr "Expiră"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Se verifică potrivirile Search Inside"
 
 #: FulltextSearchSuggestion.html
 msgid "Search Inside Icon"
-msgstr ""
+msgstr "Pictograma Search Inside"
 
 #: FulltextSearchSuggestion.html
 msgid "search inside icon"
-msgstr ""
+msgstr "pictograma căutare interioară"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s cărți găsite cu pasaje corespunzătoare"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Vedeți toate %(results_count)s potriviri Search Inside"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "săgeată dreapta"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "Pagina: %(page)s"
 
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Împrumutat de la Internet Archive: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "Indicator de încărcare"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "Ești <strong>următorul</strong> pe lista de așteptare"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
+msgstr "Ești <strong>#%(spot)d</strong> din %(wlsize)d pe lista de așteptare."
 
 #: LoanStatus.html
 msgid "Leave waiting list"
-msgstr ""
+msgstr "Ieșiți din lista de așteptare"
 
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "Cititori la rând: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "Veți fi următorul la rând."
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "Această carte este în prezent împrumutată, vă rugăm să reveniți mai târziu."
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "Împrumutată"
 
 #: LocateButton.html
 msgid "Locate"
-msgstr ""
+msgstr "Localizați"
 
 #: ManageLoansButtons.html
 #, python-format
@@ -7313,15 +7313,15 @@ msgstr[2] ""
 
 #: NotInLibrary.html
 msgid "Not in Library"
-msgstr ""
+msgstr "Nu se află în bibliotecă"
 
 #: NotesModal.html
 msgid "My Book Notes"
-msgstr ""
+msgstr "Notele mele despre carte"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "Notele mele private despre această ediție:"
 
 #: OLID.html
 #, fuzzy, python-format
@@ -7330,130 +7330,130 @@ msgstr ""
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
+msgstr "Recenzia mea despre carte"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Mergeți la pagina anterioară"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Mergeți la pagina următoare"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "Mergeți la pagina {page}"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Pagina {page}, pagina curentă"
 
 #: Profile.html
 msgid "Component"
-msgstr ""
+msgstr "Componentă"
 
 #: ProlificAuthors.html
 msgid "Prolific Authors"
-msgstr ""
+msgstr "Autori prolifici"
 
 #: ProlificAuthors.html
 msgid "who have written the most books on this subject"
-msgstr ""
+msgstr "care au scris cele mai multe cărți despre acest subiect"
 
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "Acesta este un grafic care arată istoricul publicării edițiilor operelor despre acest subiect. Pe axa X este timpul, iar pe axa Y este numărul de ediții publicate. <a href=\"#subjectRelated\">Faceți clic aici pentru a omite graficul</a>."
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
-msgstr ""
+msgstr "Acest grafic ilustrează edițiile publicate despre acest subiect."
 
 #: RawQueryCarousel.html
 msgid "Loading carousel"
-msgstr ""
+msgstr "Se încarcă caruselul"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Caruselul nu a putut fi obținut."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Reîncercați?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Nicio carte nu corespunde filtrelor curente."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Reîncercați fără filtre?"
 
 #: RawQueryCarousel.html
 msgid "Search collection"
-msgstr ""
+msgstr "Căutați în colecție"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "Acces special"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "Acces special la ebook de la Internet Archive pentru utilizatorii cu dizabilități de citire tipărită eligibile"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr ""
+msgstr "Împrumutați ebook de la Internet Archive"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
+msgstr "Citiți ebook de la Internet Archive"
 
 #: ReadButton.html
 msgid "Listen"
-msgstr ""
+msgstr "Ascultați"
 
 #: RecentChanges.html
 msgid "View MARC"
-msgstr ""
+msgstr "Vizualizați MARC"
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
+msgstr "Cale"
 
 #: RecentChangesAdmin.html
 msgid "view"
-msgstr ""
+msgstr "vizualizare"
 
 #: RecentChangesAdmin.html
 msgid "edit"
-msgstr ""
+msgstr "editare"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "Niciun istoric de editare disponibil."
 
 #: RelatedSubjects.html
 msgid "Related..."
-msgstr ""
+msgstr "Similare..."
 
 #: ReturnForm.html
 msgid "Really return this book?"
-msgstr ""
+msgstr "Sigur doriți să returnați această carte?"
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
+msgstr "Returnați cartea"
 
 #: SearchResultsWork.html
 msgid "added to"
-msgstr ""
+msgstr "adăugat la"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Cartea %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7462,12 +7462,12 @@ msgstr "Mai mult"
 
 #: SearchResultsWork.html
 msgid "Show less"
-msgstr ""
+msgstr "Afișați mai puțin"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "Coperta ediției %(id)s"
 
 #: SearchResultsWork.html
 #, python-format
@@ -7479,16 +7479,16 @@ msgstr[2] ""
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "Acesta este vizibil doar pentru bibliotecari."
 
 #: SearchResultsWork.html
 msgid "Work Title"
-msgstr ""
+msgstr "Titlul operei"
 
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "Distribuiți pe %(share_link)s"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
