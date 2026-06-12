@@ -199,11 +199,11 @@ msgstr "Nume lot:"
 
 #: batch_import_view.html
 msgid "Submitter:"
-msgstr ""
+msgstr "Trimițător:"
 
 #: batch_import_view.html
 msgid "Submit Time:"
-msgstr ""
+msgstr "Ora trimiterii:"
 
 #: batch_import_view.html
 msgid "Status Summary"
@@ -5647,48 +5647,48 @@ msgstr "Acesta este un grafic care arată când a publicat cărți acest editor.
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
-msgstr ""
+msgstr "Resetați graficul"
 
 #: PublishingHistory.html publishers/view.html
 msgid "or continue zooming in."
-msgstr ""
+msgstr "sau continuați mărirea."
 
 #: publishers/view.html
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
-msgstr ""
+msgstr "Acest grafic ilustrează edițiile acestui editor de-a lungul timpului. Faceți clic pentru a vedea un singur an sau trageți pentru a selecta un interval."
 
 #: PublishingHistory.html publishers/view.html
 msgid "Editions Published"
-msgstr ""
+msgstr "Ediții publicate"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Year of Publication"
-msgstr ""
+msgstr "Anul publicării"
 
 #: publishers/view.html
 msgid "Common Subjects"
-msgstr ""
+msgstr "Subiecte comune"
 
 #: publishers/view.html
 #, python-format
 msgid "Search for books published by %(publisher)s"
-msgstr ""
+msgstr "Căutați cărți publicate de %(publisher)s"
 
 #: RelatedSubjects.html publishers/view.html
 msgid "None found."
-msgstr ""
+msgstr "Niciun rezultat."
 
 #: ProlificAuthors.html publishers/view.html
 msgid "See more books by, and learn about, this author"
-msgstr ""
+msgstr "Vedeți mai multe cărți ale acestui autor și aflați mai multe despre el"
 
 #: publishers/view.html
 msgid "published most by this publisher"
-msgstr ""
+msgstr "publicat cel mai mult de acest editor"
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
-msgstr ""
+msgstr "Obțineți mai multe informații despre acest editor"
 
 #: reading_goals/reading_goal_form.html
 msgid "How many books would you like to read this year?"
@@ -5696,12 +5696,12 @@ msgstr "Câte cărți doriți să citiți anul acesta?"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
+msgstr "Introduceți \"0\" pentru a anula obiectivul de lectură. Înregistrările dvs. vor fi păstrate."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr ""
+msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Cărți"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
@@ -5710,85 +5710,85 @@ msgstr "Modifică obiectivul de citire pentru %(year)d"
 
 #: recentchanges/header.html
 msgid "By"
-msgstr ""
+msgstr "De"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Anulați tot"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
-msgstr ""
+msgstr "Modificări recente"
 
 #: recentchanges/index.html
 msgid "Books Edited"
-msgstr ""
+msgstr "Cărți editate"
 
 #: recentchanges/index.html
 msgid "Author Merges"
-msgstr ""
+msgstr "Fuzionări autori"
 
 #: recentchanges/index.html
 msgid "Work Merges"
-msgstr ""
+msgstr "Fuzionări opere"
 
 #: recentchanges/index.html
 msgid "Books Added"
-msgstr ""
+msgstr "Cărți adăugate"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
-msgstr ""
+msgstr "De oameni"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Bots"
-msgstr ""
+msgstr "De boți"
 
 #: recentchanges/render.html
 msgid "Admin view"
-msgstr ""
+msgstr "Vizualizare admin"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/render.html
 msgid "Older"
-msgstr ""
+msgstr "Mai vechi"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/render.html
 msgid "Newer"
-msgstr ""
+msgstr "Mai noi"
 
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
-msgstr ""
+msgstr "Revizuiți ce s-a schimbat față de revizuirea anterioară"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
-msgstr ""
+msgstr "diferențe"
 
 #: recentchanges/add-book/path.html recentchanges/default/path.html recentchanges/edit-book/path.html recentchanges/merge/path.html
 msgid "expand"
-msgstr ""
+msgstr "extinde"
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "a deschis un nou cont Open Library!"
 
 #: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
 msgid "Review what's changed from the previous revision"
-msgstr ""
+msgstr "Revizuiți ce s-a schimbat față de revizuirea anterioară"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html recentchanges/undo/view.html
 msgid "Updated Records"
-msgstr ""
+msgstr "Înregistrări actualizate"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "Înregistrări duplicate %(record_type)s fuzionate."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "Consultați <a href=\"%s\">detaliile</a>."
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -5800,12 +5800,12 @@ msgstr[2] ""
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
-msgstr ""
+msgstr "Marcat ca duplicat."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s fuzionat în înregistrarea principală %(record_type)s."
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -5825,15 +5825,15 @@ msgstr[2] ""
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
-msgstr ""
+msgstr "Această fuzionare a fost anulată."
 
 #: recentchanges/merge/view.html
 msgid "Details here"
-msgstr ""
+msgstr "Detalii aici"
 
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
-msgstr ""
+msgstr "Duplicate"
 
 #: recentchanges/merge/view.html
 #, python-format
@@ -5846,12 +5846,12 @@ msgstr[2] ""
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Anulare a <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, python-format
 msgid "%(count)d records modified."
-msgstr ""
+msgstr "%(count)d înregistrări modificate."
 
 #: search/advancedsearch.html
 msgid "ISBN"
@@ -5859,7 +5859,7 @@ msgstr "ISBN"
 
 #: search/advancedsearch.html
 msgid "Place"
-msgstr ""
+msgstr "Loc"
 
 #: search/advancedsearch.html
 msgid "Person"
@@ -5867,45 +5867,45 @@ msgstr "Persoană"
 
 #: search/advancedsearch.html
 msgid "How to search?"
-msgstr ""
+msgstr "Cum să căutați?"
 
 #: search/advancedsearch.html
 msgid "Full Text Search?"
-msgstr ""
+msgstr "Căutare în text integral?"
 
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Căutați în Open Library \"%(query)s\""
 
 #: search/authors.html
 msgid "Search Authors"
-msgstr ""
+msgstr "Căutați autori"
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "Autorul este listat de două ori?"
 
 #: search/authors.html
 msgid "Merge authors"
-msgstr ""
+msgstr "Fuzionați autori"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Niciun <strong>autor</strong> nu s-a potrivit direct cu căutarea dvs."
 
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
-msgstr ""
+msgstr "Căutați în Open Library %s"
 
 #: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html search/inside.html search/snippets.html
 msgid "Search Inside"
-msgstr ""
+msgstr "Căutare în interior"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Niciun text <strong>Search Inside</strong> nu s-a potrivit cu căutarea dvs."
 
 #: search/inside.html
 #, python-format
@@ -5929,7 +5929,7 @@ msgstr "Detalii"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Grilă"
 
 #: search/layout_options.html
 #, fuzzy
@@ -5938,56 +5938,56 @@ msgstr "Vizualizează"
 
 #: search/lists.html
 msgid "Search results for Lists"
-msgstr ""
+msgstr "Rezultatele căutării pentru liste"
 
 #: search/lists.html
 msgid "Search Lists"
-msgstr ""
+msgstr "Căutați liste"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Nicio <strong>listă</strong> nu s-a potrivit direct cu căutarea dvs."
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
+msgstr "Căutare edituri"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Pe foaia numărul %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
-msgstr ""
+msgstr "Relevanță"
 
 #: search/sort_options.html
 msgid "Work Count"
-msgstr ""
+msgstr "Număr de opere"
 
 #: search/sort_options.html
 msgid "Random"
-msgstr ""
+msgstr "Aleatoriu"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Nume (beta: doar bibliotecar)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Data nașterii (cel mai vechi) (beta: doar bibliotecar)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Data nașterii (cel mai tânăr) (beta: doar bibliotecar)"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "Ordinea listei"
 
 #: search/sort_options.html
 msgid "Last Modified"
-msgstr ""
+msgstr "Ultima modificare"
 
 #: search/sort_options.html
 #, fuzzy
@@ -5996,31 +5996,31 @@ msgstr "limbi"
 
 #: search/sort_options.html
 msgid "Ebook Edition Count"
-msgstr ""
+msgstr "Număr ediții ebook"
 
 #: search/sort_options.html
 msgid "Date Added (newest)"
-msgstr ""
+msgstr "Data adăugării (cel mai recent)"
 
 #: search/sort_options.html
 msgid "Date Added (oldest)"
-msgstr ""
+msgstr "Data adăugării (cel mai vechi)"
 
 #: search/sort_options.html
 msgid "Most Editions"
-msgstr ""
+msgstr "Cele mai multe ediții"
 
 #: search/sort_options.html
 msgid "First Published"
-msgstr ""
+msgstr "Prima publicație"
 
 #: search/sort_options.html
 msgid "Most Recent"
-msgstr ""
+msgstr "Cel mai recent"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "Top evaluat"
 
 #: search/sort_options.html
 msgid "Any"
