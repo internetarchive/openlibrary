@@ -1,49 +1,49 @@
-$def with()
+$def with (api)
 
 <article class="design-pattern" id="banner">
-  <h2 class="design-pattern__title">$_("Banner")</h2>
-  <p class="design-pattern__description">$:_("The %(tag)s component is a callout-style announcement banner. The announcement is server-rendered into the default slot — already translated, visible to search engines — while the component owns the chrome: variant styling, icon, dismissal, and cookie persistence. There is intentionally no entrance animation; banners appear on every page view.", tag="<code>ol-banner</code>")</p>
+  <h2 class="design-pattern__title">Banner</h2>
+  <p class="design-pattern__description">The <code>ol-banner</code> component is a callout-style announcement banner. The announcement is server-rendered into the default slot — already translated, visible to search engines — while the component owns the chrome: variant styling, icon, dismissal, and cookie persistence. There is intentionally no entrance animation; banners appear on every page view.</p>
 
   <section class="example">
-    <h3 class="example__title">$_("Variants")</h3>
-    <p>$:_("Use %(variant)s for semantic variants. Each pairs a tinted surface with a filled icon circle — the same icon treatment as %(toast)s.", variant="<code>variant</code>", toast="<code>ol-toast</code>")</p>
+    <h3 class="example__title">Variants</h3>
+    <p>Use <code>variant</code> for semantic variants. Each pairs a tinted surface with a filled icon circle — the same icon treatment as <code>ol-toast</code>.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-banner&gt;...&lt;/ol-banner&gt;
 &lt;ol-banner variant="success"&gt;...&lt;/ol-banner&gt;
 &lt;ol-banner variant="warning"&gt;...&lt;/ol-banner&gt;
 &lt;ol-banner variant="danger"&gt;...&lt;/ol-banner&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px;">
-      <ol-banner>$_("Open Library is a non-profit project of the Internet Archive.")</ol-banner>
-      <ol-banner variant="success">$_("Your import finished — 42 books added to your reading log.")</ol-banner>
-      <ol-banner variant="warning">$_("Open Library will be briefly unavailable on June 12 for maintenance.")</ol-banner>
-      <ol-banner variant="danger">$_("Search is currently degraded. Some results may be missing.")</ol-banner>
+      <ol-banner>Open Library is a non-profit project of the Internet Archive.</ol-banner>
+      <ol-banner variant="success">Your import finished — 42 books added to your reading log.</ol-banner>
+      <ol-banner variant="warning">Open Library will be briefly unavailable on June 12 for maintenance.</ol-banner>
+      <ol-banner variant="danger">Search is currently degraded. Some results may be missing.</ol-banner>
     </div>
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Appearance")</h3>
-    <p>$:_("Use %(appearance)s to control the frame. %(outlined)s (default) has a border and rounded corners. %(plain)s removes both — useful when the banner abuts the edges of other UI, like the top of the page or a card.", appearance="<code>appearance</code>", outlined="<code>outlined</code>", plain="<code>plain</code>")</p>
+    <h3 class="example__title">Appearance</h3>
+    <p>Use <code>appearance</code> to control the frame. <code>outlined</code> (default) has a border and rounded corners. <code>plain</code> removes both — useful when the banner abuts the edges of other UI, like the top of the page or a card.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-banner variant="warning"&gt;...&lt;/ol-banner&gt;
 &lt;ol-banner variant="warning" appearance="plain"&gt;...&lt;/ol-banner&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px;">
-      <ol-banner variant="warning">$_("Outlined (default): border and rounded corners.")</ol-banner>
-      <ol-banner variant="warning" appearance="plain">$_("Plain: no border, no border radius.")</ol-banner>
+      <ol-banner variant="warning">Outlined (default): border and rounded corners.</ol-banner>
+      <ol-banner variant="warning" appearance="plain">Plain: no border, no border radius.</ol-banner>
     </div>
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Dismissible")</h3>
-    <p>$:_("Add %(dismissible)s for a close button. Without %(cookie_name)s, dismissal only lasts for the current page. Content comes from the page template, so links and emphasis work as usual.", dismissible="<code>dismissible</code>", cookie_name="<code>cookie-name</code>")</p>
+    <h3 class="example__title">Dismissible</h3>
+    <p>Add <code>dismissible</code> for a close button. Without <code>cookie-name</code>, dismissal only lasts for the current page. Content comes from the page template, so links and emphasis work as usual.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-banner dismissible label-close="$$_('Close')"&gt;
   &lt;a href="/collections"&gt;Explore our new collections&lt;/a&gt;
 &lt;/ol-banner&gt;</code></pre>
     <div class="example__output">
-      <ol-banner dismissible label-close="$_('Close')"><a href="/collections">$_("Explore our new collections")</a></ol-banner>
+      <ol-banner dismissible label-close="Close"><a href="/collections">Explore our new collections</a></ol-banner>
     </div>
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Custom icon")</h3>
-    <p>$:_("Slot a custom icon via %(slot)s to replace the variant's built-in glyph.", slot='<code>slot="icon"</code>')</p>
+    <h3 class="example__title">Custom icon</h3>
+    <p>Slot a custom icon via <code>slot="icon"</code> to replace the variant's built-in glyph.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-banner&gt;
   &lt;svg slot="icon" ...&gt;...&lt;/svg&gt;
   Set your Yearly Reading Goal
@@ -51,24 +51,24 @@ $def with()
     <div class="example__output">
       <ol-banner>
         <svg slot="icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-        $_("Set your Yearly Reading Goal")
+        Set your Yearly Reading Goal
       </ol-banner>
     </div>
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Persisted dismissal")</h3>
-    <p>$:_("The component owns no persistence — it only fires %(event)s with its %(dismiss_id)s. Two pieces of site plumbing make dismissals stick: the template guards rendering on the dismissal cookie (so dismissed banners are never served), and a site-level listener (%(glue)s) POSTs dismissals to %(endpoint)s, which sets that cookie. Per-banner TTL rides on the element as %(ttl)s — an OL convention, not component API. Dismiss this banner, reload, and it stays hidden until reset.", event="<code>ol-banner-dismiss</code>", dismiss_id="<code>dismiss-id</code>", glue="<code>js/banner/index.js</code>", endpoint="<code>/hide_banner</code>", ttl="<code>data-cookie-duration-days</code>")</p>
+    <h3 class="example__title">Persisted dismissal</h3>
+    <p>The component owns no persistence — it only fires <code>ol-banner-dismiss</code> with its <code>dismiss-id</code>. Two pieces of site plumbing make dismissals stick: the template guards rendering on the dismissal cookie (so dismissed banners are never served), and a site-level listener (<code>js/banner/index.js</code>) POSTs dismissals to <code>/hide_banner</code>, which sets that cookie. Per-banner TTL rides on the element as <code>data-cookie-duration-days</code> — an OL convention, not component API. Dismiss this banner, reload, and it stays hidden until reset.</p>
     <pre class="example__code"><code class="language-html">$$if cookies().get('yrg26') != '1':
   &lt;ol-banner dismiss-id="yrg26" data-cookie-duration-days="365" dismissible&gt;
     &lt;a href="/account/books/already-read/year/2026"&gt;Set your 2026 Yearly Reading Goal&lt;/a&gt;
   &lt;/ol-banner&gt;</code></pre>
     <div class="example__output" style="display: flex; flex-direction: column; gap: 12px;">
       $if cookies().get('ol-banner-demo') != '1':
-        <ol-banner dismiss-id="ol-banner-demo" data-cookie-duration-days="1" dismissible label-close="$_('Close')">
-          <a href="/account/books/already-read/year/2026">$_("Set your 2026 Yearly Reading Goal")</a>
+        <ol-banner dismiss-id="ol-banner-demo" data-cookie-duration-days="1" dismissible label-close="Close">
+          <a href="/account/books/already-read/year/2026">Set your 2026 Yearly Reading Goal</a>
         </ol-banner>
-      <div><button id="demo-banner-reset">$_("Reset dismissed demo banner")</button></div>
+      <div><button id="demo-banner-reset">Reset dismissed demo banner</button></div>
     </div>
     <script>
       document.getElementById('demo-banner-reset').addEventListener('click', function() {
@@ -79,10 +79,12 @@ $def with()
   </section>
 
   <section class="example">
-    <h3 class="example__title">$_("Dismiss event")</h3>
-    <p>$:_("The banner fires %(event)s once when dismissed, before it is removed from the DOM. Banners without a %(dismiss_id)s are page-only: they still fire the event, but the site listener ignores them.", event="<code>ol-banner-dismiss</code>", dismiss_id="<code>dismiss-id</code>")</p>
+    <h3 class="example__title">Dismiss event</h3>
+    <p>The banner fires <code>ol-banner-dismiss</code> once when dismissed, before it is removed from the DOM. Banners without a <code>dismiss-id</code> are page-only: they still fire the event, but the site listener ignores them.</p>
     <pre class="example__code"><code class="language-html">banner.addEventListener('ol-banner-dismiss', (e) =&gt; {
   console.log(e.detail.dismissId);
 });</code></pre>
   </section>
+
+  $:render_template("design/api_tables", api)
 </article>

@@ -39,7 +39,7 @@ make lit-components            # One-off build
 - Start narrow — it is easy to add attributes later, hard to remove them.
 - Attribute names: kebab-case, semantic (e.g., `total-pages`, not `tp`). Map to camelCase properties via `{ attribute: 'kebab-name' }`.
 - Provide sensible defaults in the constructor.
-- Document with JSDoc: include `@element`, `@prop`, `@fires`, and `@example` tags. See `OlPagination.js` for the reference pattern.
+- Document with JSDoc — it is the single source of truth for the auto-generated API tables on `/developers/design`. See [Documenting the API](#documenting-the-api-custom-elements-manifest) for the tags and `OlPagination.js` for the reference pattern.
 - Boolean attributes: presence = true (no value needed).
 
 ### Compound Components
@@ -79,6 +79,47 @@ Use compound components when a component has multiple related parts that need to
 - Components with 1-3 props
 - When the structure never changes
 
+
+## Documenting the API (Custom Elements Manifest)
+
+The API reference tables on `/developers/design` are **generated, not hand-written**. JSDoc on each component is the source of truth: `@custom-elements-manifest/analyzer` reads it and emits `openlibrary/components/lit/custom-elements.json` (committed to the repo), which `design.py` loads to render the tables. Tighten the JSDoc and the tables follow — there are no prop tables to maintain by hand.
+
+To make a component's API appear in the tables:
+
+- **Properties** — declare each public property in `static properties` and document it with `@prop {Type} name - description`. The *Attribute* column comes from the property's `attribute` mapping: use `{ attribute: 'kebab-name' }` for multi-word names; single-word props map 1:1.
+- **Events** — `@fires event-name - description`. Describe the `detail` payload in the description (e.g. `detail: { selected: Boolean }`).
+- **Slots** — `@slot - description` for the default slot; `@slot name - description` for named slots.
+- **CSS custom properties** — `@cssprop [--name=default] - description`. The bracketed default fills the *Default* column.
+- **CSS parts** — `@csspart name - description`.
+- **Tag name** — read from `customElements.define('ol-name', ...)`. An explicit `@element ol-name` tag is optional, for clarity only.
+
+Intentionally **excluded** from the tables: internal reactive state (Lit `state: true`, conventionally `_`-prefixed) and any non-public member — keep those out of `@prop`.
+
+Example (from `OLChip.js`):
+
+```js
+/**
+ * @prop {Boolean} selected - Whether the chip is in a selected state
+ * @prop {String} accessibleLabel - Override aria-label on the inner element
+ * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
+ * @slot - The chip's label content
+ */
+export class OLChip extends LitElement {
+  static properties = {
+    selected: { type: Boolean, reflect: true },
+    accessibleLabel: { type: String, attribute: 'accessible-label' },
+  };
+}
+```
+
+Regenerate the manifest after changing JSDoc and **commit the result** (the JSON is grep/AI-friendly and consumed at request time):
+
+```bash
+npm run build-assets:lit-manifest   # one-off — runs `npx cem analyze`
+npm run watch:lit-manifest          # regenerate on change during dev
+```
+
+`make lit-components` also regenerates the manifest as part of the build. Config lives in `custom-elements-manifest.config.mjs`.
 
 ## HTML and Semantics
 
@@ -319,6 +360,7 @@ _onPopoverOpen() {
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).
 2. Register the component by adding an export to `openlibrary/components/lit/index.js`.
-3. Add JSDoc to the class with `@element`, `@prop`, `@fires`, and `@example` tags (see `OlPagination.js` for the pattern).
-4. Guard the `customElements.define()` call with `if (!customElements.get('ol-my-widget'))` — see [Registration](#registration).
-5. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080.
+3. Add JSDoc to the class documenting the public API — `@prop`, `@fires`, `@slot`, `@cssprop`, `@csspart` (see [Documenting the API](#documenting-the-api-custom-elements-manifest)). This drives the generated API tables; no hand-written prop tables.
+4. Regenerate the Custom Elements Manifest (`npm run build-assets:lit-manifest`) and commit the updated `openlibrary/components/lit/custom-elements.json`.
+5. Add a demo `<section>` for the component to `openlibrary/templates/design.html` — the API tables render automatically from the manifest.
+6. Build with `npm run watch:lit-components` and verify the component renders at http://localhost:8080/developers/design.

@@ -7,18 +7,20 @@ import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
  * Supports two sizes, a selected state with a close icon,
  * click events, and optional link behavior via href.
  *
- * @property {Boolean} selected - Whether the chip is in a selected state
- * @property {String} size - Chip size: "small" or "medium" (default)
- * @property {String} variant - Domain category that tints the chip:
+ * @prop {Boolean} selected - Whether the chip is in a selected state
+ * @prop {String} size - Chip size: "small" or "medium" (default)
+ * @prop {String} variant - Domain category that tints the chip:
  *   "language" | "subject" | "genre" | "author" | "place" | "neutral".
  *   Omit for the default (white / solid-blue-when-selected) chip. The chip
  *   maps the variant to a soft-tint palette internally (see colors.css); a
  *   variant chip keeps its tint when `selected` and just gains a close icon.
- * @property {String} href - When set, the chip renders as a link
- * @property {String} count - Optional count displayed to the right of the label
- * @property {String} accessibleLabel - Override aria-label on the inner interactive element
+ * @prop {String} href - When set, the chip renders as a link
+ * @prop {String} count - Optional count displayed to the right of the label
+ * @prop {String} accessibleLabel - Override aria-label on the inner interactive element
  *
  * @fires ol-chip-select - Fired on click. detail: { selected: Boolean }
+ *
+ * @slot - The chip's label content
  *
  * @example
  * <ol-chip>Fiction</ol-chip>
