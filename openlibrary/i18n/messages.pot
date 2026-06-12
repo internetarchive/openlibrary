@@ -7561,6 +7561,10 @@ msgstr ""
 msgid "Preview Book"
 msgstr ""
 
+#: CheckWorldcat.html
+msgid "Check WorldCat"
+msgstr ""
+
 #: DisplayCode.html
 msgid ""
 "Templates in the website are disabled now. Editing them will not have any"
@@ -7687,8 +7691,12 @@ msgstr ""
 msgid "Checked Out"
 msgstr ""
 
-#: LocateButton.html
-msgid "Locate"
+#: LoanStatus.html
+msgid "Check options for this book."
+msgstr ""
+
+#: LoanStatus.html
+msgid "Check Options"
 msgstr ""
 
 #: ManageLoansButtons.html
