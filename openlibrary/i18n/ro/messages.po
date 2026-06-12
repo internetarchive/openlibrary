@@ -507,20 +507,20 @@ msgstr "A fost creată o nouă înregistrare de operă."
 
 #: messages.html
 msgid "Added new book."
-msgstr ""
+msgstr "Carte nouă adăugată."
 
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
+msgstr "Vă mulțumim pentru îmbunătățirea catalogului Open Library!"
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
 msgid "Close"
-msgstr ""
+msgstr "Închide"
 
 #: notfound.html
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s nu a fost găsit"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
@@ -529,79 +529,79 @@ msgstr "404 - Pagina nu a fost găsită"
 #: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s nu există."
 
 #: notfound.html
 msgid "Create it?"
-msgstr ""
+msgstr "Îl creați?"
 
 #: notfound.html
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "Cauți un șablon/macro?"
 
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "Permisiune pentru %(key)s"
 
 #: permission.html
 msgid "Permission of"
-msgstr ""
+msgstr "Permisiune pentru"
 
 #: permission.html
 msgid "Permission"
-msgstr ""
+msgstr "Permisiune"
 
 #: permission.html
 msgid "Child Permission"
-msgstr ""
+msgstr "Permisiune secundară"
 
 #: permission_denied.html
 msgid "Permission Denied"
-msgstr ""
+msgstr "Permisiune refuzată"
 
 #: permission_denied.html
 msgid "Permission denied."
-msgstr ""
+msgstr "Permisiune refuzată."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "Numai utilizatorii autentificați pot adăuga înregistrări în Open Library. Vă rugăm să <a href=\"%s\">vă autentificați</a> pentru a adăuga o carte."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "Numai utilizatorii autentificați pot modifica înregistrări în Open Library. Vă rugăm să <a href=\"%s\">vă autentificați</a> pentru a edita această pagină."
 
 #: permission_denied.html
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr ""
+msgstr "Puteți <a href=\"%s\">vă autentifica</a> dacă aveți permisiunile necesare."
 
 #: recaptcha.html
 msgid "Please satisfy the reCAPTCHA below. If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
-msgstr ""
+msgstr "Vă rugăm să completați reCAPTCHA de mai jos. Dacă aveți setări de securitate sau blocatoare de confidențialitate activate, dezactivați-le pentru a vedea reCAPTCHA."
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
-msgstr ""
+msgstr "Incorect. Vă rugăm să încercați din nou."
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
-msgstr ""
+msgstr "Detalii înregistrare pentru"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
-msgstr ""
+msgstr "Această înregistrare provine din"
 
 #: showia.html showmarc.html
 msgid "Record ID"
-msgstr ""
+msgstr "ID înregistrare"
 
 #: showia.html showmarc.html
 msgid "Source"
-msgstr ""
+msgstr "Sursă"
 
 #: books/add.html covers/add.html showia.html type/edition/view.html type/work/view.html
 msgid "Internet Archive"
@@ -609,63 +609,63 @@ msgstr "Internet Archive"
 
 #: showia.html
 msgid "Download MARC XML"
-msgstr ""
+msgstr "Descarcă MARC XML"
 
 #: showia.html
 msgid "Download MARC binary"
-msgstr ""
+msgstr "Descarcă MARC binar"
 
 #: showia.html showmarc.html
 msgid "Invalid MARC record."
-msgstr ""
+msgstr "Înregistrare MARC nevalidă."
 
 #: showia.html showmarc.html
 msgid "LEADER:"
-msgstr ""
+msgstr "LEADER:"
 
 #: showmarc.html
 msgid "Download Link"
-msgstr ""
+msgstr "Link de descărcare"
 
 #: showmarc.html type/tag/index.html
 msgid "Next"
-msgstr ""
+msgstr "Următor"
 
 #: status.html
 msgid "Open Library server status"
-msgstr ""
+msgstr "Starea serverului Open Library"
 
 #: status.html
 msgid "Server status"
-msgstr ""
+msgstr "Starea serverului"
 
 #: status.html
 msgid "Testing Environment"
-msgstr ""
+msgstr "Mediu de testare"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "Implementare declanșată!"
 
 #: status.html
 msgid "View Jenkins progress"
-msgstr ""
+msgstr "Vezi progresul Jenkins"
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "Starea GitHub actualizată."
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "Numere sau URL-uri PR, separate prin spații/virgule"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "Adaugă PR-uri"
 
 #: status.html
 msgid "PR"
-msgstr ""
+msgstr "PR"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html search/advancedsearch.html status.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
@@ -677,15 +677,15 @@ msgstr "Autor"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "Responsabil"
 
 #: status.html
 msgid "Pinned Commit"
-msgstr ""
+msgstr "Commit fixat"
 
 #: status.html
 msgid "Branch HEAD"
-msgstr ""
+msgstr "HEAD ramură"
 
 #: status.html
 #, fuzzy
@@ -694,11 +694,11 @@ msgstr "Editează"
 
 #: status.html
 msgid "Enabled"
-msgstr ""
+msgstr "Activat"
 
 #: status.html
 msgid "up to date"
-msgstr ""
+msgstr "actualizat"
 
 #: status.html
 #, fuzzy
@@ -707,7 +707,7 @@ msgstr "Necunoscut"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "1 commit în urmă"
 
 #: status.html
 #, fuzzy, python-format
@@ -716,19 +716,19 @@ msgstr ""
 
 #: admin/solr.html status.html
 msgid "Update"
-msgstr ""
+msgstr "Actualizează"
 
 #: status.html
 msgid "Enable"
-msgstr ""
+msgstr "Activează"
 
 #: status.html
 msgid "Disable"
-msgstr ""
+msgstr "Dezactivează"
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
-msgstr ""
+msgstr "Elimină"
 
 #: status.html
 #, fuzzy
@@ -747,43 +747,43 @@ msgstr "Dezvoltare"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "Niciun PR în setul de testare."
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "Ultimul rezultat al build-ului"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "Vezi PR-urile pe GitHub"
 
 #: status.html
 msgid "Show changed files"
-msgstr ""
+msgstr "Arată fișierele modificate"
 
 #: admin/inspect/store.html admin/people/index.html status.html type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
+msgstr "Nume"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "Informații sistem"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "Funcționalități activate"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "Editează eticheta pentru acest subiect"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "Creează eticheta pentru acest subiect"
 
 #: subjects.html
 msgid "See all works"
-msgstr ""
+msgstr "Vezi toate lucrările"
 
 #: merge/authors.html publishers/view.html subjects.html type/author/view.html
 #, python-format
@@ -796,47 +796,47 @@ msgstr[2] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
+msgstr "Caută cărți cu subiectul %(name)s."
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "Dezambiguizări"
 
 #: trending.html
 msgid "Now"
-msgstr ""
+msgstr "Acum"
 
 #: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
-msgstr ""
+msgstr "Astăzi"
 
 #: admin/graphs.html trending.html
 msgid "This Week"
-msgstr ""
+msgstr "Această săptămână"
 
 #: admin/graphs.html stats/readinglog.html trending.html
 msgid "This Month"
-msgstr ""
+msgstr "Această lună"
 
 #: trending.html
 msgid "This Year"
-msgstr ""
+msgstr "Acest an"
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
+msgstr "Oricând"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
-msgstr ""
+msgstr "Cărți în tendințe"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Vezi ce adaugă cititorii din comunitate pe rafturile lor"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "Cele mai vechi date despre tendințe sunt din octombrie 2017"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
@@ -870,24 +870,24 @@ msgstr "În tendințe"
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "Cineva a marcat ca %(shelf)s %(k_hours_ago)s"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "Înregistrat de %(count)i ori %(time_unit)s"
 
 #: verify_human.html
 msgid "Human Verification"
-msgstr ""
+msgstr "Verificare umană"
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "Vă rugăm să confirmați că sunteți uman pentru a continua."
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "Confirmați că sunteți uman"
 
 #: verify_human.html
 #, fuzzy
@@ -896,11 +896,11 @@ msgstr "E-mail de verificare trimis"
 
 #: verify_human.html
 msgid "Verifying..."
-msgstr ""
+msgstr "Se verifică..."
 
 #: viewpage.html
 msgid "Revert to this revision?"
-msgstr ""
+msgstr "Revertiți la această revizie?"
 
 #: viewpage.html
 msgid "Revert to this revision"
