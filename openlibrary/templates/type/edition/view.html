@@ -197,12 +197,12 @@ $ component_times['affiliate_links component'] = time() - component_times['affil
 $ oclc_number = (edition.oclc_numbers and edition.oclc_numbers[0]) or ""
 $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_number)
 
-<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
+$ lending_state = get_lending_state(edition or work, check_loan_status=True)
+
+<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book" data-lending-state="$lending_state">
   <div class="workDetails">
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
-
-    $ lending_state = get_lending_state(edition or work, check_loan_status=True)
 
     <!-- (mobile only) -->
     $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, lending_state=lending_state)
