@@ -11,6 +11,7 @@ class OLEnv:
     def LOCAL_DEV(self) -> bool:
         return os.environ.get("LOCAL_DEV") == "true"
 
+
 _ol_env = OLEnv()
 
 

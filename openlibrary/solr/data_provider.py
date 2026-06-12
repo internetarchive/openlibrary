@@ -298,10 +298,11 @@ class DatabaseDataProvider(DataProvider):
     """
     This data provider assumes we are running in a full prod or local OL environment
     with database access.
-    
+
     It uses the infogami site to fetch data directly from the database, as well as
     makes queries to solr for some data (like trending data) that is not in the database.
     """
+
     def __init__(
         self,
         site: Site | None = None,
@@ -466,7 +467,6 @@ class DatabaseDataProvider(DataProvider):
         keys = [k for _keys in self.edition_keys_of_works_cache.values() for k in _keys]
         self.preload_documents0(keys)
         return
-
 
     @typing.override
     def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
