@@ -4869,11 +4869,11 @@ msgstr "Sono come le etichette."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Descrivi l'argomento del libro"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Una o due frasi vanno bene."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -5048,7 +5048,7 @@ msgstr "Logo di Open Library"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5168,11 +5168,11 @@ msgstr "Mailing list"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tabella della qualità dei dati"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Criteri di qualità"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -5299,7 +5299,7 @@ msgstr "Prendi in prestito"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar del proprietario della lista"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -5307,15 +5307,15 @@ msgstr "Tu"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Questo utente non ha abilitato i follower"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Segui"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -5399,7 +5399,7 @@ msgstr ""
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
-msgstr ""
+msgstr "Le mie liste (%(count)d)"
 
 #: lists/showcase.html
 #, fuzzy
@@ -5412,7 +5412,7 @@ msgstr "da"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Caricamento<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
@@ -5432,7 +5432,7 @@ msgstr "Seleziona alcuni autori da fondere."
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "Seleziona il profilo più vecchio come principale -"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
@@ -5468,7 +5468,7 @@ msgstr "Fondi"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "data di nascita/morte"
 
 #: merge/authors.html
 msgid "Open in a new window"
@@ -5504,11 +5504,11 @@ msgstr "Fondi opere"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "Invio del commento non riuscito. Riprova tra qualche momento."
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(Facoltativo) Perché stai chiudendo questa richiesta?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
@@ -5560,7 +5560,7 @@ msgstr "Fondi"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "Rifiutato"
 
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
@@ -5636,12 +5636,12 @@ msgstr "Aggiungi un commento..."
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "Rispondi"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s aperto il %(date)s da <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5694,7 +5694,7 @@ msgstr "Modificando..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "La rimozione di questo libro dai tuoi scaffali eliminerà le tue registrazioni per quest'opera. Continuare?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -5787,16 +5787,16 @@ msgstr "Elimina evento"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Eliminazione della registrazione non riuscita. Riprova tra qualche momento."
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Invio della registrazione non riuscito. Riprova tra qualche momento."
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Letto <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
@@ -5948,7 +5948,7 @@ msgstr "da"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Annulla tutto"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -6043,7 +6043,7 @@ msgstr "Fondi duplicati"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s unito al record %(record_type)s principale."
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -6081,7 +6081,7 @@ msgstr[1] "%(count)d voci modificate."
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Annullamento di <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, fuzzy, python-format
@@ -6129,7 +6129,7 @@ msgstr "Fondi autori"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Nessun <strong>autore</strong> corrisponde direttamente alla tua ricerca"
 
 #: search/inside.html
 #, python-format
@@ -6142,7 +6142,7 @@ msgstr "Cerca all'interno"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Nessun testo di <strong>Cerca nel libro</strong> corrisponde alla tua ricerca"
 
 #: search/inside.html
 #, python-format
@@ -6164,7 +6164,7 @@ msgstr "Dettagli"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Griglia"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6181,7 +6181,7 @@ msgstr "Cerca liste"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Nessuna <strong>lista</strong> corrisponde direttamente alla tua ricerca"
 
 #: search/publishers.html
 msgid "Publishers Search"
@@ -6190,7 +6190,7 @@ msgstr "Cerca editori"
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Alla pagina n. %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -6206,15 +6206,15 @@ msgstr "Casuale"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Nome (beta: solo bibliotecari)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Data di nascita (più vecchio) (beta: solo bibliotecari)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Data di nascita (più giovane) (beta: solo bibliotecari)"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6266,7 +6266,7 @@ msgstr "Qualsiasi"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Titolo opera (beta: solo bibliotecari)"
 
 #: search/sort_options.html
 msgid "Sorting by"
@@ -6282,7 +6282,7 @@ msgstr "Cerca argomento"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Nessun <strong>soggetto</strong> corrisponde direttamente alla tua ricerca"
 
 #: search/subjects.html
 msgid "time"
@@ -6505,7 +6505,7 @@ msgstr "Questo appare sotto la lista dei collegamenti."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Per ulteriori informazioni"
 
 #: type/author/edit.html
 msgid "Edit Author"
@@ -6545,11 +6545,11 @@ msgstr "Questo autore ha altri nomi?"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "Ad esempio: Lev Nikolayevich Tolstoy era noto anche come Leo Tolstoy. Elenca un nome per riga."
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Identificatori"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
@@ -6617,7 +6617,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -6901,7 +6901,7 @@ msgstr "Crea nuova lista"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "Modifica serie: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy, python-format
@@ -6929,11 +6929,11 @@ msgstr "Cerca libri"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Posizione (facoltativa), es. 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Note (facoltativo)"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7068,15 +7068,15 @@ msgstr "Stai per rimuovere l'ultimo elemento nella lista. Questo eliminerà tutt
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "Questa serie contiene %(limit)d o più opere. Attualmente vengono visualizzate solo le prime %(limit)d opere."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "Non ci sono elementi in questa lista."
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Cerca libri, soggetti o autori</a> da aggiungere alla tua lista."
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7111,7 +7111,7 @@ msgstr "Luogo"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Regex codice a barre"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7186,7 +7186,7 @@ msgstr "Tag:"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Tag curati dai bibliotecari di Open Library."
 
 #: type/tag/index.html
 #, fuzzy
@@ -7209,15 +7209,15 @@ msgstr "Nome"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "Nome visualizzato leggibile (es. \"Informatica\", \"Narrativa horror\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Slug del tag"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "Slug URL separati da virgola che mappano a questo tag (popolato automaticamente dal nome). Es. \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7236,12 +7236,12 @@ msgstr "Tipo di pagina"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Deputato del tag"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Tipo:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -7254,12 +7254,12 @@ msgstr "Oggi"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "Slug URL"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "Visualizza la pagina soggetto per %(name)s."
 
 #: type/template/edit.html
 #, fuzzy
@@ -7402,7 +7402,7 @@ msgstr "Cerca questa edizione in vendita su %(store)s"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "Quando acquisti libri tramite questi link, Internet Archive potrebbe ricevere una <a class=\"nostyle\" href=\"/help/faq/about#selling\">piccola commissione</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 #, fuzzy
@@ -7436,7 +7436,7 @@ msgstr "Anteprima del libro"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "I template del sito sono ora disabilitati. Modificarli non avrà alcun effetto sul sito live."
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7467,15 +7467,15 @@ msgstr "Libri collegati"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Vai alla sezione successiva"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "Smetti di seguire"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Aggiornamento follower non riuscito. Riprova tra qualche momento."
 
 #: FormatExpiry.html
 msgid "Expires"
@@ -7483,7 +7483,7 @@ msgstr "Scade"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Ricerca di corrispondenze Cerca nel libro"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -7498,24 +7498,24 @@ msgstr "Cerca all'interno"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s libri trovati con brani corrispondenti"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Visualizza tutte le %(results_count)s corrispondenze Cerca nel libro"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "freccia destra"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, fuzzy, python-format
@@ -7611,11 +7611,11 @@ msgstr "La mia recensione"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Vai alla pagina precedente"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Vai alla pagina successiva"
 
 #: OlPagination.html
 #, fuzzy, python-brace-format
@@ -7625,7 +7625,7 @@ msgstr ""
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Pagina {page}, pagina corrente"
 
 #: Profile.html
 #, fuzzy
@@ -7655,19 +7655,19 @@ msgstr "Problemi con l'accesso"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Caricamento del carosello non riuscito."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Riprovare?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Nessun libro corrisponde ai filtri attuali."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Riprovare senza filtri?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -7735,7 +7735,7 @@ msgstr "Aggiunto"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Libro %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7770,7 +7770,7 @@ msgstr "Titolo dell'opera"
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "Condividi su %(share_link)s"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
@@ -7787,7 +7787,7 @@ msgstr "Incorpora"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "Copia URL negli appunti"
 
 #: ShareModal.html
 msgid "Copy URL icon"
