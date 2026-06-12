@@ -1491,7 +1491,7 @@ msgstr "Notificările sunt conectate la Liste în prezent. Dacă una dintre căr
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr ""
+msgstr "Dorești să primești ocazional emailuri de la Open Library?"
 
 #: account/notifications.html
 msgid "No, thank you"
@@ -1515,7 +1515,7 @@ msgstr "Șterge"
 
 #: account/observations.html
 msgid "Update Reviews"
-msgstr ""
+msgstr "Actualizează recenzii"
 
 #: account/observations.html
 msgid "No observations found."
@@ -1523,19 +1523,19 @@ msgstr "Nicio observație găsită."
 
 #: account/privacy.html
 msgid "Your Privacy on Open Library"
-msgstr ""
+msgstr "Confidențialitatea ta pe Open Library"
 
 #: account/privacy.html
 msgid "Privacy & Content Moderation Settings"
-msgstr ""
+msgstr "Setări de confidențialitate și moderare a conținutului"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "Dorești să faci <a href=\"/account/books\">Jurnalul de lectură</a> public?"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "Aceasta va permite altora să vadă ce cărți vrei să citești, citești, ai oprit lectura sau ai citit deja. Utilizatorii cu jurnale de lectură publice pot fi urmăriți."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -1547,98 +1547,98 @@ msgstr "Nu"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "Activezi Modul sigur?"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "Modul sigur estompează copertele cărților marcate ca având imagini sensibile."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s is reading"
-msgstr ""
+msgstr "Cărți pe care le citește %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading."
-msgstr ""
+msgstr "%(username)s citește %(total)d cărți. Alătură-te lui %(username)s pe OpenLibrary.org și spune lumii ce citești."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s wants to read"
-msgstr ""
+msgstr "Cărți pe care %(username)s vrea să le citească"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!"
-msgstr ""
+msgstr "%(username)s vrea să citească %(total)d cărți. Alătură-te lui %(username)s pe OpenLibrary.org și împărtășește cărțile pe care le vei citi în curând!"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s stopped reading"
-msgstr ""
+msgstr "Cărți la care %(username)s a oprit lectura"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
-msgstr ""
+msgstr "%(username)s a oprit lectura la %(total)d cărți. Alătură-te lui %(username)s pe OpenLibrary.org pentru a-ți împărtăși propriile actualizări de lectură!"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "Cărți citite de %(username)s în %(year)d"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s a citit %(total)d cărți în %(year)d. Alătură-te lui %(username)s pe OpenLibrary.org și spune lumii despre cărțile care îți pasă."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read"
-msgstr ""
+msgstr "Cărți citite de %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s a citit %(total)d cărți. Alătură-te lui %(username)s pe OpenLibrary.org și spune lumii despre cărțile care îți pasă."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books in %(username)s feed"
-msgstr ""
+msgstr "Cărți în feedul lui %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "Cărți adăugate de persoanele urmărite de %(username)s"
 
 #: account/reading_log.html
 msgid "Search your reading log"
-msgstr ""
+msgstr "Caută în jurnalul de lectură"
 
 #: account/reading_log.html type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— Afișează <a href=\"%(url)s\">numai e-books</a>?"
 
 #: account/reading_log.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
-msgstr ""
+msgstr "— Afișează <a href=\"%(url)s\">tot</a> din acest raft?"
 
 #: account/reading_log.html
 msgid "No results found in this shelf"
-msgstr ""
+msgstr "Niciun rezultat găsit în acest raft"
 
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr ""
+msgstr "Caută în tot Open Library pentru \"%s\"?"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
-msgstr ""
+msgstr "Nu ai marcat nicio carte ca citită pentru acest an."
 
 #: account/reading_log.html
 msgid "You haven't added any books to this shelf yet."
@@ -1830,204 +1830,204 @@ msgstr "Stabilește-ți obiectivul anual de citire pentru %(year)s:"
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "Stabilește-mi obiectivul"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
-msgstr ""
+msgstr "Ai uitat emailul Internet Archive?"
 
 #: account/email/forgot-ia.html
 msgid "Please enter your Open Library email and password, and we’ll retrieve your Archive.org email."
-msgstr ""
+msgstr "Introduceți emailul și parola Open Library, iar noi vom recupera emailul Archive.org."
 
 #: account/email/forgot-ia.html
 msgid "Your email is:"
-msgstr ""
+msgstr "Emailul tău este:"
 
 #: account/email/forgot-ia.html
 msgid "Return to Log In?"
-msgstr ""
+msgstr "Revino la autentificare?"
 
 #: account/email/forgot-ia.html
 msgid "Open Library Email"
-msgstr ""
+msgstr "Email Open Library"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
-msgstr ""
+msgstr "Recuperează emailul Archive.org"
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
-msgstr ""
+msgstr "Ai uitat parola Archive.org?"
 
 #: account/password/forgot.html account/password/sent.html
 msgid "Username/Password Reminder"
-msgstr ""
+msgstr "Reamintire utilizator/parolă"
 
 #: account/password/forgot.html
 msgid "Click here."
-msgstr ""
+msgstr "Apasă aici."
 
 #: account/password/forgot.html
 msgid "Send It"
-msgstr ""
+msgstr "Trimite"
 
 #: account/password/reset.html admin/people/view.html
 msgid "Reset Password"
-msgstr ""
+msgstr "Resetează parola"
 
 #: account/password/reset.html
 msgid "Please enter a new password for your Open Library account."
-msgstr ""
+msgstr "Introduceți o nouă parolă pentru contul dvs. Open Library."
 
 #: account/password/reset.html
 msgid "Reset"
-msgstr ""
+msgstr "Resetează"
 
 #: account/password/reset_success.html
 msgid "Password Reset Successful"
-msgstr ""
+msgstr "Resetare parolă reușită"
 
 #: account/password/reset_success.html
 msgid "Your password has been updated. Please <a href='/account/login?redirect=/'>log in to continue</a>."
-msgstr ""
+msgstr "Parola ta a fost actualizată. Te rugăm să <a href=\"/account/login?redirect=/\">te autentifici pentru a continua</a>."
 
 #: account/password/sent.html
 msgid "Done."
-msgstr ""
+msgstr "Gata."
 
 #: account/password/sent.html
 #, python-format
 msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
-msgstr ""
+msgstr "Am trimis un email la %(email)s cu un reminder al numelui de utilizator și instrucțiuni pentru resetarea parolei Open Library. Verifică căsuța de intrare pentru un mesaj de la noi."
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "Verificare securitate cont — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "Verificare securitate cont"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "Data incidentului: 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Check whether your Open Library account was in a set of accounts requiring attention."
-msgstr ""
+msgstr "Verifică dacă contul tău Open Library a fost într-un set de conturi care necesitau atenție."
 
 #: account/security/check_email.html
 msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
-msgstr ""
+msgstr "Te rugăm să <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">te autentifici</a> pentru a verifica dacă contul tău a fost afectat."
 
 #: account/security/check_email.html
 msgid "Your account is in the affected set."
-msgstr ""
+msgstr "Contul tău se află în setul afectat."
 
 #: account/security/check_email.html
 msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
-msgstr ""
+msgstr "Contul tău a fost găsit în lista noastră de conturi afectate. Te rugăm să revizuiești orice comunicare recentă de la Open Library și să iei în considerare actualizarea parolei."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "Contul tău <em>nu</em> se află în setul afectat."
 
 #: account/security/check_email.html
 msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr ""
+msgstr "Contul tău <em>nu</em> a fost găsit în lista de conturi afectate. Nu este necesară nicio acțiune."
 
 #: account/verify/activated.html
 msgid "Account already activated"
-msgstr ""
+msgstr "Contul a fost deja activat"
 
 #: account/verify/activated.html
 #, python-format
 msgid "Your account has been activated already. Please <a href=\"%s\">log in to continue</a>."
-msgstr ""
+msgstr "Contul tău a fost deja activat. Te rugăm să <a href=\"%s\">te autentifici pentru a continua</a>."
 
 #: account/verify/failed.html
 msgid "Email Verification Failed"
-msgstr ""
+msgstr "Verificarea emailului a eșuat"
 
 #: account/verify/failed.html
 msgid "Your email address couldn't be verified. Your verification link seems invalid or expired."
-msgstr ""
+msgstr "Adresa ta de email nu a putut fi verificată. Linkul de verificare pare invalid sau expirat."
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
+msgstr "Introduceți emailul și apăsați acest buton pentru a retrimite un email de verificare proaspăt:"
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
-msgstr ""
+msgstr "Introduceți adresa de email aici"
 
 #: account/verify/failed.html
 msgid "No user registered with this email address."
-msgstr ""
+msgstr "Niciun utilizator înregistrat cu această adresă de email."
 
 #: account/verify/success.html
 msgid "Email Verification Successful"
-msgstr ""
+msgstr "Verificarea emailului a reușit"
 
 #: account/verify/success.html
 #, python-format
 msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
-msgstr ""
+msgstr "Felicitări! Adresa ta de email a fost verificată. Te rugăm să <a href=\"%s\">te autentifici pentru a continua</a>."
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "Atașează depanator"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Atașează depanator pe Python %(version_number)s"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "Pornești un depanator pe portul 3000."
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
-msgstr ""
+msgstr "Se așteaptă atașarea depanatorului..."
 
 #: admin/attach_debugger.html
 msgid "Start"
-msgstr ""
+msgstr "Pornește"
 
 #: admin/block.html
 msgid "Block IP address"
-msgstr ""
+msgstr "Blochează adresa IP"
 
 #: admin/block.html
 #, python-format
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr ""
+msgstr "Adresa IP %(address)s a fost adăugată în câmpul de text. Apăsați Salvează pentru a bloca acea adresă IP."
 
 #: admin/block.html
 msgid "Blocked IP Addresses"
-msgstr ""
+msgstr "Adrese IP blocate"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "Grafice de performanță"
 
 #: admin/graphs.html
 msgid "Number of Hits"
-msgstr ""
+msgstr "Număr de accesări"
 
 #: admin/graphs.html
 msgid "Page Load Times"
-msgstr ""
+msgstr "Timpi de încărcare a paginii"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "Timpi de încărcare a paginii — detaliu"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "Media Infobase"
 
 #: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
 msgid "Date"
