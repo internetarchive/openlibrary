@@ -508,16 +508,17 @@ class BetterDataProvider(LegacyDataProvider):
         # Infobase doesn't has a way to do find editions of multiple works at once.
         # Using raw SQL to avoid making individual infobase queries, which is very
         # time consuming.
-        key_query = "select id from property where name='works' and type=(select id from thing where key='/type/edition')"
-
-        q = (
-            "SELECT edition.key as edition_key, work.key as work_key"
-            " FROM thing as edition, thing as work, edition_ref"
-            " WHERE edition_ref.thing_id=edition.id"
-            "   AND edition_ref.value=work.id"
-            f"   AND edition_ref.key_id=({key_query})"
-            "   AND work.key in $keys"
-        )
+        q = """
+            SELECT edition.key as edition_key, work.key as work_key
+            FROM thing as edition, thing as work, edition_ref
+            WHERE edition_ref.thing_id=edition.id
+                AND edition_ref.value=work.id
+                AND edition_ref.key_id=(
+                    SELECT id FROM property
+                    WHERE name='works' AND type=(SELECT id FROM thing WHERE key='/type/edition')
+                )
+                AND work.key in $keys
+        """
         result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
             self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(row.edition_key)

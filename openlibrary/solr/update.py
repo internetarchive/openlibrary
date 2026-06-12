@@ -139,11 +139,6 @@ async def update_keys(
     return net_update
 
 
-async def do_updates(keys):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    await update_keys(keys, commit=False)
-
-
 def load_configs(
     c_host: str,
     c_config: str,
