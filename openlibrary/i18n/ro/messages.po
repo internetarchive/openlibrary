@@ -904,17 +904,17 @@ msgstr "Revertiți la această revizie?"
 
 #: viewpage.html
 msgid "Revert to this revision"
-msgstr ""
+msgstr "Revenire la această revizie"
 
 #: widget.html
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr ""
+msgstr "Citește \"%(title)s\""
 
 #: widget.html
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr ""
+msgstr "Împrumută \"%(title)s\""
 
 #: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
@@ -923,16 +923,16 @@ msgstr "Împrumută"
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
+msgstr "Înscrie-te pe lista de așteptare pentru \"%(title)s\""
 
 #: LoanStatus.html widget.html
 msgid "Join Waitlist"
-msgstr ""
+msgstr "Înscrie-te pe lista de așteptare"
 
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr ""
+msgstr "Află mai multe despre \"%(title)s\" la OpenLibrary"
 
 #: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
@@ -941,11 +941,11 @@ msgstr "Află mai multe"
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "pe <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 
 #: work_search.html
 msgid "Search Books"
-msgstr ""
+msgstr "Caută cărți"
 
 #: work_search.html
 msgid "Keywords"
@@ -953,44 +953,44 @@ msgstr "Cuvinte cheie"
 
 #: RecentChanges.html recentchanges/index.html work_search.html
 msgid "Everything"
-msgstr ""
+msgstr "Tot"
 
 #: work_search.html
 msgid "Ebooks"
-msgstr ""
+msgstr "E-books"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "Aceasta este vizibilă doar pentru super-bibliotecari."
 
 #: work_search.html
 msgid "Solr Editions"
-msgstr ""
+msgstr "Ediții Solr"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "Motorul de căutare a returnat o eroare."
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Depanare Solr:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "URL complet:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "Niciun <strong>%(path_id)s</strong> nu a corespuns direct căutării dvs."
 
 #: work_search.html
 msgid "Add a new book?"
-msgstr ""
+msgstr "Adaugă o carte nouă?"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
-msgstr ""
+msgstr "Se verifică potrivirile Search Inside"
 
 #: account/reading_log.html search/authors.html search/lists.html search/subjects.html work_search.html
 #, python-format
@@ -1003,19 +1003,19 @@ msgstr[2] ""
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Căutarea în Solr a durat %(count)s secunde"
 
 #: about/index.html
 msgid "The Open Library Team"
-msgstr ""
+msgstr "Echipa Open Library"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "Open Library este posibil datorită unei echipe dedicate de angajați și peste 100 de voluntari din întreaga lume."
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "Vrei să ni te alături?"
 
 #: about/index.html
 msgid "Role:"
@@ -1027,11 +1027,11 @@ msgstr "Toate"
 
 #: about/index.html
 msgid "Staff"
-msgstr ""
+msgstr "Personal"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "Bursieri"
 
 #: about/index.html
 msgid "Volunteers"
@@ -1043,43 +1043,43 @@ msgstr "Departament:"
 
 #: about/index.html
 msgid "Communications"
-msgstr ""
+msgstr "Comunicare"
 
 #: about/index.html
 msgid "Design"
-msgstr ""
+msgstr "Design"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "Inginerie"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "Biblioteconomie"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "Dacă ești voluntar la Open Library și dorești să fii listat ca parte a echipei, completează <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formularul de informații al echipei Open Library</a>."
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "Trebuie să fie o adresă de email validă"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "Trebuie să aibă între 3 și 20 de caractere"
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
+msgstr "Numele de utilizator poate conține numai cifre, litere, - sau _"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "Trebuie selectat un program eligibil"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "Înregistrare la Open Library"
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
@@ -1087,47 +1087,47 @@ msgstr "Înscriere"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Obține-ți cardul gratuit Open Library și împrumută cărți digitale de la organizația nonprofit Internet Archive"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
-msgstr ""
+msgstr "Succes!"
 
 #: account/create.html
 msgid "Your URL"
-msgstr ""
+msgstr "URL-ul tău"
 
 #: account/create.html
 msgid "screenname"
-msgstr ""
+msgstr "pseudonim"
 
 #: account/create.html
 msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr ""
+msgstr "Doresc să primesc știri, anunțuri și resurse de la <a href=\"https://archive.org/\">Internet Archive</a>, organizația nonprofit care administrează Open Library."
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "Doresc să aplic* pentru <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">acces special pentru persoane cu dizabilități de tipărire</a> printr-un program eligibil."
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Selectează programul eligibil"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* Vă rugăm să folosiți adresa de email asociată acestui program eligibil. Veți primi un email după activare cu pașii următori."
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Înregistrare cu email"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr ""
+msgstr "Prin înregistrare, ești de acord cu <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Termenii de utilizare</a> ai Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Ai deja un cont? <a href=\"/account/login\">Conectează-te</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -1228,19 +1228,19 @@ msgstr "Se importă..."
 
 #: account/import.html
 msgid "Reason"
-msgstr ""
+msgstr "Motiv"
 
 #: account/import.html
 msgid "No ISBN"
-msgstr ""
+msgstr "Fără ISBN"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "Nu s-au găsit împrumuturi în istoricul tău."
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">Caută o carte</a> pentru a împrumuta."
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
@@ -1256,11 +1256,11 @@ msgstr[2] ""
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
-msgstr ""
+msgstr "Expirare împrumut"
 
 #: account/loans.html
 msgid "Loan actions"
-msgstr ""
+msgstr "Acțiuni împrumut"
 
 #: account/loans.html
 #, python-format
@@ -1272,15 +1272,15 @@ msgstr[2] ""
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."
-msgstr ""
+msgstr "Nu a fost descărcat încă."
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Download Now"
-msgstr ""
+msgstr "Descarcă acum"
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
+msgstr "Returnează prin<br/>Adobe Digital Editions"
 
 #: account/loans.html
 msgid "Books You're Waiting For"
@@ -1292,11 +1292,11 @@ msgstr "Nu așteptați nicio carte în acest moment."
 
 #: account/loans.html
 msgid "Leave the Waiting List"
-msgstr ""
+msgstr "Părăsește lista de așteptare"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "Sigur dorești să părăsești lista de așteptare pentru<br/><strong>TITLE</strong>?"
 
 #: ProlificAuthors.html account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
@@ -1308,7 +1308,7 @@ msgstr[2] "%(count)d de cărți"
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
-msgstr ""
+msgstr "Acțiuni"
 
 #: account/loans.html
 #, python-format
@@ -1320,7 +1320,7 @@ msgstr[2] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
+msgstr "Ești următoarea persoană care va primi această carte."
 
 #: ManageWaitlistButton.html account/loans.html
 #, python-format
@@ -1332,7 +1332,7 @@ msgstr[2] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "You have less than an hour to borrow it."
-msgstr ""
+msgstr "Ai mai puțin de o oră pentru a o împrumuta."
 
 #: account/loans.html
 #, python-format
@@ -1344,11 +1344,11 @@ msgstr[2] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Borrow Now"
-msgstr ""
+msgstr "Împrumută acum"
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Leave the waiting list?"
-msgstr ""
+msgstr "Părăsești lista de așteptare?"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
@@ -1421,20 +1421,20 @@ msgstr "Oups!"
 
 #: account/not_verified.html
 msgid "The email address you signed up with needs to be verified."
-msgstr ""
+msgstr "Adresa de email cu care te-ai înregistrat trebuie verificată."
 
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "Când ți-ai creat contul, am trimis un email la %(email)s cu un link pentru verificarea adresei tale de email. Trebuie să accesezi acel link, te rugăm."
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "Dacă nu găsești emailul, apasă pe acest buton pentru a trimite unul nou:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
-msgstr ""
+msgstr "Retrimite emailul de verificare"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
@@ -1446,32 +1446,32 @@ msgstr "Autor necunoscut"
 
 #: account/notes.html
 msgid "My notes for an edition of "
-msgstr ""
+msgstr "Notele mele pentru o ediție din "
 
 #: account/notes.html
 msgid "Title Missing"
-msgstr ""
+msgstr "Titlu lipsă"
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
 msgid "Publish date unknown"
-msgstr ""
+msgstr "Dată de publicare necunoscută"
 
 #: account/notes.html books/edition-sort.html lists/export_as_html.html type/work/editions.html
 msgid "Publisher unknown"
-msgstr ""
+msgstr "Editor necunoscut"
 
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
+msgstr "în %(language)s"
 
 #: NotesModal.html account/notes.html
 msgid "Delete Note"
-msgstr ""
+msgstr "Șterge notă"
 
 #: NotesModal.html account/notes.html
 msgid "Save Note"
-msgstr ""
+msgstr "Salvează notă"
 
 #: account/notes.html
 msgid "No notes found."
@@ -1479,15 +1479,15 @@ msgstr "Nicio notă găsită."
 
 #: account/notifications.html
 msgid "Notifications from Open Library"
-msgstr ""
+msgstr "Notificări de la Open Library"
 
 #: account/notifications.html
 msgid "Notifications"
-msgstr ""
+msgstr "Notificări"
 
 #: account/notifications.html
 msgid "Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want."
-msgstr ""
+msgstr "Notificările sunt conectate la Liste în prezent. Dacă una dintre cărțile din lista ta este editată sau o carte nouă apare în catalog, te vom anunța, dacă dorești."
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
