@@ -2760,7 +2760,7 @@ msgstr "x minuti fa"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr "es. @foobar"
+msgstr "IP"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -2789,7 +2789,7 @@ msgstr "Seleziona alcuni autori da fondere."
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr "blocca e ripristina tutte le modifiche"
+msgstr "Quando vedi dei numeri qui, è l'indirizzo IP dell'editor anonimo"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy, python-format
@@ -2803,17 +2803,17 @@ msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr "accedi come questo utente"
+msgstr "Spam annullato"
 
 #: admin/people/edits.html
 #, fuzzy, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr "Attivato il <span class=\"time\">%(date)s</span> da <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
+msgstr ""
 
 #: admin/people/edits.html
 #, fuzzy
 msgid "people"
-msgstr "sblocca questo account"
+msgstr "persone"
 
 #: admin/people/edits.html
 #, fuzzy
@@ -2849,7 +2849,7 @@ msgstr ""
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "es. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
@@ -2874,7 +2874,7 @@ msgstr "Cronologia delle modifiche"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr "Esecuzione simulata"
+msgstr "blocca e ripristina tutte le modifiche"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2888,16 +2888,16 @@ msgstr ""
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "accedi come questo utente"
 
 #: admin/people/view.html
 #, python-format
 msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
+msgstr "Attivato il <span class=\"time\">%(date)s</span> da <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "sblocca questo account"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2959,7 +2959,7 @@ msgstr "Rendi account anonimo:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Esecuzione simulata"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
@@ -3242,7 +3242,7 @@ msgstr "Di più su Standard Ebooks"
 #: book_providers/wikisource_download_options.html
 #, fuzzy
 msgid "Download PDF from Wikisource"
-msgstr "MOBI (per Kindle)"
+msgstr ""
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3251,7 +3251,7 @@ msgstr "Scarica un file MOBI da Internet Arvchive"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr "EPUB (per la maggior parte degli altri e-reader)"
+msgstr "MOBI (per Kindle)"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3260,7 +3260,7 @@ msgstr "Scarica un ePub da Internet Arvchive"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (per la maggior parte degli altri e-reader)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
