@@ -17,8 +17,10 @@ import {
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
     availabilityOptionsFromElement,
+    readableLanguageMismatch,
     readStoredLanguages,
     searchModalStringsFromElement,
+    siteLanguageToMarc,
     readRecentSearches,
     saveRecentSearch,
     removeRecentSearch,
@@ -40,7 +42,22 @@ import { deriveAuthors } from './authorSuggestion.js';
 // site (Edition.get_cover_url → get_ia_cover). Requesting `ia` also propagates
 // it into the `editions:[subquery]` docs (see WorkSearchScheme), so both the
 // work-level `ia` and the top edition's `ia` are available. See issue #12893.
-const SEARCH_FIELDS = ['key', 'cover_i', 'ia', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'editions'];
+// `ebook_access` is the work-level access aggregate (Solr enum: no_ebook,
+// unclassified, printdisabled, borrowable, public) — it drives the per-result
+// "Readable" badge. It says only what kind of access the book has, not whether
+// all copies are currently on loan; live "checked out" state is not in Solr.
+// `language` propagates into the `editions:[subquery]` docs (WORK_FIELD_TO_ED_FIELD),
+// so the promoted readable edition carries its own language — letting
+// _renderResult flag a readable copy that isn't in the patron's site language
+// (see _readableLanguageMismatch).
+const SEARCH_FIELDS = ['key', 'cover_i', 'ia', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'ebook_access', 'language', 'editions'];
+
+// `ebook_access` values that earn the "Readable" badge: `public` (free to read
+// now) and `borrowable` (lendable) — everything a patron can read without
+// special access, mirroring the modal's "Readable Only" filter
+// (ebook_access:[borrowable TO *]). `printdisabled`, `unclassified`, and
+// `no_ebook` get no badge — a badge there would over-promise access.
+const READABLE_ACCESS = new Set(['public', 'borrowable']);
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -67,6 +84,7 @@ export class SearchModal extends LitElement {
         _numFound: { state: true },
         _readableCount: { state: true },
         _loading: { state: true },
+        _seeAllLoading: { state: true },
         _hasSearched: { state: true },
         _languageItems: { state: true },
         _langsLoading: { state: true },
@@ -136,8 +154,8 @@ export class SearchModal extends LitElement {
         .search-input::placeholder { color: var(--accessible-grey); }
         .search-input:focus         { outline: none; }
 
-        /* Drop the native type="search" clear affordance — the modal has its
-           own close control and an empty field is cleared by deleting text. */
+        /* Drop the native type="search" clear affordance — the modal renders
+           its own clear button (.clear-btn) once the query is non-empty. */
         .search-input::-webkit-search-cancel-button,
         .search-input::-webkit-search-decoration {
             -webkit-appearance: none;
@@ -172,18 +190,19 @@ export class SearchModal extends LitElement {
 
         @media (hover: none) and (pointer: coarse) { .esc-pill { display: none; } }
 
-        /* ── Close button (mobile) ─────────────────────────────────── */
+        /* ── Back button (mobile) ──────────────────────────────────── */
 
-        /* Touch devices don't have an Esc key, so the ESC pill (above) is
-           replaced by an explicit close affordance in the same slot. */
-        .close-btn {
+        /* Touch devices don't have an Esc key, so the modal closes via a back
+           arrow to the left of the search field (replacing the desktop ESC
+           pill). Hidden on desktop, where Esc / the ESC pill do the job. */
+        .back-btn {
             flex-shrink: 0;
             display: none;
             align-items: center;
             justify-content: center;
             width: 36px;
             height: 36px;
-            margin-right: calc(var(--spacing-sm) * -1);
+            margin-left: calc(var(--spacing-xs) * -1);
             background: transparent;
             border: none;
             border-radius: var(--border-radius-button);
@@ -191,17 +210,53 @@ export class SearchModal extends LitElement {
             cursor: pointer;
         }
 
-        .close-btn svg {
-            width: 22px;
-            height: 22px;
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
         }
 
-        .close-btn:focus-visible {
+        .back-btn:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
 
-        @media (hover: none) and (pointer: coarse) { .close-btn { display: inline-flex; } }
+        @media (hover: none) and (pointer: coarse) { .back-btn { display: inline-flex; } }
+
+        /* ── Clear input button ────────────────────────────────────── */
+
+        /* A small X inside the field, shown only once the query is non-empty.
+           Clears the text and refocuses the input without closing the modal. */
+        .clear-btn {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            background: transparent;
+            border: none;
+            border-radius: var(--border-radius-circle);
+            color: var(--accessible-grey);
+            cursor: pointer;
+        }
+
+        .clear-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            .clear-btn:hover {
+                background: var(--lightest-grey);
+                color: var(--darker-grey);
+            }
+        }
+
+        .clear-btn:focus-visible {
+            outline: var(--focus-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
 
         /* ── Filter section (filter buttons + active chip row) ─────── */
 
@@ -217,7 +272,7 @@ export class SearchModal extends LitElement {
                needs the full viewport width as its scroll track. The inline
                inset lives on .filters instead (as scroll-container padding) so
                items still line up with the search field above. */
-            padding: var(--spacing-xs) 0 var(--spacing-sm);
+            padding: var(--spacing-md) 0;
         }
 
         .clear-all {
@@ -310,7 +365,7 @@ export class SearchModal extends LitElement {
 
         .result {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: var(--spacing-md);
             padding: var(--spacing-sm) var(--spacing-lg);
             color: inherit;
@@ -412,11 +467,72 @@ export class SearchModal extends LitElement {
             font-weight: 400;
         }
 
+        /* Quiet "In <language>" hint shown when Readable Only surfaces a copy
+           that isn't in the patron's site language. Informational, not a button —
+           muted to sit below the title/author without competing with the trailing
+           access pill. */
+        .result__lang {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3xs);
+            margin-top: var(--spacing-3xs);
+            color: var(--accessible-grey);
+            font-size: var(--font-size-label-small);
+            font-weight: 400;
+        }
+
+        .result__lang svg {
+            width: 13px;
+            height: 13px;
+            flex-shrink: 0;
+        }
+
+        /* "Readable" pill at the trailing edge of the row (.result__meta's flex:1
+           pushes it right). A quiet status indicator, not a button — the whole
+           row is the link. Green echoes the site's "you can read this" hue. */
+        .result__access {
+            flex-shrink: 0;
+            align-self: flex-start;
+            padding: var(--spacing-3xs) var(--spacing-xs);
+            border-radius: var(--border-radius-button);
+            font-size: var(--font-size-label-small);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            color: var(--open-green);
+            background: hsla(126, 100%, 30%, 0.1);
+        }
+
         .empty, .loading {
             padding: var(--spacing-lg) var(--spacing-lg);
             color: var(--accessible-grey);
             font-size: var(--font-size-body-medium);
             text-align: center;
+        }
+
+        /* Animated trailing dots on the "Searching" label. The three dots
+           cycle 1 → 2 → 3 → 2 → 1 (a bounce) on a shared 4-step timeline:
+           dot 1 is always shown, dot 2 hides only in the first step, dot 3
+           shows only in the third. Opacity (not display) keeps all three in
+           flow, so the label width never shifts as dots blink. */
+        .loading-dots .dot { opacity: 0; }
+        .loading-dots .dot:nth-child(1) { opacity: 1; }
+        .loading-dots .dot:nth-child(2) { animation: ol-search-dots-2 1.4s linear infinite; }
+        .loading-dots .dot:nth-child(3) { animation: ol-search-dots-3 1.4s linear infinite; }
+
+        @keyframes ol-search-dots-2 {
+            0%, 24.99%   { opacity: 0; }
+            25%, 100%    { opacity: 1; }
+        }
+
+        @keyframes ol-search-dots-3 {
+            0%, 49.99%   { opacity: 0; }
+            50%, 74.99%  { opacity: 1; }
+            75%, 100%    { opacity: 0; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loading-dots .dot { opacity: 1; animation: none; }
         }
 
         /* ── Recent-search row ──────────────────────────────────────────── */
@@ -432,6 +548,12 @@ export class SearchModal extends LitElement {
             padding-top: var(--spacing-2xs);
             padding-bottom: var(--spacing-2xs);
         }
+
+        /* The row is top-aligned (see .result), but recent rows have only a
+           single line of text flanked by fixed-height icons — center the query
+           and the clock icon so everything lines up on one baseline. */
+        .recent-result .result__meta,
+        .recent-result .result__recent-icon { align-self: center; }
 
         .result__recent-icon {
             flex-shrink: 0;
@@ -553,34 +675,143 @@ export class SearchModal extends LitElement {
             border-top: var(--border-divider);
         }
 
-        .see-all {
-            padding: var(--spacing-sm) var(--spacing-lg);
-            background: var(--primary-blue);
-            border: 1px solid var(--primary-blue);
+        /* The footer button is the shared <ol-button> primitive (registered by
+           the site-wide Lit bundle — no import here, same as ol-dialog above).
+           ol-button is a light-DOM element styled entirely by the global
+           static/css/components/ol-button.css, but that sheet can't cross into
+           this modal's shadow root — so the primary-variant rules it needs are
+           mirrored below. Keep in sync with ol-button.css. */
+
+        ol-button { display: inline-block; }
+
+        /* Once hydrated the host is a bare wrapper; the inner <button> paints. */
+        ol-button[hydrated] {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: inherit;
+        }
+
+        ol-button[disabled],
+        ol-button[loading] { pointer-events: none; }
+
+        /* Shared appearance: the host pre-upgrade, the inner button post-upgrade. */
+        ol-button:not([hydrated]),
+        ol-button > button {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            height: 38px;
+            padding: 0 var(--spacing-inset-md);
+            font-family: var(--font-family-button);
+            font-size: var(--font-size-body-medium);
+            font-weight: 500;
+            line-height: var(--line-height-control);
+            white-space: nowrap;
+            background-color: var(--primary-blue);
+            border: 1.5px solid var(--primary-blue);
             border-radius: var(--border-radius-button);
             color: var(--white);
-            font: inherit;
-            font-size: var(--font-size-label-large);
-            font-weight: 600;
             cursor: pointer;
-            transition: filter 150ms ease;
+            user-select: none;
+            transition: transform 0.08s;
         }
+
+        ol-button > button:active { transform: scale(0.97); }
 
         @media (hover: hover) and (pointer: fine) {
-            .see-all:hover { filter: brightness(1.08); }
+            ol-button > button:hover {
+                background-color: var(--link-blue);
+                border-color: var(--link-blue);
+            }
         }
 
-        .see-all:focus-visible {
+        ol-button > button:focus-visible {
             outline: var(--focus-width) solid var(--color-focus-ring);
-            outline-offset: 2px;
+            outline-offset: var(--spacing-3xs);
         }
 
-        .see-all:disabled {
-            opacity: 0.45;
+        ol-button[loading] > button { cursor: progress; }
+
+        /* Scoped away from [loading] so the loading state keeps full-strength
+           colors while still being non-interactive. */
+        ol-button:not([loading]) > button:disabled {
+            opacity: 0.55;
             cursor: not-allowed;
         }
 
-        @media (prefers-reduced-motion: reduce) { .see-all { transition: none; } }
+        /* Loading: the label and spinner crossfade. Both are always in the DOM
+           so the button width stays stable. */
+        ol-button > button > .ol-btn-label {
+            display: inline-block;
+            transition:
+                opacity 0.24s ease,
+                transform 0.24s ease,
+                filter 0.24s ease;
+        }
+
+        ol-button[loading] > button > .ol-btn-label {
+            opacity: 0;
+            transform: scale(0.8);
+            filter: blur(2px);
+        }
+
+        ol-button > button > .ol-btn-spinner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.4);
+            filter: blur(3px);
+            pointer-events: none;
+            transition:
+                opacity 0.24s ease,
+                transform 0.24s ease,
+                filter 0.24s ease;
+        }
+
+        ol-button > button > .ol-btn-spinner::before {
+            content: "";
+            display: block;
+            box-sizing: border-box;
+            width: 1em;
+            height: 1em;
+            border: 2px solid currentcolor;
+            border-right-color: transparent;
+            border-radius: var(--border-radius-circle);
+        }
+
+        ol-button[loading] > button > .ol-btn-spinner {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0);
+        }
+
+        ol-button[loading] > button > .ol-btn-spinner::before {
+            animation: ol-button-spin 0.7s linear infinite;
+        }
+
+        @keyframes ol-button-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            ol-button > button,
+            ol-button > button > .ol-btn-label,
+            ol-button > button > .ol-btn-spinner {
+                transform: none;
+                filter: none;
+                transition-property: opacity;
+            }
+
+            ol-button[loading] > button > .ol-btn-spinner::before {
+                animation-duration: 2s;
+            }
+        }
 
         /* ── Mobile overrides ──────────────────────────────────────── */
 
@@ -591,17 +822,18 @@ export class SearchModal extends LitElement {
                outside the scrolling body). */
             .footer { background: var(--white); }
 
-            /* Inset, rounded search field with the close (X) sitting outside it. */
-            .bar {
-                padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
-                border-bottom: none;
-            }
+            /* Flat search row: no boxed field — the back arrow and input read
+               as one line under the bar's bottom divider (kept from the base
+               .bar style). The magnifying glass is dropped (the back arrow
+               anchors the left edge instead). */
+            .bar { padding: var(--spacing-sm) var(--spacing-md); }
             .search-field {
-                padding: var(--spacing-sm) var(--spacing-md);
-                border: 1px solid var(--color-border-subtle);
-                border-radius: var(--border-radius-xl);
+                padding: 0;
+                border: none;
+                border-radius: 0;
             }
-            .close-btn { margin-right: 0; }
+            .search-icon { display: none; }
+            .back-btn { margin-left: 0; }
         }
     `;
 
@@ -617,6 +849,10 @@ export class SearchModal extends LitElement {
         // first search (the toggle falls back to the static corpus figure).
         this._readableCount = null;
         this._loading      = false;
+        // Whether the footer "See all results" button shows its loading spinner.
+        // Set when the patron commits to /search (click or Enter) and the page
+        // begins navigating; mirrors how a pressed result uses _navigatingKey.
+        this._seeAllLoading = false;
         this._hasSearched  = false;
         this._langsLoading = false;
         this._navigatingKey = null;
@@ -634,6 +870,12 @@ export class SearchModal extends LitElement {
         // Curated set shown instantly; replaced by the real catalogue list
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
         this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
+
+        // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
+        // `language` field. Mapped from the trigger's 2-letter data-search-lang in
+        // initSearchModal; '' when unknown, in which case the mismatch pill is
+        // suppressed rather than guessed.
+        this._siteLanguage = '';
 
         // Availability is now a binary All / Readable Only toggle. Honor only an
         // explicit stored 'readable'; everything else — no preference, or a
@@ -653,9 +895,12 @@ export class SearchModal extends LitElement {
     connectedCallback() {
         super.connectedCallback();
         // The back button can restore this page (and modal) from the bfcache
-        // with a row still flagged as navigating — clear it so its spinner
-        // doesn't linger on a page the user has returned to.
-        this._onPageShow = () => { this._navigatingKey = null; };
+        // with a row (or the footer button) still flagged as navigating — clear
+        // both so their spinners don't linger on a page the user has returned to.
+        this._onPageShow = () => {
+            this._navigatingKey = null;
+            this._seeAllLoading = false;
+        };
         window.addEventListener('pageshow', this._onPageShow);
     }
 
@@ -699,6 +944,28 @@ export class SearchModal extends LitElement {
 
     _closeModal() { this.open = false; }
 
+    // The small X inside the field: clear the query without closing the modal,
+    // then refocus so the patron can keep typing. Mirrors the reset
+    // _onQueryInput does when the query drops below the autocomplete threshold,
+    // and drops _activeFetchKey so an in-flight fetch can't repopulate results.
+    _clearInput() {
+        this._query             = '';
+        this._navigatingKey     = null;
+        this._results           = [];
+        this._authorSuggestions = [];
+        this._numFound          = null;
+        this._readableCount     = null;
+        this._loading           = false;
+        this._seeAllLoading     = false;
+        this._hasSearched       = false;
+        this._activeFetchKey    = null;
+        const input = this.renderRoot.querySelector('.search-input');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+    }
+
     async _loadAllLanguages() {
         this._langsLoading = true;
         try {
@@ -731,6 +998,12 @@ export class SearchModal extends LitElement {
                 @ol-after-close=${this._onDialogClosed}
             >
                 <div slot="header" class="bar">
+                    <button
+                        type="button"
+                        class="back-btn"
+                        aria-label=${this._i18n.closeAria}
+                        @click=${this._closeModal}
+                    >${SearchModal._backIcon}</button>
                     <div class="search-field">
                         ${SearchModal._searchIcon}
                         <input
@@ -748,6 +1021,14 @@ export class SearchModal extends LitElement {
                             @drop=${this._onDrop}
                             @dragover=${this._onDragOver}
                         />
+                        ${this._query.length ? html`
+                            <button
+                                type="button"
+                                class="clear-btn"
+                                aria-label=${this._i18n.clearAria}
+                                @click=${this._clearInput}
+                            >${SearchModal._closeIcon}</button>
+                        ` : nothing}
                         <button
                             type="button"
                             class="esc-pill"
@@ -755,12 +1036,6 @@ export class SearchModal extends LitElement {
                             @click=${this._closeModal}
                         >ESC</button>
                     </div>
-                    <button
-                        type="button"
-                        class="close-btn"
-                        aria-label=${this._i18n.closeAria}
-                        @click=${this._closeModal}
-                    >${SearchModal._closeIcon}</button>
                 </div>
 
                 <!-- Visually-hidden live region: announces the result count to
@@ -779,12 +1054,12 @@ export class SearchModal extends LitElement {
                 ${this._renderResults()}
 
                 <div slot="footer" class="footer">
-                    <button
-                        type="button"
-                        class="see-all"
+                    <ol-button
+                        variant="primary"
                         ?disabled=${this._query.trim().length < MIN_QUERY_LENGTH}
+                        ?loading=${this._seeAllLoading}
                         @click=${this._onSeeAllResults}
-                    >${this._seeAllLabel()}</button>
+                    >${this._seeAllLabel()}</ol-button>
                 </div>
             </ol-dialog>
         `;
@@ -842,7 +1117,11 @@ export class SearchModal extends LitElement {
         }
 
         if (this._loading && this._results.length === 0) {
-            return html`<div class="results"><div class="loading">${this._i18n.searching}</div></div>`;
+            // Strip any trailing ellipsis/period(s) from the (translated) label
+            // so the animated dots that follow aren't doubled up.
+            const searchingLabel = this._i18n.searching.replace(/[.…。]+$/, '');
+            return html`<div class="results"><div class="loading"
+                >${searchingLabel}<span class="loading-dots" aria-hidden="true"><span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></span></div></div>`;
         }
 
         if (this._results.length === 0 && this._hasSearched) {
@@ -970,20 +1249,63 @@ export class SearchModal extends LitElement {
     // its own suggestion row, so there's no separate author link here (which
     // also keeps this a plain anchor with no nested-link concern).
     _renderResult(work) {
+        // Promote the hit to the specific edition that best matches the query —
+        // its OL edition page — so the result opens on (and displays) that copy
+        // rather than the work page. The edition is editions.docs[0] from the
+        // block-join subquery, ranked by text relevance + a site-language boost
+        // and already constrained to any active availability/language filter at
+        // the edition level (see SEARCH_FIELDS note). Promotion is unconditional:
+        // a query like "kammer" should land on the matching German edition whether
+        // or not Readable Only is on.
+        //
+        // We render the row from that edition's own title and cover — not the
+        // work's — so the row matches where it links. The work's display title is
+        // its canonical (often English) title, but the matched edition can be in
+        // another language: a German edition wins "kammer", a French/Persian scan
+        // wins "chambre des secrets". Showing the work title over an edition link
+        // would send the patron to a surprise-language book — and clicking the
+        // bare work would instead land on the work page's own "best edition" pick
+        // (get_best_edition), unrelated to their query. Falls back to the work
+        // (both link and display) when the block-join returns no edition (e.g.
+        // editions disabled via the SOLR_EDITIONS flag, or an edition-less work).
+        const edition = work.editions?.docs?.[0];
+        const display = edition?.key ? edition : work;
+        const href    = display === edition ? edition.key : work.key;
+
+        // Author and year stay work-level: authors aren't indexed on editions,
+        // and first_publish_year is the work's original-publication year.
         const author = work.author_name?.[0] || '';
         const year   = work.first_publish_year || '';
 
+        // When the patron hasn't constrained the language, flag a promoted edition
+        // that isn't in their site language so they aren't surprised by the
+        // language of the page this row opens. null on a match (no pill).
+        const otherLang = readableLanguageMismatch({
+            edition,
+            languages: this._languages,
+            siteLanguage: this._siteLanguage,
+            options: this._languageItems,
+        });
+
+        // "Readable" badge from the work-level ebook_access aggregate (work-level
+        // even when a readable edition is promoted: it's the book's best access,
+        // which is what the badge communicates). false for books with no readable
+        // access — those render no badge.
+        const readable = READABLE_ACCESS.has(work.ebook_access);
+
         // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
         // get_ia_cover): prefer an OL-uploaded cover (cover_i), else fall back to
-        // the book's Internet Archive scan (ia), else the placeholder. Without
-        // the IA fallback, IA-only books (lending/print-disabled scans with no
-        // uploaded cover) render a blank placeholder here while every other
-        // surface shows the scanned cover. See issue #12893.
-        const ia = work.ia?.[0] || work.editions?.docs?.[0]?.ia?.[0];
+        // the Internet Archive scan (ia), else the placeholder — resolved from the
+        // displayed record so the cover matches the title and link. Without the IA
+        // fallback, IA-only books (lending/print-disabled scans with no uploaded
+        // cover) render a blank placeholder here while every other surface shows
+        // the scanned cover. The trailing work-edition `ia` keeps that fallback
+        // for the un-promoted work row too. See issue #12893.
+        const ia = display.ia?.[0] || work.ia?.[0] || work.editions?.docs?.[0]?.ia?.[0];
         let cover, coverSrcset;
-        if (work.cover_i) {
-            cover       = `https://covers.openlibrary.org/b/id/${work.cover_i}-S.jpg`;
-            coverSrcset = `https://covers.openlibrary.org/b/id/${work.cover_i}-M.jpg 2x`;
+        if (display.cover_i) {
+            cover       = `https://covers.openlibrary.org/b/id/${display.cover_i}-S.jpg`;
+            coverSrcset = `https://covers.openlibrary.org/b/id/${display.cover_i}-M.jpg 2x`;
         } else if (ia) {
             // IA cover size map matches get_ia_cover: S = 116×58, M = 180×360.
             // archive.org URLs have no `?default=` fallback, so a missing scan
@@ -993,19 +1315,6 @@ export class SearchModal extends LitElement {
         } else {
             cover       = COVER_PLACEHOLDER;
             coverSrcset = nothing;
-        }
-
-        // When Readable Only is on, promote the hit to the specific edition that
-        // satisfied the filter — its OL edition page — so the result opens on the
-        // readable copy rather than the work page, while keeping the user on OL.
-        // The edition comes from the block-join subquery, which already applied
-        // both the availability and language filters at the edition level (see
-        // SEARCH_FIELDS note), so editions.docs[0] is the readable, in-language
-        // copy. Falls back to the work page when no such edition is present.
-        let href = work.key;
-        if (this._availability === 'readable') {
-            const editionKey = work.editions?.docs?.[0]?.key;
-            if (editionKey) href = editionKey;
         }
 
         return html`<li>
@@ -1019,10 +1328,12 @@ export class SearchModal extends LitElement {
                         <span class="result__spinner" aria-hidden="true"></span>
                     </span>
                     <span class="result__meta">
-                        <span class="result__title">${work.title || this._i18n.untitled}</span>
+                        <span class="result__title">${display.title || work.title || this._i18n.untitled}</span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
                         ${year ? html`<span class="result__year">${year}</span>` : nothing}
+                        ${otherLang ? html`<span class="result__lang">${SearchModal._translateIcon}${sprintf(this._i18n.inLanguage, otherLang)}</span>` : nothing}
                     </span>
+                    ${readable ? html`<span class="result__access">${this._i18n.accessReadable}</span>` : nothing}
                 </a>
             </li>`;
     }
@@ -1051,6 +1362,7 @@ export class SearchModal extends LitElement {
         // modal doesn't show a stale "Searching…" on reopen. The next keystroke
         // would clear it, but reopening to a frozen spinner looks broken.
         this._loading = false;
+        this._seeAllLoading = false;
     }
 
     // A result is a native anchor, so pressing it navigates the whole window.
@@ -1199,7 +1511,12 @@ export class SearchModal extends LitElement {
     _onSeeAllResults() {
         this._saveCurrentSearch();
         const url = this._buildSearchUrl();
-        if (url) window.location.assign(url);
+        if (!url) return;
+        // Flag the footer button so its spinner shows during the navigation
+        // delay (the page keeps painting until /search arrives). Mirrors how a
+        // pressed result sets _navigatingKey before the window navigates.
+        this._seeAllLoading = true;
+        window.location.assign(url);
     }
 
     // ── Data layer ───────────────────────────────────────────────────────
@@ -1331,7 +1648,13 @@ export class SearchModal extends LitElement {
 
     static _closeIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
 
+    static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
+
     static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+
+    // Globe — marks the "In <language>" pill flagging a readable copy that isn't
+    // in the patron's site language.
+    static _translateIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
@@ -1355,6 +1678,11 @@ export function initSearchModal(trigger) {
     // them before the modal mounts so the first render is already localized.
     modal._availabilityOptions = availabilityOptionsFromElement(trigger);
     modal._i18n = searchModalStringsFromElement(trigger);
+    // The patron's site language as a MARC code, matching Solr's `language`
+    // field so the modal can compare it against a readable edition's language.
+    // The trigger carries the 2-letter UI code (data-search-lang); map it to
+    // MARC here. '' when absent or not a known UI language.
+    modal._siteLanguage = siteLanguageToMarc(trigger.dataset.searchLang || '');
 
     document.body.appendChild(modal);
     modal.attachToTrigger(trigger);

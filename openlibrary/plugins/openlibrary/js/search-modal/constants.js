@@ -68,6 +68,7 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     inputPlaceholder: 'Search books and authors…',
     inputAria: 'Search',
     closeAria: 'Close search',
+    clearAria: 'Clear search',
     seeAll: 'See all results',
     seeAllOne: 'See all %s result',
     seeAllMany: 'See all %s results',
@@ -87,6 +88,13 @@ export const DEFAULT_SEARCH_MODAL_STRINGS = {
     topResults: 'Top results',
     untitled: 'Untitled',
     authorLabel: 'Author',
+    // Result-row access badge, shown for any readable book (public-domain or
+    // lendable). Keep short — it sits in a small pill at the row edge.
+    accessReadable: 'Readable',
+    // Shown on a readable result whose only readable copy is in a language other
+    // than the patron's site language. %s = the localized language name, e.g.
+    // "In French". Filled client-side via sprintf.
+    inLanguage: 'In %s',
     recentSearches: 'Recent searches',
     removeRecent: 'Remove "%s" from recent searches',
 };
@@ -183,6 +191,91 @@ export const DEFAULT_LANGUAGE_OPTIONS = [
     { value: 'heb', label: 'Hebrew' },
     { value: 'ben', label: 'Bengali' },
 ];
+
+/**
+ * The site's UI languages (2-letter codes from get_supported_languages, the
+ * language switcher) → the MARC bibliographic code used by Solr's `language`
+ * field. The site language a patron picks is one of these; the few MARC quirks
+ * (cze, ger, fre, rum, chi) are deliberate — those are the bibliographic codes
+ * Open Library indexes on (matching DEFAULT_LANGUAGE_OPTIONS), not the
+ * terminology codes (ces/deu/fra/ron/zho). A self-contained map keeps the
+ * comparison working without a per-render language-record lookup; an unmapped
+ * code (e.g. a rare Accept-Language value) just yields no pill.
+ */
+export const UI_LANG_TO_MARC = {
+    ar: 'ara',
+    cs: 'cze',
+    de: 'ger',
+    en: 'eng',
+    es: 'spa',
+    fr: 'fre',
+    hi: 'hin',
+    hr: 'hrv',
+    it: 'ita',
+    pt: 'por',
+    ro: 'rum',
+    sc: 'srd',
+    te: 'tel',
+    uk: 'ukr',
+    zh: 'chi',
+    tl: 'tgl',
+};
+
+/**
+ * Map a 2-letter UI language code to its MARC bibliographic code, or '' when it
+ * isn't one of the known UI languages (the caller then suppresses the mismatch
+ * pill rather than guessing).
+ *
+ * @param {string} iso
+ * @returns {string}
+ */
+export function siteLanguageToMarc(iso) {
+    return UI_LANG_TO_MARC[iso] || '';
+}
+
+/**
+ * A MARC language code (e.g. 'fre') → its localized display name, looked up in
+ * `options` (the modal's loaded catalogue) with DEFAULT_LANGUAGE_OPTIONS as the
+ * pre-fetch fallback. Returns null for an unknown code so callers can skip
+ * rather than surface a raw code.
+ *
+ * @param {Array<{value: string, label: string}>|null|undefined} options
+ * @param {string} code
+ * @returns {string|null}
+ */
+export function languageNameFromOptions(options, code) {
+    const opts = options && options.length ? options : DEFAULT_LANGUAGE_OPTIONS;
+    return opts.find((o) => o.value === code)?.label || null;
+}
+
+/**
+ * The localized language name to surface on a readable result whose promoted
+ * edition is NOT in the patron's site language — or null when there's nothing to
+ * flag. Used by the modal's "In <language>" pill so a patron who turned on
+ * Readable Only (without choosing a language) isn't surprised by the language of
+ * the copy a result opens.
+ *
+ * Stays quiet (returns null) when: there's no promoted readable edition; the
+ * patron already constrained the language; the site language is unknown; the
+ * edition carries no language; the edition is already in the site language; or
+ * the code has no display name.
+ *
+ * @param {Object} args
+ * @param {{language?: string[]}|null} args.edition - promoted readable edition
+ * @param {string[]} args.languages - the patron's selected language filters
+ * @param {string} args.siteLanguage - the patron's site language (MARC code)
+ * @param {Array<{value: string, label: string}>|null} args.options - loaded language catalogue
+ * @returns {string|null}
+ */
+export function readableLanguageMismatch({ edition, languages, siteLanguage, options }) {
+    if (!edition) return null;                            // only promoted readable editions
+    if (languages.length) return null;                   // patron already chose language(s)
+    if (!siteLanguage) return null;                      // unknown site lang → don't guess
+    const langs = edition.language;
+    if (!Array.isArray(langs) || langs.length === 0) return null;
+    if (langs.includes(siteLanguage)) return null;       // readable in their language → fine
+    return languageNameFromOptions(options, langs[0]);   // null name → skip
+}
 
 /**
  * sessionStorage keys for per-session filter persistence.

@@ -6428,6 +6428,10 @@ msgid "Close search"
 msgstr ""
 
 #: search/search_modal_i18n.html
+msgid "Clear search"
+msgstr ""
+
+#: search/search_modal_i18n.html
 msgid "See all results"
 msgstr ""
 
@@ -6472,6 +6476,15 @@ msgstr ""
 
 #: search/search_modal_i18n.html
 msgid "Untitled"
+msgstr ""
+
+#: search/search_modal_i18n.html
+msgid "Readable"
+msgstr ""
+
+#: search/search_modal_i18n.html
+#, python-format
+msgid "In %s"
 msgstr ""
 
 #: search/search_modal_i18n.html
