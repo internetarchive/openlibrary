@@ -3073,15 +3073,15 @@ msgstr "Cod sursă"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Mai mult la Standard Ebooks"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
-msgstr ""
+msgstr "Descarcă PDF de la Wikisource"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download MOBI from Wikisource"
-msgstr ""
+msgstr "Descarcă MOBI de la Wikisource"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
@@ -3089,19 +3089,19 @@ msgstr "MOBI (pentru Kindle)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download EPUB from Wikisource"
-msgstr ""
+msgstr "Descarcă EPUB de la Wikisource"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (pentru majoritatea celorlalte e-readere)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Citește la Wikisource"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
-msgstr ""
+msgstr "Ți-ar putea plăcea și"
 
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
@@ -3116,103 +3116,103 @@ msgstr "Adaugă o carte"
 
 #: books/add.html
 msgid "Invalid ISBN checksum digit"
-msgstr ""
+msgstr "Cifra de control ISBN invalidă"
 
 #: books/add.html
 msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
-msgstr ""
+msgstr "ID-ul trebuie să aibă exact 10 caractere [0-9 sau X]. De exemplu 0-19-853453-1 sau 0198534531"
 
 #: books/add.html
 msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
-msgstr ""
+msgstr "ID-ul trebuie să aibă exact 13 caractere [0-9]. De exemplu 978-3-16-148410-0 sau 9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "Format invalid pentru numărul de control LC"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "Format invalid pentru numărul de control OCLC/WorldCat"
 
 #: books/add.html
 msgid "Please enter a value for the selected identifier"
-msgstr ""
+msgstr "Introduceți o valoare pentru identificatorul selectat"
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Ești sigur că aceasta este data publicării?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
-msgstr ""
+msgstr "Adaugă o carte în Open Library"
 
 #: books/add.html
 msgid "We require a minimum set of fields to create a new record. These are those fields."
-msgstr ""
+msgstr "Avem nevoie de un set minim de câmpuri pentru a crea o înregistrare nouă. Acestea sunt acele câmpuri."
 
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
+msgstr "Folosiți <b><i>Titlu: Subtitlu</i></b> pentru a adăuga un subtitlu."
 
 #: books/add.html books/edit.html type/author/edit.html type/tag/tag_form_inputs.html
 msgid "Required field"
-msgstr ""
+msgstr "Câmp obligatoriu"
 
 #: books/add.html
 msgid "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live check to see if we already know the author."
-msgstr ""
+msgstr "De exemplu, \"Agatha Christie\" sau \"Jean-Paul Sartre.\" Vom verifica și în timp real dacă cunoaștem deja autorul."
 
 #: books/add.html books/edit/edition.html
 msgid "Who is the publisher?"
-msgstr ""
+msgstr "Cine este editorul?"
 
 #: books/add.html books/edit/edition.html
 msgid "For example:"
-msgstr ""
+msgstr "De exemplu:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
-msgstr ""
+msgstr "Când a fost publicată?"
 
 #: books/add.html books/edit/edition.html
 msgid "You should be able to find this in the first few pages of the book."
-msgstr ""
+msgstr "Ar trebui să găsiți aceasta în primele câteva pagini ale cărții."
 
 #: books/add.html
 msgid "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
-msgstr ""
+msgstr "Și opțional, un număr ID &#151; cum ar fi un ISBN &#151; ar fi de ajutor..."
 
 #: books/add.html
 msgid "ID Type"
-msgstr ""
+msgstr "Tip ID"
 
 #: books/add.html
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
-msgstr ""
+msgstr "ISBN poate fi invalid. Faceți din nou clic pe \"Adaugă\" pentru a trimite."
 
 #: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
-msgstr ""
+msgstr "Selectează"
 
 #: books/add.html
 msgid "ISBN 10"
-msgstr ""
+msgstr "ISBN 10"
 
 #: books/add.html
 msgid "ISBN 13"
-msgstr ""
+msgstr "ISBN 13"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 msgid "LibriVox"
-msgstr ""
+msgstr "LibriVox"
 
 #: books/add.html
 #, fuzzy
@@ -3221,44 +3221,44 @@ msgstr "WorldCat"
 
 #: books/add.html
 msgid "Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg"
 
 #: books/add.html books/edit/edition.html
 msgid "Book URL"
-msgstr ""
+msgstr "URL carte"
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
+msgstr "Completați numai dacă aceasta este o carte web"
 
 #: books/add.html
 #, python-format
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
-msgstr ""
+msgstr "Prin salvarea unei modificări în acest wiki, ești de acord că contribuția ta este oferită liber lumii sub <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Acest link către Creative Commons se va deschide într-o fereastră nouă"
 
 #: books/add.html
 msgid "Add this book now"
-msgstr ""
+msgstr "Adaugă această carte acum"
 
 #: books/author-autocomplete.html
 msgid "Add a new author"
-msgstr ""
+msgstr "Adaugă un autor nou"
 
 #: books/author-autocomplete.html books/series-autocomplete.html
 msgid "Create a new record for"
-msgstr ""
+msgstr "Crează o înregistrare nouă pentru"
 
 #: books/author-autocomplete.html
 msgid "Remove this author"
-msgstr ""
+msgstr "Elimină acest autor"
 
 #: books/author-autocomplete.html
 msgid "Add another author?"
-msgstr ""
+msgstr "Adaugi alt autor?"
 
 #: books/check.html lib/nav_foot.html lib/nav_head.html
 msgid "Add a Book"
@@ -3267,15 +3267,15 @@ msgstr "Adaugă o carte"
 #: books/check.html
 #, python-format
 msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
-msgstr ""
+msgstr "Un moment... Se pare că avem deja <em>câteva potriviri posibile</em> pentru <b>%(title)s</b> de <b>%(author)s</b>."
 
 #: books/check.html
 msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
-msgstr ""
+msgstr "În loc să creezi o înregistrare duplicată, te rugăm să dai clic pe rezultatul care crezi că se potrivește cel mai bine cu cartea ta."
 
 #: books/check.html
 msgid "Select this book"
-msgstr ""
+msgstr "Selectează această carte"
 
 #: SearchResultsWork.html books/check.html merge/authors.html publishers/view.html
 #, python-format
@@ -3288,127 +3288,127 @@ msgstr[2] ""
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
-msgstr ""
+msgstr "Publicată prima dată în %(year)d"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "Niciuna dintre acestea nu se potrivește cu cartea pe care vreau să o adaug."
 
 #: books/check.html
 msgid "Continue"
-msgstr ""
+msgstr "Continuă"
 
 #: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
-msgstr ""
+msgstr "nume lipsă"
 
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
-msgstr ""
+msgstr " de %(name)s"
 
 #: books/daisy.html
 msgid "Back"
-msgstr ""
+msgstr "Înapoi"
 
 #: books/daisy.html
 msgid "Open Library Home"
-msgstr ""
+msgstr "Pagina principală Open Library"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "Nu există un fișier DAISY disponibil pentru "
 
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "<a href=\"%(daisy_url)s\"><strong>Descarcă DAISY.zip</strong></a> pentru <a href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "Cărți pentru persoanele care nu citesc pe hârtie?"
 
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
-msgstr ""
+msgstr "<a href=\"//archive.org\">Internet Archive</a> este mândru să distribuie peste 1 milion de cărți gratuit într-un format numit DAISY, conceput pentru cei care găsesc dificil de utilizat media tipărită obișnuită."
 
 #: books/daisy.html
 msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr ""
+msgstr "Există două tipuri de DAISY pe Open Library: <i>deschis</i> și <i>protejat</i>. DAISY-urile deschise pot fi citite de oricine din lume pe multe dispozitive diferite. DAISY-urile protejate pot fi deschise numai folosind o cheie emisă de <a href=\"http://www.loc.gov/nls/\">Programul NLS al Bibliotecii Congresului</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
-msgstr ""
+msgstr "Bucurați-vă!"
 
 #: books/daisy.html
 msgid "What is the DAISY format?"
-msgstr ""
+msgstr "Ce este formatul DAISY?"
 
 #: books/daisy.html
 msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
-msgstr ""
+msgstr "Formatul digital DAISY ajută persoanele care au dificultăți în utilizarea media tipărite obișnuite. Cărțile <span class=\"highlight\">audio digitale</span> DAISY oferă avantajele cărților audio obișnuite, cu navigare în interiorul cărții, la capitole sau pagini specifice."
 
 #: books/daisy.html
 msgid "More information at daisy.org"
-msgstr ""
+msgstr "Mai multe informații la daisy.org"
 
 #: books/daisy.html
 msgid "What is the NLS?"
-msgstr ""
+msgstr "Ce este NLS?"
 
 #: books/daisy.html
 msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
-msgstr ""
+msgstr "Biblioteca Congresului <a href=\"http://www.loc.gov/nls/\">Serviciul Național de Bibliotecă pentru Orbi și Persoane cu Handicap Fizic (NLS)</a> administrează un program gratuit de materiale în braille și audio distribuite beneficiarilor eligibili din Statele Unite printr-o rețea națională de biblioteci cooperante."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "Ești eligibil să te înregistrezi?"
 
 #: books/daisy.html
 msgid "How do I find DAISYs on Open Library?"
-msgstr ""
+msgstr "Cum găsesc DAISY-uri pe Open Library?"
 
 #: books/daisy.html
 msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
-msgstr ""
+msgstr "Pe lângă<a href=\"/subjects/accessible_book\" title=\"Subiect: Carte accesibilă\"> multe DAISY-uri deschise</a>, Open Library listează o selecție mai mică de<a href=\"/subjects/protected_DAISY\" title=\"Subiect: DAISY protejat\"> titluri DAISY protejate</a> accesibile celor cu cheie NLS. Aceste titluri vă sunt aduse de<a href=\"//archive.org/\"> Internet Archive</a>."
 
 #: books/daisy.html
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
-msgstr ""
+msgstr "Cauți un titlu specific? Cel mai bun mod de a-l găsi este să<a href=\"/search\"> cauți</a>."
 
 #: books/daisy.html lib/exports.html
 msgid "Need help?"
-msgstr ""
+msgstr "Ai nevoie de ajutor?"
 
 #: books/daisy.html
 msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
-msgstr ""
+msgstr " Te rugăm să citești <a href=\"/help/faq\">FAQ-ul nostru despre accesarea cărților prin Open Library</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
-msgstr ""
+msgstr "Adaugi mai multe?"
 
 #: books/edit.html
 msgid "Thank you for adding that book! Any more information you could provide would be wonderful!"
-msgstr ""
+msgstr "Mulțumim pentru adăugarea cărții! Orice informații suplimentare pe care le-ai putea oferi ar fi minunate!"
 
 #: books/edit.html
 #, python-format
 msgid "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
-msgstr ""
+msgstr "Știm deja despre <b>%(work_title)s</b>, dar nu despre <b>ediția %(year)s %(publisher)s</b>. Mulțumim! Știi ceva mai mult despre această ediție?"
 
 #: books/edit.html
 #, python-format
 msgid "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!"
-msgstr ""
+msgstr "Știm deja despre <b>ediția %(year)s %(publisher)s</b> a <b>%(work_title)s</b>, dar te rugăm, spune-ne mai mult!"
 
 #: books/edit.html
 msgid "Editing..."
-msgstr ""
+msgstr "Se editează..."
 
 #: books/edit.html type/author/edit.html type/tag/form.html type/template/edit.html
 msgid "Delete Record"
-msgstr ""
+msgstr "Șterge înregistrarea"
 
 #: books/edit.html
 msgid "Work Details"
