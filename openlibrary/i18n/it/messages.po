@@ -7317,7 +7317,7 @@ msgstr "pagina admin"
 #: type/user/view.html
 #, fuzzy, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Stai condividendo pubblicamente i libri che stai <a href=\"%(username)s/books/currently-reading\">leggendo</a>, <a href=\"%(username)s/books/already-read\">hai già letto</a>, <a href=\"%(username)s/books/want-to-read\">vuoi leggere</a> e <a href=\"%(username)s/books/stopped-reading\">hai smesso di leggere</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -7334,7 +7334,7 @@ msgstr "Gestisce le impostazioni sulla privacy"
 #: type/user/view.html
 #, fuzzy, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Ecco i libri che %(user)s sta <a href=\"%(username)s/books/currently-reading\">leggendo</a>, <a href=\"%(username)s/books/already-read\">ha già letto</a>, <a href=\"%(username)s/books/want-to-read\">vuole leggere</a> e <a href=\"%(username)s/books/stopped-reading\">ha smesso di leggere</a>!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -7791,7 +7791,7 @@ msgstr "Copia URL negli appunti"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "Icona copia URL"
 
 #: ShareModal.html
 #, fuzzy
@@ -7805,7 +7805,7 @@ msgstr "Codice sorgente"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "Icona codice QR"
 
 #: ShareModal.html
 #, fuzzy
@@ -7814,23 +7814,23 @@ msgstr "Codice"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "lasciando una recensione da 1 stella per"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "lasciando una recensione da 2 stelle per"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "lasciando una recensione da 3 stelle per"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "lasciando una recensione da 4 stelle per"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "lasciando una recensione da 5 stelle per"
 
 #: StarRatings.html
 msgid "Clear my rating"
@@ -7853,12 +7853,12 @@ msgstr "Valutazione"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s Voglio leggere"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -7949,7 +7949,7 @@ msgstr ""
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "In tendenza: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
@@ -7973,7 +7973,7 @@ msgstr "(Soluzione semplice: se non sei sicuro se questo debba essere cambiato, 
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Nessun link a Wikipedia nella tua lingua"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
@@ -7985,7 +7985,7 @@ msgstr "Controlla WorldCat per edizioni vicino a te"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 #, fuzzy
@@ -7994,11 +7994,11 @@ msgstr "Vai all'inizio di questa pagina"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "Visualizza questa pagina (esci dalla visualizzazione Confronto)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "Visualizza questa pagina (esci dalla modalità Modifica)"
 
 #: databarHistory.html databarView.html
 #, python-format
@@ -8021,7 +8021,7 @@ msgstr "Modifica questo template"
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "Visualizza il volume %(num)d"
 
 #: openlibrary/core/bookshelves.py
 #, fuzzy
@@ -8040,7 +8040,7 @@ msgstr "Cerca liste"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "Arabo"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
@@ -8103,7 +8103,7 @@ msgstr "Cinese"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "Filipino"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8132,7 +8132,7 @@ msgstr "Recensioni"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "Bambini"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8146,7 +8146,7 @@ msgstr "Revisione"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "Storie di mistero e detective"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8155,7 +8155,7 @@ msgstr "Luoghi"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "Musica"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8179,7 +8179,7 @@ msgstr "Questa edizione"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Ha un'opera (orfano)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8248,11 +8248,11 @@ msgstr "Questa opera non compare in nessuna lista."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Non ne ho ancora uno"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "L'indirizzo email inserito non è valido"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8266,7 +8266,7 @@ msgstr "Questa pagina è stata elminiata"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Nessun account trovato con questa email. Riprova"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8285,11 +8285,11 @@ msgstr "Inserisci password per il tuo account Open Library."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Verifica il tuo account Internet Archive prima di accedere"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Compila tutti i campi e riprova"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8303,15 +8303,15 @@ msgstr "Indirizzo email già registrato"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "Si è verificato un problema e non siamo riusciti ad accedere al tuo account."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "Tentativo di accesso con credenziali s3 di Internet Archive non valide."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "I server stanno ricevendo un traffico insolitamente elevato, riprova più tardi o scrivi a openlibrary@archive.org per assistenza."
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8325,20 +8325,20 @@ msgstr "Le password non corrispondono."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "Si è verificato un problema e non siamo riusciti ad accedere al tuo account"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "Il tentativo di accesso o registrazione ha causato un errore inatteso, riprova o contatta info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Richiesta fallita con codice di errore: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Grazie per aver registrato un account Open Library e aver richiesto l'accesso speciale per disabilità di stampa. Riceverai un'email con i prossimi passi del processo."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
@@ -8350,15 +8350,15 @@ msgstr "Indirizzo email già registrato"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Esiste già un account Internet Archive con questa email"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "Verifica non riuscita. Il link potrebbe non essere valido o essere scaduto. Prova a registrarti di nuovo."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "La tua email è stata verificata. Hai effettuato l'accesso."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
@@ -8372,7 +8372,7 @@ msgstr "Compra questo libro"
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Impossibile restituire %s. Riprova più tardi o contatta info@archive.org."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy, python-format
@@ -8381,7 +8381,7 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Il tuo account ha raggiunto il limite di prestiti. Riprova più tardi o contatta info@archive.org."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
@@ -8432,7 +8432,7 @@ msgstr "Scegli una password"
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "Continua <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
