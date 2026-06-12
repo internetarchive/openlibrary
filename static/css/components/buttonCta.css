@@ -233,6 +233,14 @@ a.cta-btn__badge {
   margin-top: var(--spacing-stack-xs);
 }
 
+.return-form {
+  margin-bottom: 10px;
+}
+
+.return-form .cta-btn {
+  margin-bottom: var(--spacing-stack-xs);
+}
+
 .cta-btn--small {
   font-size: var(--font-size-label-medium);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);

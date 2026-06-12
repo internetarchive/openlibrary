@@ -34,6 +34,16 @@
   margin-bottom: 10px;
 }
 
+.read-options .return-form,
+.btn-notice .return-form {
+  margin-bottom: 10px;
+}
+
+.read-options .return-form .cta-btn,
+.btn-notice .return-form .cta-btn {
+  margin-bottom: var(--spacing-stack-xs);
+}
+
 /* Some preview rules are too specific and need to be rewritten */
 /* Preview button appears styled as a text link with a book icon */
 .read-options .cta-btn.cta-btn--preview,

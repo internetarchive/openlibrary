@@ -58,7 +58,6 @@ $else:
                 <th class="titles" colspan="2">
                 $ungettext("%(count)d Current Loan", "%(count)d Current Loans", len(loans), count=len(loans))
                 </th>
-                <th class="expires">$_("Loan Expires")</th>
                 <th class="actions">$_("Loan actions")</th>
             </tr>
         </thead>
@@ -89,20 +88,17 @@ $else:
                             $ungettext("There is %(count)d person waiting for this book.", "There are %(count)d people waiting for this book.", wlsize, count=wlsize)
                         </div>
                 </td>
-                <td class="expires">
-                    $if loan['expiry'] is None:
-                        $# Not yet fulfilled
-                        <span class="red">$_("Not yet downloaded.") </span><br/>
-                        <a href="$loan['loan_link']">$_("Download Now")</a>
-                    $else:
-                        $:macros.FormatExpiry(loan['expiry'])
-                </td>
                 <td class="actions">
                     $if loan['resource_type'] == 'bookreader':
                         $:macros.LoanReadForm(loan['ocaid'])
-                        $:macros.ReturnForm(loan['ocaid'])
+                        $:macros.ReturnForm(loan['ocaid'], loan['expiry'])
                     $else:
-                        <span class="smaller grey sansserif">$:_("Return via<br/>Adobe Digital Editions")</span>
+                        $if loan['expiry'] is None:
+                            <span class="red">$_("Not yet downloaded.") </span><br/>
+                            <a href="$loan['loan_link']">$_("Download Now")</a>
+                        $else:
+                            $:macros.FormatExpiry(loan['expiry'])
+                        <span class="smaller grey sansserif" style="display: block; margin-top: var(--spacing-stack-sm);">$:_("Return via<br/>Adobe Digital Editions")</span>
                 </td>
             </tr>
         </tbody>
