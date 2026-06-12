@@ -3412,31 +3412,31 @@ msgstr "Șterge înregistrarea"
 
 #: books/edit.html
 msgid "Work Details"
-msgstr ""
+msgstr "Detalii operă"
 
 #: books/edit.html
 msgid "Unknown publisher edition"
-msgstr ""
+msgstr "Ediție cu editor necunoscut"
 
 #: books/edit.html
 msgid "This Work"
-msgstr ""
+msgstr "Această operă"
 
 #: books/edit.html
 msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
-msgstr ""
+msgstr "Poți căuta după numele autorului (ca <em>j k rowling</em>) sau după ID-ul Open Library (ca <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
-msgstr ""
+msgstr "Editarea autorilor necesită javascript"
 
 #: books/edit.html
 msgid "Add Excerpts"
-msgstr ""
+msgstr "Adaugă fragmente"
 
 #: books/edit.html type/about/edit.html type/author/edit.html
 msgid "Links"
-msgstr ""
+msgstr "Linkuri"
 
 #: books/edit.html
 #, fuzzy
@@ -3445,47 +3445,47 @@ msgstr "Statistici despre opere"
 
 #: books/edit.html
 msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
-msgstr ""
+msgstr "Seriile sunt în prezent în versiune beta și această secțiune este vizibilă numai pentru super-bibliotecari și administratori, ca tine! Orice serie setată va fi vizibilă pentru toată lumea. Vă rugăm să raportați orice probleme pe Slack sau GitHub."
 
 #: books/edit.html
 msgid "Is this work part of a larger series?"
-msgstr ""
+msgstr "Această operă face parte dintr-o serie mai mare?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Ex. Harry Potter, The Sword of Truth"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
-msgstr ""
+msgstr "Identificatori operă"
 
 #: books/edit.html
 msgid "Do you know any identifiers for this work?"
-msgstr ""
+msgstr "Cunoști vreun identificator pentru această operă?"
 
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr ""
+msgstr "Acești identificatori se aplică tuturor edițiilor acestei opere, de exemplu identificatorii Wikidata. Pentru identificatori specifici ediției, cum ar fi ISBN sau LCCN, mergi la fila ediție."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
-msgstr ""
+msgstr "Copertă pentru: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "%(title)s: %(subtitle)s"
-msgstr ""
+msgstr "%(title)s: %(subtitle)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "Publish date unknown, %(publisher)s"
-msgstr ""
+msgstr "Dată de publicare necunoscută, %(publisher)s"
 
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
+msgstr "în %(languagelist)s"
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py
 msgid "Books"
@@ -3538,7 +3538,7 @@ msgstr "Importuri și exporturi"
 
 #: books/series-autocomplete.html
 msgid "Add a new series"
-msgstr ""
+msgstr "Adaugă o serie nouă"
 
 #: books/series-autocomplete.html
 #, fuzzy
@@ -3552,231 +3552,231 @@ msgstr "Științifico-fantastic"
 
 #: books/series-autocomplete.html
 msgid "Remove this series"
-msgstr ""
+msgstr "Elimină această serie"
 
 #: books/series-autocomplete.html
 msgid "Add another series?"
-msgstr ""
+msgstr "Adaugi altă serie?"
 
 #: books/edit/about.html
 msgid "Select this subject"
-msgstr ""
+msgstr "Selectează acest subiect"
 
 #: books/edit/about.html
 msgid "How would you describe this book?"
-msgstr ""
+msgstr "Cum ai descrie această carte?"
 
 #: books/edit/about.html
 msgid "There's no wrong answer here."
-msgstr ""
+msgstr "Nu există un răspuns greșit."
 
 #: books/edit/about.html
 msgid "Subject keywords?"
-msgstr ""
+msgstr "Cuvinte cheie pentru subiect?"
 
 #: books/edit/about.html
 msgid "Please separate with commas."
-msgstr ""
+msgstr "Separați cu virgule."
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr ""
+msgstr "De exemplu: <i><a href=\"/subjects/cheese\">brânză</a>, <a href=\"/subjects/roman_empire\">Imperiul Roman</a>, <a href=\"/subjects/psychology\">psihologie</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
-msgstr ""
+msgstr "O persoană? Sau persoane?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
-msgstr ""
+msgstr "De exemplu: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
-msgstr ""
+msgstr "Notezi locurile menționate?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
-msgstr ""
+msgstr "De exemplu: <i><a href=\"/subjects/place:London\">Londra</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
-msgstr ""
+msgstr "Când este setată sau despre ce perioadă este?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr ""
+msgstr "De exemplu: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">Evul Mediu</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
-msgstr ""
+msgstr "Selectează această limbă"
 
 #: books/edit/edition.html
 msgid "Remove this language"
-msgstr ""
+msgstr "Elimină această limbă"
 
 #: books/edit/edition.html
 msgid "Remove this work"
-msgstr ""
+msgstr "Elimină această operă"
 
 #: books/edit/edition.html
 msgid "-- Move to a new work"
-msgstr ""
+msgstr "-- Mută într-o operă nouă"
 
 #: books/edit/edition.html
 msgid "This Edition"
-msgstr ""
+msgstr "Această ediție"
 
 #: books/edit/edition.html
 msgid "Enter the title of this specific edition."
-msgstr ""
+msgstr "Introduceți titlul acestei ediții specifice."
 
 #: books/edit/edition.html
 msgid "Subtitle"
-msgstr ""
+msgstr "Subtitlu"
 
 #: books/edit/edition.html
 msgid "Usually distinguished by different or smaller type."
-msgstr ""
+msgstr "De obicei distins prin tip diferit sau mai mic."
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "De exemplu: <i>imaginând următorii 50 de ani</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
-msgstr ""
+msgstr "Informații de publicare"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "De exemplu <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
-msgstr ""
+msgstr "Unde a fost publicată cartea?"
 
 #: books/edit/edition.html
 msgid "City, Country please."
-msgstr ""
+msgstr "Oraș, Țară, vă rugăm."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "De exemplu: <i>New York, SUA; Sydney, Australia</i>"
 
 #: books/edit/edition.html
 msgid "What is the copyright date?"
-msgstr ""
+msgstr "Care este data drepturilor de autor?"
 
 #: books/edit/edition.html
 msgid "The year following the copyright statement."
-msgstr ""
+msgstr "Anul care urmează mențiunii drepturilor de autor."
 
 #: books/edit/edition.html
 msgid "Edition Name (if applicable):"
-msgstr ""
+msgstr "Numele ediției (dacă este cazul):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "De exemplu: <i>Ediție centenară</i>; <i>Prima ediție</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
-msgstr ""
+msgstr "Numele seriei (dacă este cazul)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
-msgstr ""
+msgstr "Numele seriei editorului."
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "De exemplu: <i>The Story of Civilization, Part III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
-msgstr ""
+msgstr "Contributori"
 
 #: books/edit/edition.html
 msgid "Please select a role."
-msgstr ""
+msgstr "Selectați un rol."
 
 #: books/edit/edition.html
 msgid "You need to give this ROLE a name."
-msgstr ""
+msgstr "Trebuie să dai un nume acestui ROL."
 
 #: books/edit/edition.html
 msgid "List the people involved"
-msgstr ""
+msgstr "Listați persoanele implicate"
 
 #: books/edit/edition.html
 msgid "Select role"
-msgstr ""
+msgstr "Selectează rol"
 
 #: books/edit/edition.html
 msgid "Add a new role"
-msgstr ""
+msgstr "Adaugă un rol nou"
 
 #: books/edit/edition.html
 msgid "Remove this contributor"
-msgstr ""
+msgstr "Elimină acest contributor"
 
 #: books/edit/edition.html
 msgid "By Statement:"
-msgstr ""
+msgstr "Declarație by:"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "De exemplu: <em>editat de David Anderson</em>"
 
 #: books/edit/edition.html languages/index.html
 msgid "Languages"
-msgstr ""
+msgstr "Limbi"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
-msgstr ""
+msgstr "În ce limbă este scrisă această ediție?"
 
 #: books/edit/edition.html
 msgid "Add another language?"
-msgstr ""
+msgstr "Adaugi altă limbă?"
 
 #: books/edit/edition.html
 msgid "Is it a translation of another book?"
-msgstr ""
+msgstr "Este o traducere a altei cărți?"
 
 #: books/edit/edition.html
 msgid "Yes, it's a translation"
-msgstr ""
+msgstr "Da, este o traducere"
 
 #: books/edit/edition.html
 msgid "What's the original book?"
-msgstr ""
+msgstr "Care este cartea originală?"
 
 #: books/edit/edition.html
 msgid "What language was the original written in?"
-msgstr ""
+msgstr "În ce limbă a fost scris originalul?"
 
 #: books/edit/edition.html
 msgid "Description of this edition"
-msgstr ""
+msgstr "Descrierea acestei ediții"
 
 #: books/edit/edition.html
 msgid "Only if it's different from the work's description"
-msgstr ""
+msgstr "Numai dacă diferă de descrierea operei"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Table of Contents"
-msgstr ""
+msgstr "Cuprins"
 
 #: books/edit/edition.html
 msgid "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new lines. Like this:"
-msgstr ""
+msgstr "Folosiți un \"*\" pentru indentare, un \"|\" pentru a adăuga o coloană și întreruperi de linie pentru linii noi. Astfel:"
 
 #: books/edit/edition.html
 msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr ""
+msgstr "Acest cuprins conține informații suplimentare precum autori sau descrieri. Nu avem încă o interfață bună pentru aceasta, deci editarea acestor date poate fi dificilă. Atenție!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
-msgstr ""
+msgstr "Vreo notă despre această ediție specifică?"
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
