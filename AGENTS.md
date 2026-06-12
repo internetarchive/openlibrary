@@ -47,6 +47,7 @@ npm run watch               # Dev mode with hot reload
 - **Python:** Ruff for linting and `ruff format` for formatting, line length 162, double quotes
 - **JS:** ESLint, single quotes, no jQuery in new code
 - **CSS:** Stylelint — no hex/named colors, use variables
+- **i18n (Internationalization):** Do not split sentences into separate translatable strings/fragments with HTML links. Instead, use single, unified translatable strings with Python formatting placeholders (e.g. `%(link_start)s` / `%(link_end)s`) so translators can position links according to the target language's grammatical structure.
 - **Branches:** `{issue-number}/{type}/{slug}`
 
 ### Entry Points

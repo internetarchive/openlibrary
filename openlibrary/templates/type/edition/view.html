@@ -202,8 +202,10 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
     $if work and work.key:
         <link itemprop="exampleOfWork" href="$work.key">
 
+    $ lending_state = get_lending_state(edition or work, check_loan_status=True)
+
     <!-- (mobile only) -->
-    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations)
+    $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, lending_state=lending_state)
     <a id="overview-mobile" name="overview-mobile" class="section-anchor section-anchor--no-height"></a>
     $:render_template("type/edition/title_and_author", page, work, edition, ocaid, work_title, star_ratings_stats_mobile, for_desktop=False)
     <div class="editionCover">
@@ -211,7 +213,8 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
     </div>
 
     <div class="editionAbout">
-      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True)
+      $:macros.EditionNavBar(reader_observations, work.edition_count, show_observations, desktop_only=True, lending_state=lending_state)
+
       <div class="editionAll">
         $ component_times['EditTopbar'] = time()
         $:macros.databarView(page, edition)
@@ -552,15 +555,16 @@ $ worldcat_link = macros.WorldcatLink(isbn=isbn_13 or isbn_10, oclc_number=oclc_
         </div>
         $ component_times['Lists section'] = time() - component_times['Lists section']
 
-      <a id="related-work-carousel" class="section-anchor"></a>
+        <a id="related-work-carousel" class="section-anchor"></a>
+        $ component_times['RelatedWorksCarousel'] = time()
+        <div class='tab-section'>
+            <h2>$_("Related Books")</h2>
+            $:render_template("books/RelatedWorksCarousel", work)
+        </div>
+        $ component_times['RelatedWorksCarousel'] = time() - component_times['RelatedWorksCarousel']
     </div>
   </div>
 
-  $ component_times['RelatedWorksCarousel'] = time()
-  <div class="RelatedWorksCarousel" data-workid="$work.key.split('/')[-1]">
-    $:render_template("books/RelatedWorksCarousel", work)
-  </div>
-  $ component_times['RelatedWorksCarousel'] = time() -component_times['RelatedWorksCarousel']
   $:render_template("lib/exports", page)
   $ component_times['TotalTime'] = time() - component_times['TotalTime']
 
