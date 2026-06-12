@@ -233,14 +233,6 @@ a.cta-btn__badge {
   margin-top: var(--spacing-stack-xs);
 }
 
-.return-form {
-  margin-bottom: 10px;
-}
-
-.return-form .cta-btn {
-  margin-bottom: var(--spacing-stack-xs);
-}
-
 .cta-btn--small {
   font-size: var(--font-size-label-medium);
   padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
@@ -271,6 +263,14 @@ a.cta-btn__badge {
   /* Avoid text wrapping */
   text-overflow: ellipsis;
   overflow: hidden;
+}
+
+.return-form {
+  margin-bottom: var(--spacing-stack-sm);
+}
+
+form.return-form .cta-btn {
+  margin-bottom: var(--spacing-stack-xs);
 }
 
 /* stylelint-disable-next-line selector-max-specificity */
