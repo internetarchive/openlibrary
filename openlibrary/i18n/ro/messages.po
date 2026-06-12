@@ -2031,27 +2031,27 @@ msgstr "Media Infobase"
 
 #: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
 msgid "Date"
-msgstr ""
+msgstr "Dată"
 
 #: admin/history.html
 msgid "Page"
-msgstr ""
+msgstr "Pagină"
 
 #: admin/imports-add.html admin/imports.html admin/imports_by_date.html admin/menu.html
 msgid "Imports"
-msgstr ""
+msgstr "Importuri"
 
 #: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
-msgstr ""
+msgstr "Adaugă"
 
 #: admin/imports-add.html admin/imports.html
 msgid "Add new books to import queue"
-msgstr ""
+msgstr "Adaugă cărți noi în coada de import"
 
 #: admin/imports-add.html
 msgid "Please add IA identifiers to be imported, one per line."
-msgstr ""
+msgstr "Adăugați identificatorii IA de importat, câte unul pe linie."
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
@@ -2059,156 +2059,156 @@ msgstr "Salvează"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
-msgstr ""
+msgstr "Cărți noi importate pe zi"
 
 #: PublishingHistory.html admin/imports.html publishers/view.html
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
+msgstr "Trebuie să ai JavaScript activat pentru a vedea graficul!"
 
 #: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
 msgid "Summary"
-msgstr ""
+msgstr "Rezumat"
 
 #: admin/imports.html
 msgid "Pending Items:"
-msgstr ""
+msgstr "Elemente în așteptare:"
 
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>Rata curentă de import:</strong> %(num)d importuri/oră."
 
 #: admin/imports.html
 msgid "ETA:"
-msgstr ""
+msgstr "ETA:"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "Rezumat pe dată"
 
 #: admin/imports.html
 msgid "total"
-msgstr ""
+msgstr "total"
 
 #: admin/imports.html
 msgid "#books created"
-msgstr ""
+msgstr "#cărți create"
 
 #: admin/imports.html
 msgid "#books already found"
-msgstr ""
+msgstr "#cărți deja găsite"
 
 #: admin/imports.html
 msgid "#books failed to import"
-msgstr ""
+msgstr "#cărți cu import eșuat"
 
 #: admin/imports.html
 msgid "#books pending"
-msgstr ""
+msgstr "#cărți în așteptare"
 
 #: admin/imports.html
 msgid "Recent Imports"
-msgstr ""
+msgstr "Importuri recente"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
+msgstr "Identificator"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Imported Time"
-msgstr ""
+msgstr "Ora importului"
 
 #: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
 #: admin/imports_by_date.html
 msgid "Created"
-msgstr ""
+msgstr "Create"
 
 #: admin/imports_by_date.html
 msgid "Found"
-msgstr ""
+msgstr "Găsite"
 
 #: admin/imports_by_date.html
 msgid "Failed"
-msgstr ""
+msgstr "Eșuate"
 
 #: admin/imports_by_date.html openlibrary/core/edits.py
 msgid "Pending"
-msgstr ""
+msgstr "În așteptare"
 
 #: admin/imports_by_date.html
 msgid "Items"
-msgstr ""
+msgstr "Elemente"
 
 #: admin/index.html
 msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr ""
+msgstr "<span class=\"login-counts\">0</span> utilizatori s-au autentificat cel puțin o dată în ultimele 30 de zile."
 
 #: admin/index.html
 msgid "Stats"
-msgstr ""
+msgstr "Statistici"
 
 #: admin/index.html
 msgid "Edits Per Day"
-msgstr ""
+msgstr "Modificări pe zi"
 
 #: admin/index.html admin/people/index.html
 msgid "Edits"
-msgstr ""
+msgstr "Modificări"
 
 #: admin/index.html
 msgid "Yesterday"
-msgstr ""
+msgstr "Ieri"
 
 #: admin/index.html
 msgid "Last 7 days"
-msgstr ""
+msgstr "Ultimele 7 zile"
 
 #: admin/index.html
 msgid "Last 28 days"
-msgstr ""
+msgstr "Ultimele 28 de zile"
 
 #: admin/index.html
 msgid "Human"
-msgstr ""
+msgstr "Uman"
 
 #: admin/index.html admin/people/view.html
 msgid "Bot"
-msgstr ""
+msgstr "Bot"
 
 #: admin/index.html
 msgid "New Accounts Per Day"
-msgstr ""
+msgstr "Conturi noi pe zi"
 
 #: admin/index.html
 msgid "Members"
-msgstr ""
+msgstr "Membri"
 
 #: admin/index.html
 msgid "Items Added"
-msgstr ""
+msgstr "Elemente adăugate"
 
 #: admin/index.html
 msgid "Trend"
-msgstr ""
+msgstr "Tendință"
 
 #: admin/index.html
 msgid "Works Added"
-msgstr ""
+msgstr "Opere adăugate"
 
 #: admin/index.html
 msgid "Editions Added"
-msgstr ""
+msgstr "Ediții adăugate"
 
 #: admin/index.html
 msgid "Authors Added"
-msgstr ""
+msgstr "Autori adăugați"
 
 #: admin/index.html recentchanges/index.html
 msgid "Covers Added"
-msgstr ""
+msgstr "Coperte adăugate"
 
 #: admin/index.html home/stats.html
 msgid "New Members"
@@ -2220,11 +2220,11 @@ msgstr "Liste adăugate"
 
 #: admin/index.html
 msgid "Books Logged"
-msgstr ""
+msgstr "Cărți înregistrate"
 
 #: admin/index.html
 msgid "Users Logging"
-msgstr ""
+msgstr "Utilizatori care înregistrează"
 
 #: admin/index.html
 msgid "Yearly Reading Goals"
@@ -2232,35 +2232,35 @@ msgstr "Obiective anuale de citire"
 
 #: admin/index.html
 msgid "Books Review Tags"
-msgstr ""
+msgstr "Etichete de recenzii cărți"
 
 #: admin/index.html
 msgid "Books Reviewed"
-msgstr ""
+msgstr "Cărți recenzate"
 
 #: admin/index.html
 msgid "Users Reviewing"
-msgstr ""
+msgstr "Utilizatori care recenzează"
 
 #: admin/index.html
 msgid "Patrons Following"
-msgstr ""
+msgstr "Utilizatori care urmăresc"
 
 #: admin/index.html
 msgid "Notes Created"
-msgstr ""
+msgstr "Note create"
 
 #: admin/index.html
 msgid "Patrons Creating Notes"
-msgstr ""
+msgstr "Utilizatori care creează note"
 
 #: admin/index.html
 msgid "Books Starred"
-msgstr ""
+msgstr "Cărți marcate cu stea"
 
 #: admin/index.html
 msgid "Star Rating Patrons"
-msgstr ""
+msgstr "Utilizatori care acordă stele"
 
 #: admin/index.html home/stats.html
 msgid "Unique Visitors"
@@ -2289,11 +2289,11 @@ msgstr "Vizitatori unici"
 
 #: admin/index.html
 msgid "Gathering login statistics..."
-msgstr ""
+msgstr "Se colectează statistici de autentificare..."
 
 #: admin/loans_table.html
 msgid "BookReader"
-msgstr ""
+msgstr "BookReader"
 
 #: admin/loans_table.html book_providers/cita_press_download_options.html book_providers/ia_download_options.html book_providers/openstax_download_options.html book_providers/wikisource_download_options.html books/edit/edition.html
 msgid "PDF"
@@ -2301,11 +2301,11 @@ msgstr "PDF"
 
 #: admin/loans_table.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/standard_ebooks_download_options.html books/edit/edition.html
 msgid "ePub"
-msgstr ""
+msgstr "ePub"
 
 #: admin/loans_table.html
 msgid "No current loans."
-msgstr ""
+msgstr "Niciun împrumut curent."
 
 #: admin/loans_table.html
 #, python-format
@@ -2322,37 +2322,37 @@ msgstr "Ce"
 #: admin/loans_table.html
 #, python-format
 msgid "Waiting since %(date)s"
-msgstr ""
+msgstr "Așteptare din %(date)s"
 
 #: admin/loans_table.html
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
-msgstr ""
+msgstr "#%(num_position)d din %(num_waitlist)d persoane care așteaptă această carte"
 
 #: ManageLoansButtons.html admin/loans_table.html
 #, python-format
 msgid "Borrowed %(date)s"
-msgstr ""
+msgstr "Împrumutat la %(date)s"
 
 #: admin/menu.html
 msgid "Admin Center"
-msgstr ""
+msgstr "Centru de administrare"
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "People"
-msgstr ""
+msgstr "Persoane"
 
 #: admin/menu.html
 msgid "PD Access Requests"
-msgstr ""
+msgstr "Cereri de acces PD"
 
 #: admin/menu.html
 msgid "Block IPs"
-msgstr ""
+msgstr "Blochează IP-uri"
 
 #: admin/menu.html admin/spamwords.html
 msgid "Spam Words"
-msgstr ""
+msgstr "Cuvinte spam"
 
 #: admin/menu.html
 msgid "Solr"
@@ -2360,23 +2360,23 @@ msgstr "Solr"
 
 #: admin/menu.html
 msgid "Graphs"
-msgstr ""
+msgstr "Grafice"
 
 #: admin/menu.html
 msgid "Inspect store"
-msgstr ""
+msgstr "Inspectează magazin"
 
 #: admin/menu.html
 msgid "Inspect memcache"
-msgstr ""
+msgstr "Inspectează memcache"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "Cereri de acces pentru dizabilități de tipărire"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "Defalcare după autoritate calificatoare"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -2390,7 +2390,7 @@ msgstr "E-mail"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "Îndeplinite"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -2399,15 +2399,15 @@ msgstr "Discuții despre cărți"
 
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
-msgstr ""
+msgstr "[Centru de administrare] Permisiuni site"
 
 #: admin/permissions.html
 msgid "Site Permissions"
-msgstr ""
+msgstr "Permisiuni site"
 
 #: admin/permissions.html
 msgid "Change the policy of who can edit the site."
-msgstr ""
+msgstr "Schimbă politica de editare a site-ului."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library records?"
