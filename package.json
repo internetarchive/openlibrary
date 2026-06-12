@@ -124,7 +124,7 @@
   "overrides": {
     "@ericblade/quagga2": {
       "form-data": "4.0.5",
-      "qs": "6.15.1"
+      "qs": "6.15.2"
     }
   },
   "browserslist": [
