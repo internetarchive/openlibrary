@@ -80,6 +80,34 @@ function doFetchAndUpdate(target) {
                 target.parentNode.insertBefore(newElem, target);
                 target.remove();
                 initialzeCarousels(carouselElements);
+
+                // ==========================================
+                // EXPERIMENT TRACKING: Related Books Discovery
+                // Tracks natural scrolling vs banner clicks.
+                // Can be safely deleted no problems
+                // ==========================================
+                if (config.key === 'related-subjects-carousel' || config.key === 'related-authors-carousel') {
+                    const body = document.getElementById('contentBody');
+                    const lendingState = body ? body.getAttribute('data-lending-state') : null;
+                    const unavailableStates = ['preview_only', 'checkedout', 'waitlist', 'locate'];
+                    const isUnavailable = unavailableStates.indexOf(lendingState) !== -1;
+
+                    let action;
+                    if (window.location.hash === '#related-work-carousel') {
+                        action = 'FromBanner';
+                    } else if (isUnavailable) {
+                        action = 'ScrolledDownUnavailable';
+                    } else {
+                        action = 'ScrolledDownAvailable';
+                    }
+
+                    if (window.archive_analytics && window.archive_analytics.ol_send_event_ping) {
+                        window.archive_analytics.ol_send_event_ping({
+                            category: 'OpenRelatedBooks',
+                            action: action
+                        });
+                    }
+                }
             }
         })
         .catch(() => {

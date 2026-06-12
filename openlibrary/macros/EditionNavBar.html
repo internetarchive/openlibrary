@@ -7,9 +7,9 @@ $if lending_state in ['preview_only', 'checkedout', 'waitlist', 'locate']:
     <div class="$display_for_banner">
         <ol-banner dismissible>
             $if lending_state in ['preview_only', 'locate']:
-                $:_("This book is currently unavailable on Open Library, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel">', link_end='</a>')
+                $:_("This book is currently unavailable on Open Library, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel" data-ol-link-track="OpenRelatedBooks|BannerClick">', link_end='</a>')
             $else:
-                $:_("This book is not immediately available, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel">', link_end='</a>')
+                $:_("This book is not immediately available, check out %(link_start)savailable alternatives%(link_end)s.", link_start='<a href="#related-work-carousel" data-ol-link-track="OpenRelatedBooks|BannerClick">', link_end='</a>')
         </ol-banner>
     </div>
 
