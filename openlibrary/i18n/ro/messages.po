@@ -4089,182 +4089,182 @@ msgstr "Adaugă link"
 
 #: books/edit/web.html
 msgid "Remove this link"
-msgstr ""
+msgstr "Elimină acest link"
 
 #: books/edit/web.html
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
-msgstr ""
+msgstr "\"Bun\" înseamnă fără linkuri spam, vă rugăm. Păstrați-le relevante pentru carte. Site-urile irelevante pot fi eliminate. Spam-ul evident va fi șters fără remușcări."
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "Căutare în masă (beta)"
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
+msgstr "Există două moduri de a pune fotografia unui autor pe Open Library."
 
 #: covers/add.html
 msgid "Image Guidelines"
-msgstr ""
+msgstr "Ghid pentru imagini"
 
 #: covers/add.html
 msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
+msgstr "Există câteva moduri de a pune o imagine de copertă pe Open Library."
 
 #: covers/add.html
 msgid "Cover Guidelines"
-msgstr ""
+msgstr "Ghid pentru coperte"
 
 #: covers/add.html
 msgid "Please provide a valid image."
-msgstr ""
+msgstr "Furnizați o imagine validă."
 
 #: covers/add.html
 msgid "Please provide an image URL."
-msgstr ""
+msgstr "Furnizați un URL de imagine."
 
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "Aflați mai multe citind <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
+msgstr "<strong>Alegeți una</strong> din copertele existente"
 
 #: covers/add.html
 msgid "Use this image"
-msgstr ""
+msgstr "Folosește această imagine"
 
 #: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
+msgstr "Alegeți un JPG, GIF, PNG sau WebP de pe computerul dvs."
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "Încărcați"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Sau, lipiți o imagine din clipboard"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Lipiți imaginea din clipboard"
 
 #: covers/add.html
 msgid "Paste Image"
-msgstr ""
+msgstr "Lipire imagine"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Încărcați imaginea"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Încarcă imagine"
 
 #: covers/add.html
 msgid "Uploading..."
-msgstr ""
+msgstr "Se încarcă..."
 
 #: covers/add.html
 msgid "Wikidata"
-msgstr ""
+msgstr "Wikidata"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "Deschide o fotografie mai mare a autorului"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "Fotografie a lui %(author)s"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Faceți clic pentru a închide"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "Avem nevoie de o fotografie a lui %(author)s"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "Deschide o copertă mai mare a cărții"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "Copertă: %(title)s de %(authors)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "Mergi la pagina principală pentru %(title)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "Avem nevoie de o copertă de carte pentru: %(title)s"
 
 #: covers/change.html
 msgid "Author Photos"
-msgstr ""
+msgstr "Fotografii autori"
 
 #: covers/change.html
 msgid "Manage Author Photos"
-msgstr ""
+msgstr "Gestionați fotografiile autorilor"
 
 #: covers/change.html
 msgid "Add Author Photo"
-msgstr ""
+msgstr "Adaugă fotografie autor"
 
 #: covers/change.html
 msgid "Book Covers"
-msgstr ""
+msgstr "Coperte cărți"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "Gestionați copertele"
 
 #: covers/change.html
 msgid "Add Cover Image"
-msgstr ""
+msgstr "Adaugă imagine de copertă"
 
 #: covers/change.html
 msgid "Manage"
-msgstr ""
+msgstr "Gestionează"
 
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Sau, folosiți o imagine de la %s"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr ""
+msgstr "Puteți glisa și plasa miniaturile pentru reordonare sau în coș pentru a le șterge."
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "Copertă nouă carte"
 
 #: covers/saved.html
 msgid "Saved!"
-msgstr ""
+msgstr "Salvat!"
 
 #: covers/saved.html
 msgid "Notes:"
-msgstr ""
+msgstr "Note:"
 
 #: covers/saved.html
 msgid "Add another image"
-msgstr ""
+msgstr "Adaugă altă imagine"
 
 #: covers/saved.html
 msgid "Finished"
-msgstr ""
+msgstr "Terminat"
 
 #: email/case_created.html
 msgid "Sent!"
@@ -4272,19 +4272,19 @@ msgstr "Trimis!"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Mulțumim pentru nota dumneavoastră. Vă vom răspunde cât mai curând posibil."
 
 #: email/case_created.html
 msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
+msgstr "Poate dura ceva timp să o citim deoarece primim multe mesaje, dar fiți siguri că o vom face și vă vom răspunde dacă este necesar."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Calificare pentru acces special cu dizabilități de tipărire"
 
 #: history/sources.html
 msgid "record"
-msgstr ""
+msgstr "înregistrare"
 
 #: home/about.html
 msgid "About the Project"
@@ -4348,11 +4348,11 @@ msgstr "Manuale"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Cărți în mediul local"
 
 #: home/loans.html
 #, fuzzy, python-format
@@ -4364,7 +4364,7 @@ msgstr[2] ""
 
 #: home/loans.html
 msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr ""
+msgstr "Ați atins limita de împrumut. Vă rugăm să returnați o carte pentru a împrumuta ceva nou."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -4492,7 +4492,7 @@ msgstr "Feedbackul dumneavoastră ne va ajuta să îmbunătățim aceste carduri
 
 #: jsdef/LazyWorkPreview.html
 msgid "Select this work"
-msgstr ""
+msgstr "Selectează această operă"
 
 #: jsdef/LazyWorkPreview.html
 msgid "1 edition"
@@ -4521,69 +4521,69 @@ msgstr[2] ""
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
-msgstr ""
+msgstr "%s nu a fost găsit"
 
 #: languages/notfound.html
 #, python-format
 msgid "%s does not exist."
-msgstr ""
+msgstr "%s nu există."
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
-msgstr ""
+msgstr "Acest document a fost editat ultima dată de"
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited anonymously"
-msgstr ""
+msgstr "Acest document a fost editat ultima dată anonim"
 
 #: lib/exports.html
 msgid "Download catalog record:"
-msgstr ""
+msgstr "Descarcă înregistrarea catalogului:"
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
+msgstr "RDF"
 
 #: lib/exports.html type/list/exports.html
 msgid "JSON"
-msgstr ""
+msgstr "JSON"
 
 #: lib/exports.html
 msgid "OPDS"
-msgstr ""
+msgstr "OPDS"
 
 #: lib/exports.html
 msgid "Cite this on Wikipedia"
-msgstr ""
+msgstr "Citează pe Wikipedia"
 
 #: lib/exports.html
 msgid "Wikipedia citation"
-msgstr ""
+msgstr "Citare Wikipedia"
 
 #: lib/exports.html
 msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
+msgstr "Copiați și lipiți acest cod în pagina Wikipedia."
 
 #: lib/exports.html
 msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
+msgstr "Obțineți instrucțiuni pe Wikipedia într-o fereastră nouă"
 
 #: lib/header_dropdown.html
 msgid "My account"
-msgstr ""
+msgstr "Contul meu"
 
 #: lib/header_dropdown.html type/user/view.html
 #, python-format
 msgid "Joined %(date)s"
-msgstr ""
+msgstr "Alăturat %(date)s"
 
 #: lib/header_dropdown.html
 msgid "Menu"
-msgstr ""
+msgstr "Meniu"
 
 #: lib/header_dropdown.html
 msgid "New!"
-msgstr ""
+msgstr "Nou!"
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
@@ -4592,7 +4592,7 @@ msgstr "Istoric"
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
-msgstr ""
+msgstr "Creat %(date)s"
 
 #: lib/history.html
 #, python-format
@@ -4604,33 +4604,33 @@ msgstr[2] ""
 
 #: lib/history.html
 msgid "an anonymous user"
-msgstr ""
+msgstr "un utilizator anonim"
 
 #: lib/history.html
 #, python-format
 msgid "Created by %(user)s"
-msgstr ""
+msgstr "Creat de %(user)s"
 
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
-msgstr ""
+msgstr "Editat de %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Super!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Noua înregistrare se află în bibliotecă. Mulțumim!"
 
 #: lib/message_addbook.html
 msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr ""
+msgstr "Mai sunt câteva lucruri simple pe care le poți adăuga acum pentru a îmbunătăți rapid noua înregistrare și a facilita găsirea ei de alții."
 
 #: lib/message_addbook.html
 msgid "Upload a cover image"
-msgstr ""
+msgstr "Încarcă o imagine de copertă"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
