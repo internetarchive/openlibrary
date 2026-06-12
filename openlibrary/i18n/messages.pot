@@ -7251,6 +7251,10 @@ msgstr ""
 msgid "Loading Lists"
 msgstr ""
 
+#: EditionNavBar.html type/edition/view.html type/work/view.html
+msgid "Related Books"
+msgstr ""
+
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
@@ -7816,6 +7820,20 @@ msgid ""
 msgstr ""
 
 #: EditionNavBar.html
+#, python-format
+msgid ""
+"This book is currently unavailable on Open Library, check out "
+"%(link_start)savailable alternatives%(link_end)s."
+msgstr ""
+
+#: EditionNavBar.html
+#, python-format
+msgid ""
+"This book is not immediately available, check out %(link_start)savailable"
+" alternatives%(link_end)s."
+msgstr ""
+
+#: EditionNavBar.html
 msgid "Go to previous section"
 msgstr ""
 
@@ -7836,10 +7854,6 @@ msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
 msgstr[0] ""
 msgstr[1] ""
-
-#: EditionNavBar.html
-msgid "Related Books"
-msgstr ""
 
 #: EditionNavBar.html
 msgid "Go to next section"
@@ -9138,10 +9152,7 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
-msgid ""
-"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
-"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
-"<em>%(name)s</em></a>"
+msgid "Continue %(link_start)s%(action)s%(link_mid)s%(name)s%(link_end)s"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
