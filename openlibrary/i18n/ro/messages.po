@@ -3780,7 +3780,7 @@ msgstr "Vreo notă despre această ediție specifică?"
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
-msgstr ""
+msgstr "Orice despre carte care poate fi de interes."
 
 #: books/edit/edition.html
 #, fuzzy
@@ -3789,135 +3789,135 @@ msgstr "Descoperă cărți"
 
 #: books/edit/edition.html
 msgid "Is it known by any other titles?"
-msgstr ""
+msgstr "Este cunoscut și sub alte titluri?"
 
 #: books/edit/edition.html
 msgid "Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here."
-msgstr ""
+msgstr "Folosiți acest câmp dacă titlul este diferit pe copertă sau pe cotor. Dacă ediția este o colecție sau o antologie, puteți adăuga și titlurile individuale ale fiecărei opere."
 
 #: books/edit/edition.html
 msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr ""
+msgstr "De exemplu: <i>Eaters of the Dead</i> este un titlu alternativ pentru <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
-msgstr ""
+msgstr "De ce operă este o ediție aceasta?"
 
 #: books/edit/edition.html
 msgid "Sometimes editions can be associated with the wrong work. You can correct that here."
-msgstr ""
+msgstr "Uneori edițiile pot fi asociate cu opera greșită. Puteți corecta aceasta aici."
 
 #: books/edit/edition.html
 msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
-msgstr ""
+msgstr "Poți căuta după titlu sau după ID Open Library (ca <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
-msgstr ""
+msgstr "AVERTISMENT: Orice modificări aduse operei din această pagină vor fi ignorate."
 
 #: books/edit/edition.html
 msgid "Copy authors to new work"
-msgstr ""
+msgstr "Copiază autorii la opera nouă"
 
 #: books/edit/edition.html
 msgid "Copy subjects to new work"
-msgstr ""
+msgstr "Copiază subiectele la opera nouă"
 
 #: books/edit/edition.html
 msgid "Please select an identifier."
-msgstr ""
+msgstr "Selectați un identificator."
 
 #: books/edit/edition.html
 msgid "You need to give a value to ID."
-msgstr ""
+msgstr "Trebuie să dai o valoare ID-ului."
 
 #: books/edit/edition.html
 msgid "ID ids cannot contain whitespace."
-msgstr ""
+msgstr "ID-urile nu pot conține spații."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr ""
+msgstr "ID-ul trebuie să aibă exact 10 caractere [0-9] sau X."
 
 #: books/edit/edition.html
 msgid "That ID already exists for this edition."
-msgstr ""
+msgstr "Acel ID există deja pentru această ediție."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
+msgstr "ID-ul trebuie să aibă exact 13 cifre [0-9]. De exemplu: 978-1-56619-909-4"
 
 #: books/edit/edition.html
 msgid "Invalid ID format"
-msgstr ""
+msgstr "Format ID invalid"
 
 #: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
-msgstr ""
+msgstr "Numere ID"
 
 #: books/edit/edition.html
 msgid "Do you know any identifiers for this edition?"
-msgstr ""
+msgstr "Cunoști vreun identificator pentru această ediție?"
 
 #: books/edit/edition.html
 msgid "Like, ISBN?"
-msgstr ""
+msgstr "Cum ar fi ISBN?"
 
 #: books/edit/edition.html
 msgid "Please select a classification."
-msgstr ""
+msgstr "Selectați o clasificare."
 
 #: books/edit/edition.html
 msgid "You need to give a value to CLASS."
-msgstr ""
+msgstr "Trebuie să dai o valoare la CLASĂ."
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
-msgstr ""
+msgstr "Clasificări"
 
 #: books/edit/edition.html
 msgid "Do you know any classifications of this edition?"
-msgstr ""
+msgstr "Cunoști vreo clasificare a acestei ediții?"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
-msgstr ""
+msgstr "Cum ar fi Clasificarea Zecimală Dewey?"
 
 #: books/edit/edition.html
 msgid "Select one of many..."
-msgstr ""
+msgstr "Selectați una din mai multe..."
 
 #: books/edit/edition.html
 msgid "Add a new classification type"
-msgstr ""
+msgstr "Adaugă un tip de clasificare nou"
 
 #: books/edit/edition.html
 msgid "Remove this classification"
-msgstr ""
+msgstr "Elimină această clasificare"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "The Physical Object"
-msgstr ""
+msgstr "Obiectul fizic"
 
 #: books/edit/edition.html
 msgid "What sort of book is it?"
-msgstr ""
+msgstr "Ce fel de carte este?"
 
 #: books/edit/edition.html
 msgid "Paperback; Hardcover, etc."
-msgstr ""
+msgstr "Broșată; Cartonată etc."
 
 #: books/edit/edition.html
 msgid "How many pages?"
-msgstr ""
+msgstr "Câte pagini are?"
 
 #: books/edit/edition.html
 msgid "Pagination?"
-msgstr ""
+msgstr "Paginație?"
 
 #: books/edit/edition.html
 msgid "Note the highest number in each pagination pattern."
-msgstr ""
+msgstr "Notați cel mai mare număr din fiecare model de paginație."
 
 #: books/edit/edition.html lib/nav_foot.html
 msgid "Help"
@@ -3925,167 +3925,167 @@ msgstr "Ajutor"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "De exemplu: <em>xii, 346p.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
-msgstr ""
+msgstr "Cât cântărește cartea?"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Dimensions"
-msgstr ""
+msgstr "Dimensiuni"
 
 #: books/edit/edition.html
 msgid "dimensions"
-msgstr ""
+msgstr "dimensiuni"
 
 #: books/edit/edition.html
 msgid "Height:"
-msgstr ""
+msgstr "Înălțime:"
 
 #: books/edit/edition.html
 msgid "Width:"
-msgstr ""
+msgstr "Lățime:"
 
 #: books/edit/edition.html
 msgid "Depth:"
-msgstr ""
+msgstr "Adâncime:"
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "Furnizori carte web"
 
 #: books/edit/edition.html
 msgid "Access Type"
-msgstr ""
+msgstr "Tip acces"
 
 #: books/edit/edition.html
 msgid "File Format"
-msgstr ""
+msgstr "Format fișier"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "Numele furnizorului"
 
 #: books/edit/edition.html
 msgid "Buy"
-msgstr ""
+msgstr "Cumpără"
 
 #: books/edit/edition.html
 msgid "Web"
-msgstr ""
+msgstr "Web"
 
 #: books/edit/edition.html
 msgid "Add a provider"
-msgstr ""
+msgstr "Adaugă un furnizor"
 
 #: books/edit/edition.html
 msgid "First sentence"
-msgstr ""
+msgstr "Prima propoziție"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "Propoziția de deschidere care începe paragraful principal"
 
 #: books/edit/edition.html
 msgid "Admin Only"
-msgstr ""
+msgstr "Numai pentru admin"
 
 #: books/edit/edition.html
 msgid "Additional Metadata"
-msgstr ""
+msgstr "Metadate suplimentare"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "Acest câmp acceptă perechi arbitrare cheie:valoare"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
-msgstr ""
+msgstr "Introduceți un fragment."
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "Acel fragment este prea lung."
 
 #: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
-msgstr ""
+msgstr "Dacă există pasaje particulare (scurte) pe care le considerați reprezentative pentru carte, vă rugăm să le transcrieți aici."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
-msgstr ""
+msgstr "Numărul paginii?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "De exemplu: <i>23, xi sau 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "Acest fragment este prima propoziție a cărții."
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
-msgstr ""
+msgstr "Transcrieți fragmentul"
 
 #: books/edit/excerpts.html
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr ""
+msgstr "Lungimea maximă este 2000 de caractere. Nu este permis HTML."
 
 #: books/edit/excerpts.html
 msgid "Why did you choose this excerpt?"
-msgstr ""
+msgstr "De ce ați ales acest fragment?"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
-msgstr ""
+msgstr "Adaugă o notă opțională."
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
-msgstr ""
+msgstr "Fragmente până acum..."
 
 #: books/edit/excerpts.html
 msgid "noted:"
-msgstr ""
+msgstr "notă:"
 
 #: books/edit/excerpts.html
 msgid "An anonymous note:"
-msgstr ""
+msgstr "O notă anonimă:"
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
+msgstr "De la pagina"
 
 #: books/edit/web.html
 msgid "Please provide a label."
-msgstr ""
+msgstr "Introduceți o etichetă."
 
 #: books/edit/web.html
 msgid "Please provide a URL."
-msgstr ""
+msgstr "Introduceți un URL."
 
 #: books/edit/web.html
 msgid "Please enter a valid URL."
-msgstr ""
+msgstr "Introduceți un URL valid."
 
 #: books/edit/web.html
 msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
-msgstr ""
+msgstr "Vă rugăm să conectați înregistrările Open Library la resurse online <u>bune</u><span class=\"orange\">*</span>."
 
 #: books/edit/web.html
 msgid "Give your link a label"
-msgstr ""
+msgstr "Dați un nume linkului dvs."
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "De exemplu: <em>Recenzie New York Times</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 msgid "Add Link"
-msgstr ""
+msgstr "Adaugă link"
 
 #: books/edit/web.html
 msgid "Remove this link"
