@@ -1075,9 +1075,9 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
 
         book_provider = get_book_provider(doc)
     else:
-        from openlibrary.book_providers import get_book_provider
+        from openlibrary.book_providers import get_book_provider_by_name
 
-        book_provider = getattr(get_book_provider, "ia", None)
+        book_provider = get_book_provider_by_name("ia")
 
     bp_short_name = book_provider.short_name if (book_provider and hasattr(book_provider, "short_name")) else ""
 
@@ -1090,8 +1090,21 @@ def get_lending_state(doc, user=None, check_loan_status=False) -> str:
     if not user_loan and check_loan_status and ocaid and user:
         user_loan = user.get_loan_for(ocaid, use_cache=True)
 
+    is_waiting = False
+    if waiting_loan:
+        if hasattr(waiting_loan, "get"):
+            status = waiting_loan.get("status")
+            position = waiting_loan.get("position")
+        else:
+            status = getattr(waiting_loan, "status", None)
+            position = getattr(waiting_loan, "position", None)
+        # It's not their turn to borrow yet if status isn't 'available' or position isn't 1
+        is_waiting = not (status == "available" and position == 1)
+
     if user_loan:
         return "borrowed"
+    elif is_waiting:
+        return "waitlist"
     elif book_provider and bp_short_name != "ia":
         return "partner"
     elif availability.get("is_readable") or availability.get("status") == "open":
