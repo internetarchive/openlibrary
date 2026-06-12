@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Literal, cast
 
 import aiofiles
 
-from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
     DataProvider,
     ExternalDataProvider,
@@ -145,7 +144,6 @@ def load_configs(
     c_data_provider: (DataProvider | Literal["default", "external"]) = "default",
 ) -> DataProvider:
     host = c_host.removeprefix("http://").strip("/")
-    set_query_host(host)
 
     load_config(c_config)
 

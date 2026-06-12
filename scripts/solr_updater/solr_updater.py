@@ -252,7 +252,7 @@ async def main(
     debugger: bool = False,
     state_file: str = "solr-update.state",
     exclude_edits_containing: str | None = None,
-    ol_url="http://openlibrary.org/",
+    ol_url="http://openlibrary.org/",  # Has side effects, is read globally
     socket_timeout: int = 10,
     load_ia_scans: bool = False,
     initial_state: str | None = None,
@@ -283,11 +283,6 @@ async def main(
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
     socket.setdefaulttimeout(socket_timeout)
-
-    # set OL URL when running on a dev-instance
-    if ol_url:
-        host = ol_url.removeprefix("http://").strip("/")
-        update.set_query_host(host)
 
     set_osp_dump_location(osp_dump)
 
