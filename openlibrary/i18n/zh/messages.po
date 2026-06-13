@@ -6626,15 +6626,15 @@ msgstr "这位作者是否还有其他名字？"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "例如：列夫·尼古拉耶维奇·托尔斯泰也被称为列夫·托尔斯泰。请每行列出一个名字。"
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "标识符"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "作者标识符用途"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
@@ -6677,7 +6677,7 @@ msgstr "要添加另外一个吗？"
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "搜索%(author)s的书籍"
 
 #: type/author/view.html
 #, fuzzy, python-format
@@ -6698,7 +6698,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io："
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -6976,7 +6976,7 @@ msgstr "目前 %d 份租借"
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "尝试<a href=\"%(href)s\">搜索%(language)s语言的可读书籍</a>？"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -6986,12 +6986,12 @@ msgstr "创建一个新的清单"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "编辑系列：%(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "编辑书单：%(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7014,7 +7014,7 @@ msgstr "搜索作者"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "位置（可选），例如 1、2、1-7"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7154,15 +7154,15 @@ msgstr "您即将删除这个清单中的最后一个项目。这将会删除整
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "此系列包含%(limit)d部或更多作品。目前仅显示前%(limit)d部作品。"
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "此书单上没有任何条目。"
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">搜索书籍、主题或作者</a>以添加到您的书单。"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7197,7 +7197,7 @@ msgstr "位置"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "条形码正则表达式"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7272,7 +7272,7 @@ msgstr "标签:"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "由Open Library馆员精心整理的标签。"
 
 #: type/tag/index.html
 #, fuzzy
@@ -7295,15 +7295,15 @@ msgstr "名字"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "易于阅读的显示名称（例如\"计算机科学\"、\"恐怖小说\"）"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "标签别名"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "以逗号分隔的URL别名，映射到此标签（自动从名称填充）。例如\"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7322,12 +7322,12 @@ msgstr "页面类型"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "标签副管理员"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>类型：</strong>%(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -7340,12 +7340,12 @@ msgstr "今日"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL别名"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "查看%(name)s的主题页面。"
 
 #: type/template/edit.html
 #, fuzzy
@@ -7386,7 +7386,7 @@ msgstr "反向引用"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "编辑%(name)s"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
@@ -7463,7 +7463,7 @@ msgstr[1] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "查看所有%(count)d个版本？"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
@@ -7488,7 +7488,7 @@ msgstr "在%(store)s里寻找这个版本的销售"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "通过这些链接购买书籍时，互联网档案馆可能会从合作伙伴处获得少量<a class=\"nostyle\" href=\"/help/faq/about#selling\">佣金</a>。"
 
 #: AffiliateLinksLoadingIndicator.html
 #, fuzzy
@@ -7521,7 +7521,7 @@ msgstr "预览书籍"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "网站中的模板现已禁用。编辑它们对线上网站没有任何影响。"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7553,15 +7553,15 @@ msgstr "加载书籍"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "前往下一部分"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "取消关注"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "更新关注者失败。请稍后重试。"
 
 #: FormatExpiry.html
 msgid "Expires"
@@ -7569,7 +7569,7 @@ msgstr "到期的"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "正在检查书内搜索匹配"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -7584,24 +7584,24 @@ msgstr "在内部搜索"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "找到%(book_count)s本含有匹配段落的书籍"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "查看所有%(results_count)s条书内搜索匹配结果"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "右箭头"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, fuzzy, python-format
@@ -7611,11 +7611,11 @@ msgstr "第%(page)s页"
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "从互联网档案馆借阅：%(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "加载指示器"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
@@ -7687,7 +7687,7 @@ msgstr "我对这个版本的私人笔记:"
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "作者：%(authors)s"
 
 #: ObservationsModal.html
 msgid "My Book Review"
@@ -7706,12 +7706,12 @@ msgstr "前往这个作者的页面"
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "前往第{page}页"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "第{page}页，当前页面"
 
 #: Profile.html
 #, fuzzy
@@ -7741,19 +7741,19 @@ msgstr "登录问题"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "获取轮播图失败。"
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "重试？"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "没有书籍符合当前筛选条件。"
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "不使用筛选条件重试？"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -7821,7 +7821,7 @@ msgstr "已添加"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "第%(position)s本书"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7836,7 +7836,7 @@ msgstr "更少"
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "版本%(id)s的封面"
 
 #: SearchResultsWork.html
 #, python-format
@@ -7847,7 +7847,7 @@ msgstr[1] ""
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "此内容仅对馆员可见。"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7857,7 +7857,7 @@ msgstr "其他标题"
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "在%(share_link)s上分享"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
@@ -7874,11 +7874,11 @@ msgstr "嵌入"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "复制链接到剪贴板"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "复制URL图标"
 
 #: ShareModal.html
 #, fuzzy
@@ -7892,7 +7892,7 @@ msgstr "源代码"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "二维码图标"
 
 #: ShareModal.html
 #, fuzzy
@@ -7901,23 +7901,23 @@ msgstr "代码"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "为以下书籍留下1星评价"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "为以下书籍留下2星评价"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "为以下书籍留下3星评价"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "为以下书籍留下4星评价"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "为以下书籍留下5星评价"
 
 #: StarRatings.html
 msgid "Clear my rating"
@@ -7940,12 +7940,12 @@ msgstr "评分"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s人想读"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s（%(ratings_count)s%(ratings_label)s）"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -8036,7 +8036,7 @@ msgstr ""
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "热度：%(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
@@ -8060,7 +8060,7 @@ msgstr "(最简单的解决方案: 如果你不确定它是否应该改变，那
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "您所用语言没有对应的维基百科链接"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
@@ -8072,7 +8072,7 @@ msgstr "在 WorldCat 上搜索您附近的书籍版本"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 #, fuzzy
@@ -8081,11 +8081,11 @@ msgstr "导航至本页面顶部"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "查看此页面（退出比较视图）"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "查看此页面（退出编辑模式）"
 
 #: databarHistory.html databarView.html
 #, python-format
@@ -8108,7 +8108,7 @@ msgstr "编辑此模板"
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "查看第%(num)d卷"
 
 #: openlibrary/core/bookshelves.py
 #, fuzzy
@@ -8173,7 +8173,7 @@ msgstr "克罗地亚语"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "撒丁语"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
@@ -8181,7 +8181,7 @@ msgstr "泰卢固语"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "乌克兰语"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
@@ -8189,7 +8189,7 @@ msgstr "中文"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "菲律宾语"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8218,7 +8218,7 @@ msgstr "评价"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "儿童"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8232,7 +8232,7 @@ msgstr "修订"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "推理与侦探故事"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8241,7 +8241,7 @@ msgstr "地点"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "音乐"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8250,7 +8250,7 @@ msgstr "取消"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "至少1个主题"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8264,7 +8264,7 @@ msgstr "此版本"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "有作品（孤立版本）"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8329,15 +8329,15 @@ msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "此作品未出现在任何书单上。"
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "我还没有"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "您输入的电子邮件地址无效"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
