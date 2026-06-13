@@ -123,12 +123,17 @@ export class OlTooltip extends LitElement {
         this._hideTimer = null;
         this._tooltipId = `ol-tooltip-${++OlTooltip._idCounter}`;
 
+        // Tooltips are a hover/focus affordance. On touch devices a tap would
+        // both fire the action and surface the tooltip (via emulated mouseenter
+        // or tap-focus), so we only arm the triggers on hover-capable pointers.
+        this._canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
         this._onMouseEnter = this._onMouseEnter.bind(this);
         this._onMouseLeave = this._onMouseLeave.bind(this);
         this._onFocusIn = this._onFocusIn.bind(this);
         this._onFocusOut = this._onFocusOut.bind(this);
         this._onKeydown = this._onKeydown.bind(this);
-        this._onTouchOutside = this._onTouchOutside.bind(this);
+        this._onScroll = this._onScroll.bind(this);
     }
 
     connectedCallback() {
@@ -147,7 +152,7 @@ export class OlTooltip extends LitElement {
         this.removeEventListener('focusin', this._onFocusIn);
         this.removeEventListener('focusout', this._onFocusOut);
         this.removeEventListener('keydown', this._onKeydown);
-        document.removeEventListener('touchstart', this._onTouchOutside, true);
+        window.removeEventListener('scroll', this._onScroll, true);
         this._clearTimers();
     }
 
@@ -155,6 +160,8 @@ export class OlTooltip extends LitElement {
         // Reflect the actual side as a host attribute for arrow CSS
         if (this._visible) {
             this.dataset.side = this._actualSide;
+        } else {
+            delete this.dataset.side;
         }
 
         return html`
@@ -188,7 +195,7 @@ export class OlTooltip extends LitElement {
     // ── Trigger handlers ──
 
     _onMouseEnter() {
-        if (this.disabled) return;
+        if (this.disabled || !this._canHover) return;
         this._clearTimers();
         if (this.showDelay > 0) {
             this._showTimer = setTimeout(() => this._show(), this.showDelay);
@@ -207,31 +214,27 @@ export class OlTooltip extends LitElement {
     }
 
     _onFocusIn() {
-        if (this.disabled) return;
+        if (this.disabled || !this._canHover) return;
         this._clearTimers();
         this._show();
-        // On touch devices, listen for taps outside to dismiss
-        document.addEventListener('touchstart', this._onTouchOutside, true);
     }
 
     _onFocusOut() {
         this._clearTimers();
         this._hide();
-        document.removeEventListener('touchstart', this._onTouchOutside, true);
-    }
-
-    _onTouchOutside(e) {
-        if (!e.composedPath().includes(this)) {
-            this._clearTimers();
-            this._hide();
-            document.removeEventListener('touchstart', this._onTouchOutside, true);
-        }
     }
 
     _onKeydown(e) {
         if (e.key === 'Escape' && this._visible) {
             this._hide();
         }
+    }
+
+    _onScroll() {
+        // The panel is positioned once at show time (position: fixed), so any
+        // scroll would strand it away from the trigger. Hiding is simpler and
+        // less jarring than repositioning mid-scroll.
+        this._hide();
     }
 
     // ── Show / Hide ──
@@ -244,6 +247,10 @@ export class OlTooltip extends LitElement {
         // pops into place once positioned — no flash at the wrong spot.
         this._position = { top: -9999, left: -9999 };
         this._visible = true;
+
+        // Capture phase catches scrolls in any ancestor scroll container, not
+        // just the window. Passive since we never preventDefault.
+        window.addEventListener('scroll', this._onScroll, { capture: true, passive: true });
 
         this.updateComplete.then(() => {
             if (!this._visible) return;
@@ -260,6 +267,7 @@ export class OlTooltip extends LitElement {
     _hide() {
         if (!this._visible) return;
 
+        window.removeEventListener('scroll', this._onScroll, true);
         this._visible = false;
         this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
             bubbles: true, composed: true
