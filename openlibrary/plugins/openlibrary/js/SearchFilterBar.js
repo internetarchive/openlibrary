@@ -29,6 +29,8 @@ import {
     DEFAULT_LANGUAGE_OPTIONS,
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
+    ssGet,
+    ssSet,
     availabilityFromParams,
     readStoredLanguages,
 } from './search-modal/constants.js';
@@ -40,11 +42,6 @@ import { fetchLanguageOptions } from './search-modal/languages.js';
 const AVAILABILITY_PARAM_KEYS = [
     ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
 ];
-
-// ── sessionStorage helpers ─────────────────────────────────────────────────
-
-function ssGet(key)        { try { return sessionStorage.getItem(key); } catch { return null; } }
-function ssSet(key, value) { try { sessionStorage.setItem(key, value); } catch { /* ignore */ } }
 
 function writeStoredAvailability(value) {
     ssSet(SS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);

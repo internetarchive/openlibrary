@@ -301,6 +301,27 @@ export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
 export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
 
 /**
+ * sessionStorage read/write that swallow access errors (private browsing, quota,
+ * disabled storage). `ssGet` returns null on failure; `ssSet` is a no-op. Shared
+ * by the header modal and the search-page filter row so both persist filter
+ * state the same way.
+ *
+ * @param {string} key
+ * @returns {string|null}
+ */
+export function ssGet(key) {
+    try { return sessionStorage.getItem(key); } catch { return null; }
+}
+
+/**
+ * @param {string} key
+ * @param {string} value
+ */
+export function ssSet(key, value) {
+    try { sessionStorage.setItem(key, value); } catch { /* ignore */ }
+}
+
+/**
  * localStorage key and cap for per-device recent searches.
  */
 export const LS_RECENT_SEARCHES_KEY = 'ol-recent-searches';
@@ -359,8 +380,7 @@ export function removeRecentSearch(query) {
  * @returns {string[]}
  */
 export function readStoredLanguages() {
-    let raw = null;
-    try { raw = sessionStorage.getItem(SS_LANGUAGES_KEY); } catch { return []; }
+    const raw = ssGet(SS_LANGUAGES_KEY);
     if (!raw) return [];
     try {
         const parsed = JSON.parse(raw);

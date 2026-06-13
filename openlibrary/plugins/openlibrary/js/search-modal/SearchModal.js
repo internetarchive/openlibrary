@@ -16,6 +16,8 @@ import {
     DEFAULT_SEARCH_MODAL_STRINGS,
     SS_AVAILABILITY_KEY,
     SS_LANGUAGES_KEY,
+    ssGet,
+    ssSet,
     availabilityOptionsFromElement,
     readableLanguageMismatch,
     readStoredLanguages,
@@ -80,9 +82,6 @@ const COVER_PLACEHOLDER = '/static/images/icons/avatar_book-sm.png';
 // round-trip, so the legacy SearchBar skipped it for autocomplete. Navigation
 // to /search is still allowed for it (handled by the length-only gates).
 const AUTOCOMPLETE_STOPWORDS = new Set(['the']);
-
-function ssGet(key)        { try { return sessionStorage.getItem(key); }        catch { return null; } }
-function ssSet(key, value) { try { sessionStorage.setItem(key, value); }        catch { /* ignore */ } }
 
 export class SearchModal extends LitElement {
     static properties = {
@@ -962,21 +961,29 @@ export class SearchModal extends LitElement {
 
     _closeModal() { this.open = false; }
 
+    // Empties the result list and its derived counts. `hasSearched` records
+    // whether this is a post-search empty state (true) or a pre-search reset
+    // (false); `clearReadableCount` is false in the main fetch's error path,
+    // where the separate readable-count request owns that field.
+    _resetResults({ hasSearched, clearReadableCount = true } = {}) {
+        this._results           = [];
+        this._authorSuggestions = [];
+        this._numFound          = null;
+        if (clearReadableCount) this._readableCount = null;
+        this._loading           = false;
+        this._hasSearched       = hasSearched;
+    }
+
     // The small X inside the field: clear the query without closing the modal,
     // then refocus so the patron can keep typing. Mirrors the reset
     // _onQueryInput does when the query drops below the autocomplete threshold,
     // and drops _activeFetchKey so an in-flight fetch can't repopulate results.
     _clearInput() {
-        this._query             = '';
-        this._navigatingKey     = null;
-        this._results           = [];
-        this._authorSuggestions = [];
-        this._numFound          = null;
-        this._readableCount     = null;
-        this._loading           = false;
-        this._seeAllLoading     = false;
-        this._hasSearched       = false;
-        this._activeFetchKey    = null;
+        this._query          = '';
+        this._navigatingKey  = null;
+        this._seeAllLoading  = false;
+        this._activeFetchKey = null;
+        this._resetResults({ hasSearched: false });
         const input = this.renderRoot.querySelector('.search-input');
         if (input) {
             input.value = '';
@@ -1026,6 +1033,7 @@ export class SearchModal extends LitElement {
                         ${SearchModal._searchIcon}
                         <input
                             type="search"
+                            enterkeyhint="search"
                             class="search-input"
                             autocomplete="off"
                             autocorrect="off"
@@ -1459,12 +1467,7 @@ export class SearchModal extends LitElement {
         this._query = e.target.value;
         this._navigatingKey = null;
         if (!this._shouldAutocomplete()) {
-            this._results           = [];
-            this._authorSuggestions = [];
-            this._numFound          = null;
-            this._readableCount     = null;
-            this._loading           = false;
-            this._hasSearched       = false;
+            this._resetResults({ hasSearched: false });
             return;
         }
         // Drop the previous query's author suggestion immediately. Stale book
@@ -1619,12 +1622,10 @@ export class SearchModal extends LitElement {
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
-                this._results           = [];
-                this._authorSuggestions = [];
-                this._numFound          = null;
-                if (this._availability === 'readable') this._readableCount = null;
-                this._loading           = false;
-                this._hasSearched       = true;
+                this._resetResults({
+                    hasSearched: true,
+                    clearReadableCount: this._availability === 'readable',
+                });
             });
     }
 
@@ -1647,31 +1648,31 @@ export class SearchModal extends LitElement {
             });
     }
 
-    _buildSearchJsonUrl(query) {
+    // q + mode + spellcheck shared by every /search.json request the modal makes;
+    // callers layer on limit/fields and the availability/language filters.
+    _baseSearchParams(query) {
         const params = new URLSearchParams();
         params.set('q', query);
-        params.set('limit', String(RESULTS_LIMIT));
-        params.set('fields', SEARCH_FIELDS.join(','));
         params.set('_spellcheck_count', '0');
         params.set('mode', searchMode.read());
+        return params;
+    }
+
+    _buildSearchJsonUrl(query) {
+        const params = this._baseSearchParams(query);
+        params.set('limit', String(RESULTS_LIMIT));
+        params.set('fields', SEARCH_FIELDS.join(','));
         this._appendFilterParams(params);
         return `/search.json?${params.toString()}`;
     }
 
     // Same query + language context as the main search, but forced to the
-    // readable subset (has_fulltext) and limit=0 so Solr returns only the count.
-    // Mirrors _buildSearchJsonUrl's params minus the result-shaping ones.
+    // readable subset and limit=0 so Solr returns only the count.
     _buildReadableCountUrl(query) {
-        const params = new URLSearchParams();
-        params.set('q', query);
+        const params = this._baseSearchParams(query);
         params.set('limit', '0');
         params.set('fields', 'key,editions');
-        params.set('_spellcheck_count', '0');
-        params.set('mode', searchMode.read());
-        params.set('has_fulltext', 'true');
-        for (const lang of this._languages) {
-            params.append('language', lang);
-        }
+        this._appendFilterParams(params, 'readable');
         return `/search.json?${params.toString()}`;
     }
 
@@ -1686,8 +1687,11 @@ export class SearchModal extends LitElement {
         return `/search?${params.toString()}`;
     }
 
-    _appendFilterParams(params) {
-        const availParams = AVAILABILITY_TO_PARAMS[this._availability] || {};
+    // `availability` defaults to the patron's current selection; the readable
+    // count query forces 'readable' so it mirrors the main search's language
+    // context while overriding only the availability subset.
+    _appendFilterParams(params, availability = this._availability) {
+        const availParams = AVAILABILITY_TO_PARAMS[availability] || {};
         for (const [key, value] of Object.entries(availParams)) {
             params.append(key, value);
         }
