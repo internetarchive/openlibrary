@@ -69,12 +69,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       >Page Status</a>
   </div>
 
-  $ browseProps = {
-  $   'name': 'browse',
-  $   'label': _('Browse'),
-  $   'links': browseLinks
-  $ }
-
   $ myBooksProps = {
   $   'name': 'mybooks',
   $   'label': _('My Books'),
@@ -82,7 +76,7 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
   $ }
   <ul class="navigation-component">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
-    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/browse_popover", track_prefix="MainNav")</li>
   </ul>
 
   <div class="search-component">
@@ -138,6 +132,6 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 <header class="header-bar mobile">
   <ul class="navigation-component mobile">
     <li>$:render_template("lib/header_dropdown", myBooksProps, track_prefix="MainNav")</li>
-    <li>$:render_template("lib/header_dropdown", browseProps, track_prefix="MainNav")</li>
+    <li>$:render_template("lib/browse_popover", track_prefix="MainNav")</li>
   </ul>
 </header>

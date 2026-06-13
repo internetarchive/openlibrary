@@ -905,3 +905,125 @@ div.search-facet:focus-within {
     padding: var(--spacing-inset-sm) 0;
   }
 }
+
+/* ── Browse popover ──────────────────────────────────────────
+ * The Browse nav item uses the <ol-popover> web component (rendered by
+ * openlibrary/templates/lib/browse_popover.html) instead of a native
+ * <details> dropdown. The panel opens with a 2-column grid of featured
+ * destinations (icon + title + description) above a divider, followed by a
+ * list of simple links. ol-popover owns the panel chrome (background, radius,
+ * shadow) and the mobile bottom-tray behavior; these rules style the slotted
+ * trigger and content.
+ */
+
+.header-bar .browse-popover {
+  display: inline-flex;
+}
+
+.header-bar .navigation-component .browse-popover__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-inline-sm);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--dark-grey);
+  font: inherit;
+  cursor: pointer;
+}
+
+.header-bar .browse-popover__panel {
+  box-sizing: border-box;
+  width: 240px;
+  max-width: calc(100vw - 24px);
+  padding: var(--spacing-inset-sm);
+  text-align: left;
+}
+
+.header-bar .browse-popover__featured {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.header-bar .navigation-component .browse-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-sm);
+  border-radius: var(--border-radius-md);
+  color: var(--dark-grey);
+  text-decoration: none;
+  transition: background-color 0.12s ease;
+}
+
+.navigation-component .browse-feature:hover,
+.navigation-component .browse-feature:focus-visible {
+  background-color: var(--lightest-grey);
+}
+
+.header-bar .browse-feature__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--border-radius-md);
+  background: var(--light-beige);
+  color: var(--primary-blue);
+}
+
+.header-bar .browse-feature__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.header-bar .browse-feature__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.header-bar .browse-feature__title {
+  font-size: var(--font-size-body-medium);
+  font-weight: 600;
+  line-height: var(--line-height-tight);
+}
+
+.header-bar .browse-feature__desc {
+  font-size: var(--font-size-label-medium);
+  color: var(--mid-grey);
+  line-height: var(--line-height-tight);
+}
+
+.header-bar .browse-popover__divider {
+  height: 1px;
+  margin: var(--spacing-stack-xs) 0;
+  border: 0;
+  background: var(--lighter-grey);
+}
+
+.header-bar .browse-popover__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.header-bar .browse-popover__links li {
+  margin: 0;
+}
+
+.header-bar .browse-popover__link {
+  display: block;
+  padding: var(--spacing-2xs) var(--spacing-inset-sm);
+  border-radius: var(--border-radius-md);
+  color: var(--dark-grey);
+  font-size: var(--font-size-body-medium);
+  text-decoration: none;
+}
+
+.header-bar .browse-popover__link:hover,
+.header-bar .browse-popover__link:focus-visible {
+  background-color: var(--lightest-grey);
+}
