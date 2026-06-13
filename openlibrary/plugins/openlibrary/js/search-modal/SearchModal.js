@@ -53,11 +53,19 @@ import { deriveAuthors } from './authorSuggestion.js';
 const SEARCH_FIELDS = ['key', 'cover_i', 'ia', 'title', 'subtitle', 'author_name', 'author_key', 'first_publish_year', 'ebook_access', 'language', 'editions'];
 
 // `ebook_access` values that earn the "Readable" badge: `public` (free to read
-// now) and `borrowable` (lendable) — everything a patron can read without
+// now) and `borrowable` (lendable) — everything any patron can read without
 // special access, mirroring the modal's "Readable Only" filter
-// (ebook_access:[borrowable TO *]). `printdisabled`, `unclassified`, and
-// `no_ebook` get no badge — a badge there would over-promise access.
+// (ebook_access:[borrowable TO *]). `unclassified` and `no_ebook` get no badge —
+// a badge there would over-promise access.
 const READABLE_ACCESS = new Set(['public', 'borrowable']);
+
+// `printdisabled` scans are readable only by patrons verified for print-disabled
+// access. For those patrons the server's "Readable Only" filter and count widen
+// to ebook_access:[printdisabled TO *] (see get_fulltext_min), so the badge must
+// widen too — otherwise the toggle counts a book the row then shows no badge for
+// (the exact mismatch this guards against). _isReadableAccess folds this in per
+// patron; everyone else still gets no badge on printdisabled.
+const PRINT_DISABLED_ACCESS = 'printdisabled';
 
 const RESULTS_LIMIT     = 10;
 // Matches the legacy SearchBar autocomplete threshold: fire the header
@@ -467,32 +475,22 @@ export class SearchModal extends LitElement {
             font-weight: 400;
         }
 
-        /* Quiet "In <language>" hint shown when Readable Only surfaces a copy
-           that isn't in the patron's site language. Informational, not a button —
-           muted to sit below the title/author without competing with the trailing
-           access pill. */
-        .result__lang {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-3xs);
-            margin-top: var(--spacing-3xs);
-            color: var(--accessible-grey);
-            font-size: var(--font-size-label-small);
-            font-weight: 400;
-        }
-
-        .result__lang svg {
-            width: 13px;
-            height: 13px;
-            flex-shrink: 0;
-        }
-
-        /* "Readable" pill at the trailing edge of the row (.result__meta's flex:1
-           pushes it right). A quiet status indicator, not a button — the whole
-           row is the link. Green echoes the site's "you can read this" hue. */
-        .result__access {
+        /* Trailing column at the row's edge (.result__meta's flex:1 pushes it
+           right): the "Readable" pill, with the "In <language>" hint stacked
+           directly beneath it. Right-aligned and top-aligned so the access
+           information reads as one unit, apart from the title/author block. */
+        .result__access-col {
             flex-shrink: 0;
             align-self: flex-start;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-3xs);
+        }
+
+        /* "Readable" pill — a quiet status indicator, not a button (the whole
+           row is the link). Green echoes the site's "you can read this" hue. */
+        .result__access {
             padding: var(--spacing-3xs) var(--spacing-xs);
             border-radius: var(--border-radius-button);
             font-size: var(--font-size-label-small);
@@ -501,6 +499,16 @@ export class SearchModal extends LitElement {
             white-space: nowrap;
             color: var(--open-green);
             background: hsla(126, 100%, 30%, 0.1);
+        }
+
+        /* Quiet "In <language>" hint shown under the Readable pill when the
+           readable copy isn't in the patron's site language. Informational, not
+           a button — muted so it sits below the pill without competing with it. */
+        .result__lang {
+            color: var(--accessible-grey);
+            font-size: var(--font-size-label-small);
+            font-weight: 400;
+            white-space: nowrap;
         }
 
         .empty, .loading {
@@ -877,6 +885,13 @@ export class SearchModal extends LitElement {
         // suppressed rather than guessed.
         this._siteLanguage = '';
 
+        // Whether the patron is verified for print-disabled access (the `pd`
+        // cookie, surfaced as data-print-disabled on the trigger). Widens the
+        // "Readable" badge to printdisabled scans for these patrons, matching the
+        // server's per-patron readable count (see _isReadableAccess). Defaults to
+        // false; set in initSearchModal before the first render.
+        this._printDisabled = false;
+
         // Availability is now a binary All / Readable Only toggle. Honor only an
         // explicit stored 'readable'; everything else — no preference, or a
         // legacy 'open'/'borrowable' value from before the toggle — collapses to
@@ -1245,6 +1260,16 @@ export class SearchModal extends LitElement {
         img.src = COVER_PLACEHOLDER;
     }
 
+    // Whether an `ebook_access` value earns the "Readable" badge for this patron.
+    // `public`/`borrowable` are readable for everyone; `printdisabled` only for
+    // patrons verified for print-disabled access — mirroring the server's
+    // per-patron readable filter/count (get_fulltext_min) so the badge and the
+    // "Readable Only" count never disagree about the same book.
+    _isReadableAccess(access) {
+        if (READABLE_ACCESS.has(access)) return true;
+        return this._printDisabled && access === PRINT_DISABLED_ACCESS;
+    }
+
     // The whole row is a single link to the work — the author is surfaced in
     // its own suggestion row, so there's no separate author link here (which
     // also keeps this a plain anchor with no nested-link concern).
@@ -1277,21 +1302,46 @@ export class SearchModal extends LitElement {
         const author = work.author_name?.[0] || '';
         const year   = work.first_publish_year || '';
 
-        // When the patron hasn't constrained the language, flag a promoted edition
-        // that isn't in their site language so they aren't surprised by the
-        // language of the page this row opens. null on a match (no pill).
-        const otherLang = readableLanguageMismatch({
-            edition,
-            languages: this._languages,
-            siteLanguage: this._siteLanguage,
-            options: this._languageItems,
-        });
-
         // "Readable" badge from the work-level ebook_access aggregate (work-level
         // even when a readable edition is promoted: it's the book's best access,
         // which is what the badge communicates). false for books with no readable
         // access — those render no badge.
-        const readable = READABLE_ACCESS.has(work.ebook_access);
+        const readable = this._isReadableAccess(work.ebook_access);
+
+        // Flag the promoted edition's language when it isn't the patron's site
+        // language — so they see that the readable copy this row opens is "In
+        // French", etc. Gated on the *promoted edition's* own ebook_access (not
+        // the work-level `readable` badge, and not the Readable Only toggle), so
+        // the hint shows whether or not the toggle is on and only describes a
+        // copy we've confirmed is readable — the one this row actually opens.
+        // This can diverge from the badge: a work can earn the work-level badge
+        // via some other edition while the promoted edition isn't readable; we
+        // see only this one edition, so we stay quiet rather than name a language
+        // off a copy that may not be readable. With the toggle off the promoted
+        // edition is usually already in the site language (the site-language
+        // boost wins), so the hint stays quiet unless the readable copy is
+        // foreign. null on a language match, a chosen language filter, or an
+        // unknown site language.
+        //
+        // Known, accepted limitation (NOT a bug — don't "fix" it by accident):
+        // Solr picks this one promoted edition via a site-language-weighted boost
+        // (works.py bq: `language:{user_lang}^40`, user_lang from web.ctx.lang).
+        // That's a soft boost, not a hard sort, so a strongly text-matching
+        // foreign edition can rarely outrank an existing same-language readable
+        // edition. Since we read only one edition per work (editions.rows=1), we
+        // can't see that same-language copy, so the hint may read "In French"
+        // even when a readable English copy exists deeper in the work. Same root
+        // cause as the badge/pill divergence above; eliminating it would require
+        // fetching every readable edition's language, which we deliberately don't.
+        const editionReadable = this._isReadableAccess(edition?.ebook_access);
+        const otherLang = editionReadable
+            ? readableLanguageMismatch({
+                edition,
+                languages: this._languages,
+                siteLanguage: this._siteLanguage,
+                options: this._languageItems,
+            })
+            : null;
 
         // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
         // get_ia_cover): prefer an OL-uploaded cover (cover_i), else fall back to
@@ -1331,9 +1381,11 @@ export class SearchModal extends LitElement {
                         <span class="result__title">${display.title || work.title || this._i18n.untitled}</span>
                         ${author ? html`<span class="result__author">${author}</span>` : nothing}
                         ${year ? html`<span class="result__year">${year}</span>` : nothing}
-                        ${otherLang ? html`<span class="result__lang">${SearchModal._translateIcon}${sprintf(this._i18n.inLanguage, otherLang)}</span>` : nothing}
                     </span>
-                    ${readable ? html`<span class="result__access">${this._i18n.accessReadable}</span>` : nothing}
+                    ${readable ? html`<span class="result__access-col">
+                        <span class="result__access">${this._i18n.accessReadable}</span>
+                        ${otherLang ? html`<span class="result__lang">${sprintf(this._i18n.inLanguage, otherLang)}</span>` : nothing}
+                    </span>` : nothing}
                 </a>
             </li>`;
     }
@@ -1651,10 +1703,6 @@ export class SearchModal extends LitElement {
     static _backIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`;
 
     static _personIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
-
-    // Globe — marks the "In <language>" pill flagging a readable copy that isn't
-    // in the patron's site language.
-    static _translateIcon = html`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
 }
 
 customElements.define('ol-search-modal', SearchModal);
@@ -1683,6 +1731,10 @@ export function initSearchModal(trigger) {
     // The trigger carries the 2-letter UI code (data-search-lang); map it to
     // MARC here. '' when absent or not a known UI language.
     modal._siteLanguage = siteLanguageToMarc(trigger.dataset.searchLang || '');
+    // Whether the patron is verified for print-disabled access (data-print-disabled,
+    // from ctx.user.is_printdisabled()). Widens the "Readable" badge to
+    // printdisabled scans for these patrons, matching the readable count.
+    modal._printDisabled = trigger.dataset.printDisabled === 'true';
 
     document.body.appendChild(modal);
     modal.attachToTrigger(trigger);

@@ -96,7 +96,13 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
       $# data-search-lang is the patron's site language (2-letter UI code, e.g.
       $# 'fr'); the modal maps it to a MARC code (siteLanguageToMarc) to flag a
       $# readable result whose only readable copy isn't in their language.
-      <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')">
+      $# data-print-disabled is whether the patron is verified for print-disabled
+      $# access; the modal widens the "Readable" badge to printdisabled scans for
+      $# them, matching the server's per-patron readable count (get_fulltext_min).
+      $# Read straight from the `pd` cookie — the same (login-independent) signal
+      $# request_context derives print_disabled from, so badge and count agree.
+      $ is_print_disabled = 'true' if cookies().get('pd') else 'false'
+      <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')" data-print-disabled="$is_print_disabled">
         <span class="search-bar-trigger__label">$_('Search')</span>
         <span class="search-bar-trigger__icon" aria-hidden="true"></span>
       </button>
