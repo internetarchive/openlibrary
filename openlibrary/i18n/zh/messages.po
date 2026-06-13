@@ -4875,7 +4875,7 @@ msgstr " 您的新记录已入库。谢谢！"
 
 #: lib/message_addbook.html
 msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr ""
+msgstr "您还可以在这里添加一些其他简单的内容，快速改善您的新记录，让其他人更容易找到它。"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4884,7 +4884,7 @@ msgstr "添加封面图片"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "拍一张封面照片分享？"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4893,7 +4893,7 @@ msgstr "添加新的清单"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "帮助图书馆与其他系统连接，例如Amazon。"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4902,15 +4902,15 @@ msgstr "常见主题"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "就像标签一样。"
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "描述这本书的内容"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "一两句话就够了。"
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -5065,7 +5065,7 @@ msgstr "删除笔记"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5084,7 +5084,7 @@ msgstr "开放图书馆logo"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5123,7 +5123,7 @@ msgstr "退出登录"
 
 #: lib/nav_head.html
 msgid "Pending Merge Requests"
-msgstr ""
+msgstr "待处理合并请求"
 
 #: lib/nav_head.html search/sort_options.html
 msgid "Trending"
@@ -5206,11 +5206,11 @@ msgstr "邮件名单"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "数据质量表"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "质量标准"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -5219,7 +5219,7 @@ msgstr "查看全部"
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
-msgstr ""
+msgstr "%(list)s - 版本"
 
 #: lists/export_as_html.html type/list/embed.html type/list/view_body.html
 msgid "Unknown authors"
@@ -5337,7 +5337,7 @@ msgstr "借阅书籍"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "书单所有者的头像"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -5345,15 +5345,15 @@ msgstr "您"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "该读者尚未启用关注功能"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "关注"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -5376,12 +5376,12 @@ msgstr "要从您的清单里删除吗？"
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
+msgstr "来自<a href=\"%(link)s\">您</a>"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
+msgstr "来自<a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
@@ -5419,20 +5419,20 @@ msgstr "确定要删除这个清单里的<strong>%(title)s</strong>吗？"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "该读者还没有创建任何书单。"
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr ""
+msgstr "您还没有创建任何书单。"
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
-msgstr ""
+msgstr "了解如何创建您的第一个书单。"
 
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "由<a href=\"%s\">您</a>"
 
 #: lists/showcase.html
 #, fuzzy, python-format
@@ -5450,7 +5450,7 @@ msgstr "来自"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "加载中<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
@@ -5470,7 +5470,7 @@ msgstr "请选择一些作者进行合并。"
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "选择最旧的档案作为主档案 -"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
@@ -5499,7 +5499,7 @@ msgstr "<b>您确定</b>要合并这些档案吗？"
 
 #: merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
-msgstr ""
+msgstr "主要"
 
 #: merge/authors.html
 msgid "Merge"
@@ -5507,7 +5507,7 @@ msgstr "合并"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "出生/死亡日期"
 
 #: merge/authors.html
 msgid "Open in a new window"
@@ -5548,28 +5548,28 @@ msgstr "合并作者"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "提交评论失败。请稍后重试。"
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "（可选）您为什么关闭此请求？"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
-msgstr ""
+msgstr "仅显示%(username)s的请求。"
 
 #: merge_request_table/merge_request_table.html
 msgid "Show all requests"
-msgstr ""
+msgstr "显示所有请求"
 
 #: merge_request_table/merge_request_table.html
 msgid "Showing all requests."
-msgstr ""
+msgstr "正在显示所有请求。"
 
 #: merge_request_table/merge_request_table.html
 msgid "Show my requests"
-msgstr ""
+msgstr "显示我的请求"
 
 #: merge_request_table/merge_request_table.html
 #, fuzzy
@@ -5608,7 +5608,7 @@ msgstr "合并"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "已拒绝"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5617,11 +5617,11 @@ msgstr "提交"
 
 #: merge_request_table/table_header.html
 msgid "Filter submitters"
-msgstr ""
+msgstr "筛选提交者"
 
 #: merge_request_table/table_header.html
 msgid "Submitted by me"
-msgstr ""
+msgstr "由我提交"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5640,7 +5640,7 @@ msgstr "评价"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "未分配"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5664,7 +5664,7 @@ msgstr "较早的"
 
 #: merge_request_table/table_row.html
 msgid "An untitled work"
-msgstr ""
+msgstr "未命名作品"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5678,7 +5678,7 @@ msgstr "其他问题"
 
 #: merge_request_table/table_row.html
 msgid "Closed request"
-msgstr ""
+msgstr "已关闭的请求"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5692,12 +5692,12 @@ msgstr "编辑而不评论。"
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "回复"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s由<a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>于%(date)s开启"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5706,7 +5706,7 @@ msgstr "点击删除此面"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
+msgstr "审核 <!-- （合并请求） -->"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5749,7 +5749,7 @@ msgstr "保存中..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "将此书从书架中移除将删除您对此作品的打卡记录。继续吗？"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -5782,15 +5782,15 @@ msgstr "任何的都可以"
 
 #: my_books/check_ins/check_in_form.html
 msgid "June"
-msgstr ""
+msgstr "六月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "July"
-msgstr ""
+msgstr "七月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "August"
-msgstr ""
+msgstr "八月"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5814,7 +5814,7 @@ msgstr "记住我"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr ""
+msgstr "添加可选的打卡日期。打卡日期用于追踪年度阅读目标。"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5823,7 +5823,7 @@ msgstr "发送"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year:"
-msgstr ""
+msgstr "年份："
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5857,16 +5857,16 @@ msgstr "删除笔记"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "删除打卡失败。请稍后重试。"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "提交打卡失败。请稍后重试。"
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "已读 <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 #, fuzzy
@@ -5880,7 +5880,7 @@ msgstr "另加"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Check-In"
-msgstr ""
+msgstr "打卡"
 
 #: observations/review_component.html
 msgid "Community Reviews"
@@ -5924,7 +5924,7 @@ msgstr "试试别的？"
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "出版商：%(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
@@ -6002,17 +6002,17 @@ msgstr "您想做什么呢？"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
+msgstr "输入\"0\"可取消设置您的阅读目标。您的打卡记录将被保留。"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr ""
+msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span>本书"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "Edit %(year)d Reading Goal"
-msgstr ""
+msgstr "编辑%(year)d年阅读目标"
 
 #: recentchanges/header.html
 #, fuzzy
@@ -6021,7 +6021,7 @@ msgstr "出自于"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "全部撤销"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -6095,12 +6095,12 @@ msgstr "已更新的记录"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "已合并重复的%(record_type)s记录。"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "查看<a href=\"%s\">详情</a>。"
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -6117,7 +6117,7 @@ msgstr "合并重复的内容"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "已将%(page_type)s合并到主%(record_type)s记录中。"
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -6155,12 +6155,12 @@ msgstr[1] ""
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "撤销<a href=\"$parent.url()\">%(kind)s</a>。"
 
 #: recentchanges/undo/view.html
 #, python-format
 msgid "%(count)d records modified."
-msgstr ""
+msgstr "已修改%(count)d条记录。"
 
 #: search/advancedsearch.html
 msgid "ISBN"
@@ -6187,7 +6187,7 @@ msgstr "全文搜索"
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "在Open Library中搜索\"%(query)s\""
 
 #: search/authors.html
 #, fuzzy
@@ -6204,7 +6204,7 @@ msgstr "合并作者"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "没有<strong>作者</strong>与您的搜索直接匹配"
 
 #: search/inside.html
 #, python-format
@@ -6217,7 +6217,7 @@ msgstr "在内部搜索"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "没有<strong>书内搜索</strong>文本与您的搜索匹配"
 
 #: search/inside.html
 #, python-format
@@ -6240,7 +6240,7 @@ msgstr "作品详情"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "网格"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6258,7 +6258,7 @@ msgstr "在内部搜索"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "没有<strong>书单</strong>与您的搜索直接匹配"
 
 #: search/publishers.html
 msgid "Publishers Search"
@@ -6267,7 +6267,7 @@ msgstr "搜索出版商"
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "在第%(page_num)d页："
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -6284,15 +6284,15 @@ msgstr "随机"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "姓名（测试版：仅限馆员）"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "出生日期（最早）（测试版：仅限馆员）"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "出生日期（最近）（测试版：仅限馆员）"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6346,7 +6346,7 @@ msgstr "任何的都可以"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "作品标题（测试版：仅限馆员）"
 
 #: search/sort_options.html
 msgid "Sorting by"
@@ -6363,7 +6363,7 @@ msgstr "探索主题"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "没有<strong>主题</strong>与您的搜索直接匹配"
 
 #: search/subjects.html
 msgid "time"
@@ -6553,7 +6553,7 @@ msgstr "我们未能找到任何相关的书籍"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
@@ -6586,7 +6586,7 @@ msgstr "这显示在链接名单的下方。"
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "更多信息"
 
 #: type/author/edit.html
 msgid "Edit Author"
