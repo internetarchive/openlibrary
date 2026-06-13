@@ -226,6 +226,24 @@ class DataProvider:
         """
         pass
 
+    def get_cover_dimensions(self, cover_id: int) -> tuple[int, int] | None:
+        """
+        Returns the width and height of the cover with the given ID.
+
+        :param int cover_id: The ID of the cover.
+        :return: A tuple containing the width and height of the cover, or None if not found.
+        """
+        raise NotImplementedError
+
+    def preload_cover_dimensions(self):
+        """
+        Preload the cover dimensions of the provided covers. Should make subsequent calls to
+        get_cover_dimensions faster.
+
+        :return: None
+        """
+        pass
+
     def find_redirects(self, key):
         """
         Returns keys of all things which redirect to this one.
@@ -325,6 +343,8 @@ class DatabaseDataProvider(DataProvider):
 
         self.edition_keys_of_works_cache: dict[str, list[str]] = {}
 
+        self.covers_cache: dict[int, tuple[int, int] | None] = {}
+
         import infogami
         from infogami.utils import delegate
 
@@ -337,7 +357,9 @@ class DatabaseDataProvider(DataProvider):
 
             from openlibrary.core.db import get_db
 
-            self.db: DB = get_db()
+            self.db = get_db()
+            covers_db_parameters = web.config.db_parameters | {"db": "coverstore"}
+            self.covers_db = web.database(**covers_db_parameters)
         else:
             self.db = db
 
@@ -357,6 +379,7 @@ class DatabaseDataProvider(DataProvider):
         self._preload_authors()
         self._preload_editions()
         await self._preload_metadata_of_editions()
+        self.preload_cover_dimensions()
 
         # for all works and authors, find redirects as they'll requested later
         keys3 = [k for k in self.cache if k.startswith(("/works/", "/authors/"))]
@@ -433,6 +456,41 @@ class DatabaseDataProvider(DataProvider):
         for thing in matches:
             # we are trying to find documents that are redirecting to each of the given keys
             self.redirect_cache[thing.location].append(thing.key)
+
+    @typing.override
+    def get_cover_dimensions(self, cover_id: int):
+        if cover_id in self.covers_cache:
+            logger.debug("Cover dimensions cache hit")
+            return self.covers_cache[cover_id]
+
+        logger.debug("Cover dimensions cache miss")
+        row = list(self.covers_db.query("SELECT width, height FROM cover WHERE id=$cover_id", vars={"cover_id": cover_id}))
+        if not row:
+            return None
+
+        dimensions = row[0].width, row[0].height
+        self.covers_cache[cover_id] = dimensions
+        return dimensions
+
+    @typing.override
+    def preload_cover_dimensions(self):
+        cover_ids = set()
+        for doc in self.cache.values():
+            if doc and doc.get("covers") and (cover_id := next((i for i in doc["covers"] if i != -1), None)):
+                cover_ids.add(cover_id)
+        cover_ids = [cid for cid in cover_ids if cid not in self.covers_cache]
+        if not cover_ids:
+            return
+
+        result = self.covers_db.query(
+            """
+            SELECT id, width, height FROM cover
+            WHERE id IN $cover_ids
+        """,
+            vars={"cover_ids": cover_ids},
+        )
+        for row in result:
+            self.covers_cache[row.id] = (row.width, row.height)
 
     def get_editions_of_work(self, work):
         wkey = work["key"]
@@ -512,3 +570,4 @@ class DatabaseDataProvider(DataProvider):
         self.cache.clear()
         self.redirect_cache.clear()
         self.edition_keys_of_works_cache.clear()
+        self.covers_cache.clear()
