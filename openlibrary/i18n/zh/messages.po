@@ -8351,7 +8351,7 @@ msgstr "此页面已被删除"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "未找到使用此电子邮件的账户。请重试"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8370,11 +8370,11 @@ msgstr "请为您的开放图书馆账号输入新的密码。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "请先验证您的Internet Archive账户，然后再登录"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "请填写所有字段后重试"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8388,15 +8388,15 @@ msgstr "该电子邮箱已经注册"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "发生了一个问题，我们无法将您登录。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "使用无效的Internet Archive S3凭据尝试登录。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "服务器正在经历异常高流量，请稍后重试或发送邮件至openlibrary@archive.org获取帮助。"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8410,20 +8410,20 @@ msgstr "密码不匹配"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "发生了一个问题，我们无法将您登录"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "登录或注册时遇到意外错误，请重试或联系info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "请求失败，错误代码：%(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "感谢您注册Open Library账户并申请印刷障碍特殊访问权限。您应会收到一封电子邮件，详述下一步流程。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
@@ -8435,15 +8435,15 @@ msgstr "该电子邮箱已经注册"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "此电子邮件已存在Internet Archive账户"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "验证失败。链接可能无效或已过期。请重新注册。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "您的电子邮件已验证。您现在已登录。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
@@ -8457,7 +8457,7 @@ msgstr "购买这本书"
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "无法归还%s。请稍后重试或联系info@archive.org。"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy, python-format
@@ -8466,7 +8466,7 @@ msgstr ""
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "您的账户已达到借阅限额。请稍后重试或联系info@archive.org。"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
@@ -8499,7 +8499,7 @@ msgstr "网名"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "公开且之后无法更改。"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -8516,7 +8516,7 @@ msgstr "设置一个密码"
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "继续 <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
