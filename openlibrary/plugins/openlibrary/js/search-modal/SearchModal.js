@@ -42,10 +42,13 @@ import { deriveAuthors } from './authorSuggestion.js';
 // site (Edition.get_cover_url → get_ia_cover). Requesting `ia` also propagates
 // it into the `editions:[subquery]` docs (see WorkSearchScheme), so both the
 // work-level `ia` and the top edition's `ia` are available. See issue #12893.
-// `ebook_access` is the work-level access aggregate (Solr enum: no_ebook,
-// unclassified, printdisabled, borrowable, public) — it drives the per-result
-// "Readable" badge. It says only what kind of access the book has, not whether
-// all copies are currently on loan; live "checked out" state is not in Solr.
+// `ebook_access` is the access level (Solr enum: no_ebook, unclassified,
+// printdisabled, borrowable, public). It rides along at both levels: the
+// promoted edition's value drives the per-result "Readable" badge (the badge
+// describes the copy this row opens — see _renderResult), and the work-level
+// aggregate is the fallback when no edition is promoted. It says only what kind
+// of access a copy has, not whether it's currently on loan; live "checked out"
+// state is not in Solr.
 // `language` propagates into the `editions:[subquery]` docs (WORK_FIELD_TO_ED_FIELD),
 // so the promoted readable edition carries its own language — letting
 // _renderResult flag a readable copy that isn't in the patron's site language
@@ -1302,38 +1305,39 @@ export class SearchModal extends LitElement {
         const author = work.author_name?.[0] || '';
         const year   = work.first_publish_year || '';
 
-        // "Readable" badge from the work-level ebook_access aggregate (work-level
-        // even when a readable edition is promoted: it's the book's best access,
-        // which is what the badge communicates). false for books with no readable
-        // access — those render no badge.
-        const readable = this._isReadableAccess(work.ebook_access);
-
-        // Flag the promoted edition's language when it isn't the patron's site
-        // language — so they see that the readable copy this row opens is "In
-        // French", etc. Gated on the *promoted edition's* own ebook_access (not
-        // the work-level `readable` badge, and not the Readable Only toggle), so
-        // the hint shows whether or not the toggle is on and only describes a
-        // copy we've confirmed is readable — the one this row actually opens.
-        // This can diverge from the badge: a work can earn the work-level badge
-        // via some other edition while the promoted edition isn't readable; we
-        // see only this one edition, so we stay quiet rather than name a language
-        // off a copy that may not be readable. With the toggle off the promoted
-        // edition is usually already in the site language (the site-language
-        // boost wins), so the hint stays quiet unless the readable copy is
-        // foreign. null on a language match, a chosen language filter, or an
-        // unknown site language.
-        //
-        // Known, accepted limitation (NOT a bug — don't "fix" it by accident):
-        // Solr picks this one promoted edition via a site-language-weighted boost
-        // (works.py bq: `language:{user_lang}^40`, user_lang from web.ctx.lang).
-        // That's a soft boost, not a hard sort, so a strongly text-matching
-        // foreign edition can rarely outrank an existing same-language readable
-        // edition. Since we read only one edition per work (editions.rows=1), we
-        // can't see that same-language copy, so the hint may read "In French"
-        // even when a readable English copy exists deeper in the work. Same root
-        // cause as the badge/pill divergence above; eliminating it would require
-        // fetching every readable edition's language, which we deliberately don't.
+        // Whether the promoted edition — the copy weighted toward the patron's
+        // site language, and the one this row opens — is itself readable for this
+        // patron. Drives both the badge and the language hint below.
         const editionReadable = this._isReadableAccess(edition?.ebook_access);
+
+        // "Readable" badge. When an edition is promoted, the badge reflects
+        // whether *that* copy is readable — not the work-level ebook_access
+        // aggregate. So a work whose only readable copies are in another language
+        // no longer flashes "Readable" off a copy the patron can't read in their
+        // language: with Readable Only off the language-matched edition wins
+        // promotion and, when it isn't readable, the row carries no badge. (Turn
+        // Readable Only on and the subquery instead promotes the readable foreign
+        // copy, which earns the badge plus an "In <language>" hint.) Falls back to
+        // the work-level aggregate only when no edition was promoted — editions
+        // disabled via SOLR_EDITIONS, or an edition-less work — so those still
+        // badge from the work.
+        const readable = edition ? editionReadable : this._isReadableAccess(work.ebook_access);
+
+        // Name the promoted edition's language when it isn't the patron's site
+        // language, so they see the readable copy this row opens is "In French",
+        // etc. Gated on the promoted edition's own readability (so we only name a
+        // language for a copy we've confirmed readable) and independent of the
+        // toggle. Since the badge now keys off this same edition, the hint never
+        // shows without it. null on a language match, a chosen language filter, or
+        // an unknown site language.
+        //
+        // Edge (rare, accepted): Solr promotes one edition via a soft
+        // site-language boost (works.py bq `language:{user_lang}^40`), not a hard
+        // sort, and we read only that edition (editions.rows=1). A strongly
+        // text-matching readable foreign edition can outrank a readable
+        // same-language copy, so the hint may name a foreign language even when a
+        // readable site-language copy exists deeper in the work. Eliminating it
+        // would mean fetching every readable edition's language, which we don't.
         const otherLang = editionReadable
             ? readableLanguageMismatch({
                 edition,
