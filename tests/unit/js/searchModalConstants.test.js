@@ -5,6 +5,7 @@ import {
     availabilityOptionsFromElement,
     languageNameFromOptions,
     localizeAvailabilityOptions,
+    readableEditionLanguages,
     readableLanguageMismatch,
     searchModalStringsFromElement,
     siteLanguageToMarc,
@@ -204,5 +205,58 @@ describe('readableLanguageMismatch', () => {
 
     test('returns null when the mismatched code has no display name', () => {
         expect(readableLanguageMismatch({ ...base, edition: { language: ['zzz'] }, options: [] })).toBeNull();
+    });
+});
+
+describe('readableEditionLanguages', () => {
+    const opts = [
+        { value: 'fre', label: 'French' },
+        { value: 'ger', label: 'German' },
+        { value: 'spa', label: 'Spanish' },
+        { value: 'eng', label: 'English' },
+    ];
+    const base = {
+        edition: { language: ['fre'] },
+        languages: ['eng', 'fre'],
+        options: opts,
+    };
+
+    test('names the readable copy\'s language when several languages are selected', () => {
+        expect(readableEditionLanguages(base)).toBe('French');
+    });
+
+    test('names the language even when it matches the patron\'s site language choice', () => {
+        // No site-language gating here: the explicit filter overrides it.
+        expect(readableEditionLanguages({ ...base, edition: { language: ['eng'] } })).toBe('English');
+    });
+
+    test('names two languages joined with a comma, no ellipsis', () => {
+        expect(readableEditionLanguages({ ...base, edition: { language: ['fre', 'ger'] } })).toBe('French, German');
+    });
+
+    test('names the first two and appends an ellipsis when the edition lists more', () => {
+        expect(readableEditionLanguages({ ...base, edition: { language: ['fre', 'ger', 'spa'] } })).toBe('French, German, …');
+    });
+
+    test('drops codes with no display name before counting', () => {
+        expect(readableEditionLanguages({ ...base, edition: { language: ['fre', 'zzz'] } })).toBe('French');
+    });
+
+    test('returns null when fewer than two languages are selected', () => {
+        expect(readableEditionLanguages({ ...base, languages: ['fre'] })).toBeNull();
+        expect(readableEditionLanguages({ ...base, languages: [] })).toBeNull();
+    });
+
+    test('returns null when there is no promoted readable edition', () => {
+        expect(readableEditionLanguages({ ...base, edition: null })).toBeNull();
+    });
+
+    test('returns null when the edition carries no language', () => {
+        expect(readableEditionLanguages({ ...base, edition: {} })).toBeNull();
+        expect(readableEditionLanguages({ ...base, edition: { language: [] } })).toBeNull();
+    });
+
+    test('returns null when no code resolves to a display name', () => {
+        expect(readableEditionLanguages({ ...base, edition: { language: ['zzz'] }, options: [] })).toBeNull();
     });
 });

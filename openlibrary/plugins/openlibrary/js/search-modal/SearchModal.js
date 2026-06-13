@@ -20,6 +20,7 @@ import {
     ssSet,
     availabilityOptionsFromElement,
     readableLanguageMismatch,
+    readableEditionLanguages,
     readStoredLanguages,
     searchModalStringsFromElement,
     siteLanguageToMarc,
@@ -1331,29 +1332,40 @@ export class SearchModal extends LitElement {
         // badge from the work.
         const readable = edition ? editionReadable : this._isReadableAccess(work.ebook_access);
 
-        // Name the promoted edition's language when it isn't the patron's site
-        // language, so they see the readable copy this row opens is "In French",
-        // etc. Gated on the promoted edition's own readability (so we only name a
-        // language for a copy we've confirmed readable) and independent of the
-        // toggle. Since the badge now keys off this same edition, the hint never
-        // shows without it. null on a language match, a chosen language filter, or
-        // an unknown site language.
+        // Name the promoted edition's language below the "Readable" badge so the
+        // patron knows the language of the copy this row opens. Gated on the
+        // promoted edition's own readability (so we only name a language for a copy
+        // we've confirmed readable); since the badge now keys off this same edition,
+        // the hint never shows without it. Two cases drive it:
         //
-        // Edge (rare, accepted): Solr promotes one edition via a soft
-        // site-language boost (works.py bq `language:{user_lang}^40`), not a hard
-        // sort, and we read only that edition (editions.rows=1). A strongly
-        // text-matching readable foreign edition can outrank a readable
-        // same-language copy, so the hint may name a foreign language even when a
-        // readable site-language copy exists deeper in the work. Eliminating it
-        // would mean fetching every readable edition's language, which we don't.
-        const otherLang = editionReadable
-            ? readableLanguageMismatch({
-                edition,
-                languages: this._languages,
-                siteLanguage: this._siteLanguage,
-                options: this._languageItems,
-            })
-            : null;
+        //  - No language filter: flag the copy only when it *isn't* in the patron's
+        //    site language (readableLanguageMismatch) — a surprise-avoidance hint.
+        //  - Several languages chosen: a readable row could be in any of them, so
+        //    always name the copy's language (readableEditionLanguages) so the
+        //    patron can tell which of their filters it satisfies. (A single language
+        //    filter constrains every result to it, so both helpers stay quiet.)
+        //
+        // Edge (rare, accepted): Solr promotes one edition via a soft site-language
+        // boost (works.py bq `language:{user_lang}^40`), not a hard sort, and we
+        // read only that edition (editions.rows=1). A strongly text-matching
+        // readable foreign edition can outrank a readable same-language copy, so the
+        // hint may name a foreign language even when a readable site-language copy
+        // exists deeper in the work. Eliminating it would mean fetching every
+        // readable edition's language, which we don't.
+        const otherLang = !editionReadable
+            ? null
+            : this._languages.length >= 2
+                ? readableEditionLanguages({
+                    edition,
+                    languages: this._languages,
+                    options: this._languageItems,
+                })
+                : readableLanguageMismatch({
+                    edition,
+                    languages: this._languages,
+                    siteLanguage: this._siteLanguage,
+                    options: this._languageItems,
+                });
 
         // Cover resolution mirrors the rest of the site (Edition.get_cover_url →
         // get_ia_cover): prefer an OL-uploaded cover (cover_i), else fall back to

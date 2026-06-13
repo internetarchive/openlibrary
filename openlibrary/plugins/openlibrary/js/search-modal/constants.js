@@ -251,7 +251,28 @@ export function languageNameFromOptions(options, code) {
 // Most languages to name in the "In <language>" hint before truncating to a
 // trailing ", …". Two keeps the pill short while still signalling a multilingual
 // readable copy (e.g. "In French, German, …").
-const MISMATCH_LANG_LIMIT = 2;
+const HINT_LANG_LIMIT = 2;
+
+/**
+ * Format an edition's language codes as a short, localized list for the
+ * "In <language>" hint: up to HINT_LANG_LIMIT names joined with ", ", with a
+ * trailing ", …" when more remain. Codes with no display name are dropped before
+ * counting, so they neither fill a slot nor force the ellipsis. Returns null when
+ * the edition carries no language or none of its codes resolve to a name.
+ *
+ * @param {string[]|undefined} langs - the edition's MARC language codes
+ * @param {Array<{value: string, label: string}>|null} options - loaded catalogue
+ * @returns {string|null}
+ */
+function listEditionLanguages(langs, options) {
+    if (!Array.isArray(langs) || langs.length === 0) return null;
+    const names = langs
+        .map((code) => languageNameFromOptions(options, code))
+        .filter(Boolean);                                // drop codes with no display name
+    if (names.length === 0) return null;
+    const shown = names.slice(0, HINT_LANG_LIMIT).join(', ');
+    return names.length > HINT_LANG_LIMIT ? `${shown}, …` : shown;
+}
 
 /**
  * The localized language names to surface on a readable result whose promoted
@@ -272,6 +293,10 @@ const MISMATCH_LANG_LIMIT = 2;
  * also guarantees none of the named languages is the site language); or no code
  * resolves to a display name.
  *
+ * The "patron already chose a language" case is handled differently when they
+ * pick *several* languages — see readableEditionLanguages, which then names the
+ * copy's language so the patron can tell which of their filters a row satisfies.
+ *
  * @param {Object} args
  * @param {{language?: string[]}|null} args.edition - promoted readable edition
  * @param {string[]} args.languages - the patron's selected language filters
@@ -286,12 +311,32 @@ export function readableLanguageMismatch({ edition, languages, siteLanguage, opt
     const langs = edition.language;
     if (!Array.isArray(langs) || langs.length === 0) return null;
     if (langs.includes(siteLanguage)) return null;       // readable in their language → fine
-    const names = langs
-        .map((code) => languageNameFromOptions(options, code))
-        .filter(Boolean);                                // drop codes with no display name
-    if (names.length === 0) return null;
-    const shown = names.slice(0, MISMATCH_LANG_LIMIT).join(', ');
-    return names.length > MISMATCH_LANG_LIMIT ? `${shown}, …` : shown;
+    return listEditionLanguages(langs, options);
+}
+
+/**
+ * The localized language name(s) to surface on a readable result when the patron
+ * has filtered by MORE THAN ONE language. With several languages selected, any
+ * given readable copy could be in any of them, so naming the promoted edition's
+ * language tells the patron which of their filters this row satisfies — the
+ * complement to readableLanguageMismatch's no-filter case.
+ *
+ * Stays quiet (returns null) when there's no promoted readable edition, fewer
+ * than two languages are selected (a single filter constrains every result to it,
+ * so naming it is redundant), the edition carries no language, or none of its
+ * codes resolve to a display name. The site language is irrelevant here — the
+ * patron's explicit language choice overrides it.
+ *
+ * @param {Object} args
+ * @param {{language?: string[]}|null} args.edition - promoted readable edition
+ * @param {string[]} args.languages - the patron's selected language filters
+ * @param {Array<{value: string, label: string}>|null} args.options - loaded language catalogue
+ * @returns {string|null}
+ */
+export function readableEditionLanguages({ edition, languages, options }) {
+    if (!edition) return null;                            // only promoted readable editions
+    if (!languages || languages.length < 2) return null; // only when juggling several filters
+    return listEditionLanguages(edition.language, options);
 }
 
 /**
