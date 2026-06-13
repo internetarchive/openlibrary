@@ -9,6 +9,7 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
+from openlibrary.utils.request_context import site
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -203,12 +204,12 @@ class community_edits_queue(delegate.page):
     def create_title(mr_type: int, olids: list[str]) -> str:
         if mr_type == CommunityEditsQueue.TYPE["WORK_MERGE"]:
             for olid in olids:
-                book = web.ctx.site.get(f"/works/{olid}")
+                book = site.get().get(f"/works/{olid}")
                 if book and book.title:
                     return book.title
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             for olid in olids:
-                author = web.ctx.site.get(f"/authors/{olid}")
+                author = site.get().get(f"/authors/{olid}")
                 if author and author.name:
                     return author.name
         return "Unknown record"
