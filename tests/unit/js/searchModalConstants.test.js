@@ -148,7 +148,12 @@ describe('languageNameFromOptions', () => {
 });
 
 describe('readableLanguageMismatch', () => {
-    const opts = [{ value: 'fre', label: 'French' }, { value: 'eng', label: 'English' }];
+    const opts = [
+        { value: 'fre', label: 'French' },
+        { value: 'ger', label: 'German' },
+        { value: 'spa', label: 'Spanish' },
+        { value: 'eng', label: 'English' },
+    ];
     const base = {
         edition: { language: ['fre'] },
         languages: [],
@@ -158,6 +163,18 @@ describe('readableLanguageMismatch', () => {
 
     test('returns the localized name when the readable edition is in another language', () => {
         expect(readableLanguageMismatch(base)).toBe('French');
+    });
+
+    test('names two languages joined with a comma, no ellipsis', () => {
+        expect(readableLanguageMismatch({ ...base, edition: { language: ['fre', 'ger'] } })).toBe('French, German');
+    });
+
+    test('names the first two and appends an ellipsis when the edition lists more', () => {
+        expect(readableLanguageMismatch({ ...base, edition: { language: ['fre', 'ger', 'spa'] } })).toBe('French, German, …');
+    });
+
+    test('drops codes with no display name before counting (no wasted slot, no ellipsis)', () => {
+        expect(readableLanguageMismatch({ ...base, edition: { language: ['fre', 'zzz'] } })).toBe('French');
     });
 
     test('returns null when the edition is already in the site language', () => {

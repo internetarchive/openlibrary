@@ -248,17 +248,29 @@ export function languageNameFromOptions(options, code) {
     return opts.find((o) => o.value === code)?.label || null;
 }
 
+// Most languages to name in the "In <language>" hint before truncating to a
+// trailing ", …". Two keeps the pill short while still signalling a multilingual
+// readable copy (e.g. "In French, German, …").
+const MISMATCH_LANG_LIMIT = 2;
+
 /**
- * The localized language name to surface on a readable result whose promoted
+ * The localized language names to surface on a readable result whose promoted
  * edition is NOT in the patron's site language — or null when there's nothing to
- * flag. Used by the modal's "In <language>" pill so a patron who turned on
- * Readable Only (without choosing a language) isn't surprised by the language of
- * the copy a result opens.
+ * flag. Used by the modal's "In <language>" hint so a patron isn't surprised by
+ * the language of the copy a result opens. Shown on any row carrying the
+ * "Readable" badge, independent of the Readable Only toggle (the caller gates on
+ * the badge).
+ *
+ * Lists up to MISMATCH_LANG_LIMIT of the edition's languages, joined with ", ",
+ * and appends a trailing ", …" when the edition carries more (e.g. "French,
+ * German, …"). Unknown codes (no display name) are dropped before counting, so
+ * they neither fill a slot nor force the ellipsis.
  *
  * Stays quiet (returns null) when: there's no promoted readable edition; the
  * patron already constrained the language; the site language is unknown; the
- * edition carries no language; the edition is already in the site language; or
- * the code has no display name.
+ * edition carries no language; the edition is already in the site language (this
+ * also guarantees none of the named languages is the site language); or no code
+ * resolves to a display name.
  *
  * @param {Object} args
  * @param {{language?: string[]}|null} args.edition - promoted readable edition
@@ -274,7 +286,12 @@ export function readableLanguageMismatch({ edition, languages, siteLanguage, opt
     const langs = edition.language;
     if (!Array.isArray(langs) || langs.length === 0) return null;
     if (langs.includes(siteLanguage)) return null;       // readable in their language → fine
-    return languageNameFromOptions(options, langs[0]);   // null name → skip
+    const names = langs
+        .map((code) => languageNameFromOptions(options, code))
+        .filter(Boolean);                                // drop codes with no display name
+    if (names.length === 0) return null;
+    const shown = names.slice(0, MISMATCH_LANG_LIMIT).join(', ');
+    return names.length > MISMATCH_LANG_LIMIT ? `${shown}, …` : shown;
 }
 
 /**
