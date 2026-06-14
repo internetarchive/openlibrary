@@ -2370,7 +2370,7 @@ msgstr "संपादन..."
 #: EditButtonsMacros.html:27 books/edit.html:45 type/author/edit.html:17
 #: type/template/edit.html:51
 msgid "Delete Record"
-msgstr "इस रेकॉर्ड को मिटाएँ? QSql"
+msgstr "इस रेकॉर्ड को मिटाएँ?"
 
 #: books/edit.html:65
 msgid "Work Details"
