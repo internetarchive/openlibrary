@@ -3997,394 +3997,394 @@ msgstr "各ページ付けパターンの最大番号を記入してください
 
 #: books/edit/edition.html lib/nav_foot.html
 msgid "Help"
-msgstr ""
+msgstr "ヘルプ"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "例：<em>xii, 346p.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
-msgstr ""
+msgstr "本の重さは？"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Dimensions"
-msgstr ""
+msgstr "寸法"
 
 #: books/edit/edition.html
 msgid "dimensions"
-msgstr ""
+msgstr "寸法"
 
 #: books/edit/edition.html
 msgid "Height:"
-msgstr ""
+msgstr "高さ："
 
 #: books/edit/edition.html
 msgid "Width:"
-msgstr ""
+msgstr "幅："
 
 #: books/edit/edition.html
 msgid "Depth:"
-msgstr ""
+msgstr "奥行き："
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "ウェブ書籍プロバイダー"
 
 #: books/edit/edition.html
 msgid "Access Type"
-msgstr ""
+msgstr "アクセスタイプ"
 
 #: books/edit/edition.html
 msgid "File Format"
-msgstr ""
+msgstr "ファイル形式"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "プロバイダー名"
 
 #: books/edit/edition.html
 msgid "Buy"
-msgstr ""
+msgstr "購入"
 
 #: books/edit/edition.html
 msgid "Web"
-msgstr ""
+msgstr "ウェブ"
 
 #: books/edit/edition.html
 msgid "Add a provider"
-msgstr ""
+msgstr "プロバイダーを追加"
 
 #: books/edit/edition.html
 msgid "First sentence"
-msgstr ""
+msgstr "最初の一文"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "冒頭の段落を始める最初の一行"
 
 #: books/edit/edition.html
 msgid "Admin Only"
-msgstr ""
+msgstr "管理者専用"
 
 #: books/edit/edition.html
 msgid "Additional Metadata"
-msgstr ""
+msgstr "追加メタデータ"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "このフィールドは任意のキー：値のペアを受け付けます"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
-msgstr ""
+msgstr "抜粋を入力してください。"
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "その抜粋は長すぎます。"
 
 #: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
-msgstr ""
+msgstr "この本をよく表す特定の（短い）一節があれば、ここに書き写してください。"
 
 #: books/edit/excerpts.html
 msgid "Page number?"
-msgstr ""
+msgstr "ページ番号？"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "例：<i>23、xi または 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "この抜粋は本の最初の一文です。"
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
-msgstr ""
+msgstr "抜粋を書き写す"
 
 #: books/edit/excerpts.html
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr ""
+msgstr "最大2000文字。HTMLは使用不可。"
 
 #: books/edit/excerpts.html
 msgid "Why did you choose this excerpt?"
-msgstr ""
+msgstr "なぜこの抜粋を選びましたか？"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
-msgstr ""
+msgstr "任意のメモを追加。"
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
-msgstr ""
+msgstr "これまでの抜粋..."
 
 #: books/edit/excerpts.html
 msgid "noted:"
-msgstr ""
+msgstr "メモ："
 
 #: books/edit/excerpts.html
 msgid "An anonymous note:"
-msgstr ""
+msgstr "匿名のメモ："
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
+msgstr "ページより"
 
 #: books/edit/web.html
 msgid "Please provide a label."
-msgstr ""
+msgstr "ラベルを入力してください。"
 
 #: books/edit/web.html
 msgid "Please provide a URL."
-msgstr ""
+msgstr "URLを入力してください。"
 
 #: books/edit/web.html
 msgid "Please enter a valid URL."
-msgstr ""
+msgstr "有効なURLを入力してください。"
 
 #: books/edit/web.html
 msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
-msgstr ""
+msgstr "Open Libraryのレコードを<u>優良な</u><span class=\"orange\">*</span>オンラインリソースに接続してください。"
 
 #: books/edit/web.html
 msgid "Give your link a label"
-msgstr ""
+msgstr "リンクにラベルを付ける"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "例：<em>New York Times review</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 msgid "Add Link"
-msgstr ""
+msgstr "リンクを追加"
 
 #: books/edit/web.html
 msgid "Remove this link"
-msgstr ""
+msgstr "このリンクを削除"
 
 #: books/edit/web.html
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
-msgstr ""
+msgstr "「優良な」とはスパムリンクを含まないことです。本に関連したリンクにしてください。無関係なサイトは削除される場合があります。明らかなスパムは容赦なく削除されます。"
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "一括検索（ベータ）"
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
+msgstr "Open Libraryに著者の画像を追加する方法は2つあります。"
 
 #: covers/add.html
 msgid "Image Guidelines"
-msgstr ""
+msgstr "画像ガイドライン"
 
 #: covers/add.html
 msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
+msgstr "Open Libraryに表紙画像を追加する方法はいくつかあります。"
 
 #: covers/add.html
 msgid "Cover Guidelines"
-msgstr ""
+msgstr "表紙ガイドライン"
 
 #: covers/add.html
 msgid "Please provide a valid image."
-msgstr ""
+msgstr "有効な画像を提供してください。"
 
 #: covers/add.html
 msgid "Please provide an image URL."
-msgstr ""
+msgstr "画像のURLを入力してください。"
 
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "<a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>を読んでさらに詳しく。"
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
+msgstr "既存の表紙から<strong>1つ選ぶ</strong>"
 
 #: covers/add.html
 msgid "Use this image"
-msgstr ""
+msgstr "この画像を使用"
 
 #: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
+msgstr "コンピュータからJPG、GIF、PNG、またはWebPを選択"
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "アップロード"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "または、クリップボードから画像を貼り付ける"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "クリップボードから画像を貼り付け"
 
 #: covers/add.html
 msgid "Paste Image"
-msgstr ""
+msgstr "画像を貼り付け"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "画像をアップロード"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "画像をアップロード"
 
 #: covers/add.html
 msgid "Uploading..."
-msgstr ""
+msgstr "アップロード中..."
 
 #: covers/add.html
 msgid "Wikidata"
-msgstr ""
+msgstr "Wikidata"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "著者の写真を拡大"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "%(author)sの写真"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "クリックして閉じる"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "%(author)sの写真が必要です"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "本の表紙を拡大"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "カバー：%(authors)s著「%(title)s」"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "%(title)sのメインページへ"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "%(title)sの表紙が必要です"
 
 #: covers/change.html
 msgid "Author Photos"
-msgstr ""
+msgstr "著者の写真"
 
 #: covers/change.html
 msgid "Manage Author Photos"
-msgstr ""
+msgstr "著者の写真を管理"
 
 #: covers/change.html
 msgid "Add Author Photo"
-msgstr ""
+msgstr "著者の写真を追加"
 
 #: covers/change.html
 msgid "Book Covers"
-msgstr ""
+msgstr "本の表紙"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "表紙を管理"
 
 #: covers/change.html
 msgid "Add Cover Image"
-msgstr ""
+msgstr "表紙画像を追加"
 
 #: covers/change.html
 msgid "Manage"
-msgstr ""
+msgstr "管理"
 
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "または、%sの画像を使用"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr ""
+msgstr "サムネイルをドラッグ&ドロップして並べ替えるか、ゴミ箱にドロップして削除できます。"
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "新しい表紙"
 
 #: covers/saved.html
 msgid "Saved!"
-msgstr ""
+msgstr "保存しました！"
 
 #: covers/saved.html
 msgid "Notes:"
-msgstr ""
+msgstr "ノート："
 
 #: covers/saved.html
 msgid "Add another image"
-msgstr ""
+msgstr "別の画像を追加"
 
 #: covers/saved.html
 msgid "Finished"
-msgstr ""
+msgstr "完了"
 
 #: email/case_created.html
 msgid "Sent!"
-msgstr ""
+msgstr "送信しました！"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "ご連絡ありがとうございます。できる限り早くご返信いたします。"
 
 #: email/case_created.html
 msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
+msgstr "たくさんのメッセージをいただいているため、読むのに少し時間がかかる場合がありますが、必ず読みますので、必要な場合はご連絡いたします。"
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "印刷障害特別アクセスの資格"
 
 #: history/sources.html
 msgid "record"
-msgstr ""
+msgstr "レコード"
 
 #: home/about.html
 msgid "About the Project"
-msgstr ""
+msgstr "プロジェクトについて"
 
 #: home/about.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
-msgstr ""
+msgstr "Open Libraryは、これまでに出版されたすべての本のウェブページを目指して構築している、オープンで編集可能な図書館カタログです。"
 
 #: AffiliateLinks.html home/about.html search/work_search_facets.html
 msgid "More"
-msgstr ""
+msgstr "もっと見る"
 
 #: home/about.html
 msgid "Just like Wikipedia, you can contribute new information or corrections to the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love books, why not help build a library?"
-msgstr ""
+msgstr "Wikipediaと同様に、カタログに新しい情報や修正を追加できます。<a href=\"/subjects\">サブジェクト</a>、<a href=\"/authors\">著者</a>、またはメンバーが作成した<a href=\"/lists\">リスト</a>で閲覧できます。本が好きなら、図書館づくりを手伝いませんか？"
 
 #: home/about.html
 msgid "Latest Blog Posts"
-msgstr ""
+msgstr "最新のブログ記事"
 
 #: home/categories.html
 msgid "Browse by Subject"
-msgstr ""
+msgstr "サブジェクトで閲覧"
 
 #: home/categories.html
 #, fuzzy, python-format
@@ -4395,41 +4395,41 @@ msgstr[1] ""
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr ""
+msgstr "Open Libraryへようこそ"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Classic Books"
-msgstr ""
+msgstr "古典書"
 
 #: home/index.html
 msgid "Recently Returned"
-msgstr ""
+msgstr "最近返却された本"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Romance"
-msgstr ""
+msgstr "ロマンス"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Kids"
-msgstr ""
+msgstr "子ども向け"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Thrillers"
-msgstr ""
+msgstr "スリラー"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Textbooks"
-msgstr ""
+msgstr "教科書"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "ローカル環境の本"
 
 #: home/loans.html
 #, python-format
@@ -4440,135 +4440,135 @@ msgstr[1] ""
 
 #: home/loans.html
 msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr ""
+msgstr "貸出上限に達しました。新しい本を借りるには本を返却してください。"
 
 #: home/stats.html
 msgid "Around the Library"
-msgstr ""
+msgstr "図書館の動向"
 
 #: home/stats.html
 msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
-msgstr ""
+msgstr "過去28日間の動向です。さらに<a href=\"/recentchanges\">最近の変更</a>"
 
 #: home/stats.html
 msgid "See all visitors to OpenLibrary.org"
-msgstr ""
+msgstr "OpenLibrary.orgへのすべての訪問者を見る"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
-msgstr ""
+msgstr "最近のユニーク訪問者のエリアグラフ"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
-msgstr ""
+msgstr "どれだけの新しいOpen Libraryメンバーを迎えましたか？"
 
 #: home/stats.html
 msgid "Area graph of new members"
-msgstr ""
+msgstr "新規メンバーのエリアグラフ"
 
 #: home/stats.html
 msgid "People are constantly updating the catalog"
-msgstr ""
+msgstr "人々は常にカタログを更新しています"
 
 #: home/stats.html
 msgid "Area graph of recent catalog edits"
-msgstr ""
+msgstr "最近のカタログ編集のエリアグラフ"
 
 #: home/stats.html
 msgid "Catalog Edits"
-msgstr ""
+msgstr "カタログ編集"
 
 #: home/stats.html
 msgid "Members can create Lists"
-msgstr ""
+msgstr "メンバーはリストを作成できます"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
-msgstr ""
+msgstr "最近作成されたリストのエリアグラフ"
 
 #: home/stats.html
 msgid "Lists Created"
-msgstr ""
+msgstr "作成されたリスト"
 
 #: home/stats.html
 msgid "We're a library, so we lend books, too"
-msgstr ""
+msgstr "私たちは図書館なので、本も貸し出します"
 
 #: home/stats.html
 msgid "Area graph of ebooks borrowed recently"
-msgstr ""
+msgstr "最近借りられた電子書籍のエリアグラフ"
 
 #: home/stats.html
 msgid "eBooks Borrowed"
-msgstr ""
+msgstr "借りられた電子書籍"
 
 #: home/welcome.html
 msgid "Read Free Library Books Online"
-msgstr ""
+msgstr "図書館の本を無料でオンラインで読む"
 
 #: home/welcome.html
 msgid "Millions of books available through Controlled Digital Lending"
-msgstr ""
+msgstr "Controlled Digital Lendingで利用可能な数百万冊"
 
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
-msgstr ""
+msgstr "年間読書目標を設定"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "年間読書目標の設定と読書記録の方法を学ぶ"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
-msgstr ""
+msgstr "お気に入りの本を管理"
 
 #: home/welcome.html
 msgid "Organize your Books using Lists & the Reading Log"
-msgstr ""
+msgstr "リストと読書ログを使って本を整理"
 
 #: home/welcome.html
 msgid "Try the virtual Library Explorer"
-msgstr ""
+msgstr "バーチャル図書館エクスプローラーを試す"
 
 #: home/welcome.html
 msgid "Digital shelves organized like a physical library"
-msgstr ""
+msgstr "物理図書館のように整理されたデジタル棚"
 
 #: home/welcome.html
 msgid "Try Fulltext Search"
-msgstr ""
+msgstr "全文検索を試す"
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "数百万冊のテキスト内から一致する結果を見つける"
 
 #: home/welcome.html
 msgid "Be an Open Librarian"
-msgstr ""
+msgstr "オープンライブラリアンになる"
 
 #: home/welcome.html
 msgid "Dozens of ways you can help improve the library"
-msgstr ""
+msgstr "図書館の改善を助ける多くの方法"
 
 #: home/welcome.html
 msgid "Volunteer at Open Library"
-msgstr ""
+msgstr "Open Libraryでボランティア"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "図書館を改善する機会を見つける"
 
 #: home/welcome.html
 msgid "Send us feedback"
-msgstr ""
+msgstr "フィードバックを送る"
 
 #: home/welcome.html
 msgid "Your feedback will help us improve these cards"
-msgstr ""
+msgstr "あなたのフィードバックはこれらのカードの改善に役立ちます"
 
 #: jsdef/LazyWorkPreview.html
 msgid "Select this work"
-msgstr ""
+msgstr "この作品を選択"
 
 #: jsdef/LazyWorkPreview.html
 #, fuzzy
@@ -4597,52 +4597,52 @@ msgstr[1] ""
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
-msgstr ""
+msgstr "%sが見つかりません"
 
 #: languages/notfound.html
 #, python-format
 msgid "%s does not exist."
-msgstr ""
+msgstr "%sは存在しません。"
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
-msgstr ""
+msgstr "このドキュメントは最後に編集されました："
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited anonymously"
-msgstr ""
+msgstr "このドキュメントは最後に匿名で編集されました"
 
 #: lib/exports.html
 msgid "Download catalog record:"
-msgstr ""
+msgstr "カタログレコードをダウンロード："
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
+msgstr "RDF"
 
 #: lib/exports.html type/list/exports.html
 msgid "JSON"
-msgstr ""
+msgstr "JSON"
 
 #: lib/exports.html
 msgid "OPDS"
-msgstr ""
+msgstr "OPDS"
 
 #: lib/exports.html
 msgid "Cite this on Wikipedia"
-msgstr ""
+msgstr "Wikipediaでこれを引用"
 
 #: lib/exports.html
 msgid "Wikipedia citation"
-msgstr ""
+msgstr "Wikipedia引用"
 
 #: lib/exports.html
 msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
+msgstr "このコードをあなたのWikipediaページにコピー＆ペーストしてください。"
 
 #: lib/exports.html
 msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
+msgstr "Wikipediaで新しいウィンドウに説明を表示"
 
 #: lib/header_dropdown.html
 msgid "My account"
