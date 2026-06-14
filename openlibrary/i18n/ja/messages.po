@@ -6003,266 +6003,266 @@ msgstr "グリッド"
 
 #: search/layout_options.html
 msgid "View as: "
-msgstr ""
+msgstr "表示形式："
 
 #: search/lists.html
 msgid "Search results for Lists"
-msgstr ""
+msgstr "リストの検索結果"
 
 #: search/lists.html
 msgid "Search Lists"
-msgstr ""
+msgstr "リストを検索"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "検索に直接一致する<strong>リスト</strong>は見つかりませんでした"
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
+msgstr "出版社を検索"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "%(page_num)dページ目："
 
 #: search/sort_options.html
 msgid "Relevance"
-msgstr ""
+msgstr "関連性"
 
 #: search/sort_options.html
 msgid "Work Count"
-msgstr ""
+msgstr "作品数"
 
 #: search/sort_options.html
 msgid "Random"
-msgstr ""
+msgstr "ランダム"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "名前（ベータ：司書専用）"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "生年月日（古い順）（ベータ：司書専用）"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "生年月日（新しい順）（ベータ：司書専用）"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "リスト順"
 
 #: search/sort_options.html
 msgid "Last Modified"
-msgstr ""
+msgstr "最終更新"
 
 #: search/sort_options.html
 msgid "Language Name"
-msgstr ""
+msgstr "言語名"
 
 #: search/sort_options.html
 msgid "Ebook Edition Count"
-msgstr ""
+msgstr "電子書籍版数"
 
 #: search/sort_options.html
 msgid "Date Added (newest)"
-msgstr ""
+msgstr "追加日（新しい順）"
 
 #: search/sort_options.html
 msgid "Date Added (oldest)"
-msgstr ""
+msgstr "追加日（古い順）"
 
 #: search/sort_options.html
 msgid "Most Editions"
-msgstr ""
+msgstr "版数が多い順"
 
 #: search/sort_options.html
 msgid "First Published"
-msgstr ""
+msgstr "初出版年"
 
 #: search/sort_options.html
 msgid "Most Recent"
-msgstr ""
+msgstr "最新"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "評価が高い順"
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
+msgstr "すべて"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "作品タイトル（ベータ：司書専用）"
 
 #: search/sort_options.html
 msgid "Sorting by"
-msgstr ""
+msgstr "並び替え："
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "シャッフル"
 
 #: search/subjects.html
 msgid "Search Subjects"
-msgstr ""
+msgstr "サブジェクトを検索"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "検索に直接一致する<strong>サブジェクト</strong>は見つかりませんでした"
 
 #: search/subjects.html
 msgid "time"
-msgstr ""
+msgstr "時代"
 
 #: search/subjects.html
 msgid "subject"
-msgstr ""
+msgstr "サブジェクト"
 
 #: search/subjects.html
 msgid "place"
-msgstr ""
+msgstr "場所"
 
 #: search/subjects.html
 msgid "org"
-msgstr ""
+msgstr "組織"
 
 #: search/subjects.html
 msgid "event"
-msgstr ""
+msgstr "イベント"
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
+msgstr "人物"
 
 #: search/subjects.html
 msgid "work"
-msgstr ""
+msgstr "作品"
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
-msgstr ""
+msgstr "この検索から重複著者を統合"
 
 #: search/work_search_facets.html type/work/editions.html
 msgid "Merge duplicates"
-msgstr ""
+msgstr "重複を統合"
 
 #: search/work_search_facets.html
 msgid "Less"
-msgstr ""
+msgstr "少なく"
 
 #: search/work_search_facets.html
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
+msgstr "%(facet)sで結果をフィルター"
 
 #: search/work_search_facets.html
 msgid "Filter results for ebook availability"
-msgstr ""
+msgstr "電子書籍の利用可否で結果をフィルター"
 
 #: search/work_search_facets.html
 msgid "yes"
-msgstr ""
+msgstr "はい"
 
 #: search/work_search_facets.html
 msgid "no"
-msgstr ""
+msgstr "いいえ"
 
 #: search/work_search_facets.html
 msgid "Zoom In"
-msgstr ""
+msgstr "ズームイン"
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
+msgstr "これらの<a href=\"/search/howto\">フィルター</a>で結果を絞り込む"
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
-msgstr ""
+msgstr "使用言語："
 
 #: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
+msgstr "出版："
 
 #: search/work_search_selected_facets.html
 msgid "eBook"
-msgstr ""
+msgstr "電子書籍"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBook"
-msgstr ""
+msgstr "クラシック電子書籍"
 
 #: search/work_search_selected_facets.html
 msgid "Only Classic eBooks"
-msgstr ""
+msgstr "クラシック電子書籍のみ"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBooks hidden"
-msgstr ""
+msgstr "クラシック電子書籍を非表示"
 
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
-msgstr ""
+msgstr "%(title)s - 検索"
 
 #: site/alert.html
 msgid "Internet Archive logo"
-msgstr ""
+msgstr "Internet Archiveのロゴ"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "オフラインのようです。"
 
 #: site/head.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
-msgstr ""
+msgstr "Open Libraryは、これまでに出版されたすべての本のウェブページを目指して構築しているオープンで編集可能な図書館カタログです。300万冊以上の本を無料で読んだり、借りたり、発見したりできます。"
 
 #: site/stats.html
 msgid "Debug Stats"
-msgstr ""
+msgstr "デバッグ統計"
 
 #: stats/readinglog.html
 msgid "Reading Log Stats"
-msgstr ""
+msgstr "読書ログ統計"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "記録された本の数"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "読書ログ機能を使って記録された本の総数"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "全期間"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "本を記録したユニークユーザー数"
 
 #: stats/readinglog.html
 msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr ""
+msgstr "読書ログ機能を使って少なくとも1冊を記録したユニークユーザーの総数"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "星評価された本の数"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "星評価された本の総数"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "ユニーク評価者数（全期間）"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "最も読みたい本（今月）"
 
 #: stats/readinglog.html
 #, fuzzy, python-format
@@ -6273,156 +6273,156 @@ msgstr[1] ""
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "最も読みたい本（全期間）"
 
 #: stats/readinglog.html
 msgid "Most Logged Books"
-msgstr ""
+msgstr "最も記録された本"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "最も読まれた本（全期間）"
 
 #: stats/readinglog.html
 msgid "Most Rated Books"
-msgstr ""
+msgstr "最も評価された本"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "最も評価された本（全期間）"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "次のテーマの本は見つかりませんでした："
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "%(title)sを編集"
 
 #: type/about/edit.html
 msgid "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "これはドキュメントのヘッドにのみ表示され、ブックマークラベルに付加されます"
 
 #: type/about/edit.html
 msgid "Intro"
-msgstr ""
+msgstr "はじめに"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "最初の列に表示されます。"
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "2番目の列の上部に表示されます。"
 
 #: type/about/edit.html
 msgid "Mailing List"
-msgstr ""
+msgstr "メーリングリスト"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "リンクリストの下に表示されます。"
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "詳細については"
 
 #: type/author/edit.html
 msgid "Edit Author"
-msgstr ""
+msgstr "著者を編集"
 
 #: type/author/edit.html
 msgid "Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>."
-msgstr ""
+msgstr "自然な順序を使用してください。例：<strong>Leo Tolstoy</strong>（<strong>Tolstoy, Leo</strong>ではなく）。"
 
 #: type/author/edit.html
 msgid "A short bio?"
-msgstr ""
+msgstr "短い略歴？"
 
 #: type/author/edit.html
 msgid "If you \"borrow\" information from somewhere, please make sure to cite the source."
-msgstr ""
+msgstr "どこかから情報を「借りる」場合は、必ず出典を明記してください。"
 
 #: type/author/edit.html
 msgid "Date of birth"
-msgstr ""
+msgstr "生年月日"
 
 #: type/author/edit.html
 msgid "Date of death"
-msgstr ""
+msgstr "没年月日"
 
 #: type/author/edit.html
 msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr ""
+msgstr "現時点では構造化された日付を保存していないため、「21 May 2000」のような形式が推奨されます。"
 
 #: type/author/edit.html
 msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr ""
+msgstr "これは廃止されたフィールドです。この日付を削除し、「生年月日」と「没年月日」フィールドを入力することでレコードの改善に貢献できます。ありがとうございます！"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "この著者には他の名前がありますか？"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "例：Lev Nikolayevich TolstoyはLeo Tolstoyとしても知られています。1行につき1つの名前を入力してください。"
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "識別子"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "著者識別子の目的"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "%(book_titles)sの著者"
 
 #: type/author/view.html
 msgid "Merging Authors..."
-msgstr ""
+msgstr "著者を統合中..."
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "処理中..."
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "ページを更新しますか？"
 
 #: type/author/view.html
 msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
+msgstr "了解しました。統合が進行中です。<i>更新が<u>完了するまで数分</u>かかります。</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "あれ！"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "統合がうまくいきませんでした。私たちのミスです。記録に残しました。"
 
 #: type/author/view.html
 msgid "Add another?"
-msgstr ""
+msgstr "もう一つ追加しますか？"
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "%(author)sの本を検索"
 
 #: type/author/view.html
 #, fuzzy, python-format
@@ -6432,71 +6432,71 @@ msgstr ""
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/author/view.html type/list/view_body.html
 msgid "Places"
-msgstr ""
+msgstr "場所"
 
 #: Profile.html type/author/view.html
 msgid "Time"
-msgstr ""
+msgstr "時代"
 
 #: type/author/view.html
 msgid "OLID"
-msgstr ""
+msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io："
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
+msgstr "リンク <span class=\"gray small sansserif\">Open Library外部</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "リンクはまだありません。"
 
 #: type/author/view.html
 msgid "Add one"
-msgstr ""
+msgstr "追加する"
 
 #: type/author/view.html
 msgid "Alternative names"
-msgstr ""
+msgstr "別名"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "このページは削除されました"
 
 #: type/delete/view.html
 msgid "What would you like to do?"
-msgstr ""
+msgstr "何をしますか？"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "前のページに戻る"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "以前のバージョンを見る"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "ページの履歴を見る"
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
+msgstr "再作成する"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr ""
+msgstr "IA本をスタッフのおすすめに追加"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Archive.org IDを同期"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Archive.orgで本を表示"
 
 #: SearchResultsWork.html type/edition/admin_bar.html
 #, fuzzy
@@ -6505,11 +6505,11 @@ msgstr ""
 
 #: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
-msgstr ""
+msgstr "このページを編集"
 
 #: type/edition/modal_links.html
 msgid "Review"
-msgstr ""
+msgstr "レビュー"
 
 #: type/edition/modal_links.html
 #, fuzzy
@@ -6518,16 +6518,16 @@ msgstr ""
 
 #: type/edition/modal_links.html
 msgid "adding notes to"
-msgstr ""
+msgstr "ノートを追加中："
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
-msgstr ""
+msgstr "の版："
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "%sに初出版"
 
 #: type/edition/title_and_author.html
 #, fuzzy, python-format
@@ -6536,113 +6536,113 @@ msgstr ""
 
 #: type/edition/view.html type/work/view.html
 msgid "Read More"
-msgstr ""
+msgstr "もっと読む"
 
 #: type/edition/view.html type/work/view.html
 msgid "Read Less"
-msgstr ""
+msgstr "折り畳む"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "この作品にはまだ説明がありません。<b><a href='%(url)s'>追加</a></b>できますか？"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "この版にはまだ説明がありません。<b><a href='%(url)s'>追加</a></b>できますか？"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
-msgstr ""
+msgstr "出版日"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)sの他の本を表示"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)sの他の本を検索"
 
 #: openlibrary/plugins/worksearch/code.py type/edition/view.html
 #: type/work/view.html
 msgid "Language"
-msgstr ""
+msgstr "言語"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pages"
-msgstr ""
+msgstr "ページ数"
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
+msgstr "ISBN"
 
 #: databarWork.html type/edition/view.html type/work/view.html
 msgid "Buy this book"
-msgstr ""
+msgstr "この本を購入"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "本の詳細"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
-msgstr ""
+msgstr "最初の一文"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
-msgstr ""
+msgstr "版のノート"
 
 #: type/edition/view.html type/work/view.html
 msgid "Published in"
-msgstr ""
+msgstr "出版地："
 
 #: type/edition/view.html type/work/view.html
 msgid "Series"
-msgstr ""
+msgstr "シリーズ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
+msgstr "巻"
 
 #: type/edition/view.html type/work/view.html
 msgid "Genre"
-msgstr ""
+msgstr "ジャンル"
 
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
-msgstr ""
+msgstr "別題"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "著作権年"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
-msgstr ""
+msgstr "翻訳元："
 
 #: type/edition/view.html type/work/view.html
 msgid "Translated From"
-msgstr ""
+msgstr "翻訳元言語："
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
+msgstr "外部リンク"
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
+msgstr "形式"
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html
 #: type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "ページ付け"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
-msgstr ""
+msgstr "ページ数"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
