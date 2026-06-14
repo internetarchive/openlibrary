@@ -376,65 +376,65 @@ msgstr "...এই সংস্কৰণলৈ"
 
 #: import_preview.html
 msgid "Import Preview"
-msgstr ""
+msgstr "আমদানি পূৰ্বদৰ্শন"
 
 #: import_preview.html
 msgid "Preview Import"
-msgstr ""
+msgstr "আমদানি পূৰ্বদৰ্শন কৰক"
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "কেঁচা আমদানি ডেটা দেখুৱাওক"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "নতুন %(thing_type)s ৰেকৰ্ড তৈয়াৰ কৰা হ'ব"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "%(key)s-ত পৰিবৰ্তনসমূহ"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "আভ্যন্তৰীণ ত্ৰুটি"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "এটা সমস্যা হ'ল"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "আমি দুঃখিত, আপোনাৰ অনুৰোধত সঁহাৰি দিওঁতে এটা সমস্যা হ'ল:"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "এই ত্ৰুটি অনুসৰণ কৰিবলৈ ৰেফাৰেন্স কোড %s আৰু Sentry ট্ৰেচ আইডি %s তৈয়াৰ কৰা হৈছে আৰু আমি যিমান পাৰোঁ অনুসন্ধান কৰিম।"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "এই ত্ৰুটি অনুসৰণ কৰিবলৈ ৰেফাৰেন্স কোড %s তৈয়াৰ কৰা হৈছে আৰু আমি যিমান পাৰোঁ অনুসন্ধান কৰিম।"
 
 #: internalerror.html
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr ""
+msgstr "<a class=\"go-back-link\" href=\"javascript:;\">আগৰ পৃষ্ঠা</a>লৈ উভতি যাবনে?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "আপোনাক আপোনাৰ কিতাপলৈ পুনঃনিৰ্দেশিত কৰা হৈছে"
 
 #: interstitial.html
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr ""
+msgstr "এই কিতাপটো %(book_provider)s-এ প্ৰদান কৰিছে, যি এটা তৃতীয়-পক্ষৰ Open Library বিশ্বস্ত কিতাপ প্ৰদানকাৰী"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "%(time)s ছেকেণ্ডত আপোনাক স্বয়ংক্ৰিয়ভাৱে পুনঃনিৰ্দেশিত কৰা হ'ব: %(url)s"
 
 #: CreateListModal.html EditButtons.html account/notifications.html
 #: account/password/reset.html account/privacy.html admin/imports-add.html
@@ -442,261 +442,261 @@ msgstr ""
 #: merge/authors.html my_books/dropdown_content.html type/list/edit.html
 #: type/series/edit.html type/tag/form.html
 msgid "Cancel"
-msgstr ""
+msgstr "বাতিল কৰক"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "অপেক্ষা নকৰি অব্যাহত ৰাখক"
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
-msgstr ""
+msgstr "লাইব্ৰেৰী এক্সপ্লোৰাৰ"
 
 #: account/create.html books/custom_carousel.html
 #: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
-msgstr ""
+msgstr "লোড হৈছে..."
 
 #: lib/header_dropdown.html lib/nav_head.html login.html
 msgid "Log In"
-msgstr ""
+msgstr "লগ ইন কৰক"
 
 #: login.html
 msgid "This is a development instance, the default credentials are automatically filled."
-msgstr ""
+msgstr "এইটো এটা বিকাশ উদাহৰণ, ডিফল্ট প্ৰমাণপত্ৰসমূহ স্বয়ংক্ৰিয়ভাৱে পূৰণ কৰা হৈছে।"
 
 #: login.html
 msgid "email:"
-msgstr ""
+msgstr "ইমেইল:"
 
 #: login.html
 msgid "password:"
-msgstr ""
+msgstr "পাছৱৰ্ড:"
 
 #: login.html
 msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "অলাভজনক Internet Archive-ৰ পৰা ডিজিটেল কিতাপ ধাৰলৈ ল'বলৈ আপোনাৰ বিনামূলীয়া Open Library কাৰ্ড ব্যৱহাৰ কৰিবলৈ লগ ইন কৰক"
 
 #: account/create.html login.html
 msgid "OR"
-msgstr ""
+msgstr "বা"
 
 #: account/create.html login.html
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr ""
+msgstr "আপুনি ইতিমধ্যে %(user)s হিচাপে Open Library-ত লগ ইন আছে।"
 
 #: account/create.html login.html
 msgid "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()\">log out</a> and start the signup process afresh."
-msgstr ""
+msgstr "যদি আপুনি এটা নতুন, বেলেগ Open Library একাউণ্ট তৈয়াৰ কৰিব বিচাৰে, তেন্তে আপুনি <a href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()\">লগ আউট</a> কৰি পুনৰায় চাইনআপ প্ৰক্ৰিয়া আৰম্ভ কৰিব লাগিব।"
 
 #: login.html
 msgid "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access your Open Library account."
-msgstr ""
+msgstr "আপোনাৰ Open Library একাউণ্ট এক্সেছ কৰিবলৈ অনুগ্ৰহ কৰি আপোনাৰ <a href=\"https://archive.org\">Internet Archive</a> ইমেইল আৰু পাছৱৰ্ড দিয়ক।"
 
 #: login.html openlibrary/plugins/upstream/forms.py
 msgid "Email"
-msgstr ""
+msgstr "ইমেইল"
 
 #: login.html
 msgid "Forgot your Internet Archive email?"
-msgstr ""
+msgstr "আপোনাৰ Internet Archive ইমেইল পাহৰিলেনে?"
 
 #: account/email/forgot-ia.html login.html
 #: openlibrary/plugins/upstream/forms.py
 msgid "Password"
-msgstr ""
+msgstr "পাছৱৰ্ড"
 
 #: login.html
 msgid "Forgot your Password?"
-msgstr ""
+msgstr "আপোনাৰ পাছৱৰ্ড পাহৰিলেনে?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "পাছৱৰ্ড দৃশ্যমানতা টগল কৰক"
 
 #: login.html
 msgid "Remember me"
-msgstr ""
+msgstr "মোক মনত ৰাখক"
 
 #: login.html
 msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
-msgstr ""
+msgstr "একাউণ্ট নাই? এতিয়াই <a href=\"/account/create\">চাইন আপ কৰক</a>।"
 
 #: messages.html
 msgid "Created new author record."
-msgstr ""
+msgstr "নতুন লেখক ৰেকৰ্ড তৈয়াৰ কৰা হ'ল।"
 
 #: messages.html
 msgid "Created new edition record."
-msgstr ""
+msgstr "নতুন সংস্কৰণ ৰেকৰ্ড তৈয়াৰ কৰা হ'ল।"
 
 #: messages.html
 msgid "Created new work record."
-msgstr ""
+msgstr "নতুন কৃতি ৰেকৰ্ড তৈয়াৰ কৰা হ'ল।"
 
 #: messages.html
 msgid "Added new book."
-msgstr ""
+msgstr "নতুন কিতাপ যোগ কৰা হ'ল।"
 
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
+msgstr "Open Library কেটালগ উন্নত কৰাৰ বাবে আপোনাক ধন্যবাদ!"
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
 #: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
 #: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
-msgstr ""
+msgstr "বন্ধ কৰক"
 
 #: notfound.html
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s পোৱা নগ'ল"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - পৃষ্ঠা পোৱা নগ'ল"
 
 #: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s বিদ্যমান নাই।"
 
 #: notfound.html
 msgid "Create it?"
-msgstr ""
+msgstr "তৈয়াৰ কৰিবনে?"
 
 #: notfound.html
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "টেমপ্লেট/মেক্ৰো বিচাৰিছে?"
 
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "%(key)s-ৰ অনুমতি"
 
 #: permission.html
 msgid "Permission of"
-msgstr ""
+msgstr "অনুমতি"
 
 #: permission.html
 msgid "Permission"
-msgstr ""
+msgstr "অনুমতি"
 
 #: permission.html
 msgid "Child Permission"
-msgstr ""
+msgstr "শিশু অনুমতি"
 
 #: permission_denied.html
 msgid "Permission Denied"
-msgstr ""
+msgstr "অনুমতি অস্বীকৃত"
 
 #: permission_denied.html
 msgid "Permission denied."
-msgstr ""
+msgstr "অনুমতি অস্বীকৃত।"
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "কেৱল লগ ইন কৰা ব্যৱহাৰকাৰীসকলকে Open Library-ত ৰেকৰ্ড যোগ কৰিবলৈ অনুমতি আছে। কিতাপ যোগ কৰিবলৈ অনুগ্ৰহ কৰি <a href=\"%s\">লগ ইন কৰক</a>।"
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "কেৱল লগ ইন কৰা ব্যৱহাৰকাৰীসকলকে Open Library-ত ৰেকৰ্ড পৰিবৰ্তন কৰিবলৈ অনুমতি আছে। এই পৃষ্ঠা সম্পাদনা কৰিবলৈ অনুগ্ৰহ কৰি <a href=\"%s\">লগ ইন কৰক</a>।"
 
 #: permission_denied.html
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr ""
+msgstr "যদি আপোনাৰ প্ৰয়োজনীয় অনুমতি আছে তেন্তে আপুনি <a href=\"%s\">লগ ইন কৰিব</a> পাৰে।"
 
 #: recaptcha.html
 msgid "Please satisfy the reCAPTCHA below. If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি তলৰ reCAPTCHA পূৰণ কৰক। যদি আপোনাৰ নিৰাপত্তা ছেটিং বা গোপনীয়তা ব্লকাৰ ইনষ্টল আছে, reCAPTCHA চাবলৈ সেইবোৰ অক্ষম কৰক।"
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
-msgstr ""
+msgstr "ভুল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
-msgstr ""
+msgstr "ৰেকৰ্ডৰ বিৱৰণ"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
-msgstr ""
+msgstr "এই ৰেকৰ্ড আহিছে"
 
 #: showia.html showmarc.html
 msgid "Record ID"
-msgstr ""
+msgstr "ৰেকৰ্ড আইডি"
 
 #: showia.html showmarc.html
 msgid "Source"
-msgstr ""
+msgstr "উৎস"
 
 #: books/add.html covers/add.html showia.html type/edition/view.html
 #: type/work/view.html
 msgid "Internet Archive"
-msgstr ""
+msgstr "Internet Archive"
 
 #: showia.html
 msgid "Download MARC XML"
-msgstr ""
+msgstr "MARC XML ডাউনলোড কৰক"
 
 #: showia.html
 msgid "Download MARC binary"
-msgstr ""
+msgstr "MARC বাইনাৰি ডাউনলোড কৰক"
 
 #: showia.html showmarc.html
 msgid "Invalid MARC record."
-msgstr ""
+msgstr "অবৈধ MARC ৰেকৰ্ড।"
 
 #: showia.html showmarc.html
 msgid "LEADER:"
-msgstr ""
+msgstr "লিডাৰ:"
 
 #: showmarc.html
 msgid "Download Link"
-msgstr ""
+msgstr "ডাউনলোড লিংক"
 
 #: showmarc.html type/tag/index.html
 msgid "Next"
-msgstr ""
+msgstr "পৰৱৰ্তী"
 
 #: status.html
 msgid "Open Library server status"
-msgstr ""
+msgstr "Open Library চাৰ্ভাৰ স্থিতি"
 
 #: status.html
 msgid "Server status"
-msgstr ""
+msgstr "চাৰ্ভাৰ স্থিতি"
 
 #: status.html
 msgid "Testing Environment"
-msgstr ""
+msgstr "পৰীক্ষামূলক পৰিৱেশ"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "ডিপ্লয় আৰম্ভ হ'ল!"
 
 #: status.html
 msgid "View Jenkins progress"
-msgstr ""
+msgstr "Jenkins অগ্ৰগতি চাওক"
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "GitHub স্থিতি সতেজ হ'ল।"
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "PR নম্বৰ বা URL, স্থান/কমাৰে পৃথক"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "PR(সমূহ) যোগ কৰক"
 
 #: status.html
 msgid "PR"
