@@ -16,6 +16,7 @@ from fastapi.security import APIKeyCookie
 from infogami import config
 from pydantic import BaseModel, Field
 
+from openlibrary.accounts import get_current_user
 from openlibrary.accounts.model import get_secret_key, verify_hash
 
 logger = logging.getLogger(__name__)

@@ -6,6 +6,7 @@ from urllib.parse import quote
 
 import web
 from infogami import config
+from infogami.utils.context import context
 
 from openlibrary.accounts import get_current_user
 from openlibrary.core import helpers as h
