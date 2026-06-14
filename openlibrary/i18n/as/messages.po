@@ -700,31 +700,31 @@ msgstr "PR(সমূহ) যোগ কৰক"
 
 #: status.html
 msgid "PR"
-msgstr ""
+msgstr "PR"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
-msgstr ""
+msgstr "শিৰোনাম"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/work_search_selected_facets.html status.html
 msgid "Author"
-msgstr ""
+msgstr "লেখক"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "নিযুক্ত ব্যক্তি"
 
 #: status.html
 msgid "Pinned Commit"
-msgstr ""
+msgstr "পিন কৰা কমিট"
 
 #: status.html
 msgid "Branch HEAD"
-msgstr ""
+msgstr "ব্ৰাঞ্চ HEAD"
 
 #: status.html
 #, fuzzy
@@ -733,19 +733,19 @@ msgstr "বোডলাউক"
 
 #: status.html
 msgid "Enabled"
-msgstr ""
+msgstr "সক্ষম"
 
 #: status.html
 msgid "up to date"
-msgstr ""
+msgstr "আপ টু ডেট"
 
 #: status.html
 msgid "unknown"
-msgstr ""
+msgstr "অজ্ঞাত"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "১ কমিট পিছে"
 
 #: status.html
 #, fuzzy, python-format
@@ -754,72 +754,72 @@ msgstr ""
 
 #: admin/solr.html status.html
 msgid "Update"
-msgstr ""
+msgstr "আপডেট কৰক"
 
 #: status.html
 msgid "Enable"
-msgstr ""
+msgstr "সক্ষম কৰক"
 
 #: status.html
 msgid "Disable"
-msgstr ""
+msgstr "অক্ষম কৰক"
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
-msgstr ""
+msgstr "আঁতৰাওক"
 
 #: status.html
 msgid "Selected PRs"
-msgstr ""
+msgstr "নিৰ্বাচিত PRসমূহ"
 
 #: status.html
 msgid "Refresh"
-msgstr ""
+msgstr "সতেজ কৰক"
 
 #: status.html
 msgid "Deploy"
-msgstr ""
+msgstr "ডিপ্লয় কৰক"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "পৰীক্ষামূলক গোটত কোনো PR নাই।"
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "শেষ বিল্ডৰ ফলাফল"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "GitHub-ত PRসমূহ চাওক"
 
 #: status.html
 msgid "Show changed files"
-msgstr ""
+msgstr "পৰিবৰ্তিত ফাইলসমূহ দেখুৱাওক"
 
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
+msgstr "নাম"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "চিস্টেম তথ্য"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "সক্ষম কৰা বৈশিষ্ট্যসমূহ"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "এই বিষয়ৰ বাবে টেগ সম্পাদনা কৰক"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "এই বিষয়ৰ বাবে টেগ তৈয়াৰ কৰক"
 
 #: subjects.html
 msgid "See all works"
-msgstr ""
+msgstr "সকলো কৃতি চাওক"
 
 #: merge/authors.html publishers/view.html subjects.html type/author/view.html
 #, python-format
@@ -831,55 +831,55 @@ msgstr[1] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
+msgstr "%(name)s বিষয়ৰ কিতাপ বিচাৰক।"
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "অস্পষ্টতা নিৰসন"
 
 #: trending.html
 msgid "Now"
-msgstr ""
+msgstr "এতিয়া"
 
 #: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
 #: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
-msgstr ""
+msgstr "আজি"
 
 #: admin/graphs.html trending.html
 msgid "This Week"
-msgstr ""
+msgstr "এই সপ্তাহ"
 
 #: admin/graphs.html stats/readinglog.html trending.html
 msgid "This Month"
-msgstr ""
+msgstr "এই মাহ"
 
 #: trending.html
 msgid "This Year"
-msgstr ""
+msgstr "এই বছৰ"
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
+msgstr "সকলো সময়"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
-msgstr ""
+msgstr "ট্ৰেণ্ডিং কিতাপ"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "সমাজৰ পাঠকসকলে তেওঁলোকৰ বুকশ্বেলফত কি যোগ কৰি আছে চাওক"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "আটাইতকৈ পুৰণি ট্ৰেণ্ডিং ডেটা অক্টোবৰ ২০১৭ৰ পৰা"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
-msgstr ""
+msgstr "পঢ়িব বিচাৰে"
 
 #. Display name for the "currently-reading" reading log shelf used in page
 #. headings and breadcrumbs.
@@ -889,13 +889,13 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
-msgstr ""
+msgstr "এতিয়া পঢ়িছে"
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
 #: book_providers/read_button.html books/edit/edition.html trending.html
 #: type/list/embed.html widget.html
 msgid "Read"
-msgstr ""
+msgstr "পঢ়া হ'ল"
 
 #. Display name for the "stopped-reading" reading log shelf used in page
 #. headings and breadcrumbs.
@@ -907,131 +907,131 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Stopped Reading"
-msgstr ""
+msgstr "পঢ়া বন্ধ কৰিলে"
 
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "কোনোবাই %(k_hours_ago)s %(shelf)s হিচাপে চিহ্নিত কৰিলে"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "%(time_unit)s %(count)i বাৰ লগ কৰা হৈছে"
 
 #: verify_human.html
 msgid "Human Verification"
-msgstr ""
+msgstr "মানৱ যাচাইকৰণ"
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি অব্যাহত ৰাখিবলৈ আপুনি মানুহ বুলি যাচাই কৰক।"
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "আপুনি মানুহ বুলি যাচাই কৰক"
 
 #: verify_human.html
 msgid "Verification failed. Please try again."
-msgstr ""
+msgstr "যাচাইকৰণ বিফল হ'ল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক।"
 
 #: verify_human.html
 msgid "Verifying..."
-msgstr ""
+msgstr "যাচাই কৰা হৈছে..."
 
 #: viewpage.html
 msgid "Revert to this revision?"
-msgstr ""
+msgstr "এই সংশোধনলৈ ঘূৰাই যাবনে?"
 
 #: viewpage.html
 msgid "Revert to this revision"
-msgstr ""
+msgstr "এই সংশোধনলৈ ঘূৰাই যাওক"
 
 #: widget.html
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr ""
+msgstr "\"%(title)s\" পঢ়ক"
 
 #: widget.html
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr ""
+msgstr "\"%(title)s\" ধাৰলৈ লওক"
 
 #: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
-msgstr ""
+msgstr "ধাৰলৈ লওক"
 
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
+msgstr "\"%(title)s\"-ৰ প্ৰতীক্ষা তালিকাত যোগ দিয়ক"
 
 #: LoanStatus.html widget.html
 msgid "Join Waitlist"
-msgstr ""
+msgstr "প্ৰতীক্ষা তালিকাত যোগ দিয়ক"
 
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr ""
+msgstr "OpenLibrary-ত \"%(title)s\" সম্পৰ্কে অধিক জানক"
 
 #: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
-msgstr ""
+msgstr "অধিক জানক"
 
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>-ত"
 
 #: work_search.html
 msgid "Search Books"
-msgstr ""
+msgstr "কিতাপ বিচাৰক"
 
 #: work_search.html
 msgid "Keywords"
-msgstr ""
+msgstr "মূলশব্দসমূহ"
 
 #: RecentChanges.html recentchanges/index.html work_search.html
 msgid "Everything"
-msgstr ""
+msgstr "সকলো"
 
 #: work_search.html
 msgid "Ebooks"
-msgstr ""
+msgstr "ই-বুক"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "এইটো কেৱল চুপাৰ লাইব্ৰেৰিয়ানসকলৰ বাবে দৃশ্যমান।"
 
 #: work_search.html
 msgid "Solr Editions"
-msgstr ""
+msgstr "Solr সংস্কৰণসমূহ"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "সন্ধান ইঞ্জিনে এটা ত্ৰুটি ঘুৰাই দিলে।"
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Solr ডিবাগিং:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "সম্পূৰ্ণ URL:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "আপোনাৰ সন্ধানৰ সৈতে কোনো <strong>%(path_id)s</strong> পোনপটীয়াভাৱে মিলা নাই।"
 
 #: work_search.html
 msgid "Add a new book?"
-msgstr ""
+msgstr "নতুন কিতাপ যোগ কৰিবনে?"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
-msgstr ""
+msgstr "চাৰ্চ ইনছাইড মিলসমূহ পৰীক্ষা কৰা হৈছে"
 
 #: account/reading_log.html search/authors.html search/lists.html
 #: search/subjects.html work_search.html
@@ -1044,19 +1044,19 @@ msgstr[1] ""
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Solr সন্ধানত %(count)s ছেকেণ্ড লাগিল"
 
 #: about/index.html
 msgid "The Open Library Team"
-msgstr ""
+msgstr "Open Library দল"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "বিশ্বৰ বিভিন্ন প্ৰান্তৰ এটা নিষ্ঠাবান কৰ্মী দল আৰু ১০০ৰো অধিক স্বেচ্ছাসেৱকৰ কাৰণেই Open Library সম্ভৱ হৈছে।"
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "আমাৰ সৈতে যোগ দিব বিচাৰে?"
 
 #: about/index.html
 msgid "Role:"
