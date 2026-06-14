@@ -1381,23 +1381,23 @@ msgstr "順番待ちリストを離れますか？"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "借りる本をお探しですか？スタッフのおすすめをご覧になるか、特定のサブジェクトで本を検索してください："
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
-msgstr ""
+msgstr "私たちのおすすめ本"
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "または、<a href=\"/collections\">特別コレクション</a>もご覧ください。"
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
-msgstr ""
+msgstr "この棚に本はありません"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Loans"
-msgstr ""
+msgstr "借りている本"
 
 #. Display name for the "already-read" reading log shelf used in page headings
 #. and breadcrumbs.
@@ -1407,37 +1407,37 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
-msgstr ""
+msgstr "読み終わった"
 
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
-msgstr ""
+msgstr "この読者は読書記録を非公開にしています。"
 
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
+msgstr "%(year_span)sの読書目標"
 
 #: account/mybooks.html
 msgid "View All Lists"
-msgstr ""
+msgstr "すべてのリストを表示"
 
 #: account/mybooks.html
 msgid "My Stats"
-msgstr ""
+msgstr "私の統計"
 
 #: account/mybooks.html account/sidebar.html account/topmenu.html
 msgid "My Reading Stats"
-msgstr ""
+msgstr "私の読書統計"
 
 #: account/mybooks.html account/sidebar.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Loan History"
-msgstr ""
+msgstr "借り出し履歴"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Notes"
-msgstr ""
+msgstr "私のノート"
 
 #: account/mybooks.html account/sidebar.html
 #, fuzzy
@@ -1446,213 +1446,213 @@ msgstr ""
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
+msgstr "インポート＆エクスポートオプション"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
-msgstr ""
+msgstr "おっと！"
 
 #: account/not_verified.html
 msgid "The email address you signed up with needs to be verified."
-msgstr ""
+msgstr "登録したメールアドレスを確認する必要があります。"
 
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "アカウント作成時に、メールアドレス確認用のリンクを含むメールを%(email)sに送信しました。そのリンクをクリックしてください。"
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "メールが見つからない場合は、このボタンを押して新しいメールを送信してください："
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
-msgstr ""
+msgstr "確認メールを再送信"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "ありがとうございます！"
 
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
 #: account/notes.html account/observations.html
 msgid "Unknown author"
-msgstr ""
+msgstr "著者不明"
 
 #: account/notes.html
 msgid "My notes for an edition of "
-msgstr ""
+msgstr "版のメモ："
 
 #: account/notes.html
 msgid "Title Missing"
-msgstr ""
+msgstr "タイトルなし"
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
 msgid "Publish date unknown"
-msgstr ""
+msgstr "出版日不明"
 
 #: account/notes.html books/edition-sort.html lists/export_as_html.html
 #: type/work/editions.html
 msgid "Publisher unknown"
-msgstr ""
+msgstr "出版社不明"
 
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
+msgstr "%(language)sで"
 
 #: NotesModal.html account/notes.html
 msgid "Delete Note"
-msgstr ""
+msgstr "ノートを削除"
 
 #: NotesModal.html account/notes.html
 msgid "Save Note"
-msgstr ""
+msgstr "ノートを保存"
 
 #: account/notes.html
 msgid "No notes found."
-msgstr ""
+msgstr "ノートが見つかりません。"
 
 #: account/notifications.html
 msgid "Notifications from Open Library"
-msgstr ""
+msgstr "Open Libraryからの通知"
 
 #: account/notifications.html
 msgid "Notifications"
-msgstr ""
+msgstr "通知"
 
 #: account/notifications.html
 msgid "Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want."
-msgstr ""
+msgstr "現在、通知はリストに連動しています。リストの本が編集されたり、カタログに新しい本が追加された場合、希望に応じてお知らせします。"
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr ""
+msgstr "Open Libraryから時々メールを受け取りますか？"
 
 #: account/notifications.html
 msgid "No, thank you"
-msgstr ""
+msgstr "いいえ、結構です"
 
 #: account/notifications.html
 msgid "Yes! Please!"
-msgstr ""
+msgstr "はい、お願いします！"
 
 #: EditButtons.html account/notifications.html account/privacy.html
 #: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
-msgstr ""
+msgstr "保存"
 
 #: EditionNavBar.html account/observations.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "Reviews"
-msgstr ""
+msgstr "レビュー"
 
 #: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
 #: account/observations.html
 msgid "Update Reviews"
-msgstr ""
+msgstr "レビューを更新"
 
 #: account/observations.html
 msgid "No observations found."
-msgstr ""
+msgstr "観察が見つかりません。"
 
 #: account/privacy.html
 msgid "Your Privacy on Open Library"
-msgstr ""
+msgstr "Open Libraryでのプライバシー"
 
 #: account/privacy.html
 msgid "Privacy & Content Moderation Settings"
-msgstr ""
+msgstr "プライバシーとコンテンツモデレーション設定"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "<a href=\"/account/books\">読書記録</a>を公開しますか？"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "これにより、他のユーザーがあなたの読みたい本、読書中の本、読むのをやめた本、読み終わった本を見ることができます。読書記録を公開に設定したユーザーはフォローされる場合があります。"
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
-msgstr ""
+msgstr "はい"
 
 #: account/privacy.html admin/people/view.html books/edit/edition.html
 msgid "No"
-msgstr ""
+msgstr "いいえ"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "セーフモードを有効にしますか？"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "セーフモードでは、センシティブな画像としてフラグが立てられた本の表紙がぼかされます。"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s is reading"
-msgstr ""
+msgstr "%(username)sが読んでいる本"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading."
-msgstr ""
+msgstr "%(username)sは%(total)d冊の本を読んでいます。OpenLibrary.orgで%(username)sに参加し、あなたが読んでいる本を世界に伝えましょう。"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s wants to read"
-msgstr ""
+msgstr "%(username)sが読みたい本"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!"
-msgstr ""
+msgstr "%(username)sは%(total)d冊の本を読みたいと思っています。OpenLibrary.orgで%(username)sに参加し、これから読む本をシェアしましょう！"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s stopped reading"
-msgstr ""
+msgstr "%(username)sが読むのをやめた本"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
-msgstr ""
+msgstr "%(username)sは%(total)d冊の本を読むのをやめました。OpenLibrary.orgで%(username)sに参加し、読書の更新をシェアしましょう！"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "%(username)sが%(year)d年に読んだ本"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)sは%(year)d年に%(total)d冊の本を読みました。OpenLibrary.orgで%(username)sに参加し、大切な本について世界に伝えましょう。"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read"
-msgstr ""
+msgstr "%(username)sが読んだ本"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)sは%(total)d冊の本を読みました。OpenLibrary.orgで%(username)sに参加し、大切な本について世界に伝えましょう。"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books in %(username)s feed"
-msgstr ""
+msgstr "%(username)sのフィード内の本"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "%(username)sがフォローしている人が追加した本"
 
 #: account/reading_log.html
 msgid "Search your reading log"
-msgstr ""
+msgstr "読書記録を検索"
 
 #: account/reading_log.html type/author/view.html
 #, fuzzy, python-format
@@ -1672,103 +1672,103 @@ msgstr ""
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr ""
+msgstr "Open Library全体で「%s」を検索しますか？"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
-msgstr ""
+msgstr "今年、読み終わったとしてマークした本はありません。"
 
 #: account/reading_log.html
 msgid "You haven't added any books to this shelf yet."
-msgstr ""
+msgstr "まだこの棚に本を追加していません。"
 
 #: account/reading_log.html
 msgid "<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
-msgstr ""
+msgstr "<a href=\"/search\">本を検索</a>して読書記録に追加しましょう。読書記録について<a href=\"/help/faq/reading-log\">詳しくはこちら</a>。"
 
 #: account/reading_log.html
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr ""
+msgstr "フィードに最近の本はありません。公開アカウントをフォローすると、そのアカウントの本の更新がここに表示されます。"
 
 #. Display name for the "want-to-read" reading log shelf used in page headings
 #. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
-msgstr ""
+msgstr "読みたい"
 
 #: account/readinglog_stats.html
 #, python-format
 msgid "My %(shelf_name)s Stats"
-msgstr ""
+msgstr "私の%(shelf_name)s統計"
 
 #: account/readinglog_stats.html home/loans.html lib/nav_head.html
 msgid "My Books"
-msgstr ""
+msgstr "私の本"
 
 #: account/readinglog_stats.html
 #, python-format
 msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr ""
+msgstr "<strong>%(works_count)d</strong>冊の本に関する統計を表示中。すべてのグラフは上位20件のみ表示されます。読書記録の統計はプライベートです。"
 
 #: account/readinglog_stats.html
 msgid "Author Stats"
-msgstr ""
+msgstr "著者統計"
 
 #: account/readinglog_stats.html
 msgid "Most Read Authors"
-msgstr ""
+msgstr "最も読まれた著者"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Sex"
-msgstr ""
+msgstr "著者の性別による作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Citizenship"
-msgstr ""
+msgstr "著者の市民権の国による作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Birth"
-msgstr ""
+msgstr "著者の出生国による作品"
 
 #: account/readinglog_stats.html
 msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
-msgstr ""
+msgstr "<a href=\"https://www.wikidata.org/\">Wikidata</a>が提供する人口統計データ。使用されたクエリの<a id=\"wd-query-sample\" href=\"\">サンプル</a>をご覧ください。<br /><a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">こちらの手順</a>に従ってWikidata著者識別子を追加して、統計を改善してください。"
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
-msgstr ""
+msgstr "作品統計"
 
 #: account/readinglog_stats.html
 msgid "Works by Decade Published"
-msgstr ""
+msgstr "出版年代別作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Century Published"
-msgstr ""
+msgstr "出版世紀別作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Subject"
-msgstr ""
+msgstr "サブジェクト別作品"
 
 #: account/readinglog_stats.html
 msgid "Works by People"
-msgstr ""
+msgstr "人物別作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Places"
-msgstr ""
+msgstr "場所別作品"
 
 #: account/readinglog_stats.html
 msgid "Works by Time Period"
-msgstr ""
+msgstr "時代別作品"
 
 #: account/readinglog_stats.html
 msgid "Matching works"
-msgstr ""
+msgstr "一致する作品"
 
 #: account/readinglog_stats.html
 msgid "Click on a bar to see matching works"
-msgstr ""
+msgstr "バーをクリックして一致する作品を表示"
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/mybooks.py
@@ -1779,35 +1779,35 @@ msgstr ""
 #: account/sidebar.html
 #, python-format
 msgid "%(year)d Reading Goal"
-msgstr ""
+msgstr "%(year)d年の読書目標"
 
 #: account/sidebar.html
 #, python-format
 msgid "Set %(year_span)s reading goal"
-msgstr ""
+msgstr "%(year_span)sの読書目標を設定"
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
-msgstr ""
+msgstr "読書記録"
 
 #: account/sidebar.html
 msgid "My lists"
-msgstr ""
+msgstr "私のリスト"
 
 #: EditionNavBar.html SearchNavigation.html account/sidebar.html
 #: lib/nav_head.html lists/home.html recentchanges/index.html
 #: type/edition/view.html type/list/embed.html type/user/view.html
 #: type/work/view.html
 msgid "Lists"
-msgstr ""
+msgstr "リスト"
 
 #: account/sidebar.html type/user/view.html
 msgid "See All"
-msgstr ""
+msgstr "すべて表示"
 
 #: account/sidebar.html type/list/edit.html type/series/edit.html
 msgid "Create a list"
-msgstr ""
+msgstr "リストを作成"
 
 #: account/sidebar.html
 #, fuzzy
@@ -1816,16 +1816,16 @@ msgstr ""
 
 #: account/topmenu.html
 msgid "Import & Export"
-msgstr ""
+msgstr "インポート＆エクスポート"
 
 #: account/topmenu.html
 #, python-format
 msgid "Privacy settings: %(public)s"
-msgstr ""
+msgstr "プライバシー設定：%(public)s"
 
 #: account/verify.html
 msgid "Verification email sent"
-msgstr ""
+msgstr "確認メールを送信しました"
 
 #: account/password/reset_success.html account/verify.html
 #: account/verify/activated.html account/verify/success.html
@@ -1836,230 +1836,230 @@ msgstr "%(user)s こんにちは"
 #: account/verify.html
 #, python-format
 msgid "We’ve sent an email to %(email)s containing a link to verify your account. Click/tap on the link to finish creating your Internet Archive account."
-msgstr ""
+msgstr "%(email)sにアカウント確認用のリンクを含むメールを送信しました。リンクをクリック/タップして、Internet Archiveアカウントの作成を完了してください。"
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
-msgstr ""
+msgstr "その後、Open Libraryに戻って素晴らしい本を見つけましょう！"
 
 #: account/view.html
 msgid "Yearly Reading Goal"
-msgstr ""
+msgstr "年間読書目標"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
-msgstr ""
+msgstr "フォロー中"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Followers"
-msgstr ""
+msgstr "フォロワー"
 
 #: account/view.html type/edition/modal_links.html
 #: type/edition/title_and_author.html
 msgid "Share"
-msgstr ""
+msgstr "シェア"
 
 #: account/view.html
 msgid "Your book notes are private and cannot be viewed by other patrons."
-msgstr ""
+msgstr "ブックノートはプライベートで、他のユーザーには表示されません。"
 
 #: account/view.html
 msgid "Your book reviews will be shared anonymously with other patrons."
-msgstr ""
+msgstr "ブックレビューは他のユーザーと匿名で共有されます。"
 
 #: account/yrg_banner.html
 #, python-format
 msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr ""
+msgstr "%(year)sの年間読書目標を設定："
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "目標を設定"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
-msgstr ""
+msgstr "Internet Archiveのメールアドレスをお忘れですか？"
 
 #: account/email/forgot-ia.html
 msgid "Please enter your Open Library email and password, and we’ll retrieve your Archive.org email."
-msgstr ""
+msgstr "Open Libraryのメールアドレスとパスワードを入力してください。Archive.orgのメールアドレスをお知らせします。"
 
 #: account/email/forgot-ia.html
 msgid "Your email is:"
-msgstr ""
+msgstr "あなたのメールアドレス："
 
 #: account/email/forgot-ia.html
 msgid "Return to Log In?"
-msgstr ""
+msgstr "ログインに戻りますか？"
 
 #: account/email/forgot-ia.html
 msgid "Open Library Email"
-msgstr ""
+msgstr "Open Libraryのメールアドレス"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
-msgstr ""
+msgstr "Archive.orgのメールアドレスを取得"
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
-msgstr ""
+msgstr "Archive.orgのパスワードをお忘れですか？"
 
 #: account/password/forgot.html account/password/sent.html
 msgid "Username/Password Reminder"
-msgstr ""
+msgstr "ユーザー名/パスワードのリマインダー"
 
 #: account/password/forgot.html
 msgid "Click here."
-msgstr ""
+msgstr "こちらをクリック。"
 
 #: account/password/forgot.html
 msgid "Send It"
-msgstr ""
+msgstr "送信"
 
 #: account/password/reset.html admin/people/view.html
 msgid "Reset Password"
-msgstr ""
+msgstr "パスワードをリセット"
 
 #: account/password/reset.html
 msgid "Please enter a new password for your Open Library account."
-msgstr ""
+msgstr "Open Libraryアカウントの新しいパスワードを入力してください。"
 
 #: account/password/reset.html
 msgid "Reset"
-msgstr ""
+msgstr "リセット"
 
 #: account/password/reset_success.html
 msgid "Password Reset Successful"
-msgstr ""
+msgstr "パスワードのリセットが成功しました"
 
 #: account/password/reset_success.html
 msgid "Your password has been updated. Please <a href='/account/login?redirect=/'>log in to continue</a>."
-msgstr ""
+msgstr "パスワードが更新されました。<a href='/account/login?redirect=/'>ログインして続ける</a>をクリックしてください。"
 
 #: account/password/sent.html
 msgid "Done."
-msgstr ""
+msgstr "完了。"
 
 #: account/password/sent.html
 #, python-format
 msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
-msgstr ""
+msgstr "%(email)sにユーザー名のリマインダーとOpen Libraryパスワードのリセット手順を送信しました。受信ボックスをご確認ください。"
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "アカウントセキュリティチェック — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "アカウントセキュリティチェック"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "インシデント日時：2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Check whether your Open Library account was in a set of accounts requiring attention."
-msgstr ""
+msgstr "Open Libraryアカウントが注意が必要なアカウントのセットに含まれているか確認してください。"
 
 #: account/security/check_email.html
 msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
-msgstr ""
+msgstr "アカウントが影響を受けたかどうかを確認するには、<a href=\"/account/login?redirect=/account/security/2026-04-28T18\">ログイン</a>してください。"
 
 #: account/security/check_email.html
 msgid "Your account is in the affected set."
-msgstr ""
+msgstr "あなたのアカウントは影響を受けたセットに含まれています。"
 
 #: account/security/check_email.html
 msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
-msgstr ""
+msgstr "あなたのアカウントが影響を受けたアカウントリストに見つかりました。Open Libraryからの最近の通知を確認し、パスワードの更新をご検討ください。"
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "あなたのアカウントは影響を受けたセットに<em>含まれていません</em>。"
 
 #: account/security/check_email.html
 msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr ""
+msgstr "あなたのアカウントは影響を受けたアカウントリストに<em>見つかりませんでした</em>。対応は不要です。"
 
 #: account/verify/activated.html
 msgid "Account already activated"
-msgstr ""
+msgstr "アカウントは既にアクティブ化済みです"
 
 #: account/verify/activated.html
 #, python-format
 msgid "Your account has been activated already. Please <a href=\"%s\">log in to continue</a>."
-msgstr ""
+msgstr "アカウントは既にアクティブ化されています。<a href=\"%s\">ログインして続ける</a>をクリックしてください。"
 
 #: account/verify/failed.html
 msgid "Email Verification Failed"
-msgstr ""
+msgstr "メール確認に失敗しました"
 
 #: account/verify/failed.html
 msgid "Your email address couldn't be verified. Your verification link seems invalid or expired."
-msgstr ""
+msgstr "メールアドレスを確認できませんでした。確認リンクが無効または期限切れのようです。"
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
+msgstr "メールアドレスを入力してこのボタンを押すと、新しい確認メールを送信します："
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
-msgstr ""
+msgstr "こちらにメールアドレスを入力"
 
 #: account/verify/failed.html
 msgid "No user registered with this email address."
-msgstr ""
+msgstr "このメールアドレスで登録されたユーザーはいません。"
 
 #: account/verify/success.html
 msgid "Email Verification Successful"
-msgstr ""
+msgstr "メール確認が成功しました"
 
 #: account/verify/success.html
 #, python-format
 msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
-msgstr ""
+msgstr "やった！メールアドレスが確認されました。<a href='%s'>ログインして続ける</a>をクリックしてください。"
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "デバッガーを接続"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Python %(version_number)sでデバッガーを接続"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "ポート3000でデバッガーを起動。"
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
-msgstr ""
+msgstr "デバッガーの接続を待っています..."
 
 #: admin/attach_debugger.html
 msgid "Start"
-msgstr ""
+msgstr "開始"
 
 #: admin/block.html
 msgid "Block IP address"
-msgstr ""
+msgstr "IPアドレスをブロック"
 
 #: admin/block.html
 #, python-format
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr ""
+msgstr "IPアドレス%(address)sがテキストエリアに追加されました。そのIPをブロックするには「保存」をクリックしてください。"
 
 #: admin/block.html
 msgid "Blocked IP Addresses"
-msgstr ""
+msgstr "ブロックされたIPアドレス"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "パフォーマンスグラフ"
 
 #: admin/graphs.html
 msgid "Number of Hits"
-msgstr ""
+msgstr "ヒット数"
 
 #: admin/graphs.html
 msgid "Page Load Times"
