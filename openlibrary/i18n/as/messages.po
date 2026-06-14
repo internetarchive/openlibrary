@@ -1060,231 +1060,231 @@ msgstr "আমাৰ সৈতে যোগ দিব বিচাৰে?"
 
 #: about/index.html
 msgid "Role:"
-msgstr ""
+msgstr "ভূমিকা:"
 
 #: about/index.html lib/nav_head.html type/tag/index.html
 msgid "All"
-msgstr ""
+msgstr "সকলো"
 
 #: about/index.html
 msgid "Staff"
-msgstr ""
+msgstr "কৰ্মী"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "ফেলোসমূহ"
 
 #: about/index.html
 msgid "Volunteers"
-msgstr ""
+msgstr "স্বেচ্ছাসেৱকসমূহ"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "বিভাগ:"
 
 #: about/index.html
 msgid "Communications"
-msgstr ""
+msgstr "যোগাযোগ"
 
 #: about/index.html
 msgid "Design"
-msgstr ""
+msgstr "ডিজাইন"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "অভিযান্ত্ৰিক"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "গ্ৰন্থাগাৰবিদ্যা"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "যদি আপুনি Open Library-ত স্বেচ্ছাসেৱী কাম কৰে আৰু দলৰ অংশ হিচাপে তালিকাভুক্ত হ'ব বিচাৰে, তেন্তে <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library দলৰ তথ্য ফৰ্ম</a> পূৰণ কৰক।"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "এটা বৈধ ইমেইল ঠিকনা হ'ব লাগিব"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "৩ ৰ পৰা ২০ আখৰৰ মাজত হ'ব লাগিব"
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
+msgstr "ব্যৱহাৰকাৰী নামত কেৱল সংখ্যা, আখৰ, - বা _ থাকিব পাৰে"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "এটা যোগ্য কাৰ্যক্ৰম নিৰ্বাচন কৰিব লাগিব"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "Open Library-ত চাইন আপ কৰক"
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
-msgstr ""
+msgstr "চাইন আপ কৰক"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "বিনামূলীয়া Open Library কাৰ্ড পাওক আৰু অলাভজনক Internet Archive-ৰ পৰা ডিজিটেল কিতাপ ধাৰলৈ লওক"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
-msgstr ""
+msgstr "সাফল্য!"
 
 #: account/create.html
 msgid "Your URL"
-msgstr ""
+msgstr "আপোনাৰ URL"
 
 #: account/create.html
 msgid "screenname"
-msgstr ""
+msgstr "স্ক্ৰীননেম"
 
 #: account/create.html
 msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr ""
+msgstr "মই Open Library পৰিচালনা কৰা অলাভজনক প্ৰতিষ্ঠান <a href=\"https://archive.org/\">Internet Archive</a>-ৰ পৰা বাতৰি, ঘোষণা আৰু সম্পদসমূহ পাব বিচাৰোঁ।"
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "মই এটা যোগ্য কাৰ্যক্ৰমৰ জৰিয়তে <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">বিশেষ মুদ্ৰণ অক্ষমতা এক্সেছ</a>ৰ বাবে আবেদন* কৰিব বিচাৰোঁ।"
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "যোগ্য কাৰ্যক্ৰম নিৰ্বাচন কৰক"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* এই যোগ্য কাৰ্যক্ৰমৰ সৈতে জড়িত ইমেইল ঠিকনা ব্যৱহাৰ কৰক। সক্ৰিয়কৰণৰ পিছত পৰৱৰ্তী পদক্ষেপৰ সৈতে আপুনি এটা ইমেইল পাব।"
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "ইমেইলেৰে চাইন আপ কৰক"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr ""
+msgstr "চাইন আপ কৰি, আপুনি Internet Archive-ৰ <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">সেৱাৰ চৰ্তাৱলী</a>ত সন্মত হৈছে।"
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "ইতিমধ্যে একাউণ্ট আছেনে? <a href=\"/account/login\">লগ ইন কৰক</a>"
 
 #: account/delete.html
 msgid "Delete Account"
-msgstr ""
+msgstr "একাউণ্ট মচক"
 
 #: account/delete.html
 msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
+msgstr "দুঃখিত, এই কাৰ্যকৰীতা এখনো বাস্তৱায়িত হোৱা নাই।"
 
 #: account/follows.html
 msgid "There is nothing to see here yet."
-msgstr ""
+msgstr "এখনো চাবলগীয়া কিবা নাই।"
 
 #: account/import.html
 msgid "Import from Goodreads"
-msgstr ""
+msgstr "Goodreads-ৰ পৰা আমদানি কৰক"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "ডেটা ৰপ্তানিৰ নিৰ্দেশৰ বাবে চাওক: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
-msgstr ""
+msgstr "ফাইলৰ আকাৰ সীমা 10MB আৰু কেৱল .csv ফাইল প্ৰকাৰ"
 
 #: account/import.html
 msgid "Load Books"
-msgstr ""
+msgstr "কিতাপ লোড কৰক"
 
 #: account/import.html
 msgid "Export your Reading Log"
-msgstr ""
+msgstr "আপোনাৰ পঠন লগ ৰপ্তানি কৰক"
 
 #: account/import.html
 msgid "Download a copy of your reading log."
-msgstr ""
+msgstr "আপোনাৰ পঠন লগৰ এটা কপি ডাউনলোড কৰক।"
 
 #: account/import.html
 msgid "What is a reading log?"
-msgstr ""
+msgstr "পঠন লগ কি?"
 
 #: account/import.html
 msgid "Download (.csv format)"
-msgstr ""
+msgstr "ডাউনলোড কৰক (.csv ফৰ্মেট)"
 
 #: account/import.html
 msgid "Export your book notes"
-msgstr ""
+msgstr "আপোনাৰ কিতাপৰ টোকা ৰপ্তানি কৰক"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "আপোনাৰ কিতাপৰ টোকাৰ এটা কপি ডাউনলোড কৰক।"
 
 #: account/import.html
 msgid "What are book notes?"
-msgstr ""
+msgstr "কিতাপৰ টোকা কি?"
 
 #: account/import.html
 msgid "Export your reviews"
-msgstr ""
+msgstr "আপোনাৰ পৰ্যালোচনা ৰপ্তানি কৰক"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "আপোনাৰ পৰ্যালোচনা টেগৰ এটা কপি ডাউনলোড কৰক।"
 
 #: account/import.html
 msgid "What are review tags?"
-msgstr ""
+msgstr "পৰ্যালোচনা টেগ কি?"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "আপোনাৰ তালিকাৰ সাৰাংশ ৰপ্তানি কৰক"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "আপোনাৰ তালিকাসমূহ আৰু সেইবোৰৰ বিষয়বস্তুৰ এটা সাৰাংশ ডাউনলোড কৰক।"
 
 #: account/import.html
 msgid "What are lists?"
-msgstr ""
+msgstr "তালিকা কি?"
 
 #: account/import.html
 msgid "Export your star ratings"
-msgstr ""
+msgstr "আপোনাৰ তাৰকা ৰেটিং ৰপ্তানি কৰক"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "আপোনাৰ তাৰকা ৰেটিংৰ এটা কপি ডাউনলোড কৰক।"
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "তাৰকা ৰেটিং কি?"
 
 #: account/import.html
 msgid "Importing..."
-msgstr ""
+msgstr "আমদানি হৈছে..."
 
 #: account/import.html
 msgid "Reason"
-msgstr ""
+msgstr "কাৰণ"
 
 #: account/import.html
 msgid "No ISBN"
-msgstr ""
+msgstr "ISBN নাই"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "আপোনাৰ ধাৰ ইতিহাসত কোনো ঋণ পোৱা নগ'ল।"
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">এটা কিতাপ বিচাৰক</a> ধাৰলৈ ল'বলৈ।"
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
-msgstr ""
+msgstr "আপুনি এই মুহূৰ্তত কোনো কিতাপ চেকআউট কৰা নাই।"
 
 #: account/loans.html
 #, python-format
@@ -1295,11 +1295,11 @@ msgstr[1] ""
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
-msgstr ""
+msgstr "ঋণৰ মেয়াদ শেষ"
 
 #: account/loans.html
 msgid "Loan actions"
-msgstr ""
+msgstr "ঋণ কাৰ্যসমূহ"
 
 #: account/loans.html
 #, python-format
@@ -1310,31 +1310,31 @@ msgstr[1] ""
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."
-msgstr ""
+msgstr "এখনো ডাউনলোড কৰা হোৱা নাই।"
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Download Now"
-msgstr ""
+msgstr "এতিয়াই ডাউনলোড কৰক"
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
+msgstr "Adobe Digital Editions-ৰ<br/>জৰিয়তে ঘূৰাই দিয়ক"
 
 #: account/loans.html
 msgid "Books You're Waiting For"
-msgstr ""
+msgstr "আপুনি যি কিতাপৰ বাবে অপেক্ষা কৰি আছে"
 
 #: account/loans.html
 msgid "You are not waiting for any books at this moment."
-msgstr ""
+msgstr "আপুনি এই মুহূৰ্তত কোনো কিতাপৰ বাবে অপেক্ষা কৰি নাই।"
 
 #: account/loans.html
 msgid "Leave the Waiting List"
-msgstr ""
+msgstr "প্ৰতীক্ষা তালিকা এৰক"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "আপুনি নিশ্চিতনে যে আপুনি<br/><strong>TITLE</strong>-ৰ প্ৰতীক্ষা তালিকা এৰিব বিচাৰে?"
 
 #: ProlificAuthors.html account/loans.html authors/index.html
 #: lists/list_follow.html lists/showcase.html publishers/view.html
@@ -1347,7 +1347,7 @@ msgstr[1] ""
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
-msgstr ""
+msgstr "কাৰ্যসমূহ"
 
 #: account/loans.html
 #, python-format
@@ -1358,7 +1358,7 @@ msgstr[1] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
+msgstr "আপুনি এই কিতাপটো পোৱা পৰৱৰ্তী ব্যক্তি।"
 
 #: ManageWaitlistButton.html account/loans.html
 #, python-format
@@ -1369,7 +1369,7 @@ msgstr[1] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "You have less than an hour to borrow it."
-msgstr ""
+msgstr "ইয়াক ধাৰলৈ ল'বলৈ আপোনাৰ এক ঘণ্টাতকৈ কম সময় আছে।"
 
 #: account/loans.html
 #, python-format
@@ -1380,31 +1380,31 @@ msgstr[1] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Borrow Now"
-msgstr ""
+msgstr "এতিয়াই ধাৰলৈ লওক"
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Leave the waiting list?"
-msgstr ""
+msgstr "প্ৰতীক্ষা তালিকা এৰিবনে?"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "ধাৰলৈ ল'বলৈ কিতাপ বিচাৰিছে? আমাৰ কৰ্মীৰ পছন্দ চাওক, বা এটা নিৰ্দিষ্ট বিষয়ৰ ওপৰত কিতাপ বিচাৰক:"
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
-msgstr ""
+msgstr "আমি ভালপোৱা কিতাপ"
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "বা, আমাৰ <a href=\"/collections\">বিশেষ সংগ্ৰহসমূহ</a> চাওক।"
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
-msgstr ""
+msgstr "এই শ্বেলফত কোনো কিতাপ নাই"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Loans"
-msgstr ""
+msgstr "মোৰ ঋণসমূহ"
 
 #. Display name for the "already-read" reading log shelf used in page headings
 #. and breadcrumbs.
@@ -1414,326 +1414,326 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
-msgstr ""
+msgstr "ইতিমধ্যে পঢ়া হ'ল"
 
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
-msgstr ""
+msgstr "এই পাঠকে তেওঁৰ পঠন লগ ব্যক্তিগত ৰাখিবলৈ বাছনি কৰিছে।"
 
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
+msgstr "%(year_span)s পঠনৰ লক্ষ্য"
 
 #: account/mybooks.html
 msgid "View All Lists"
-msgstr ""
+msgstr "সকলো তালিকা চাওক"
 
 #: account/mybooks.html
 msgid "My Stats"
-msgstr ""
+msgstr "মোৰ পৰিসংখ্যা"
 
 #: account/mybooks.html account/sidebar.html account/topmenu.html
 msgid "My Reading Stats"
-msgstr ""
+msgstr "মোৰ পঠনৰ পৰিসংখ্যা"
 
 #: account/mybooks.html account/sidebar.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Loan History"
-msgstr ""
+msgstr "ঋণ ইতিহাস"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Notes"
-msgstr ""
+msgstr "মোৰ টোকাসমূহ"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Reviews"
-msgstr ""
+msgstr "মোৰ পৰ্যালোচনাসমূহ"
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
+msgstr "আমদানি আৰু ৰপ্তানি বিকল্পসমূহ"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
-msgstr ""
+msgstr "উপছ!"
 
 #: account/not_verified.html
 msgid "The email address you signed up with needs to be verified."
-msgstr ""
+msgstr "আপুনি চাইন আপ কৰা ইমেইল ঠিকনাটো যাচাই কৰিব লাগিব।"
 
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "যেতিয়া আপুনি আপোনাৰ একাউণ্ট তৈয়াৰ কৰিলে, আমি %(email)s লৈ এটা ইমেইল পঠিয়াইছিলোঁ যাত আপোনাৰ ইমেইল ঠিকনা যাচাই কৰিবলৈ এটা লিংক আছিল। অনুগ্ৰহ কৰি সেই লিংকত ক্লিক কৰক।"
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "যদি আপুনি ইমেইলটো বিচাৰি নাপায়, নতুন এটা পঠিয়াবলৈ এই বুটামটো টিপক:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
-msgstr ""
+msgstr "যাচাইকৰণ ইমেইল পুনৰায় পঠাওক"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "ধন্যবাদ!"
 
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
 #: account/notes.html account/observations.html
 msgid "Unknown author"
-msgstr ""
+msgstr "অজ্ঞাত লেখক"
 
 #: account/notes.html
 msgid "My notes for an edition of "
-msgstr ""
+msgstr "এটা সংস্কৰণৰ বাবে মোৰ টোকাসমূহ "
 
 #: account/notes.html
 msgid "Title Missing"
-msgstr ""
+msgstr "শিৰোনাম অনুপস্থিত"
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
 msgid "Publish date unknown"
-msgstr ""
+msgstr "প্ৰকাশৰ তাৰিখ অজ্ঞাত"
 
 #: account/notes.html books/edition-sort.html lists/export_as_html.html
 #: type/work/editions.html
 msgid "Publisher unknown"
-msgstr ""
+msgstr "প্ৰকাশক অজ্ঞাত"
 
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
+msgstr "%(language)s ভাষাত"
 
 #: NotesModal.html account/notes.html
 msgid "Delete Note"
-msgstr ""
+msgstr "টোকা মচক"
 
 #: NotesModal.html account/notes.html
 msgid "Save Note"
-msgstr ""
+msgstr "টোকা সংৰক্ষণ কৰক"
 
 #: account/notes.html
 msgid "No notes found."
-msgstr ""
+msgstr "কোনো টোকা পোৱা নগ'ল।"
 
 #: account/notifications.html
 msgid "Notifications from Open Library"
-msgstr ""
+msgstr "Open Library-ৰ পৰা জাননীসমূহ"
 
 #: account/notifications.html
 msgid "Notifications"
-msgstr ""
+msgstr "জাননীসমূহ"
 
 #: account/notifications.html
 msgid "Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want."
-msgstr ""
+msgstr "এই মুহূৰ্তত জাননীসমূহ তালিকাসমূহৰ সৈতে সংযুক্ত। যদি আপোনাৰ তালিকাৰ কোনো কিতাপ সম্পাদনা কৰা হয়, বা কেটালগত নতুন কিতাপ আহে, আমি আপোনাক জনাম, যদি আপুনি বিচাৰে।"
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr ""
+msgstr "আপুনি Open Library-ৰ পৰা মাজে মাজে ইমেইল পাব বিচাৰেনে?"
 
 #: account/notifications.html
 msgid "No, thank you"
-msgstr ""
+msgstr "নাই, ধন্যবাদ"
 
 #: account/notifications.html
 msgid "Yes! Please!"
-msgstr ""
+msgstr "হয়! অনুগ্ৰহ কৰি!"
 
 #: EditButtons.html account/notifications.html account/privacy.html
 #: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
-msgstr ""
+msgstr "সংৰক্ষণ কৰক"
 
 #: EditionNavBar.html account/observations.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "Reviews"
-msgstr ""
+msgstr "পৰ্যালোচনাসমূহ"
 
 #: account/observations.html admin/inspect/memcache.html
 msgid "Delete"
-msgstr ""
+msgstr "মচক"
 
 #: account/observations.html
 msgid "Update Reviews"
-msgstr ""
+msgstr "পৰ্যালোচনা আপডেট কৰক"
 
 #: account/observations.html
 msgid "No observations found."
-msgstr ""
+msgstr "কোনো পৰ্যবেক্ষণ পোৱা নগ'ল।"
 
 #: account/privacy.html
 msgid "Your Privacy on Open Library"
-msgstr ""
+msgstr "Open Library-ত আপোনাৰ গোপনীয়তা"
 
 #: account/privacy.html
 msgid "Privacy & Content Moderation Settings"
-msgstr ""
+msgstr "গোপনীয়তা আৰু বিষয়বস্তু নিয়ন্ত্ৰণ ছেটিংছ"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "আপুনি আপোনাৰ <a href=\"/account/books\">পঠন লগ</a> পাব্লিক কৰিব বিচাৰেনে?"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "ইয়াৰ ফলত আনসকলে দেখিব পাৰিব যে আপুনি কি কিতাপ পঢ়িব বিচাৰে, পঢ়িছে, পঢ়া বন্ধ কৰিছে, বা ইতিমধ্যে পঢ়িছে। যিসকল পাঠকৰ পঠন লগ পাব্লিকত ছেট কৰা আছে তেওঁলোকক অনুসৰণ কৰিব পাৰি।"
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
-msgstr ""
+msgstr "হয়"
 
 #: account/privacy.html admin/people/view.html books/edit/edition.html
 msgid "No"
-msgstr ""
+msgstr "নাই"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "নিৰাপদ ম'ড সক্ষম কৰিবনে?"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "নিৰাপদ ম'ডে সংবেদনশীল ছবি থকা বুলি চিহ্নিত কিতাপৰ কভাৰসমূহ আবছা কৰে।"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s is reading"
-msgstr ""
+msgstr "%(username)s পঢ়িছে এনে কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading."
-msgstr ""
+msgstr "%(username)s এ %(total)d খন কিতাপ পঢ়িছে। OpenLibrary.org-ত %(username)s-ৰ সৈতে যোগ দিয়ক আৰু বিশ্বক জনাওক আপুনি কি পঢ়িছে।"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s wants to read"
-msgstr ""
+msgstr "%(username)s পঢ়িব বিচাৰে এনে কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!"
-msgstr ""
+msgstr "%(username)s এ %(total)d খন কিতাপ পঢ়িব বিচাৰে। OpenLibrary.org-ত %(username)s-ৰ সৈতে যোগ দিয়ক আৰু শীঘ্ৰে পঢ়িবলগীয়া কিতাপসমূহ শ্বেয়াৰ কৰক!"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s stopped reading"
-msgstr ""
+msgstr "%(username)s পঢ়া বন্ধ কৰিছে এনে কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
-msgstr ""
+msgstr "%(username)s এ %(total)d খন কিতাপ পঢ়া বন্ধ কৰিছে। OpenLibrary.org-ত %(username)s-ৰ সৈতে যোগ দিয়ক আৰু আপোনাৰ নিজৰ পঠন আপডেট শ্বেয়াৰ কৰক!"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "%(username)s এ %(year)d চনত পঢ়া কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s এ %(year)d চনত %(total)d খন কিতাপ পঢ়িছে। OpenLibrary.org-ত %(username)s-ৰ সৈতে যোগ দিয়ক আৰু বিশ্বক আপুনি গুৰুত্ব দিয়া কিতাপসমূহৰ বিষয়ে জনাওক।"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read"
-msgstr ""
+msgstr "%(username)s পঢ়িছে এনে কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s এ %(total)d খন কিতাপ পঢ়িছে। OpenLibrary.org-ত %(username)s-ৰ সৈতে যোগ দিয়ক আৰু বিশ্বক আপুনি গুৰুত্ব দিয়া কিতাপসমূহৰ বিষয়ে জনাওক।"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books in %(username)s feed"
-msgstr ""
+msgstr "%(username)s ফিডৰ কিতাপসমূহ"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "%(username)s এ অনুসৰণ কৰা ব্যক্তিসকলে যোগ কৰা কিতাপসমূহ"
 
 #: account/reading_log.html
 msgid "Search your reading log"
-msgstr ""
+msgstr "আপোনাৰ পঠন লগ বিচাৰক"
 
 #: account/reading_log.html type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— কেৱল <a href=\"%(url)s\">ই-বুক</a> দেখুৱাবনে?"
 
 #: account/reading_log.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
-msgstr ""
+msgstr "— এই শ্বেলফৰ <a href=\"%(url)s\">সকলো কিতাপ</a> দেখুৱাবনে?"
 
 #: account/reading_log.html
 msgid "No results found in this shelf"
-msgstr ""
+msgstr "এই শ্বেলফত কোনো ফলাফল পোৱা নগ'ল"
 
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr ""
+msgstr "Open Library-ত \"%s\" বিচাৰিবনে?"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
-msgstr ""
+msgstr "আপুনি এই বছৰৰ বাবে কোনো কিতাপ পঢ়া বুলি চিহ্নিত কৰা নাই।"
 
 #: account/reading_log.html
 msgid "You haven't added any books to this shelf yet."
-msgstr ""
+msgstr "আপুনি এখনো এই শ্বেলফত কোনো কিতাপ যোগ কৰা নাই।"
 
 #: account/reading_log.html
 msgid "<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
-msgstr ""
+msgstr "<a href=\"/search\">এটা কিতাপ বিচাৰক</a> আপোনাৰ পঠন লগত যোগ কৰিবলৈ। পঠন লগৰ বিষয়ে <a href=\"/help/faq/reading-log\">অধিক জানক</a>।"
 
 #: account/reading_log.html
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr ""
+msgstr "আপোনাৰ ফিডত কোনো শেহতীয়া কিতাপ নাই। যেতিয়া আপুনি পাব্লিক একাউণ্ট অনুসৰণ কৰিব, সেইবোৰৰ কিতাপ আপডেটসমূহ ইয়াত দেখা যাব।"
 
 #. Display name for the "want-to-read" reading log shelf used in page headings
 #. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
-msgstr ""
+msgstr "পঢ়িব বিচাৰে"
 
 #: account/readinglog_stats.html
 #, python-format
 msgid "My %(shelf_name)s Stats"
-msgstr ""
+msgstr "মোৰ %(shelf_name)s পৰিসংখ্যা"
 
 #: account/readinglog_stats.html home/loans.html lib/nav_head.html
 msgid "My Books"
-msgstr ""
+msgstr "মোৰ কিতাপসমূহ"
 
 #: account/readinglog_stats.html
 #, python-format
 msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr ""
+msgstr "<strong>%(works_count)d</strong> খন কিতাপৰ পৰিসংখ্যা প্ৰদৰ্শিত হৈছে। মন কৰক, সকলো চাৰ্টত কেৱল শীৰ্ষ ২০টা বাৰ দেখা যায়। মন কৰক পঠন লগ পৰিসংখ্যা ব্যক্তিগত।"
 
 #: account/readinglog_stats.html
 msgid "Author Stats"
-msgstr ""
+msgstr "লেখকৰ পৰিসংখ্যা"
 
 #: account/readinglog_stats.html
 msgid "Most Read Authors"
-msgstr ""
+msgstr "সৰ্বাধিক পঠিত লেখকসমূহ"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Sex"
-msgstr ""
+msgstr "লেখকৰ লিংগ অনুযায়ী কৃতিসমূহ"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Citizenship"
-msgstr ""
+msgstr "লেখকৰ নাগৰিকত্বৰ দেশ অনুযায়ী কৃতিসমূহ"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Birth"
-msgstr ""
+msgstr "লেখকৰ জন্মৰ দেশ অনুযায়ী কৃতিসমূহ"
 
 #: account/readinglog_stats.html
 msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
