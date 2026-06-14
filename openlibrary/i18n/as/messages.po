@@ -2375,161 +2375,161 @@ msgstr[1] ""
 #: admin/loans_table.html admin/people/edits.html recentchanges/render.html
 #: recentchanges/updated_records.html
 msgid "What"
-msgstr ""
+msgstr "কি"
 
 #: admin/loans_table.html
 #, python-format
 msgid "Waiting since %(date)s"
-msgstr ""
+msgstr "%(date)s ৰ পৰা অপেক্ষা কৰি আছে"
 
 #: admin/loans_table.html
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
-msgstr ""
+msgstr "এই কিতাপৰ বাবে অপেক্ষা কৰা %(num_waitlist)d জনৰ মাজত #%(num_position)d নম্বৰত"
 
 #: ManageLoansButtons.html admin/loans_table.html
 #, python-format
 msgid "Borrowed %(date)s"
-msgstr ""
+msgstr "%(date)s-ত ধাৰ লোৱা হৈছিল"
 
 #: admin/menu.html
 msgid "Admin Center"
-msgstr ""
+msgstr "প্ৰশাসক কেন্দ্ৰ"
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html
 #: admin/people/index.html admin/people/view.html
 #: openlibrary/plugins/worksearch/code.py type/author/view.html
 #: type/list/view_body.html
 msgid "People"
-msgstr ""
+msgstr "মানুহ"
 
 #: admin/menu.html
 msgid "PD Access Requests"
-msgstr ""
+msgstr "PD অ্যাক্সেছ অনুৰোধসমূহ"
 
 #: admin/menu.html
 msgid "Block IPs"
-msgstr ""
+msgstr "IP বাধা দিয়ক"
 
 #: admin/menu.html admin/spamwords.html
 msgid "Spam Words"
-msgstr ""
+msgstr "স্পাম শব্দসমূহ"
 
 #: admin/menu.html
 msgid "Solr"
-msgstr ""
+msgstr "Solr"
 
 #: admin/menu.html
 msgid "Graphs"
-msgstr ""
+msgstr "গ্ৰাফসমূহ"
 
 #: admin/menu.html
 msgid "Inspect store"
-msgstr ""
+msgstr "ষ্ট'ৰ পৰীক্ষা কৰক"
 
 #: admin/menu.html
 msgid "Inspect memcache"
-msgstr ""
+msgstr "মেমকেছ পৰীক্ষা কৰক"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "মুদ্ৰণ অক্ষমতা অ্যাক্সেছ অনুৰোধসমূহ"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "যোগ্যতা কৰ্তৃপক্ষ অনুযায়ী বিভাজন"
 
 #: admin/pd_dashboard.html
 msgid "PDA"
-msgstr ""
+msgstr "PDA"
 
 #: admin/pd_dashboard.html
 msgid "Emailed"
-msgstr ""
+msgstr "ইমেইল কৰা হৈছে"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "পূৰণ কৰা হৈছে"
 
 #: admin/pd_dashboard.html
 msgid "Totals"
-msgstr ""
+msgstr "সমূহ"
 
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] ছাইট অনুমতিসমূহ"
 
 #: admin/permissions.html
 msgid "Site Permissions"
-msgstr ""
+msgstr "ছাইট অনুমতিসমূহ"
 
 #: admin/permissions.html
 msgid "Change the policy of who can edit the site."
-msgstr ""
+msgstr "কোনে ছাইটটো সম্পাদনা কৰিব পাৰিব তাৰ নীতি সলনি কৰক।"
 
 #: admin/permissions.html
 msgid "Who can edit Open Library records?"
-msgstr ""
+msgstr "কোনে Open Library ৰেকৰ্ডসমূহ সম্পাদনা কৰিব পাৰিব?"
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "এইটো /authors/*, /books/* আৰু /works/* ৰেকৰ্ডসমূহত প্ৰযোজ্য।"
 
 #: admin/permissions.html
 msgid "Who can edit Open Library pages?"
-msgstr ""
+msgstr "কোনে Open Library পৃষ্ঠাসমূহ সম্পাদনা কৰিব পাৰিব?"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "এইটো /about/*, /help/*, /dev/*, /docs/* আদিত প্ৰযোজ্য।"
 
 #: admin/permissions.html
 msgid "Update permissions"
-msgstr ""
+msgstr "অনুমতিসমূহ আপডেট কৰক"
 
 #: admin/permissions.html
 msgid "This updates \"permission\" and \"child_permission\" fields of /, /works, /books and /authors records in the database."
-msgstr ""
+msgstr "এইটো ডাটাবেছত /, /works, /books আৰু /authors ৰেকৰ্ডসমূহৰ \"permission\" আৰু \"child_permission\" ক্ষেত্ৰ আপডেট কৰে।"
 
 #: admin/solr.html
 msgid "Solr Admin"
-msgstr ""
+msgstr "Solr প্ৰশাসক"
 
 #: admin/solr.html
 msgid "Enter the keys of pages to be updated in OL search engine."
-msgstr ""
+msgstr "OL সন্ধান ইঞ্জিনত আপডেট কৰিবলগীয়া পৃষ্ঠাসমূহৰ কী দিয়ক।"
 
 #: admin/solr.html
 msgid "Example:"
-msgstr ""
+msgstr "উদাহৰণ:"
 
 #: admin/solr.html
 msgid "On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr."
-msgstr ""
+msgstr "আপডেটত, এই কীসমূহ solr আপডেট সাৰিত যোগ কৰা হ'ব আৰু Solr-ত পুনৰায় সূচীভুক্ত হ'বলৈ প্ৰায় 15 মিনিট সময় লাগিব।"
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
-msgstr ""
+msgstr "Solr-ত পুনৰায় সূচীভুক্ত কৰিবলৈ কী দিয়ক"
 
 #: admin/solr.html
 msgid "Write one entry per line"
-msgstr ""
+msgstr "প্ৰতি শাৰীত এটা এণ্ট্ৰি লিখক"
 
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] স্পাম শব্দসমূহ"
 
 #: admin/spamwords.html
 msgid "Please enter the SPAM regular expressions in the textarea below, one per line."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি তলৰ টেক্সটএৰিয়াত SPAM নিয়মিত প্ৰকাশসমূহ দিয়ক, প্ৰতি শাৰীত এটা।"
 
 #: admin/spamwords.html
 msgid "Be sure to escape any meta characters that are meant to be character literals."
-msgstr ""
+msgstr "চৰিত্ৰ আক্ষৰিক বুজোৱা যিকোনো মেটা চৰিত্ৰ এস্কেপ কৰিবলৈ নিশ্চিত হওক।"
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "যদি আপুনি এটা ডমেইন যোগ কৰিছে, তেন্তে ডমেইনৰ আগত নিম্নলিখিত যোগ কৰক:"
 
 #: admin/spamwords.html
 msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
@@ -2537,35 +2537,35 @@ msgstr ""
 
 #: admin/spamwords.html
 msgid "Spam Domains"
-msgstr ""
+msgstr "স্পাম ডমেইনসমূহ"
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি তলৰ টেক্সটএৰিয়াত কলাতালিকাভুক্ত কৰিবলগীয়া ডমেইনসমূহ দিয়ক, প্ৰতি শাৰীত এটা।"
 
 #: admin/sync.html
 msgid "Sync"
-msgstr ""
+msgstr "সমকালীন"
 
 #: admin/sync.html
 msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr ""
+msgstr "Open Library বস্তুসমূহৰ বিভিন্ন প্ৰকাৰৰ (যেনে তালিকা, বিষয়, ৰচনা) মেটাডেটা Archive.org-ৰ সৈতে সমকালীন কৰক।"
 
 #: admin/sync.html
 msgid "Add Works to Staff Picks"
-msgstr ""
+msgstr "ষ্টাফ পছন্দত ৰচনা যোগ কৰক"
 
 #: admin/sync.html
 msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr ""
+msgstr "এই ইউটিলিটিয়ে `openlibrary` ব্যৱহাৰকাৰীৰ অধীনত `Staff Picks` নামৰ Open Library তালিকাত আপোনাৰ ৰচনা যোগ কৰিব। তাৰপিছত ই যোগ কৰা ৰচনাটো ল'ব আৰু ইয়াৰ সকলো পঠনযোগ্য সংস্কৰণৰ তালিকালৈ সম্প্ৰসাৰিত কৰিব। প্ৰতিটো Open Library সংস্কৰণৰ বাবে, সংস্কৰণৰ সংগতিপূৰ্ণ archive.org বস্তুৰ archive.org মেটাডেটাত `openlibrary_subject` নামৰ এটা মেটাডেটা ক্ষেত্ৰ সংযোজিত কৰা হ'ব।"
 
 #: admin/sync.html
 msgid "add"
-msgstr ""
+msgstr "যোগ কৰক"
 
 #: admin/sync.html
 msgid "remove"
-msgstr ""
+msgstr "আঁতৰাওক"
 
 #: admin/sync.html
 #, fuzzy
@@ -2574,378 +2574,378 @@ msgstr ""
 
 #: admin/sync.html
 msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
+msgstr "archive.org-ত এটা সংস্কৰণ আপডেট কৰে ইয়াৰ শেহতীয়া openlibrary_edition আৰু openlibrary_work চিনাক্তকাৰী মান লিখি"
 
 #: admin/sync.html
 msgid "TODO"
-msgstr ""
+msgstr "কৰণীয়"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] মেমকেছ পৰীক্ষা কৰক"
 
 #: admin/inspect/memcache.html
 msgid "Inspect Memcache"
-msgstr ""
+msgstr "মেমকেছ পৰীক্ষা কৰক"
 
 #: admin/inspect/memcache.html
 msgid "Add one memcache key per line in the text area. Each key must include a '-' as the last character."
-msgstr ""
+msgstr "টেক্সট এৰিয়াত প্ৰতি শাৰীত এটা memcache কী দিয়ক। প্ৰতিটো কীত শেষ চৰিত্ৰ হিচাপে '-' অন্তৰ্ভুক্ত থাকিব লাগিব।"
 
 #: admin/inspect/memcache.html
 msgid "For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>."
-msgstr ""
+msgstr "উদাহৰণস্বৰূপ, যদি কী হয় <code>observations</code>, তেন্তে টেক্সট এৰিয়াত <code>observations-</code> দিব লাগিব।"
 
 #: admin/inspect/memcache.html
 msgid "Keys:"
-msgstr ""
+msgstr "কীসমূহ:"
 
 #: admin/inspect/memcache.html
 msgid "Result"
-msgstr ""
+msgstr "ফলাফল"
 
 #: admin/inspect/memcache.html
 msgid "No keys selected."
-msgstr ""
+msgstr "কোনো কী নিৰ্বাচন কৰা হোৱা নাই।"
 
 #: admin/inspect/memcache.html
 msgid "Not found."
-msgstr ""
+msgstr "পোৱা নগ'ল।"
 
 #: admin/inspect/store.html
 msgid "Admin Center / Inspect"
-msgstr ""
+msgstr "প্ৰশাসক কেন্দ্ৰ / পৰীক্ষা"
 
 #: admin/inspect/store.html
 msgid "Inspect Store"
-msgstr ""
+msgstr "ষ্ট'ৰ পৰীক্ষা কৰক"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "পাওক"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "কী"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "প্ৰশ্ন"
 
 #: admin/inspect/store.html
 msgid "Type"
-msgstr ""
+msgstr "প্ৰকাৰ"
 
 #: admin/inspect/store.html
 msgid "Value"
-msgstr ""
+msgstr "মান"
 
 #: admin/inspect/store.html
 msgid "Documents"
-msgstr ""
+msgstr "নথিপত্ৰসমূহ"
 
 #: admin/inspect/store.html
 msgid "Json"
-msgstr ""
+msgstr "Json"
 
 #: admin/inspect/store.html
 msgid "No results found."
-msgstr ""
+msgstr "কোনো ফলাফল পোৱা নগ'ল।"
 
 #: admin/ip/index.html
 msgid "[Admin Center] IP Addresses"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] IP ঠিকনাসমূহ"
 
 #: admin/ip/index.html
 msgid "IP Addresses"
-msgstr ""
+msgstr "IP ঠিকনাসমূহ"
 
 #: admin/ip/index.html
 msgid "List of Banned IPs"
-msgstr ""
+msgstr "নিষিদ্ধ IPসমূহৰ তালিকা"
 
 #: admin/ip/index.html admin/people/index.html
 msgid "Date/Time"
-msgstr ""
+msgstr "তাৰিখ/সময়"
 
 #: admin/ip/index.html
 msgid "IP address"
-msgstr ""
+msgstr "IP ঠিকনা"
 
 #: admin/ip/index.html
 msgid "Admin Comment"
-msgstr ""
+msgstr "প্ৰশাসক মন্তব্য"
 
 #: admin/ip/index.html
 msgid "# of edits"
-msgstr ""
+msgstr "সম্পাদনাৰ #"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "x মিনিট আগত"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: admin/ip/index.html
 msgid "comment"
-msgstr ""
+msgstr "মন্তব্য"
 
 #: admin/ip/view.html admin/people/view.html
 msgid "[Admin Center]"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ]"
 
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "IP %(ip)s <a href=\"/admin/block\">বাধাগ্ৰস্ত</a>।"
 
 #: admin/ip/view.html
 #, python-format
 msgid "Block %(ip)s"
-msgstr ""
+msgstr "%(ip)s বাধা দিয়ক"
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Please select the changesets to revert."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি ৰিভাৰ্ট কৰিবলগীয়া পৰিৱৰ্তন গোচৰসমূহ নিৰ্বাচন কৰক।"
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html
 #: recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "যেতিয়া আপুনি ইয়াত সংখ্যা দেখিছে, সেইটো বেনামী সম্পাদকৰ IP ঠিকনা"
 
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
-msgstr ""
+msgstr "%(revert_author)s-এ ৰিভাৰ্ট কৰিছে"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি, আপুনি কি সলনি কৰিছে তাৰ বিষয়ে এটা চমু টোকা দিয়ক: <span class=\"small gray\">(ঐচ্ছিক, কিন্তু অতি উপকাৰী!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 msgid "Reverted spam"
-msgstr ""
+msgstr "স্পাম ৰিভাৰ্ট কৰা হৈছে"
 
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] %(user)s-ৰ সম্পাদনাসমূহ"
 
 #: admin/people/edits.html
 msgid "people"
-msgstr ""
+msgstr "মানুহ"
 
 #: admin/people/edits.html
 msgid "edits"
-msgstr ""
+msgstr "সম্পাদনাসমূহ"
 
 #: admin/people/index.html
 msgid "[Admin Center] People"
-msgstr ""
+msgstr "[প্ৰশাসক কেন্দ্ৰ] মানুহ"
 
 #: admin/people/index.html
 msgid "Find Account"
-msgstr ""
+msgstr "একাউণ্ট বিচাৰক"
 
 #: admin/people/index.html admin/people/view.html
 msgid "Email Address:"
-msgstr ""
+msgstr "ইমেইল ঠিকনা:"
 
 #: admin/people/index.html
 msgid "Find"
-msgstr ""
+msgstr "বিচাৰক"
 
 #: admin/people/index.html
 msgid "No account found with this email."
-msgstr ""
+msgstr "এই ইমেইলৰ সৈতে কোনো একাউণ্ট পোৱা নগ'ল।"
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "IA ID:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "যেনে @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "এই IDৰ সৈতে কোনো একাউণ্ট পোৱা নগ'ল।"
 
 #: admin/people/index.html
 msgid "Recent Accounts"
-msgstr ""
+msgstr "শেহতীয়া একাউণ্টসমূহ"
 
 #: admin/people/index.html
 msgid "email"
-msgstr ""
+msgstr "ইমেইল"
 
 #: admin/people/index.html
 msgid "profile"
-msgstr ""
+msgstr "প্ৰফাইল"
 
 #: admin/people/index.html admin/people/view.html
 msgid "Edit History"
-msgstr ""
+msgstr "সম্পাদনা ইতিহাস"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "সকলো সম্পাদনা বাধা দিয়ক আৰু ৰিভাৰ্ট কৰক"
 
 #: admin/people/view.html
 msgid "block this account"
-msgstr ""
+msgstr "এই একাউণ্ট বাধা দিয়ক"
 
 #: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr ""
+msgstr "<span class=\"time\">%(date)s</span>-ত পঞ্জীয়ন কৰা হৈছে।"
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "এই ব্যৱহাৰকাৰী হিচাপে লগ ইন কৰক"
 
 #: admin/people/view.html
 #, python-format
 msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
+msgstr "<span class=\"time\">%(date)s</span>-ত <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>-ৰ পৰা সক্ৰিয় কৰা হৈছে।"
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "এই একাউণ্টৰ বাধা আঁতৰাওক"
 
 #: admin/people/view.html
 msgid "activate account"
-msgstr ""
+msgstr "একাউণ্ট সক্ৰিয় কৰক"
 
 #: CreateListModal.html admin/people/view.html my_books/dropdown_content.html
 msgid "Name:"
-msgstr ""
+msgstr "নাম:"
 
 #: admin/people/view.html
 msgid "view profile"
-msgstr ""
+msgstr "প্ৰফাইল চাওক"
 
 #: admin/people/view.html
 msgid "Change"
-msgstr ""
+msgstr "সলনি কৰক"
 
 #: admin/people/view.html
 msgid "Admin"
-msgstr ""
+msgstr "প্ৰশাসক"
 
 #: admin/people/view.html
 msgid "Make Human"
-msgstr ""
+msgstr "মানুহ কৰক"
 
 #: admin/people/view.html
 msgid "Make Bot"
-msgstr ""
+msgstr "বট কৰক"
 
 #: admin/people/view.html
 msgid "Not available"
-msgstr ""
+msgstr "উপলব্ধ নহয়"
 
 #: admin/people/view.html
 msgid "# Edits"
-msgstr ""
+msgstr "# সম্পাদনাসমূহ"
 
 #: admin/people/view.html
 msgid "Member Since:"
-msgstr ""
+msgstr "সদস্যপদ প্ৰাপ্তিৰ পৰা:"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "শেষ লগইন:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "টেগসমূহ:"
 
 #: admin/people/view.html
 msgid "Anonymize Account:"
-msgstr ""
+msgstr "একাউণ্ট বেনামী কৰক:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "শুকান পৰীক্ষণ"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
-msgstr ""
+msgstr "একাউণ্ট বেনামী কৰক"
 
 #: admin/people/view.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
-msgstr ""
+msgstr "ধাৰসমূহ"
 
 #: admin/people/view.html
 msgid "Account not activated yet."
-msgstr ""
+msgstr "একাউণ্ট এতিয়াও সক্ৰিয় কৰা হোৱা নাই।"
 
 #: admin/people/view.html
 msgid "Waiting Loans"
-msgstr ""
+msgstr "অপেক্ষাৰত ধাৰসমূহ"
 
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d সম্পাদনাসমূহ"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "ডিবাগ তথ্য"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "একাউণ্ট তথ্য"
 
 #: admin/people/view.html
 msgid "Verifications Links"
-msgstr ""
+msgstr "যাচাইকৰণ লিংকসমূহ"
 
 #: admin/people/view.html
 msgid "None found"
-msgstr ""
+msgstr "কোনো পোৱা নগ'ল"
 
 #: SearchNavigation.html authors/index.html lib/nav_foot.html
 #: merge/authors.html publishers/view.html
 msgid "Authors"
-msgstr ""
+msgstr "লেখকসকল"
 
 #: authors/index.html
 msgid "Search for an Author"
-msgstr ""
+msgstr "এজন লেখক বিচাৰক"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
 #: search/publishers.html search/searchbox.html type/local_id/view.html
 msgid "Search"
-msgstr ""
+msgstr "সন্ধান"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
-msgstr ""
+msgstr "%(subjects)s-ৰ বিষয়ে"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
-msgstr ""
+msgstr "<i>%(topwork)s</i> সহ"
 
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "%(site)s-ত চাওক"
 
 #: authors/infobox.html
 msgid "Born"
-msgstr ""
+msgstr "জন্ম"
 
 #: authors/infobox.html
 msgid "Died"
-msgstr ""
+msgstr "মৃত্যু"
 
 #: book_providers/cita_press_download_options.html
 #: book_providers/gutenberg_download_options.html
@@ -2956,50 +2956,50 @@ msgstr ""
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
-msgstr ""
+msgstr "ডাউনল'ড বিকল্পসমূহ"
 
 #: book_providers/cita_press_download_options.html
 msgid "Download PDF from Cita Press"
-msgstr ""
+msgstr "Cita Press-ৰ পৰা PDF ডাউনল'ড কৰক"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Cita Press-ত আৰু বেছি"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg-ৰ পৰা HTML ডাউনল'ড কৰক"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a text version from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg-ৰ পৰা এটা টেক্সট সংস্কৰণ ডাউনল'ড কৰক"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "সাধাৰণ টেক্সট"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg-ৰ পৰা এটা ePub ডাউনল'ড কৰক"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg-ৰ পৰা এটা Kindle ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Kindle"
-msgstr ""
+msgstr "Kindle"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg-ত আৰু বেছি"
 
 #: book_providers/ia_download_options.html
 msgid "Download a PDF from Internet Archive"
