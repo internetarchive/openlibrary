@@ -5325,375 +5325,375 @@ msgstr "新しいウィンドウで開く"
 
 #: merge/authors.html search/work_search_selected_facets.html
 msgid "First published in"
-msgstr ""
+msgstr "初出版："
 
 #: merge/authors.html
 msgid "Visit this author's page in a new window"
-msgstr ""
+msgstr "この著者のページを新しいウィンドウで表示"
 
 #: merge/authors.html
 msgid "Comment:"
-msgstr ""
+msgstr "コメント："
 
 #: merge/authors.html
 msgid "Comment..."
-msgstr ""
+msgstr "コメント..."
 
 #: merge/authors.html
 msgid "Request Merge"
-msgstr ""
+msgstr "統合をリクエスト"
 
 #: merge/authors.html
 msgid "Reject Merge"
-msgstr ""
+msgstr "統合を拒否"
 
 #: merge/works.html
 msgid "Merge Works"
-msgstr ""
+msgstr "作品を統合"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "コメントの送信に失敗しました。しばらく後でもう一度お試しください。"
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "（任意）このリクエストを閉じる理由は？"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
-msgstr ""
+msgstr "%(username)sのリクエストのみ表示中。"
 
 #: merge_request_table/merge_request_table.html
 msgid "Show all requests"
-msgstr ""
+msgstr "すべてのリクエストを表示"
 
 #: merge_request_table/merge_request_table.html
 msgid "Showing all requests."
-msgstr ""
+msgstr "すべてのリクエストを表示中。"
 
 #: merge_request_table/merge_request_table.html
 msgid "Show my requests"
-msgstr ""
+msgstr "自分のリクエストを表示"
 
 #: merge_request_table/merge_request_table.html
 msgid "Community Edit Requests"
-msgstr ""
+msgstr "コミュニティ編集リクエスト"
 
 #: merge_request_table/merge_request_table.html
 msgid "No entries here!"
-msgstr ""
+msgstr "ここにはエントリがありません！"
 
 #: merge_request_table/table_header.html
 msgid "Open"
-msgstr ""
+msgstr "オープン"
 
 #: merge_request_table/table_header.html
 msgid "Closed"
-msgstr ""
+msgstr "完了"
 
 #: merge_request_table/table_header.html
 msgid "Status ▾"
-msgstr ""
+msgstr "ステータス ▾"
 
 #: merge_request_table/table_header.html
 msgid "Request Status"
-msgstr ""
+msgstr "リクエストのステータス"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Merged"
-msgstr ""
+msgstr "統合済み"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "却下"
 
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
-msgstr ""
+msgstr "提出者 ▾"
 
 #: merge_request_table/table_header.html
 msgid "Filter submitters"
-msgstr ""
+msgstr "提出者でフィルター"
 
 #: merge_request_table/table_header.html
 msgid "Submitted by me"
-msgstr ""
+msgstr "自分が提出"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
-msgstr ""
+msgstr "レビュアー ▾"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer"
-msgstr ""
+msgstr "レビュアー"
 
 #: merge_request_table/table_header.html
 msgid "Filter reviewers"
-msgstr ""
+msgstr "レビュアーでフィルター"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "未割り当て"
 
 #: merge_request_table/table_header.html
 msgid "Sort ▾"
-msgstr ""
+msgstr "並び替え ▾"
 
 #: merge_request_table/table_header.html
 msgid "Sort"
-msgstr ""
+msgstr "並び替え"
 
 #: merge_request_table/table_header.html
 msgid "Newest"
-msgstr ""
+msgstr "新しい順"
 
 #: merge_request_table/table_header.html
 msgid "Oldest"
-msgstr ""
+msgstr "古い順"
 
 #: merge_request_table/table_row.html
 msgid "An untitled work"
-msgstr ""
+msgstr "タイトルなしの作品"
 
 #: merge_request_table/table_row.html
 msgid "An unnamed author"
-msgstr ""
+msgstr "名前のない著者"
 
 #: merge_request_table/table_row.html
 msgid "Open request"
-msgstr ""
+msgstr "オープンなリクエスト"
 
 #: merge_request_table/table_row.html
 msgid "Closed request"
-msgstr ""
+msgstr "閉じたリクエスト"
 
 #: merge_request_table/table_row.html
 msgid "No comments yet."
-msgstr ""
+msgstr "まだコメントがありません。"
 
 #: merge_request_table/table_row.html
 msgid "Add a comment..."
-msgstr ""
+msgstr "コメントを追加..."
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "返信"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s は %(date)s に<a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>が開きました"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
-msgstr ""
+msgstr "この統合リクエストを閉じるにはクリック"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
+msgstr "レビュー"
 
 #: merge_request_table/table_row.html
 msgid "comments"
-msgstr ""
+msgstr "コメント"
 
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
-msgstr ""
+msgstr "棚から削除"
 
 #: my_books/dropdown_content.html
 msgid "My Reading Lists:"
-msgstr ""
+msgstr "読書リスト："
 
 #: my_books/dropdown_content.html
 msgid "Loading"
-msgstr ""
+msgstr "読み込み中"
 
 #: my_books/dropdown_content.html
 msgid "Use this Work"
-msgstr ""
+msgstr "この作品を使用"
 
 #: CreateListModal.html my_books/dropdown_content.html
 msgid "Create a new list"
-msgstr ""
+msgstr "新しいリストを作成"
 
 #: CreateListModal.html my_books/dropdown_content.html
 #: type/permission/edit.html type/usergroup/edit.html
 msgid "Description:"
-msgstr ""
+msgstr "説明："
 
 #: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
 #: type/series/edit.html
 msgid "Create new list"
-msgstr ""
+msgstr "新しいリストを作成"
 
 #: my_books/dropdown_content.html
 msgid "saving..."
-msgstr ""
+msgstr "保存中..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "この本を棚から削除すると、この作品のチェックインも削除されます。続けますか？"
 
 #: my_books/primary_action.html
 msgid "Add to List"
-msgstr ""
+msgstr "リストに追加"
 
 #: my_books/check_ins/check_in_form.html
 msgid "January"
-msgstr ""
+msgstr "1月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "February"
-msgstr ""
+msgstr "2月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "March"
-msgstr ""
+msgstr "3月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "April"
-msgstr ""
+msgstr "4月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "May"
-msgstr ""
+msgstr "5月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "June"
-msgstr ""
+msgstr "6月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "July"
-msgstr ""
+msgstr "7月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "August"
-msgstr ""
+msgstr "8月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "September"
-msgstr ""
+msgstr "9月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "October"
-msgstr ""
+msgstr "10月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "November"
-msgstr ""
+msgstr "11月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "December"
-msgstr ""
+msgstr "12月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr ""
+msgstr "任意のチェックイン日を追加してください。チェックイン日は年間読書目標の追跡に使用されます。"
 
 #: my_books/check_ins/check_in_form.html
 msgid "End Date:"
-msgstr ""
+msgstr "終了日："
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year:"
-msgstr ""
+msgstr "年："
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year"
-msgstr ""
+msgstr "年"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month:"
-msgstr ""
+msgstr "月："
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month"
-msgstr ""
+msgstr "月"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day:"
-msgstr ""
+msgstr "日："
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day"
-msgstr ""
+msgstr "日"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
-msgstr ""
+msgstr "イベントを削除"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "チェックインの削除に失敗しました。しばらく後でもう一度お試しください。"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "チェックインの送信に失敗しました。しばらく後でもう一度お試しください。"
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "<time class=\"check-in-date\">%(date)s</time>に読了"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
-msgstr ""
+msgstr "この本を読み終えたのはいつですか？"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Other"
-msgstr ""
+msgstr "その他"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Check-In"
-msgstr ""
+msgstr "チェックイン"
 
 #: observations/review_component.html
 msgid "Community Reviews"
-msgstr ""
+msgstr "コミュニティレビュー"
 
 #: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
-msgstr ""
+msgstr "この作品にはコミュニティレビューがまだありません。"
 
 #: observations/review_component.html
 msgid "+ Add your community review"
-msgstr ""
+msgstr "+ コミュニティレビューを追加"
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
-msgstr ""
+msgstr "+ コミュニティレビューを追加するにはログイン"
 
 #: publishers/index.html publishers/notfound.html
 msgid "Publishers"
-msgstr ""
+msgstr "出版社"
 
 #: publishers/index.html publishers/view.html
 msgid "Publisher Search"
-msgstr ""
+msgstr "出版社を検索"
 
 #: publishers/index.html publishers/view.html
 msgid "Try a keyword."
-msgstr ""
+msgstr "キーワードを試してください。"
 
 #: publishers/notfound.html
 #, python-format
 msgid "We couldn't find any books published by %(publisher)s."
-msgstr ""
+msgstr "%(publisher)sが出版した本は見つかりませんでした。"
 
 #: publishers/notfound.html subjects/notfound.html
 msgid "Try something else?"
-msgstr ""
+msgstr "別のものを試しますか？"
 
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "出版社：%(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html
 #: search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
-msgstr ""
+msgstr "出版社"
 
 #: SearchResultsWork.html publishers/view.html
 #, fuzzy, python-format
@@ -5709,161 +5709,161 @@ msgstr ""
 
 #: PublishingHistory.html publishers/view.html
 msgid "Publishing History"
-msgstr ""
+msgstr "出版の歴史"
 
 #: publishers/view.html
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "このグラフはこの出版社が本を出版した時期を示しています。X軸は時間、Y軸は出版された版数です。<a href=\"#subjectRelated\">チャートをスキップするにはここをクリック</a>。"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
-msgstr ""
+msgstr "チャートをリセット"
 
 #: PublishingHistory.html publishers/view.html
 msgid "or continue zooming in."
-msgstr ""
+msgstr "またはズームインを続けてください。"
 
 #: publishers/view.html
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
-msgstr ""
+msgstr "このグラフはこの出版社の版数を時間軸で示しています。特定の年を表示するにはクリック、範囲を指定するにはドラッグしてください。"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Editions Published"
-msgstr ""
+msgstr "出版された版数"
 
 #: PublishingHistory.html publishers/view.html
 msgid "Year of Publication"
-msgstr ""
+msgstr "出版年"
 
 #: publishers/view.html
 msgid "Common Subjects"
-msgstr ""
+msgstr "共通のサブジェクト"
 
 #: publishers/view.html
 #, python-format
 msgid "Search for books published by %(publisher)s"
-msgstr ""
+msgstr "%(publisher)sが出版した本を検索"
 
 #: RelatedSubjects.html publishers/view.html
 msgid "None found."
-msgstr ""
+msgstr "見つかりません。"
 
 #: ProlificAuthors.html publishers/view.html
 msgid "See more books by, and learn about, this author"
-msgstr ""
+msgstr "この著者のもっと多くの本を見て、著者について学ぶ"
 
 #: publishers/view.html
 msgid "published most by this publisher"
-msgstr ""
+msgstr "この出版社から最も多く出版"
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
-msgstr ""
+msgstr "この出版社についてもっと詳しく"
 
 #: reading_goals/reading_goal_form.html
 msgid "How many books would you like to read this year?"
-msgstr ""
+msgstr "今年は何冊読みたいですか？"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
+msgstr "読書目標を解除するには「0」を入力してください。チェックインは保持されます。"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr ""
+msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span>冊"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "Edit %(year)d Reading Goal"
-msgstr ""
+msgstr "%(year)d年の読書目標を編集"
 
 #: recentchanges/header.html
 msgid "By"
-msgstr ""
+msgstr "著："
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "すべて元に戻す"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
-msgstr ""
+msgstr "最近の変更"
 
 #: recentchanges/index.html
 msgid "Books Edited"
-msgstr ""
+msgstr "編集された本"
 
 #: recentchanges/index.html
 msgid "Author Merges"
-msgstr ""
+msgstr "著者の統合"
 
 #: recentchanges/index.html
 msgid "Work Merges"
-msgstr ""
+msgstr "作品の統合"
 
 #: recentchanges/index.html
 msgid "Books Added"
-msgstr ""
+msgstr "追加された本"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
-msgstr ""
+msgstr "人間による"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Bots"
-msgstr ""
+msgstr "ボットによる"
 
 #: recentchanges/render.html
 msgid "Admin view"
-msgstr ""
+msgstr "管理者ビュー"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/render.html
 msgid "Older"
-msgstr ""
+msgstr "古い"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/render.html
 msgid "Newer"
-msgstr ""
+msgstr "新しい"
 
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
-msgstr ""
+msgstr "前のリビジョンからの変更を確認"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
-msgstr ""
+msgstr "差分"
 
 #: recentchanges/add-book/path.html recentchanges/default/path.html
 #: recentchanges/edit-book/path.html recentchanges/merge/path.html
 msgid "expand"
-msgstr ""
+msgstr "展開"
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "Open Libraryの新しいアカウントを開設しました！"
 
 #: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
 msgid "Review what's changed from the previous revision"
-msgstr ""
+msgstr "前のリビジョンからの変更を確認"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html
 #: recentchanges/undo/view.html
 msgid "Updated Records"
-msgstr ""
+msgstr "更新されたレコード"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "重複した%(record_type)sレコードを統合しました。"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "<a href=\"%s\">詳細</a>を見る。"
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -5874,12 +5874,12 @@ msgstr[1] ""
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
-msgstr ""
+msgstr "重複としてマーク済み。"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)sをプライマリの%(record_type)sレコードに統合しました。"
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -5897,15 +5897,15 @@ msgstr[1] ""
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
-msgstr ""
+msgstr "この統合は元に戻されました。"
 
 #: recentchanges/merge/view.html
 msgid "Details here"
-msgstr ""
+msgstr "詳細はこちら"
 
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
-msgstr ""
+msgstr "重複"
 
 #: recentchanges/merge/view.html
 #, python-format
@@ -5917,67 +5917,67 @@ msgstr[1] ""
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "<a href=\"$parent.url()\">%(kind)s</a>の取り消し。"
 
 #: recentchanges/undo/view.html
 #, python-format
 msgid "%(count)d records modified."
-msgstr ""
+msgstr "%(count)dレコードが変更されました。"
 
 #: search/advancedsearch.html
 msgid "ISBN"
-msgstr ""
+msgstr "ISBN"
 
 #: search/advancedsearch.html
 msgid "Place"
-msgstr ""
+msgstr "場所"
 
 #: search/advancedsearch.html
 msgid "Person"
-msgstr ""
+msgstr "人物"
 
 #: search/advancedsearch.html
 msgid "How to search?"
-msgstr ""
+msgstr "検索方法は？"
 
 #: search/advancedsearch.html
 msgid "Full Text Search?"
-msgstr ""
+msgstr "全文検索？"
 
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Open Libraryで「%(query)s」を検索"
 
 #: search/authors.html
 msgid "Search Authors"
-msgstr ""
+msgstr "著者を検索"
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "同じ著者が2度リストされていますか？"
 
 #: search/authors.html
 msgid "Merge authors"
-msgstr ""
+msgstr "著者を統合"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "検索に直接一致する<strong>著者</strong>は見つかりませんでした"
 
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
-msgstr ""
+msgstr "Open Libraryで%sを検索"
 
 #: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
 #: search/inside.html search/snippets.html
 msgid "Search Inside"
-msgstr ""
+msgstr "本文検索"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "検索に一致する<strong>本文検索</strong>のテキストは見つかりませんでした"
 
 #: search/inside.html
 #, fuzzy, python-format
@@ -5995,11 +5995,11 @@ msgstr[1] ""
 
 #: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
-msgstr ""
+msgstr "詳細"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "グリッド"
 
 #: search/layout_options.html
 msgid "View as: "
