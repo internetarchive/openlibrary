@@ -1232,97 +1232,97 @@ msgstr "Alamat email yang Anda masukkan tidak valid"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "Akun ini telah diblokir"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "Akun ini telah dikunci"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Tidak ada akun yang ditemukan dengan email ini. Silakan coba lagi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "Kata sandi yang Anda masukkan salah. Silakan coba lagi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "Kata sandi salah. Silakan coba lagi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr ""
+msgstr "Harap verifikasi akun Open Library Anda sebelum masuk"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Harap verifikasi akun Internet Archive Anda sebelum masuk"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Harap isi semua kolom dan coba lagi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
-msgstr ""
+msgstr "Email ini sudah terdaftar"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This username is already registered"
-msgstr ""
+msgstr "Nama pengguna ini sudah terdaftar"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "Login dicoba dengan kredensial Internet Archive S3 yang tidak valid."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "Server mengalami lalu lintas yang sangat tinggi, silakan coba lagi nanti atau email openlibrary@archive.org untuk bantuan."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
-msgstr ""
+msgstr "Penyedia email tidak dikenal."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "Persyaratan kata sandi tidak terpenuhi."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "Terjadi masalah dan kami tidak dapat masukkan Anda"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "Percobaan masuk atau registrasi mengalami kesalahan tak terduga, silakan coba lagi atau hubungi info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Permintaan gagal dengan kode kesalahan: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Terima kasih telah mendaftarkan akun Open Library dan meminta akses disabilitas cetak khusus. Anda akan menerima email yang menjelaskan langkah berikutnya dalam proses ini."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "Nama pengguna tidak tersedia"
 
 #: openlibrary/plugins/upstream/account.py
 #: openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
-msgstr ""
+msgstr "Email sudah terdaftar"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Akun Internet Archive sudah ada dengan email ini"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email address is already used."
-msgstr ""
+msgstr "Alamat email sudah digunakan."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email address couldn't be updated. The specified email address is already used."
@@ -1334,41 +1334,41 @@ msgstr "Email verifikasi berhasil."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email address has been successfully verified and updated in your account."
-msgstr ""
+msgstr "Alamat email Anda telah berhasil diverifikasi dan diperbarui di akun Anda."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email address couldn't be verified."
-msgstr ""
+msgstr "Alamat email tidak dapat diverifikasi."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email address couldn't be verified. The verification link seems invalid."
-msgstr ""
+msgstr "Alamat email Anda tidak dapat diverifikasi. Tautan verifikasi tampaknya tidak valid."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
-msgstr ""
+msgstr "Preferensi notifikasi telah berhasil diperbarui."
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
-msgstr ""
+msgstr "Impor dan Ekspor"
 
 #: admin/people/view.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
-msgstr ""
+msgstr "Pinjaman"
 
 #: account/mybooks.html account/sidebar.html
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Loan History"
-msgstr ""
+msgstr "Riwayat Pinjaman"
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Akun Anda telah mencapai batas peminjaman. Silakan coba lagi nanti atau hubungi info@archive.org."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
-msgstr ""
+msgstr "Nama pengguna"
 
 #: account/email/forgot-ia.html login.html
 #: openlibrary/plugins/upstream/forms.py
@@ -1377,31 +1377,31 @@ msgstr "Kata Sandi"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
-msgstr ""
+msgstr "Tidak ada pengguna yang terdaftar dengan alamat email ini"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "Email sekali pakai tidak diizinkan"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "Penyedia email Anda tidak dikenal."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
-msgstr ""
+msgstr "Nama pengguna sudah digunakan"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "Harus antara 3 dan 20 huruf dan angka"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "Harus antara 3 dan 20 karakter"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "Harus berupa alamat email yang valid"
 
 #: login.html openlibrary/plugins/upstream/forms.py
 msgid "Email"
@@ -1409,49 +1409,49 @@ msgstr "Email"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Screen Name"
-msgstr ""
+msgstr "Nama Layar"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "Publik dan tidak dapat diubah nanti."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
-msgstr ""
+msgstr "Kata sandi tidak valid"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
-msgstr ""
+msgstr "Alamat email Anda"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
-msgstr ""
+msgstr "Pilih kata sandi"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #: type/edition/modal_links.html
 msgid "Notes"
-msgstr ""
+msgstr "Catatan"
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
-msgstr ""
+msgstr "Feed Saya"
 
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 msgid "Already Read"
-msgstr ""
+msgstr "Sudah Dibaca"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
-msgstr ""
+msgstr "Sedang Dibaca (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
-msgstr ""
+msgstr "Ingin Dibaca (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, fuzzy, python-format
@@ -1460,31 +1460,31 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
-msgstr ""
+msgstr "eBook?"
 
 #: openlibrary/plugins/worksearch/code.py type/edition/view.html
 #: type/work/view.html
 msgid "Language"
-msgstr ""
+msgstr "Bahasa"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/work_search_selected_facets.html
 msgid "Author"
-msgstr ""
+msgstr "Penulis"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "First published"
-msgstr ""
+msgstr "Pertama diterbitkan"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html
 #: search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
-msgstr ""
+msgstr "Penerbit"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
+msgstr "eBook Klasik"
 
 #: account.html account/notifications.html account/privacy.html
 #: lib/nav_head.html type/user/view.html
@@ -1550,80 +1550,80 @@ msgstr "Pemindai Barcode (Beta)"
 
 #: batch_import.html
 msgid "Batch Imports"
-msgstr ""
+msgstr "Impor Batch"
 
 #: batch_import.html
 msgid "Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea."
-msgstr ""
+msgstr "Lampirkan dokumen berformat JSONL dengan catatan impor atau salin/tempel teks JSONL ke dalam textarea."
 
 #: batch_import.html
 msgid "See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more."
-msgstr ""
+msgstr "Lihat <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">skema impor olclient</a> untuk lebih lanjut."
 
 #: batch_import.html
 msgid "Attach a file:"
-msgstr ""
+msgstr "Lampirkan file:"
 
 #: batch_import.html
 msgid "Or copy/paste JSONL text:"
-msgstr ""
+msgstr "Atau salin/tempel teks JSONL:"
 
 #: batch_import.html import_preview.html
 msgid "Import"
-msgstr ""
+msgstr "Impor"
 
 #: batch_import.html
 msgid "Import failed."
-msgstr ""
+msgstr "Impor gagal."
 
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
-msgstr ""
+msgstr "Tidak ada impor yang akan diantrekan sampai *setiap* catatan berhasil divalidasi."
 
 #: batch_import.html
 msgid "Please update the JSONL file and reload this page (there should be no need to reattach the file)."
-msgstr ""
+msgstr "Harap perbarui file JSONL dan muat ulang halaman ini (tidak perlu melampirkan file kembali)."
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "Kesalahan validasi:"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "Baris %d:"
 
 #: batch_import.html
 msgid "Import results for batch:"
-msgstr ""
+msgstr "Hasil impor untuk batch:"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "Catatan yang disubmit:"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "Total diantrekan:"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "Total dilewati:"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "Tidak diantrekan karena sudah ada di dalam antrian:"
 
 #: batch_import.html
 msgid "View Batch Status"
-msgstr ""
+msgstr "Lihat Status Batch"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "Impor Batch Tertunda"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "batch_id"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
 #: batch_import_view.html
@@ -1636,211 +1636,211 @@ msgstr ""
 #: batch_import_pending_view.html batch_import_view.html
 #: librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: batch_import_pending_view.html batch_import_view.html
 #: merge_request_table/table_header.html
 msgid "Submitter"
-msgstr ""
+msgstr "Pengaju"
 
 #: batch_import_view.html
 msgid "Batch Import Status"
-msgstr ""
+msgstr "Status Impor Batch"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "ID Batch:"
 
 #: batch_import_view.html
 msgid "Batch Name:"
-msgstr ""
+msgstr "Nama Batch:"
 
 #: batch_import_view.html
 msgid "Submitter:"
-msgstr ""
+msgstr "Pengaju:"
 
 #: batch_import_view.html
 msgid "Submit Time:"
-msgstr ""
+msgstr "Waktu Submit:"
 
 #: batch_import_view.html
 msgid "Status Summary"
-msgstr ""
+msgstr "Ringkasan Status"
 
 #: batch_import_view.html
 msgid "Approve"
-msgstr ""
+msgstr "Setujui"
 
 #: batch_import_view.html
 msgid "Import Items"
-msgstr ""
+msgstr "Impor Item"
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
+msgstr "Waktu Impor"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html
 #: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
-msgstr ""
+msgstr "Kesalahan"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "ID IA"
 
 #: batch_import_view.html
 msgid "Data"
-msgstr ""
+msgstr "Data"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "Kunci OL"
 
 #: batch_import_view.html
 msgid "Not yet imported"
-msgstr ""
+msgstr "Belum diimpor"
 
 #: design.html
 msgid "Design Pattern Library"
-msgstr ""
+msgstr "Perpustakaan Pola Desain"
 
 #: design.html
 msgid "Colors"
-msgstr ""
+msgstr "Warna"
 
 #: design.html
 msgid "Background"
-msgstr ""
+msgstr "Latar Belakang"
 
 #: design.html
 msgid "Primary Call To Action"
-msgstr ""
+msgstr "Ajakan Bertindak Utama"
 
 #: design.html
 msgid "Link (unclicked)"
-msgstr ""
+msgstr "Tautan (belum diklik)"
 
 #: design.html
 msgid "Link (clicked)"
-msgstr ""
+msgstr "Tautan (sudah diklik)"
 
 #: design.html
 msgid "Pagination component"
-msgstr ""
+msgstr "Komponen paginasi"
 
 #: design.html
 msgid "The ol-pagination component provides support for both event-based and URL-based navigation."
-msgstr ""
+msgstr "Komponen ol-pagination mendukung navigasi berbasis event maupun berbasis URL."
 
 #: design.html
 msgid "Event-based"
-msgstr ""
+msgstr "Berbasis event"
 
 #: design.html
 #, python-format
 msgid "When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s."
-msgstr ""
+msgstr "Saat halaman diklik, komponen mengirimkan event %(update_page)s dengan nomor halaman di %(event_detail)s."
 
 #: design.html
 msgid "Selected page:"
-msgstr ""
+msgstr "Halaman dipilih:"
 
 #: design.html
 msgid "URL-based Navigation"
-msgstr ""
+msgstr "Navigasi Berbasis URL"
 
 #: design.html
 msgid "When base-url is provided, pagination renders anchor tags for SEO-friendly links."
-msgstr ""
+msgstr "Saat base-url diberikan, paginasi merender tag anchor untuk tautan ramah SEO."
 
 #: design.html
 msgid "First page (no previous arrow)"
-msgstr ""
+msgstr "Halaman pertama (tidak ada panah sebelumnya)"
 
 #: design.html
 msgid "Middle page (both arrows visible)"
-msgstr ""
+msgstr "Halaman tengah (kedua panah terlihat)"
 
 #: design.html
 msgid "Last page (no next arrow)"
-msgstr ""
+msgstr "Halaman terakhir (tidak ada panah berikutnya)"
 
 #: design.html
 msgid "3 pages"
-msgstr ""
+msgstr "3 halaman"
 
 #: design.html
 msgid "5 pages (no ellipsis needed)"
-msgstr ""
+msgstr "5 halaman (tidak perlu elipsis)"
 
 #: design.html
 msgid "100 pages with ellipsis:"
-msgstr ""
+msgstr "100 halaman dengan elipsis:"
 
 #: design.html
 msgid "Read More component"
-msgstr ""
+msgstr "Komponen Baca Lebih Lanjut"
 
 #: design.html
 msgid "The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based."
-msgstr ""
+msgstr "Komponen ol-read-more menyediakan konten yang dapat diperluas/dilipat dengan dua mode pemotongan: berbasis tinggi dan berbasis baris."
 
 #: design.html
 msgid "Height-based truncation"
-msgstr ""
+msgstr "Pemotongan berbasis tinggi"
 
 #: design.html
 #, python-format
 msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
+msgstr "Gunakan %(max_height)s untuk membatasi konten berdasarkan tinggi piksel."
 
 #: design.html
 msgid "Line-based truncation"
-msgstr ""
+msgstr "Pemotongan berbasis baris"
 
 #: design.html
 #, python-format
 msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
+msgstr "Gunakan %(max_lines)s untuk membatasi konten berdasarkan jumlah baris."
 
 #: design.html
 msgid "Custom button text"
-msgstr ""
+msgstr "Teks tombol kustom"
 
 #: design.html
 #, python-format
 msgid "Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example."
-msgstr ""
+msgstr "Gunakan %(more_text)s dan %(less_text)s untuk menyesuaikan label tombol toggle. Kami akan menggunakan string i18n untuk contoh ini."
 
 #: design.html
 msgid "Custom background color"
-msgstr ""
+msgstr "Warna latar belakang kustom"
 
 #: design.html
 #, python-format
 msgid "Use %(background_color)s to match the gradient fade to your container background."
-msgstr ""
+msgstr "Gunakan %(background_color)s untuk mencocokkan gradien dengan latar belakang kontainer Anda."
 
 #: design.html
 msgid "Small label size"
-msgstr ""
+msgstr "Ukuran label kecil"
 
 #: design.html
 #, python-format
 msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
+msgstr "Gunakan %(label_size)s untuk tombol toggle yang lebih kecil."
 
 #: design.html
 msgid "Content shorter than limit (no button)"
-msgstr ""
+msgstr "Konten lebih pendek dari batas (tanpa tombol)"
 
 #: design.html
 msgid "When content fits within the limit, no toggle button is shown."
-msgstr ""
+msgstr "Saat konten muat dalam batas, tidak ada tombol toggle yang ditampilkan."
 
 #: design.html
 msgid "This is short content that fits within 5 lines, so no button appears."
-msgstr ""
+msgstr "Ini adalah konten pendek yang muat dalam 5 baris, jadi tidak ada tombol yang muncul."
 
 #: diff.html
 #, python-format
@@ -1862,7 +1862,7 @@ msgstr "oleh Anonymous"
 
 #: diff.html
 msgid "history"
-msgstr ""
+msgstr "riwayat"
 
 #: diff.html
 msgid "Added"
@@ -1927,11 +1927,11 @@ msgstr "Lihat revisi nomor %s"
 
 #: history.html
 msgid "Compare this version..."
-msgstr ""
+msgstr "Bandingkan versi ini..."
 
 #: history.html
 msgid "...to this version"
-msgstr ""
+msgstr "...dengan versi ini"
 
 #: books/daisy.html history.html
 msgid "Back"
@@ -1949,61 +1949,61 @@ msgstr "Pratinjau"
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "Tampilkan Data Impor Mentah"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "Catatan %(thing_type)s baru akan dibuat"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "Perubahan pada %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "Kesalahan Internal"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "Terjadi Masalah"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "Kami mohon maaf, terjadi masalah saat merespons permintaan Anda:"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Kode referensi %s dan ID jejak Sentry %s telah dibuat untuk melacak kesalahan ini dan kami akan menyelidiki sesuai kemampuan kami."
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Kode referensi %s telah dibuat untuk melacak kesalahan ini dan kami akan menyelidiki sesuai kemampuan kami."
 
 #: internalerror.html
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr ""
+msgstr "Kembali ke <a class=\"go-back-link\" href=\"javascript:;\">halaman sebelumnya</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "Anda sedang dialihkan ke buku Anda"
 
 #: interstitial.html
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr ""
+msgstr "Buku ini disediakan oleh %(book_provider)s, Penyedia Buku Tepercaya Open Library pihak ketiga"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "Dalam %(time)s detik, Anda akan secara otomatis dialihkan ke: %(url)s"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "Lanjutkan tanpa menunggu"
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
@@ -2013,7 +2013,7 @@ msgstr "Pencarian Pustaka"
 #: librarian_dashboard/data_quality_table.html login.html
 #: search/work_search_facets.html
 msgid "Loading..."
-msgstr ""
+msgstr "Memuat..."
 
 #: lib/header_dropdown.html lib/nav_head.html login.html
 msgid "Log In"
@@ -2021,7 +2021,7 @@ msgstr "Masuk"
 
 #: login.html
 msgid "This is a development instance, the default credentials are automatically filled."
-msgstr ""
+msgstr "Ini adalah instansi pengembangan, kredensial default diisi secara otomatis."
 
 #: login.html
 #, fuzzy
@@ -2035,7 +2035,7 @@ msgstr "Kata Sandi"
 
 #: login.html
 msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Masuk untuk menggunakan kartu Open Library gratis Anda untuk meminjam buku digital dari Internet Archive nirlaba"
 
 #: account/create.html login.html
 msgid "OR"
@@ -2065,7 +2065,7 @@ msgstr "Lupa kata sandi Anda?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "Tampilkan/Sembunyikan Kata Sandi"
 
 #: login.html
 msgid "Remember me"
@@ -2078,28 +2078,28 @@ msgstr "Belum menjadi anggota Open Library? <a href=\"/account/create\">Daftar S
 
 #: messages.html
 msgid "Created new author record."
-msgstr ""
+msgstr "Catatan penulis baru dibuat."
 
 #: messages.html
 msgid "Created new edition record."
-msgstr ""
+msgstr "Catatan edisi baru dibuat."
 
 #: messages.html
 msgid "Created new work record."
-msgstr ""
+msgstr "Catatan karya baru dibuat."
 
 #: messages.html
 msgid "Added new book."
-msgstr ""
+msgstr "Buku baru ditambahkan."
 
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
+msgstr "Terima kasih telah meningkatkan katalog Open Library!"
 
 #: notfound.html
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s tidak ditemukan"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
