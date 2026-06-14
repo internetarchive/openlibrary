@@ -7303,45 +7303,45 @@ msgstr "ページ：%(page)s"
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Internet Archiveから借用：%(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "読み込みインジケーター"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "あなたは順番待ちリストで<strong>次</strong>です"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
+msgstr "あなたは順番待ちリストで%(wlsize)d人中<strong>%(spot)d番目</strong>です。"
 
 #: LoanStatus.html
 msgid "Leave waiting list"
-msgstr ""
+msgstr "順番待ちリストから離脱"
 
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "順番待ち読者：%(count)s人"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "あなたが次です。"
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "この本は現在貸し出し中です。後ほどご確認ください。"
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "貸し出し中"
 
 #: LocateButton.html
 msgid "Locate"
-msgstr ""
+msgstr "場所を調べる"
 
 #: ManageLoansButtons.html
 #, python-format
@@ -7366,118 +7366,118 @@ msgstr[1] ""
 
 #: NotInLibrary.html
 msgid "Not in Library"
-msgstr ""
+msgstr "図書館にありません"
 
 #: NotesModal.html
 msgid "My Book Notes"
-msgstr ""
+msgstr "マイ読書メモ"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "この版についての私的なメモ："
 
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "%(authors)s著"
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
+msgstr "マイ書評"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "前のページへ"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "次のページへ"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "{page}ページへ"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "{page}ページ（現在のページ）"
 
 #: Profile.html
 msgid "Component"
-msgstr ""
+msgstr "コンポーネント"
 
 #: ProlificAuthors.html
 msgid "Prolific Authors"
-msgstr ""
+msgstr "多作な著者"
 
 #: ProlificAuthors.html
 msgid "who have written the most books on this subject"
-msgstr ""
+msgstr "このサブジェクトで最も多くの本を書いた著者"
 
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "このグラフはこのサブジェクトに関する作品の版の出版履歴を示しています。X軸は時間、Y軸は出版された版数です。<a href=\"#subjectRelated\">チャートをスキップするにはここをクリック</a>。"
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
-msgstr ""
+msgstr "このグラフはこのサブジェクトで出版された版数を示しています。"
 
 #: RawQueryCarousel.html
 msgid "Loading carousel"
-msgstr ""
+msgstr "カルーセルを読み込み中"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "カルーセルの取得に失敗しました。"
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "再試行しますか？"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "現在のフィルターに一致する本はありません。"
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "フィルターなしで再試行しますか？"
 
 #: RawQueryCarousel.html
 msgid "Search collection"
-msgstr ""
+msgstr "コレクションを検索"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "特別アクセス"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "印刷障害の資格を持つ利用者向けのInternet Archiveからの特別電子書籍アクセス"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archiveから電子書籍を借りる"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archiveで電子書籍を読む"
 
 #: ReadButton.html
 msgid "Listen"
-msgstr ""
+msgstr "聴く"
 
 #: RecentChanges.html
 msgid "View MARC"
-msgstr ""
+msgstr "MARCを表示"
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
+msgstr "パス"
 
 #: RecentChangesAdmin.html
 msgid "view"
-msgstr ""
+msgstr "表示"
 
 #: RecentChangesAdmin.html
 #, fuzzy
@@ -7486,41 +7486,41 @@ msgstr ""
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "編集履歴はありません。"
 
 #: RelatedSubjects.html
 msgid "Related..."
-msgstr ""
+msgstr "関連..."
 
 #: ReturnForm.html
 msgid "Really return this book?"
-msgstr ""
+msgstr "本当にこの本を返却しますか？"
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
+msgstr "本を返却"
 
 #: SearchResultsWork.html
 msgid "added to"
-msgstr ""
+msgstr "に追加"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "本 %(position)s"
 
 #: SearchResultsWork.html
 msgid "Show more"
-msgstr ""
+msgstr "もっと表示"
 
 #: SearchResultsWork.html
 msgid "Show less"
-msgstr ""
+msgstr "少なく表示"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "版%(id)sの表紙"
 
 #: SearchResultsWork.html
 #, python-format
@@ -7531,84 +7531,84 @@ msgstr[1] ""
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "これは司書にのみ表示されます。"
 
 #: SearchResultsWork.html
 msgid "Work Title"
-msgstr ""
+msgstr "作品タイトル"
 
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "%(share_link)sで共有"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
-msgstr ""
+msgstr "この本をウェブサイトに埋め込む"
 
 #: ShareModal.html
 msgid "Embed icon"
-msgstr ""
+msgstr "埋め込みアイコン"
 
 #: ShareModal.html
 msgid "Embed"
-msgstr ""
+msgstr "埋め込み"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "URLをクリップボードにコピー"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "URLコピーアイコン"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "URLをコピー"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "QRコードを開く"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "QRコードアイコン"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "QRコード"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "1つ星レビューを残す："
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "2つ星レビューを残す："
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "3つ星レビューを残す："
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "4つ星レビューを残す："
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "5つ星レビューを残す："
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "評価をクリア"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "rating"
-msgstr ""
+msgstr "評価"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "ratings"
-msgstr ""
+msgstr "評価"
 
 #. Shows the count of readers who added this book to their "Want to read"
 #. shelf, displayed on search result pages. %(want_to_read_count)s is a
@@ -7617,275 +7617,275 @@ msgstr ""
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s人が読みたい"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s（%(ratings_count)s %(ratings_label)s）"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
-msgstr ""
+msgstr "読みたい"
 
 #. Short label displayed next to the count of readers currently reading this
 #. book, shown in the stats bar on a book page. Example: "1,247 Currently
 #. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
-msgstr ""
+msgstr "読書中"
 
 #. Short label displayed next to the count of readers who have finished this
 #. book, shown in the stats bar on a book page. Example: "15,420 Have read".
 #. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
-msgstr ""
+msgstr "読了"
 
 #. Short label displayed next to the count of readers who stopped reading this
 #. book before finishing, shown in the stats bar on a book page. Example: "348
 #. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
-msgstr ""
+msgstr "読書中断"
 
 #: SubjectTags.html
 msgid "Manage Subjects"
-msgstr ""
+msgstr "サブジェクトを管理"
 
 #: Subnavigation.html
 msgid "Developer Center (Home)"
-msgstr ""
+msgstr "開発者センター（ホーム）"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Web API"
 
 #: Subnavigation.html
 msgid "Client Library"
-msgstr ""
+msgstr "クライアントライブラリ"
 
 #: Subnavigation.html
 msgid "Data Dumps"
-msgstr ""
+msgstr "データダンプ"
 
 #: Subnavigation.html
 msgid "Report an Issue"
-msgstr ""
+msgstr "問題を報告"
 
 #: Subnavigation.html
 msgid "Licensing"
-msgstr ""
+msgstr "ライセンス"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "ようこそ"
 
 #: Subnavigation.html
 msgid "Searching Open Library"
-msgstr ""
+msgstr "Open Libraryを検索"
 
 #: Subnavigation.html
 msgid "Reading Books"
-msgstr ""
+msgstr "本を読む"
 
 #: Subnavigation.html
 msgid "Adding & Editing Books"
-msgstr ""
+msgstr "本の追加と編集"
 
 #: Subnavigation.html
 msgid "Using Subjects"
-msgstr ""
+msgstr "サブジェクトの使い方"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
+msgstr "Open LibraryよくあるQ&A"
 
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "%sページ"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "トレンド：%(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
-msgstr ""
+msgstr "ページタイプ"
 
 #: TypeChanger.html
 msgid "Huh?"
-msgstr ""
+msgstr "え？"
 
 #: TypeChanger.html
 msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr ""
+msgstr "Open Libraryのすべての要素は表示するコンテンツのタイプによって定義されます。通常はコンテンツの定義（著者、版、作品など）ですが、コンテンツの用途（マクロ、テンプレート、生テキストなど）による場合もあります。既存のページでこれを変更すると、表示方法とコンテンツ編集に使用できるデータフィールドが変わります。"
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
-msgstr ""
+msgstr "ページタイプの変更には十分ご注意ください！"
 
 #: TypeChanger.html
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr ""
+msgstr "（最も簡単な解決策：変更すべきかどうか確信が持てない場合は変更しないでください。）"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "あなたの言語のWikipediaリンクはありません"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "近くの図書館を調べる"
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
-msgstr ""
+msgstr "近くの版をWorldCatで調べる"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
-msgstr ""
+msgstr "このページの編集履歴を表示"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "このページを表示（比較ビューを終了）"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "このページを表示（編集モードを終了）"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "%(author_link)sが最後に編集"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
-msgstr ""
+msgstr "最後に匿名で編集"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "このテンプレートの編集履歴を表示"
 
 #: databarTemplate.html
 msgid "Edit this template"
-msgstr ""
+msgstr "このテンプレートを編集"
 
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "第%(num)d巻を表示"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
-msgstr ""
+msgstr "[レコード削除済み]"
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
-msgstr ""
+msgstr "不明"
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
-msgstr ""
+msgstr "検索結果"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "アラビア語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
-msgstr ""
+msgstr "チェコ語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "German"
-msgstr ""
+msgstr "ドイツ語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "English"
-msgstr ""
+msgstr "英語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Spanish"
-msgstr ""
+msgstr "スペイン語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "French"
-msgstr ""
+msgstr "フランス語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Hindi"
-msgstr ""
+msgstr "ヒンディー語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Croatian"
-msgstr ""
+msgstr "クロアチア語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
-msgstr ""
+msgstr "イタリア語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Portuguese"
-msgstr ""
+msgstr "ポルトガル語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Romanian"
-msgstr ""
+msgstr "ルーマニア語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "サルデーニャ語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
-msgstr ""
+msgstr "テルグ語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "ウクライナ語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
-msgstr ""
+msgstr "中国語"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "フィリピン語"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
-msgstr ""
+msgstr "芸術"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science Fiction"
-msgstr ""
+msgstr "サイエンスフィクション"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Fantasy"
-msgstr ""
+msgstr "ファンタジー"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Biographies"
-msgstr ""
+msgstr "伝記"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Recipes"
-msgstr ""
+msgstr "レシピ"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "子ども向け"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Medicine"
-msgstr ""
+msgstr "医学"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -7894,27 +7894,27 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "ミステリーと探偵小説"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Plays"
-msgstr ""
+msgstr "戯曲"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "音楽"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science"
-msgstr ""
+msgstr "科学"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "少なくとも1つのサブジェクト"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 author"
-msgstr ""
+msgstr "少なくとも1人の著者"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -7923,23 +7923,23 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "作品あり（孤立）"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publication year"
-msgstr ""
+msgstr "出版年あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has cover"
-msgstr ""
+msgstr "表紙あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has language"
-msgstr ""
+msgstr "言語あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publisher"
-msgstr ""
+msgstr "出版社あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -7948,150 +7948,150 @@ msgstr ""
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has dewey decimal"
-msgstr ""
+msgstr "十進分類法あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has LoC classification"
-msgstr ""
+msgstr "議会図書館分類あり"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
+msgstr "ページ数あり"
 
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
+msgstr "<strong>%(title)s</strong>をリストから削除してよろしいですか？"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " - 送料込み"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "この作品はどのリストにも表示されていません。"
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "まだ持っていません"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "入力したメールアドレスが無効です"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "このアカウントはブロックされています"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "このアカウントはロックされています"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "このメールアドレスのアカウントが見つかりません。もう一度お試しください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "入力したパスワードが正しくありません。もう一度お試しください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "パスワードが間違っています。もう一度お試しください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr ""
+msgstr "ログインする前にOpen Libraryアカウントを確認してください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "ログインする前にInternet Archiveアカウントを確認してください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "すべてのフィールドを入力してから再試行してください"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
-msgstr ""
+msgstr "このメールアドレスはすでに登録されています"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This username is already registered"
-msgstr ""
+msgstr "このユーザー名はすでに登録されています"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "問題が発生し、ログインできませんでした。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "無効なInternet Archive S3認証情報でログインが試みられました。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "サーバーに通常より高いトラフィックが発生しています。後でもう一度お試しいただくか、openlibrary@archive.orgまでメールでお問い合わせください。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
-msgstr ""
+msgstr "メールプロバイダーが認識されません。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "パスワードの要件を満たしていません。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "問題が発生し、ログインできませんでした"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "ログインまたは登録試行中に予期しないエラーが発生しました。再試行するかinfo@archive.orgにお問い合わせください"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "エラーコード%(error_code)sでリクエストに失敗しました"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Open Libraryアカウントを登録し、印刷障害の特別アクセスをリクエストいただきありがとうございます。次のステップを詳しく説明するメールが届くはずです。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "このユーザー名は使用できません"
 
 #: openlibrary/plugins/upstream/account.py
 #: openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
-msgstr ""
+msgstr "このメールアドレスはすでに登録されています"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "このメールアドレスのInternet Archiveアカウントはすでに存在します"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "確認に失敗しました。リンクが無効または期限切れの可能性があります。再度登録をお試しください。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "メールアドレスが確認されました。ログインしました。"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
-msgstr ""
+msgstr "通知設定が正常に更新されました。"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy
@@ -8101,77 +8101,77 @@ msgstr ""
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "%sを返却できません。後でもう一度お試しいただくか、info@archive.orgにお問い合わせください。"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%sが返却されました。"
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "アカウントの貸出上限に達しました。後でもう一度お試しいただくか、info@archive.orgにお問い合わせください。"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
-msgstr ""
+msgstr "ユーザー名"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
-msgstr ""
+msgstr "このメールアドレスで登録されているユーザーはいません"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "使い捨てメールアドレスは使用できません"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "メールプロバイダーが認識されません。"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
-msgstr ""
+msgstr "このユーザー名はすでに使用されています"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "3〜20文字の英数字でなければなりません"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Screen Name"
-msgstr ""
+msgstr "スクリーンネーム"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "公開され、後で変更できません。"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
-msgstr ""
+msgstr "無効なパスワード"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
-msgstr ""
+msgstr "メールアドレス"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
-msgstr ""
+msgstr "パスワードを選択"
 
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "<a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>を続ける"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
-msgstr ""
+msgstr "電子書籍？"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "First published"
-msgstr ""
+msgstr "初出版"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
+msgstr "クラシック電子書籍"
 
 #~ msgid "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email."
 #~ msgstr ""
