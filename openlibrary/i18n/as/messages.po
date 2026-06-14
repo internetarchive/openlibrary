@@ -3003,177 +3003,177 @@ msgstr "Project Gutenberg-ত আৰু বেছি"
 
 #: book_providers/ia_download_options.html
 msgid "Download a PDF from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা PDF ডাউনল'ড কৰক"
 
 #: book_providers/ia_download_options.html
 msgid "Download a text version from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা এটা টেক্সট সংস্কৰণ ডাউনল'ড কৰক"
 
 #: book_providers/ia_download_options.html
 msgid "Download an ePub from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা ePub ডাউনল'ড কৰক"
 
 #: book_providers/ia_download_options.html
 msgid "Download a MOBI file from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা MOBI ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
-msgstr ""
+msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা মুক্ত DAISY ডাউনল'ড কৰক (মুদ্ৰণ-অক্ষম প্ৰাৰূপ)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
-msgstr ""
+msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা সম্পূৰ্ণ কিতাপৰ ZIP ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "সম্পূৰ্ণ কিতাপ MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "LibriVox-ৰ পৰা RSS ফিড পাওক"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "RSS ফিড"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "LibriVox-ত আৰু বেছি"
 
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
-msgstr ""
+msgstr "OpenStax-ৰ পৰা PDF ডাউনল'ড কৰক"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "OpenStax-ত আৰু বেছি"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "%s-ৰ পৰা পঠন শুনক"
 
 #: book_providers/read_button.html
 msgid "Audiobook"
-msgstr ""
+msgstr "অডিঅ'বুক"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "%s-ৰ পৰা বিনামূলীয়াকৈ অনলাইনত পঢ়ক"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ৰ পৰা সকলো স্কেন কৰা ছবি ডাউনল'ড কৰক"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "স্কেন কৰা ছবিসমূহ"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ৰ পৰা সকলো ৰঙীন ছবি ডাউনল'ড কৰক"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
-msgstr ""
+msgstr "ৰঙীন ছবিসমূহ"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ৰ পৰা সকলো HTML ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ৰ পৰা সকলো টেক্সট আৰু সূচী ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "টেক্সট আৰু সূচী ফাইলসমূহ"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ৰ পৰা সকলো OCR টেক্সট ডাউনল'ড কৰক"
 
 #: book_providers/runeberg_download_options.html
 msgid "OCR text"
-msgstr ""
+msgstr "OCR টেক্সট"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg-ত আৰু বেছি"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks-ৰ পৰা HTML ডাউনল'ড কৰক"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Standard Ebook-ৰ পৰা ePub ডাউনল'ড কৰক।"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks-ৰ পৰা Kindle ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks-ৰ পৰা Kobo ফাইল ডাউনল'ড কৰক"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "GitHub-ত এই Standard Ebook-ৰ উৎস ক'ড চাওক"
 
 #: Subnavigation.html book_providers/standard_ebooks_download_options.html
 msgid "Source Code"
-msgstr ""
+msgstr "উৎস ক'ড"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks-ত আৰু বেছি"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
-msgstr ""
+msgstr "Wikisource-ৰ পৰা PDF ডাউনল'ড কৰক"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download MOBI from Wikisource"
-msgstr ""
+msgstr "Wikisource-ৰ পৰা MOBI ডাউনল'ড কৰক"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "MOBI (Kindle-ৰ বাবে)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download EPUB from Wikisource"
-msgstr ""
+msgstr "Wikisource-ৰ পৰা EPUB ডাউনল'ড কৰক"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (অধিকাংশ আন ই-ৰিডাৰৰ বাবে)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Wikisource-ত পঢ়ক"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
-msgstr ""
+msgstr "আপুনি হয়তো পছন্দও কৰিব পাৰে"
 
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
@@ -3183,52 +3183,52 @@ msgstr[1] ""
 
 #: books/add.html books/check.html
 msgid "Add a book"
-msgstr ""
+msgstr "এখন কিতাপ যোগ কৰক"
 
 #: books/add.html
 msgid "Invalid ISBN checksum digit"
-msgstr ""
+msgstr "অবৈধ ISBN চেকছাম অংক"
 
 #: books/add.html
 msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
-msgstr ""
+msgstr "ID ঠিক 10 টা চৰিত্ৰ [0-9 বা X] হ'ব লাগিব। উদাহৰণস্বৰূপ 0-19-853453-1 বা 0198534531"
 
 #: books/add.html
 msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
-msgstr ""
+msgstr "ID ঠিক 13 টা চৰিত্ৰ [0-9] হ'ব লাগিব। উদাহৰণস্বৰূপ 978-3-16-148410-0 বা 9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "অবৈধ LC নিয়ন্ত্ৰণ নম্বৰ প্ৰাৰূপ"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "অবৈধ OCLC/WorldCat নিয়ন্ত্ৰণ নম্বৰ প্ৰাৰূপ"
 
 #: books/add.html
 msgid "Please enter a value for the selected identifier"
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি নিৰ্বাচিত চিনাক্তকাৰীৰ বাবে এটা মান দিয়ক"
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "আপুনি নিশ্চিত যে এইটোৱেই প্ৰকাশৰ তাৰিখ?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
-msgstr ""
+msgstr "Open Library-ত এখন কিতাপ যোগ কৰক"
 
 #: books/add.html
 msgid "We require a minimum set of fields to create a new record. These are those fields."
-msgstr ""
+msgstr "নতুন ৰেকৰ্ড তৈয়াৰ কৰিবলৈ আমাক ন্যূনতম ক্ষেত্ৰসমূহৰ প্ৰয়োজন। এইবোৰ সেই ক্ষেত্ৰসমূহ।"
 
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
+msgstr "উপশিৰোনাম যোগ কৰিবলৈ <b><i>শিৰোনাম: উপশিৰোনাম</i></b> ব্যৱহাৰ কৰক।"
 
 #: books/add.html books/edit.html type/author/edit.html
 #: type/tag/tag_form_inputs.html
 msgid "Required field"
-msgstr ""
+msgstr "প্ৰয়োজনীয় ক্ষেত্ৰ"
 
 #: books/add.html
 msgid "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live check to see if we already know the author."
@@ -3236,104 +3236,104 @@ msgstr ""
 
 #: books/add.html books/edit/edition.html
 msgid "Who is the publisher?"
-msgstr ""
+msgstr "প্ৰকাশক কোন?"
 
 #: books/add.html books/edit/edition.html
 msgid "For example:"
-msgstr ""
+msgstr "উদাহৰণস্বৰূপ:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
-msgstr ""
+msgstr "কেতিয়া প্ৰকাশিত হৈছিল?"
 
 #: books/add.html books/edit/edition.html
 msgid "You should be able to find this in the first few pages of the book."
-msgstr ""
+msgstr "আপুনি কিতাপৰ প্ৰথম কেইটামান পৃষ্ঠাত ইয়াক বিচাৰি পাব লাগে।"
 
 #: books/add.html
 msgid "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
-msgstr ""
+msgstr "আৰু ঐচ্ছিকভাৱে, এটা ID নম্বৰ &#151; যেনে ISBN &#151; সহায়ক হ'ব..."
 
 #: books/add.html
 msgid "ID Type"
-msgstr ""
+msgstr "ID প্ৰকাৰ"
 
 #: books/add.html
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
-msgstr ""
+msgstr "ISBN অবৈধ হ'ব পাৰে। দাখিল কৰিবলৈ পুনৰায় \"যোগ কৰক\" ক্লিক কৰক।"
 
 #: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
-msgstr ""
+msgstr "নিৰ্বাচন কৰক"
 
 #: books/add.html
 msgid "ISBN 10"
-msgstr ""
+msgstr "ISBN 10"
 
 #: books/add.html
 msgid "ISBN 13"
-msgstr ""
+msgstr "ISBN 13"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 msgid "LibriVox"
-msgstr ""
+msgstr "LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 msgid "Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg"
 
 #: books/add.html books/edit/edition.html
 msgid "Book URL"
-msgstr ""
+msgstr "কিতাপৰ URL"
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
+msgstr "কেৱল যদি এইটো এটা ৱেব কিতাপ হয় তেনেহ'লেহে পূৰণ কৰক"
 
 #: books/add.html
 #, python-format
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
-msgstr ""
+msgstr "এই wiki-ত পৰিৱৰ্তন সংৰক্ষণ কৰিলে, আপুনি সম্মত হন যে আপোনাৰ অৱদান <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>-ৰ অধীনত বিশ্বলৈ মুক্তভাৱে দিয়া হৈছে।"
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Creative Commons-ৰ এই লিংকটো নতুন উইণ্ড'ত খুলিব"
 
 #: books/add.html
 msgid "Add this book now"
-msgstr ""
+msgstr "এই কিতাপ এতিয়াই যোগ কৰক"
 
 #: books/author-autocomplete.html
 msgid "Add a new author"
-msgstr ""
+msgstr "এজন নতুন লেখক যোগ কৰক"
 
 #: books/author-autocomplete.html books/series-autocomplete.html
 msgid "Create a new record for"
-msgstr ""
+msgstr "ইয়াৰ বাবে নতুন ৰেকৰ্ড তৈয়াৰ কৰক"
 
 #: books/author-autocomplete.html
 msgid "Remove this author"
-msgstr ""
+msgstr "এই লেখক আঁতৰাওক"
 
 #: books/author-autocomplete.html
 msgid "Add another author?"
-msgstr ""
+msgstr "আৰু এজন লেখক যোগ কৰিব?"
 
 #: books/check.html lib/nav_foot.html lib/nav_head.html
 msgid "Add a Book"
-msgstr ""
+msgstr "এখন কিতাপ যোগ কৰক"
 
 #: books/check.html
 #, python-format
@@ -3342,11 +3342,11 @@ msgstr ""
 
 #: books/check.html
 msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
-msgstr ""
+msgstr "ডুপ্লিকেট ৰেকৰ্ড তৈয়াৰ কৰাৰ পৰিৱৰ্তে, আপুনি যি ফলাফলটো আপোনাৰ কিতাপৰ সৈতে সৰ্বোত্তমভাৱে মিলে বুলি ভাবে তাতে ক্লিক কৰক।"
 
 #: books/check.html
 msgid "Select this book"
-msgstr ""
+msgstr "এই কিতাপ নিৰ্বাচন কৰক"
 
 #: SearchResultsWork.html books/check.html merge/authors.html
 #: publishers/view.html
@@ -3359,45 +3359,45 @@ msgstr[1] ""
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
-msgstr ""
+msgstr "প্ৰথম %(year)d চনত প্ৰকাশিত"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "এইবোৰৰ কোনোটোৱেই মই যোগ কৰিব বিচৰা কিতাপৰ সৈতে মিলা নাই।"
 
 #: books/check.html
 msgid "Continue"
-msgstr ""
+msgstr "চালু ৰাখক"
 
 #: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
-msgstr ""
+msgstr "নাম নাই"
 
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
-msgstr ""
+msgstr " %(name)s-এ"
 
 #: books/daisy.html
 msgid "Back"
-msgstr ""
+msgstr "পিছলৈ"
 
 #: books/daisy.html
 msgid "Open Library Home"
-msgstr ""
+msgstr "Open Library মূল পৃষ্ঠা"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "ইয়াৰ বাবে কোনো DAISY ফাইল উপলব্ধ নাই "
 
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "<a href=\"%(daisy_url)s\"><strong>DAISY.zip ডাউনল'ড কৰক</strong></a> <a href=\"%(url)s\">%(title)s</a>-ৰ বাবে"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "যিসকলে মুদ্ৰিত পঢ়িব নোৱাৰে তেওঁলোকৰ বাবে কিতাপ?"
 
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
@@ -3409,11 +3409,11 @@ msgstr ""
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
-msgstr ""
+msgstr "উপভোগ কৰক!"
 
 #: books/daisy.html
 msgid "What is the DAISY format?"
-msgstr ""
+msgstr "DAISY প্ৰাৰূপ কি?"
 
 #: books/daisy.html
 msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
@@ -3421,11 +3421,11 @@ msgstr ""
 
 #: books/daisy.html
 msgid "More information at daisy.org"
-msgstr ""
+msgstr "daisy.org-ত অধিক তথ্য"
 
 #: books/daisy.html
 msgid "What is the NLS?"
-msgstr ""
+msgstr "NLS কি?"
 
 #: books/daisy.html
 msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
@@ -3433,11 +3433,11 @@ msgstr ""
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "আপুনি পঞ্জীয়ন কৰিবলৈ যোগ্য নেকি?"
 
 #: books/daisy.html
 msgid "How do I find DAISYs on Open Library?"
-msgstr ""
+msgstr "Open Library-ত DAISYসমূহ কেনেকৈ বিচাৰিব?"
 
 #: books/daisy.html
 msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
@@ -3449,7 +3449,7 @@ msgstr ""
 
 #: books/daisy.html lib/exports.html
 msgid "Need help?"
-msgstr ""
+msgstr "সহায় লাগে নেকি?"
 
 #: books/daisy.html
 msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
@@ -3457,11 +3457,11 @@ msgstr ""
 
 #: books/edit.html
 msgid "Add a little more?"
-msgstr ""
+msgstr "অলপ বেছি যোগ কৰিব?"
 
 #: books/edit.html
 msgid "Thank you for adding that book! Any more information you could provide would be wonderful!"
-msgstr ""
+msgstr "সেই কিতাপ যোগ কৰাৰ বাবে ধন্যবাদ! আপুনি যোগান ধৰিব পৰা যিকোনো অতিৰিক্ত তথ্য অতি চমৎকাৰ হ'ব!"
 
 #: books/edit.html
 #, python-format
@@ -3475,24 +3475,24 @@ msgstr ""
 
 #: books/edit.html
 msgid "Editing..."
-msgstr ""
+msgstr "সম্পাদনা কৰা হৈছে..."
 
 #: books/edit.html type/author/edit.html type/tag/form.html
 #: type/template/edit.html
 msgid "Delete Record"
-msgstr ""
+msgstr "ৰেকৰ্ড মচি পেলাওক"
 
 #: books/edit.html
 msgid "Work Details"
-msgstr ""
+msgstr "ৰচনাৰ বিৱৰণ"
 
 #: books/edit.html
 msgid "Unknown publisher edition"
-msgstr ""
+msgstr "অজ্ঞাত প্ৰকাশক সংস্কৰণ"
 
 #: books/edit.html
 msgid "This Work"
-msgstr ""
+msgstr "এই ৰচনা"
 
 #: books/edit.html
 msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
@@ -3500,19 +3500,19 @@ msgstr ""
 
 #: books/edit.html
 msgid "Author editing requires javascript"
-msgstr ""
+msgstr "লেখক সম্পাদনাৰ বাবে javascript প্ৰয়োজন"
 
 #: books/edit.html
 msgid "Add Excerpts"
-msgstr ""
+msgstr "উদ্ধৃতি যোগ কৰক"
 
 #: books/edit.html type/about/edit.html type/author/edit.html
 msgid "Links"
-msgstr ""
+msgstr "লিংকসমূহ"
 
 #: books/edit.html
 msgid "Work Series"
-msgstr ""
+msgstr "ৰচনা শৃংখল"
 
 #: books/edit.html
 msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
@@ -3520,23 +3520,23 @@ msgstr ""
 
 #: books/edit.html
 msgid "Is this work part of a larger series?"
-msgstr ""
+msgstr "এই ৰচনা এটা বৃহত্তৰ শৃংখলৰ অংশ নেকি?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "যেনে Harry Potter, The Sword of Truth"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
-msgstr ""
+msgstr "ৰচনা চিনাক্তকাৰীসমূহ"
 
 #: books/edit.html
 msgid "Do you know any identifiers for this work?"
-msgstr ""
+msgstr "আপুনি এই ৰচনাৰ বাবে কোনো চিনাক্তকাৰী জানে নেকি?"
 
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr ""
+msgstr "এই চিনাক্তকাৰীসমূহ এই ৰচনাৰ সকলো সংস্কৰণত প্ৰযোজ্য, উদাহৰণস্বৰূপ Wikidata ৰচনা চিনাক্তকাৰীসমূহ। সংস্কৰণ-নিৰ্দিষ্ট চিনাক্তকাৰীসমূহৰ বাবে, যেনে ISBN বা LCCN, সংস্কৰণ টেবলৈ যাওক।"
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
@@ -3544,27 +3544,27 @@ msgstr ""
 #: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
-msgstr ""
+msgstr "এইখনৰ প্ৰচ্ছদ: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "%(title)s: %(subtitle)s"
-msgstr ""
+msgstr "%(title)s: %(subtitle)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "Publish date unknown, %(publisher)s"
-msgstr ""
+msgstr "প্ৰকাশৰ তাৰিখ অজ্ঞাত, %(publisher)s"
 
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
+msgstr "%(languagelist)s-ত"
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: openlibrary/plugins/upstream/mybooks.py
 msgid "Books"
-msgstr ""
+msgstr "কিতাপসমূহ"
 
 #. Page title for the "Want to Read" shelf page.
 #. Example: "Want to Read (17)". %(count)d is the number of books on this
@@ -3572,7 +3572,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
-msgstr ""
+msgstr "পঢ়িব বিচাৰে (%(count)d)"
 
 #. Page title for the "Currently Reading" shelf page.
 #. Example: "Currently Reading (42)". %(count)d is the number of books on this
@@ -3580,7 +3580,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
-msgstr ""
+msgstr "বৰ্তমানে পঢ়ি আছে (%(count)d)"
 
 #. Page title for the "Already Read" shelf page.
 #. Example: "Already Read (203)". %(count)d is the number of books on this
@@ -3588,7 +3588,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
-msgstr ""
+msgstr "ইতিমধ্যে পঢ়িছে (%(count)d)"
 
 #. Page title for the "Stopped Reading" shelf page.
 #. Example: "Stopped Reading (8)". %(count)d is the number of books on this
@@ -3596,50 +3596,50 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Stopped Reading (%(count)d)"
-msgstr ""
+msgstr "পঢ়া বন্ধ কৰিছে (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
-msgstr ""
+msgstr "তালিকাসমূহ (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #: type/edition/modal_links.html
 msgid "Notes"
-msgstr ""
+msgstr "টোকাসমূহ"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
-msgstr ""
+msgstr "আমদানি আৰু ৰপ্তানি"
 
 #: books/series-autocomplete.html
 msgid "Add a new series"
-msgstr ""
+msgstr "নতুন শৃংখল যোগ কৰক"
 
 #: books/series-autocomplete.html
 msgid "Series name"
-msgstr ""
+msgstr "শৃংখলৰ নাম"
 
 #: books/series-autocomplete.html
 msgid "Series position"
-msgstr ""
+msgstr "শৃংখলৰ অৱস্থান"
 
 #: books/series-autocomplete.html
 msgid "Remove this series"
-msgstr ""
+msgstr "এই শৃংখল আঁতৰাওক"
 
 #: books/series-autocomplete.html
 msgid "Add another series?"
-msgstr ""
+msgstr "আৰু এটা শৃংখল যোগ কৰিব?"
 
 #: books/edit/about.html
 msgid "Select this subject"
-msgstr ""
+msgstr "এই বিষয় নিৰ্বাচন কৰক"
 
 #: books/edit/about.html
 msgid "How would you describe this book?"
-msgstr ""
+msgstr "আপুনি এই কিতাপক কেনেকৈ বৰ্ণনা কৰিব?"
 
 #: books/edit/about.html
 msgid "There's no wrong answer here."
