@@ -2103,84 +2103,84 @@ msgstr "%(path)s tidak ditemukan"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - Halaman Tidak Ditemukan"
 
 #: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s tidak ada."
 
 #: notfound.html
 msgid "Create it?"
-msgstr ""
+msgstr "Buat baru?"
 
 #: notfound.html
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "Mencari template/makro?"
 
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "Izin dari %(key)s"
 
 #: permission.html
 msgid "Permission of"
-msgstr ""
+msgstr "Izin dari"
 
 #: permission.html
 msgid "Permission"
-msgstr ""
+msgstr "Izin"
 
 #: permission.html
 msgid "Child Permission"
-msgstr ""
+msgstr "Izin Turunan"
 
 #: permission_denied.html
 msgid "Permission Denied"
-msgstr ""
+msgstr "Izin Ditolak"
 
 #: permission_denied.html
 msgid "Permission denied."
-msgstr ""
+msgstr "Izin ditolak."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "Hanya pengguna yang masuk yang diizinkan menambahkan catatan di Open Library. Silakan <a href=\"%s\">masuk</a> untuk menambahkan buku."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "Hanya pengguna yang masuk yang diizinkan mengubah catatan di Open Library. Silakan <a href=\"%s\">masuk</a> untuk mengedit halaman ini."
 
 #: permission_denied.html
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
-msgstr ""
+msgstr "Anda dapat <a href=\"%s\">masuk</a> jika memiliki izin yang diperlukan."
 
 #: recaptcha.html
 msgid "Please satisfy the reCAPTCHA below. If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
-msgstr ""
+msgstr "Harap selesaikan reCAPTCHA di bawah ini. Jika Anda memiliki pengaturan keamanan atau pemblokir privasi yang terpasang, harap nonaktifkan untuk melihat reCAPTCHA."
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
-msgstr ""
+msgstr "Salah. Silakan coba lagi."
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
-msgstr ""
+msgstr "Detail catatan dari"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
-msgstr ""
+msgstr "Catatan ini berasal dari"
 
 #: showia.html showmarc.html
 msgid "Record ID"
-msgstr ""
+msgstr "ID Catatan"
 
 #: showia.html showmarc.html
 msgid "Source"
-msgstr ""
+msgstr "Sumber"
 
 #: books/add.html covers/add.html showia.html type/edition/view.html
 #: type/work/view.html
@@ -2190,47 +2190,47 @@ msgstr "Lupa email yang Anda gunakan untuk Internet Archive?"
 
 #: showia.html
 msgid "Download MARC XML"
-msgstr ""
+msgstr "Unduh MARC XML"
 
 #: showia.html
 msgid "Download MARC binary"
-msgstr ""
+msgstr "Unduh MARC biner"
 
 #: showia.html showmarc.html
 msgid "Invalid MARC record."
-msgstr ""
+msgstr "Catatan MARC tidak valid."
 
 #: showia.html showmarc.html
 msgid "LEADER:"
-msgstr ""
+msgstr "LEADER:"
 
 #: showmarc.html
 msgid "Download Link"
-msgstr ""
+msgstr "Tautan Unduhan"
 
 #: status.html
 msgid "Open Library server status"
-msgstr ""
+msgstr "Status server Open Library"
 
 #: status.html
 msgid "Server status"
-msgstr ""
+msgstr "Status server"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "Informasi sistem"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "Fitur yang diaktifkan"
 
 #: status.html
 msgid "Staged"
-msgstr ""
+msgstr "Bertahap"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "Lihat PR di GitHub"
 
 #: status.html
 #, fuzzy
@@ -2240,19 +2240,19 @@ msgstr "Tidak berubah"
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
+msgstr "Nama"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "Edit tag untuk subjek ini"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "Buat tag untuk subjek ini"
 
 #: subjects.html
 msgid "See all works"
-msgstr ""
+msgstr "Lihat semua karya"
 
 #: merge/authors.html publishers/view.html subjects.html type/author/view.html
 #, python-format
@@ -2263,147 +2263,147 @@ msgstr[0] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
+msgstr "Cari buku dengan subjek %(name)s."
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "Disambiguasi"
 
 #: trending.html
 msgid "Now"
-msgstr ""
+msgstr "Sekarang"
 
 #: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
 #: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
-msgstr ""
+msgstr "Hari ini"
 
 #: admin/graphs.html trending.html
 msgid "This Week"
-msgstr ""
+msgstr "Minggu ini"
 
 #: admin/graphs.html stats/readinglog.html trending.html
 msgid "This Month"
-msgstr ""
+msgstr "Bulan ini"
 
 #: trending.html
 msgid "This Year"
-msgstr ""
+msgstr "Tahun ini"
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
+msgstr "Sepanjang Waktu"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Lihat apa yang ditambahkan pembaca dari komunitas ke rak buku mereka"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "Data tren paling awal berasal dari Oktober 2017"
 
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
-msgstr ""
+msgstr "Ingin Dibaca"
 
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
-msgstr ""
+msgstr "Sedang Dibaca"
 
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "Seseorang menandai sebagai %(shelf)s %(k_hours_ago)s"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "Dicatat %(count)i kali %(time_unit)s"
 
 #: viewpage.html
 msgid "Revert to this revision?"
-msgstr ""
+msgstr "Kembalikan ke revisi ini?"
 
 #: viewpage.html
 msgid "Revert to this revision"
-msgstr ""
+msgstr "Kembalikan ke revisi ini"
 
 #: widget.html
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr ""
+msgstr "Baca \"%(title)s\""
 
 #: widget.html
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr ""
+msgstr "Pinjam \"%(title)s\""
 
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
+msgstr "Bergabung ke daftar tunggu untuk \"%(title)s\""
 
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr ""
+msgstr "Pelajari lebih lanjut tentang \"%(title)s\" di OpenLibrary"
 
 #: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
-msgstr ""
+msgstr "Pelajari Lebih Lanjut"
 
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "di <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
 
 #: work_search.html
 msgid "Search Books"
-msgstr ""
+msgstr "Cari Buku"
 
 #: work_search.html
 msgid "Keywords"
-msgstr ""
+msgstr "Kata kunci"
 
 #: work_search.html
 msgid "Ebooks"
-msgstr ""
+msgstr "Buku elektronik"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "Ini hanya terlihat oleh super pustakawan."
 
 #: work_search.html
 msgid "Solr Editions"
-msgstr ""
+msgstr "Edisi Solr"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "Mesin pencari mengembalikan kesalahan."
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Debugging Solr:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "URL Lengkap:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "Tidak ada <strong>%(path_id)s</strong> yang langsung cocok dengan pencarian Anda."
 
 #: work_search.html
 msgid "Add a new book?"
-msgstr ""
+msgstr "Tambahkan buku baru?"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
-msgstr ""
+msgstr "Memeriksa kecocokan Pencarian Dalam"
 
 #: account/reading_log.html search/authors.html search/lists.html
 #: search/subjects.html work_search.html
@@ -2415,219 +2415,219 @@ msgstr[0] ""
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Pencarian solr membutuhkan %(count)s detik"
 
 #: about/index.html
 msgid "The Open Library Team"
-msgstr ""
+msgstr "Tim Open Library"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "Open Library dimungkinkan karena tim staf yang berdedikasi dan lebih dari 100 relawan dari seluruh dunia."
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "Ingin bergabung dengan kami?"
 
 #: about/index.html
 msgid "Role:"
-msgstr ""
+msgstr "Peran:"
 
 #: about/index.html lib/nav_head.html
 msgid "All"
-msgstr ""
+msgstr "Semua"
 
 #: about/index.html
 msgid "Staff"
-msgstr ""
+msgstr "Staf"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "Peserta"
 
 #: about/index.html
 msgid "Volunteers"
-msgstr ""
+msgstr "Relawan"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "Departemen:"
 
 #: about/index.html
 msgid "Communications"
-msgstr ""
+msgstr "Komunikasi"
 
 #: about/index.html
 msgid "Design"
-msgstr ""
+msgstr "Desain"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "Rekayasa"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "Kepustakawanan"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "Jika Anda menjadi relawan dengan Open Library dan ingin tercantum sebagai bagian dari tim, lengkapi <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formulir informasi tim Open Library</a>."
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
+msgstr "Nama pengguna hanya boleh berisi angka, huruf, - atau _"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "Program yang memenuhi syarat harus dipilih"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "Daftar ke Open Library"
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
-msgstr ""
+msgstr "Daftar"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Dapatkan kartu Open Library gratis Anda dan pinjam buku digital dari Internet Archive nirlaba"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
-msgstr ""
+msgstr "Berhasil!"
 
 #: account/create.html
 msgid "Your URL"
-msgstr ""
+msgstr "URL Anda"
 
 #: account/create.html
 msgid "screenname"
-msgstr ""
+msgstr "nama layar"
 
 #: account/create.html
 msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr ""
+msgstr "Saya ingin menerima berita, pengumuman, dan sumber daya dari <a href=\"https://archive.org/\">Internet Archive</a>, nirlaba yang mengelola Open Library."
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "Saya ingin mendaftar* untuk <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">akses disabilitas cetak khusus</a> melalui program yang memenuhi syarat."
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Pilih program yang memenuhi syarat"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* Harap gunakan alamat email yang terkait dengan program yang memenuhi syarat ini. Anda akan menerima email setelah aktivasi dengan langkah berikutnya."
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Daftar dengan Email"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Terms of Service</a>."
-msgstr ""
+msgstr "Dengan mendaftar, Anda menyetujui <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\">Syarat Layanan</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Sudah memiliki akun? <a href=\"/account/login\">Masuk</a>"
 
 #: account/delete.html
 msgid "Delete Account"
-msgstr ""
+msgstr "Hapus Akun"
 
 #: account/delete.html
 msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
+msgstr "Maaf, fungsionalitas ini belum diimplementasikan."
 
 #: account/follows.html
 msgid "There is nothing to see here yet."
-msgstr ""
+msgstr "Belum ada yang perlu dilihat di sini."
 
 #: account/import.html
 msgid "Import from Goodreads"
-msgstr ""
+msgstr "Impor dari Goodreads"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "Untuk instruksi mengekspor data, lihat: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
-msgstr ""
+msgstr "Batas ukuran file 10MB dan hanya tipe file .csv"
 
 #: account/import.html
 msgid "Load Books"
-msgstr ""
+msgstr "Muat Buku"
 
 #: account/import.html
 msgid "Export your Reading Log"
-msgstr ""
+msgstr "Ekspor Log Membaca Anda"
 
 #: account/import.html
 msgid "Download a copy of your reading log."
-msgstr ""
+msgstr "Unduh salinan log membaca Anda."
 
 #: account/import.html
 msgid "What is a reading log?"
-msgstr ""
+msgstr "Apa itu log membaca?"
 
 #: account/import.html
 msgid "Download (.csv format)"
-msgstr ""
+msgstr "Unduh (format .csv)"
 
 #: account/import.html
 msgid "Export your book notes"
-msgstr ""
+msgstr "Ekspor catatan buku Anda"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "Unduh salinan catatan buku Anda."
 
 #: account/import.html
 msgid "What are book notes?"
-msgstr ""
+msgstr "Apa itu catatan buku?"
 
 #: account/import.html
 msgid "Export your reviews"
-msgstr ""
+msgstr "Ekspor ulasan Anda"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "Unduh salinan tag ulasan Anda."
 
 #: account/import.html
 msgid "What are review tags?"
-msgstr ""
+msgstr "Apa itu tag ulasan?"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "Ekspor ikhtisar daftar Anda"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "Unduh ringkasan daftar Anda dan isinya."
 
 #: account/import.html
 msgid "What are lists?"
-msgstr ""
+msgstr "Apa itu daftar?"
 
 #: account/import.html
 msgid "Export your star ratings"
-msgstr ""
+msgstr "Ekspor penilaian bintang Anda"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "Unduh salinan penilaian bintang Anda."
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "Apa itu penilaian bintang?"
 
 #: account/import.html
 msgid "Importing..."
-msgstr ""
+msgstr "Mengimpor..."
 
 #: account/import.html
 #, fuzzy
@@ -2641,15 +2641,15 @@ msgstr "Masuk"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "Tidak ada pinjaman yang ditemukan dalam riwayat peminjaman Anda."
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">Cari buku</a> untuk dipinjam."
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
-msgstr ""
+msgstr "Anda belum meminjam buku saat ini."
 
 #: account/loans.html
 #, python-format
@@ -2663,7 +2663,7 @@ msgstr "Pinjaman sudah Berakhir"
 
 #: account/loans.html
 msgid "Loan actions"
-msgstr ""
+msgstr "Tindakan pinjaman"
 
 #: account/loans.html
 #, fuzzy, python-format
@@ -2673,23 +2673,23 @@ msgstr[0] ""
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
+msgstr "Kembalikan melalui<br/>Adobe Digital Editions"
 
 #: account/loans.html
 msgid "Books You're Waiting For"
-msgstr ""
+msgstr "Buku yang Anda Tunggu"
 
 #: account/loans.html
 msgid "You are not waiting for any books at this moment."
-msgstr ""
+msgstr "Anda tidak sedang menunggu buku apa pun saat ini."
 
 #: account/loans.html
 msgid "Leave the Waiting List"
-msgstr ""
+msgstr "Tinggalkan Daftar Tunggu"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "Apakah Anda yakin ingin meninggalkan daftar tunggu dari<br/><strong>TITLE</strong>?"
 
 #: account/loans.html
 #, python-format
@@ -2699,7 +2699,7 @@ msgstr[0] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
+msgstr "Anda adalah orang berikutnya yang akan menerima buku ini."
 
 #: account/loans.html
 #, python-format
@@ -2709,81 +2709,81 @@ msgstr[0] ""
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "Mencari buku untuk dipinjam? Lihat pilihan staf kami, atau cari buku berdasarkan subjek tertentu:"
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
-msgstr ""
+msgstr "Buku yang Kami Sukai"
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "Atau, lihat <a href=\"/collections\">koleksi khusus</a> kami."
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
-msgstr ""
+msgstr "Tidak ada buku di rak ini"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Loans"
-msgstr ""
+msgstr "Pinjaman Saya"
 
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
-msgstr ""
+msgstr "Pembaca ini memilih untuk membuat Log Membaca mereka bersifat pribadi."
 
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
+msgstr "Tujuan membaca %(year_span)s"
 
 #: account/mybooks.html
 msgid "View All Lists"
-msgstr ""
+msgstr "Lihat Semua Daftar"
 
 #: account/mybooks.html
 msgid "My Stats"
-msgstr ""
+msgstr "Statistik Saya"
 
 #: account/mybooks.html account/sidebar.html account/topmenu.html
 msgid "My Reading Stats"
-msgstr ""
+msgstr "Statistik Membaca Saya"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Notes"
-msgstr ""
+msgstr "Catatan Saya"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Reviews"
-msgstr ""
+msgstr "Ulasan Saya"
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
+msgstr "Opsi Impor & Ekspor"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
-msgstr ""
+msgstr "Ups!"
 
 #: account/not_verified.html
 msgid "The email address you signed up with needs to be verified."
-msgstr ""
+msgstr "Alamat email yang Anda gunakan untuk mendaftar perlu diverifikasi."
 
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "Saat Anda membuat akun, kami mengirim email ke %(email)s yang berisi tautan untuk memverifikasi alamat email Anda. Kami memerlukan Anda untuk mengklik tautan tersebut."
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "Jika Anda tidak dapat menemukan emailnya, tekan tombol ini untuk mengirim yang baru:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
-msgstr ""
+msgstr "Kirim ulang email verifikasi"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "Terima kasih!"
 
 #: account/notes.html
 msgid "My notes for an edition of "
