@@ -9,31 +9,11 @@ import json
 import logging
 from collections import defaultdict
 from typing import Any, Literal
-
-try:
-    from warnings import deprecated
-except ImportError:
-    import functools as _functools
-
-    def deprecated(msg, **_kw):
-        def _d(f):
-            if isinstance(f, type):
-                return f
-
-            @_functools.wraps(f)
-            def _w(*a, **k):
-                import warnings
-
-                warnings.warn(msg, DeprecationWarning, stacklevel=2)
-                return f(*a, **k)
-
-            return _w
-
-        return _d
-
+from warnings import deprecated
 
 import qrcode
 import web
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
@@ -41,7 +21,6 @@ from infogami.utils import delegate
 from infogami.utils.view import (
     render_template,  # noqa: F401 used for its side effects
 )
-
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed

@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
-from infogami.infobase import client
 from pydantic import BaseModel
 
+from infogami.infobase import client
 from openlibrary.accounts import get_current_user
 from openlibrary.fastapi.auth import AuthenticatedUser, require_authenticated_user
 from openlibrary.plugins.openlibrary import lists as legacy_lists

@@ -1,33 +1,12 @@
 """Reading log check-ins handler and services."""
 
 import json
-
-try:
-    from warnings import deprecated
-except ImportError:
-    import functools as _functools
-
-    def deprecated(msg, **_kw):
-        def _d(f):
-            if isinstance(f, type):
-                return f
-
-            @_functools.wraps(f)
-            def _w(*a, **k):
-                import warnings
-
-                warnings.warn(msg, DeprecationWarning, stacklevel=2)
-                return f(*a, **k)
-
-            return _w
-
-        return _d
-
+from warnings import deprecated
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import public
-
 from openlibrary.accounts import get_current_user
 from openlibrary.core.bookshelves_events import BookshelfEvent, BookshelvesEvents
 from openlibrary.utils import extract_numeric_id_from_olid

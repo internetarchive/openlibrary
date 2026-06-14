@@ -13,9 +13,9 @@ from urllib.parse import unquote
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyCookie
-from infogami import config
 from pydantic import BaseModel, Field
 
+from infogami import config
 from openlibrary.accounts import get_current_user
 from openlibrary.accounts.model import get_secret_key, verify_hash
 

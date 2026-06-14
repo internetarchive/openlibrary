@@ -6844,13 +6844,13 @@ msgid "Book %s"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid "Read More"
+msgid ""
+"This book is not currently available on Open Library. <a href=\"#related-"
+"work-carousel\">Browse similar titles available now.</a>"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html
-msgid ""
-"This book is not currently available on Open Library. <a href="#related-"
-"work-carousel">Browse similar titles available now.</a>"
+msgid "Read More"
 msgstr ""
 
 #: type/edition/view.html type/work/view.html

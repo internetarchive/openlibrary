@@ -9,8 +9,8 @@ import time
 from urllib.parse import urlparse
 
 import requests
-from infogami import config
 
+from infogami import config
 from openlibrary.core import cache
 
 

@@ -8,37 +8,16 @@ from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
-
-try:
-    from warnings import deprecated
-except ImportError:
-    import functools as _functools
-
-    def deprecated(msg, **_kw):
-        def _d(f):
-            if isinstance(f, type):
-                return f
-
-            @_functools.wraps(f)
-            def _w(*a, **k):
-                import warnings
-
-                warnings.warn(msg, DeprecationWarning, stacklevel=2)
-                return f(*a, **k)
-
-            return _w
-
-        return _d
-
+from warnings import deprecated
 
 import web
-from infogami.infobase import client, common
-from infogami.utils import delegate
-from infogami.utils.view import public, render_template, require_login
 from pydantic import BaseModel
 from starlette.datastructures import URL
 
 import openlibrary.core.helpers as h
+from infogami.infobase import client, common
+from infogami.utils import delegate
+from infogami.utils.view import public, render_template, require_login
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache, formats
 from openlibrary.core.lists.model import (

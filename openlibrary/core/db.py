@@ -7,9 +7,10 @@ from sqlite3 import IntegrityError
 from typing import cast
 
 import web
-from infogami.utils import stats
 from psycopg2.errors import UniqueViolation
 from web.db import PostgresDB
+
+from infogami.utils import stats
 
 
 @functools.cache

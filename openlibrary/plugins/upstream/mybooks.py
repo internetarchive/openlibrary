@@ -5,35 +5,14 @@ import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
-
-try:
-    from warnings import deprecated
-except ImportError:
-    import functools as _functools
-
-    def deprecated(msg, **_kw):
-        def _d(f):
-            if isinstance(f, type):
-                return f
-
-            @_functools.wraps(f)
-            def _w(*a, **k):
-                import warnings
-
-                warnings.warn(msg, DeprecationWarning, stacklevel=2)
-                return f(*a, **k)
-
-            return _w
-
-        return _d
-
+from warnings import deprecated
 
 import web
+from web.template import TemplateResult
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.utils import delegate
 from infogami.utils.view import public, render, safeint
-from web.template import TemplateResult
-
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,

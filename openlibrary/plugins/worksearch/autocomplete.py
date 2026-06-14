@@ -6,9 +6,9 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import safeint
-
 from openlibrary.plugins.upstream import utils
 from openlibrary.plugins.worksearch.search import get_solr
 from openlibrary.utils import (
