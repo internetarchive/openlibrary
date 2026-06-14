@@ -6641,315 +6641,315 @@ msgstr "পৃষ্ঠাংকন"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
-msgstr ""
+msgstr "পৃষ্ঠাৰ সংখ্যা"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
-msgstr ""
+msgstr "ওজন"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
-msgstr ""
+msgstr "সংস্কৰণ পৰিচায়ক"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "উৎস ৰেকৰ্ড"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "ৰচনাৰ বিৱৰণ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Original languages"
-msgstr ""
+msgstr "মূল ভাষাসমূহ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Excerpts"
-msgstr ""
+msgstr "অংশসমূহ"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "%(page)s পৃষ্ঠা"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "%(authorlink)s-ৰ দ্বাৰা যোগ কৰা হৈছে।"
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
+msgstr "বেনামীভাৱে যোগ কৰা হৈছে।"
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 msgid "Loading Lists"
-msgstr ""
+msgstr "তালিকা লোড হৈছে"
 
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
-msgstr ""
+msgstr "%(language)s [অপ্ৰচলিত]"
 
 #: type/language/view.html
 msgid "languages"
-msgstr ""
+msgstr "ভাষাসমূহ"
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
+msgstr "ক'ড"
 
 #: type/language/view.html
 msgid "Current"
-msgstr ""
+msgstr "বৰ্তমান"
 
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(language)s-ত পঢ়িব পৰা কিতাপৰ বাবে সন্ধান</a> চেষ্টা কৰিবনে?"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Create a series"
-msgstr ""
+msgstr "এটা ধাৰাবাহিক বনাওক"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "ধাৰাবাহিক সম্পাদনা কৰিছে: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "তালিকা সম্পাদনা কৰিছে: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Edit Series"
-msgstr ""
+msgstr "ধাৰাবাহিক সম্পাদনা কৰক"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Edit List"
-msgstr ""
+msgstr "তালিকা সম্পাদনা কৰক"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "স্থানান্তৰ কৰক..."
 
 #: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
-msgstr ""
+msgstr "এটা কিতাপ সন্ধান কৰক"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "স্থান (ঐচ্ছিক), যেনে 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "টোকা (ঐচ্ছিক)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "List Name"
-msgstr ""
+msgstr "তালিকাৰ নাম"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Series Name"
-msgstr ""
+msgstr "ধাৰাবাহিকৰ নাম"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
-msgstr ""
+msgstr "বিৱৰণ (ঐচ্ছিক)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Add another book"
-msgstr ""
+msgstr "আন এটা কিতাপ যোগ কৰক"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Create new series"
-msgstr ""
+msgstr "নতুন ধাৰাবাহিক বনাওক"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr ""
+msgstr "Open Library চাওক"
 
 #: type/list/embed.html
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr ""
+msgstr "অনলাইন Book Reader-ত খোলক। মূল কিতাপ পৃষ্ঠাৰ পৰা ePub, DAISY, PDF, TXT বিন্যাসত ডাউনলোড উপলব্ধ"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "এই কিতাপ চেক আউট কৰা হৈছে"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "চেক আউট"
 
 #: type/list/embed.html
 msgid "Borrow book"
-msgstr ""
+msgstr "কিতাপ ধাৰ লওক"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "সুৰক্ষিত DAISY"
 
 #: BookByline.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
-msgstr ""
+msgstr "%(name)s-ৰ দ্বাৰা"
 
 #: type/list/exports.html
 msgid "BibTex"
-msgstr ""
+msgstr "BibTex"
 
 #: type/list/exports.html
 msgid "Export"
-msgstr ""
+msgstr "ৰপ্তানি"
 
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "%(json_link)s, %(html_link)s, বা %(bibtex_link)s হিচাপে"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "চাইন আপ কৰক"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "<a rel=\"nofollow\" href=\"%s\">Atom feed</a>-ৰ জৰিয়তে কাৰ্যকলাপ নজৰ ৰাখক"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "ৰপ্তানি উপলব্ধ নহয়"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "কেৱল %(max)s সংস্কৰণলৈকে থকা তালিকা ৰপ্তানি কৰিব পাৰি। এই তালিকাত %(count)s আছে।"
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "অধিক মনোযোগৰ বাবে কিছু বীজ আঁতৰাওক, বা কেটেলগৰ <a href=\"%s\">বাল্ক ডাউনলোড</a> চাওক।"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | তালিকাসমূহ | Open Library"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
-msgstr ""
+msgstr "Open Library-ত তালিকাখন চাওক।"
 
 #: type/list/view_body.html
 msgid "Remove this item?"
-msgstr ""
+msgstr "এই বস্তু আঁতৰাবনে?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "শেষবাৰ পৰিৱৰ্তিত <span>%(date)s</span>"
 
 #: type/list/view_body.html
 msgid "Remove seed"
-msgstr ""
+msgstr "বীজ আঁতৰাওক"
 
 #: type/list/view_body.html
 msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
+msgstr "আপুনি নিশ্চিতনে যে আপুনি তালিকাৰ পৰা এই বস্তু আঁতৰাব বিচাৰে?"
 
 #: type/list/view_body.html
 msgid "Remove Seed"
-msgstr ""
+msgstr "বীজ আঁতৰাওক"
 
 #: type/list/view_body.html
 msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr ""
+msgstr "আপুনি তালিকাৰ শেষ বস্তুটো আঁতৰাবলৈ গৈছে। ই সমগ্ৰ তালিকাখন মচি দিব। আপুনি নিশ্চিতনে যে অব্যাহত ৰাখিব বিচাৰে?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "এই ধাৰাবাহিকত %(limit)d বা তাতকৈ বেছি ৰচনা আছে। বৰ্তমান, কেৱল প্ৰথম %(limit)d ৰচনা দেখুৱাইছে।"
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "এই তালিকাত কোনো বস্তু নাই।"
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">কিতাপ, বিষয়, বা লেখক সন্ধান কৰক</a> আপোনাৰ তালিকাত যোগ কৰিবলৈ।"
 
 #: type/list/view_body.html
 msgid "Learn more."
-msgstr ""
+msgstr "অধিক জানক।"
 
 #: type/list/view_body.html
 msgid "List Metadata"
-msgstr ""
+msgstr "তালিকাৰ মেটাডেটা"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "বীজ মেটাডেটাৰ পৰা উদ্ভূত"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/list/view_body.html
 msgid "Times"
-msgstr ""
+msgstr "সময়সমূহ"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "স্থানীয় ID"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "উৎস বস্তু"
 
 #: type/local_id/view.html
 msgid "ID location"
-msgstr ""
+msgstr "ID স্থান"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "বাৰকোড ৰেজেক্স"
 
 #: type/local_id/view.html
 msgid "URN prefix"
-msgstr ""
+msgstr "URN উপসৰ্গ"
 
 #: type/local_id/view.html
 msgid "Example"
-msgstr ""
+msgstr "উদাহৰণ"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "ডকুমেন্ট বডি:"
 
 #: type/page/view.html
 msgid "Community"
-msgstr ""
+msgstr "সম্প্ৰদায়"
 
 #: type/permission/edit.html
 msgid "Readers:"
-msgstr ""
+msgstr "পাঠক:"
 
 #: type/permission/edit.html
 msgid "Writers:"
-msgstr ""
+msgstr "লেখক:"
 
 #: type/permission/view.html
 msgid "Readers"
-msgstr ""
+msgstr "পাঠক"
 
 #: type/permission/view.html
 msgid "Writers"
-msgstr ""
+msgstr "লেখক"
 
 #: type/tag/form.html
 #, fuzzy
@@ -6958,198 +6958,198 @@ msgstr "বোডলাউক"
 
 #: type/tag/form.html
 msgid "Add a tag"
-msgstr ""
+msgstr "এটা টেগ যোগ কৰক"
 
 #: type/tag/form.html
 msgid "Add a tag to Open Library"
-msgstr ""
+msgstr "Open Library-লৈ এটা টেগ যোগ কৰক"
 
 #: type/tag/form.html
 msgid "We require a minimum set of fields to create a new collection tag."
-msgstr ""
+msgstr "এটা নতুন সংগ্ৰহৰ টেগ বনাবলৈ আমাক ন্যূনতম এক সংখ্যক ক্ষেত্ৰৰ প্ৰয়োজন।"
 
 #: EditButtons.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr ""
+msgstr "এই wiki-ত পৰিৱৰ্তন সংৰক্ষণ কৰি, আপুনি সম্মতি জনাইছে যে আপোনাৰ অৱদান <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"এই Creative Commons-লৈ লিংক এটা নতুন উইণ্ডত খুলিব\">CC0</a>-ৰ অধীনত বিশ্বলৈ মুক্তভাৱে দিয়া হৈছে। হুৰে!"
 
 #: type/tag/form.html
 msgid "Add this tag now"
-msgstr ""
+msgstr "এতিয়াই এই টেগ যোগ কৰক"
 
 #: type/tag/index.html
 msgid "Tags"
-msgstr ""
+msgstr "টেগসমূহ"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Open Library গ্ৰন্থাগাৰিকসকলৰ দ্বাৰা সংকলিত টেগ।"
 
 #: type/tag/index.html
 msgid "View subject page"
-msgstr ""
+msgstr "বিষয় পৃষ্ঠা চাওক"
 
 #: type/tag/index.html
 msgid "Previous"
-msgstr ""
+msgstr "পূৰ্বৱৰ্তী"
 
 #: type/tag/index.html
 msgid "No tags found."
-msgstr ""
+msgstr "কোনো টেগ পোৱা নগল।"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
-msgstr ""
+msgstr "টেগৰ নাম"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "মানৱ-পঢ়িব পৰা প্ৰদৰ্শন নাম (যেনে \"Computer Science\", \"Horror Fiction\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "টেগ স্লাগ"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "কমা-পৃথক URL স্লাগ যিবোৰ এই টেগলৈ ম্যাপ কৰে (নামৰ পৰা স্বয়ংক্ৰিয়ভাৱে পূৰণ)। যেনে \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
-msgstr ""
+msgstr "টেগৰ বিৱৰণ"
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
+msgstr "পৃষ্ঠাৰ বডি"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
-msgstr ""
+msgstr "টেগৰ ধৰণ"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "টেগ ডেপুটি"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>ধৰণ:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
-msgstr ""
+msgstr "বিৱৰণ"
 
 #: type/tag/view.html
 msgid "Tag Body"
-msgstr ""
+msgstr "টেগৰ বডি"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL স্লাগ"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "%(name)s-ৰ বাবে বিষয় পৃষ্ঠা চাওক।"
 
 #: type/template/edit.html
 msgid "Plugin"
-msgstr ""
+msgstr "প্লাগইন"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "ডকুমেন্ট বডি"
 
 #: type/template/edit.html
 msgid "Delete this template?"
-msgstr ""
+msgstr "এই টেমপ্লেট মচিবনে?"
 
 #: type/template/view.html
 msgid "plugin"
-msgstr ""
+msgstr "প্লাগইন"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "ধৰণ"
 
 #: type/type/view.html
 msgid "Properties"
-msgstr ""
+msgstr "বৈশিষ্ট্যসমূহ"
 
 #: type/type/view.html
 msgid "of type"
-msgstr ""
+msgstr "ধৰণৰ"
 
 #: type/type/view.html
 msgid "Backreferences"
-msgstr ""
+msgstr "পিছপৰা উদ্ধৃতি"
 
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)s সম্পাদনা কৰিছে"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "বৰ্তমান সম্পাদনা কৰিছে:"
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "প্ৰদৰ্শন নাম"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "প্ৰশাসন পৃষ্ঠা"
 
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "আপুনি সেই কিতাপসমূহ সৰ্বসাধাৰণৰ সৈতে ভাগ কৰিছে যিবোৰ আপুনি <a href=\"%(username)s/books/currently-reading\">বৰ্তমান পঢ়িছে</a>, <a href=\"%(username)s/books/already-read\">ইতিমধ্যে পঢ়িছে</a>, <a href=\"%(username)s/books/want-to-read\">পঢ়িব বিচাৰে</a>, আৰু <a href=\"%(username)s/books/stopped-reading\">পঢ়া বন্ধ কৰিছে</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "আপুনি আপোনাৰ বনাবলৈ বাছনি কৰিছে"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "ব্যক্তিগত"
 
 #: type/user/view.html
 msgid "Manage your privacy settings"
-msgstr ""
+msgstr "আপোনাৰ গোপনীয়তাৰ সংস্থাপন পৰিচালনা কৰক"
 
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "%(user)s-এ এতিয়া যিবোৰ কিতাপ <a href=\"%(username)s/books/currently-reading\">পঢ়িছে</a>, <a href=\"%(username)s/books/already-read\">ইতিমধ্যে পঢ়িছে</a>, <a href=\"%(username)s/books/want-to-read\">পঢ়িব বিচাৰে</a>, আৰু <a href=\"%(username)s/books/stopped-reading\">পঢ়া বন্ধ কৰিছে</a> সেইবোৰ ইয়াত আছে!"
 
 #: type/user/view.html
 msgid "My Lists"
-msgstr ""
+msgstr "মোৰ তালিকাসমূহ"
 
 #: RecentChangesUsers.html type/user/view.html
 msgid "No edits. Yet."
-msgstr ""
+msgstr "কোনো সম্পাদনা নাই। এতিয়াও নাই।"
 
 #: type/usergroup/edit.html
 msgid "Members:"
-msgstr ""
+msgstr "সদস্যসমূহ:"
 
 #: SearchResultsWork.html type/work/editions.html
 #, python-format
 msgid "First published in %(year)s"
-msgstr ""
+msgstr "%(year)s-ত প্ৰথম প্ৰকাশিত"
 
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "%(work)s-ৰ আন এটা সংস্কৰণ যোগ কৰক"
 
 #: UserEditRow.html type/work/editions.html
 msgid "Add another"
-msgstr ""
+msgstr "আন এটা যোগ কৰক"
 
 #: type/work/editions.html
 msgid "Title missing"
-msgstr ""
+msgstr "শিৰোনাম নাই"
 
 #: type/work/editions_datatable.html
 #, python-format
@@ -7161,40 +7161,40 @@ msgstr[1] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "সকলো %(count)d সংস্কৰণ চাবনে?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
-msgstr ""
+msgstr "সংস্কৰণ"
 
 #: type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
+msgstr "উপলব্ধতা"
 
 #: type/work/editions_datatable.html
 msgid "No editions available"
-msgstr ""
+msgstr "কোনো সংস্কৰণ উপলব্ধ নাই"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
+msgstr "আন এটা সংস্কৰণ যোগ কৰিবনে?"
 
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "%(store)s-ত এই সংস্কৰণ বিক্ৰীৰ বাবে বিচাৰক"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "এই লিংক ব্যৱহাৰ কৰি কিতাপ কিনিলে Internet Archive এটা <a class=\"nostyle\" href=\"/help/faq/about#selling\">সামান্য কমিছন</a> উপাৰ্জন কৰিব পাৰে।"
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
-msgstr ""
+msgstr "মূল্য আনিছে"
 
 #: BatchImportNavigation.html
 msgid "Pending Imports"
-msgstr ""
+msgstr "অমীমাংসিত আমদানি"
 
 #: BookByline.html
 #, python-format
@@ -7205,27 +7205,27 @@ msgstr[1] ""
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
-msgstr ""
+msgstr "এজন <em>অজ্ঞাত লেখক</em>-ৰ দ্বাৰা"
 
 #: BookPreview.html
 msgid "Preview Only"
-msgstr ""
+msgstr "কেৱল পূৰ্বদৰ্শন"
 
 #: BookPreview.html
 msgid "Preview Book"
-msgstr ""
+msgstr "কিতাপ পূৰ্বদৰ্শন"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "ৱেবছাইটৰ টেমপ্লেট এতিয়া নিষ্ক্ৰিয় কৰা হৈছে। সেইবোৰ সম্পাদনা কৰিলে লাইভ ৱেবছাইটত কোনো প্ৰভাৱ নপৰিব।"
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "পূৰ্বৱৰ্তী বিভাগলৈ যাওক"
 
 #: EditionNavBar.html
 msgid "Overview"
-msgstr ""
+msgstr "পৰিদৰ্শন"
 
 #: EditionNavBar.html
 #, python-format
@@ -7243,57 +7243,57 @@ msgstr[1] ""
 
 #: EditionNavBar.html
 msgid "Related Books"
-msgstr ""
+msgstr "সম্পৰ্কিত কিতাপ"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "পৰৱৰ্তী বিভাগলৈ যাওক"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "অনুসৰণ বন্ধ কৰক"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "অনুগামীসমূহ আপডেট কৰিবলৈ বিফল হৈছে। অনুগ্ৰহ কৰি কিছু পিছত পুনৰ চেষ্টা কৰক।"
 
 #: FormatExpiry.html
 msgid "Expires"
-msgstr ""
+msgstr "মেয়াদ উত্তীৰ্ণ"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Search Inside মিলৰ বাবে পৰীক্ষা কৰিছে"
 
 #: FulltextSearchSuggestion.html
 msgid "Search Inside Icon"
-msgstr ""
+msgstr "Search Inside আইকন"
 
 #: FulltextSearchSuggestion.html
 msgid "search inside icon"
-msgstr ""
+msgstr "ভিতৰত সন্ধানৰ আইকন"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s কিতাপ মিলৰ অংশৰ সৈতে পোৱা গৈছে"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "সকলো %(results_count)s Search Inside মিল চাওক"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "সোঁ শেভৰন"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
