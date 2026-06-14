@@ -6089,16 +6089,16 @@ msgstr "Judul tidak diketahui"
 
 #: lists/export_as_html.html
 msgid "First publish date unknown"
-msgstr ""
+msgstr "Tanggal terbit pertama tidak diketahui"
 
 #: lists/export_as_html.html
 msgid "Name unknown"
-msgstr ""
+msgstr "Nama tidak diketahui"
 
 #: lists/header.html
 #, python-format
 msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Daftar"
 
 #: lists/header.html
 #, python-format
@@ -6132,33 +6132,33 @@ msgstr[0] ""
 
 #: lists/header.html
 msgid "Hm. Can't find it."
-msgstr ""
+msgstr "Hmm. Tidak dapat ditemukan."
 
 #: lists/home.html
 msgid "Create a list of any Subjects, Authors, Works or specific Editions."
-msgstr ""
+msgstr "Buat daftar Subjek, Penulis, Karya, atau Edisi tertentu apa pun."
 
 #: lists/home.html
 msgid "Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See all your lists and any activity using the \"Lists\" link on your Account page."
-msgstr ""
+msgstr "Setelah Anda membuat daftar, Anda dapat <strong>memantau pembaruan</strong> atau <strong>mengekspor</strong> semua edisi dalam daftar sebagai HTML, BibTeX atau JSON. Lihat semua daftar Anda dan aktivitas menggunakan tautan \"Daftar\" di halaman Akun Anda."
 
 #: lists/home.html
 #, python-format
 msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr ""
+msgstr "Untuk 2000+ eBook yang paling banyak diminta di California untuk penyandang disabilitas cetak <a href=\"%(url)s\">klik di sini</a>."
 
 #: lists/home.html
 msgid "Find a list by name"
-msgstr ""
+msgstr "Temukan daftar berdasarkan nama"
 
 #: lists/home.html
 msgid "Active Lists"
-msgstr ""
+msgstr "Daftar Aktif"
 
 #: lists/home.html
 #, python-format
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr ""
+msgstr "dari <a href=\"%(key)s\">%(owner)s</a>"
 
 #: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html
 #: type/list/view_body.html
@@ -6170,31 +6170,31 @@ msgstr[0] ""
 #: lists/home.html lists/preview.html lists/snippet.html
 #, python-format
 msgid "Last modified %(date)s"
-msgstr ""
+msgstr "Terakhir diubah %(date)s"
 
 #: lists/home.html lists/snippet.html
 msgid "No description."
-msgstr ""
+msgstr "Tidak ada deskripsi."
 
 #: lists/list_follow.html
 msgid "Cover of book"
-msgstr ""
+msgstr "Sampul buku"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar pemilik daftar"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
-msgstr ""
+msgstr "Anda"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Pengguna ini belum mengaktifkan fitur mengikuti"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -6208,242 +6208,242 @@ msgstr ""
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "See this list"
-msgstr ""
+msgstr "Lihat daftar ini"
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "Remove from your list?"
-msgstr ""
+msgstr "Hapus dari daftar Anda?"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
+msgstr "dari <a href=\"%(link)s\">Anda</a>"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
+msgstr "dari <a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
 msgid "%(owner)s / Lists"
-msgstr ""
+msgstr "%(owner)s / Daftar"
 
 #: lists/lists.html type/list/view_body.html
 msgid "Yes, I'm sure"
-msgstr ""
+msgstr "Ya, saya yakin"
 
 #: lists/lists.html type/list/view_body.html
 msgid "No, cancel"
-msgstr ""
+msgstr "Tidak, batalkan"
 
 #: lists/lists.html
 msgid "Delete this list"
-msgstr ""
+msgstr "Hapus daftar ini"
 
 #: lists/lists.html
 msgid "Delete list"
-msgstr ""
+msgstr "Hapus daftar"
 
 #: lists/lists.html
 msgid "Are you sure you want to delete this list?"
-msgstr ""
+msgstr "Apakah Anda yakin ingin menghapus daftar ini?"
 
 #: lists/lists.html
 msgid "Remove this seed?"
-msgstr ""
+msgstr "Hapus item ini?"
 
 #: lists/lists.html type/list/edit.html
 msgid "Remove"
-msgstr ""
+msgstr "Hapus"
 
 #: lists/lists.html
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
-msgstr ""
+msgstr "Apakah Anda yakin ingin menghapus <strong>%(title)s</strong> dari daftar ini?"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "Pembaca ini belum membuat daftar apa pun."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr ""
+msgstr "Anda belum membuat daftar apa pun."
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
-msgstr ""
+msgstr "Pelajari cara membuat daftar pertama Anda."
 
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "oleh <a href=\"%s\">Anda</a>"
 
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
-msgstr ""
+msgstr "Daftar Saya (%(count)d)"
 
 #: lists/showcase.html
 msgid "You have no lists."
-msgstr ""
+msgstr "Anda tidak memiliki daftar."
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
+msgstr "dari"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Memuat<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
-msgstr ""
+msgstr "Gabungkan Penulis"
 
 #: merge/authors.html
 msgid "No authors selected."
-msgstr ""
+msgstr "Tidak ada penulis yang dipilih."
 
 #: merge/authors.html
 msgid "Please select a primary author record."
-msgstr ""
+msgstr "Harap pilih catatan penulis utama."
 
 #: merge/authors.html
 msgid "Please select some authors to merge."
-msgstr ""
+msgstr "Harap pilih beberapa penulis untuk digabungkan."
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "Pilih profil tertua sebagai utama -"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
-msgstr ""
+msgstr "Pilih catatan penulis yang harus digabungkan dengan yang utama"
 
 #: merge/authors.html
 msgid "Press MERGE AUTHORS."
-msgstr ""
+msgstr "Tekan GABUNGKAN PENULIS."
 
 #: merge/authors.html
 msgid "No primary record"
-msgstr ""
+msgstr "Tidak ada catatan utama"
 
 #: merge/authors.html
 msgid "You must select a primary record to point the duplicates toward."
-msgstr ""
+msgstr "Anda harus memilih catatan utama untuk menunjuk duplikat."
 
 #: merge/authors.html
 msgid "Please Be Careful..."
-msgstr ""
+msgstr "Harap Berhati-hati..."
 
 #: merge/authors.html
 msgid "<b>Are you sure</b> you want to merge these records?"
-msgstr ""
+msgstr "<b>Apakah Anda yakin</b> ingin menggabungkan catatan-catatan ini?"
 
 #: merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
-msgstr ""
+msgstr "Utama"
 
 #: merge/authors.html
 msgid "Merge"
-msgstr ""
+msgstr "Gabungkan"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "tanggal lahir/kematian"
 
 #: merge/authors.html
 msgid "Open in a new window"
-msgstr ""
+msgstr "Buka di jendela baru"
 
 #: merge/authors.html search/work_search_selected_facets.html
 msgid "First published in"
-msgstr ""
+msgstr "Pertama kali diterbitkan pada"
 
 #: merge/authors.html
 msgid "Visit this author's page in a new window"
-msgstr ""
+msgstr "Kunjungi halaman penulis ini di jendela baru"
 
 #: merge/authors.html
 msgid "Comment:"
-msgstr ""
+msgstr "Komentar:"
 
 #: merge/authors.html
 msgid "Comment..."
-msgstr ""
+msgstr "Komentar..."
 
 #: merge/authors.html
 msgid "Request Merge"
-msgstr ""
+msgstr "Minta Penggabungan"
 
 #: merge/authors.html
 msgid "Reject Merge"
-msgstr ""
+msgstr "Tolak Penggabungan"
 
 #: merge/works.html
 msgid "Merge Works"
-msgstr ""
+msgstr "Gabungkan Karya"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "Gagal mengirimkan komentar. Silakan coba lagi dalam beberapa saat."
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(Opsional) Mengapa Anda menutup permintaan ini?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
-msgstr ""
+msgstr "Menampilkan hanya permintaan %(username)s."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show all requests"
-msgstr ""
+msgstr "Tampilkan semua permintaan"
 
 #: merge_request_table/merge_request_table.html
 msgid "Showing all requests."
-msgstr ""
+msgstr "Menampilkan semua permintaan."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show my requests"
-msgstr ""
+msgstr "Tampilkan permintaan saya"
 
 #: merge_request_table/merge_request_table.html
 msgid "Community Edit Requests"
-msgstr ""
+msgstr "Permintaan Pengeditan Komunitas"
 
 #: merge_request_table/merge_request_table.html
 msgid "No entries here!"
-msgstr ""
+msgstr "Tidak ada entri di sini!"
 
 #: merge_request_table/table_header.html
 msgid "Open"
-msgstr ""
+msgstr "Terbuka"
 
 #: merge_request_table/table_header.html
 msgid "Closed"
-msgstr ""
+msgstr "Tertutup"
 
 #: merge_request_table/table_header.html
 msgid "Status ▾"
-msgstr ""
+msgstr "Status ▾"
 
 #: merge_request_table/table_header.html
 msgid "Request Status"
-msgstr ""
+msgstr "Status Permintaan"
 
 #: merge_request_table/table_header.html
 msgid "Submitter ▾"
-msgstr ""
+msgstr "Pengirim ▾"
 
 #: merge_request_table/table_header.html
 msgid "Filter submitters"
-msgstr ""
+msgstr "Filter pengirim"
 
 #: merge_request_table/table_header.html
 msgid "Submitted by me"
-msgstr ""
+msgstr "Dikirimkan oleh saya"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -6452,19 +6452,19 @@ msgstr "Pratinjau"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer"
-msgstr ""
+msgstr "Peninjau"
 
 #: merge_request_table/table_header.html
 msgid "Filter reviewers"
-msgstr ""
+msgstr "Filter peninjau"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "Tidak ditugaskan ke siapapun"
 
 #: merge_request_table/table_header.html
 msgid "Sort ▾"
-msgstr ""
+msgstr "Urutkan ▾"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -6478,7 +6478,7 @@ msgstr "Berikutnya"
 
 #: merge_request_table/table_header.html
 msgid "Oldest"
-msgstr ""
+msgstr "Terlama"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -6487,40 +6487,40 @@ msgstr ""
 
 #: merge_request_table/table_row.html
 msgid "An unnamed author"
-msgstr ""
+msgstr "Penulis tidak bernama"
 
 #: merge_request_table/table_row.html
 msgid "Open request"
-msgstr ""
+msgstr "Permintaan terbuka"
 
 #: merge_request_table/table_row.html
 msgid "Closed request"
-msgstr ""
+msgstr "Permintaan tertutup"
 
 #: merge_request_table/table_row.html
 msgid "No comments yet."
-msgstr ""
+msgstr "Belum ada komentar."
 
 #: merge_request_table/table_row.html
 msgid "Add a comment..."
-msgstr ""
+msgstr "Tambahkan komentar..."
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "Balas"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s dibuka %(date)s oleh <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
-msgstr ""
+msgstr "Klik untuk menutup Permintaan Penggabungan ini"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
+msgstr "Tinjau <!-- (merge request) -->"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -6529,11 +6529,11 @@ msgstr "Komentar"
 
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
-msgstr ""
+msgstr "Hapus Dari Rak"
 
 #: my_books/dropdown_content.html
 msgid "My Reading Lists:"
-msgstr ""
+msgstr "Daftar Bacaan Saya:"
 
 #: my_books/dropdown_content.html
 #, fuzzy
@@ -6542,154 +6542,154 @@ msgstr "Masuk"
 
 #: my_books/dropdown_content.html
 msgid "Use this Work"
-msgstr ""
+msgstr "Gunakan Karya Ini"
 
 #: my_books/primary_action.html
 msgid "Add to List"
-msgstr ""
+msgstr "Tambahkan ke Daftar"
 
 #: my_books/check_ins/check_in_form.html
 msgid "January"
-msgstr ""
+msgstr "Januari"
 
 #: my_books/check_ins/check_in_form.html
 msgid "February"
-msgstr ""
+msgstr "Februari"
 
 #: my_books/check_ins/check_in_form.html
 msgid "March"
-msgstr ""
+msgstr "Maret"
 
 #: my_books/check_ins/check_in_form.html
 msgid "April"
-msgstr ""
+msgstr "April"
 
 #: my_books/check_ins/check_in_form.html
 msgid "May"
-msgstr ""
+msgstr "Mei"
 
 #: my_books/check_ins/check_in_form.html
 msgid "June"
-msgstr ""
+msgstr "Juni"
 
 #: my_books/check_ins/check_in_form.html
 msgid "July"
-msgstr ""
+msgstr "Juli"
 
 #: my_books/check_ins/check_in_form.html
 msgid "August"
-msgstr ""
+msgstr "Agustus"
 
 #: my_books/check_ins/check_in_form.html
 msgid "September"
-msgstr ""
+msgstr "September"
 
 #: my_books/check_ins/check_in_form.html
 msgid "October"
-msgstr ""
+msgstr "Oktober"
 
 #: my_books/check_ins/check_in_form.html
 msgid "November"
-msgstr ""
+msgstr "November"
 
 #: my_books/check_ins/check_in_form.html
 msgid "December"
-msgstr ""
+msgstr "Desember"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr ""
+msgstr "Tambahkan tanggal check-in opsional. Tanggal check-in digunakan untuk melacak target membaca tahunan."
 
 #: my_books/check_ins/check_in_form.html
 msgid "End Date:"
-msgstr ""
+msgstr "Tanggal Akhir:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year:"
-msgstr ""
+msgstr "Tahun:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year"
-msgstr ""
+msgstr "Tahun"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month:"
-msgstr ""
+msgstr "Bulan:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month"
-msgstr ""
+msgstr "Bulan"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day:"
-msgstr ""
+msgstr "Hari:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day"
-msgstr ""
+msgstr "Hari"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Delete Event"
-msgstr ""
+msgstr "Hapus Acara"
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Dibaca <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
-msgstr ""
+msgstr "Kapan Anda menyelesaikan buku ini?"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Other"
-msgstr ""
+msgstr "Lainnya"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Check-In"
-msgstr ""
+msgstr "Check-In"
 
 #: observations/review_component.html
 msgid "Community Reviews"
-msgstr ""
+msgstr "Ulasan Komunitas"
 
 #: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
-msgstr ""
+msgstr "Belum ada ulasan komunitas yang dikirimkan untuk karya ini."
 
 #: observations/review_component.html
 msgid "+ Add your community review"
-msgstr ""
+msgstr "+ Tambahkan ulasan komunitas Anda"
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
-msgstr ""
+msgstr "+ Masuk untuk menambahkan ulasan komunitas Anda"
 
 #: publishers/index.html publishers/notfound.html
 msgid "Publishers"
-msgstr ""
+msgstr "Penerbit"
 
 #: publishers/index.html publishers/view.html
 msgid "Publisher Search"
-msgstr ""
+msgstr "Pencarian Penerbit"
 
 #: publishers/index.html publishers/view.html
 msgid "Try a keyword."
-msgstr ""
+msgstr "Coba kata kunci."
 
 #: publishers/notfound.html
 #, python-format
 msgid "We couldn't find any books published by %(publisher)s."
-msgstr ""
+msgstr "Kami tidak dapat menemukan buku yang diterbitkan oleh %(publisher)s."
 
 #: publishers/notfound.html subjects/notfound.html
 msgid "Try something else?"
-msgstr ""
+msgstr "Coba sesuatu yang lain?"
 
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "Penerbit: %(name)s"
 
 #: publishers/view.html
 #, python-format
@@ -6704,46 +6704,46 @@ msgstr ""
 
 #: publishers/view.html
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "Ini adalah grafik untuk menunjukkan kapan penerbit ini menerbitkan buku. Sepanjang sumbu X adalah waktu, dan pada sumbu y adalah jumlah edisi yang diterbitkan. <a href=\"#subjectRelated\">Klik di sini untuk melewati grafik</a>."
 
 #: publishers/view.html
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
-msgstr ""
+msgstr "Grafik ini menampilkan edisi dari penerbit ini dari waktu ke waktu. Klik untuk melihat satu tahun, atau seret untuk rentang waktu."
 
 #: publishers/view.html
 msgid "Common Subjects"
-msgstr ""
+msgstr "Subjek Umum"
 
 #: publishers/view.html
 #, python-format
 msgid "Search for books published by %(publisher)s"
-msgstr ""
+msgstr "Cari buku yang diterbitkan oleh %(publisher)s"
 
 #: publishers/view.html
 msgid "published most by this publisher"
-msgstr ""
+msgstr "paling banyak diterbitkan oleh penerbit ini"
 
 #: publishers/view.html
 msgid "Get more information about this publisher"
-msgstr ""
+msgstr "Dapatkan informasi lebih lanjut tentang penerbit ini"
 
 #: reading_goals/reading_goal_form.html
 msgid "How many books would you like to read this year?"
-msgstr ""
+msgstr "Berapa banyak buku yang ingin Anda baca tahun ini?"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
+msgstr "Masukkan \"0\" untuk menghapus target membaca Anda. Check-in Anda akan disimpan."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr ""
+msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Buku"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "Edit %(year)d Reading Goal"
-msgstr ""
+msgstr "Edit Target Membaca %(year)d"
 
 #: recentchanges/header.html
 #, fuzzy
@@ -6752,49 +6752,49 @@ msgstr "oleh"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Batalkan Semua"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
-msgstr ""
+msgstr "Perubahan Terbaru"
 
 #: recentchanges/index.html
 msgid "Books Edited"
-msgstr ""
+msgstr "Buku Diedit"
 
 #: recentchanges/index.html
 msgid "Author Merges"
-msgstr ""
+msgstr "Penggabungan Penulis"
 
 #: recentchanges/index.html
 msgid "Work Merges"
-msgstr ""
+msgstr "Penggabungan Karya"
 
 #: recentchanges/index.html
 msgid "Books Added"
-msgstr ""
+msgstr "Buku Ditambahkan"
 
 #: recentchanges/render.html
 msgid "Admin view"
-msgstr ""
+msgstr "Tampilan admin"
 
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
-msgstr ""
+msgstr "Tinjau apa yang berubah dari revisi sebelumnya"
 
 #: recentchanges/add-book/path.html recentchanges/default/path.html
 #: recentchanges/edit-book/path.html recentchanges/merge/path.html
 msgid "expand"
-msgstr ""
+msgstr "perluas"
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "membuka akun Open Library baru!"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html
 #: recentchanges/undo/view.html
 msgid "Updated Records"
-msgstr ""
+msgstr "Catatan Diperbarui"
 
 #: recentchanges/merge/comment.html
 #, fuzzy, python-format
