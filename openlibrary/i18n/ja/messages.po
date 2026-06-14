@@ -671,145 +671,145 @@ msgstr "テスト環境"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "デプロイが開始されました！"
 
 #: status.html
 msgid "View Jenkins progress"
-msgstr ""
+msgstr "Jenkinsの進行状況を表示"
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "GitHubのステータスが更新されました。"
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "PR番号またはURL（スペースまたはカンマ区切り）"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "PRを追加"
 
 #: status.html
 msgid "PR"
-msgstr ""
+msgstr "PR"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: search/advancedsearch.html status.html type/about/edit.html
 #: type/page/edit.html type/template/edit.html
 msgid "Title"
-msgstr ""
+msgstr "タイトル"
 
 #: books/add.html books/edit.html books/edit/edition.html lib/nav_head.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/work_search_selected_facets.html status.html
 msgid "Author"
-msgstr ""
+msgstr "作者"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "担当者"
 
 #: status.html
 msgid "Pinned Commit"
-msgstr ""
+msgstr "固定されたコミット"
 
 #: status.html
 msgid "Branch HEAD"
-msgstr ""
+msgstr "ブランチHEAD"
 
 #: status.html
 msgid "Drift"
-msgstr ""
+msgstr "ドリフト"
 
 #: status.html
 msgid "Enabled"
-msgstr ""
+msgstr "有効"
 
 #: status.html
 msgid "up to date"
-msgstr ""
+msgstr "最新"
 
 #: status.html
 msgid "unknown"
-msgstr ""
+msgstr "不明"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "1コミット遅れ"
 
 #: status.html
 #, python-format
 msgid "%(count)s commits behind"
-msgstr ""
+msgstr "%(count)sコミット遅れ"
 
 #: admin/solr.html status.html
 msgid "Update"
-msgstr ""
+msgstr "更新"
 
 #: status.html
 msgid "Enable"
-msgstr ""
+msgstr "有効にする"
 
 #: status.html
 msgid "Disable"
-msgstr ""
+msgstr "無効にする"
 
 #: lists/lists.html status.html type/list/edit.html type/series/edit.html
 msgid "Remove"
-msgstr ""
+msgstr "削除"
 
 #: status.html
 msgid "Selected PRs"
-msgstr ""
+msgstr "選択されたPR"
 
 #: status.html
 msgid "Refresh"
-msgstr ""
+msgstr "更新"
 
 #: status.html
 msgid "Deploy"
-msgstr ""
+msgstr "デプロイ"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "テストセットにPRがありません。"
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "最後のビルド結果"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "GitHubでPRを表示"
 
 #: status.html
 msgid "Show changed files"
-msgstr ""
+msgstr "変更されたファイルを表示"
 
 #: admin/inspect/store.html admin/people/index.html status.html
 #: type/author/edit.html type/language/view.html
 msgid "Name"
-msgstr ""
+msgstr "名前"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "システム情報"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "有効な機能"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "このサブジェクトのタグを編集"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "このサブジェクトのタグを作成"
 
 #: subjects.html
 msgid "See all works"
-msgstr ""
+msgstr "すべての作品を表示"
 
 #: merge/authors.html publishers/view.html subjects.html type/author/view.html
 #, fuzzy, python-format
@@ -821,55 +821,55 @@ msgstr[1] ""
 #: subjects.html
 #, python-format
 msgid "Search for books with subject %(name)s."
-msgstr ""
+msgstr "%(name)sのサブジェクトで本を検索。"
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "曖昧さ回避"
 
 #: trending.html
 msgid "Now"
-msgstr ""
+msgstr "現在"
 
 #: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
 #: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
-msgstr ""
+msgstr "今日"
 
 #: admin/graphs.html trending.html
 msgid "This Week"
-msgstr ""
+msgstr "今週"
 
 #: admin/graphs.html stats/readinglog.html trending.html
 msgid "This Month"
-msgstr ""
+msgstr "今月"
 
 #: trending.html
 msgid "This Year"
-msgstr ""
+msgstr "今年"
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 msgid "All Time"
-msgstr ""
+msgstr "全期間"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py trending.html
 msgid "Trending Books"
-msgstr ""
+msgstr "トレンドの本"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "コミュニティの読者が本棚に追加しているものを見る"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "最も古いトレンドデータは2017年10月からです"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
 #: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
-msgstr ""
+msgstr "読みたい"
 
 #. Display name for the "currently-reading" reading log shelf used in page
 #. headings and breadcrumbs.
@@ -879,13 +879,13 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Currently Reading"
-msgstr ""
+msgstr "読書中"
 
 #: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
 #: book_providers/read_button.html books/edit/edition.html trending.html
 #: type/list/embed.html widget.html
 msgid "Read"
-msgstr ""
+msgstr "読んだ"
 
 #. Display name for the "stopped-reading" reading log shelf used in page
 #. headings and breadcrumbs.
@@ -897,102 +897,102 @@ msgstr ""
 #: my_books/dropdown_content.html my_books/primary_action.html
 #: search/sort_options.html trending.html
 msgid "Stopped Reading"
-msgstr ""
+msgstr "読むのをやめた"
 
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "%(k_hours_ago)sに%(shelf)sとしてマークされました"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "%(time_unit)sに%(count)i回記録されました"
 
 #: verify_human.html
 msgid "Human Verification"
-msgstr ""
+msgstr "人間認証"
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "続行するには人間であることを確認してください。"
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "人間であることを確認"
 
 #: verify_human.html
 msgid "Verification failed. Please try again."
-msgstr ""
+msgstr "確認に失敗しました。もう一度試してください。"
 
 #: verify_human.html
 msgid "Verifying..."
-msgstr ""
+msgstr "確認中..."
 
 #: viewpage.html
 msgid "Revert to this revision?"
-msgstr ""
+msgstr "このリビジョンに戻しますか？"
 
 #: viewpage.html
 msgid "Revert to this revision"
-msgstr ""
+msgstr "このリビジョンに戻す"
 
 #: widget.html
 #, python-format
 msgid "Read \"%(title)s\""
-msgstr ""
+msgstr "「%(title)s」を読む"
 
 #: widget.html
 #, python-format
 msgid "Borrow \"%(title)s\""
-msgstr ""
+msgstr "「%(title)s」を借りる"
 
 #: ReadButton.html books/edit/edition.html type/list/embed.html widget.html
 msgid "Borrow"
-msgstr ""
+msgstr "借りる"
 
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
+msgstr "「%(title)s」の順番待ちリストに参加"
 
 #: LoanStatus.html widget.html
 msgid "Join Waitlist"
-msgstr ""
+msgstr "順番待ちリストに参加"
 
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr ""
+msgstr "Open Libraryで「%(title)s」について詳しく見る"
 
 #: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
-msgstr ""
+msgstr "詳細を見る"
 
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>で"
 
 #: work_search.html
 msgid "Search Books"
-msgstr ""
+msgstr "本を検索"
 
 #: work_search.html
 msgid "Keywords"
-msgstr ""
+msgstr "キーワード"
 
 #: RecentChanges.html recentchanges/index.html work_search.html
 msgid "Everything"
-msgstr ""
+msgstr "すべて"
 
 #: work_search.html
 msgid "Ebooks"
-msgstr ""
+msgstr "電子書籍"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "これはスーパーライブラリアンにのみ表示されます。"
 
 #: work_search.html
 #, fuzzy
@@ -1001,28 +1001,28 @@ msgstr ""
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "検索エンジンがエラーを返しました。"
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Solrデバッグ："
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "完全なURL："
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "検索に直接一致する<strong>%(path_id)s</strong>はありませんでした。"
 
 #: work_search.html
 msgid "Add a new book?"
-msgstr ""
+msgstr "新しい本を追加しますか？"
 
 #: search/authors.html search/lists.html search/subjects.html work_search.html
 msgid "Checking Search Inside matches"
-msgstr ""
+msgstr "検索内の一致を確認中"
 
 #: account/reading_log.html search/authors.html search/lists.html
 #: search/subjects.html work_search.html
@@ -1035,155 +1035,155 @@ msgstr[1] ""
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Solrの検索に%(count)s秒かかりました"
 
 #: about/index.html
 msgid "The Open Library Team"
-msgstr ""
+msgstr "Open Libraryチーム"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "Open Libraryは、世界中の100人以上のボランティアと献身的なスタッフチームのおかげで成り立っています。"
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "参加しませんか？"
 
 #: about/index.html
 msgid "Role:"
-msgstr ""
+msgstr "役割："
 
 #: about/index.html lib/nav_head.html type/tag/index.html
 msgid "All"
-msgstr ""
+msgstr "すべて"
 
 #: about/index.html
 msgid "Staff"
-msgstr ""
+msgstr "スタッフ"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "フェロー"
 
 #: about/index.html
 msgid "Volunteers"
-msgstr ""
+msgstr "ボランティア"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "部署："
 
 #: about/index.html
 msgid "Communications"
-msgstr ""
+msgstr "コミュニケーション"
 
 #: about/index.html
 msgid "Design"
-msgstr ""
+msgstr "デザイン"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "エンジニアリング"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "司書業務"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "Open Libraryのボランティアとしてチームの一員として掲載されたい場合は、<a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Libraryチーム情報フォーム</a>を入力してください。"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "有効なメールアドレスを入力してください"
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "3文字以上20文字以下で入力してください"
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
+msgstr "ユーザー名には数字、文字、-、_のみ使用できます"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "対象プログラムを選択する必要があります"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "Open Libraryに登録"
 
 #: account/create.html lib/header_dropdown.html lib/nav_head.html
 msgid "Sign Up"
-msgstr ""
+msgstr "登録"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "無料のOpen Libraryカードを取得して、非営利のInternet Archiveからデジタル書籍を借りましょう"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
-msgstr ""
+msgstr "成功！"
 
 #: account/create.html
 msgid "Your URL"
-msgstr ""
+msgstr "あなたのURL"
 
 #: account/create.html
 msgid "screenname"
-msgstr ""
+msgstr "スクリーンネーム"
 
 #: account/create.html
 msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr ""
+msgstr "Open Libraryを運営する非営利団体<a href=\"https://archive.org/\">Internet Archive</a>からニュース、お知らせ、リソースを受け取りたいです。"
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "対象プログラムを通じて<a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">印刷障害者向け特別アクセス</a>を申請したいです*。"
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "対象プログラムを選択"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* この対象プログラムに関連付けられたメールアドレスを使用してください。アクティベーション後、次のステップを記載したメールが届きます。"
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "メールアドレスで登録"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr ""
+msgstr "登録することで、Internet Archiveの<a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">利用規約</a>に同意したことになります。"
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "アカウントをお持ちですか？<a href=\"/account/login\">ログイン</a>"
 
 #: account/delete.html
 msgid "Delete Account"
-msgstr ""
+msgstr "アカウントを削除"
 
 #: account/delete.html
 msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
+msgstr "申し訳ありませんが、この機能はまだ実装されていません。"
 
 #: account/follows.html
 msgid "There is nothing to see here yet."
-msgstr ""
+msgstr "まだ表示するものがありません。"
 
 #: account/import.html
 msgid "Import from Goodreads"
-msgstr ""
+msgstr "Goodreadsからインポート"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "データのエクスポート手順については：<a href=\"https://www.goodreads.com/review/import\">Goodreads インポート/エクスポート</a>を参照してください"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
-msgstr ""
+msgstr "ファイルサイズは10MB以下、.csvファイルのみ"
 
 #: account/import.html
 #, fuzzy
@@ -1192,71 +1192,71 @@ msgstr ""
 
 #: account/import.html
 msgid "Export your Reading Log"
-msgstr ""
+msgstr "読書記録をエクスポート"
 
 #: account/import.html
 msgid "Download a copy of your reading log."
-msgstr ""
+msgstr "読書記録のコピーをダウンロード。"
 
 #: account/import.html
 msgid "What is a reading log?"
-msgstr ""
+msgstr "読書記録とは？"
 
 #: account/import.html
 msgid "Download (.csv format)"
-msgstr ""
+msgstr "ダウンロード（.csv形式）"
 
 #: account/import.html
 msgid "Export your book notes"
-msgstr ""
+msgstr "ブックノートをエクスポート"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "ブックノートのコピーをダウンロード。"
 
 #: account/import.html
 msgid "What are book notes?"
-msgstr ""
+msgstr "ブックノートとは？"
 
 #: account/import.html
 msgid "Export your reviews"
-msgstr ""
+msgstr "レビューをエクスポート"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "レビュータグのコピーをダウンロード。"
 
 #: account/import.html
 msgid "What are review tags?"
-msgstr ""
+msgstr "レビュータグとは？"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "リスト概要をエクスポート"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "リストとその内容の概要をダウンロード。"
 
 #: account/import.html
 msgid "What are lists?"
-msgstr ""
+msgstr "リストとは？"
 
 #: account/import.html
 msgid "Export your star ratings"
-msgstr ""
+msgstr "星評価をエクスポート"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "星評価のコピーをダウンロード。"
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "星評価とは？"
 
 #: account/import.html
 msgid "Importing..."
-msgstr ""
+msgstr "インポート中..."
 
 #: account/import.html
 #, fuzzy
@@ -1265,19 +1265,19 @@ msgstr ""
 
 #: account/import.html
 msgid "No ISBN"
-msgstr ""
+msgstr "ISBNなし"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "借り出し履歴にローンが見つかりません。"
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">本を検索</a>して借りましょう。"
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
-msgstr ""
+msgstr "現在、借りている本はありません。"
 
 #: account/loans.html
 #, fuzzy, python-format
@@ -1288,11 +1288,11 @@ msgstr[1] ""
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
-msgstr ""
+msgstr "ローン有効期限"
 
 #: account/loans.html
 msgid "Loan actions"
-msgstr ""
+msgstr "ローンアクション"
 
 #: account/loans.html
 #, fuzzy, python-format
@@ -1303,31 +1303,31 @@ msgstr[1] ""
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."
-msgstr ""
+msgstr "まだダウンロードされていません。"
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Download Now"
-msgstr ""
+msgstr "今すぐダウンロード"
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
+msgstr "<br/>Adobe Digital Editionsで返却"
 
 #: account/loans.html
 msgid "Books You're Waiting For"
-msgstr ""
+msgstr "待機中の本"
 
 #: account/loans.html
 msgid "You are not waiting for any books at this moment."
-msgstr ""
+msgstr "現在、待機している本はありません。"
 
 #: account/loans.html
 msgid "Leave the Waiting List"
-msgstr ""
+msgstr "順番待ちリストを離れる"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "<br/><strong>TITLE</strong>の順番待ちリストを離れてもよいですか？"
 
 #: ProlificAuthors.html account/loans.html authors/index.html
 #: lists/list_follow.html lists/showcase.html publishers/view.html
@@ -1340,7 +1340,7 @@ msgstr[1] ""
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 msgid "Actions"
-msgstr ""
+msgstr "アクション"
 
 #: account/loans.html
 #, python-format
@@ -1351,7 +1351,7 @@ msgstr[1] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
+msgstr "あなたは次にこの本を受け取る方です。"
 
 #: ManageWaitlistButton.html account/loans.html
 #, python-format
@@ -1362,7 +1362,7 @@ msgstr[1] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "You have less than an hour to borrow it."
-msgstr ""
+msgstr "借りるまで1時間未満です。"
 
 #: account/loans.html
 #, python-format
@@ -1373,11 +1373,11 @@ msgstr[1] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Borrow Now"
-msgstr ""
+msgstr "今すぐ借りる"
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Leave the waiting list?"
-msgstr ""
+msgstr "順番待ちリストを離れますか？"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
