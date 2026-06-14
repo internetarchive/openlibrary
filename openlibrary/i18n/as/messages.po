@@ -7298,50 +7298,50 @@ msgstr "❞"
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "পৃষ্ঠা: %(page)s"
 
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা ধাৰ লোৱা হৈছে: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "লোড হোৱাৰ সূচক"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "আপুনি অপেক্ষা তালিকাত <strong>পৰৱৰ্তী</strong>"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
+msgstr "আপুনি অপেক্ষা তালিকাত %(wlsize)d জনৰ মাজত <strong>#%(spot)d</strong>।"
 
 #: LoanStatus.html
 msgid "Leave waiting list"
-msgstr ""
+msgstr "অপেক্ষা তালিকাৰ পৰা বাহিৰ হওক"
 
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "শাৰীত পাঠক: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "আপুনি পৰৱৰ্তী থাকিব।"
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "এই কিতাপ এতিয়া চেক আউট কৰা হৈছে, অনুগ্ৰহ কৰি পাছত পুনৰ পৰীক্ষা কৰক।"
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "চেক আউট"
 
 #: LocateButton.html
 msgid "Locate"
-msgstr ""
+msgstr "স্থান নিৰ্ণয় কৰক"
 
 #: ManageLoansButtons.html
 #, python-format
@@ -7366,160 +7366,160 @@ msgstr[1] ""
 
 #: NotInLibrary.html
 msgid "Not in Library"
-msgstr ""
+msgstr "গ্ৰন্থাগাৰত নাই"
 
 #: NotesModal.html
 msgid "My Book Notes"
-msgstr ""
+msgstr "মোৰ কিতাপৰ টোকা"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "এই সংস্কৰণ সম্পৰ্কে মোৰ ব্যক্তিগত টোকা:"
 
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "%(authors)s-ৰ দ্বাৰা"
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
+msgstr "মোৰ কিতাপ পৰ্যালোচনা"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "পূৰ্বৱৰ্তী পৃষ্ঠালৈ যাওক"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "পৰৱৰ্তী পৃষ্ঠালৈ যাওক"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "{page} পৃষ্ঠালৈ যাওক"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "পৃষ্ঠা {page}, বৰ্তমান পৃষ্ঠা"
 
 #: Profile.html
 msgid "Component"
-msgstr ""
+msgstr "উপাদান"
 
 #: ProlificAuthors.html
 msgid "Prolific Authors"
-msgstr ""
+msgstr "বিপুল লেখক"
 
 #: ProlificAuthors.html
 msgid "who have written the most books on this subject"
-msgstr ""
+msgstr "যিসকলে এই বিষয়ত সৰ্বাধিক কিতাপ লিখিছে"
 
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "এইটো এই বিষয়ৰ ৰচনাৰ সংস্কৰণৰ প্ৰকাশনৰ ইতিহাস দেখুওৱা এটা চাৰ্ট। X অক্ষ বৰাবৰে সময় আৰু y অক্ষত প্ৰকাশিত সংস্কৰণৰ সংখ্যা। <a href=\"#subjectRelated\">চাৰ্টটো এৰিয়া যাবলৈ ইয়াত ক্লিক কৰক</a>।"
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
-msgstr ""
+msgstr "এই গ্ৰাফ এই বিষয়ত প্ৰকাশিত সংস্কৰণসমূহ চাৰ্ট কৰে।"
 
 #: RawQueryCarousel.html
 msgid "Loading carousel"
-msgstr ""
+msgstr "কেৰাচেল লোড হৈছে"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "কেৰাচেল আনিবলৈ বিফল হৈছে।"
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "পুনৰ চেষ্টা কৰিবনে?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "বৰ্তমান ফিল্টাৰৰ সৈতে কোনো কিতাপ মিলা নাই।"
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "ফিল্টাৰ অবিহনে পুনৰ চেষ্টা কৰিবনে?"
 
 #: RawQueryCarousel.html
 msgid "Search collection"
-msgstr ""
+msgstr "সংগ্ৰহ সন্ধান কৰক"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "বিশেষ প্ৰৱেশ"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "যোগ্য প্ৰিন্ট অক্ষমতাৰ পৃষ্ঠপোষকসকলৰ বাবে Internet Archive-ৰ পৰা বিশেষ ইবুক প্ৰৱেশ"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা ইবুক ধাৰ লওক"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archive-ৰ পৰা ইবুক পঢ়ক"
 
 #: ReadButton.html
 msgid "Listen"
-msgstr ""
+msgstr "শুনক"
 
 #: RecentChanges.html
 msgid "View MARC"
-msgstr ""
+msgstr "MARC চাওক"
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
+msgstr "পথ"
 
 #: RecentChangesAdmin.html
 msgid "view"
-msgstr ""
+msgstr "চাওক"
 
 #: RecentChangesAdmin.html
 msgid "edit"
-msgstr ""
+msgstr "সম্পাদনা কৰক"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "কোনো সম্পাদনাৰ ইতিহাস উপলব্ধ নাই।"
 
 #: RelatedSubjects.html
 msgid "Related..."
-msgstr ""
+msgstr "সম্পৰ্কিত..."
 
 #: ReturnForm.html
 msgid "Really return this book?"
-msgstr ""
+msgstr "সঁচাকৈ এই কিতাপ ঘূৰাই দিবনে?"
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
+msgstr "কিতাপ ঘূৰাই দিয়ক"
 
 #: SearchResultsWork.html
 msgid "added to"
-msgstr ""
+msgstr "যোগ কৰা হৈছে"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "কিতাপ %(position)s"
 
 #: SearchResultsWork.html
 msgid "Show more"
-msgstr ""
+msgstr "অধিক দেখুৱাওক"
 
 #: SearchResultsWork.html
 msgid "Show less"
-msgstr ""
+msgstr "কম দেখুৱাওক"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "%(id)s সংস্কৰণৰ প্ৰচ্ছদ"
 
 #: SearchResultsWork.html
 #, python-format
@@ -7530,84 +7530,84 @@ msgstr[1] ""
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "এইটো কেৱল গ্ৰন্থাগাৰিকৰ বাবে দৃশ্যমান।"
 
 #: SearchResultsWork.html
 msgid "Work Title"
-msgstr ""
+msgstr "ৰচনাৰ শিৰোনাম"
 
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "%(share_link)s-ত ভাগ কৰক"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
-msgstr ""
+msgstr "এই কিতাপ আপোনাৰ ৱেবছাইটত এম্বেড কৰক"
 
 #: ShareModal.html
 msgid "Embed icon"
-msgstr ""
+msgstr "এম্বেড আইকন"
 
 #: ShareModal.html
 msgid "Embed"
-msgstr ""
+msgstr "এম্বেড"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "ক্লিপবৰ্ডলৈ URL কপি কৰক"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "URL কপি আইকন"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "URL কপি কৰক"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "QR ক'ড খোলক"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "QR ক'ড আইকন"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "QR ক'ড"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "1 তাৰকা পৰ্যালোচনা দিছে"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "2 তাৰকা পৰ্যালোচনা দিছে"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "3 তাৰকা পৰ্যালোচনা দিছে"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "4 তাৰকা পৰ্যালোচনা দিছে"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "5 তাৰকা পৰ্যালোচনা দিছে"
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "মোৰ ৰেটিং মচক"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "rating"
-msgstr ""
+msgstr "ৰেটিং"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 msgid "ratings"
-msgstr ""
+msgstr "ৰেটিংসমূহ"
 
 #. Shows the count of readers who added this book to their "Want to read"
 #. shelf, displayed on search result pages. %(want_to_read_count)s is a
@@ -7616,478 +7616,478 @@ msgstr ""
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s পঢ়িব বিচাৰে"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
-msgstr ""
+msgstr "পঢ়িব বিচাৰে"
 
 #. Short label displayed next to the count of readers currently reading this
 #. book, shown in the stats bar on a book page. Example: "1,247 Currently
 #. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
-msgstr ""
+msgstr "বৰ্তমান পঢ়িছে"
 
 #. Short label displayed next to the count of readers who have finished this
 #. book, shown in the stats bar on a book page. Example: "15,420 Have read".
 #. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
-msgstr ""
+msgstr "পঢ়িছে"
 
 #. Short label displayed next to the count of readers who stopped reading this
 #. book before finishing, shown in the stats bar on a book page. Example: "348
 #. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
-msgstr ""
+msgstr "পঢ়া বন্ধ কৰিছে"
 
 #: SubjectTags.html
 msgid "Manage Subjects"
-msgstr ""
+msgstr "বিষয়সমূহ পৰিচালনা কৰক"
 
 #: Subnavigation.html
 msgid "Developer Center (Home)"
-msgstr ""
+msgstr "বিকাশকৰ্তা কেন্দ্ৰ (হোম)"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Web API"
 
 #: Subnavigation.html
 msgid "Client Library"
-msgstr ""
+msgstr "ক্লায়েন্ট লাইব্ৰেৰী"
 
 #: Subnavigation.html
 msgid "Data Dumps"
-msgstr ""
+msgstr "ডেটা ডাম্প"
 
 #: Subnavigation.html
 msgid "Report an Issue"
-msgstr ""
+msgstr "এটা সমস্যা জনাওক"
 
 #: Subnavigation.html
 msgid "Licensing"
-msgstr ""
+msgstr "লাইচেঞ্চিং"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "স্বাগতম"
 
 #: Subnavigation.html
 msgid "Searching Open Library"
-msgstr ""
+msgstr "Open Library সন্ধান কৰা"
 
 #: Subnavigation.html
 msgid "Reading Books"
-msgstr ""
+msgstr "কিতাপ পঢ়া"
 
 #: Subnavigation.html
 msgid "Adding & Editing Books"
-msgstr ""
+msgstr "কিতাপ যোগ কৰা আৰু সম্পাদনা কৰা"
 
 #: Subnavigation.html
 msgid "Using Subjects"
-msgstr ""
+msgstr "বিষয় ব্যৱহাৰ কৰা"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
+msgstr "Open Library F.A.Q."
 
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "%s পৃষ্ঠা"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "ট্ৰেণ্ডিং: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
-msgstr ""
+msgstr "পৃষ্ঠাৰ ধৰণ"
 
 #: TypeChanger.html
 msgid "Huh?"
-msgstr ""
+msgstr "কি?"
 
 #: TypeChanger.html
 msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr ""
+msgstr "Open Library-ৰ প্ৰতিটো অংশ ই প্ৰদৰ্শন কৰা বিষয়বস্তুৰ ধৰণৰ দ্বাৰা সংজ্ঞায়িত, সাধাৰণতে বিষয়বস্তুৰ সংজ্ঞাৰ দ্বাৰা (যেনে লেখক, সংস্কৰণ, ৰচনা) কিন্তু কেতিয়াবা বিষয়বস্তুৰ ব্যৱহাৰৰ দ্বাৰা (যেনে macro, template, rawtext)। বিদ্যমান পৃষ্ঠাৰ বাবে এইটো সলনি কৰিলে ইয়াৰ উপস্থাপনা আৰু বিষয়বস্তু সম্পাদনাৰ বাবে উপলব্ধ ডেটা ক্ষেত্ৰসমূহ সলনি হ'ব।"
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
-msgstr ""
+msgstr "পৃষ্ঠাৰ ধৰণ সলনি কৰোঁতে সাৱধান থাকক!"
 
 #: TypeChanger.html
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr ""
+msgstr "(সহজ সমাধান: যদি আপুনি নিশ্চিত নহয় যে এইটো সলনি কৰিব লাগিব, সলনি নকৰিব।)"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "আপোনাৰ ভাষাত Wikipedia-ৰ কোনো লিংক নাই"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "ওচৰৰ গ্ৰন্থাগাৰসমূহ পৰীক্ষা কৰক"
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
-msgstr ""
+msgstr "আপোনাৰ ওচৰত এটা সংস্কৰণৰ বাবে WorldCat পৰীক্ষা কৰক"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
-msgstr ""
+msgstr "এই পৃষ্ঠাৰ সম্পাদনাৰ ইতিহাস চাওক"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "এই পৃষ্ঠা চাওক (তুলনা দৰ্শন বাহিৰ হওক)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "এই পৃষ্ঠা চাওক (সম্পাদনা ধৰণ বাহিৰ হওক)"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "%(author_link)s-ৰ দ্বাৰা শেষবাৰ সম্পাদিত"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
-msgstr ""
+msgstr "বেনামীভাৱে শেষবাৰ সম্পাদিত"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "এই টেমপ্লেটৰ সম্পাদনাৰ ইতিহাস চাওক"
 
 #: databarTemplate.html
 msgid "Edit this template"
-msgstr ""
+msgstr "এই টেমপ্লেট সম্পাদনা কৰক"
 
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "খণ্ড %(num)d চাওক"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
-msgstr ""
+msgstr "[ৰেকৰ্ড মচা হৈছে]"
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
-msgstr ""
+msgstr "অজ্ঞাত"
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
-msgstr ""
+msgstr "সন্ধানৰ ফলাফল"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "আৰবী"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
-msgstr ""
+msgstr "চেক"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "German"
-msgstr ""
+msgstr "জাৰ্মান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "English"
-msgstr ""
+msgstr "ইংৰাজী"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Spanish"
-msgstr ""
+msgstr "স্পেনিছ"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "French"
-msgstr ""
+msgstr "ফৰাচী"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Hindi"
-msgstr ""
+msgstr "হিন্দী"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Croatian"
-msgstr ""
+msgstr "ক্ৰোৱেচিয়ান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
-msgstr ""
+msgstr "ইটালিয়ান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Portuguese"
-msgstr ""
+msgstr "পৰ্তুগীজ"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Romanian"
-msgstr ""
+msgstr "ৰোমানিয়ান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "চাৰ্ডিনিয়ান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
-msgstr ""
+msgstr "তেলুগু"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "ইউক্ৰেনিয়ান"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
-msgstr ""
+msgstr "চীনা"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "ফিলিপিনো"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
-msgstr ""
+msgstr "শিল্প"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science Fiction"
-msgstr ""
+msgstr "বিজ্ঞান কল্পকথা"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Fantasy"
-msgstr ""
+msgstr "ফেণ্টাচি"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Biographies"
-msgstr ""
+msgstr "জীৱনী"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Recipes"
-msgstr ""
+msgstr "ৰেচিপি"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "শিশু"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Medicine"
-msgstr ""
+msgstr "চিকিৎসাবিদ্যা"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Religion"
-msgstr ""
+msgstr "ধৰ্ম"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "ৰহস্য আৰু গোয়েন্দা কাহিনী"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Plays"
-msgstr ""
+msgstr "নাটক"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "সংগীত"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science"
-msgstr ""
+msgstr "বিজ্ঞান"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "কমেও ১ বিষয়"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 author"
-msgstr ""
+msgstr "কমেও ১ লেখক"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 edition"
-msgstr ""
+msgstr "কমেও ১ সংস্কৰণ"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "ৰচনা আছে (অনাথ)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publication year"
-msgstr ""
+msgstr "প্ৰকাশনৰ বছৰ আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has cover"
-msgstr ""
+msgstr "প্ৰচ্ছদ আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has language"
-msgstr ""
+msgstr "ভাষা আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has publisher"
-msgstr ""
+msgstr "প্ৰকাশক আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 2 editions"
-msgstr ""
+msgstr "কমেও ২ সংস্কৰণ"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has dewey decimal"
-msgstr ""
+msgstr "ডিউই দশমিক আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has LoC classification"
-msgstr ""
+msgstr "LoC শ্ৰেণীবিভাজন আছে"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
+msgstr "পৃষ্ঠাৰ সংখ্যা আছে"
 
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
+msgstr "আপুনি নিশ্চিতনে যে আপুনি আপোনাৰ তালিকাৰ পৰা <strong>%(title)s</strong> আঁতৰাব বিচাৰে?"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " - শিপিং অন্তৰ্ভুক্ত"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "এই ৰচনা কোনো তালিকাত নাই।"
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "মোৰ এতিয়াও এটা নাই"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "আপুনি দিয়া ইমেইল ঠিকনা অবৈধ"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "এই একাউণ্ট অৱৰুদ্ধ কৰা হৈছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "এই একাউণ্ট লক কৰা হৈছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "এই ইমেইলৰ সৈতে কোনো একাউণ্ট পোৱা নগল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "আপুনি দিয়া পাছৱৰ্ড ভুল। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "ভুল পাছৱৰ্ড। অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr ""
+msgstr "লগইন কৰাৰ আগতে আপোনাৰ Open Library একাউণ্ট যাচাই কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "লগইন কৰাৰ আগতে আপোনাৰ Internet Archive একাউণ্ট যাচাই কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি সকলো ক্ষেত্ৰ পূৰণ কৰক আৰু পুনৰ চেষ্টা কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
-msgstr ""
+msgstr "এই ইমেইল ইতিমধ্যে পঞ্জীয়ন হৈছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This username is already registered"
-msgstr ""
+msgstr "এই ব্যৱহাৰকাৰীৰ নাম ইতিমধ্যে পঞ্জীয়ন হৈছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "এটা সমস্যা হৈছে আৰু আমি আপোনাক লগইন কৰাবলৈ অক্ষম হৈছো।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "অবৈধ Internet Archive S3 প্ৰমাণপত্ৰৰ সৈতে লগইনৰ চেষ্টা কৰা হৈছে।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "ছাৰ্ভাৰত অস্বাভাৱিকভাৱে বেছি ট্ৰেফিক হৈছে, অনুগ্ৰহ কৰি পাছত পুনৰ চেষ্টা কৰক বা সহায়ৰ বাবে openlibrary@archive.org-লৈ ইমেইল কৰক।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
-msgstr ""
+msgstr "ইমেইল প্ৰদানকাৰী চিনাক্ত নহল।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "পাছৱৰ্ডৰ প্ৰয়োজনীয়তা পূৰণ হোৱা নাই।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "এটা সমস্যা হৈছে আৰু আমি আপোনাক লগইন কৰাবলৈ অক্ষম হৈছো"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "লগইন বা পঞ্জীয়নৰ চেষ্টাত অপ্ৰত্যাশিত ত্ৰুটি হৈছে, অনুগ্ৰহ কৰি পুনৰ চেষ্টা কৰক বা info@archive.org-লৈ যোগাযোগ কৰক"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "অনুৰোধ বিফল হৈছে ত্ৰুটি ক'ডৰ সৈতে: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Open Library একাউণ্ট পঞ্জীয়ন কৰাৰ আৰু বিশেষ প্ৰিন্ট অক্ষমতা প্ৰৱেশৰ অনুৰোধ কৰাৰ বাবে ধন্যবাদ। আপুনি প্ৰক্ৰিয়াৰ পৰৱৰ্তী পদক্ষেপৰ বিৱৰণ সহ এটা ইমেইল পাব।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "ব্যৱহাৰকাৰীৰ নাম উপলব্ধ নহয়"
 
 #: openlibrary/plugins/upstream/account.py
 #: openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
-msgstr ""
+msgstr "ইমেইল ইতিমধ্যে পঞ্জীয়ন হৈছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "এই ইমেইলৰ সৈতে এটা Internet Archive একাউণ্ট ইতিমধ্যে আছে"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "যাচাই বিফল হৈছে। লিংকটো অবৈধ বা মেয়াদ উত্তীৰ্ণ হৈছে। অনুগ্ৰহ কৰি পুনৰ পঞ্জীয়ন কৰক।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "আপোনাৰ ইমেইল যাচাই হৈছে। আপুনি এতিয়া লগইন আছে।"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
-msgstr ""
+msgstr "অধিসূচনাৰ পছন্দ সফলতাৰে আপডেট হৈছে।"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy
@@ -8097,65 +8097,65 @@ msgstr ""
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "%s ঘূৰাই দিবলৈ অক্ষম। অনুগ্ৰহ কৰি পাছত পুনৰ চেষ্টা কৰক বা info@archive.org-লৈ যোগাযোগ কৰক।"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%s ঘূৰাই দিয়া হৈছে।"
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "আপোনাৰ একাউণ্টে ধাৰ সীমা পাইছে। অনুগ্ৰহ কৰি পাছত পুনৰ চেষ্টা কৰক বা info@archive.org-লৈ যোগাযোগ কৰক।"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
-msgstr ""
+msgstr "ব্যৱহাৰকাৰীৰ নাম"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
-msgstr ""
+msgstr "এই ইমেইল ঠিকনাৰ সৈতে কোনো ব্যৱহাৰকাৰী পঞ্জীয়ন হোৱা নাই"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "ডিছপোজেবল ইমেইল অনুমতি নাই"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "আপোনাৰ ইমেইল প্ৰদানকাৰী চিনাক্ত নহল।"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
-msgstr ""
+msgstr "ব্যৱহাৰকাৰীৰ নাম ইতিমধ্যে ব্যৱহৃত"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "৩ ৰ পৰা ২০ টা আখৰ আৰু সংখ্যাৰ মাজত হব লাগিব"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Screen Name"
-msgstr ""
+msgstr "স্ক্ৰীন নাম"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "সৰ্বসাধাৰণৰ বাবে আৰু পাছত সলনি কৰিব নোৱাৰি।"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
-msgstr ""
+msgstr "অবৈধ পাছৱৰ্ড"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
-msgstr ""
+msgstr "আপোনাৰ ইমেইল ঠিকনা"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
-msgstr ""
+msgstr "এটা পাছৱৰ্ড বাছক"
 
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "অব্যাহত ৰাখক <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 #, fuzzy
@@ -8164,11 +8164,11 @@ msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "First published"
-msgstr ""
+msgstr "প্ৰথম প্ৰকাশিত"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "Classic eBooks"
-msgstr ""
+msgstr "ক্লাচিক ইবুক"
 
 #~ msgid "Design Pattern Library"
 #~ msgstr ""
