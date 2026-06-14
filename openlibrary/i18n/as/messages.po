@@ -6013,254 +6013,254 @@ msgstr "তালিকা সন্ধান কৰক"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "কোনো <strong>তালিকা</strong> সিদ্ধান্তমূলকভাৱে আপোনাৰ সন্ধানৰ সৈতে মিলা নাই"
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
+msgstr "প্ৰকাশক সন্ধান"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "%(page_num)d নম্বৰ পাতত:"
 
 #: search/sort_options.html
 msgid "Relevance"
-msgstr ""
+msgstr "প্ৰাসংগিকতা"
 
 #: search/sort_options.html
 msgid "Work Count"
-msgstr ""
+msgstr "ৰচনাৰ সংখ্যা"
 
 #: search/sort_options.html
 msgid "Random"
-msgstr ""
+msgstr "আকস্মিক"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "নাম (বিটা: কেৱল গ্ৰন্থাগাৰিকৰ বাবে)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "জন্ম তাৰিখ (পুৰণিতম) (বিটা: কেৱল গ্ৰন্থাগাৰিকৰ বাবে)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "জন্ম তাৰিখ (নবীনতম) (বিটা: কেৱল গ্ৰন্থাগাৰিকৰ বাবে)"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "তালিকাৰ ক্ৰম"
 
 #: search/sort_options.html
 msgid "Last Modified"
-msgstr ""
+msgstr "শেষবাৰ পৰিৱৰ্তিত"
 
 #: search/sort_options.html
 msgid "Language Name"
-msgstr ""
+msgstr "ভাষাৰ নাম"
 
 #: search/sort_options.html
 msgid "Ebook Edition Count"
-msgstr ""
+msgstr "ই-কিতাপ সংস্কৰণৰ সংখ্যা"
 
 #: search/sort_options.html
 msgid "Date Added (newest)"
-msgstr ""
+msgstr "যোগ কৰাৰ তাৰিখ (নতুনতম)"
 
 #: search/sort_options.html
 msgid "Date Added (oldest)"
-msgstr ""
+msgstr "যোগ কৰাৰ তাৰিখ (পুৰণিতম)"
 
 #: search/sort_options.html
 msgid "Most Editions"
-msgstr ""
+msgstr "সৰ্বাধিক সংস্কৰণ"
 
 #: search/sort_options.html
 msgid "First Published"
-msgstr ""
+msgstr "প্ৰথম প্ৰকাশিত"
 
 #: search/sort_options.html
 msgid "Most Recent"
-msgstr ""
+msgstr "সৰ্বাধিক শেহতীয়া"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "শীৰ্ষ ৰেটিং"
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
+msgstr "যিকোনো"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "ৰচনাৰ শিৰোনাম (বিটা: কেৱল গ্ৰন্থাগাৰিকৰ বাবে)"
 
 #: search/sort_options.html
 msgid "Sorting by"
-msgstr ""
+msgstr "ক্ৰমবিন্যাস"
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "শ্বাফেল"
 
 #: search/subjects.html
 msgid "Search Subjects"
-msgstr ""
+msgstr "বিষয় সন্ধান কৰক"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "কোনো <strong>বিষয়</strong> সিদ্ধান্তমূলকভাৱে আপোনাৰ সন্ধানৰ সৈতে মিলা নাই"
 
 #: search/subjects.html
 msgid "time"
-msgstr ""
+msgstr "সময়"
 
 #: search/subjects.html
 msgid "subject"
-msgstr ""
+msgstr "বিষয়"
 
 #: search/subjects.html
 msgid "place"
-msgstr ""
+msgstr "স্থান"
 
 #: search/subjects.html
 msgid "org"
-msgstr ""
+msgstr "সংস্থা"
 
 #: search/subjects.html
 msgid "event"
-msgstr ""
+msgstr "ঘটনা"
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
+msgstr "ব্যক্তি"
 
 #: search/subjects.html
 msgid "work"
-msgstr ""
+msgstr "ৰচনা"
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
-msgstr ""
+msgstr "এই সন্ধানৰ পৰা ডুপ্লিকেট লেখক একত্ৰিত কৰক"
 
 #: search/work_search_facets.html type/work/editions.html
 msgid "Merge duplicates"
-msgstr ""
+msgstr "ডুপ্লিকেট একত্ৰিত কৰক"
 
 #: search/work_search_facets.html
 msgid "Less"
-msgstr ""
+msgstr "কম"
 
 #: search/work_search_facets.html
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
+msgstr "%(facet)s-ৰ বাবে ফলাফল ফিল্টাৰ কৰক"
 
 #: search/work_search_facets.html
 msgid "Filter results for ebook availability"
-msgstr ""
+msgstr "ই-কিতাপ উপলব্ধতাৰ বাবে ফলাফল ফিল্টাৰ কৰক"
 
 #: search/work_search_facets.html
 msgid "yes"
-msgstr ""
+msgstr "হয়"
 
 #: search/work_search_facets.html
 msgid "no"
-msgstr ""
+msgstr "নহয়"
 
 #: search/work_search_facets.html
 msgid "Zoom In"
-msgstr ""
+msgstr "জুম ইন"
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
+msgstr "এই <a href=\"/search/howto\">ফিল্টাৰসমূহ</a> ব্যৱহাৰ কৰি আপোনাৰ ফলাফল কেন্দ্ৰীভূত কৰক"
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
-msgstr ""
+msgstr "লিখা হৈছে"
 
 #: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
+msgstr "প্ৰকাশিত"
 
 #: search/work_search_selected_facets.html
 msgid "eBook"
-msgstr ""
+msgstr "ই-কিতাপ"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBook"
-msgstr ""
+msgstr "ক্লাছিক ই-কিতাপ"
 
 #: search/work_search_selected_facets.html
 msgid "Only Classic eBooks"
-msgstr ""
+msgstr "কেৱল ক্লাছিক ই-কিতাপ"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBooks hidden"
-msgstr ""
+msgstr "ক্লাছিক ই-কিতাপ লুকুৱাই ৰখা হৈছে"
 
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
-msgstr ""
+msgstr "%(title)s - সন্ধান"
 
 #: site/alert.html
 msgid "Internet Archive logo"
-msgstr ""
+msgstr "Internet Archive লগ"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "মনে হৈছে আপুনি অফলাইন।"
 
 #: site/head.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
-msgstr ""
+msgstr "Open Library হৈছে এটা মুক্ত, সম্পাদনাযোগ্য পুথিভঁৰালৰ কেটেলগ, প্ৰতিটো প্ৰকাশিত কিতাপৰ বাবে এটা ৱেব পৃষ্ঠা নিৰ্মাণ কৰিছে। বিনামূলীয়াকৈ ৩০ লাখতকৈ বেছি কিতাপ পঢ়ক, ধাৰ লওক, আৰু আৱিষ্কাৰ কৰক।"
 
 #: site/stats.html
 msgid "Debug Stats"
-msgstr ""
+msgstr "ডিবাগ পৰিসংখ্যা"
 
 #: stats/readinglog.html
 msgid "Reading Log Stats"
-msgstr ""
+msgstr "পঢ়াৰ লগ পৰিসংখ্যা"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "# কিতাপ লগ কৰা"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "পঢ়াৰ লগ বৈশিষ্ট্য ব্যৱহাৰ কৰি লগ কৰা কিতাপৰ মুঠ সংখ্যা"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "সকলো সময়"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "# অনন্য ব্যৱহাৰকাৰী যি কিতাপ লগ কৰিছে"
 
 #: stats/readinglog.html
 msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr ""
+msgstr "পঢ়াৰ লগ বৈশিষ্ট্য ব্যৱহাৰ কৰি কমেও এটা কিতাপ লগ কৰা অনন্য ব্যৱহাৰকাৰীৰ মুঠ সংখ্যা"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "# কিতাপ তাৰকাচিহ্নিত"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "তাৰকাচিহ্নিত কিতাপৰ মুঠ সংখ্যা"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "মুঠ # অনন্য ৰেটাৰ (সকলো সময়)"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "সৰ্বাধিক চাহিদাৰ কিতাপ (এই মাহ)"
 
 #: stats/readinglog.html
 #, python-format
@@ -6271,242 +6271,242 @@ msgstr[1] ""
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "সৰ্বাধিক চাহিদাৰ কিতাপ (সকলো সময়)"
 
 #: stats/readinglog.html
 msgid "Most Logged Books"
-msgstr ""
+msgstr "সৰ্বাধিক লগ কৰা কিতাপ"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "সৰ্বাধিক পঢ়া কিতাপ (সকলো সময়)"
 
 #: stats/readinglog.html
 msgid "Most Rated Books"
-msgstr ""
+msgstr "সৰ্বাধিক ৰেটিং পোৱা কিতাপ"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "সৰ্বাধিক ৰেটিং পোৱা কিতাপ (সকলো সময়)"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "আমি এই বিষয়ে কোনো কিতাপ বিচাৰি পোৱা নাই"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "%(title)s সম্পাদনা কৰক"
 
 #: type/about/edit.html
 msgid "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "এইটো কেৱল ডকুমেন্টৰ শীৰ্ষত দেখা যায়, আৰু বুকমাৰ্ক লেবেলৰ সৈতে সংলগ্ন হয়"
 
 #: type/about/edit.html
 msgid "Intro"
-msgstr ""
+msgstr "পৰিচয়"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "এইটো প্ৰথম কলামত দেখা যায়।"
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "এইটো দ্বিতীয় কলামৰ শীৰ্ষত দেখা যায়।"
 
 #: type/about/edit.html
 msgid "Mailing List"
-msgstr ""
+msgstr "মেইলিং তালিকা"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "এইটো লিংক তালিকাৰ তলত দেখা যায়।"
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "অধিক তথ্যৰ বাবে"
 
 #: type/author/edit.html
 msgid "Edit Author"
-msgstr ""
+msgstr "লেখক সম্পাদনা কৰক"
 
 #: type/author/edit.html
 msgid "Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>."
-msgstr ""
+msgstr "অনুগ্ৰহ কৰি স্বাভাৱিক ক্ৰম ব্যৱহাৰ কৰক। উদাহৰণস্বৰূপ: <strong>Leo Tolstoy</strong> নহয় <strong>Tolstoy, Leo</strong>।"
 
 #: type/author/edit.html
 msgid "A short bio?"
-msgstr ""
+msgstr "এটা চমু জীৱনী?"
 
 #: type/author/edit.html
 msgid "If you \"borrow\" information from somewhere, please make sure to cite the source."
-msgstr ""
+msgstr "যদি আপুনি কোথাৰ পৰা তথ্য \"ধাৰ\" লয়, অনুগ্ৰহ কৰি উৎস উদ্ধৃত কৰক।"
 
 #: type/author/edit.html
 msgid "Date of birth"
-msgstr ""
+msgstr "জন্মৰ তাৰিখ"
 
 #: type/author/edit.html
 msgid "Date of death"
-msgstr ""
+msgstr "মৃত্যুৰ তাৰিখ"
 
 #: type/author/edit.html
 msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr ""
+msgstr "আমি এতিয়াও কাঠামোবদ্ধ তাৰিখ সংৰক্ষণ কৰা নাই, সেয়েহে \"21 May 2000\"-ৰ দৰে তাৰিখ পৰামৰ্শিত।"
 
 #: type/author/edit.html
 msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr ""
+msgstr "এইটো এটা পুৰণি ক্ষেত্ৰ। এই তাৰিখ আঁতৰাই \"জন্মৰ তাৰিখ\" আৰু \"মৃত্যুৰ তাৰিখ\" ক্ষেত্ৰ পূৰণ কৰি আপুনি এই ৰেকৰ্ড উন্নত কৰিব পাৰে। ধন্যবাদ!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "এই লেখক আন কোনো নামেৰেও পৰিচিত নেকি?"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "উদাহৰণস্বৰূপ: Lev Nikolayevich Tolstoy Leo Tolstoy নামেও পৰিচিত আছিল। অনুগ্ৰহ কৰি প্ৰতিটো শাৰীত এটা নাম দিয়ক।"
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "পৰিচায়ক"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "লেখক পৰিচায়কৰ উদ্দেশ্য"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "%(book_titles)s-ৰ লেখক"
 
 #: type/author/view.html
 msgid "Merging Authors..."
-msgstr ""
+msgstr "লেখক একত্ৰিত কৰিছে..."
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "প্ৰক্ৰিয়াধীন..."
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "পৃষ্ঠা পুনৰ লোড কৰিবনে?"
 
 #: type/author/view.html
 msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
+msgstr "ঠিক আছে। একত্ৰীকৰণ চলি আছে। <i>আপডেট সম্পূৰ্ণ কৰিবলৈ <u>কিছু মিনিট লাগিব</u>।</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "আহহ!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "সেই একত্ৰীকৰণ কাম কৰা নাই। ই আমাৰ দোষ, আৰু আমি ইয়াৰ টোকা কৰিছো।"
 
 #: type/author/view.html
 msgid "Add another?"
-msgstr ""
+msgstr "আন এটা যোগ কৰিবনে?"
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "%(author)s-ৰ কিতাপ সন্ধান কৰক"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
+msgstr "— এই লেখকৰ <a href=\"%(url)s\">সকলো</a> দেখুৱাওক?"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/author/view.html type/list/view_body.html
 msgid "Places"
-msgstr ""
+msgstr "স্থানসমূহ"
 
 #: Profile.html type/author/view.html
 msgid "Time"
-msgstr ""
+msgstr "সময়"
 
 #: type/author/view.html
 msgid "OLID"
-msgstr ""
+msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
+msgstr "লিংক <span class=\"gray small sansserif\">Open Library-ৰ বাহিৰত</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "এতিয়াও কোনো লিংক নাই।"
 
 #: type/author/view.html
 msgid "Add one"
-msgstr ""
+msgstr "এটা যোগ কৰক"
 
 #: type/author/view.html
 msgid "Alternative names"
-msgstr ""
+msgstr "বিকল্প নামসমূহ"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "এই পৃষ্ঠা মচা হৈছে"
 
 #: type/delete/view.html
 msgid "What would you like to do?"
-msgstr ""
+msgstr "আপুনি কি কৰিব বিচাৰে?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "মই যোৱাৰ আগৰ ঠাইলৈ ঘূৰি যাওক"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "পূৰ্বৱৰ্তী সংস্কৰণ চাওক"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "পৃষ্ঠাৰ ইতিহাস চাওক"
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
+msgstr "পুনৰায় সৃষ্টি কৰক"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr ""
+msgstr "Staff Picks-ত IA কিতাপ যোগ কৰক"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Archive.org ID সিংক কৰক"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Archive.org-ত কিতাপ চাওক"
 
 #: SearchResultsWork.html type/edition/admin_bar.html
 msgid "Orphaned Edition"
-msgstr ""
+msgstr "অনাথ সংস্কৰণ"
 
 #: databarHistory.html databarView.html type/edition/compact_title.html
 msgid "Edit this page"
-msgstr ""
+msgstr "এই পৃষ্ঠা সম্পাদনা কৰক"
 
 #: type/edition/modal_links.html
 msgid "Review"
-msgstr ""
+msgstr "পৰ্যালোচনা"
 
 # There's a different translation for the term privacy, however here I've
 # transliterated
@@ -6517,127 +6517,127 @@ msgstr " চাওক"
 
 #: type/edition/modal_links.html
 msgid "adding notes to"
-msgstr ""
+msgstr "টোকা যোগ কৰিছে"
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
-msgstr ""
+msgstr "এটা সংস্কৰণ"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "%s-ত প্ৰথম প্ৰকাশিত"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
-msgstr ""
+msgstr "কিতাপ %s"
 
 #: type/edition/view.html type/work/view.html
 msgid "Read More"
-msgstr ""
+msgstr "অধিক পঢ়ক"
 
 #: type/edition/view.html type/work/view.html
 msgid "Read Less"
-msgstr ""
+msgstr "কম পঢ়ক"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "এই ৰচনাৰ এতিয়াও কোনো বিৱৰণ নাই। আপুনি কি <b><a href='%(url)s'>এটা যোগ কৰিব</a></b> পাৰিব?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "এই সংস্কৰণৰ এতিয়াও কোনো বিৱৰণ নাই। আপুনি কি <b><a href='%(url)s'>এটা যোগ কৰিব</a></b> পাৰিব?"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
-msgstr ""
+msgstr "প্ৰকাশৰ তাৰিখ"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)s-ৰ অন্য কিতাপ দেখুৱাওক"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)s-ৰ অন্য কিতাপ সন্ধান কৰক"
 
 #: openlibrary/plugins/worksearch/code.py type/edition/view.html
 #: type/work/view.html
 msgid "Language"
-msgstr ""
+msgstr "ভাষা"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pages"
-msgstr ""
+msgstr "পৃষ্ঠাসমূহ"
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
+msgstr "ISBNসমূহ"
 
 #: databarWork.html type/edition/view.html type/work/view.html
 msgid "Buy this book"
-msgstr ""
+msgstr "এই কিতাপ কিনক"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "কিতাপৰ বিৱৰণ"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
-msgstr ""
+msgstr "প্ৰথম বাক্য"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
-msgstr ""
+msgstr "সংস্কৰণৰ টোকা"
 
 #: type/edition/view.html type/work/view.html
 msgid "Published in"
-msgstr ""
+msgstr "প্ৰকাশিত"
 
 #: type/edition/view.html type/work/view.html
 msgid "Series"
-msgstr ""
+msgstr "ধাৰাবাহিক"
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
+msgstr "খণ্ড"
 
 #: type/edition/view.html type/work/view.html
 msgid "Genre"
-msgstr ""
+msgstr "ধৰণ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
-msgstr ""
+msgstr "অন্য শিৰোনাম"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "কপিৰাইটৰ তাৰিখ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
-msgstr ""
+msgstr "অনুবাদ"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translated From"
-msgstr ""
+msgstr "অনুবাদিত"
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
+msgstr "বাহ্যিক লিংক"
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
+msgstr "বিন্যাস"
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html
 #: type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "পৃষ্ঠাংকন"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
