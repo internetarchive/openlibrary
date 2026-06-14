@@ -6804,7 +6804,7 @@ msgstr ""
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "Lihat <a href=\"%s\">detailnya</a>."
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -6814,12 +6814,12 @@ msgstr[0] ""
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
-msgstr ""
+msgstr "Ditandai sebagai duplikat."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "Digabungkan %(page_type)s ke dalam catatan %(record_type)s utama."
 
 #: recentchanges/merge/message.html
 #, python-format
@@ -6835,15 +6835,15 @@ msgstr[0] ""
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
-msgstr ""
+msgstr "Penggabungan ini telah dibatalkan."
 
 #: recentchanges/merge/view.html
 msgid "Details here"
-msgstr ""
+msgstr "Detail di sini"
 
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
-msgstr ""
+msgstr "Duplikat"
 
 #: recentchanges/merge/view.html
 #, python-format
@@ -6854,7 +6854,7 @@ msgstr[0] ""
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Pembatalan dari <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, fuzzy, python-format
@@ -6863,53 +6863,53 @@ msgstr ""
 
 #: search/advancedsearch.html
 msgid "ISBN"
-msgstr ""
+msgstr "ISBN"
 
 #: search/advancedsearch.html
 msgid "Place"
-msgstr ""
+msgstr "Tempat"
 
 #: search/advancedsearch.html
 msgid "Person"
-msgstr ""
+msgstr "Orang"
 
 #: search/advancedsearch.html
 msgid "How to search?"
-msgstr ""
+msgstr "Cara mencari?"
 
 #: search/advancedsearch.html
 msgid "Full Text Search?"
-msgstr ""
+msgstr "Pencarian Teks Penuh?"
 
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Cari Open Library untuk \"%(query)s\""
 
 #: search/authors.html
 msgid "Search Authors"
-msgstr ""
+msgstr "Cari Penulis"
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "Apakah penulis yang sama terdaftar dua kali?"
 
 #: search/authors.html
 msgid "Merge authors"
-msgstr ""
+msgstr "Gabungkan penulis"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Tidak ada <strong>penulis</strong> yang langsung cocok dengan pencarian Anda"
 
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
-msgstr ""
+msgstr "Cari Open Library untuk %s"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Tidak ada teks <strong>Cari Di Dalam</strong> yang cocok dengan pencarian Anda"
 
 #: search/inside.html
 #, python-format
@@ -6925,7 +6925,7 @@ msgstr[0] ""
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Kisi"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6934,52 +6934,52 @@ msgstr "Lihat"
 
 #: search/lists.html
 msgid "Search results for Lists"
-msgstr ""
+msgstr "Hasil pencarian untuk Daftar"
 
 #: search/lists.html
 msgid "Search Lists"
-msgstr ""
+msgstr "Cari Daftar"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Tidak ada <strong>daftar</strong> yang langsung cocok dengan pencarian Anda"
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
+msgstr "Pencarian Penerbit"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Pada halaman nomor %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
-msgstr ""
+msgstr "Relevansi"
 
 #: search/sort_options.html
 msgid "Work Count"
-msgstr ""
+msgstr "Jumlah Karya"
 
 #: search/sort_options.html
 msgid "Random"
-msgstr ""
+msgstr "Acak"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Nama (beta: Hanya Pustakawan)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Tanggal Lahir (tertua) (beta: Hanya Pustakawan)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Tanggal Lahir (termuda) (beta: Hanya Pustakawan)"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "Urutan Daftar"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6988,158 +6988,158 @@ msgstr "Diubah"
 
 #: search/sort_options.html
 msgid "Language Name"
-msgstr ""
+msgstr "Nama Bahasa"
 
 #: search/sort_options.html
 msgid "Ebook Edition Count"
-msgstr ""
+msgstr "Jumlah Edisi Ebook"
 
 #: search/sort_options.html
 msgid "Most Editions"
-msgstr ""
+msgstr "Paling Banyak Edisi"
 
 #: search/sort_options.html
 msgid "First Published"
-msgstr ""
+msgstr "Pertama Diterbitkan"
 
 #: search/sort_options.html
 msgid "Most Recent"
-msgstr ""
+msgstr "Paling Terbaru"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "Paling Tinggi Dinilai"
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
+msgstr "Semua"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Judul Karya (beta: Hanya Pustakawan)"
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "Acak Ulang"
 
 #: search/subjects.html
 msgid "Search Subjects"
-msgstr ""
+msgstr "Cari Subjek"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Tidak ada <strong>subjek</strong> yang langsung cocok dengan pencarian Anda"
 
 #: search/subjects.html
 msgid "time"
-msgstr ""
+msgstr "waktu"
 
 #: search/subjects.html
 msgid "subject"
-msgstr ""
+msgstr "subjek"
 
 #: search/subjects.html
 msgid "place"
-msgstr ""
+msgstr "tempat"
 
 #: search/subjects.html
 msgid "org"
-msgstr ""
+msgstr "org"
 
 #: search/subjects.html
 msgid "event"
-msgstr ""
+msgstr "acara"
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
+msgstr "orang"
 
 #: search/subjects.html
 msgid "work"
-msgstr ""
+msgstr "karya"
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
-msgstr ""
+msgstr "Gabungkan penulis duplikat dari pencarian ini"
 
 #: search/work_search_facets.html type/work/editions.html
 msgid "Merge duplicates"
-msgstr ""
+msgstr "Gabungkan duplikat"
 
 #: search/work_search_facets.html
 msgid "more"
-msgstr ""
+msgstr "lebih banyak"
 
 #: search/work_search_facets.html
 msgid "less"
-msgstr ""
+msgstr "lebih sedikit"
 
 #: search/work_search_facets.html
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
+msgstr "Filter hasil untuk %(facet)s"
 
 #: search/work_search_facets.html
 msgid "Filter results for ebook availability"
-msgstr ""
+msgstr "Filter hasil berdasarkan ketersediaan ebook"
 
 #: search/work_search_facets.html
 msgid "yes"
-msgstr ""
+msgstr "ya"
 
 #: search/work_search_facets.html
 msgid "no"
-msgstr ""
+msgstr "tidak"
 
 #: search/work_search_facets.html
 msgid "Zoom In"
-msgstr ""
+msgstr "Perbesar"
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
+msgstr "Fokuskan hasil Anda menggunakan <a href=\"/search/howto\">filter</a> ini"
 
 #: search/work_search_selected_facets.html
 msgid "eBook"
-msgstr ""
+msgstr "eBook"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBook"
-msgstr ""
+msgstr "eBook Klasik"
 
 #: search/work_search_selected_facets.html
 msgid "Search facets"
-msgstr ""
+msgstr "Facet pencarian"
 
 #: search/work_search_selected_facets.html
 msgid "Explore Classic eBooks"
-msgstr ""
+msgstr "Jelajahi eBook Klasik"
 
 #: search/work_search_selected_facets.html
 msgid "Only Classic eBooks"
-msgstr ""
+msgstr "Hanya eBook Klasik"
 
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "Explore books about %(subject)s"
-msgstr ""
+msgstr "Jelajahi buku tentang %(subject)s"
 
 #: search/work_search_selected_facets.html
 msgid "Written in"
-msgstr ""
+msgstr "Ditulis dalam"
 
 #: search/work_search_selected_facets.html
 msgid "Published by"
-msgstr ""
+msgstr "Diterbitkan oleh"
 
 #: search/work_search_selected_facets.html
 msgid "Click to remove this facet"
-msgstr ""
+msgstr "Klik untuk menghapus facet ini"
 
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
-msgstr ""
+msgstr "%(title)s - pencarian"
 
 #: site/alert.html
 #, fuzzy
@@ -7148,55 +7148,55 @@ msgstr "Lupa email yang Anda gunakan untuk Internet Archive?"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "Sepertinya Anda sedang offline."
 
 #: site/neck.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
-msgstr ""
+msgstr "Open Library adalah katalog perpustakaan terbuka yang dapat diedit, membangun halaman web untuk setiap buku yang pernah diterbitkan. Baca, pinjam, dan temukan lebih dari 3 juta buku secara gratis."
 
 #: site/stats.html
 msgid "Debug Stats"
-msgstr ""
+msgstr "Statistik Debug"
 
 #: stats/readinglog.html
 msgid "Reading Log Stats"
-msgstr ""
+msgstr "Statistik Log Membaca"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "# Buku Dicatat"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "Jumlah total buku yang dicatat menggunakan fitur Log Membaca"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "Sepanjang waktu"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "# Pengguna Unik yang Mencatat Buku"
 
 #: stats/readinglog.html
 msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr ""
+msgstr "Jumlah total pengguna unik yang telah mencatat setidaknya satu buku menggunakan fitur Log Membaca"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "# Buku Dibintangi"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "Jumlah total buku yang telah dibintangi"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "Total # Penilai Unik (sepanjang waktu)"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "Buku Paling Diinginkan (Bulan Ini)"
 
 #: stats/readinglog.html
 #, python-format
@@ -7206,239 +7206,239 @@ msgstr[0] ""
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "Buku Paling Diinginkan (Sepanjang Waktu)"
 
 #: stats/readinglog.html
 msgid "Most Logged Books"
-msgstr ""
+msgstr "Buku Paling Banyak Dicatat"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "Buku Paling Banyak Dibaca (Sepanjang Waktu)"
 
 #: stats/readinglog.html
 msgid "Most Rated Books"
-msgstr ""
+msgstr "Buku Paling Banyak Dinilai"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "Buku Paling Banyak Dinilai (Sepanjang Waktu)"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "Kami tidak dapat menemukan buku tentang"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "Edit %(title)s"
 
 #: type/about/edit.html
 msgid "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "Ini hanya muncul di kepala dokumen, dan dilampirkan ke label bookmark"
 
 #: type/about/edit.html
 msgid "Intro"
-msgstr ""
+msgstr "Intro"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "Ini muncul di kolom pertama."
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "Ini muncul di kolom kedua, di bagian atas."
 
 #: type/about/edit.html
 msgid "Mailing List"
-msgstr ""
+msgstr "Mailing List"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "Ini muncul di bawah daftar tautan."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Untuk informasi lebih lanjut"
 
 #: type/author/edit.html
 msgid "Edit Author"
-msgstr ""
+msgstr "Edit Penulis"
 
 #: type/author/edit.html
 msgid "Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>."
-msgstr ""
+msgstr "Harap gunakan urutan alami. Misalnya: <strong>Leo Tolstoy</strong> bukan <strong>Tolstoy, Leo</strong>."
 
 #: type/author/edit.html
 msgid "A short bio?"
-msgstr ""
+msgstr "Bio singkat?"
 
 #: type/author/edit.html
 msgid "If you \"borrow\" information from somewhere, please make sure to cite the source."
-msgstr ""
+msgstr "Jika Anda \"meminjam\" informasi dari suatu tempat, harap pastikan untuk mencantumkan sumber."
 
 #: type/author/edit.html
 msgid "Date of birth"
-msgstr ""
+msgstr "Tanggal lahir"
 
 #: type/author/edit.html
 msgid "Date of death"
-msgstr ""
+msgstr "Tanggal kematian"
 
 #: type/author/edit.html
 msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr ""
+msgstr "Kami belum menyimpan tanggal terstruktur, jadi tanggal seperti \"21 Mei 2000\" direkomendasikan."
 
 #: type/author/edit.html
 msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr ""
+msgstr "Ini adalah bidang yang sudah usang. Anda dapat membantu meningkatkan catatan ini dengan menghapus tanggal ini dan mengisi bidang \"Tanggal lahir\" dan \"Tanggal kematian\". Terima kasih!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "Apakah penulis ini dikenal dengan nama lain?"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "Misalnya: Lev Nikolayevich Tolstoy juga dikenal sebagai Leo Tolstoy. Harap daftarkan satu nama per baris."
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Identifier"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "Tujuan Identifier Penulis"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "Penulis dari %(book_titles)s"
 
 #: type/author/view.html
 msgid "Merging Authors..."
-msgstr ""
+msgstr "Menggabungkan Penulis..."
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "Sedang berlangsung..."
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "Segarkan halaman?"
 
 #: type/author/view.html
 msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
+msgstr "OK. Penggabungan sedang berjalan. <i>Dibutuhkan <u>beberapa menit untuk menyelesaikan</u> pembaruan.</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "Aduh!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "Penggabungan itu tidak berhasil. Ini kesalahan kami, dan kami telah mencatatnya."
 
 #: type/author/view.html
 msgid "Add another?"
-msgstr ""
+msgstr "Tambahkan lagi?"
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "Cari buku %(author)s"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— Tampilkan <a href=\"%(url)s\">hanya ebook</a>?"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
+msgstr "— Tampilkan <a href=\"%(url)s\">semua</a> oleh penulis ini?"
 
 #: type/author/view.html
 msgid "OLID"
-msgstr ""
+msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
+msgstr "Tautan <span class=\"gray small sansserif\">di luar Open Library</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "Belum ada tautan."
 
 #: type/author/view.html
 msgid "Add one"
-msgstr ""
+msgstr "Tambahkan satu"
 
 #: type/author/view.html
 msgid "Alternative names"
-msgstr ""
+msgstr "Nama alternatif"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "Halaman ini telah dihapus"
 
 #: type/delete/view.html
 msgid "What would you like to do?"
-msgstr ""
+msgstr "Apa yang ingin Anda lakukan?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "Kembali ke tempat saya berasal"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "Lihat versi sebelumnya"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "Lihat riwayat halaman"
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
+msgstr "Buat ulang"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr ""
+msgstr "Tambahkan Buku IA ke Pilihan Staf"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Sinkronkan ID Archive.org"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Lihat Buku di Archive.org"
 
 #: type/edition/modal_links.html
 msgid "Review"
-msgstr ""
+msgstr "Ulasan"
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
-msgstr ""
+msgstr "Edisi dari"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "Pertama kali diterbitkan pada %s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7447,43 +7447,43 @@ msgstr "Dihapus"
 
 #: type/edition/view.html type/work/view.html
 msgid "Read Less"
-msgstr ""
+msgstr "Baca Lebih Sedikit"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Karya ini belum memiliki deskripsi. Bisakah Anda <b><a href='%(url)s'>menambahkannya</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Edisi ini belum memiliki deskripsi. Bisakah Anda <b><a href='%(url)s'>menambahkannya</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
-msgstr ""
+msgstr "Tanggal Terbit"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "Tampilkan buku lain dari %(publisher)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "Cari buku lain dari %(publisher)s"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pages"
-msgstr ""
+msgstr "Halaman"
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
+msgstr "ISBN"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "Detail Buku"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
