@@ -7487,117 +7487,117 @@ msgstr "Detail Buku"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
-msgstr ""
+msgstr "Kalimat Pertama"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
-msgstr ""
+msgstr "Catatan Edisi"
 
 #: type/edition/view.html type/work/view.html
 msgid "Published in"
-msgstr ""
+msgstr "Diterbitkan di"
 
 #: type/edition/view.html type/work/view.html
 msgid "Series"
-msgstr ""
+msgstr "Seri"
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
+msgstr "Volume"
 
 #: type/edition/view.html type/work/view.html
 msgid "Genre"
-msgstr ""
+msgstr "Genre"
 
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
-msgstr ""
+msgstr "Judul Lain"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "Tanggal Hak Cipta"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
-msgstr ""
+msgstr "Terjemahan Dari"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translated From"
-msgstr ""
+msgstr "Diterjemahkan Dari"
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
+msgstr "Tautan Eksternal"
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
+msgstr "Format"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "Penomoran Halaman"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
-msgstr ""
+msgstr "Jumlah halaman"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
-msgstr ""
+msgstr "Berat"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
-msgstr ""
+msgstr "Identifier Edisi"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "Catatan sumber"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "Deskripsi Karya"
 
 #: type/edition/view.html type/work/view.html
 msgid "Original languages"
-msgstr ""
+msgstr "Bahasa asli"
 
 #: type/edition/view.html type/work/view.html
 msgid "Excerpts"
-msgstr ""
+msgstr "Kutipan"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "Halaman %(page)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "ditambahkan oleh %(authorlink)s."
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
+msgstr "ditambahkan secara anonim."
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 msgid "Loading Lists"
-msgstr ""
+msgstr "Memuat Daftar"
 
 #: type/language/view.html
 msgid "deprecated"
-msgstr ""
+msgstr "usang"
 
 #: type/language/view.html
 msgid "languages"
-msgstr ""
+msgstr "bahasa"
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
+msgstr "Kode"
 
 #: type/language/view.html
 #, fuzzy
@@ -7607,187 +7607,187 @@ msgstr ""
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "Coba <a href=\"%(href)s\">cari buku yang dapat dibaca dalam %(language)s</a>?"
 
 #: type/list/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "Mengedit daftar: %(list_name)s"
 
 #: type/list/edit.html
 msgid "Edit List"
-msgstr ""
+msgstr "Edit Daftar"
 
 #: type/list/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "Pindah..."
 
 #: type/list/edit.html
 msgid "Search for a book"
-msgstr ""
+msgstr "Cari buku"
 
 #: type/list/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Catatan (opsional)"
 
 #: type/list/edit.html
 msgid "List Name"
-msgstr ""
+msgstr "Nama Daftar"
 
 #: type/list/edit.html
 msgid "Description (optional)"
-msgstr ""
+msgstr "Deskripsi (opsional)"
 
 #: type/list/edit.html
 msgid "Add another book"
-msgstr ""
+msgstr "Tambahkan buku lain"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr ""
+msgstr "Kunjungi Open Library"
 
 #: type/list/embed.html
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr ""
+msgstr "Buka di Pembaca Buku online. Unduhan tersedia dalam format ePub, DAISY, PDF, TXT dari halaman buku utama"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "Buku ini sedang dipinjam"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "Sudah dipinjam"
 
 #: type/list/embed.html
 msgid "Borrow book"
-msgstr ""
+msgstr "Pinjam buku"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "DAISY Terlindungi"
 
 #: type/list/exports.html
 msgid "BibTex"
-msgstr ""
+msgstr "BibTex"
 
 #: type/list/exports.html
 msgid "Export"
-msgstr ""
+msgstr "Ekspor"
 
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "sebagai %(json_link)s, %(html_link)s, atau %(bibtex_link)s"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "Berlangganan"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "Pantau aktivitas melalui <a rel=\"nofollow\" href=\"%s\">umpan Atom</a>"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "Ekspor Tidak Tersedia"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "Hanya daftar dengan hingga %(max)s edisi yang dapat diekspor. Daftar ini memiliki %(count)s."
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "Coba hapus beberapa item untuk lebih fokus, atau lihat <a href=\"%s\">unduhan massal</a> katalog."
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | Daftar | Open Library"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
-msgstr ""
+msgstr "Lihat daftar di Open Library."
 
 #: type/list/view_body.html
 msgid "Remove this item?"
-msgstr ""
+msgstr "Hapus item ini?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "Terakhir diubah <span>%(date)s</span>"
 
 #: type/list/view_body.html
 msgid "Remove seed"
-msgstr ""
+msgstr "Hapus item"
 
 #: type/list/view_body.html
 msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
+msgstr "Apakah Anda yakin ingin menghapus item ini dari daftar?"
 
 #: type/list/view_body.html
 msgid "Remove Seed"
-msgstr ""
+msgstr "Hapus Item"
 
 #: type/list/view_body.html
 msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr ""
+msgstr "Anda akan menghapus item terakhir dalam daftar. Itu akan menghapus seluruh daftar. Apakah Anda yakin ingin melanjutkan?"
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "Tidak ada item dalam daftar ini."
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\">Cari buku, subjek, atau penulis</a> untuk ditambahkan ke daftar Anda."
 
 #: type/list/view_body.html
 msgid "Learn more."
-msgstr ""
+msgstr "Pelajari lebih lanjut."
 
 #: type/list/view_body.html
 msgid "List Metadata"
-msgstr ""
+msgstr "Metadata Daftar"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "Diturunkan dari metadata item"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "ID Lokal"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "Item Sumber"
 
 #: type/local_id/view.html
 msgid "ID location"
-msgstr ""
+msgstr "Lokasi ID"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Regex barcode"
 
 #: type/local_id/view.html
 msgid "URN prefix"
-msgstr ""
+msgstr "Awalan URN"
 
 #: type/local_id/view.html
 msgid "Example"
-msgstr ""
+msgstr "Contoh"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "Isi Dokumen:"
 
 #: type/page/view.html
 #, fuzzy
@@ -7796,19 +7796,19 @@ msgstr "Komentar"
 
 #: type/permission/edit.html
 msgid "Readers:"
-msgstr ""
+msgstr "Pembaca:"
 
 #: type/permission/edit.html
 msgid "Writers:"
-msgstr ""
+msgstr "Penulis:"
 
 #: type/permission/view.html
 msgid "Readers"
-msgstr ""
+msgstr "Pembaca"
 
 #: type/permission/view.html
 msgid "Writers"
-msgstr ""
+msgstr "Penulis"
 
 #: type/tag/form.html
 #, fuzzy
@@ -7817,57 +7817,57 @@ msgstr "Sunting"
 
 #: type/tag/form.html
 msgid "Add a tag"
-msgstr ""
+msgstr "Tambahkan tag"
 
 #: type/tag/form.html
 msgid "Add a tag to Open Library"
-msgstr ""
+msgstr "Tambahkan tag ke Open Library"
 
 #: type/tag/form.html
 msgid "We require a minimum set of fields to create a new collection tag."
-msgstr ""
+msgstr "Kami memerlukan set bidang minimum untuk membuat tag koleksi baru."
 
 #: type/tag/form.html
 msgid "Add this tag now"
-msgstr ""
+msgstr "Tambahkan tag ini sekarang"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
-msgstr ""
+msgstr "Nama Tag"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
-msgstr ""
+msgstr "Deskripsi Tag"
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
+msgstr "Isi Halaman"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
-msgstr ""
+msgstr "Tipe tag"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Wakil Tag"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Tipe:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
-msgstr ""
+msgstr "Deskripsi"
 
 #: type/tag/view.html
 msgid "Tag Body"
-msgstr ""
+msgstr "Isi Tag"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "Lihat halaman subjek untuk %(name)s."
 
 #: type/template/edit.html
 #, fuzzy
@@ -7876,11 +7876,11 @@ msgstr "Masuk"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "Isi Dokumen"
 
 #: type/template/edit.html
 msgid "Delete this template?"
-msgstr ""
+msgstr "Hapus template ini?"
 
 #: type/template/view.html
 #, fuzzy
@@ -7889,62 +7889,62 @@ msgstr "Masuk"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "Jenis"
 
 #: type/type/view.html
 msgid "Properties"
-msgstr ""
+msgstr "Properti"
 
 #: type/type/view.html
 msgid "of type"
-msgstr ""
+msgstr "dari tipe"
 
 #: type/type/view.html
 msgid "Backreferences"
-msgstr ""
+msgstr "Referensi balik"
 
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "Mengedit %(name)s"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "Sedang Mengedit:"
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "Nama Tampilan"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "halaman admin"
 
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</a>."
-msgstr ""
+msgstr "Anda berbagi secara publik buku-buku yang sedang Anda <a href=\"%(username)s/books/currently-reading\">baca saat ini</a>, <a href=\"%(username)s/books/already-read\">sudah dibaca</a>, dan <a href=\"%(username)s/books/want-to-read\">ingin dibaca</a>."
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "Anda telah memilih untuk membuat"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "privat"
 
 #: type/user/view.html
 msgid "Manage your privacy settings"
-msgstr ""
+msgstr "Kelola pengaturan privasi Anda"
 
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, and <a href=\"%(username)s/books/want-to-read\">want to read</a>!"
-msgstr ""
+msgstr "Berikut adalah buku-buku yang sedang <a href=\"%(username)s/books/currently-reading\">dibaca</a>, <a href=\"%(username)s/books/already-read\">sudah dibaca</a>, dan <a href=\"%(username)s/books/want-to-read\">ingin dibaca</a> oleh %(user)s!"
 
 #: type/user/view.html
 msgid "My Lists"
-msgstr ""
+msgstr "Daftar Saya"
 
 #: type/usergroup/edit.html
 #, fuzzy
@@ -7954,11 +7954,11 @@ msgstr "Ingat Saya"
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "Tambahkan edisi lain dari %(work)s"
 
 #: type/work/editions.html
 msgid "Title missing"
-msgstr ""
+msgstr "Judul tidak ada"
 
 #: type/work/editions_datatable.html
 #, python-format
@@ -7969,23 +7969,23 @@ msgstr[0] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "Lihat semua %(count)d edisi?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
-msgstr ""
+msgstr "Edisi"
 
 #: type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
+msgstr "Ketersediaan"
 
 #: type/work/editions_datatable.html
 msgid "No editions available"
-msgstr ""
+msgstr "Tidak ada edisi tersedia"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
+msgstr "Tambahkan edisi lain?"
 
 #~ msgid "Point your camera at a barcode! 📷"
 #~ msgstr "Arahkan kamera anda pada barcode! 📷"
