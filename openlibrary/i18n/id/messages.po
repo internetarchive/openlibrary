@@ -4828,606 +4828,606 @@ msgstr "Edisi Ini"
 
 #: books/edit/edition.html
 msgid "Enter the title of this specific edition."
-msgstr ""
+msgstr "Masukkan judul edisi khusus ini."
 
 #: books/edit/edition.html
 msgid "Subtitle"
-msgstr ""
+msgstr "Subjudul"
 
 #: books/edit/edition.html
 msgid "Usually distinguished by different or smaller type."
-msgstr ""
+msgstr "Biasanya dibedakan dengan tipe yang berbeda atau lebih kecil."
 
 #: books/edit/edition.html
 msgid "Publishing Info"
-msgstr ""
+msgstr "Info Penerbitan"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Misalnya <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
-msgstr ""
+msgstr "Di mana buku diterbitkan?"
 
 #: books/edit/edition.html
 msgid "City, Country please."
-msgstr ""
+msgstr "Kota, Negara tolong."
 
 #: books/edit/edition.html
 msgid "What is the copyright date?"
-msgstr ""
+msgstr "Apa tanggal hak cipta?"
 
 #: books/edit/edition.html
 msgid "The year following the copyright statement."
-msgstr ""
+msgstr "Tahun setelah pernyataan hak cipta."
 
 #: books/edit/edition.html
 msgid "Edition Name (if applicable):"
-msgstr ""
+msgstr "Nama Edisi (jika berlaku):"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
-msgstr ""
+msgstr "Nama Seri (jika berlaku)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
-msgstr ""
+msgstr "Nama seri penerbit."
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
-msgstr ""
+msgstr "Kontributor"
 
 #: books/edit/edition.html
 msgid "Please select a role."
-msgstr ""
+msgstr "Harap pilih peran."
 
 #: books/edit/edition.html
 msgid "You need to give this ROLE a name."
-msgstr ""
+msgstr "Anda perlu memberi nama pada PERAN ini."
 
 #: books/edit/edition.html
 msgid "List the people involved"
-msgstr ""
+msgstr "Daftarkan orang-orang yang terlibat"
 
 #: books/edit/edition.html
 msgid "Select role"
-msgstr ""
+msgstr "Pilih peran"
 
 #: books/edit/edition.html
 msgid "Add a new role"
-msgstr ""
+msgstr "Tambahkan peran baru"
 
 #: books/edit/edition.html
 msgid "Remove this contributor"
-msgstr ""
+msgstr "Hapus kontributor ini"
 
 #: books/edit/edition.html
 msgid "By Statement:"
-msgstr ""
+msgstr "Pernyataan Oleh:"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Misalnya: <em>diedit oleh David Anderson</em>"
 
 #: books/edit/edition.html languages/index.html
 msgid "Languages"
-msgstr ""
+msgstr "Bahasa"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
-msgstr ""
+msgstr "Dalam bahasa apa edisi ini ditulis?"
 
 #: books/edit/edition.html
 msgid "Add another language?"
-msgstr ""
+msgstr "Tambahkan bahasa lain?"
 
 #: books/edit/edition.html
 msgid "Is it a translation of another book?"
-msgstr ""
+msgstr "Apakah ini terjemahan dari buku lain?"
 
 #: books/edit/edition.html
 msgid "Yes, it's a translation"
-msgstr ""
+msgstr "Ya, ini adalah terjemahan"
 
 #: books/edit/edition.html
 msgid "What's the original book?"
-msgstr ""
+msgstr "Apa buku aslinya?"
 
 #: books/edit/edition.html
 msgid "What language was the original written in?"
-msgstr ""
+msgstr "Dalam bahasa apa aslinya ditulis?"
 
 #: books/edit/edition.html
 msgid "Description of this edition"
-msgstr ""
+msgstr "Deskripsi edisi ini"
 
 #: books/edit/edition.html
 msgid "Only if it's different from the work's description"
-msgstr ""
+msgstr "Hanya jika berbeda dari deskripsi karya"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Table of Contents"
-msgstr ""
+msgstr "Daftar Isi"
 
 #: books/edit/edition.html
 msgid "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new lines. Like this:"
-msgstr ""
+msgstr "Gunakan \"*\" untuk indentasi, \"|\" untuk menambahkan kolom, dan jeda baris untuk baris baru. Seperti ini:"
 
 #: books/edit/edition.html
 msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr ""
+msgstr "Daftar isi ini berisi informasi tambahan seperti penulis atau deskripsi. Kami belum memiliki antarmuka pengguna yang bagus untuk ini, jadi mengedit data ini bisa jadi sulit. Hati-hati!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
-msgstr ""
+msgstr "Ada catatan tentang edisi khusus ini?"
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
-msgstr ""
+msgstr "Hal apa pun tentang buku yang mungkin menarik."
 
 #: books/edit/edition.html
 msgid "Is it known by any other titles?"
-msgstr ""
+msgstr "Apakah dikenal dengan judul lain?"
 
 #: books/edit/edition.html
 msgid "Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here."
-msgstr ""
+msgstr "Gunakan field ini jika judul pada sampul atau punggung buku berbeda. Jika edisi adalah kumpulan atau antologi, Anda juga dapat menambahkan judul individual setiap karya di sini."
 
 #: books/edit/edition.html
 msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr ""
+msgstr "Misalnya: <i>Eaters of the Dead</i> adalah judul alternatif untuk <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
-msgstr ""
+msgstr "Karya apa yang merupakan edisi ini?"
 
 #: books/edit/edition.html
 msgid "Sometimes editions can be associated with the wrong work. You can correct that here."
-msgstr ""
+msgstr "Terkadang edisi dapat dikaitkan dengan karya yang salah. Anda dapat mengoreksinya di sini."
 
 #: books/edit/edition.html
 msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
-msgstr ""
+msgstr "Anda dapat mencari berdasarkan judul atau ID Open Library (seperti <a href=\"/works/OL262757W\" target=\"_blank\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
-msgstr ""
+msgstr "PERINGATAN: Pengeditan apa pun pada karya dari halaman ini akan diabaikan."
 
 #: books/edit/edition.html
 msgid "Copy authors to new work"
-msgstr ""
+msgstr "Salin penulis ke karya baru"
 
 #: books/edit/edition.html
 msgid "Copy subjects to new work"
-msgstr ""
+msgstr "Salin subjek ke karya baru"
 
 #: books/edit/edition.html
 msgid "Please select an identifier."
-msgstr ""
+msgstr "Harap pilih identifier."
 
 #: books/edit/edition.html
 msgid "You need to give a value to ID."
-msgstr ""
+msgstr "Anda perlu memberi nilai pada ID."
 
 #: books/edit/edition.html
 msgid "ID ids cannot contain whitespace."
-msgstr ""
+msgstr "ID tidak boleh mengandung spasi."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr ""
+msgstr "ID harus tepat 10 karakter [0-9] atau X."
 
 #: books/edit/edition.html
 msgid "That ID already exists for this edition."
-msgstr ""
+msgstr "ID tersebut sudah ada untuk edisi ini."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
+msgstr "ID harus tepat 13 digit [0-9]. Misalnya: 978-1-56619-909-4"
 
 #: books/edit/edition.html
 msgid "Invalid ID format"
-msgstr ""
+msgstr "Format ID tidak valid"
 
 #: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
-msgstr ""
+msgstr "Nomor ID"
 
 #: books/edit/edition.html
 msgid "Do you know any identifiers for this edition?"
-msgstr ""
+msgstr "Apakah Anda mengetahui identifier untuk edisi ini?"
 
 #: books/edit/edition.html
 msgid "Like, ISBN?"
-msgstr ""
+msgstr "Seperti, ISBN?"
 
 #: books/edit/edition.html
 msgid "Please select a classification."
-msgstr ""
+msgstr "Harap pilih klasifikasi."
 
 #: books/edit/edition.html
 msgid "You need to give a value to CLASS."
-msgstr ""
+msgstr "Anda perlu memberi nilai pada KELAS."
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
-msgstr ""
+msgstr "Klasifikasi"
 
 #: books/edit/edition.html
 msgid "Do you know any classifications of this edition?"
-msgstr ""
+msgstr "Apakah Anda mengetahui klasifikasi edisi ini?"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
-msgstr ""
+msgstr "Seperti, Dewey Decimal?"
 
 #: books/edit/edition.html
 msgid "Select one of many..."
-msgstr ""
+msgstr "Pilih salah satu dari banyak..."
 
 #: books/edit/edition.html
 msgid "Add a new classification type"
-msgstr ""
+msgstr "Tambahkan tipe klasifikasi baru"
 
 #: books/edit/edition.html
 msgid "Remove this classification"
-msgstr ""
+msgstr "Hapus klasifikasi ini"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "The Physical Object"
-msgstr ""
+msgstr "Objek Fisik"
 
 #: books/edit/edition.html
 msgid "What sort of book is it?"
-msgstr ""
+msgstr "Jenis buku apa ini?"
 
 #: books/edit/edition.html
 msgid "Paperback; Hardcover, etc."
-msgstr ""
+msgstr "Paperback; Hardcover, dll."
 
 #: books/edit/edition.html
 msgid "How many pages?"
-msgstr ""
+msgstr "Berapa banyak halaman?"
 
 #: books/edit/edition.html
 msgid "Pagination?"
-msgstr ""
+msgstr "Penomoran halaman?"
 
 #: books/edit/edition.html
 msgid "Note the highest number in each pagination pattern."
-msgstr ""
+msgstr "Catat angka tertinggi dalam setiap pola penomoran halaman."
 
 #: books/edit/edition.html lib/nav_foot.html
 msgid "Help"
-msgstr ""
+msgstr "Bantuan"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Misalnya: <em>xii, 346p.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
-msgstr ""
+msgstr "Berapa berat buku ini?"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Dimensions"
-msgstr ""
+msgstr "Dimensi"
 
 #: books/edit/edition.html
 msgid "dimensions"
-msgstr ""
+msgstr "dimensi"
 
 #: books/edit/edition.html
 msgid "Height:"
-msgstr ""
+msgstr "Tinggi:"
 
 #: books/edit/edition.html
 msgid "Width:"
-msgstr ""
+msgstr "Lebar:"
 
 #: books/edit/edition.html
 msgid "Depth:"
-msgstr ""
+msgstr "Kedalaman:"
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "Penyedia Buku Web"
 
 #: books/edit/edition.html
 msgid "Access Type"
-msgstr ""
+msgstr "Tipe Akses"
 
 #: books/edit/edition.html
 msgid "File Format"
-msgstr ""
+msgstr "Format File"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "Nama Penyedia"
 
 #: books/edit/edition.html
 msgid "Buy"
-msgstr ""
+msgstr "Beli"
 
 #: books/edit/edition.html
 msgid "Web"
-msgstr ""
+msgstr "Web"
 
 #: books/edit/edition.html
 msgid "Add a provider"
-msgstr ""
+msgstr "Tambahkan penyedia"
 
 #: books/edit/edition.html
 msgid "First sentence"
-msgstr ""
+msgstr "Kalimat pertama"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "Baris pembuka yang memulai paragraf utama"
 
 #: books/edit/edition.html
 msgid "Admin Only"
-msgstr ""
+msgstr "Hanya Admin"
 
 #: books/edit/edition.html
 msgid "Additional Metadata"
-msgstr ""
+msgstr "Metadata Tambahan"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "Field ini dapat menerima pasangan kunci:nilai sembarang"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
-msgstr ""
+msgstr "Harap berikan kutipan."
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "Kutipan itu terlalu panjang."
 
 #: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
-msgstr ""
+msgstr "Jika ada bagian tertentu (pendek) yang menurut Anda mewakili buku dengan baik, silakan sertakan."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
-msgstr ""
+msgstr "Nomor halaman?"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "Kutipan ini adalah kalimat pertama buku."
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
-msgstr ""
+msgstr "Transkripsi kutipan"
 
 #: books/edit/excerpts.html
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr ""
+msgstr "Panjang maksimum adalah 2000 karakter. HTML tidak diizinkan."
 
 #: books/edit/excerpts.html
 msgid "Why did you choose this excerpt?"
-msgstr ""
+msgstr "Mengapa Anda memilih kutipan ini?"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
-msgstr ""
+msgstr "Tambahkan catatan opsional."
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
-msgstr ""
+msgstr "Kutipan sejauh ini..."
 
 #: books/edit/excerpts.html
 msgid "noted:"
-msgstr ""
+msgstr "dicatat:"
 
 #: books/edit/excerpts.html
 msgid "An anonymous note:"
-msgstr ""
+msgstr "Catatan anonim:"
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
+msgstr "Dari halaman"
 
 #: books/edit/web.html
 msgid "Please provide a label."
-msgstr ""
+msgstr "Harap berikan label."
 
 #: books/edit/web.html
 msgid "Please provide a URL."
-msgstr ""
+msgstr "Harap berikan URL."
 
 #: books/edit/web.html
 msgid "Please enter a valid URL."
-msgstr ""
+msgstr "Harap masukkan URL yang valid."
 
 #: books/edit/web.html
 msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
-msgstr ""
+msgstr "Harap hubungkan catatan Open Library ke sumber daya online yang <u>baik</u><span class=\"orange\">*</span>."
 
 #: books/edit/web.html
 msgid "Give your link a label"
-msgstr ""
+msgstr "Beri label pada tautan Anda"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Misalnya: <em>ulasan New York Times</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 msgid "Add Link"
-msgstr ""
+msgstr "Tambahkan Tautan"
 
 #: books/edit/web.html
 msgid "Remove this link"
-msgstr ""
+msgstr "Hapus tautan ini"
 
 #: books/edit/web.html
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
-msgstr ""
+msgstr "\"Baik\" berarti tidak ada tautan spam. Jaga agar tetap relevan dengan buku. Situs yang tidak relevan dapat dihapus. Spam terang-terangan akan dihapus tanpa ampun."
 
 #: bulk_search/bulk_search.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "Pencarian Massal (beta)"
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
+msgstr "Ada dua cara untuk memasang foto penulis di Open Library."
 
 #: covers/add.html
 msgid "Image Guidelines"
-msgstr ""
+msgstr "Panduan Gambar"
 
 #: covers/add.html
 msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
+msgstr "Ada beberapa cara untuk memasang gambar sampul di Open Library."
 
 #: covers/add.html
 msgid "Cover Guidelines"
-msgstr ""
+msgstr "Panduan Sampul"
 
 #: covers/add.html
 msgid "Please provide a valid image."
-msgstr ""
+msgstr "Harap berikan gambar yang valid."
 
 #: covers/add.html
 msgid "Please provide an image URL."
-msgstr ""
+msgstr "Harap berikan URL gambar."
 
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "Pelajari lebih lanjut dengan membaca <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a> kami."
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
+msgstr "<strong>Pilih satu</strong> dari sampul yang ada"
 
 #: covers/add.html
 msgid "Use this image"
-msgstr ""
+msgstr "Gunakan gambar ini"
 
 #: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
+msgstr "Pilih JPG, GIF, PNG atau WebP di komputer Anda"
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "Unggah"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Atau, tempel gambar dari clipboard Anda"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Tempel gambar dari clipboard"
 
 #: covers/add.html
 msgid "Paste Image"
-msgstr ""
+msgstr "Tempel Gambar"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Unggah gambar"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Unggah Gambar"
 
 #: covers/add.html
 msgid "Uploading..."
-msgstr ""
+msgstr "Mengunggah..."
 
 #: covers/add.html
 msgid "Wikidata"
-msgstr ""
+msgstr "Wikidata"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "Tampilkan foto penulis yang lebih besar"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "Foto dari %(author)s"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Klik untuk menutup"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "Kami membutuhkan foto dari %(author)s"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "Tampilkan sampul buku yang lebih besar"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "Sampul: %(title)s oleh %(authors)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "Pergi ke halaman utama untuk %(title)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "Kami membutuhkan sampul buku untuk: %(title)s"
 
 #: covers/change.html
 msgid "Author Photos"
-msgstr ""
+msgstr "Foto Penulis"
 
 #: covers/change.html
 msgid "Manage Author Photos"
-msgstr ""
+msgstr "Kelola Foto Penulis"
 
 #: covers/change.html
 msgid "Add Author Photo"
-msgstr ""
+msgstr "Tambahkan Foto Penulis"
 
 #: covers/change.html
 msgid "Book Covers"
-msgstr ""
+msgstr "Sampul Buku"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "Kelola Sampul"
 
 #: covers/change.html
 msgid "Add Cover Image"
-msgstr ""
+msgstr "Tambahkan Gambar Sampul"
 
 #: covers/change.html
 msgid "Manage"
-msgstr ""
+msgstr "Kelola"
 
 #: covers/external_image.html
 #, python-format
 msgid "Or, use a cover from %s"
-msgstr ""
+msgstr "Atau, gunakan sampul dari %s"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr ""
+msgstr "Anda dapat menyeret dan melepas thumbnail untuk mengurutkan ulang, atau ke tempat sampah untuk menghapusnya."
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "Sampul buku baru"
 
 #: covers/saved.html
 msgid "Saved!"
-msgstr ""
+msgstr "Tersimpan!"
 
 #: covers/saved.html
 msgid "Notes:"
