@@ -6646,510 +6646,510 @@ msgstr "ページ数"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
-msgstr ""
+msgstr "重量"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
-msgstr ""
+msgstr "版の識別子"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "ソースレコード"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "作品の説明"
 
 #: type/edition/view.html type/work/view.html
 msgid "Original languages"
-msgstr ""
+msgstr "原語"
 
 #: type/edition/view.html type/work/view.html
 msgid "Excerpts"
-msgstr ""
+msgstr "抜粋"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "%(page)sページ"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "%(authorlink)sが追加。"
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
+msgstr "匿名で追加。"
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 msgid "Loading Lists"
-msgstr ""
+msgstr "リストを読み込み中"
 
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
-msgstr ""
+msgstr "%(language)s [廃止]"
 
 #: type/language/view.html
 msgid "languages"
-msgstr ""
+msgstr "言語"
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
+msgstr "コード"
 
 #: type/language/view.html
 msgid "Current"
-msgstr ""
+msgstr "現在"
 
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(language)sの読める本を検索</a>してみますか？"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Create a series"
-msgstr ""
+msgstr "シリーズを作成"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "シリーズを編集中：%(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "リストを編集中：%(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Edit Series"
-msgstr ""
+msgstr "シリーズを編集"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Edit List"
-msgstr ""
+msgstr "リストを編集"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "移動..."
 
 #: type/list/edit.html type/series/edit.html
 msgid "Search for a book"
-msgstr ""
+msgstr "本を検索"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "位置（任意）、例：1、2、1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "ノート（任意）"
 
 #: type/list/edit.html type/series/edit.html
 msgid "List Name"
-msgstr ""
+msgstr "リスト名"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Series Name"
-msgstr ""
+msgstr "シリーズ名"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
-msgstr ""
+msgstr "説明（任意）"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Add another book"
-msgstr ""
+msgstr "別の本を追加"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Create new series"
-msgstr ""
+msgstr "新しいシリーズを作成"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr ""
+msgstr "Open Libraryを見る"
 
 #: type/list/embed.html
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr ""
+msgstr "オンラインブックリーダーで開く。本のメインページからePub、DAISY、PDF、TXT形式でダウンロード可能"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "この本は貸し出し中です"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "貸し出し中"
 
 #: type/list/embed.html
 msgid "Borrow book"
-msgstr ""
+msgstr "本を借りる"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "保護付きDAISY"
 
 #: BookByline.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
-msgstr ""
+msgstr "%(name)s著"
 
 #: type/list/exports.html
 msgid "BibTex"
-msgstr ""
+msgstr "BibTex"
 
 #: type/list/exports.html
 msgid "Export"
-msgstr ""
+msgstr "エクスポート"
 
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "%(json_link)s、%(html_link)s、または%(bibtex_link)s形式で"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "購読"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "<a rel=\"nofollow\" href=\"%s\">Atomフィード</a>でアクティビティを監視"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "エクスポートできません"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "エクスポートできるのは最大%(max)s版のリストのみです。このリストには%(count)s版あります。"
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "より絞り込むためにシードを削除するか、カタログの<a href=\"%s\">一括ダウンロード</a>をご覧ください。"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | リスト | Open Library"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s：%(description)s"
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
-msgstr ""
+msgstr "Open Libraryでリストを表示。"
 
 #: type/list/view_body.html
 msgid "Remove this item?"
-msgstr ""
+msgstr "このアイテムを削除しますか？"
 
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "<span>%(date)s</span>に最終更新"
 
 #: type/list/view_body.html
 msgid "Remove seed"
-msgstr ""
+msgstr "シードを削除"
 
 #: type/list/view_body.html
 msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
+msgstr "このアイテムをリストから削除してよろしいですか？"
 
 #: type/list/view_body.html
 msgid "Remove Seed"
-msgstr ""
+msgstr "シードを削除"
 
 #: type/list/view_body.html
 msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr ""
+msgstr "リストの最後のアイテムを削除しようとしています。これによりリスト全体が削除されます。続けてよろしいですか？"
 
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "このシリーズには%(limit)d以上の作品が含まれています。現在、最初の%(limit)d作品のみ表示されています。"
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "このリストにはアイテムがありません。"
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">本、サブジェクト、または著者を検索</a>してリストに追加してください。"
 
 #: type/list/view_body.html
 msgid "Learn more."
-msgstr ""
+msgstr "もっと詳しく。"
 
 #: type/list/view_body.html
 msgid "List Metadata"
-msgstr ""
+msgstr "リストのメタデータ"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "シードメタデータから導出"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/list/view_body.html
 msgid "Times"
-msgstr ""
+msgstr "時代"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "ローカルID"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "ソースアイテム"
 
 #: type/local_id/view.html
 msgid "ID location"
-msgstr ""
+msgstr "IDの場所"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "バーコード正規表現"
 
 #: type/local_id/view.html
 msgid "URN prefix"
-msgstr ""
+msgstr "URNプレフィックス"
 
 #: type/local_id/view.html
 msgid "Example"
-msgstr ""
+msgstr "例"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "ドキュメント本文："
 
 #: type/page/view.html
 msgid "Community"
-msgstr ""
+msgstr "コミュニティ"
 
 #: type/permission/edit.html
 msgid "Readers:"
-msgstr ""
+msgstr "読者："
 
 #: type/permission/edit.html
 msgid "Writers:"
-msgstr ""
+msgstr "書き手："
 
 #: type/permission/view.html
 msgid "Readers"
-msgstr ""
+msgstr "読者"
 
 #: type/permission/view.html
 msgid "Writers"
-msgstr ""
+msgstr "書き手"
 
 #: type/tag/form.html
 msgid "Edit tag"
-msgstr ""
+msgstr "タグを編集"
 
 #: type/tag/form.html
 msgid "Add a tag"
-msgstr ""
+msgstr "タグを追加"
 
 #: type/tag/form.html
 msgid "Add a tag to Open Library"
-msgstr ""
+msgstr "Open Libraryにタグを追加"
 
 #: type/tag/form.html
 msgid "We require a minimum set of fields to create a new collection tag."
-msgstr ""
+msgstr "新しいコレクションタグを作成するには最低限のフィールドが必要です。"
 
 #: EditButtons.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr ""
+msgstr "このウィキへの変更を保存することで、あなたの貢献が<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>のもとで世界に無償で提供されることに同意します。やった！"
 
 #: type/tag/form.html
 msgid "Add this tag now"
-msgstr ""
+msgstr "このタグを今すぐ追加"
 
 #: type/tag/index.html
 msgid "Tags"
-msgstr ""
+msgstr "タグ"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Open Libraryの司書が管理するタグ。"
 
 #: type/tag/index.html
 msgid "View subject page"
-msgstr ""
+msgstr "サブジェクトページを表示"
 
 #: type/tag/index.html
 msgid "Previous"
-msgstr ""
+msgstr "前へ"
 
 #: type/tag/index.html
 msgid "No tags found."
-msgstr ""
+msgstr "タグが見つかりません。"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
-msgstr ""
+msgstr "タグ名"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "人が読みやすい表示名（例：「Computer Science」、「Horror Fiction」）"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "タグスラグ"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "このタグにマップするカンマ区切りのURLスラグ（名前から自動入力）。例：「computer_science, cs」"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
-msgstr ""
+msgstr "タグの説明"
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
+msgstr "ページ本文"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
-msgstr ""
+msgstr "タグタイプ"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "タグ副代表"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>タイプ：</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
-msgstr ""
+msgstr "説明"
 
 #: type/tag/view.html
 msgid "Tag Body"
-msgstr ""
+msgstr "タグ本文"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URLスラグ"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "%(name)sのサブジェクトページを表示。"
 
 #: type/template/edit.html
 msgid "Plugin"
-msgstr ""
+msgstr "プラグイン"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "ドキュメント本文"
 
 #: type/template/edit.html
 msgid "Delete this template?"
-msgstr ""
+msgstr "このテンプレートを削除しますか？"
 
 #: type/template/view.html
 msgid "plugin"
-msgstr ""
+msgstr "プラグイン"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "種類"
 
 #: type/type/view.html
 msgid "Properties"
-msgstr ""
+msgstr "プロパティ"
 
 #: type/type/view.html
 msgid "of type"
-msgstr ""
+msgstr "タイプ："
 
 #: type/type/view.html
 msgid "Backreferences"
-msgstr ""
+msgstr "逆参照"
 
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)sを編集中"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "編集中："
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "表示名"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "管理ページ"
 
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "<a href=\"%(username)s/books/currently-reading\">読書中</a>、<a href=\"%(username)s/books/already-read\">読了</a>、<a href=\"%(username)s/books/want-to-read\">読みたい</a>、<a href=\"%(username)s/books/stopped-reading\">読書中断</a>の本を公開共有しています！"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "あなたは次の情報を"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "非公開"
 
 #: type/user/view.html
 msgid "Manage your privacy settings"
-msgstr ""
+msgstr "プライバシー設定を管理"
 
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "こちらは%(user)sが<a href=\"%(username)s/books/currently-reading\">読書中</a>、<a href=\"%(username)s/books/already-read\">読了</a>、<a href=\"%(username)s/books/want-to-read\">読みたい</a>、<a href=\"%(username)s/books/stopped-reading\">読書中断</a>した本です！"
 
 #: type/user/view.html
 msgid "My Lists"
-msgstr ""
+msgstr "マイリスト"
 
 #: RecentChangesUsers.html type/user/view.html
 msgid "No edits. Yet."
-msgstr ""
+msgstr "編集なし。まだ。"
 
 #: type/usergroup/edit.html
 msgid "Members:"
-msgstr ""
+msgstr "メンバー："
 
 #: SearchResultsWork.html type/work/editions.html
 #, python-format
 msgid "First published in %(year)s"
-msgstr ""
+msgstr "%(year)sに初出版"
 
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "%(work)sの別の版を追加"
 
 #: UserEditRow.html type/work/editions.html
 msgid "Add another"
-msgstr ""
+msgstr "もう一つ追加"
 
 #: type/work/editions.html
 msgid "Title missing"
-msgstr ""
+msgstr "タイトルがありません"
 
 #: type/work/editions_datatable.html
 #, python-format
@@ -7161,40 +7161,40 @@ msgstr[1] ""
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "%(count)d版をすべて見る？"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
-msgstr ""
+msgstr "版"
 
 #: type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
+msgstr "利用可否"
 
 #: type/work/editions_datatable.html
 msgid "No editions available"
-msgstr ""
+msgstr "利用可能な版はありません"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
+msgstr "別の版を追加しますか？"
 
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "%(store)sでこの版を購入"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "これらのリンクを使用して本を購入すると、Internet Archiveが<a class=\"nostyle\" href=\"/help/faq/about#selling\">少額の手数料</a>を得る場合があります。"
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
-msgstr ""
+msgstr "価格を取得中"
 
 #: BatchImportNavigation.html
 msgid "Pending Imports"
-msgstr ""
+msgstr "保留中のインポート"
 
 #: BookByline.html
 #, python-format
@@ -7205,27 +7205,27 @@ msgstr[1] ""
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
-msgstr ""
+msgstr "<em>不明な著者</em>による"
 
 #: BookPreview.html
 msgid "Preview Only"
-msgstr ""
+msgstr "プレビューのみ"
 
 #: BookPreview.html
 msgid "Preview Book"
-msgstr ""
+msgstr "本をプレビュー"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "ウェブサイトのテンプレートは現在無効です。編集してもライブサイトには影響しません。"
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "前のセクションへ"
 
 #: EditionNavBar.html
 msgid "Overview"
-msgstr ""
+msgstr "概要"
 
 #: EditionNavBar.html
 #, fuzzy, python-format
@@ -7243,62 +7243,62 @@ msgstr[1] ""
 
 #: EditionNavBar.html
 msgid "Related Books"
-msgstr ""
+msgstr "関連書籍"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "次のセクションへ"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "フォロー解除"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "フォロワーの更新に失敗しました。しばらく後でもう一度お試しください。"
 
 #: FormatExpiry.html
 msgid "Expires"
-msgstr ""
+msgstr "有効期限"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "本文検索の一致を確認中"
 
 #: FulltextSearchSuggestion.html
 msgid "Search Inside Icon"
-msgstr ""
+msgstr "本文検索アイコン"
 
 #: FulltextSearchSuggestion.html
 msgid "search inside icon"
-msgstr ""
+msgstr "本文検索アイコン"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "一致する箇所のある%(book_count)s冊が見つかりました"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "%(results_count)s件の本文検索結果をすべて表示"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "右矢印"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "ページ：%(page)s"
 
 #: IABook.html
 #, python-format
