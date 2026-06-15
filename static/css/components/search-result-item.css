@@ -92,7 +92,7 @@
     var(--spacing-inline-sm) var(--spacing-inline-sm);
   border-radius: var(--border-radius-circle);
   background-color: var(--lightest-grey);
-  background-image: url("/static/images/icons/avatar_author.png");
+  background-image: url(/static/images/icons/avatar_author.png);
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;

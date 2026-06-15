@@ -731,7 +731,7 @@ msgstr ""
 #: books/add.html books/edit.html books/edit/edition.html
 #: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
 #: search/search_modal_i18n.html search/work_search_selected_facets.html
-#: status.html
+#: status.html work_search.html
 msgid "Author"
 msgstr ""
 

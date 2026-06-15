@@ -148,8 +148,7 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
     @classmethod
     def validate_facets(cls, v: list[str]) -> list[str]:
         allowed = set(WorkSearchScheme.facet_fields)
-        invalid = sorted(set(v) - allowed)
-        if invalid:
+        if invalid := sorted(set(v) - allowed):
             raise ValueError(f"Unsupported facet field(s): {', '.join(invalid)}")
         return v
 
