@@ -25,6 +25,9 @@ $if test or (books and len(books) >= min_books):
             'booksPerBreakpoint': [4, 4, 4, 3, 2, 1] if compact_mode else [6, 5, 4, 3, 2, 1],
             'analyticsCategory': 'BookCarousel',
             'carouselKey': key,
+            'i18n': {
+              'loading': _("Loading..."),
+            },
             'loadMore': {
               "queryType": load_more.get("queryType", ""),
               "q": load_more.get("q", ""),

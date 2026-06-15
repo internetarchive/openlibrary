@@ -9,23 +9,30 @@ its experience. This does not include public facing APIs with LTS
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from typing import Annotated, Any, Literal
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
 from pydantic import BaseModel, BeforeValidator, Field
+from starlette.responses import RedirectResponse
 
+from openlibrary import accounts
 from openlibrary.core import lending, models
+from openlibrary.core.bestbook import Bestbook
+from openlibrary.core.follows import PubSub
 from openlibrary.core.models import Booknotes
 from openlibrary.core.observations import get_observation_metrics
 from openlibrary.fastapi.auth import (
     AuthenticatedUser,
+    get_authenticated_user,
     require_authenticated_user,
 )
 from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import get_price_data_async
+from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
@@ -305,8 +312,40 @@ async def price_api(
     return await get_price_data_async(isbn or "", asin or "")
 
 
-async def patrons_follows_json():
-    pass
+class FollowEntry(BaseModel):
+    subscriber: str
+    publisher: str
+    disabled: bool
+    updated: datetime | None = None
+    created: datetime | None = None
+
+
+@router.get("/people/{username}/follows.json", response_model=list[FollowEntry])
+async def get_patron_follows(
+    username: Annotated[str, Path(pattern=r"^[^/]+$")],
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    redir_url: Annotated[str, Query()] = "",
+) -> list[FollowEntry] | RedirectResponse:
+    if not user or user.username != username:
+        return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
+    return PubSub.get_following(username)
+
+
+@router.post("/people/{username}/follows.json")
+async def post_patron_follows(
+    username: Annotated[str, Path(pattern=r"^[^/]+$")],
+    user: Annotated[AuthenticatedUser | None, Depends(get_authenticated_user)],
+    publisher: Annotated[str, Form()],
+    redir_url: Annotated[str, Form()] = "/",
+    state: Annotated[str, Form()] = "",
+) -> RedirectResponse:
+    if not user or user.username != username:
+        return RedirectResponse(url=f"/account/login?{urlencode({'redir_url': redir_url})}", status_code=303)
+    if not accounts.find(username=publisher):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    action = PubSub.subscribe if state == "0" else PubSub.unsubscribe
+    action(user.username, publisher)
+    return RedirectResponse(url=redir_url, status_code=303)
 
 
 async def patrons_observations():
@@ -327,12 +366,61 @@ async def public_observations(
     return {"observations": {w: get_observation_metrics(w) for w in olid}}
 
 
-async def bestbook_award():
-    pass
+class BestbookAwardResponse(BaseModel):
+    success: bool | None = Field(None, description="Whether the award operation succeeded")
+    award: int | None = Field(None, description="Award id returned by the award insert")
+    rows: int | None = Field(None, description="Number of rows affected by award removal")
+    errors: str | None = Field(None, description="Award operation error message")
 
 
-async def bestbook_count():
-    pass
+class BestbookCountResponse(BaseModel):
+    count: int = Field(..., description="Number of bestbook awards matching the filters")
+
+
+BestbookAwardOp = Literal["add", "remove", "update"]
+
+
+@router.post(
+    "/works/OL{work_id}W/awards.json",
+    response_model=BestbookAwardResponse,
+    response_model_exclude_none=True,
+)
+async def post_bestbook_award(
+    work_id: Annotated[int, Path(gt=0)],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    query_op: Annotated[BestbookAwardOp | None, Query(alias="op")] = None,
+    query_edition_key: Annotated[str | None, Query(alias="edition_key")] = None,
+    query_topic: Annotated[str | None, Query(alias="topic")] = None,
+    query_comment: Annotated[str | None, Query(alias="comment")] = None,
+    form_op: Annotated[BestbookAwardOp | None, Form(alias="op")] = None,
+    form_edition_key: Annotated[str | None, Form(alias="edition_key")] = None,
+    form_topic: Annotated[str | None, Form(alias="topic")] = None,
+    form_comment: Annotated[str | None, Form(alias="comment")] = None,
+) -> dict:
+    """Store, update, or remove a bestbook award for a work."""
+    """
+    This endpoint accepts both form data and query parameters, and uses an op parameter to indicate the requested operation.
+    This is not the preferred API design; new endpoints should use standard HTTP methods instead.
+    This structure is maintained only for backward compatibility with the legacy endpoint. Do not copy this pattern for new code.
+    """
+    return bestbook_award.process_bestbook_award(
+        work_id=work_id,
+        op=form_op if form_op is not None else query_op or "add",
+        edition_key=form_edition_key if form_edition_key is not None else query_edition_key,
+        topic=form_topic if form_topic is not None else query_topic,
+        comment=form_comment if form_comment is not None else query_comment or "",
+        username=user.username,
+    )
+
+
+@router.get("/awards/count.json", response_model=BestbookCountResponse)
+async def get_bestbook_count(
+    work_id: Annotated[str | None, Query()] = None,
+    username: Annotated[str | None, Query()] = None,
+    topic: Annotated[str | None, Query()] = None,
+) -> BestbookCountResponse:
+    """Get a count of bestbook awards matching the optional filters."""
+    return BestbookCountResponse(count=Bestbook.get_count(work_id=work_id, username=username, topic=topic))
 
 
 async def unlink_ia_ol():

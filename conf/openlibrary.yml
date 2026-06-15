@@ -55,25 +55,19 @@ plugin_worksearch:
 http_request_timeout: 10
 
 features:
-    cache_most_recent: enabled
     debug: enabled
     dev: enabled
     history_v2: admin
-    inlibrary: enabled
-    lending_v2: enabled
     lists: enabled
     merge-authors:
         filter: usergroup
         usergroup: /usergroup/librarians
-    merge-editions: admin
     publishers: enabled
     recentchanges_v2: enabled
     stats: enabled
     stats-header: enabled
     superfast: enabled
-    support: admin
     undo: enabled
-    upstream: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream

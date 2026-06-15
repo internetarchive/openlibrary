@@ -1,0 +1,165 @@
+/**
+ * ol-banner — shared styles for the <ol-banner> custom element.
+ *
+ * The component renders into the light DOM (see OlBanner.js), so all of
+ * its styling lives here, in the document. The box styles sit on the
+ * <ol-banner> tag itself, which means the banner is fully styled at
+ * first paint — before the component JS runs — and the upgrade only adds
+ * the icon and close button.
+ *
+ * Phase 1 — before the JS runs:
+ *   <ol-banner> holds the server-rendered announcement. The tag carries
+ *   the tinted surface, and a ::before placeholder reserves the icon
+ *   circle's spot so hydration causes no layout shift.
+ *
+ * Phase 2 — after the JS runs (`hydrated` attribute set):
+ *   The component has rendered .ol-banner__icon / __content / __close
+ *   children; the ::before placeholder is dropped.
+ *
+ * Each variant sets a single accent custom property; the surface tint,
+ * border, and icon circle all derive from it via color-mix so the
+ * palette stays in lockstep.
+ */
+
+ol-banner {
+  --banner-accent: var(--primary-blue);
+
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-inline-md);
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  background-color: color-mix(in srgb, var(--banner-accent) 8%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--banner-accent) 30%, var(--white));
+  border-radius: var(--border-radius-notification);
+  color: var(--darker-grey);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  line-height: 1.4;
+
+  /* Exit only — banners show on every page view, so they must not
+     animate in (frequency principle) */
+  transition:
+    opacity 200ms ease-out,
+    transform 200ms ease-out;
+}
+
+ol-banner[variant="success"] {
+  --banner-accent: var(--green);
+}
+
+ol-banner[variant="warning"] {
+  --banner-accent: var(--orange);
+}
+
+ol-banner[variant="danger"] {
+  --banner-accent: var(--red);
+}
+
+/* Plain appearance: flush edges for banners that abut other UI */
+ol-banner[appearance="plain"] {
+  border: none;
+  border-radius: 0;
+}
+
+ol-banner[data-closing] {
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ol-banner {
+    transition: none;
+  }
+}
+
+/* Filled icon circle — same treatment as ol-toast. Pre-hydration, a
+   ::before placeholder draws the same circle (sans glyph) so the icon
+   appearing doesn't shift the text. */
+ol-banner:not([hydrated])::before {
+  content: "";
+}
+
+ol-banner:not([hydrated])::before,
+ol-banner > .ol-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px; /* optically center against the first text line */
+  border-radius: var(--border-radius-circle);
+  background-color: var(--banner-accent);
+  color: var(--white);
+}
+
+/* A custom icon child ([slot="icon"]) renders inside the circle once
+   hydrated; keep it hidden before then (the placeholder stands in). */
+ol-banner:not([hydrated]) > [slot="icon"] {
+  display: none;
+}
+
+ol-banner > .ol-banner__content {
+  flex: 1;
+}
+
+/* Reserve the close button's column pre-hydration so it doesn't reflow
+   the content when it appears. */
+ol-banner[dismissible]:not([hydrated])::after {
+  content: "";
+  flex-shrink: 0;
+  /* Match the hydrated close button's footprint so it appears without shift */
+  width: 28px;
+}
+
+ol-banner > .ol-banner__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  /* Comfortable hit area (WCAG 2.2 target minimum) */
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-sm);
+  color: var(--accessible-grey);
+  cursor: pointer;
+}
+
+ol-banner > .ol-banner__close svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  ol-banner > .ol-banner__close:hover {
+    color: var(--darker-grey);
+  }
+}
+
+ol-banner > .ol-banner__close:focus {
+  outline: none;
+}
+
+ol-banner > .ol-banner__close:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+ol-banner > .ol-banner__close:active {
+  transform: scale(0.92);
+}
+
+/* Warning's icon is a self-contained, filled caution-triangle (see OlBanner.js)
+   rather than the circular badge the other variants use, so drop the circle
+   background and let the SVG be the whole shape. (Placed last to keep selector
+   specificity ascending — see no-descending-specificity.) */
+ol-banner[variant="warning"] > .ol-banner__icon,
+ol-banner[variant="warning"]:not([hydrated])::before {
+  background: transparent;
+}

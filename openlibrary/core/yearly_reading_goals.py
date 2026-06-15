@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import ClassVar
 
 from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
 
@@ -25,16 +26,28 @@ class YearlyReadingGoals:
         oldb.insert(cls.TABLENAME, username=username, year=year, target=target)
 
     # Read methods:
+    # web.db's `order=` kwarg is interpolated raw into the SQL string -- only
+    # `vars=` substitutions are parameterized -- so any caller passing a
+    # user-controlled `order` would have a SQLi sink in the same shape as the
+    # /merges bug fixed in PR #12460. Restrict callers to a known set.
+    _ALLOWED_ORDERS: ClassVar[dict[str, str]] = {
+        "year ASC": "year ASC",
+        "year DESC": "year DESC",
+    }
+
     @classmethod
     def select_by_username(cls, username: str, order: str = "year ASC") -> list[dict]:
         oldb = db.get_db()
+
+        if order not in cls._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(cls._ALLOWED_ORDERS)}.")
 
         where = "username=$username"
         data = {
             "username": username,
         }
 
-        return list(oldb.select(cls.TABLENAME, where=where, order=order, vars=data))
+        return list(oldb.select(cls.TABLENAME, where=where, order=cls._ALLOWED_ORDERS[order], vars=data))
 
     @classmethod
     def select_by_username_and_year(cls, username: str, year: int) -> list[dict]:

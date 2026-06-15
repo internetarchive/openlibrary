@@ -3,6 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
+import './experiments.js';
 import '../../../../static/css/js-all.css';
 import { queueAction } from './utils';
 
@@ -490,6 +491,12 @@ jQuery(function() {
     if (banners.length) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initDismissibleBanners(banners));
+    }
+
+    // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
+    if (document.querySelector('ol-banner[dismiss-id]')) {
+        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+            .then(module => module.initOlBannerDismissals());
     }
 
     const returnForms = document.querySelectorAll('.return-form');

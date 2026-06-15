@@ -644,19 +644,19 @@ class account_login(delegate.page):
             )
         email = email or audit.get("ia_email") or audit.get("ol_email")
 
-        if ol_account := OpenLibraryAccount.get_by_email(email):
-            _set_login_cookies(audit, ol_account, remember=remember)
+        ol_account = OpenLibraryAccount.get_by_email(email)
+        _set_login_cookies(audit, ol_account, remember=remember)
 
-            if web.cookies().get("pda"):
-                add_flash_message(
-                    "info",
-                    _(
-                        "Thank you for registering an Open Library account and "
-                        "requesting special print disability access. You should receive "
-                        "an email detailing next steps in the process."
-                    ),
-                )
-                web.setcookie("pda", "", expires=1)
+        if ol_account and web.cookies().get("pda"):
+            add_flash_message(
+                "info",
+                _(
+                    "Thank you for registering an Open Library account and "
+                    "requesting special print disability access. You should receive "
+                    "an email detailing next steps in the process."
+                ),
+            )
+            web.setcookie("pda", "", expires=1)
 
         blacklist = [
             "/account/login",
@@ -669,6 +669,8 @@ class account_login(delegate.page):
 
         if not is_safe_redirect(redirect) or any(path in redirect for path in blacklist):
             redirect = "/account/books"
+        else:
+            web.setcookie("pending_action", "", expires=-1)
         stats.increment("ol.account.xauth.login")
         raise web.seeother(redirect)
 

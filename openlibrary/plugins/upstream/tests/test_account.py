@@ -6,6 +6,7 @@ import pytest
 import web
 
 from openlibrary.accounts.model import create_link_doc
+from openlibrary.utils.request_context import RequestContextVars, req_context
 
 from .. import account
 from ..account import account_login, account_verify
@@ -262,3 +263,47 @@ class TestAccountLoginSetCookies:
         handler = account_login()
         handler.set_cookies(remember=False, session="abc123")
         mock_web.setcookie.assert_called_once_with("session", "abc123", expires="")
+
+
+class TestAccountLoginRedirect:
+    def setup_method(self):
+        self._req_context_token = req_context.set(
+            RequestContextVars(
+                x_forwarded_for=None,
+                user_agent="pytest-agent",
+                lang="en",
+                solr_editions=True,
+                print_disabled=False,
+                sfw=False,
+                is_recognized_bot=False,
+                is_bot=False,
+            )
+        )
+
+    def teardown_method(self):
+        req_context.reset(self._req_context_token)
+
+    @mock.patch("openlibrary.plugins.upstream.account.audit_accounts")
+    @mock.patch("openlibrary.plugins.upstream.account.OpenLibraryAccount")
+    @mock.patch("openlibrary.plugins.upstream.account.web")
+    @mock.patch("openlibrary.plugins.upstream.account.stats")
+    def test_login_deletes_preserve_intent_cookie_on_valid_redirect(self, mock_stats, mock_web, mock_ol_account_cls, mock_audit_accounts):
+        handler = account_login()
+        mock_audit_accounts.return_value = {"ia_email": "test@example.com"}
+        mock_ol_account_cls.get_by_email.return_value = mock.MagicMock()
+        mock_web.seeother.side_effect = Exception("seeother")
+
+        # Case 1: Valid redirect string -> deletes preserve intent cookie
+        with pytest.raises(Exception, match="seeother"):
+            handler.login(username="test", password="pwd", redirect="/books")
+        mock_web.setcookie.assert_any_call("pending_action", "", expires=-1)
+        mock_web.seeother.assert_called_with("/books")
+
+        mock_web.reset_mock()
+
+        # Case 2: Invalid redirect string -> redirects to fallback without deleting cookie
+        with pytest.raises(Exception, match="seeother"):
+            handler.login(username="test", password="pwd", redirect="http://evil.com")
+        for call in mock_web.setcookie.call_args_list:
+            assert call[0][0] != "pending_action"
+        mock_web.seeother.assert_called_with("/account/books")

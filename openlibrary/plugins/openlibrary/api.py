@@ -336,6 +336,7 @@ async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:
     return metadata
 
 
+@deprecated("migrated to fastapi")
 class patrons_follows_json(delegate.page):
     path = r"(/people/[^/]+)/follows"
     encoding = "json"
@@ -522,6 +523,7 @@ class create_qrcode(delegate.page):
             return delegate.RawText(buf.getvalue())
 
 
+@deprecated("migrated to fastapi")
 class bestbook_award(delegate.page):
     path = r"/works/OL(\d+)W/awards"
     encoding = "json"
@@ -585,6 +587,7 @@ class bestbook_award(delegate.page):
         return {"errors": ", ".join(errors)}
 
 
+@deprecated("migrated to fastapi")
 class bestbook_count(delegate.page):
     """API for award count"""
 
