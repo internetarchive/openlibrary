@@ -66,7 +66,7 @@ def load_components():
     """
     try:
         manifest = json.loads(MANIFEST_PATH.read_text())
-    except (OSError, ValueError):
+    except OSError, ValueError:
         logger.warning("Could not read Custom Elements Manifest at %s", MANIFEST_PATH)
         return {}
     components = {}
