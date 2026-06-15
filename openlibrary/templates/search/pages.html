@@ -1,0 +1,43 @@
+$def with (q, resp=None, offset=0, limit=10)
+
+$var title: $_('Page search results')
+
+$:macros.SearchNavigation()
+
+<div id="contentBody">
+
+<form class="pageSearch searchInsideForm" action="/search/pages">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+</form>
+
+  $if resp and resp.error:
+    <center>
+      <div class="red">$:_('Search is temporarily unavailable. Please try again shortly.')</div>
+    </center>
+  $elif q and resp and resp.num_found:
+    <div class="search-results-stats">
+      $ungettext('%(count)s result', '%(count)s results', resp.num_found, count=commify(resp.num_found))
+    </div>
+    <div class="mybooks-list">
+      <ul id="listResults" class="list-books">
+        $for doc in resp.docs:
+          <li class="searchResultItem">
+            <a href="$doc['key']">$doc.get('title', doc['key'])</a>
+          </li>
+      </ul>
+    </div>
+
+    <div class="search-results-nav">
+      $if offset > 0:
+        <a href="/search/pages?q=$urlencode(q)&offset=$(offset - limit)&limit=$limit">&laquo; $:_('Previous')</a>
+      $if offset + limit < resp.num_found:
+        <a href="/search/pages?q=$urlencode(q)&offset=$(offset + limit)&limit=$limit">$:_('Next') &raquo;</a>
+    </div>
+
+  $elif q:
+    <center>
+      <div class="red">$:_('No <strong>page</strong> results found for your search')</div>
+    </center>
+
+</div>

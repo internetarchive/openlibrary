@@ -33,6 +33,7 @@ from openlibrary.plugins.upstream.utils import (
 from openlibrary.plugins.worksearch.schemes.authors import AuthorSearchScheme
 from openlibrary.plugins.worksearch.schemes.editions import EditionSearchScheme
 from openlibrary.plugins.worksearch.schemes.lists import ListSearchScheme
+from openlibrary.plugins.worksearch.schemes.pages import PageSearchScheme
 from openlibrary.plugins.worksearch.schemes.subjects import SubjectSearchScheme
 from openlibrary.plugins.worksearch.schemes.works import (
     WorkSearchScheme,
@@ -862,6 +863,30 @@ class ListSearchRequest:
             fields=fields,
             sort=i.get("sort", ""),
             api=i.get("api", ""),
+        )
+
+
+class page_search(delegate.page):
+    path = '/search/pages'
+
+    def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+        q = i.q.strip()
+        offset = min(safeint(i.offset, 0), 10_000)
+        limit = min(safeint(i.limit, 10), 100)
+        resp = (
+            run_solr_query(
+                PageSearchScheme(),
+                {'q': q},
+                offset=offset,
+                rows=limit,
+                request_label='PAGE_SEARCH',
+            )
+            if q
+            else None
+        )
+        return render_template(
+            'search/pages', q=q, resp=resp, offset=offset, limit=limit
         )
 
 
