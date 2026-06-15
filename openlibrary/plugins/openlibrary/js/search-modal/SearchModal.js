@@ -28,7 +28,7 @@ import {
     saveRecentSearch,
     removeRecentSearch,
 } from './constants.js';
-import { fetchLanguageOptions } from './languages.js';
+import { fetchLanguageOptions, languageOptionsWithCounts } from './languages.js';
 import { deriveAuthors } from './authorSuggestion.js';
 
 // `editions` is requested not to render it, but to opt /search.json into the
@@ -880,7 +880,9 @@ export class SearchModal extends LitElement {
 
         // Curated set shown instantly; replaced by the real catalogue list
         // (translated names, volume-ranked) once _loadAllLanguages() resolves.
+        this._baseLanguageItems = DEFAULT_LANGUAGE_OPTIONS;
         this._languageItems = DEFAULT_LANGUAGE_OPTIONS;
+        this._languageFacetCounts = null;
 
         // The patron's site language as a MARC code (e.g. 'eng'), matching Solr's
         // `language` field. Mapped from the trigger's 2-letter data-search-lang in
@@ -970,6 +972,8 @@ export class SearchModal extends LitElement {
         this._results           = [];
         this._authorSuggestions = [];
         this._numFound          = null;
+        this._languageFacetCounts = null;
+        this._syncLanguageItems();
         if (clearReadableCount) this._readableCount = null;
         this._loading           = false;
         this._hasSearched       = hasSearched;
@@ -995,11 +999,20 @@ export class SearchModal extends LitElement {
     async _loadAllLanguages() {
         this._langsLoading = true;
         try {
-            this._languageItems = await fetchLanguageOptions();
+            this._baseLanguageItems = await fetchLanguageOptions();
+            this._syncLanguageItems();
         } finally {
             this._allLangsLoaded = true;
             this._langsLoading   = false;
         }
+    }
+
+    _syncLanguageItems() {
+        this._languageItems = languageOptionsWithCounts(
+            this._baseLanguageItems,
+            this._languageFacetCounts,
+            this._languages
+        );
     }
 
     // ── Render ────────────────────────────────────────────────────────────
@@ -1555,6 +1568,7 @@ export class SearchModal extends LitElement {
     _onLanguagesChange(e) {
         this._languages = [...e.detail.selected];
         ssSet(SS_LANGUAGES_KEY, JSON.stringify(this._languages));
+        this._syncLanguageItems();
         this._refetchIfActive();
     }
 
@@ -1569,6 +1583,7 @@ export class SearchModal extends LitElement {
         this._languages    = [];
         ssSet(SS_AVAILABILITY_KEY, DEFAULT_AVAILABILITY);
         ssSet(SS_LANGUAGES_KEY, JSON.stringify([]));
+        this._syncLanguageItems();
         this._refetchIfActive();
     }
 
@@ -1628,6 +1643,8 @@ export class SearchModal extends LitElement {
                 this._results           = data.docs || [];
                 this._authorSuggestions = deriveAuthors(this._results, trimmed);
                 this._numFound          = typeof data.numFound === 'number' ? data.numFound : null;
+                this._languageFacetCounts = data.facet_counts?.language || null;
+                this._syncLanguageItems();
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
@@ -1674,6 +1691,7 @@ export class SearchModal extends LitElement {
         const params = this._baseSearchParams(query);
         params.set('limit', String(RESULTS_LIMIT));
         params.set('fields', SEARCH_FIELDS.join(','));
+        params.set('facets', 'language');
         this._appendFilterParams(params);
         return `/search.json?${params.toString()}`;
     }

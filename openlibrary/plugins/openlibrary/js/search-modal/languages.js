@@ -12,7 +12,7 @@ import { DEFAULT_LANGUAGE_OPTIONS } from './constants.js';
 const ENDPOINT = '/languages.json';
 
 /**
- * @typedef {{ value: string, label: string }} LanguageOption
+ * @typedef {{ value: string, label: string, count?: string }} LanguageOption
  */
 
 /**
@@ -40,4 +40,55 @@ export async function fetchLanguageOptions({ limit = 500, timeout = 8000 } = {})
     } catch {
         return DEFAULT_LANGUAGE_OPTIONS;
     }
+}
+
+function normalizeFacetCounts(facetCounts) {
+    if (!Array.isArray(facetCounts)) return new Map();
+    return new Map(
+        facetCounts
+            .map((facet) => {
+                if (Array.isArray(facet)) {
+                    return [facet[0], Number(facet[2]) || 0];
+                }
+                return [facet?.value ?? facet?.key, Number(facet?.count) || 0];
+            })
+            .filter(([value, count]) => value && count > 0)
+    );
+}
+
+/**
+ * Add result counts to language options once a search response includes a
+ * language facet. Counted languages sort highest-first; selected languages stay
+ * in the item list even when the current facet response does not include them.
+ *
+ * @param {LanguageOption[]} options
+ * @param {Array<[string, string, number]>|Array<{value?: string, key?: string, count?: number}>|null} facetCounts
+ * @param {string[]} selected
+ * @returns {LanguageOption[]}
+ */
+export function languageOptionsWithCounts(options, facetCounts, selected = []) {
+    const baseOptions = options?.length ? options : DEFAULT_LANGUAGE_OPTIONS;
+    const counts = normalizeFacetCounts(facetCounts);
+    if (!counts.size) {
+        return baseOptions.map(({ value, label }) => ({ value, label }));
+    }
+
+    const selectedSet = new Set(selected);
+    return baseOptions
+        .filter(option => counts.has(option.value) || selectedSet.has(option.value))
+        .map((option) => {
+            const count = counts.get(option.value) || 0;
+            return {
+                value: option.value,
+                label: option.label,
+                count: count.toLocaleString(),
+                countValue: count,
+            };
+        })
+        .sort((a, b) => {
+            const selectedDiff = Number(selectedSet.has(b.value)) - Number(selectedSet.has(a.value));
+            if (selectedDiff) return selectedDiff;
+            return b.countValue - a.countValue || a.label.localeCompare(b.label);
+        })
+        .map(({ value, label, count }) => ({ value, label, count }));
 }

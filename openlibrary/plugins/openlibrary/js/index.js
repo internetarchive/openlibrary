@@ -342,6 +342,12 @@ jQuery(function() {
             .then((module) => module.initSearchFilterBar(searchFilterBar));
     }
 
+    const searchResults = document.querySelector('#searchResults[data-query]');
+    if (searchResults) {
+        import(/* webpackChunkName: "search-page-author-suggestion" */ './SearchPageAuthorSuggestion')
+            .then((module) => module.initSearchPageAuthorSuggestion(searchResults));
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')

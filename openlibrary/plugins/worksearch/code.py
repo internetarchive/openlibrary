@@ -1158,6 +1158,9 @@ async def _process_solr_search_response(response: SearchResponse, fields: str) -
     if response.highlighting is not None:
         processed_response["highlighting"] = response.highlighting
 
+    if response.facet_counts is not None:
+        processed_response["facet_counts"] = response.facet_counts
+
     # For backward compatibility
     processed_response["num_found"] = processed_response["numFound"]
 

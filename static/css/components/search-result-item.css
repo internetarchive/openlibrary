@@ -70,6 +70,42 @@
   display: block;
 }
 
+.search-page-author-suggestion {
+  border-color: var(--primary-blue);
+}
+
+.search-page-author-suggestion__link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-inline-md);
+  color: inherit;
+}
+
+.search-page-author-suggestion__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  margin: var(--spacing-inline-sm) var(--spacing-inline-md)
+    var(--spacing-inline-sm) var(--spacing-inline-sm);
+  border-radius: var(--border-radius-circle);
+  background-color: var(--lightest-grey);
+  background-image: url("/static/images/icons/avatar_author.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  overflow: hidden;
+}
+
+.search-page-author-suggestion__avatar img {
+  position: absolute;
+  width: 54px;
+  height: 54px;
+  object-fit: cover;
+}
+
 .searchResultItem a[href] {
   text-decoration: none;
 }

@@ -117,7 +117,7 @@ $ bodyclass.append('search-page')
             $:render_template("search/layout_options.html", selected_layout=layout)
         </div>
         <div class="resultsContainer search-results-container">
-        <div id="searchResults">
+        <div id="searchResults" data-query="$q_param" data-author-label="$_('Author')">
           <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
             $ works = [get_doc(d) for d in search_response.docs]
             $ add_availability([(w.get('editions') or [None])[0] or w for w in works])

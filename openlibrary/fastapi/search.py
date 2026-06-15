@@ -110,6 +110,10 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
         sorted(WorkSearchScheme.default_fetched_fields),
         description="The fields to return.",
     )
+    facets: Annotated[list[str], BeforeValidator(parse_comma_separated_list)] = Field(
+        [],
+        description="Facet fields to return.",
+    )
     query: Annotated[dict[str, Any] | None, BeforeValidator(parse_query_json)] = Field(
         None, description="A full JSON encoded solr query.", examples=['{"q": "mark"}']
     )
@@ -139,6 +143,15 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             query_fields |= set(WorkSearchScheme.field_name_map.keys())
             q = self.model_dump(include=query_fields, exclude_none=True)
             return q
+
+    @field_validator("facets")
+    @classmethod
+    def validate_facets(cls, v: list[str]) -> list[str]:
+        allowed = set(WorkSearchScheme.facet_fields)
+        invalid = sorted(set(v) - allowed)
+        if invalid:
+            raise ValueError(f"Unsupported facet field(s): {', '.join(invalid)}")
+        return v
 
 
 class SearchResponse(BaseModel):
@@ -177,9 +190,7 @@ async def search_json(
         offset=params.offset,
         limit=params.limit,
         fields=params.fields,
-        # We do not support returning facets from /search.json,
-        # so disable it. This makes it much faster.
-        facet=False,
+        facet=params.facets or False,
         spellcheck_count=params.spellcheck_count,
         request_label="BOOK_SEARCH_API",
         lang=request.state.lang,

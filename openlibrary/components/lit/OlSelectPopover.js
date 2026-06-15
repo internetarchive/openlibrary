@@ -18,7 +18,7 @@ let _idCounter = 0;
  *
  * @element ol-select-popover
  *
- * @prop {Array} items - List of `{ value, label }` objects. Settable as JSON
+ * @prop {Array} items - List of `{ value, label, count? }` objects. Settable as JSON
  *     attribute (`items='[{"value":"en","label":"English"}]'`) or property.
  * @prop {Array} selected - Array of selected `value`s. Reflects to attribute
  *     as JSON.
@@ -323,6 +323,17 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
             white-space: nowrap;
         }
 
+        .item-count {
+            flex-shrink: 0;
+            color: var(--accessible-grey);
+            font-size: var(--font-size-label-large);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .item--selected .item-count {
+            color: var(--link-blue);
+        }
+
         .empty-state {
             padding: var(--spacing-inset-md);
             text-align: center;
@@ -559,6 +570,7 @@ export class OlSelectPopover extends FocusableHostMixin(LitElement) {
                         @change=${this._onItemToggle}
                     />
                     <span class="item-label">${item.label}</span>
+                    ${item.count ? html`<span class="item-count">${item.count}</span>` : nothing}
                 </label>
             </li>
         `;

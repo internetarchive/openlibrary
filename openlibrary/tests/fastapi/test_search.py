@@ -314,6 +314,36 @@ class TestSearchEndpoint:
         assert isinstance(call_kwargs["fields"], list)
         assert call_kwargs["fields"] == expected_fields
 
+    def test_facets_are_opt_in(self, client, mock_work_search):
+        response = search(client, q="test", facets="language")
+
+        assert response.status_code == 200
+        mock_work_search.assert_called_once()
+        assert mock_work_search.call_args.kwargs["facet"] == ["language"]
+
+    def test_requested_facet_counts_are_returned(self, client, mock_work_search):
+        mock_work_search.return_value = {
+            "numFound": 2,
+            "numFoundExact": True,
+            "num_found": 2,
+            "start": 0,
+            "docs": [],
+            "facet_counts": {"language": [["eng", "English", 2]]},
+            "q": "",
+            "offset": None,
+        }
+
+        response = search(client, q="test", facets="language")
+
+        assert response.status_code == 200
+        assert response.json()["facet_counts"] == {"language": [["eng", "English", 2]]}
+
+    def test_invalid_facets_are_rejected(self, client, mock_work_search):
+        response = search(client, q="test", facets="not_a_facet")
+
+        assert response.status_code == 422
+        mock_work_search.assert_not_called()
+
 
 def test_public_api_params():
     """
