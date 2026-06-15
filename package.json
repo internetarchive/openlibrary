@@ -25,9 +25,7 @@
     "lint-fix:css": "stylelint --fix \"static/**/*.css\" \"openlibrary/**/*.css\"",
     "serve": "node openlibrary/components/dev/serve-component.js && cd openlibrary/components/dev && vite",
     "test": "npm run test:js && bundlesize",
-    "test:js": "jest",
-    "storybook": "cd stories && npm install --no-audit && npx storybook dev -p 6006",
-    "build-storybook": "cd stories && npm install --no-audit && npx storybook build"
+    "test:js": "jest"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
