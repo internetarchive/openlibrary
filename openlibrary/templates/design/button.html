@@ -6,12 +6,13 @@ $def with (api)
 
   <section class="example">
     <h3 class="example__title">Variants</h3>
-    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Primary&lt;/ol-button&gt;
-&lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt;
+    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Secondary&lt;/ol-button&gt;
+&lt;ol-button variant="primary"&gt;Primary&lt;/ol-button&gt;
 &lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code></pre>
+    <p>Secondary is the default — a bare <code>&lt;ol-button&gt;</code> renders as secondary. Set <code>variant="primary"</code> for the high-emphasis style.</p>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button>Primary</ol-button>
-      <ol-button variant="secondary">Secondary</ol-button>
+      <ol-button>Secondary</ol-button>
+      <ol-button variant="primary">Primary</ol-button>
       <ol-button variant="destructive">Destructive</ol-button>
     </div>
   </section>
@@ -32,8 +33,8 @@ $def with (api)
     <h3 class="example__title">Disabled</h3>
     <pre class="example__code"><code class="language-html">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button disabled>Primary</ol-button>
-      <ol-button variant="secondary" disabled>Secondary</ol-button>
+      <ol-button disabled>Secondary</ol-button>
+      <ol-button variant="primary" disabled>Primary</ol-button>
       <ol-button variant="destructive" disabled>Destructive</ol-button>
     </div>
   </section>
@@ -43,8 +44,8 @@ $def with (api)
     <p>Toggle the <code>loading</code> attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code></pre>
     <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
-      <ol-button loading>Save</ol-button>
-      <ol-button variant="secondary" loading>Cancel</ol-button>
+      <ol-button variant="primary" loading>Save</ol-button>
+      <ol-button loading>Cancel</ol-button>
       <ol-button variant="destructive" loading>Delete</ol-button>
     </div>
   </section>

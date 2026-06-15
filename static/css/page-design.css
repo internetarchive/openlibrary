@@ -48,11 +48,11 @@
 
 .design-pattern-nav__list a {
   display: block;
-  padding: 8px 12px;
+  padding: 5px 6px;
   border-radius: var(--border-radius-card);
   text-decoration: none;
   color: var(--dark-grey);
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-medium);
   white-space: nowrap;
   transition: background-color 0.15s;
 }
@@ -69,6 +69,15 @@
   margin: 0;
   padding: 0;
   display: contents;
+}
+
+/* A separate nav group for playground-style demos (e.g. Control alignment)
+   that aren't single components, set off from the main list by a divider. On
+   mobile the divider is a leading vertical rule in the horizontal scroller. */
+.design-pattern-nav__list--playground {
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: var(--border-divider);
 }
 
 /* Main content area */
@@ -164,7 +173,16 @@ pre.example__code code[class*="language-"] {
   }
 
   .design-pattern-nav__list a {
-    padding: 6px 12px;
+    padding: 4px 6px;
+  }
+
+  /* Desktop: the playground group stacks below the main list with a horizontal
+     divider above it (overriding the mobile vertical rule). */
+  .design-pattern-nav__list--playground {
+    margin: var(--spacing-stack-sm) 0 0;
+    padding: var(--spacing-stack-sm) 0 0;
+    border-left: none;
+    border-top: var(--border-divider);
   }
 
   /* Desktop: nested links stack under their parent, indented and marked with a
@@ -199,6 +217,32 @@ pre.example__code code[class*="language-"] {
   display: inline-flex;
   outline: 1px dashed var(--color-border-subtle);
   outline-offset: 2px;
+}
+
+/* A bare native input, height-locked to the same control-height tokens so it
+   joins the alignment check alongside the button and segmented control. */
+.control-row__field {
+  box-sizing: border-box;
+  width: 12ch;
+  padding: 0 var(--spacing-inset-sm);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-body-medium);
+  color: var(--dark-grey);
+  background: var(--white);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--border-radius-button);
+}
+
+.control-row__field--small {
+  height: var(--control-height-small);
+}
+
+.control-row__field--medium {
+  height: var(--control-height-medium);
+}
+
+.control-row__field--large {
+  height: var(--control-height-large);
 }
 
 .color-swatch {

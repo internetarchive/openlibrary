@@ -1,4 +1,5 @@
 import { LitElement, html, css, nothing } from 'lit';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 
 /**
  * OlSegmentedControl - A single-select control styled like ol-button.
@@ -8,7 +9,9 @@ import { LitElement, html, css, nothing } from 'lit';
  * so a same-size segmented control and button line up at the same height.
  *
  * Options are declared as light-DOM <ol-segment> children carrying a `value`
- * attribute; their text content is the label. They are read once on connect
+ * attribute; their content is the label — plain text, or markup such as an
+ * <svg> icon. Icon-only segments must add a `label` attribute to name the radio
+ * (used as the aria-label and a hover title). Children are read once on connect
  * and re-rendered as accessible radios in the shadow root, so the control needs
  * no per-option wiring from the consuming page.
  *
@@ -26,11 +29,19 @@ import { LitElement, html, css, nothing } from 'lit';
  * @fires ol-segmented-control-change - Fired on user selection. detail: { value: String }
  *
  * @slot - One or more <ol-segment value="…">Label</ol-segment> option elements.
+ *   A segment's content may be text or markup (e.g. an icon); add a `label`
+ *   attribute on icon-only segments for the accessible name.
  *
  * @example
  *   <ol-segmented-control value="list" accessible-label="View">
  *     <ol-segment value="grid">Grid</ol-segment>
  *     <ol-segment value="list">List</ol-segment>
+ *   </ol-segmented-control>
+ *
+ * @example
+ *   <ol-segmented-control value="grid" accessible-label="View">
+ *     <ol-segment value="grid" label="Grid"><svg ...></svg></ol-segment>
+ *     <ol-segment value="list" label="List"><svg ...></svg></ol-segment>
  *   </ol-segmented-control>
  */
 export class OlSegmentedControl extends LitElement {
@@ -59,15 +70,15 @@ export class OlSegmentedControl extends LitElement {
             cursor: not-allowed;
         }
 
+        /* A light-grey inset track. The selected segment floats inside it as a
+           white pill, so the track padding sets the gap around that pill. */
         .track {
             display: inline-flex;
             box-sizing: border-box;
             height: var(--control-height-medium);
-            padding: 0;
-            border: 1.5px solid var(--color-border-subtle);
+            padding: var(--spacing-3xs);
             border-radius: var(--border-radius-button);
-            background-color: var(--white);
-            overflow: hidden;
+            background-color: var(--lightest-grey);
         }
 
         :host([full-width]) .track {
@@ -81,10 +92,15 @@ export class OlSegmentedControl extends LitElement {
             justify-content: center;
             box-sizing: border-box;
             height: 100%;
-            padding: 0 var(--spacing-inset-md);
-            border: 0;
+            padding: 0 var(--spacing-md);
+            /* Transparent border on every segment keeps widths stable, so
+               selecting one doesn't shift its neighbors when its border shows. */
+            border: 1px solid transparent;
+            border-radius: var(--border-radius-button);
             background-color: transparent;
-            color: var(--dark-grey);
+            /* Non-selected segments are dimmed so the selected one reads as
+               active; hover and the selected pill darken back to full strength. */
+            color: var(--accessible-grey);
             font-family: var(--font-family-button);
             font-size: var(--font-size-body-medium);
             font-weight: 500;
@@ -92,30 +108,30 @@ export class OlSegmentedControl extends LitElement {
             white-space: nowrap;
             cursor: pointer;
             user-select: none;
+            /* Only the selected pill crossfades in (background/border/shadow).
+               Color is intentionally NOT transitioned so hover darkening is
+               instant — the hover effect must give immediate feedback. */
             transition:
                 background-color 0.15s,
-                color 0.15s;
+                border-color 0.15s,
+                box-shadow 0.15s;
         }
 
         :host([full-width]) .segment {
             flex: 1 1 0;
         }
 
-        /* 1px divider between segments, drawn on the left edge of every segment
-           after the first. Hidden around the selected segment so the filled
-           segment reads as a single solid block. */
-        .segment:not(:first-child) {
-            border-inline-start: 1px solid var(--color-border-subtle);
-        }
-
-        .segment[aria-checked="true"],
-        .segment[aria-checked="true"] + .segment {
-            border-inline-start-color: transparent;
+        /* Icon segments: size the glyph to the control and let it inherit the
+           segment's color so it tracks selected/hover states like text does. */
+        .segment svg {
+            display: block;
+            width: 18px;
+            height: 18px;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .segment:not([aria-checked="true"]):not(:disabled):hover {
-                background-color: var(--lightest-grey);
+                color: var(--dark-grey);
             }
         }
 
@@ -123,9 +139,15 @@ export class OlSegmentedControl extends LitElement {
             transform: scale(0.97);
         }
 
+        /* Selected segment: a raised white pill matching the secondary button
+           variant (white fill, subtle border, raised-control shadow). */
         .segment[aria-checked="true"] {
-            background-color: var(--primary-blue);
-            color: var(--white);
+            border-color: var(--color-border-subtle);
+            background-color: var(--white);
+            color: var(--dark-grey);
+            box-shadow:
+                var(--box-shadow-raised),
+                inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
         }
 
         .segment:disabled {
@@ -133,10 +155,9 @@ export class OlSegmentedControl extends LitElement {
             cursor: not-allowed;
         }
 
-        /* Focus ring sits inside the track so it isn't clipped by overflow. */
         .segment:focus-visible {
             outline: 2px solid var(--color-focus-ring);
-            outline-offset: -3px;
+            outline-offset: -2px;
         }
 
         /* Sizes — mirror ol-button so same-size controls line up. */
@@ -145,8 +166,13 @@ export class OlSegmentedControl extends LitElement {
         }
 
         :host([size="small"]) .segment {
-            padding: 0 var(--spacing-md);
+            padding: 0 var(--spacing-sm);
             font-size: var(--font-size-label-medium);
+        }
+
+        :host([size="small"]) .segment svg {
+            width: 16px;
+            height: 16px;
         }
 
         :host([size="large"]) .track {
@@ -154,8 +180,13 @@ export class OlSegmentedControl extends LitElement {
         }
 
         :host([size="large"]) .segment {
-            padding: 0 var(--spacing-inset-lg);
+            padding: 0 var(--spacing-lg);
             font-size: var(--font-size-body-large);
+        }
+
+        :host([size="large"]) .segment svg {
+            width: 20px;
+            height: 20px;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -188,11 +219,21 @@ export class OlSegmentedControl extends LitElement {
     // The light-DOM children stay in the DOM (hidden via ol-components.css) but
     // are never slotted — the shadow root renders the interactive radios.
     _harvestOptions() {
-        this._options = Array.from(this.querySelectorAll('ol-segment')).map((el) => ({
-            value: el.getAttribute('value') ?? el.textContent.trim(),
-            label: el.textContent.trim(),
-            disabled: el.hasAttribute('disabled'),
-        }));
+        this._options = Array.from(this.querySelectorAll('ol-segment')).map((el) => {
+            const text = el.textContent.trim();
+            // A segment with element children carries markup (e.g. an icon);
+            // render that verbatim. A text-only segment renders its plain text.
+            const isMarkup = el.children.length > 0;
+            return {
+                value: el.getAttribute('value') ?? text,
+                content: isMarkup ? el.innerHTML.trim() : text,
+                isMarkup,
+                // Accessible name: the `label` attribute, else the text. Icon-only
+                // segments have no text, so they rely on `label`.
+                accessibleLabel: el.getAttribute('label') ?? text,
+                disabled: el.hasAttribute('disabled'),
+            };
+        });
 
         // A segmented control always has a selection. If value is unset or
         // doesn't match an option, fall back to the first enabled option.
@@ -259,21 +300,28 @@ export class OlSegmentedControl extends LitElement {
                 aria-label=${this.accessibleLabel || nothing}
                 @keydown=${this._onKeydown}
             >
-                ${this._options.map((option, i) => {
-                    const checked = option.value === this.value;
-                    return html`
-                        <button
-                            class="segment"
-                            type="button"
-                            role="radio"
-                            aria-checked=${checked ? 'true' : 'false'}
-                            tabindex=${i === activeIndex ? '0' : '-1'}
-                            ?disabled=${this.disabled || option.disabled}
-                            @click=${() => this._select(option.value)}
-                        >${option.label}</button>
-                    `;
-                })}
+                ${this._options.map((option, i) => this._renderSegment(option, i, activeIndex))}
             </div>
+        `;
+    }
+
+    _renderSegment(option, i, activeIndex) {
+        const checked = option.value === this.value;
+        // Icon-only segments have no visible text, so name them with aria-label
+        // and surface the same name as a hover title.
+        const labelAttr = option.isMarkup ? option.accessibleLabel : nothing;
+        return html`
+            <button
+                class="segment"
+                type="button"
+                role="radio"
+                aria-checked=${checked ? 'true' : 'false'}
+                aria-label=${labelAttr}
+                title=${labelAttr}
+                tabindex=${i === activeIndex ? '0' : '-1'}
+                ?disabled=${this.disabled || option.disabled}
+                @click=${() => this._select(option.value)}
+            >${option.isMarkup ? unsafeHTML(option.content) : option.content}</button>
         `;
     }
 }

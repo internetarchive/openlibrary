@@ -12,7 +12,7 @@
  * `min-height` there instead, or a different scale (e.g. --line-height-chip).
  */
 :root {
-  --control-height-small: 30px;
-  --control-height-medium: 38px;
-  --control-height-large: 46px;
+  --control-height-small: 26px;
+  --control-height-medium: 32px;
+  --control-height-large: 38px;
 }

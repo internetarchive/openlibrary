@@ -29,10 +29,13 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </li>
         <li><a href="#button">Button</a></li>
         <li><a href="#segmented-control">Segmented Control</a></li>
-        <li><a href="#control-alignment">Control alignment</a></li>
         <li><a href="#toast">Toast</a></li>
         <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
+      </ul>
+
+      <ul class="design-pattern-nav__list design-pattern-nav__list--playground">
+        <li><a href="#control-alignment">Control alignment</a></li>
       </ul>
     </nav>
 
@@ -405,58 +408,6 @@ $ _x = ctx.setdefault('cssfile', 'design')
 
       $:render_template("design/segmented-control", components.get("ol-segmented-control"))
 
-      <article class="design-pattern" id="control-alignment">
-        <h2 class="design-pattern__title">Control alignment</h2>
-        <p class="design-pattern__description">A cohesion check, not a component. Controls that share the <code>--control-height-*</code> tokens should render at the same outer height at each size. Each control below is wrapped in a dashed box that hugs its bounds, so matching heights show as aligned top and bottom edges.</p>
-
-        <p>Both controls set <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. Chips intentionally sit on a different, pill-shaped scale and are excluded.</p>
-
-        <section class="example">
-          <h3 class="example__title">Small</h3>
-          <div class="example__output control-row">
-            <span class="control-row__cell">
-              <ol-button size="small" variant="secondary">Button</ol-button>
-            </span>
-            <span class="control-row__cell">
-              <ol-segmented-control size="small" accessible-label="Alignment, small">
-                <ol-segment value="grid">Grid</ol-segment>
-                <ol-segment value="list">List</ol-segment>
-              </ol-segmented-control>
-            </span>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">Medium</h3>
-          <div class="example__output control-row">
-            <span class="control-row__cell">
-              <ol-button variant="secondary">Button</ol-button>
-            </span>
-            <span class="control-row__cell">
-              <ol-segmented-control accessible-label="Alignment, medium">
-                <ol-segment value="grid">Grid</ol-segment>
-                <ol-segment value="list">List</ol-segment>
-              </ol-segmented-control>
-            </span>
-          </div>
-        </section>
-
-        <section class="example">
-          <h3 class="example__title">Large</h3>
-          <div class="example__output control-row">
-            <span class="control-row__cell">
-              <ol-button size="large" variant="secondary">Button</ol-button>
-            </span>
-            <span class="control-row__cell">
-              <ol-segmented-control size="large" accessible-label="Alignment, large">
-                <ol-segment value="grid">Grid</ol-segment>
-                <ol-segment value="list">List</ol-segment>
-              </ol-segmented-control>
-            </span>
-          </div>
-        </section>
-      </article>
-
       $:render_template("design/toast", components.get("ol-toast"))
 
       $:render_template("design/banner", components.get("ol-banner"))
@@ -561,6 +512,85 @@ The response includes `title`, `authors`, and a `description` field formatted as
         </section>
 
         $:render_template("design/api_tables", components.get("ol-markdown-editor"))
+      </article>
+
+      <article class="design-pattern" id="control-alignment">
+        <h2 class="design-pattern__title">Control alignment</h2>
+        <p class="design-pattern__description">A cohesion check, not a component. Controls that share the <code>--control-height-*</code> tokens should render at the same outer height at each size. Each control below is wrapped in a dashed box that hugs its bounds, so matching heights show as aligned top and bottom edges.</p>
+
+        <p>Each control sets <code>height</code> (not vertical padding) from the same token with <code>box-sizing: border-box</code>, so they line up regardless of differing font sizes, borders, or content. The select-popover uses an <code>ol-button</code> as its trigger, so it inherits the button's height tokens for free. Chips intentionally sit on a different, pill-shaped scale and are excluded. Pagination is shown in the medium row as-is — it is padding-based rather than height-locked to the tokens, so this check is a way to eyeball whether it still reads as aligned.</p>
+
+        <section class="example">
+          <h3 class="example__title">Small</h3>
+          <div class="example__output control-row">
+            <span class="control-row__cell">
+              <ol-button size="small" variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control size="small" accessible-label="Alignment, small">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, small" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" size="small" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--small" type="text" value="Input" aria-label="Alignment input, small">
+            </span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Medium</h3>
+          <div class="example__output control-row">
+            <span class="control-row__cell">
+              <ol-button variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control accessible-label="Alignment, medium">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, medium" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--medium" type="text" value="Input" aria-label="Alignment input, medium">
+            </span>
+            <span class="control-row__cell">
+              <ol-pagination total-pages="5" current-page="3" label-pagination="Alignment pagination, medium"></ol-pagination>
+            </span>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Large</h3>
+          <div class="example__output control-row">
+            <span class="control-row__cell">
+              <ol-button size="large" variant="secondary">Button</ol-button>
+            </span>
+            <span class="control-row__cell">
+              <ol-segmented-control size="large" accessible-label="Alignment, large">
+                <ol-segment value="grid">Grid</ol-segment>
+                <ol-segment value="list">List</ol-segment>
+              </ol-segmented-control>
+            </span>
+            <span class="control-row__cell">
+              <ol-select-popover label="Language" search-threshold="999" aria-label="Alignment select, large" items='[{"value":"en","label":"English"},{"value":"es","label":"Spanish"},{"value":"fr","label":"French"}]'>
+                <ol-button slot="trigger" size="large" variant="secondary">Language</ol-button>
+              </ol-select-popover>
+            </span>
+            <span class="control-row__cell">
+              <input class="control-row__field control-row__field--large" type="text" value="Input" aria-label="Alignment input, large">
+            </span>
+          </div>
+        </section>
       </article>
     </main>
   </div>

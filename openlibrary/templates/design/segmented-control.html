@@ -23,6 +23,54 @@ $def with (api)
   </section>
 
   <section class="example">
+    <h3 class="example__title">Icons</h3>
+    <p>A segment's content can be markup instead of text — for example an <code>&lt;svg&gt;</code> icon for a compact grid/list view switcher. Give icon-only segments a <code>label</code> attribute so the radio is named (it's used as the accessible name and a hover title). Icons inherit the segment's color, so they track the selected and hover states automatically.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control value="grid" accessible-label="View"&gt;
+  &lt;ol-segment value="grid" label="Grid"&gt;
+    &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"&gt;
+      &lt;rect x="3" y="3" width="7" height="7" rx="1.5"/&gt;
+      &lt;rect x="14" y="3" width="7" height="7" rx="1.5"/&gt;
+      &lt;rect x="3" y="14" width="7" height="7" rx="1.5"/&gt;
+      &lt;rect x="14" y="14" width="7" height="7" rx="1.5"/&gt;
+    &lt;/svg&gt;
+  &lt;/ol-segment&gt;
+  &lt;ol-segment value="list" label="List"&gt;
+    &lt;svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"&gt;
+      &lt;line x1="4" y1="6" x2="20" y2="6"/&gt;
+      &lt;line x1="4" y1="12" x2="20" y2="12"/&gt;
+      &lt;line x1="4" y1="18" x2="20" y2="18"/&gt;
+    &lt;/svg&gt;
+  &lt;/ol-segment&gt;
+&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <ol-segmented-control size="small" value="grid" accessible-label="View (small)">
+        <ol-segment value="grid" label="Grid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </ol-segment>
+        <ol-segment value="list" label="List">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </ol-segment>
+      </ol-segmented-control>
+      <ol-segmented-control value="grid" accessible-label="View (medium)">
+        <ol-segment value="grid" label="Grid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </ol-segment>
+        <ol-segment value="list" label="List">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </ol-segment>
+      </ol-segmented-control>
+      <ol-segmented-control size="large" value="grid" accessible-label="View (large)">
+        <ol-segment value="grid" label="Grid">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        </ol-segment>
+        <ol-segment value="list" label="List">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </ol-segment>
+      </ol-segmented-control>
+    </div>
+  </section>
+
+  <section class="example">
     <h3 class="example__title">Sizes</h3>
     <p>Use <code>size</code> to match the surrounding controls. Heights track the shared <code>--control-height-*</code> tokens, so each size lines up with the same-size button.</p>
     <pre class="example__code"><code class="language-html">&lt;ol-segmented-control size="small"&gt;...&lt;/ol-segmented-control&gt;

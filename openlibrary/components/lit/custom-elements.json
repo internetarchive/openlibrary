@@ -8,7 +8,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OLButton - A pure-presentation button primitive.\n\nRenders a real <button> element into the light DOM so global CSS styles\nit both before and after hydration. Handles variants, sizes, loading,\ndisabled, and form submission for type=\"submit\" / type=\"reset\".\n\nContains no application-specific logic, copy, or translations. The\nconsuming page owns what the button *does* — this component only owns\nhow it looks and basic interaction semantics.",
+          "description": "OLButton - A pure-presentation button primitive.\n\nRenders a real <button> element into the light DOM so global CSS styles\nit both before and after hydration. Handles variants, sizes, loading,\ndisabled, and form submission for type=\"submit\" / type=\"reset\".\n\nContains no application-specific logic, copy, or translations. The\nconsuming page owns what the button *does* — this component only owns\nhow it looks and basic interaction semantics.\n\nDisclosure chevron: when the button is wired as a popover/menu trigger,\nthe controller (ol-popover / ol-select-popover) sets `aria-haspopup` and\n`aria-expanded` on it. CSS keys off those attributes to show a chevron\nthat rotates 180° while expanded — automatically, with no consumer markup.\nSuppress it with the `no-chevron` attribute.",
           "name": "OLButton",
           "slots": [
             {
@@ -24,8 +24,8 @@
               "type": {
                 "text": "String"
               },
-              "default": "'primary'",
-              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "default": "'secondary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"secondary\"",
               "attribute": "variant",
               "reflects": true
             },
@@ -92,12 +92,19 @@
           ],
           "attributes": [
             {
+              "type": {
+                "text": "Boolean"
+              },
+              "description": "Suppresses the automatic disclosure chevron shown when the button is a popover/menu trigger (has `aria-haspopup`).",
+              "name": "no-chevron"
+            },
+            {
               "name": "variant",
               "type": {
                 "text": "String"
               },
-              "default": "'primary'",
-              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"primary\"",
+              "default": "'secondary'",
+              "description": "\"primary\" | \"secondary\" | \"destructive\". Default: \"secondary\"",
               "fieldName": "variant"
             },
             {
@@ -2203,15 +2210,61 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "OlSegmentedControl - A single-select control styled like ol-button.\n\nRenders a row of mutually-exclusive options (a radio group): exactly one is\nselected at a time. It shares ol-button's height tokens and visual language,\nso a same-size segmented control and button line up at the same height.\n\nOptions are declared as light-DOM <ol-segment> children carrying a `value`\nattribute; their text content is the label.",
+          "description": "OlSegmentedControl - A single-select control styled like ol-button.\n\nRenders a row of mutually-exclusive options (a radio group): exactly one is\nselected at a time. It shares ol-button's height tokens and visual language,\nso a same-size segmented control and button line up at the same height.\n\nOptions are declared as light-DOM <ol-segment> children carrying a `value`\nattribute; their content is the label — plain text, or markup such as an\n<svg> icon. Icon-only segments must add a `label` attribute to name the radio\n(used as the aria-label and a hover title). Children are read once on connect\nand re-rendered as accessible radios in the shadow root, so the control needs\nno per-option wiring from the consuming page.\n\nContains no application logic — the consuming page owns what a selection\n*does*. Listen for the change event (or read `.value`).",
           "name": "OlSegmentedControl",
           "slots": [
             {
-              "description": "One or more <ol-segment value=\"…\">Label</ol-segment> option elements.",
+              "description": "One or more <ol-segment value=\"…\">Label</ol-segment> option elements. A segment's content may be text or markup (e.g. an icon); add a `label` attribute on icon-only segments for the accessible name.",
               "name": ""
             }
           ],
           "members": [
+            {
+              "kind": "method",
+              "name": "_harvestOptions"
+            },
+            {
+              "kind": "field",
+              "name": "_activeIndex",
+              "readonly": true
+            },
+            {
+              "kind": "method",
+              "name": "_select",
+              "parameters": [
+                {
+                  "name": "value"
+                },
+                {
+                  "name": "{ focus = false }",
+                  "default": "{}"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_onKeydown",
+              "parameters": [
+                {
+                  "name": "e"
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "_renderSegment",
+              "parameters": [
+                {
+                  "name": "option"
+                },
+                {
+                  "name": "i"
+                },
+                {
+                  "name": "activeIndex"
+                }
+              ]
+            },
             {
               "kind": "field",
               "name": "value",
@@ -2269,8 +2322,17 @@
               },
               "default": "null",
               "description": "aria-label for the radio group. Default: none.",
-              "attribute": "accessible-label",
-              "reflects": false
+              "attribute": "accessible-label"
+            },
+            {
+              "kind": "field",
+              "name": "_options",
+              "privacy": "public",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "attribute": "_options"
             }
           ],
           "events": [
@@ -2327,6 +2389,14 @@
               "default": "null",
               "description": "aria-label for the radio group. Default: none.",
               "fieldName": "accessibleLabel"
+            },
+            {
+              "name": "_options",
+              "type": {
+                "text": "array"
+              },
+              "default": "[]",
+              "fieldName": "_options"
             }
           ],
           "superclass": {
@@ -2366,18 +2436,11 @@
           "name": "OlSelectPopover",
           "slots": [
             {
-              "description": "Optional custom trigger element. When omitted, a styled default button renders showing `label` plus a \"(n)\" badge when items are selected and a chevron icon.",
+              "description": "Optional custom trigger element. When omitted, a default `<ol-button>` is injected (showing `label` plus a \"(n)\" count when items are selected); its disclosure chevron comes from ol-button automatically.",
               "name": "trigger"
             }
           ],
           "members": [
-            {
-              "kind": "field",
-              "name": "_chevronIcon",
-              "static": true,
-              "default": "html`<svg class=\"trigger-chevron\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg>`",
-              "description": "Chevron icon for the default trigger"
-            },
             {
               "kind": "field",
               "name": "_searchIcon",
@@ -2387,7 +2450,11 @@
             },
             {
               "kind": "method",
-              "name": "_renderDefaultTrigger"
+              "name": "_createDefaultTrigger"
+            },
+            {
+              "kind": "method",
+              "name": "_updateDefaultTriggerLabel"
             },
             {
               "kind": "method",

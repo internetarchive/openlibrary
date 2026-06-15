@@ -2,6 +2,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
 import './OlPopover.js';
+import './OLButton.js';
 
 let _idCounter = 0;
 
@@ -44,9 +45,9 @@ let _idCounter = 0;
  * @fires ol-select-popover-clear - Fires when the clear-selections button is
  *     clicked. A change event also fires with the cleared selection.
  *
- * @slot trigger - Optional custom trigger element. When omitted, a styled
- *     default button renders showing `label` plus a "(n)" badge when items
- *     are selected and a chevron icon.
+ * @slot trigger - Optional custom trigger element. When omitted, a default
+ *     `<ol-button>` is injected (showing `label` plus a "(n)" count when items
+ *     are selected); its disclosure chevron comes from ol-button automatically.
  *
  * @example
  * <ol-select-popover
@@ -90,65 +91,11 @@ export class OlSelectPopover extends LitElement {
             font-family: var(--font-family-body);
         }
 
-        /* ── Default trigger ─────────────────────────────────────── */
-
-        .default-trigger {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-inline-sm);
-            padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
-            background: var(--white);
-            border: 1px solid var(--color-border-subtle);
-            border-radius: var(--border-radius-button);
-            color: var(--darker-grey);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            line-height: 1.4;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            .default-trigger:hover {
-                background: var(--lightest-grey);
-            }
-        }
-
-        .default-trigger:active {
-            transform: scale(0.97);
-        }
-
-        .default-trigger:focus {
-            outline: none;
-        }
-
-        .default-trigger:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
-            outline-offset: 2px;
-        }
-
-        .trigger-count {
-            font-variant-numeric: tabular-nums;
-        }
-
-        .trigger-chevron {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            transition: transform 150ms ease-out;
-            flex-shrink: 0;
-        }
-
-        :host([data-open]) .trigger-chevron {
-            transform: rotate(180deg);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .trigger-chevron {
-                transition: none;
-            }
-        }
+        /* The default trigger is an <ol-button> injected into light DOM (see
+           _createDefaultTrigger), so it is styled by the global ol-button.css —
+           including the automatic disclosure chevron. No trigger styles live
+           here. A consumer-supplied trigger is likewise their own light-DOM
+           element. */
 
         /* ── Panel layout ────────────────────────────────────────── */
 
@@ -339,9 +286,6 @@ export class OlSelectPopover extends LitElement {
         }
     `;
 
-    /** Chevron icon for the default trigger */
-    static _chevronIcon = html`<svg class="trigger-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`;
-
     /** Search icon for the filter input */
     static _searchIcon = html`<svg class="filter-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
 
@@ -378,27 +322,65 @@ export class OlSelectPopover extends LitElement {
                     name="trigger"
                     slot="trigger"
                     @keydown=${this._onTriggerKeydown}
-                >${this._renderDefaultTrigger()}</slot>
+                ></slot>
                 ${this._renderPanel()}
             </ol-popover>
         `;
     }
 
-    _renderDefaultTrigger() {
+    // ── Default trigger (light-DOM ol-button) ────────────────────
+    //
+    // When the consumer doesn't supply their own trigger, we inject an
+    // <ol-button slot="trigger"> into our *light* DOM. It has to live in light
+    // DOM (not the shadow root) so the global ol-button.css applies — that
+    // stylesheet is what paints the button and, via aria-haspopup/aria-expanded
+    // set by the inner ol-popover, the automatic disclosure chevron. This way
+    // there is a single chevron implementation (ol-button's) for both the
+    // default trigger and any consumer-supplied ol-button.
+    //
+    // The injection happens here, in connectedCallback (before the first
+    // render), so the default trigger is a plain light-DOM child from the start
+    // — structurally identical to a consumer-supplied trigger. Injecting after
+    // render instead would re-assign slotted content mid-lifecycle and storm the
+    // inner ol-popover's slot reprojection.
+
+    connectedCallback() {
+        super.connectedCallback();
+        const hasConsumerTrigger = Array.from(this.children).some(
+            el => el !== this._defaultTrigger && el.getAttribute?.('slot') === 'trigger',
+        );
+        if (!hasConsumerTrigger && !this._defaultTrigger) {
+            this._createDefaultTrigger();
+        }
+    }
+
+    updated(changed) {
+        if (changed.has('label') || changed.has('selected')) {
+            this._updateDefaultTriggerLabel();
+        }
+    }
+
+    _createDefaultTrigger() {
+        const btn = document.createElement('ol-button');
+        btn.setAttribute('slot', 'trigger');
+        // Keep a reference to the text node's wrapper so label/count updates
+        // mutate it in place. ol-button moves this span into its own label
+        // wrapper on upgrade, but the node identity (and our ref) survives.
+        const text = document.createElement('span');
+        btn.appendChild(text);
+        this._defaultTrigger = btn;
+        this._defaultTriggerText = text;
+        this._updateDefaultTriggerLabel();
+        this.appendChild(btn);
+    }
+
+    _updateDefaultTriggerLabel() {
+        const btn = this._defaultTrigger;
+        if (!btn || !this._defaultTriggerText) return;
         const count = (this.selected || []).length;
-        const text = count > 0
+        this._defaultTriggerText.textContent = count > 0
             ? `${this.label} (${count})`
             : this.label;
-        return html`
-            <button
-                type="button"
-                class="default-trigger"
-                aria-label=${ifDefined(count > 0 ? `${this.label}, ${count} selected` : undefined)}
-            >
-                <span>${text}</span>
-                ${OlSelectPopover._chevronIcon}
-            </button>
-        `;
     }
 
     _renderPanel() {
@@ -514,7 +496,6 @@ export class OlSelectPopover extends LitElement {
     _onPopoverOpen() {
         this._isOpen = true;
         this._query = '';
-        this.setAttribute('data-open', '');
 
         if (this._pendingFocusFirst) {
             this._pendingFocusFirst = false;
@@ -531,7 +512,6 @@ export class OlSelectPopover extends LitElement {
     _onPopoverClose() {
         this._isOpen = false;
         this._pendingFocusFirst = false;
-        this.removeAttribute('data-open');
     }
 
     _onQueryInput(e) {

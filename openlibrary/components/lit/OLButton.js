@@ -11,14 +11,23 @@ import { LitElement, html } from 'lit';
  * consuming page owns what the button *does* — this component only owns
  * how it looks and basic interaction semantics.
  *
+ * Disclosure chevron: when the button is wired as a popover/menu trigger,
+ * the controller (ol-popover / ol-select-popover) sets `aria-haspopup` and
+ * `aria-expanded` on it. CSS keys off those attributes to show a chevron
+ * that rotates 180° while expanded — automatically, with no consumer markup.
+ * Suppress it with the `no-chevron` attribute.
+ *
  * @element ol-button
  *
- * @prop {String}  variant    - "primary" | "secondary" | "destructive". Default: "primary"
+ * @prop {String}  variant    - "primary" | "secondary" | "destructive". Default: "secondary"
  * @prop {String}  size       - "small" | "medium" | "large". Default: "medium"
  * @prop {String}  type       - "button" | "submit" | "reset". Default: "button"
  * @prop {Boolean} loading    - Shows a spinner and disables interaction.
  * @prop {Boolean} disabled   - Disables interaction.
  * @prop {Boolean} fullWidth  - Button expands to fill its container.
+ *
+ * @attr {Boolean} no-chevron - Suppresses the automatic disclosure chevron
+ *   shown when the button is a popover/menu trigger (has `aria-haspopup`).
  *
  * @slot - Default slot carries the button label.
  *
@@ -44,7 +53,7 @@ export class OLButton extends LitElement {
 
     constructor() {
         super();
-        this.variant = 'primary';
+        this.variant = 'secondary';
         this.size = 'medium';
         this.type = 'button';
         this.loading = false;
@@ -83,12 +92,16 @@ export class OLButton extends LitElement {
         // ::before on the button) because the scale-in transition and the
         // rotation animation both need `transform` — splitting them across the
         // wrapper span and its ::before keeps them from stepping on each other.
+        //
+        // The chevron is always rendered but hidden by CSS unless the button is
+        // a disclosure trigger (ol-popover / ol-select-popover set aria-haspopup
+        // on it). That keeps the trigger affordance automatic — no consumer markup.
         return html`
             <button
                 type=${this.type}
                 ?disabled=${this.loading || this.disabled}
                 aria-busy=${this.loading ? 'true' : 'false'}
-            >${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span></button>
+            >${this._label}<span class="ol-btn-spinner" aria-hidden="true"></span><span class="ol-btn-chevron" aria-hidden="true"></span></button>
         `;
     }
 }
