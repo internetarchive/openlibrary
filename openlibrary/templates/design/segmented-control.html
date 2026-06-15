@@ -1,0 +1,112 @@
+$def with (api)
+
+<article class="design-pattern" id="segmented-control">
+  <h2 class="design-pattern__title">Segmented Control</h2>
+  <p class="design-pattern__description">The <code>ol-segmented-control</code> component is a single-select control for a small set of mutually exclusive options — a styled radio group. It shares <code>ol-button</code>'s height tokens and visual language, so a same-size control and button line up at the same height.</p>
+
+  <p>Options are declared as <code>&lt;ol-segment&gt;</code> children with a <code>value</code> attribute; their text is the label. The component reads them once and renders accessible radios — no per-option wiring needed. Exactly one option is always selected.</p>
+
+  <section class="example">
+    <h3 class="example__title">Basic</h3>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control value="list" accessible-label="View"&gt;
+  &lt;ol-segment value="grid"&gt;Grid&lt;/ol-segment&gt;
+  &lt;ol-segment value="list"&gt;List&lt;/ol-segment&gt;
+  &lt;ol-segment value="compact"&gt;Compact&lt;/ol-segment&gt;
+&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output">
+      <ol-segmented-control value="list" accessible-label="View">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+        <ol-segment value="compact">Compact</ol-segment>
+      </ol-segmented-control>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Sizes</h3>
+    <p>Use <code>size</code> to match the surrounding controls. Heights track the shared <code>--control-height-*</code> tokens, so each size lines up with the same-size button.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control size="small"&gt;...&lt;/ol-segmented-control&gt;
+&lt;ol-segmented-control&gt;...&lt;/ol-segmented-control&gt;
+&lt;ol-segmented-control size="large"&gt;...&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <ol-segmented-control size="small" accessible-label="View (small)">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+      </ol-segmented-control>
+      <ol-segmented-control accessible-label="View (medium)">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+      </ol-segmented-control>
+      <ol-segmented-control size="large" accessible-label="View (large)">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+      </ol-segmented-control>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Disabled</h3>
+    <p>Disable the whole control, or a single option with <code>disabled</code> on its <code>&lt;ol-segment&gt;</code>.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control disabled&gt;...&lt;/ol-segmented-control&gt;
+
+&lt;ol-segmented-control&gt;
+  &lt;ol-segment value="day"&gt;Day&lt;/ol-segment&gt;
+  &lt;ol-segment value="week"&gt;Week&lt;/ol-segment&gt;
+  &lt;ol-segment value="year" disabled&gt;Year&lt;/ol-segment&gt;
+&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <ol-segmented-control disabled accessible-label="Disabled control">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+      </ol-segmented-control>
+      <ol-segmented-control accessible-label="Range">
+        <ol-segment value="day">Day</ol-segment>
+        <ol-segment value="week">Week</ol-segment>
+        <ol-segment value="year" disabled>Year</ol-segment>
+      </ol-segmented-control>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Full width</h3>
+    <p>Add <code>full-width</code> to fill the container; options share the width equally.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control full-width&gt;...&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output" style="max-width: 420px;">
+      <ol-segmented-control full-width accessible-label="Format">
+        <ol-segment value="ebook">Ebook</ol-segment>
+        <ol-segment value="audiobook">Audiobook</ol-segment>
+        <ol-segment value="print">Print</ol-segment>
+      </ol-segmented-control>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Interactive demo</h3>
+    <p>Selecting an option fires <code>ol-segmented-control-change</code> with the new value in <code>event.detail.value</code>. Click an option, or focus the control and use the arrow / Home / End keys.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-segmented-control id="demo-segmented"&gt;
+  &lt;ol-segment value="grid"&gt;Grid&lt;/ol-segment&gt;
+  &lt;ol-segment value="list"&gt;List&lt;/ol-segment&gt;
+  &lt;ol-segment value="compact"&gt;Compact&lt;/ol-segment&gt;
+&lt;/ol-segmented-control&gt;</code></pre>
+    <div class="example__output">
+      <ol-segmented-control id="demo-segmented" accessible-label="View">
+        <ol-segment value="grid">Grid</ol-segment>
+        <ol-segment value="list">List</ol-segment>
+        <ol-segment value="compact">Compact</ol-segment>
+      </ol-segmented-control>
+      <p style="margin-top: 12px;">Selected value: <strong id="demo-segmented-output">grid</strong></p>
+    </div>
+    <script>
+      document.getElementById('demo-segmented').addEventListener('ol-segmented-control-change', function (e) {
+        document.getElementById('demo-segmented-output').textContent = e.detail.value;
+      });
+    </script>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Keyboard &amp; accessibility</h3>
+    <p>The control renders as a <code>radiogroup</code> of <code>radio</code> buttons. Tab moves into the selected option; arrow keys (and Home / End) move the selection between enabled options, wrapping at the ends. Disabled options are skipped. Provide an <code>accessible-label</code> so the group is named.</p>
+  </section>
+
+  $:render_template("design/api_tables", api)
+</article>

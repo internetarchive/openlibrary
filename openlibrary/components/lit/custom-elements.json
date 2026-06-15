@@ -2199,6 +2199,165 @@
     },
     {
       "kind": "javascript-module",
+      "path": "openlibrary/components/lit/OlSegmentedControl.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "OlSegmentedControl - A single-select control styled like ol-button.\n\nRenders a row of mutually-exclusive options (a radio group): exactly one is\nselected at a time. It shares ol-button's height tokens and visual language,\nso a same-size segmented control and button line up at the same height.\n\nOptions are declared as light-DOM <ol-segment> children carrying a `value`\nattribute; their text content is the label.",
+          "name": "OlSegmentedControl",
+          "slots": [
+            {
+              "description": "One or more <ol-segment value=\"…\">Label</ol-segment> option elements.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "value",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "The selected option's value. Reflected; defaults to the first enabled option.",
+              "attribute": "value",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "size",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "attribute": "size",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "disabled",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables the whole control.",
+              "attribute": "disabled",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "fullWidth",
+              "privacy": "public",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Stretch to fill the container; options share the width equally.",
+              "attribute": "full-width",
+              "reflects": true
+            },
+            {
+              "kind": "field",
+              "name": "accessibleLabel",
+              "privacy": "public",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "aria-label for the radio group. Default: none.",
+              "attribute": "accessible-label",
+              "reflects": false
+            }
+          ],
+          "events": [
+            {
+              "name": "ol-segmented-control-change",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "Fired on user selection. detail: { value: String }"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "value",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "The selected option's value. Reflected; defaults to the first enabled option.",
+              "fieldName": "value"
+            },
+            {
+              "name": "size",
+              "type": {
+                "text": "String"
+              },
+              "default": "'medium'",
+              "description": "\"small\" | \"medium\" | \"large\". Default: \"medium\"",
+              "fieldName": "size"
+            },
+            {
+              "name": "disabled",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Disables the whole control.",
+              "fieldName": "disabled"
+            },
+            {
+              "name": "full-width",
+              "type": {
+                "text": "Boolean"
+              },
+              "default": "false",
+              "description": "Stretch to fill the container; options share the width equally.",
+              "fieldName": "fullWidth"
+            },
+            {
+              "name": "accessible-label",
+              "type": {
+                "text": "String"
+              },
+              "default": "null",
+              "description": "aria-label for the radio group. Default: none.",
+              "fieldName": "accessibleLabel"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "ol-segmented-control",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "OlSegmentedControl",
+          "declaration": {
+            "name": "OlSegmentedControl",
+            "module": "openlibrary/components/lit/OlSegmentedControl.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ol-segmented-control",
+          "declaration": {
+            "name": "OlSegmentedControl",
+            "module": "openlibrary/components/lit/OlSegmentedControl.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
       "path": "openlibrary/components/lit/OlSelectPopover.js",
       "declarations": [
         {

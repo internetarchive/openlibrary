@@ -1,0 +1,18 @@
+/*
+ * Design approach to Control Heights:
+ * - One source of truth for the outer height of single-line, line-height-locked
+ *   controls (buttons, segmented controls, inputs, selects).
+ * - Controls set `height` (not vertical padding) to one of these tokens with
+ *   `box-sizing: border-box`, so same-size controls line up exactly regardless
+ *   of their font-size, border-width, or content height. See /developers/design
+ *   ("Control alignment") for the side-by-side check.
+ *
+ * Do NOT use these for controls whose content can wrap to multiple lines
+ * (chips/tags, textareas) — those should grow with their content. Use
+ * `min-height` there instead, or a different scale (e.g. --line-height-chip).
+ */
+:root {
+  --control-height-small: 30px;
+  --control-height-medium: 38px;
+  --control-height-large: 46px;
+}

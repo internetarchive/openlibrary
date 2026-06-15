@@ -185,6 +185,22 @@ pre.example__code code[class*="language-"] {
   margin-bottom: var(--spacing-stack-lg);
 }
 
+/* Control alignment check (see design.html #control-alignment). Lays controls
+   in a single row, top-aligned, each wrapped in a box that hugs its bounds so
+   equal heights read as aligned top/bottom edges. */
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.control-row__cell {
+  display: inline-flex;
+  outline: 1px dashed var(--color-border-subtle);
+  outline-offset: 2px;
+}
+
 .color-swatch {
   display: flex;
   gap: var(--spacing-inline-xs);

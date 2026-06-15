@@ -65,7 +65,7 @@ ol-button > button {
   justify-content: center;
   gap: var(--spacing-inline-md);
   box-sizing: border-box;
-  height: 38px;
+  height: var(--control-height-medium);
   padding: 0 var(--spacing-inset-md);
   font-family: var(--font-family-button);
   font-size: var(--font-size-body-medium);
@@ -99,14 +99,14 @@ ol-button[full-width] > button {
 /* Sizes */
 ol-button[size="small"]:not([hydrated]),
 ol-button[size="small"] > button {
-  height: 30px;
+  height: var(--control-height-small);
   padding: 0 var(--spacing-md);
   font-size: var(--font-size-label-medium);
 }
 
 ol-button[size="large"]:not([hydrated]),
 ol-button[size="large"] > button {
-  height: 46px;
+  height: var(--control-height-large);
   padding: 0 var(--spacing-inset-lg);
   font-size: var(--font-size-body-large);
 }
