@@ -1,12 +1,19 @@
 import {
     AVAILABILITY_OPTIONS,
     DEFAULT_SEARCH_MODAL_STRINGS,
+    LS_RECENT_SEARCHES_KEY,
+    RECENT_SEARCHES_MAX,
+    SS_LANGUAGES_KEY,
     availabilityFromParams,
     availabilityOptionsFromElement,
     languageNameFromOptions,
     localizeAvailabilityOptions,
+    readRecentSearches,
+    readStoredLanguages,
     readableEditionLanguages,
     readableLanguageMismatch,
+    removeRecentSearch,
+    saveRecentSearch,
     searchModalStringsFromElement,
     siteLanguageToMarc,
 } from '../../../openlibrary/plugins/openlibrary/js/search-modal/constants';
@@ -205,6 +212,124 @@ describe('readableLanguageMismatch', () => {
 
     test('returns null when the mismatched code has no display name', () => {
         expect(readableLanguageMismatch({ ...base, edition: { language: ['zzz'] }, options: [] })).toBeNull();
+    });
+});
+
+describe('recent searches (localStorage)', () => {
+    beforeEach(() => {
+        localStorage.clear();
+        jest.restoreAllMocks();
+    });
+
+    describe('readRecentSearches', () => {
+        test('returns [] when nothing is stored', () => {
+            expect(readRecentSearches()).toEqual([]);
+        });
+
+        test('returns the stored list, capped at RECENT_SEARCHES_MAX', () => {
+            const stored = Array.from({ length: RECENT_SEARCHES_MAX + 3 }, (_, i) => `q${i}`);
+            localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(stored));
+            expect(readRecentSearches()).toEqual(stored.slice(0, RECENT_SEARCHES_MAX));
+        });
+
+        test('returns [] on unparseable JSON', () => {
+            localStorage.setItem(LS_RECENT_SEARCHES_KEY, '{not json');
+            expect(readRecentSearches()).toEqual([]);
+        });
+
+        test('returns [] when the parsed value is not an array', () => {
+            localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify({ a: 1 }));
+            expect(readRecentSearches()).toEqual([]);
+        });
+
+        test('drops non-string entries from a corrupt value', () => {
+            localStorage.setItem(LS_RECENT_SEARCHES_KEY, JSON.stringify(['dogs', null, { x: 1 }, 'cats', 42]));
+            expect(readRecentSearches()).toEqual(['dogs', 'cats']);
+        });
+
+        test('returns [] when localStorage.getItem throws (private browsing)', () => {
+            jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+            expect(readRecentSearches()).toEqual([]);
+        });
+    });
+
+    describe('saveRecentSearch', () => {
+        test('prepends, deduplicates to the front, and caps the list', () => {
+            saveRecentSearch('alpha');
+            saveRecentSearch('beta');
+            saveRecentSearch('alpha'); // moves to front, no duplicate
+            expect(readRecentSearches()).toEqual(['alpha', 'beta']);
+        });
+
+        test('ignores blank / whitespace-only queries and trims', () => {
+            saveRecentSearch('   ');
+            saveRecentSearch('  spaced  ');
+            expect(readRecentSearches()).toEqual(['spaced']);
+        });
+
+        test('never grows past RECENT_SEARCHES_MAX', () => {
+            for (let i = 0; i < RECENT_SEARCHES_MAX + 5; i++) saveRecentSearch(`q${i}`);
+            const list = readRecentSearches();
+            expect(list).toHaveLength(RECENT_SEARCHES_MAX);
+            // Most recent first.
+            expect(list[0]).toBe(`q${RECENT_SEARCHES_MAX + 4}`);
+        });
+
+        test('silently ignores a setItem failure (quota / private browsing)', () => {
+            jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('quota'); });
+            expect(() => saveRecentSearch('whatever')).not.toThrow();
+        });
+    });
+
+    describe('removeRecentSearch', () => {
+        test('removes a single entry and returns the updated list', () => {
+            saveRecentSearch('one');
+            saveRecentSearch('two');
+            saveRecentSearch('three');
+            expect(removeRecentSearch('two')).toEqual(['three', 'one']);
+            expect(readRecentSearches()).toEqual(['three', 'one']);
+        });
+
+        test('is a no-op for a value that is not present', () => {
+            saveRecentSearch('only');
+            expect(removeRecentSearch('absent')).toEqual(['only']);
+        });
+    });
+});
+
+describe('readStoredLanguages (sessionStorage)', () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+        jest.restoreAllMocks();
+    });
+
+    test('returns [] when nothing is stored', () => {
+        expect(readStoredLanguages()).toEqual([]);
+    });
+
+    test('returns the stored array of codes', () => {
+        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify(['eng', 'fre']));
+        expect(readStoredLanguages()).toEqual(['eng', 'fre']);
+    });
+
+    test('returns [] when the parsed value is not an array', () => {
+        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify('eng'));
+        expect(readStoredLanguages()).toEqual([]);
+    });
+
+    test('drops non-string entries so a corrupt value cannot leak a bogus filter', () => {
+        sessionStorage.setItem(SS_LANGUAGES_KEY, JSON.stringify(['eng', 1, null, 'spa']));
+        expect(readStoredLanguages()).toEqual(['eng', 'spa']);
+    });
+
+    test('returns [] on unparseable JSON', () => {
+        sessionStorage.setItem(SS_LANGUAGES_KEY, '{nope');
+        expect(readStoredLanguages()).toEqual([]);
+    });
+
+    test('returns [] when sessionStorage.getItem throws (private browsing)', () => {
+        jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('denied'); });
+        expect(readStoredLanguages()).toEqual([]);
     });
 });
 

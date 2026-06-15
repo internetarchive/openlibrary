@@ -17,6 +17,11 @@ let _idCounter = 0;
  * Escape/outside-click dismissal. Use `<ol-select-popover>` instead when
  * the user can pick multiple values or filter a long list.
  *
+ * Keyboard follows the WAI-ARIA radiogroup pattern: Arrow/Home/End move focus
+ * between options and select the focused one (selection follows focus, staying
+ * open); Enter/Space/click commit the choice and close. Native same-name radios
+ * provide the roving tab stop, so Tab treats the group as one stop.
+ *
  * @element ol-options-popover
  *
  * @prop {Array} items - List of `{ value, label, description?, count?,
@@ -372,42 +377,77 @@ export class OlOptionsPopover extends FocusableHostMixin(LitElement) {
     }
 
     _onItemChange(e) {
-        const value = e.target.value;
-        if (value !== this.selected) {
-            this.selected = value;
-            this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
-                bubbles: true, composed: true,
-                detail: { selected: value },
-            }));
-        }
-        // Close on selection to match native <select> / dropdown filter
-        // conventions. <ol-popover> restores focus to the trigger.
+        // Native change fires from a pointer click (or a tap on the row label).
+        // Treat it as an explicit commit: select and close.
+        this._commitSelection(e.target.value);
+    }
+
+    /**
+     * Selection follows focus (WAI-ARIA radiogroup pattern): update the
+     * selected value and notify consumers, but keep the popover open so the
+     * user can keep arrowing through options. Returns true when the value
+     * actually changed.
+     */
+    _selectValue(value) {
+        if (value === this.selected) return false;
+        this.selected = value;
+        this.dispatchEvent(new CustomEvent('ol-options-popover-change', {
+            bubbles: true, composed: true,
+            detail: { selected: value },
+        }));
+        return true;
+    }
+
+    /**
+     * Commit a choice: select it (if not already) and close. Mirrors native
+     * <select> / dropdown-filter conventions where activating an option both
+     * picks it and dismisses the menu. <ol-popover> restores focus to the
+     * trigger.
+     */
+    _commitSelection(value) {
+        this._selectValue(value);
         const popover = this.shadowRoot?.querySelector('ol-popover');
         if (popover) popover.open = false;
     }
 
     _onListKeydown(e) {
-        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') {
-            return;
-        }
         const radios = Array.from(this.shadowRoot.querySelectorAll('.item-radio'));
         if (radios.length === 0) return;
 
         const active = this.shadowRoot.activeElement;
+
+        // Enter / Space on the focused radio commits the choice and closes.
+        // (Space on an already-checked radio fires no native change, so we
+        // handle it here rather than relying on `_onItemChange`.)
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+            if (active && active.classList.contains('item-radio')) {
+                e.preventDefault();
+                this._commitSelection(active.value);
+            }
+            return;
+        }
+
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'Home' && e.key !== 'End') {
+            return;
+        }
         const idx = radios.indexOf(active);
 
         let next;
         if (e.key === 'ArrowDown') {
-            next = idx === -1 ? 0 : Math.min(idx + 1, radios.length - 1);
+            next = idx === -1 ? 0 : (idx + 1) % radios.length;
         } else if (e.key === 'ArrowUp') {
-            next = idx === -1 ? radios.length - 1 : Math.max(idx - 1, 0);
+            next = idx === -1 ? radios.length - 1 : (idx - 1 + radios.length) % radios.length;
         } else if (e.key === 'Home') {
             next = 0;
         } else if (e.key === 'End') {
             next = radios.length - 1;
         }
         e.preventDefault();
+        // Roving selection: move focus to the next radio AND check it, staying
+        // open. The keyed `repeat` reuses the radio nodes across re-render, so
+        // focus is preserved when `_selectValue` flips `.checked`.
         radios[next].focus();
+        this._selectValue(radios[next].value);
     }
 
     _focusSelectedOrFirst() {

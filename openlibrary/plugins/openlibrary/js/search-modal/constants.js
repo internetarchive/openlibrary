@@ -374,6 +374,8 @@ export const RECENT_SEARCHES_MAX    = 8;
 
 /**
  * Read the recent-search list from localStorage. Returns [] on any failure.
+ * Non-string entries (from a corrupt or hand-edited value) are dropped so
+ * callers only ever see strings to render and dedup against.
  * @returns {string[]}
  */
 export function readRecentSearches() {
@@ -381,7 +383,8 @@ export function readRecentSearches() {
         const raw = localStorage.getItem(LS_RECENT_SEARCHES_KEY);
         if (!raw) return [];
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed.slice(0, RECENT_SEARCHES_MAX) : [];
+        if (!Array.isArray(parsed)) return [];
+        return parsed.filter(s => typeof s === 'string').slice(0, RECENT_SEARCHES_MAX);
     } catch { return []; }
 }
 
@@ -420,7 +423,8 @@ export function removeRecentSearch(query) {
  * Read the language list from sessionStorage. Guards against missing values,
  * unparseable JSON, and values that parse to a non-array (e.g. a previously
  * stored object or string), any of which would otherwise leave callers with a
- * non-iterable or character-iterable value.
+ * non-iterable or character-iterable value. Non-string entries are dropped so a
+ * corrupt value can't surface as a bogus `language=<n>` filter.
  *
  * @returns {string[]}
  */
@@ -429,6 +433,6 @@ export function readStoredLanguages() {
     if (!raw) return [];
     try {
         const parsed = JSON.parse(raw);
-        return Array.isArray(parsed) ? parsed : [];
+        return Array.isArray(parsed) ? parsed.filter(s => typeof s === 'string') : [];
     } catch { return []; }
 }
