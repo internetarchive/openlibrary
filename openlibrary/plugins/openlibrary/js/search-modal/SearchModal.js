@@ -1034,6 +1034,7 @@ export class SearchModal extends LitElement {
                         ${SearchModal._searchIcon}
                         <input
                             type="search"
+                            autofocus
                             enterkeyhint="search"
                             class="search-input"
                             autocomplete="off"
