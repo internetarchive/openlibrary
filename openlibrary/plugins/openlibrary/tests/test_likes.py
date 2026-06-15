@@ -1,21 +1,23 @@
 from unittest.mock import MagicMock, patch
 
-from openlibrary.plugins.openlibrary.tests.test_followsapi import FakeUser
-from openlibrary.plugins.upstream.likes import likes_control
 import pytest
 import web
 
 from openlibrary.core.likes import Likes
+from openlibrary.plugins.openlibrary.tests.test_followsapi import FakeUser
+from openlibrary.plugins.upstream.likes import likes_control
+
 
 def test_like():
-    with(
-        patch("web.data",return_value =b'{"key": "/works/OL1W", "value": 1}'),
+    with (
+        patch("web.data", return_value=b'{"key": "/works/OL1W", "value": 1}'),
         patch("web.ctx") as mock_ctx,
-        patch("openlibrary.core.likes.Likes.like") as mock_likes
+        patch("openlibrary.core.likes.Likes.like") as mock_likes,
     ):
         mock_ctx.site.get_user.return_value = FakeUser("test_user")
         likes_control().POST()
         mock_likes.assert_called_once_with("test_user", "/works/OL1W", 1)
+
 
 def test_unlike():
     with (
@@ -28,6 +30,7 @@ def test_unlike():
         likes_control().DELETE()
 
         mock_unlike.assert_called_once_with("test_user", "/works/OL1W")
+
 
 def test_double_like():
     with (
@@ -43,9 +46,11 @@ def test_double_like():
         assert oldb.insert.call_count == 1
         assert oldb.update.call_count == 1
 
+
 def test_like_invalid_value():
     with pytest.raises(ValueError):
         Likes.like("user1", "/works/OL1W", 99)
+
 
 def test_like_unauthenticated():
     with (
