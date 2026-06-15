@@ -1866,7 +1866,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "A trigger button paired with a popover containing a single-select list of\nrich options. Each option can show a label, a description, and a count\n(e.g. \"Readable Books Only — Primary older digitized, preserved, physical\nbooks — ~4.6M\"). Used for filters with a small fixed set of mutually\nexclusive choices.\n\nComposes `<ol-popover>` for animation, focus trap, mobile tray, and\nEscape/outside-click dismissal. Use `<ol-select-popover>` instead when\nthe user can pick multiple values or filter a long list.",
+          "description": "A trigger button paired with a popover containing a single-select list of\nrich options. Each option can show a label, a description, and a count\n(e.g. \"Readable Books Only — Primary older digitized, preserved, physical\nbooks — ~4.6M\"). Used for filters with a small fixed set of mutually\nexclusive choices.\n\nComposes `<ol-popover>` for animation, focus trap, mobile tray, and\nEscape/outside-click dismissal. Use `<ol-select-popover>` instead when\nthe user can pick multiple values or filter a long list.\n\nKeyboard follows the WAI-ARIA radiogroup pattern: Arrow/Home/End move focus\nbetween options and select the focused one (selection follows focus, staying\nopen); Enter/Space/click commit the choice and close. Native same-name radios\nprovide the roving tab stop, so Tab treats the group as one stop.",
           "name": "OlOptionsPopover",
           "slots": [
             {
@@ -1939,6 +1939,26 @@
                   "name": "e"
                 }
               ]
+            },
+            {
+              "kind": "method",
+              "name": "_selectValue",
+              "parameters": [
+                {
+                  "name": "value"
+                }
+              ],
+              "description": "Selection follows focus (WAI-ARIA radiogroup pattern): update the\nselected value and notify consumers, but keep the popover open so the\nuser can keep arrowing through options. Returns true when the value\nactually changed."
+            },
+            {
+              "kind": "method",
+              "name": "_commitSelection",
+              "parameters": [
+                {
+                  "name": "value"
+                }
+              ],
+              "description": "Commit a choice: select it (if not already) and close. Mirrors native\n<select> / dropdown-filter conventions where activating an option both\npicks it and dismisses the menu. <ol-popover> restores focus to the\ntrigger."
             },
             {
               "kind": "method",

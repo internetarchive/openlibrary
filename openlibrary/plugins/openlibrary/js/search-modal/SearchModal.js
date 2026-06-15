@@ -497,7 +497,7 @@ export class SearchModal extends LitElement {
             padding: var(--spacing-3xs) var(--spacing-xs);
             border-radius: var(--border-radius-button);
             font-size: var(--font-size-label-small);
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: 0.02em;
             white-space: nowrap;
             color: var(--open-green);
