@@ -201,6 +201,9 @@ pre.example__code code[class*="language-"] {
 
 .example__output {
   margin-bottom: var(--spacing-stack-lg);
+  padding: var(--spacing-inset-lg);
+  background-color: var(--grey-fafafa);
+  border-radius: var(--border-radius-overlay);
 }
 
 /* Control alignment check (see design.html #control-alignment). Lays controls
