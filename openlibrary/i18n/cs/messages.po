@@ -6222,7 +6222,7 @@ msgstr "Vrácení <a href=\"$parent.url()\">%(kind)s</a>."
 #: recentchanges/undo/view.html
 #, python-format
 msgid "%(count)d records modified."
-msgstr ""
+msgstr "%(count)d záznamů upraveno."
 
 #: search/advancedsearch.html
 msgid "ISBN"
@@ -6807,21 +6807,21 @@ msgstr "Příklad: Lev Nikolajevič Tolstoj byl také znám jako Lev Tolstoj. Uv
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Identifikátory"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "Účel identifikátorů autora"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "Autor %(book_titles)s"
 
 #: type/author/view.html
 #, fuzzy
@@ -6830,23 +6830,23 @@ msgstr "Upravit autora"
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "Probíhá…"
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "Obnovit stránku?"
 
 #: type/author/view.html
 msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr ""
+msgstr "OK. Sloučení probíhá. <i>Dokončení aktualizace <u>bude trvat několik minut</u>.</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "Ach!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "Sloučení se nezdařilo. Je to naše chyba a zaznamenali jsme ji."
 
 #: type/author/view.html
 #, fuzzy
@@ -6856,12 +6856,12 @@ msgstr "Přidat dalšího autora?"
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "Hledat knihy %(author)s"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
+msgstr "— Zobrazit <a href=\"%(url)s\">vše</a> od tohoto autora?"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 #, fuzzy
@@ -6880,15 +6880,15 @@ msgstr "Starší"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
-msgstr ""
+msgstr "Odkazy <span class=\"gray small sansserif\">mimo Open Library</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "Zatím žádné odkazy."
 
 #: type/author/view.html
 #, fuzzy
@@ -6901,7 +6901,7 @@ msgstr "Alternativní názvy"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "Tato stránka byla smazána"
 
 #: type/delete/view.html
 #, fuzzy
@@ -6910,15 +6910,15 @@ msgstr "Jak by jste popsaly tuto knihu?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "Vrátit se tam, odkud jsem přišel/a"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "Zobrazit předchozí verzi"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "Zobrazit historii stránky"
 
 #: type/delete/view.html
 #, fuzzy
@@ -6932,11 +6932,11 @@ msgstr "Přidat knhu do Open Library"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Synchronizovat ID Archive.org"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Zobrazit knihu na Archive.org"
 
 #: SearchResultsWork.html type/edition/admin_bar.html
 #, fuzzy
@@ -6971,12 +6971,12 @@ msgstr "Přidat vydání"
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "Poprvé vydáno v %s"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
-msgstr ""
+msgstr "Kniha %s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -6991,12 +6991,12 @@ msgstr "Seznamy četby"
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Toto dílo zatím nemá popis. Můžete <b><a href='%(url)s'>přidat popis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr ""
+msgstr "Toto vydání zatím nemá popis. Můžete <b><a href='%(url)s'>přidat popis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7006,12 +7006,12 @@ msgstr "Vydavatel"
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "Zobrazit další knihy od %(publisher)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "Hledat další knihy od %(publisher)s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7030,7 +7030,7 @@ msgstr "O knize"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "Podrobnosti o knize"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
@@ -7063,7 +7063,7 @@ msgstr "Ostatní názvy"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "Datum autorských práv"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
@@ -7075,15 +7075,15 @@ msgstr "Přeloženo z"
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
+msgstr "Externí odkazy"
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
+msgstr "Formát"
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "Stránkování"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
@@ -7100,11 +7100,11 @@ msgstr "Poznámk vydání"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "Zdrojové záznamy"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "Popis díla"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7119,12 +7119,12 @@ msgstr "Přidat výtah"
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "Strana %(page)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "přidal/a %(authorlink)s."
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7133,7 +7133,7 @@ msgstr "Anonymní uživatel"
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedie"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7143,7 +7143,7 @@ msgstr "Seznamy četby"
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
-msgstr ""
+msgstr "%(language)s [zastaralé]"
 
 #: type/language/view.html
 #, fuzzy
@@ -7163,7 +7163,7 @@ msgstr "Současné výpůjčky"
 #: type/language/view.html
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
-msgstr ""
+msgstr "Zkusit <a href=\"%(href)s\">hledání čitelných knih v %(language)s</a>?"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7173,12 +7173,12 @@ msgstr "Vytvořte to"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "Úprava série: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "Úprava seznamu: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7192,7 +7192,7 @@ msgstr "Seznamy četby"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "Přesunout…"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7201,11 +7201,11 @@ msgstr "Hledat další knihy od"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Pozice (volitelně), např. 1, 2, 1–7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Poznámky (volitelně)"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7239,15 +7239,15 @@ msgstr "Vytvořit účet na Open Library"
 
 #: type/list/embed.html
 msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr ""
+msgstr "Otevřít v online čtečce knih. Stahování dostupné ve formátech ePub, DAISY, PDF, TXT na hlavní stránce knihy"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "Tato kniha je vypůjčena"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "Vypůjčeno"
 
 #: type/list/embed.html
 #, fuzzy
@@ -7256,12 +7256,12 @@ msgstr "Náhodna kniha"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "Chráněné DAISY"
 
 #: BookByline.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
-msgstr ""
+msgstr "od %(name)s"
 
 #: type/list/exports.html
 #, fuzzy
@@ -7276,40 +7276,40 @@ msgstr "Další"
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "jako %(json_link)s, %(html_link)s nebo %(bibtex_link)s"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "Odebírat"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "Sledovat aktivitu přes <a rel=\"nofollow\" href=\"%s\">Atom kanál</a>"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "Export není dostupný"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "Exportovat lze pouze seznamy s nejvýše %(max)s vydáními. Tento seznam jich má %(count)s."
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "Zkuste odebrat část položek pro zaostření, nebo se podívejte na <a href=\"%s\">hromadné stahování</a> katalogu."
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | Seznamy | Open Library"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7324,7 +7324,7 @@ msgstr "Smazat tohoto tvůrce"
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "Naposledy upraveno <span>%(date)s</span>"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7333,7 +7333,7 @@ msgstr "Smazáno"
 
 #: type/list/view_body.html
 msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
+msgstr "Opravdu chcete odebrat tuto položku ze seznamu?"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7342,20 +7342,20 @@ msgstr "Smazáno"
 
 #: type/list/view_body.html
 msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr ""
+msgstr "Chystáte se odebrat poslední položku ze seznamu. Tím se odstraní celý seznam. Opravdu chcete pokračovat?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "Tato série obsahuje %(limit)d nebo více děl. Momentálně se zobrazuje pouze prvních %(limit)d děl."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "Tento seznam je prázdný."
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Hledejte knihy, témata nebo autory</a> a přidejte je do svého seznamu."
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7369,7 +7369,7 @@ msgstr "Další metadata"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "Odvozeno z metadat zdroje"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/list/view_body.html
 #, fuzzy
@@ -7378,11 +7378,11 @@ msgstr "Název"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "Místní identifikátory"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "Zdrojová položka"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7391,7 +7391,7 @@ msgstr "Místo"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Regex čárového kódu"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7405,11 +7405,11 @@ msgstr "Například"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "Tělo dokumentu:"
 
 #: type/page/view.html
 msgid "Community"
-msgstr ""
+msgstr "Komunita"
 
 #: type/permission/edit.html
 #, fuzzy
@@ -7453,7 +7453,7 @@ msgstr "Pro vytvoření nového záznamu vyžadujeme vyplnění minimálně těc
 
 #: EditButtons.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr ""
+msgstr "Uložením změny v tomto wiki souhlasíte, že vaše přispívání je dáváno světu zdarma pod licencí <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"Tento odkaz na Creative Commons se otevře v novém okně\">CC0</a>. Hurá!"
 
 #: type/tag/form.html
 #, fuzzy
