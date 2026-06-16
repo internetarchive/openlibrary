@@ -1,0 +1,36 @@
+$def with ()
+$# Translated chrome strings for the header search modal (SearchModal.js):
+$# labels, placeholders, aria-labels and status messages. Rendered into the
+$# trigger's `data-i18n-ui` attribute and read client-side by
+$# search-modal/constants.js (searchModalStringsFromElement). The keys and
+$# English source strings here must match DEFAULT_SEARCH_MODAL_STRINGS in that
+$# same file. `%s` (in "Remove filter:" / "Remove … from recent searches") is
+$# filled in client-side via sprintf. (Availability option labels live in
+$# search/availability_i18n.html.)
+$ search_modal_i18n = {
+$     "dialogAria":          _("Search Open Library"),
+$     "inputPlaceholder":    _("Search books and authors…"),
+$     "inputAria":           _("Search"),
+$     "closeAria":           _("Close search"),
+$     "clearAria":           _("Clear search"),
+$     "seeAll":              _("See all results"),
+$     "seeAllOne":           _("See all %s result"),
+$     "seeAllMany":          _("See all %s results"),
+$     "clearAll":            _("Clear all"),
+$     "filtersAria":         _("Search filters"),
+$     "availabilityLabel":   _("Availability"),
+$     "languageLabel":       _("Language"),
+$     "languagePlaceholder": _("Search languages…"),
+$     "languageHeading":     _("Languages"),
+$     "searching":           _("Searching…"),
+$     "noResults":           _("No results found"),
+$     "resultsAnnounce":     _("Showing %s of %s results"),
+$     "topResults":          _("Top results"),
+$     "untitled":            _("Untitled"),
+$     "authorLabel":         _("Author"),
+$     "accessReadable":      _("Readable"),
+$     "inLanguage":          _("In %s"),
+$     "recentSearches":      _("Recent searches"),
+$     "removeRecent":        _('Remove "%s" from recent searches'),
+$ }
+$json_encode(search_modal_i18n)
