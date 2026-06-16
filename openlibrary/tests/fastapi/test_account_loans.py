@@ -1,7 +1,6 @@
 """Tests for the FastAPI account loan endpoints."""
 
 import json
-from contextlib import nullcontext
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -24,10 +23,6 @@ class FakeLegacyUser(dict):
 class FakeEdition:
     def dict(self) -> dict:
         return {"key": "/books/OL1M", "title": "Serialized Edition"}
-
-
-def _mock_legacy_context():
-    return patch("openlibrary.fastapi.account.legacy_web_ctx_from_fastapi", return_value=nullcontext())
 
 
 class TestLegacyContextBridge:
@@ -83,7 +78,6 @@ class TestAccountLoansJson:
         loans = [{"book": "/books/OL1M", "ocaid": "test_ocaid"}]
 
         with (
-            _mock_legacy_context(),
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
             patch("openlibrary.plugins.upstream.account.borrow.get_loans", return_value=loans) as get_loans,
         ):
@@ -112,7 +106,6 @@ class TestAccountLoansJson:
         }
 
         with (
-            _mock_legacy_context(),
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
             patch("openlibrary.plugins.upstream.account.MyBooksTemplate", return_value=MagicMock()),
             patch("openlibrary.plugins.upstream.account.get_loan_history_data", return_value=loan_history_data) as get_data,
@@ -151,7 +144,6 @@ class TestAccountLoansJson:
         legacy_user = FakeLegacyUser()
 
         with (
-            _mock_legacy_context(),
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
             patch(helper_path, side_effect=ConnectionError("Unable to reach archive.org")),
         ):
@@ -176,7 +168,6 @@ class TestAccountLoansJson:
             legacy_response = legacy_account.account_loans_json().GET()
 
         with (
-            _mock_legacy_context(),
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
             patch("openlibrary.fastapi.account.legacy_account.get_account_loans_json", return_value=expected),
         ):
