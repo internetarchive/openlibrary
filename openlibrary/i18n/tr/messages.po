@@ -7080,59 +7080,59 @@ msgstr "En Son"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "En Yüksek Puanlı"
 
 #: search/sort_options.html
 msgid "Any"
-msgstr ""
+msgstr "Herhangi"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Eser Başlığı (beta: Yalnızca Kütüphaneci)"
 
 #: search/sort_options.html
 msgid "Sorting by"
-msgstr ""
+msgstr "Sıralama ölçütü"
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "Karıştır"
 
 #: search/subjects.html
 msgid "Search Subjects"
-msgstr ""
+msgstr "Konuları Ara"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Aramanızla doğrudan eşleşen <strong>konu</strong> bulunamadı"
 
 #: search/subjects.html
 msgid "time"
-msgstr ""
+msgstr "zaman"
 
 #: search/subjects.html
 msgid "subject"
-msgstr ""
+msgstr "konu"
 
 #: search/subjects.html
 msgid "place"
-msgstr ""
+msgstr "yer"
 
 #: search/subjects.html
 msgid "org"
-msgstr ""
+msgstr "kuruluş"
 
 #: search/subjects.html
 msgid "event"
-msgstr ""
+msgstr "etkinlik"
 
 #: search/subjects.html
 msgid "person"
-msgstr ""
+msgstr "kişi"
 
 #: search/subjects.html
 msgid "work"
-msgstr ""
+msgstr "eser"
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
@@ -7197,7 +7197,7 @@ msgstr "Internet Archive e-postanızı unuttunuz mu?"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "Çevrimdışı görünüyorsunuz."
 
 #: site/head.html
 msgid ""
@@ -7205,6 +7205,9 @@ msgid ""
 " page for every book ever published. Read, borrow, and discover more than"
 " 3M books for free."
 msgstr ""
+"Open Library, yayımlanmış her kitap için bir web sayfası oluşturmayı "
+"hedefleyen açık ve düzenlenebilir bir kütüphane kataloğudur. 3 milyondan "
+"fazla kitabı ücretsiz okuyun, ödünç alın ve keşfedin."
 
 #: site/stats.html
 #, fuzzy
@@ -7213,150 +7216,158 @@ msgstr "İstatistikler"
 
 #: stats/readinglog.html
 msgid "Reading Log Stats"
-msgstr ""
+msgstr "Okuma Günlüğü İstatistikleri"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "# Kaydedilen Kitap"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "Okuma Günlüğü özelliği kullanılarak kaydedilen toplam kitap sayısı"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "Tüm zamanlar"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "# Kitap Kaydeden Benzersiz Kullanıcı"
 
 #: stats/readinglog.html
 msgid ""
 "The total number of unique users who have logged at least one book using "
 "the Reading Log feature"
 msgstr ""
+"Okuma Günlüğü özelliğini kullanarak en az bir kitap kaydeden toplam "
+"benzersiz kullanıcı sayısı"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "# Yıldızlanan Kitap"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "Yıldızlanan toplam kitap sayısı"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "Toplam # Benzersiz Değerlendirenler (tüm zamanlar)"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "En Çok İstenen Kitaplar (Bu Ay)"
 
 #: stats/readinglog.html
 #, python-format
 msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d kez eklendi"
+msgstr[1] "%(count)d kez eklendi"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "En Çok İstenen Kitaplar (Tüm Zamanlar)"
 
 #: stats/readinglog.html
 msgid "Most Logged Books"
-msgstr ""
+msgstr "En Çok Kaydedilen Kitaplar"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "En Çok Okunan Kitaplar (Tüm Zamanlar)"
 
 #: stats/readinglog.html
 msgid "Most Rated Books"
-msgstr ""
+msgstr "En Çok Değerlendirilen Kitaplar"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "En Çok Değerlendirilen Kitaplar (Tüm Zamanlar)"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "Hakkında kitap bulunamadı"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html
 #: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "%(title)s'i düzenle"
 
 #: type/about/edit.html
 msgid ""
 "This only appears in the document head, and gets attached to bookmark "
 "labels"
-msgstr ""
+msgstr "Bu yalnızca belge başlığında görünür ve yer imi etiketlerine eklenir."
 
 #: type/about/edit.html
 msgid "Intro"
-msgstr ""
+msgstr "Giriş"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "Bu birinci sütunda görünür."
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "Bu ikinci sütunun üstünde görünür."
 
 #: type/about/edit.html
 msgid "Mailing List"
-msgstr ""
+msgstr "Posta Listesi"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "Bu bağlantılar listesinin altında görünür."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Daha fazla bilgi için"
 
 #: type/author/edit.html
 msgid "Edit Author"
-msgstr ""
+msgstr "Yazarı Düzenle"
 
 #: type/author/edit.html
 msgid ""
 "Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
 "<strong>Tolstoy, Leo</strong>."
 msgstr ""
+"Lütfen doğal sırayı kullanın. Örneğin: <strong>Lev Tolstoy</strong> değil"
+" <strong>Tolstoy, Lev</strong>."
 
 #: type/author/edit.html
 msgid "A short bio?"
-msgstr ""
+msgstr "Kısa bir biyografi?"
 
 #: type/author/edit.html
 msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite "
 "the source."
 msgstr ""
+"Bir yerden bilgi \"ödünç alıyorsanız\", lütfen kaynağı belirttiğinizden "
+"emin olun."
 
 #: type/author/edit.html
 msgid "Date of birth"
-msgstr ""
+msgstr "Doğum tarihi"
 
 #: type/author/edit.html
 msgid "Date of death"
-msgstr ""
+msgstr "Ölüm tarihi"
 
 #: type/author/edit.html
 msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" "
 "is recommended."
 msgstr ""
+"\"21 Mayıs 2000\" gibi yapılandırılmış tarihler henüz saklanmıyor, bu "
+"nedenle bu format önerilmektedir."
 
 #: type/author/edit.html
 msgid ""
@@ -7364,74 +7375,81 @@ msgid ""
 "this date and populating the \"Date of birth\" and \"Date of death\" "
 "fields. Thanks!"
 msgstr ""
+"Bu alan kullanımdan kaldırılmıştır. Bu tarihi kaldırarak \"Doğum tarihi\""
+" ve \"Ölüm tarihi\" alanlarını doldurarak bu kaydı iyileştirmeye yardımcı"
+" olabilirsiniz. Teşekkürler!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "Bu yazar başka adlarla da biliniyor mu?"
 
 #: type/author/edit.html
 msgid ""
 "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
 "Please list one name per line."
 msgstr ""
+"Örneğin: Lev Nikolayeviç Tolstoy, Leo Tolstoy olarak da biliniyordu. "
+"Lütfen her satıra bir isim yazın."
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "Tanımlayıcılar"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
-msgstr ""
+msgstr "Yazar Tanımlayıcılarının Amacı"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 #, python-format
 msgid "%(page_title)s | Open Library"
-msgstr ""
+msgstr "%(page_title)s | Open Library"
 
 #: type/author/view.html
 #, python-format
 msgid "Author of %(book_titles)s"
-msgstr ""
+msgstr "%(book_titles)s yazarı"
 
 #: type/author/view.html
 msgid "Merging Authors..."
-msgstr ""
+msgstr "Yazarlar Birleştiriliyor..."
 
 #: type/author/view.html
 msgid "In progress..."
-msgstr ""
+msgstr "Devam ediyor..."
 
 #: type/author/view.html
 msgid "Refresh the page?"
-msgstr ""
+msgstr "Sayfayı yenileyin mi?"
 
 #: type/author/view.html
 msgid ""
 "OK. The merge is in motion. <i>It will take <u>a few minutes to "
 "finish</u> the update.</i>"
 msgstr ""
+"Tamam. Birleştirme başladı. <i>Güncellemenin tamamlanması <u>birkaç "
+"dakika sürecek</u>.</i>"
 
 #: type/author/view.html
 msgid "Argh!"
-msgstr ""
+msgstr "Eyvah!"
 
 #: type/author/view.html
 msgid "That merge didn't work. It's our fault, and we've made a note of it."
-msgstr ""
+msgstr "Bu birleştirme çalışmadı. Bu bizim hatamız ve bunu not aldık."
 
 #: type/author/view.html
 msgid "Add another?"
-msgstr ""
+msgstr "Bir tane daha ekleyin mi?"
 
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "%(author)s kitaplarını ara"
 
 #: type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
-msgstr ""
+msgstr "— Bu yazarın <a href=\"%(url)s\">her şeyini</a> göster?"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/author/view.html type/list/view_body.html
@@ -7440,39 +7458,41 @@ msgstr "Yerler"
 
 #: Profile.html type/author/view.html
 msgid "Time"
-msgstr ""
+msgstr "Zaman"
 
 #: type/author/view.html
 msgid "OLID"
-msgstr ""
+msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
 msgstr ""
+"Bağlantılar <span class=\"gray small sansserif\">Open Library "
+"dışında</span>"
 
 #: type/author/view.html
 msgid "No links yet."
-msgstr ""
+msgstr "Henüz bağlantı yok."
 
 #: type/author/view.html
 msgid "Add one"
-msgstr ""
+msgstr "Bir tane ekle"
 
 #: type/author/view.html
 msgid "Alternative names"
-msgstr ""
+msgstr "Alternatif adlar"
 
 #: type/delete/view.html
 msgid "This page has been deleted"
-msgstr ""
+msgstr "Bu sayfa silindi"
 
 #: type/delete/view.html
 msgid "What would you like to do?"
-msgstr ""
+msgstr "Ne yapmak istersiniz?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
