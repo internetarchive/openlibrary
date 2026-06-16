@@ -4244,27 +4244,27 @@ msgstr "Přidejte volitelnou poznámku."
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
-msgstr ""
+msgstr "Dosavadní úryvky..."
 
 #: books/edit/excerpts.html
 msgid "noted:"
-msgstr ""
+msgstr "poznamenáno:"
 
 #: books/edit/excerpts.html
 msgid "An anonymous note:"
-msgstr ""
+msgstr "Anonymní poznámka:"
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
+msgstr "Ze stránky"
 
 #: books/edit/web.html
 msgid "Please provide a label."
-msgstr ""
+msgstr "Prosím poskytněte popisek."
 
 #: books/edit/web.html
 msgid "Please provide a URL."
-msgstr ""
+msgstr "Prosím poskytněte URL."
 
 #: books/edit/web.html
 #, fuzzy
@@ -4273,19 +4273,19 @@ msgstr "Prosím vyberte roli."
 
 #: books/edit/web.html
 msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
-msgstr ""
+msgstr "Prosím propojte záznamy Open Library s <u>dobrými</u><span class=\"orange\">*</span> online zdroji."
 
 #: books/edit/web.html
 msgid "Give your link a label"
-msgstr ""
+msgstr "Dejte svému odkazu popisek"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Například: <em>New York Times review</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 #, fuzzy
@@ -4294,48 +4294,48 @@ msgstr "Přidat vydání"
 
 #: books/edit/web.html
 msgid "Remove this link"
-msgstr ""
+msgstr "Odebrat tento odkaz"
 
 #: books/edit/web.html
 msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
-msgstr ""
+msgstr "\"Dobrý\" znamená žádné spamové odkazy. Udržujte je relevantní pro knihu. Irelevantní weby mohou být odstraněny. Očividný spam bude bez milosti smazán."
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "Hromadné vyhledávání (beta)"
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
+msgstr "Existují dva způsoby, jak přidat fotografii autora do Open Library."
 
 #: covers/add.html
 msgid "Image Guidelines"
-msgstr ""
+msgstr "Pokyny pro obrázky"
 
 #: covers/add.html
 msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
+msgstr "Existuje několik způsobů, jak přidat obrázek obálky do Open Library."
 
 #: covers/add.html
 msgid "Cover Guidelines"
-msgstr ""
+msgstr "Pokyny pro obálky"
 
 #: covers/add.html
 msgid "Please provide a valid image."
-msgstr ""
+msgstr "Prosím poskytněte platný obrázek."
 
 #: covers/add.html
 msgid "Please provide an image URL."
-msgstr ""
+msgstr "Prosím poskytněte URL obrázku."
 
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "Zjistěte více čtením našich <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
+msgstr "<strong>Vyberte jednu</strong> z existujících obálek"
 
 #: covers/add.html
 #, fuzzy
@@ -4344,7 +4344,7 @@ msgstr "Vybrat tento jazyk"
 
 #: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
+msgstr "Vyberte JPG, GIF, PNG nebo WebP ve svém počítači"
 
 #: covers/add.html
 msgid "Upload"
@@ -4352,11 +4352,11 @@ msgstr "Nahrát"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Nebo vložte obrázek ze schránky"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Vložit obrázek ze schránky"
 
 #: covers/add.html
 #, fuzzy
@@ -4380,44 +4380,44 @@ msgstr "Nahrát"
 
 #: covers/add.html
 msgid "Wikidata"
-msgstr ""
+msgstr "Wikidata"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "Zobrazit větší fotografii autora"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "Fotografie %(author)s"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Klikněte pro zavření"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "Potřebujeme fotografii %(author)s"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "Zobrazit větší obálku knihy"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "Obálka: %(title)s od %(authors)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "Přejít na hlavní stránku pro %(title)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "Potřebujeme obálku knihy pro: %(title)s"
 
 #: covers/change.html
 #, fuzzy
@@ -4426,7 +4426,7 @@ msgstr "Autoři"
 
 #: covers/change.html
 msgid "Manage Author Photos"
-msgstr ""
+msgstr "Spravovat fotografie autorů"
 
 #: covers/change.html
 #, fuzzy
@@ -4435,11 +4435,11 @@ msgstr "Přidat knihu"
 
 #: covers/change.html
 msgid "Book Covers"
-msgstr ""
+msgstr "Obálky knih"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "Spravovat obálky"
 
 #: covers/change.html
 #, fuzzy
@@ -4454,15 +4454,15 @@ msgstr "Jazyk"
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Nebo použijte obrázek z %s"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr ""
+msgstr "Můžete přetáhnout miniatury pro přeuspořádání nebo do koše pro jejich smazání."
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "Nová obálka knihy"
 
 #: covers/saved.html
 msgid "Saved!"
@@ -4482,30 +4482,30 @@ msgstr "Dokončeno"
 
 #: design/toggle.html
 msgid "Toggle"
-msgstr ""
+msgstr "Přepínač"
 
 #: design/toggle.html
 #, python-format
 msgid "The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s."
-msgstr ""
+msgstr "Komponenta %(tag)s je přepínač s tučným popiskem a volitelným šedým podpopiskem. Celý prvek je jedno tlačítko %(role)s, takže celý povrch je klikatelný a Enter/Mezerník ho aktivuje. Spravuje svůj stav zapnuto/vypnuto: kliknutí přepíná %(checked)s a spouští %(event)s."
 
 #: design/toggle.html
 msgid "Default"
-msgstr ""
+msgstr "Výchozí"
 
 #: design/toggle.html
 #, python-format
 msgid "A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s."
-msgstr ""
+msgstr "Jednoduchý přepínač: jen spínač, tučný %(label)s a volitelný šedý %(sublabel)s."
 
 #: design/toggle.html
 msgid "Card variant"
-msgstr ""
+msgstr "Varianta kartičky"
 
 #: design/toggle.html
 #, python-format
 msgid "Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s."
-msgstr ""
+msgstr "Použijte %(variant)s pro kontejner s ohraničením. Při zaškrtnutí se vyplní plným modrým pozadím a bílým textem — stejné zacházení jako u vybraného %(chip)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4515,7 +4515,7 @@ msgstr "Obsah"
 #: design/toggle.html
 #, python-format
 msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
-msgstr ""
+msgstr "Vložte obsah do výchozího slotu pro přizpůsobení popisku místo použití %(label)s / %(sublabel)s. Zadejte %(accessible_label)s, aby přepínač měl stále přístupný název."
 
 #: design/toggle.html
 #, fuzzy
@@ -4524,16 +4524,16 @@ msgstr "Knihovnický režim"
 
 #: design/toggle.html
 msgid "easier on the eyes"
-msgstr ""
+msgstr "příjemnější pro oči"
 
 #: design/toggle.html
 msgid "Disabled"
-msgstr ""
+msgstr "Zakázáno"
 
 #: design/toggle.html
 #, python-format
 msgid "Add %(disabled)s to block interaction."
-msgstr ""
+msgstr "Přidejte %(disabled)s pro zablokování interakce."
 
 #: design/toggle.html
 #, fuzzy
@@ -4543,11 +4543,11 @@ msgstr "Změnit ji"
 #: design/toggle.html
 #, python-format
 msgid "Toggling fires %(event)s with the new state in %(detail)s."
-msgstr ""
+msgstr "Přepnutí spouští %(event)s s novým stavem v %(detail)s."
 
 #: design/toggle.html
 msgid "Checked:"
-msgstr ""
+msgstr "Zaškrtnuto:"
 
 #: email/case_created.html
 #, fuzzy
@@ -4556,15 +4556,15 @@ msgstr "Poslat ho"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Děkujeme za Vaši zprávu. Ozveme se Vám co nejdříve."
 
 #: email/case_created.html
 msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr ""
+msgstr "Může nám chvíli trvat, než si ji přečteme, protože dostáváme hodně zpráv, ale ujišťujeme Vás, že tak učiníme a ozveme se Vám, pokud bude potřeba."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Kvalifikace pro zvláštní přístup pro osoby s tiskovou vadou"
 
 #: history/sources.html
 #, fuzzy
@@ -4578,7 +4578,7 @@ msgstr "O knize"
 
 #: home/about.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
-msgstr ""
+msgstr "Open Library je otevřený, editovatelný knihovní katalog, který se buduje směrem k webové stránce pro každou kdy vydanou knihu."
 
 #: AffiliateLinks.html home/about.html search/work_search_facets.html
 msgid "More"
@@ -4586,11 +4586,11 @@ msgstr "Další"
 
 #: home/about.html
 msgid "Just like Wikipedia, you can contribute new information or corrections to the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love books, why not help build a library?"
-msgstr ""
+msgstr "Stejně jako Wikipedia, můžete přispívat novými informacemi nebo opravami do katalogu. Můžete procházet dle <a href=\"/subjects\">témat</a>, <a href=\"/authors\">autorů</a> nebo <a href=\"/lists\">seznamů</a> vytvořených členy. Pokud milujete knihy, proč nepomoci vybudovat knihovnu?"
 
 #: home/about.html
 msgid "Latest Blog Posts"
-msgstr ""
+msgstr "Nejnovější příspěvky na blogu"
 
 #: home/categories.html
 #, fuzzy
@@ -4601,9 +4601,9 @@ msgstr "Další témata"
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)s kniha"
+msgstr[1] "%(count)s knihy"
+msgstr[2] "%(count)s knih"
 
 #: home/index.html home/welcome.html
 #, fuzzy
@@ -4617,7 +4617,7 @@ msgstr "Klasifikace"
 
 #: home/index.html
 msgid "Recently Returned"
-msgstr ""
+msgstr "Nedávno vráceno"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -4626,7 +4626,7 @@ msgstr "Romantické"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Kids"
-msgstr ""
+msgstr "Děti"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 #, fuzzy
@@ -4640,31 +4640,31 @@ msgstr "knihy"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Knihy v místním prostředí"
 
 #: home/loans.html
 #, python-format
 msgid "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one more book until you've hit the limit!"
 msgid_plural "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> %(count)d more books until you've hit the limit!"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě jednu knihu, než dosáhnete limitu!"
+msgstr[1] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě %(count)d knihy, než dosáhnete limitu!"
+msgstr[2] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě %(count)d knih, než dosáhnete limitu!"
 
 #: home/loans.html
 msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr ""
+msgstr "Dosáhli jste limitu výpůjček. Prosím vraťte knihu, abyste si mohli půjčit něco nového."
 
 #: home/stats.html
 msgid "Around the Library"
-msgstr ""
+msgstr "Kolem knihovny"
 
 #: home/stats.html
 msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
-msgstr ""
+msgstr "Zde je co se stalo za posledních 28 dní. Více <a href=\"/recentchanges\">nedávných změn</a>"
 
 #: home/stats.html
 #, fuzzy
@@ -4673,31 +4673,31 @@ msgstr "Přidat knhu do Open Library"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
-msgstr ""
+msgstr "Plošný graf nedávných unikátních návštěvníků"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
-msgstr ""
+msgstr "Kolik nových členů Open Library jsme přivítali?"
 
 #: home/stats.html
 msgid "Area graph of new members"
-msgstr ""
+msgstr "Plošný graf nových členů"
 
 #: home/stats.html
 msgid "People are constantly updating the catalog"
-msgstr ""
+msgstr "Lidé neustále aktualizují katalog"
 
 #: home/stats.html
 msgid "Area graph of recent catalog edits"
-msgstr ""
+msgstr "Plošný graf nedávných úprav katalogu"
 
 #: home/stats.html
 msgid "Catalog Edits"
-msgstr ""
+msgstr "Úpravy katalogu"
 
 #: home/stats.html
 msgid "Members can create Lists"
-msgstr ""
+msgstr "Členové mohou vytvářet Seznamy"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
