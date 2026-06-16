@@ -20,7 +20,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#: account.html account/notifications.html account/privacy.html lib/nav_head.html type/user/view.html
+#: account.html account/notifications.html account/privacy.html
+#: lib/nav_head.html type/user/view.html
 msgid "Settings"
 msgstr "Nastavení"
 
@@ -37,7 +38,10 @@ msgstr "Zobrazit"
 msgid "or"
 msgstr "nebo"
 
-#: account.html databarHistory.html databarTemplate.html databarView.html my_books/check_ins/check_in_prompt.html reading_goals/reading_goal_progress.html subjects.html type/edition/compact_title.html type/user/view.html
+#: account.html databarHistory.html databarTemplate.html databarView.html
+#: my_books/check_ins/check_in_prompt.html
+#: reading_goals/reading_goal_progress.html subjects.html
+#: type/edition/compact_title.html type/user/view.html
 msgid "Edit"
 msgstr "Editovat"
 
@@ -101,12 +105,22 @@ msgid "New Batch Import"
 msgstr "Nový hromadný import"
 
 #: batch_import.html
-msgid "Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea."
-msgstr "Připojte dokument ve formátu JSONL se záznamy importu nebo vložte text JSONL do textového pole níže."
+msgid ""
+"Attach a JSONL formatted document with import records or copy/paste the "
+"JSONL text into the textarea."
+msgstr ""
+"Připojte dokument ve formátu JSONL se záznamy importu nebo vložte text "
+"JSONL do textového pole níže."
 
 #: batch_import.html
-msgid "See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more."
-msgstr "Viz <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master\">dokumentaci klienta Open Library</a> pro specifikaci formátu záznamu."
+msgid ""
+"See the <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master/olclient/schemata\">olclient import schemata</a> for "
+"more."
+msgstr ""
+"Viz <a href=\"https://github.com/internetarchive/openlibrary-"
+"client/tree/master\">dokumentaci klienta Open Library</a> pro specifikaci"
+" formátu záznamu."
 
 #: batch_import.html
 msgid "Attach a file:"
@@ -128,11 +142,17 @@ msgstr "Selhalo obnovení hesla."
 
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
-msgstr "Import nebude zařazen do fronty, dokud *každý* záznam neproběhne úspěšnou validací."
+msgstr ""
+"Import nebude zařazen do fronty, dokud *každý* záznam neproběhne úspěšnou"
+" validací."
 
 #: batch_import.html
-msgid "Please update the JSONL file and reload this page (there should be no need to reattach the file)."
-msgstr "Prosím aktualizujte soubor JSONL a znovu načtěte tuto stránku (nemusíte znovu procházet importním procesem)."
+msgid ""
+"Please update the JSONL file and reload this page (there should be no "
+"need to reattach the file)."
+msgstr ""
+"Prosím aktualizujte soubor JSONL a znovu načtěte tuto stránku (nemusíte "
+"znovu procházet importním procesem)."
 
 #: batch_import.html
 msgid "Validation errors:"
@@ -175,21 +195,27 @@ msgstr "Čekající hromadné importy"
 msgid "batch_id"
 msgstr "ID dávky"
 
-#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
+#: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html
+#: batch_import_view.html
 #, fuzzy
 msgid "Added Time"
 msgstr "Přidáno"
 
-#: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_pending_view.html batch_import_view.html librarian_dashboard/data_quality_table.html status.html
+#: account/import.html account/loans.html admin/imports.html
+#: admin/imports_by_date.html admin/loans_table.html admin/menu.html
+#: batch_import_pending_view.html batch_import_view.html
+#: librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
 msgstr "Stav"
 
-#: batch_import_pending_view.html batch_import_view.html merge_request_table/table_header.html
+#: batch_import_pending_view.html batch_import_view.html
+#: merge_request_table/table_header.html
 #, fuzzy
 msgid "Submitter"
 msgstr "Odeslat"
 
-#: RecentChangesAdmin.html batch_import_pending_view.html batch_import_view.html
+#: RecentChangesAdmin.html batch_import_pending_view.html
+#: batch_import_view.html
 #, fuzzy
 msgid "Comments"
 msgstr "Témata"
@@ -232,7 +258,8 @@ msgstr "Importovat položky"
 msgid "Import Time"
 msgstr "Čas importu"
 
-#: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html librarian_dashboard/data_quality_table.html
+#: account/import.html admin/imports.html admin/imports_by_date.html
+#: batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
 msgstr "Chyba"
 
@@ -312,7 +339,8 @@ msgstr "Zrušit, a jít zpět."
 msgid "YAML Representation:"
 msgstr "Reprezentace YAML:"
 
-#: BookPreview.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
+#: BookPreview.html book_providers/read_button.html books/edit/edition.html
+#: editpage.html import_preview.html
 #, fuzzy
 msgid "Preview"
 msgstr "Zobrazit"
@@ -325,15 +353,21 @@ msgstr "Historie úprav záznamu"
 msgid "Revision"
 msgstr "Revize"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html admin/ip/view.html admin/people/edits.html history.html recentchanges/render.html recentchanges/updated_records.html
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
 msgid "When"
 msgstr "Kdy"
 
-#: RecentChanges.html admin/history.html admin/ip/view.html admin/loans_table.html admin/people/edits.html history.html recentchanges/render.html
+#: RecentChanges.html admin/history.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html history.html
+#: recentchanges/render.html
 msgid "Who"
 msgstr "Kdo"
 
-#: RecentChanges.html RecentChangesUsers.html admin/history.html admin/ip/view.html admin/people/edits.html history.html recentchanges/render.html recentchanges/updated_records.html
+#: RecentChanges.html RecentChangesUsers.html admin/history.html
+#: admin/ip/view.html admin/people/edits.html history.html
+#: recentchanges/render.html recentchanges/updated_records.html
 msgid "Comment"
 msgstr "Komentář"
 
@@ -401,17 +435,29 @@ msgstr "Omlouváme se, při zpracování vašeho požadavku došlo k chybě:"
 
 #: internalerror.html
 #, python-format
-msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr "Referenční kód %s a ID Sentry trasování %s byly vytvořeny pro sledování této chyby a problém prošetříme."
+msgid ""
+"The reference code %s and Sentry trace ID %s have been created to track "
+"this error and we will investigate as we're able."
+msgstr ""
+"Referenční kód %s a ID Sentry trasování %s byly vytvořeny pro sledování "
+"této chyby a problém prošetříme."
 
 #: internalerror.html
 #, python-format
-msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr "Referenční kód %s byl vytvořen pro sledování této chyby a problém prošetříme."
+msgid ""
+"The reference code %s has been created to track this error and we will "
+"investigate as we're able."
+msgstr ""
+"Referenční kód %s byl vytvořen pro sledování této chyby a problém "
+"prošetříme."
 
 #: internalerror.html
-msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr "Vrátit se na <a class=\"go-back-link\" href=\"javascript:;\">předchozí stránku</a>?"
+msgid ""
+"Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous "
+"page</a>?"
+msgstr ""
+"Vrátit se na <a class=\"go-back-link\" href=\"javascript:;\">předchozí "
+"stránku</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
@@ -419,15 +465,23 @@ msgstr "Přesměrováváme vás na vaši knihu"
 
 #: interstitial.html
 #, python-format
-msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr "Tuto knihu poskytuje %(book_provider)s, důvěryhodný dodavatel třetí strany Open Library."
+msgid ""
+"This book is provided by %(book_provider)s, a third-party Open Library "
+"Trusted Book Provider"
+msgstr ""
+"Tuto knihu poskytuje %(book_provider)s, důvěryhodný dodavatel třetí "
+"strany Open Library."
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
 msgstr "Za %(time)s sekund budete automaticky přesměrováni na: %(url)s"
 
-#: CreateListModal.html EditButtons.html account/notifications.html account/password/reset.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
+#: CreateListModal.html EditButtons.html account/notifications.html
+#: account/password/reset.html account/privacy.html admin/imports-add.html
+#: admin/permissions.html books/add.html databarEdit.html interstitial.html
+#: merge/authors.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html type/tag/form.html
 msgid "Cancel"
 msgstr "Zrušit"
 
@@ -440,7 +494,9 @@ msgstr "Pokračovat bez čekání"
 msgid "Library Explorer"
 msgstr "Knihovnický režim"
 
-#: account/create.html books/custom_carousel.html librarian_dashboard/data_quality_table.html login.html search/work_search_facets.html
+#: account/create.html books/custom_carousel.html
+#: librarian_dashboard/data_quality_table.html login.html
+#: search/work_search_facets.html
 #, fuzzy
 msgid "Loading..."
 msgstr "Upravuje..."
@@ -450,8 +506,12 @@ msgid "Log In"
 msgstr "Přihlásit se"
 
 #: login.html
-msgid "This is a development instance, the default credentials are automatically filled."
-msgstr "Toto je vývojová instance, výchozí přihlašovací údaje jsou automaticky vyplněny výše."
+msgid ""
+"This is a development instance, the default credentials are automatically"
+" filled."
+msgstr ""
+"Toto je vývojová instance, výchozí přihlašovací údaje jsou automaticky "
+"vyplněny výše."
 
 #: login.html
 msgid "email:"
@@ -463,8 +523,12 @@ msgid "password:"
 msgstr "Heslo"
 
 #: login.html
-msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr "Přihlaste se pomocí vaší bezplatné karty Open Library a půjčujte si digitální knihy z neziskového archivu."
+msgid ""
+"Log in to use your free Open Library card to borrow digital books from "
+"the nonprofit Internet Archive"
+msgstr ""
+"Přihlaste se pomocí vaší bezplatné karty Open Library a půjčujte si "
+"digitální knihy z neziskového archivu."
 
 #: account/create.html login.html
 #, fuzzy
@@ -477,12 +541,23 @@ msgid "You are already logged into Open Library as %(user)s."
 msgstr "Již jste přihlášeni v Open Library jako uživatel %(user)s."
 
 #: account/create.html login.html
-msgid "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()\">log out</a> and start the signup process afresh."
-msgstr "Pokud chcete vytvořit nový, jiný účet Open Library, budete muset <a href=\"%(url)s\" onclick=\"document.forms[\">odhlásit váš aktuální účet Internet Archive</a>."
+msgid ""
+"If you'd like to create a new, different Open Library account, you'll "
+"need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-"
+"logout'].submit()\">log out</a> and start the signup process afresh."
+msgstr ""
+"Pokud chcete vytvořit nový, jiný účet Open Library, budete muset <a "
+"href=\"%(url)s\" onclick=\"document.forms[\">odhlásit váš aktuální účet "
+"Internet Archive</a>."
 
 #: login.html
-msgid "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access your Open Library account."
-msgstr "Zadejte prosím e-mail a heslo k vašemu účtu <a href=\"https://archive.org\">Internet Archive</a> pro přístup k vašemu účtu Open Library."
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
+msgstr ""
+"Zadejte prosím e-mail a heslo k vašemu účtu <a "
+"href=\"https://archive.org\">Internet Archive</a> pro přístup k vašemu "
+"účtu Open Library."
 
 #: login.html openlibrary/plugins/upstream/forms.py
 msgid "Email"
@@ -493,7 +568,8 @@ msgstr "E-mail"
 msgid "Forgot your Internet Archive email?"
 msgstr "Zapoměli jste váš Internet Archive email"
 
-#: account/email/forgot-ia.html login.html openlibrary/plugins/upstream/forms.py
+#: account/email/forgot-ia.html login.html
+#: openlibrary/plugins/upstream/forms.py
 msgid "Password"
 msgstr "Heslo"
 
@@ -512,7 +588,9 @@ msgstr "Zapamatovat si mě"
 #: login.html
 #, fuzzy
 msgid "Don't have an account? <a href=\"/account/create\">Sign up now</a>."
-msgstr "Nejste členem Open Library? <a href=\"/account/create\">Registrujte se</a>."
+msgstr ""
+"Nejste členem Open Library? <a href=\"/account/create\">Registrujte "
+"se</a>."
 
 #: messages.html
 #, fuzzy
@@ -538,7 +616,10 @@ msgstr "Přidat knihu"
 msgid "Thank you for improving the Open Library catalog!"
 msgstr "Děkujeme za vylepšení katalogu Open Library!"
 
-#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
+#: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html
+#: ShareModal.html covers/author_photo.html covers/book_cover.html
+#: covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html
+#: my_books/dropdown_content.html native_dialog.html
 msgid "Close"
 msgstr "Zvařít"
 
@@ -596,13 +677,21 @@ msgstr "Přístup odepřen"
 
 #: permission_denied.html
 #, python-format
-msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr "K přidávání záznamů na Open Library jsou oprávněni pouze přihlášení uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
+msgid ""
+"Only logged users are allowed to add records on Open Library. Please <a "
+"href=\"%s\">log in</a> to add a book."
+msgstr ""
+"K přidávání záznamů na Open Library jsou oprávněni pouze přihlášení "
+"uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
 
 #: permission_denied.html
 #, python-format
-msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr "K úpravám záznamů na Open Library jsou oprávněni pouze přihlášení uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
+msgid ""
+"Only logged users are allowed to modify records on Open Library. Please "
+"<a href=\"%s\">log in</a> to edit this page."
+msgstr ""
+"K úpravám záznamů na Open Library jsou oprávněni pouze přihlášení "
+"uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
 
 #: permission_denied.html
 #, python-format
@@ -610,8 +699,12 @@ msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
 msgstr "Můžete se <a href=\"%s\">přihlásit</a> pokud máte požadovaná oprávnění."
 
 #: recaptcha.html
-msgid "Please satisfy the reCAPTCHA below. If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
-msgstr "Prosím vyplňte reCAPTCHA níže. Pokud máte nastavení zabezpečení nebo blokátory ochrany soukromí, možná budete muset reCAPTCHA dočasně povolit."
+msgid ""
+"Please satisfy the reCAPTCHA below. If you have security settings or "
+"privacy blockers installed, please disable them to see the reCAPTCHA."
+msgstr ""
+"Prosím vyplňte reCAPTCHA níže. Pokud máte nastavení zabezpečení nebo "
+"blokátory ochrany soukromí, možná budete muset reCAPTCHA dočasně povolit."
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
@@ -635,7 +728,8 @@ msgstr "Požadované pole"
 msgid "Source"
 msgstr "více"
 
-#: books/add.html covers/add.html showia.html type/edition/view.html type/work/view.html
+#: books/add.html covers/add.html showia.html type/edition/view.html
+#: type/work/view.html
 msgid "Internet Archive"
 msgstr "Internetový Archiv"
 
@@ -701,11 +795,16 @@ msgstr "Přidat PR"
 msgid "PR"
 msgstr "PR"
 
-#: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html status.html type/about/edit.html type/page/edit.html type/template/edit.html
+#: books/add.html books/edit.html books/edit/edition.html
+#: search/advancedsearch.html status.html type/about/edit.html
+#: type/page/edit.html type/template/edit.html
 msgid "Title"
 msgstr "Název"
 
-#: books/add.html books/edit.html books/edit/edition.html openlibrary/plugins/worksearch/code.py search/advancedsearch.html search/search_modal_i18n.html search/work_search_selected_facets.html status.html
+#: books/add.html books/edit.html books/edit/edition.html
+#: openlibrary/plugins/worksearch/code.py search/advancedsearch.html
+#: search/search_modal_i18n.html search/work_search_selected_facets.html
+#: status.html
 msgid "Author"
 msgstr "Autor"
 
@@ -796,7 +895,8 @@ msgstr "Zobrazit PR na GitHubu"
 msgid "Show changed files"
 msgstr "Neupraveno"
 
-#: admin/inspect/store.html admin/people/index.html status.html type/author/edit.html type/language/view.html
+#: admin/inspect/store.html admin/people/index.html status.html
+#: type/author/edit.html type/language/view.html
 msgid "Name"
 msgstr "Název"
 
@@ -843,7 +943,8 @@ msgstr "Vyjasnění pojmů"
 msgid "Now"
 msgstr "Ne"
 
-#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html my_books/check_ins/check_in_prompt.html trending.html
+#: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html
+#: my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
 msgstr "Dnes"
 
@@ -879,7 +980,8 @@ msgstr "Nejstarší trendová data jsou z října 2017"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
-#: account/mybooks.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/sidebar.html my_books/dropdown_content.html
+#: my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
 msgstr "Chci přečíst"
 
@@ -887,12 +989,16 @@ msgstr "Chci přečíst"
 #. headings and breadcrumbs.
 #. Label for the reading log shelf for books the user is actively reading
 #. (bookshelf ID 2). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
 #, fuzzy
 msgid "Currently Reading"
 msgstr "Současné výpůjčky"
 
-#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html book_providers/read_button.html books/edit/edition.html trending.html type/list/embed.html widget.html
+#: LoanReadForm.html ReadButton.html admin/inspect/memcache.html
+#: book_providers/read_button.html books/edit/edition.html trending.html
+#: type/list/embed.html widget.html
 msgid "Read"
 msgstr "Číst"
 
@@ -902,7 +1008,9 @@ msgstr "Číst"
 #. finishing (bookshelf ID 4). Used as a button label and shelf name.
 #. Label for the reading log shelf for books the user stopped reading
 #. (bookshelf ID 4). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: search/sort_options.html trending.html
 msgid "Stopped Reading"
 msgstr "Přestal/a číst"
 
@@ -984,8 +1092,12 @@ msgstr "Knihovnický režim"
 
 #: widget.html
 #, python-format
-msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr "na <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
+msgid ""
+"on <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"%(link)s\">openlibrary.org</a>"
+msgstr ""
+"na <a target=\"_blank\" rel=\"noopener noreferrer\" "
+"href=\"%(link)s\">openlibrary.org</a>"
 
 #: work_search.html
 #, fuzzy
@@ -1005,7 +1117,8 @@ msgstr "Toto je viditelné pouze pro super knihovníky."
 msgid "Solr Editions"
 msgstr "Njvíc vydání"
 
-#: design/toggle.html openlibrary/plugins/worksearch/code.py search/availability_i18n.html work_search.html
+#: design/toggle.html openlibrary/plugins/worksearch/code.py
+#: search/availability_i18n.html work_search.html
 msgid "Readable Only"
 msgstr "Pouze ke čtení"
 
@@ -1013,7 +1126,8 @@ msgstr "Pouze ke čtení"
 msgid "Filter by availability"
 msgstr "Filtrovat podle dostupnosti"
 
-#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
+#: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
+#: type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
 msgstr "Jazyk"
 
@@ -1022,7 +1136,8 @@ msgstr "Jazyk"
 msgid "Search languages…"
 msgstr "Vybrat tento jazyk"
 
-#: books/edit/edition.html languages/index.html search/search_modal_i18n.html work_search.html
+#: books/edit/edition.html languages/index.html search/search_modal_i18n.html
+#: work_search.html
 #, fuzzy
 msgid "Languages"
 msgstr "Jazyk"
@@ -1058,7 +1173,8 @@ msgstr "Přidat knihu"
 msgid "Checking Search Inside matches"
 msgstr "Kontrola shod v Prohledávání textu"
 
-#: account/reading_log.html search/authors.html search/lists.html search/subjects.html work_search.html
+#: account/reading_log.html search/authors.html search/lists.html
+#: search/subjects.html work_search.html
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
@@ -1077,8 +1193,12 @@ msgid "The Open Library Team"
 msgstr "Zapoměli jste váš Open Library email"
 
 #: about/index.html
-msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr "Open Library je možná díky oddanému týmu zaměstnanců a více než 100 dobrovolníkům z celého světa."
+msgid ""
+"Open Library is made possible because of a dedicated team of staff and "
+"over 100 volunteers from around the globe."
+msgstr ""
+"Open Library je možná díky oddanému týmu zaměstnanců a více než 100 "
+"dobrovolníkům z celého světa."
 
 #: about/index.html
 msgid "Want to join us?"
@@ -1130,8 +1250,16 @@ msgid "Librarianship"
 msgstr "Knihovnický režim"
 
 #: about/index.html
-msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr "Pokud jste dobrovolník Open Library a chtěli byste být uveden jako člen týmu, vyplňte prosím <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formulář informací o týmu Open Library</a>."
+msgid ""
+"If you volunteer with Open Library and would like to be listed as part of"
+" the team, then complete the <a "
+"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team "
+"information form</a>."
+msgstr ""
+"Pokud jste dobrovolník Open Library a chtěli byste být uveden jako člen "
+"týmu, vyplňte prosím <a "
+"href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formulář informací o týmu "
+"Open Library</a>."
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
@@ -1143,7 +1271,9 @@ msgstr "Musí mýt 3 až 20 znaků"
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr "Uživatelské jméno smí obsahovat pouze čísla, písmena, pomlčku - nebo podtržítko _"
+msgstr ""
+"Uživatelské jméno smí obsahovat pouze čísla, písmena, pomlčku - nebo "
+"podtržítko _"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
@@ -1158,8 +1288,12 @@ msgid "Sign Up"
 msgstr "Registrovat"
 
 #: account/create.html
-msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr "Získejte svou bezplatnou kartu Open Library a půjčujte si digitální knihy od neziskového Internet Archive."
+msgid ""
+"Get your free Open Library card and borrow digital books from the "
+"nonprofit Internet Archive"
+msgstr ""
+"Získejte svou bezplatnou kartu Open Library a půjčujte si digitální knihy"
+" od neziskového Internet Archive."
 
 #: account/create.html type/author/view.html
 msgid "Success!"
@@ -1176,28 +1310,49 @@ msgid "screenname"
 msgstr "Uživatelské jméno"
 
 #: account/create.html
-msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr "Chci dostávat novinky, oznámení a zdroje od <a href=\"https://archive.org\">Internet Archive</a>."
+msgid ""
+"I want to receive news, announcements, and resources from the <a "
+"href=\"https://archive.org/\">Internet Archive</a>, the non-profit that "
+"runs Open Library."
+msgstr ""
+"Chci dostávat novinky, oznámení a zdroje od <a "
+"href=\"https://archive.org\">Internet Archive</a>."
 
 #: account/create.html
-msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
-msgstr "Chci požádat* o <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">speciální přístup pro osoby s poruchou tisku</a> od Internet Archive."
+msgid ""
+"I want to apply* for <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print "
+"disability access</a> through a qualifying program."
+msgstr ""
+"Chci požádat* o <a href=\"https://help.archive.org/help/program-"
+"overview/\" target=\"_blank\" rel=\"noopener noreferrer\">speciální "
+"přístup pro osoby s poruchou tisku</a> od Internet Archive."
 
 #: account/create.html
 msgid "Select qualifying program"
 msgstr "Vybrat kvalifikační program"
 
 #: account/create.html
-msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr "* Použijte prosím e-mailovou adresu spojenou s tímto kvalifikačním programem"
+msgid ""
+"* Please use the email address associated with this qualifying program. "
+"You will receive an email after activation with next steps."
+msgstr ""
+"* Použijte prosím e-mailovou adresu spojenou s tímto kvalifikačním "
+"programem"
 
 #: account/create.html
 msgid "Sign Up with Email"
 msgstr "Zaregistrovat se e-mailem"
 
 #: account/create.html
-msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr "Registrací souhlasíte s <a class=\"ol-signup__tos-link\" href=\"https://archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">podmínkami použití</a> Internet Archive."
+msgid ""
+"By signing up, you agree to the Internet Archive's <a class=\"ol-signup-"
+"form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" "
+"rel=\"noopener noreferrer\">Terms of Service</a>."
+msgstr ""
+"Registrací souhlasíte s <a class=\"ol-signup__tos-link\" "
+"href=\"https://archive.org/about/terms.php\" target=\"_blank\" "
+"rel=\"noopener noreferrer\">podmínkami použití</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
@@ -1221,8 +1376,14 @@ msgid "Import from Goodreads"
 msgstr "Importovat z Goodreads"
 
 #: account/import.html
-msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr "Pokyny pro export dat naleznete na: <a href=\"https://www.goodreads.com/review/import\">stránce exportu Goodreads</a>"
+msgid ""
+"For instructions on exporting data refer to: <a "
+"href=\"https://www.goodreads.com/review/import\">Goodreads "
+"Import/Export</a>"
+msgstr ""
+"Pokyny pro export dat naleznete na: <a "
+"href=\"https://www.goodreads.com/review/import\">stránce exportu "
+"Goodreads</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
@@ -1376,10 +1537,14 @@ msgid "Leave the Waiting List"
 msgstr "Opustit čekací listinu"
 
 #: account/loans.html
-msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
+msgid ""
+"Are you sure you want to leave the waiting list "
+"of<br/><strong>TITLE</strong>?"
 msgstr "Opravdu chcete opustit čekací listinu pro<br/><strong>TITLE</strong>?"
 
-#: ProlificAuthors.html account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
+#: ProlificAuthors.html account/loans.html authors/index.html
+#: lists/list_follow.html lists/showcase.html publishers/view.html
+#: search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
@@ -1433,8 +1598,12 @@ msgid "Leave the waiting list?"
 msgstr "Opustit čekací listinu?"
 
 #: account/loans.html
-msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr "Hledáte knihu k výpůjčce? Prohlédněte si naše tipy od zaměstnanců nebo prohledejte náš katalog."
+msgid ""
+"Looking for a book to borrow?  Check out our staff picks, or search for a"
+" book on a specific subject:"
+msgstr ""
+"Hledáte knihu k výpůjčce? Prohlédněte si naše tipy od zaměstnanců nebo "
+"prohledejte náš katalog."
 
 #: account/loans.html home/index.html
 #, fuzzy
@@ -1457,7 +1626,9 @@ msgstr "Moje výpůjčky"
 #. and breadcrumbs.
 #. Label for the reading log shelf for books the user has finished reading
 #. (bookshelf ID 3). Used as a button label and shelf name.
-#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html openlibrary/plugins/upstream/mybooks.py search/sort_options.html
+#: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html
+#: my_books/dropdown_content.html my_books/primary_action.html
+#: openlibrary/plugins/upstream/mybooks.py search/sort_options.html
 #, fuzzy
 msgid "Already Read"
 msgstr "Email už je používán"
@@ -1485,7 +1656,8 @@ msgstr "Moje seznamy"
 msgid "My Reading Stats"
 msgstr "Seznamy četby"
 
-#: account/mybooks.html account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
+#: account/mybooks.html account/sidebar.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 #, fuzzy
 msgid "Loan History"
 msgstr "Historie"
@@ -1515,7 +1687,10 @@ msgstr "Email se nepodařilo ověřit."
 
 #: account/not_verified.html
 #, python-format
-msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
+msgid ""
+"When you created your account, we sent an email to %(email)s that "
+"contained a link for you to verify your email address. We need you to "
+"click that link, please."
 msgstr "Po vytvoření účtu jsme na adresu %(email)s zaslali ověřovací e-mail."
 
 #: account/not_verified.html
@@ -1530,7 +1705,8 @@ msgstr "Znovu zaslat ověřovací email"
 msgid "Thanks!"
 msgstr "Děkujeme!"
 
-#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
+#: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html
+#: account/notes.html account/observations.html
 #, fuzzy
 msgid "Unknown author"
 msgstr "Autor"
@@ -1549,7 +1725,8 @@ msgstr "Chybí název"
 msgid "Publish date unknown"
 msgstr "vydáno v"
 
-#: account/notes.html books/edition-sort.html lists/export_as_html.html type/work/editions.html
+#: account/notes.html books/edition-sort.html lists/export_as_html.html
+#: type/work/editions.html
 #, fuzzy
 msgid "Publisher unknown"
 msgstr "Vydavatel"
@@ -1584,8 +1761,14 @@ msgid "Notifications"
 msgstr "Vaše upozornění"
 
 #: account/notifications.html
-msgid "Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want."
-msgstr "Oznámení jsou momentálně spojena se seznamy. Pokud je některá ze sledovaných knih dostupná, přidejte ji do svého seznamu a dostávejte upozornění."
+msgid ""
+"Notifications are connected to Lists at the moment. If one of the books "
+"on your list gets edited, or a new book comes into the catalog, we'll let"
+" you know, if you want."
+msgstr ""
+"Oznámení jsou momentálně spojena se seznamy. Pokud je některá ze "
+"sledovaných knih dostupná, přidejte ji do svého seznamu a dostávejte "
+"upozornění."
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
@@ -1599,11 +1782,13 @@ msgstr "Ne, děkuji"
 msgid "Yes! Please!"
 msgstr "Ano, prosím."
 
-#: EditButtons.html account/notifications.html account/privacy.html admin/block.html admin/spamwords.html covers/manage.html
+#: EditButtons.html account/notifications.html account/privacy.html
+#: admin/block.html admin/spamwords.html covers/manage.html
 msgid "Save"
 msgstr "Uložit"
 
-#: EditionNavBar.html account/observations.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: EditionNavBar.html account/observations.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, fuzzy
 msgid "Reviews"
 msgstr "Zobrazit"
@@ -1632,12 +1817,21 @@ msgid "Privacy & Content Moderation Settings"
 msgstr "Nastavení soukromý"
 
 #: account/privacy.html
-msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr "Chcete zpřístupnit svůj <a href=\"/account/books\">čtenářský deník</a> veřejně?"
+msgid ""
+"Would you like to make your <a href=\"/account/books\">Reading Log</a> "
+"public?"
+msgstr ""
+"Chcete zpřístupnit svůj <a href=\"/account/books\">čtenářský deník</a> "
+"veřejně?"
 
 #: account/privacy.html
-msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr "Ostatní tak budou moci vidět, co chcete číst, co právě čtete a co jste přečetli."
+msgid ""
+"This will enable others to see what books you want to read, are reading, "
+"stopped reading, or have already read. Patrons with reading logs set to "
+"public may be followed."
+msgstr ""
+"Ostatní tak budou moci vidět, co chcete číst, co právě čtete a co jste "
+"přečetli."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -1652,8 +1846,12 @@ msgid "Enable Safe Mode?"
 msgstr "Povolit bezpečný režim?"
 
 #: account/privacy.html
-msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr "Bezpečný režim rozmaže obálky knih, které byly označeny jako obsahující citlivý obsah."
+msgid ""
+"Safe Mode blurs book covers that have been flagged as having sensitive "
+"imagery."
+msgstr ""
+"Bezpečný režim rozmaže obálky knih, které byly označeny jako obsahující "
+"citlivý obsah."
 
 #: account/reading_log.html
 #, python-format
@@ -1662,8 +1860,12 @@ msgstr "Knihy, které čte %(username)s"
 
 #: account/reading_log.html
 #, python-format
-msgid "%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading."
-msgstr "%(username)s čte %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
+msgid ""
+"%(username)s is reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world what you're reading."
+msgstr ""
+"%(username)s čte %(total)d knih. Přidejte se k %(username)s na "
+"OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
@@ -1672,8 +1874,12 @@ msgstr "Knihy, které chce číst %(username)s"
 
 #: account/reading_log.html
 #, python-format
-msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!"
-msgstr "%(username)s chce přečíst %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
+msgid ""
+"%(username)s wants to read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and share the books that you'll soon be reading!"
+msgstr ""
+"%(username)s chce přečíst %(total)d knih. Přidejte se k %(username)s na "
+"OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
@@ -1682,8 +1888,12 @@ msgstr "Knihy, které přestal/a číst %(username)s"
 
 #: account/reading_log.html
 #, python-format
-msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
-msgstr "%(username)s přestal/a číst %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
+msgid ""
+"%(username)s stopped reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org to share your own reading updates!"
+msgstr ""
+"%(username)s přestal/a číst %(total)d knih. Přidejte se k %(username)s na"
+" OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
@@ -1692,8 +1902,12 @@ msgstr "Knihy přečtené uživatelem %(username)s v roce %(year)d"
 
 #: account/reading_log.html
 #, python-format
-msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr "%(username)s přečetl/a %(total)d knih v roce %(year)d. Přidejte se k %(username)s na OpenLibrary."
+msgid ""
+"%(username)s has read %(total)d books in %(year)d. Join %(username)s on "
+"OpenLibrary.org and tell the world about the books that you care about."
+msgstr ""
+"%(username)s přečetl/a %(total)d knih v roce %(year)d. Přidejte se k "
+"%(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
@@ -1702,8 +1916,12 @@ msgstr "Přečtené knihy uživatele %(username)s"
 
 #: account/reading_log.html
 #, python-format
-msgid "%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr "%(username)s přečetl/a %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
+msgid ""
+"%(username)s has read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world about the books that you care about."
+msgstr ""
+"%(username)s přečetl/a %(total)d knih. Přidejte se k %(username)s na "
+"OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
@@ -1748,12 +1966,21 @@ msgid "You haven't added any books to this shelf yet."
 msgstr "Na tento regál jste zatím nepřidali žádné knihy."
 
 #: account/reading_log.html
-msgid "<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
-msgstr "<a href=\"/search\">Vyhledejte knihu</a> a přidejte ji do svého čtenářského deníku. <a href=\"/account/import\">Importujte z Goodreads</a>."
+msgid ""
+"<a href=\"/search\">Search for a book</a> to add to your reading log. <a "
+"href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
+msgstr ""
+"<a href=\"/search\">Vyhledejte knihu</a> a přidejte ji do svého "
+"čtenářského deníku. <a href=\"/account/import\">Importujte z "
+"Goodreads</a>."
 
 #: account/reading_log.html
-msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr "Ve vašem feedu nejsou žádné nedávné knihy. Až budete sledovat veřejné účty, zde se zobrazí jejich přidané knihy."
+msgid ""
+"There are no recent books in your feed. When you follow public accounts, "
+"their book updates will appear here."
+msgstr ""
+"Ve vašem feedu nejsou žádné nedávné knihy. Až budete sledovat veřejné "
+"účty, zde se zobrazí jejich přidané knihy."
 
 #. Display name for the "want-to-read" reading log shelf used in page headings
 #. and breadcrumbs.
@@ -1773,8 +2000,12 @@ msgstr "Moje knihy"
 
 #: account/readinglog_stats.html
 #, python-format
-msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr "Zobrazuji statistiky pro <strong>%(works_count)d</strong> knih. Poznámka: všechna data pocházejí z Wikidata."
+msgid ""
+"Displaying stats about <strong>%(works_count)d</strong> books. Note all "
+"charts show only the top 20 bars. Note reading log stats are private."
+msgstr ""
+"Zobrazuji statistiky pro <strong>%(works_count)d</strong> knih. Poznámka:"
+" všechna data pocházejí z Wikidata."
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1799,8 +2030,20 @@ msgid "Works by Author Country of Birth"
 msgstr "Díla podle místa narození autora"
 
 #: account/readinglog_stats.html
-msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
-msgstr "Demografické statistiky jsou napájeny z <a href=\"https://www.wikidata.org/\">Wikidata</a>. Zde je <a id=\"wd-query-sample\" href=\"\">ukázka</a> použitého dotazu. <br />Vylepšete tyto statistiky přidáním identifikátoru autora ve Wikidata podle <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">těchto pokynů</a>."
+msgid ""
+"Demographic statistics powered by <a "
+"href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-"
+"query-sample\" href=\"\">sample</a> of the query used. <br />Improve "
+"these stats by adding the Wikidata author identifier following <a "
+"href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
+"purpose\">these instructions</a>."
+msgstr ""
+"Demografické statistiky jsou napájeny z <a "
+"href=\"https://www.wikidata.org/\">Wikidata</a>. Zde je <a id=\"wd-query-"
+"sample\" href=\"\">ukázka</a> použitého dotazu. <br />Vylepšete tyto "
+"statistiky přidáním identifikátoru autora ve Wikidata podle <a "
+"href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-"
+"purpose\">těchto pokynů</a>."
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
@@ -1842,7 +2085,8 @@ msgstr "Smazat tento záznam"
 msgid "Click on a bar to see matching works"
 msgstr "Kliknutím na sloupec zobrazíte odpovídající díla"
 
-#: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: account/sidebar.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
 msgstr "Můj feed"
 
@@ -1865,7 +2109,10 @@ msgstr "Čtenářské záznamy"
 msgid "My lists"
 msgstr "Moje seznamy"
 
-#: EditionNavBar.html SearchNavigation.html account/sidebar.html lib/nav_head.html lists/home.html recentchanges/index.html type/edition/view.html type/list/embed.html type/user/view.html type/work/view.html
+#: EditionNavBar.html SearchNavigation.html account/sidebar.html
+#: lib/nav_head.html lists/home.html recentchanges/index.html
+#: type/edition/view.html type/list/embed.html type/user/view.html
+#: type/work/view.html
 msgid "Lists"
 msgstr "Seznamy"
 
@@ -1896,14 +2143,18 @@ msgstr "Nastavení soukromí: %(public)s"
 msgid "Verification email sent"
 msgstr "Ověřovací email odeslán"
 
-#: account/password/reset_success.html account/verify.html account/verify/activated.html account/verify/success.html
+#: account/password/reset_success.html account/verify.html
+#: account/verify/activated.html account/verify/success.html
 #, python-format
 msgid "Hi, %(user)s"
 msgstr "Ahoj %(user)s"
 
 #: account/verify.html
 #, python-format
-msgid "We’ve sent an email to %(email)s containing a link to verify your account. Click/tap on the link to finish creating your Internet Archive account."
+msgid ""
+"We’ve sent an email to %(email)s containing a link to verify your "
+"account. Click/tap on the link to finish creating your Internet Archive "
+"account."
 msgstr "Na adresu %(email)s jsme zaslali e-mail s odkazem pro ověření vašeho účtu."
 
 #: account/verify.html
@@ -1924,14 +2175,17 @@ msgstr "Sleduje"
 msgid "Followers"
 msgstr "filtry"
 
-#: account/view.html type/edition/modal_links.html type/edition/title_and_author.html
+#: account/view.html type/edition/modal_links.html
+#: type/edition/title_and_author.html
 #, fuzzy
 msgid "Share"
 msgstr "Uložit"
 
 #: account/view.html
 msgid "Your book notes are private and cannot be viewed by other patrons."
-msgstr "Vaše poznámky ke knihám jsou soukromé a ostatní čtenáři je nemohou zobrazit."
+msgstr ""
+"Vaše poznámky ke knihám jsou soukromé a ostatní čtenáři je nemohou "
+"zobrazit."
 
 #: account/view.html
 msgid "Your book reviews will be shared anonymously with other patrons."
@@ -1951,8 +2205,12 @@ msgid "Forgot Your Internet Archive Email?"
 msgstr "Zapoměli jste váš Internet Archive email"
 
 #: account/email/forgot-ia.html
-msgid "Please enter your Open Library email and password, and we’ll retrieve your Archive.org email."
-msgstr "Zadejte prosím svůj e-mail a heslo k Open Library a my načteme váš e-mail v Internet Archive."
+msgid ""
+"Please enter your Open Library email and password, and we’ll retrieve "
+"your Archive.org email."
+msgstr ""
+"Zadejte prosím svůj e-mail a heslo k Open Library a my načteme váš e-mail"
+" v Internet Archive."
 
 #: account/email/forgot-ia.html
 #, fuzzy
@@ -2005,8 +2263,12 @@ msgid "Password Reset Successful"
 msgstr "Obnova hesla proběhla úspěšně"
 
 #: account/password/reset_success.html
-msgid "Your password has been updated. Please <a href='/account/login?redirect=/'>log in to continue</a>."
-msgstr "Vaše heslo bylo aktualizováno. Prosím <a href='/account/login?redirect=/'>pro pokračování se přihlaste</a>."
+msgid ""
+"Your password has been updated. Please <a "
+"href='/account/login?redirect=/'>log in to continue</a>."
+msgstr ""
+"Vaše heslo bylo aktualizováno. Prosím <a "
+"href='/account/login?redirect=/'>pro pokračování se přihlaste</a>."
 
 #: account/password/sent.html
 msgid "Done."
@@ -2014,8 +2276,13 @@ msgstr "Hotovo."
 
 #: account/password/sent.html
 #, python-format
-msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
-msgstr "Na adresu %(email)s jsme zaslali e-mail s připomenutím vašeho uživatelského jména a pokyny pro obnovu hesla."
+msgid ""
+"We've sent an email to %(email)s with a reminder of your username and "
+"instructions to help you reset your Open Library password. Please check "
+"your inbox for a note from us."
+msgstr ""
+"Na adresu %(email)s jsme zaslali e-mail s připomenutím vašeho "
+"uživatelského jména a pokyny pro obnovu hesla."
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
@@ -2030,28 +2297,47 @@ msgid "Incident date: 2026-04-28T18Z"
 msgstr "Datum incidentu: 2026-04-28T18Z"
 
 #: account/security/check_email.html
-msgid "Check whether your Open Library account was in a set of accounts requiring attention."
-msgstr "Zkontrolujte, zda byl váš účet Open Library součástí skupiny účtů, u nichž byla vyžadována změna hesla."
+msgid ""
+"Check whether your Open Library account was in a set of accounts "
+"requiring attention."
+msgstr ""
+"Zkontrolujte, zda byl váš účet Open Library součástí skupiny účtů, u "
+"nichž byla vyžadována změna hesla."
 
 #: account/security/check_email.html
-msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
-msgstr "Prosím <a href=\"/account/login?redirect=/account/security/2026-04-28T18Z\">přihlaste se</a> a zkontrolujte svůj účet."
+msgid ""
+"Please <a "
+"href=\"/account/login?redirect=/account/security/2026-04-28T18\">log "
+"in</a> to check whether your account was affected."
+msgstr ""
+"Prosím <a "
+"href=\"/account/login?redirect=/account/security/2026-04-28T18Z\">přihlaste"
+" se</a> a zkontrolujte svůj účet."
 
 #: account/security/check_email.html
 msgid "Your account is in the affected set."
 msgstr "Váš účet je v zasažené skupině."
 
 #: account/security/check_email.html
-msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
-msgstr "Váš účet byl nalezen v seznamu zasažených účtů. Prosím zkontrolujte a aktualizujte své heslo."
+msgid ""
+"Your account was found in our affected accounts list. Please review any "
+"recent communications from Open Library and consider updating your "
+"password."
+msgstr ""
+"Váš účet byl nalezen v seznamu zasažených účtů. Prosím zkontrolujte a "
+"aktualizujte své heslo."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
 msgstr "Váš účet <em>není</em> v zasažené skupině."
 
 #: account/security/check_email.html
-msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr "Váš účet <em>nebyl</em> nalezen v seznamu zasažených účtů. Nemusíte podnikat žádné kroky."
+msgid ""
+"Your account was <em>not</em> found in the affected accounts list. No "
+"action is required."
+msgstr ""
+"Váš účet <em>nebyl</em> nalezen v seznamu zasažených účtů. Nemusíte "
+"podnikat žádné kroky."
 
 #: account/verify/activated.html
 msgid "Account already activated"
@@ -2059,20 +2345,30 @@ msgstr "Účet již byl aktivován"
 
 #: account/verify/activated.html
 #, python-format
-msgid "Your account has been activated already. Please <a href=\"%s\">log in to continue</a>."
-msgstr "Váš účet byl již aktivován. Prosím <a href=\"%s\">přihlaste se</a> pro přístup ke svému účtu."
+msgid ""
+"Your account has been activated already. Please <a href=\"%s\">log in to "
+"continue</a>."
+msgstr ""
+"Váš účet byl již aktivován. Prosím <a href=\"%s\">přihlaste se</a> pro "
+"přístup ke svému účtu."
 
 #: account/verify/failed.html
 msgid "Email Verification Failed"
 msgstr "Ověření meailu selhalo"
 
 #: account/verify/failed.html
-msgid "Your email address couldn't be verified. Your verification link seems invalid or expired."
-msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný nebo vypršel."
+msgid ""
+"Your email address couldn't be verified. Your verification link seems "
+"invalid or expired."
+msgstr ""
+"Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný "
+"nebo vypršel."
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr "Vyplňte svůj e-mail a kliknutím na toto tlačítko znovu odešlete ověřovací e-mail."
+msgstr ""
+"Vyplňte svůj e-mail a kliknutím na toto tlačítko znovu odešlete ověřovací"
+" e-mail."
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -2088,8 +2384,12 @@ msgstr "Ověření emailu uspělo"
 
 #: account/verify/success.html
 #, python-format
-msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
-msgstr "Výborně! Vaše e-mailová adresa byla ověřena. Prosím <a href=\"%s\">přihlaste se</a> pro přístup ke svému účtu."
+msgid ""
+"Yay! Your email address has been verified. Please <a href='%s'>log in to "
+"continue</a>."
+msgstr ""
+"Výborně! Vaše e-mailová adresa byla ověřena. Prosím <a "
+"href=\"%s\">přihlaste se</a> pro přístup ke svému účtu."
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
@@ -2119,8 +2419,12 @@ msgstr "Vaše emailová adresa"
 
 #: admin/block.html
 #, python-format
-msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr "IP adresa %(address)s byla přidána do textového pole. Prosím klikněte na Uložit."
+msgid ""
+"IP address %(address)s has been added to the textarea. Please click Save "
+"to block that IP."
+msgstr ""
+"IP adresa %(address)s byla přidána do textového pole. Prosím klikněte na "
+"Uložit."
 
 #: admin/block.html
 msgid "Blocked IP Addresses"
@@ -2147,7 +2451,8 @@ msgstr "Rozložení časů načítání stránek"
 msgid "Infobase Mean"
 msgstr "Průměr Infobase"
 
-#: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
+#: admin/history.html admin/imports.html authors/infobox.html
+#: type/author/edit.html
 msgid "Date"
 msgstr "Datum"
 
@@ -2156,11 +2461,13 @@ msgstr "Datum"
 msgid "Page"
 msgstr "Místo"
 
-#: admin/imports-add.html admin/imports.html admin/imports_by_date.html admin/menu.html
+#: admin/imports-add.html admin/imports.html admin/imports_by_date.html
+#: admin/menu.html
 msgid "Imports"
 msgstr "Importy"
 
-#: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
+#: admin/imports-add.html books/add.html books/edit/edition.html
+#: books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
 msgstr "Přidat"
 
@@ -2173,7 +2480,9 @@ msgstr "Přidat do Open Library novou knihu"
 msgid "Please add IA identifiers to be imported, one per line."
 msgstr "Přidejte identifikátory IA k importu, jeden na řádek."
 
-#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
+#: admin/imports-add.html admin/inspect/store.html admin/ip/view.html
+#: admin/people/edits.html admin/permissions.html
+#: my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
 msgstr "Odeslat"
 
@@ -2185,7 +2494,8 @@ msgstr "Nově importované knihy za den"
 msgid "You need to have JavaScript turned on to see the nifty chart!"
 msgstr "Pro zobrazení pěkného grafu musíte mít zapnutý JavaScript!"
 
-#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
+#: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html
+#: site/stats.html
 msgid "Summary"
 msgstr "Souhrn"
 
@@ -2270,8 +2580,12 @@ msgid "Items"
 msgstr "filtry"
 
 #: admin/index.html
-msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr "<span class=\"login-counts\">0</span> čtenářů se přihlásilo alespoň jednou za posledních 30 dní."
+msgid ""
+"<span class=\"login-counts\">0</span> patrons have logged in at least "
+"once over the past 30 days."
+msgstr ""
+"<span class=\"login-counts\">0</span> čtenářů se přihlásilo alespoň "
+"jednou za posledních 30 dní."
 
 #: admin/index.html
 #, fuzzy
@@ -2436,11 +2750,16 @@ msgstr "Shromažďování statistik přihlášení..."
 msgid "BookReader"
 msgstr "BookReader"
 
-#: admin/loans_table.html book_providers/cita_press_download_options.html book_providers/ia_download_options.html book_providers/openstax_download_options.html book_providers/wikisource_download_options.html books/edit/edition.html
+#: admin/loans_table.html book_providers/cita_press_download_options.html
+#: book_providers/ia_download_options.html
+#: book_providers/openstax_download_options.html
+#: book_providers/wikisource_download_options.html books/edit/edition.html
 msgid "PDF"
 msgstr "PDF"
 
-#: admin/loans_table.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/standard_ebooks_download_options.html books/edit/edition.html
+#: admin/loans_table.html book_providers/gutenberg_download_options.html
+#: book_providers/ia_download_options.html
+#: book_providers/standard_ebooks_download_options.html books/edit/edition.html
 msgid "ePub"
 msgstr "ePub"
 
@@ -2457,7 +2776,9 @@ msgstr[0] "%d aktuální výpůjčka"
 msgstr[1] "%d aktuální výpůjčky"
 msgstr[2] "%d aktuálních výpůjček"
 
-#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html admin/loans_table.html admin/people/edits.html recentchanges/render.html recentchanges/updated_records.html
+#: RecentChanges.html RecentChangesUsers.html admin/ip/view.html
+#: admin/loans_table.html admin/people/edits.html recentchanges/render.html
+#: recentchanges/updated_records.html
 msgid "What"
 msgstr "Co"
 
@@ -2480,7 +2801,10 @@ msgstr "Vypůjčeno %(date)s"
 msgid "Admin Center"
 msgstr "Centrum správy"
 
-#: RelatedSubjects.html SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html admin/menu.html
+#: admin/people/index.html admin/people/view.html
+#: openlibrary/plugins/worksearch/code.py type/author/view.html
+#: type/list/view_body.html
 msgid "People"
 msgstr "Lidé"
 
@@ -2574,8 +2898,12 @@ msgid "Update permissions"
 msgstr "Aktualizovat emailovou adresu"
 
 #: admin/permissions.html
-msgid "This updates \"permission\" and \"child_permission\" fields of /, /works, /books and /authors records in the database."
-msgstr "Toto aktualizuje pole \"permission\" a \"child_permission\" záznamů /, /works, /books a /authors v databázi."
+msgid ""
+"This updates \"permission\" and \"child_permission\" fields of /, /works,"
+" /books and /authors records in the database."
+msgstr ""
+"Toto aktualizuje pole \"permission\" a \"child_permission\" záznamů /, "
+"/works, /books a /authors v databázi."
 
 #: admin/solr.html
 msgid "Solr Admin"
@@ -2591,8 +2919,12 @@ msgid "Example:"
 msgstr "Například"
 
 #: admin/solr.html
-msgid "On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr."
-msgstr "Po aktualizaci budou tyto klíče přidány do fronty aktualizací Solr a jejich reindexace v Solr bude trvat přibližně 15 minut."
+msgid ""
+"On update, these keys will be added to solr update queue and it'll take "
+"about 15 minutes for them to get reindexed in Solr."
+msgstr ""
+"Po aktualizaci budou tyto klíče přidány do fronty aktualizací Solr a "
+"jejich reindexace v Solr bude trvat přibližně 15 minut."
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
@@ -2607,11 +2939,17 @@ msgid "[Admin Center] Spam Words"
 msgstr "[Centrum správy] Spamová slova"
 
 #: admin/spamwords.html
-msgid "Please enter the SPAM regular expressions in the textarea below, one per line."
-msgstr "Zadejte prosím regulární výrazy pro SPAM do textového pole níže, jeden na řádek."
+msgid ""
+"Please enter the SPAM regular expressions in the textarea below, one per "
+"line."
+msgstr ""
+"Zadejte prosím regulární výrazy pro SPAM do textového pole níže, jeden na"
+" řádek."
 
 #: admin/spamwords.html
-msgid "Be sure to escape any meta characters that are meant to be character literals."
+msgid ""
+"Be sure to escape any meta characters that are meant to be character "
+"literals."
 msgstr "Nezapomeňte escapovat všechny metaznaky, které mají být literálními znaky."
 
 #: admin/spamwords.html
@@ -2619,7 +2957,10 @@ msgid "If you are adding a domain, prepend the following to the domain:"
 msgstr "Pokud přidáváte doménu, přidejte před doménu následující:"
 
 #: admin/spamwords.html
-msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
+msgid ""
+"For example, if you want to prevent edits containing the domain "
+"<code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the "
+"spamwords list."
 msgstr ""
 
 #: admin/spamwords.html
@@ -2629,23 +2970,40 @@ msgstr "Moje výpůjčky"
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr "Zadejte prosím domény k zablokování do textového pole níže, jednu na řádek."
+msgstr ""
+"Zadejte prosím domény k zablokování do textového pole níže, jednu na "
+"řádek."
 
 #: admin/sync.html
 msgid "Sync"
 msgstr "Synchronizovat"
 
 #: admin/sync.html
-msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr "Synchronizuje metadata různých typů položek Open Library (např. seznamy, předměty, díla) s Archive.org."
+msgid ""
+"Sync the metadata of various types of Open Library items (e.g. lists, "
+"subjects, works) with Archive.org."
+msgstr ""
+"Synchronizuje metadata různých typů položek Open Library (např. seznamy, "
+"předměty, díla) s Archive.org."
 
 #: admin/sync.html
 msgid "Add Works to Staff Picks"
 msgstr "Přidat díla do výběru pracovníků"
 
 #: admin/sync.html
-msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr "Tento nástroj přidá vaše dílo do seznamu Open Library nazvaného `Staff Picks` pod uživatelem `openlibrary`. Poté přidané dílo rozloží na seznam všech jeho čitelných vydání. Pro každé vydání Open Library bude do metadat archive.org odpovídající položky archive.org vloženo pole metadat nazývané `openlibrary_subject`."
+msgid ""
+"This utility will add your work to an Open Library list called `Staff "
+"Picks` under the `openlibrary` user. It will then take the added work and"
+" explode it into a list of all its readable editions. For each Open "
+"Library edition, a metadata field called `openlibrary_subject` will be "
+"injected into the archive.org metadata of the edition's corresponding "
+"archive.org item."
+msgstr ""
+"Tento nástroj přidá vaše dílo do seznamu Open Library nazvaného `Staff "
+"Picks` pod uživatelem `openlibrary`. Poté přidané dílo rozloží na seznam "
+"všech jeho čitelných vydání. Pro každé vydání Open Library bude do "
+"metadat archive.org odpovídající položky archive.org vloženo pole metadat"
+" nazývané `openlibrary_subject`."
 
 #: admin/sync.html
 #, fuzzy
@@ -2663,8 +3021,12 @@ msgid "Update edition"
 msgstr "Přidat vydání"
 
 #: admin/sync.html
-msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr "Aktualizuje vydání na archive.org zápisem jeho nejnovějších hodnot identifikátorů openlibrary_edition a openlibrary_work"
+msgid ""
+"Updates an edition on archive.org by writing in its latest  "
+"openlibrary_edition and openlibrary_work identifier values"
+msgstr ""
+"Aktualizuje vydání na archive.org zápisem jeho nejnovějších hodnot "
+"identifikátorů openlibrary_edition a openlibrary_work"
 
 #: admin/sync.html
 msgid "TODO"
@@ -2680,12 +3042,20 @@ msgid "Inspect Memcache"
 msgstr "Témata"
 
 #: admin/inspect/memcache.html
-msgid "Add one memcache key per line in the text area. Each key must include a '-' as the last character."
-msgstr "Přidejte jeden klíč memcache na řádek do textového pole. Každý klíč musí jako poslední znak obsahovat '-'."
+msgid ""
+"Add one memcache key per line in the text area. Each key must include a "
+"'-' as the last character."
+msgstr ""
+"Přidejte jeden klíč memcache na řádek do textového pole. Každý klíč musí "
+"jako poslední znak obsahovat '-'."
 
 #: admin/inspect/memcache.html
-msgid "For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>."
-msgstr "Například <code>observations-</code> by mělo být zadáno do textového pole, pokud je klíč <code>observations</code>."
+msgid ""
+"For example, <code>observations-</code> should be entered in the text "
+"area if the key is <code>observations</code>."
+msgstr ""
+"Například <code>observations-</code> by mělo být zadáno do textového "
+"pole, pokud je klíč <code>observations</code>."
 
 #: admin/inspect/memcache.html
 msgid "Keys:"
@@ -2810,7 +3180,8 @@ msgstr "Blokovat %(ip)s"
 msgid "Please select the changesets to revert."
 msgstr "Prosím vyberte roli."
 
-#: RecentChanges.html admin/ip/view.html admin/people/edits.html recentchanges/render.html
+#: RecentChanges.html admin/ip/view.html admin/people/edits.html
+#: recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
 msgstr "Pokud zde vidíte čísla, jedná se o IP adresu anonymního editora"
 
@@ -2820,8 +3191,12 @@ msgid "Reverted by %(revert_author)s"
 msgstr "Vráceno zpět uživatelem %(revert_author)s"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
-msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr "Prosím, napište krátkou poznámku o tom, co jste změnili: <span class=\"small gray\">(Volitelné, ale velmi užitečné!)</span>"
+msgid ""
+"Please, leave a short note about what you changed: <span class=\"small "
+"gray\">(Optional, but very useful!)</span>"
+msgstr ""
+"Prosím, napište krátkou poznámku o tom, co jste změnili: <span "
+"class=\"small gray\">(Volitelné, ale velmi užitečné!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -2917,8 +3292,12 @@ msgstr "přihlásit se jako tento uživatel"
 
 #: admin/people/view.html
 #, python-format
-msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr "Aktivováno dne <span class=\"time\">%(date)s</span> z adresy <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
+msgid ""
+"Activated on <span class=\"time\">%(date)s</span> from <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
+msgstr ""
+"Aktivováno dne <span class=\"time\">%(date)s</span> z adresy <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
@@ -2991,7 +3370,8 @@ msgstr "Testovací spuštění"
 msgid "Anonymize Account"
 msgstr "Váš účet"
 
-#: admin/people/view.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py type/user/view.html
+#: admin/people/view.html books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/upstream/account.py type/user/view.html
 msgid "Loans"
 msgstr "Výpůjčky"
 
@@ -3028,7 +3408,8 @@ msgstr "Ověřovací email odeslán"
 msgid "None found"
 msgstr "Nenalezeno"
 
-#: SearchNavigation.html authors/index.html lib/nav_foot.html merge/authors.html publishers/view.html
+#: SearchNavigation.html authors/index.html lib/nav_foot.html
+#: merge/authors.html publishers/view.html
 msgid "Authors"
 msgstr "Autoři"
 
@@ -3036,7 +3417,10 @@ msgstr "Autoři"
 msgid "Search for an Author"
 msgstr "Hledat autora"
 
-#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
+#: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
+#: publishers/notfound.html publishers/view.html search/advancedsearch.html
+#: search/publishers.html search/search_modal_i18n.html search/searchbox.html
+#: type/local_id/view.html
 msgid "Search"
 msgstr "Hledat"
 
@@ -3065,7 +3449,14 @@ msgstr "nebo"
 msgid "Died"
 msgstr "Upraveno"
 
-#: book_providers/cita_press_download_options.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/librivox_download_options.html book_providers/openstax_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html book_providers/wikisource_download_options.html
+#: book_providers/cita_press_download_options.html
+#: book_providers/gutenberg_download_options.html
+#: book_providers/ia_download_options.html
+#: book_providers/librivox_download_options.html
+#: book_providers/openstax_download_options.html
+#: book_providers/runeberg_download_options.html
+#: book_providers/standard_ebooks_download_options.html
+#: book_providers/wikisource_download_options.html
 #, fuzzy
 msgid "Download Options"
 msgstr "Akce"
@@ -3082,7 +3473,9 @@ msgstr "Více na Cita Press"
 msgid "Download an HTML from Project Gutenberg"
 msgstr "Stáhnout HTML z Project Gutenberg"
 
-#: book_providers/gutenberg_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html type/list/exports.html
+#: book_providers/gutenberg_download_options.html
+#: book_providers/runeberg_download_options.html
+#: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
 msgstr "HTML"
 
@@ -3090,7 +3483,8 @@ msgstr "HTML"
 msgid "Download a text version from Project Gutenberg"
 msgstr "Stáhnout textovou verzi z Project Gutenberg"
 
-#: book_providers/gutenberg_download_options.html book_providers/ia_download_options.html
+#: book_providers/gutenberg_download_options.html
+#: book_providers/ia_download_options.html
 msgid "Plain text"
 msgstr "Prostý text"
 
@@ -3133,7 +3527,9 @@ msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr "Stáhnout otevřený DAISY formát z Internet Archive (formát pro osoby s omezenou schopností tisku)"
+msgstr ""
+"Stáhnout otevřený DAISY formát z Internet Archive (formát pro osoby s "
+"omezenou schopností tisku)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
@@ -3302,12 +3698,20 @@ msgid "Invalid ISBN checksum digit"
 msgstr "Neplatná kontrolní číslice ISBN"
 
 #: books/add.html
-msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
-msgstr "ID musí mít přesně 10 znaků [0-9 nebo X]. Například 0-19-853453-1 nebo 0198534531"
+msgid ""
+"ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or"
+" 0198534531"
+msgstr ""
+"ID musí mít přesně 10 znaků [0-9 nebo X]. Například 0-19-853453-1 nebo "
+"0198534531"
 
 #: books/add.html
-msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
-msgstr "ID musí mít přesně 13 znaků [0-9]. Například 978-3-16-148410-0 nebo 9783161484100"
+msgid ""
+"ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or "
+"9783161484100"
+msgstr ""
+"ID musí mít přesně 13 znaků [0-9]. Například 978-3-16-148410-0 nebo "
+"9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
@@ -3330,20 +3734,27 @@ msgid "Add a book to Open Library"
 msgstr "Přidat knhu do Open Library"
 
 #: books/add.html
-msgid "We require a minimum set of fields to create a new record. These are those fields."
+msgid ""
+"We require a minimum set of fields to create a new record. These are "
+"those fields."
 msgstr "Pro vytvoření nového záznamu vyžadujeme vyplnění minimálně těchto polí."
 
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr "K přidání podtitulu použijte <b><i>Název: Podtitul</i></b>."
 
-#: books/add.html books/edit.html type/author/edit.html type/tag/tag_form_inputs.html
+#: books/add.html books/edit.html type/author/edit.html
+#: type/tag/tag_form_inputs.html
 msgid "Required field"
 msgstr "Požadované pole"
 
 #: books/add.html
-msgid "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live check to see if we already know the author."
-msgstr "Například, \"Agatha Christie\" nebo \"Jean-Paul Sartre.\" Také rovnou ověříme zda již takového autora známe."
+msgid ""
+"Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
+"check to see if we already know the author."
+msgstr ""
+"Například, \"Agatha Christie\" nebo \"Jean-Paul Sartre.\" Také rovnou "
+"ověříme zda již takového autora známe."
 
 #: books/add.html books/edit/edition.html
 msgid "Who is the publisher?"
@@ -3366,7 +3777,9 @@ msgid "You should be able to find this in the first few pages of the book."
 msgstr "Měli byste to najít v prvních několika stránkách knihy."
 
 #: books/add.html
-msgid "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
+msgid ""
+"And optionally, an ID number &#151; like an ISBN &#151; would be "
+"helpful..."
 msgstr "A volitelně, identifikační číslo - jako ISBN"
 
 #: books/add.html
@@ -3415,8 +3828,18 @@ msgstr "Vyplňte pouze tehdy, pokud se jedná o webovou knihu"
 
 #: books/add.html
 #, python-format
-msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
-msgstr "Uložením změny na tento wiki souhlasíte s tím, že váš příspěvek je volně darován světu pod licencí <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
+msgstr ""
+"Uložením změny na tento wiki souhlasíte s tím, že váš příspěvek je volně "
+"darován světu pod licencí <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a>."
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
@@ -3449,19 +3872,28 @@ msgstr "Přidat knihu"
 
 #: books/check.html
 #, python-format
-msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
-msgstr "Moment... Zdá se, že již máme <em>některé potenciální shody</em> pro <b>%(title)s</b> od <b>%(author)s</b>."
+msgid ""
+"One moment... It looks like we already have <em>some potential "
+"matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
+msgstr ""
+"Moment... Zdá se, že již máme <em>některé potenciální shody</em> pro "
+"<b>%(title)s</b> od <b>%(author)s</b>."
 
 #: books/check.html
-msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
-msgstr "Místo vytváření duplicitního záznamu prosím klikněte na výsledek, který nejlépe odpovídá vaší knize."
+msgid ""
+"Rather than creating a duplicate record, please click through the result "
+"you think best matches your book."
+msgstr ""
+"Místo vytváření duplicitního záznamu prosím klikněte na výsledek, který "
+"nejlépe odpovídá vaší knize."
 
 #: books/check.html
 #, fuzzy
 msgid "Select this book"
 msgstr "Smazat tento záznam"
 
-#: SearchResultsWork.html books/check.html merge/authors.html publishers/view.html
+#: SearchResultsWork.html books/check.html merge/authors.html
+#: publishers/view.html
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
@@ -3507,20 +3939,40 @@ msgstr "Pro tuto knihu není k dispozici žádný soubor DAISY "
 
 #: books/daisy.html
 #, python-format
-msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr "<a href=\"%(daisy_url)s\"><strong>Stáhnout DAISY.zip</strong></a> pro <a href=\"%(url)s\">%(title)s</a>"
+msgid ""
+"<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
+" <a href=\"%(url)s\">%(title)s</a>"
+msgstr ""
+"<a href=\"%(daisy_url)s\"><strong>Stáhnout DAISY.zip</strong></a> pro <a "
+"href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
 msgstr "Knihy pro lidi, kteří nečtou tiskopis?"
 
 #: books/daisy.html
-msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
-msgstr "<a href=\"//archive.org\">Internet Archive</a> je hrdé na to, že distribuuje přes 1 milion knih zdarma ve formátu DAISY, navržené pro ty z nás, kteří mají problémy s používáním běžných tiskových médií. "
+msgid ""
+"The <a href=\"//archive.org\">Internet Archive</a> is proud to be "
+"distributing over 1 million books free in a format called DAISY, designed"
+" for those of us who find it challenging to use regular printed media. "
+msgstr ""
+"<a href=\"//archive.org\">Internet Archive</a> je hrdé na to, že "
+"distribuuje přes 1 milion knih zdarma ve formátu DAISY, navržené pro ty z"
+" nás, kteří mají problémy s používáním běžných tiskových médií. "
 
 #: books/daisy.html
-msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr "Na Open Library existují dva typy DAISY: <i>otevřené</i> a <i>chráněné</i>. Otevřené DAISY může číst kdokoli na světě na mnoha různých zařízeních. Chráněné DAISY lze otevřít pouze pomocí klíče vydaného <a href=\"http://www.loc.gov/nls/\">programem Library of Congress NLS</a>."
+msgid ""
+"There are two types of DAISYs on Open Library: <i>open</i> and "
+"<i>protected</i>. Open DAISYs can be read by anyone in the world on many "
+"different devices. Protected DAISYs can only be opened using a key issued"
+" by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
+"program</a>."
+msgstr ""
+"Na Open Library existují dva typy DAISY: <i>otevřené</i> a "
+"<i>chráněné</i>. Otevřené DAISY může číst kdokoli na světě na mnoha "
+"různých zařízeních. Chráněné DAISY lze otevřít pouze pomocí klíče "
+"vydaného <a href=\"http://www.loc.gov/nls/\">programem Library of "
+"Congress NLS</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -3532,8 +3984,16 @@ msgid "What is the DAISY format?"
 msgstr "Kdo je vydavatel?"
 
 #: books/daisy.html
-msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
-msgstr "Digitální formát DAISY pomáhá lidem, kteří mají problémy s používáním běžných tiskových médií. Digitální <span class=\"highlight\">mluvené knihy</span> DAISY nabízejí výhody běžných audioknih s navigací uvnitř knihy, po kapitolách nebo konkrétních stránkách."
+msgid ""
+"The DAISY digital format helps people who have challenges using regular "
+"printed media. DAISY digital <span class=\"highlight\">talking "
+"books</span> offer the benefits of regular audiobooks, with navigation "
+"within the book, to chapters or specific pages."
+msgstr ""
+"Digitální formát DAISY pomáhá lidem, kteří mají problémy s používáním "
+"běžných tiskových médií. Digitální <span class=\"highlight\">mluvené "
+"knihy</span> DAISY nabízejí výhody běžných audioknih s navigací uvnitř "
+"knihy, po kapitolách nebo konkrétních stránkách."
 
 #: books/daisy.html
 #, fuzzy
@@ -3546,8 +4006,18 @@ msgid "What is the NLS?"
 msgstr "Kdo je vydavatel?"
 
 #: books/daisy.html
-msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
-msgstr "Kongresová knihovna <a href=\"http://www.loc.gov/nls/\">Národní knihovní služba pro nevidomé a tělesně postižené (NLS)</a> spravuje bezplatný knihovnický program braillových a zvukových materiálů distribuovaných způsobilým uživatelům ve Spojených státech prostřednictvím národní sítě spolupracujících knihoven."
+msgid ""
+"The Library of Congress <a href=\"http://www.loc.gov/nls/\">National "
+"Library Service for the Blind and Physically Handicapped (NLS)</a> "
+"administers a free library program of braille and audio materials "
+"circulated to eligible borrowers in the United States through a national "
+"network of cooperating libraries."
+msgstr ""
+"Kongresová knihovna <a href=\"http://www.loc.gov/nls/\">Národní knihovní "
+"služba pro nevidomé a tělesně postižené (NLS)</a> spravuje bezplatný "
+"knihovnický program braillových a zvukových materiálů distribuovaných "
+"způsobilým uživatelům ve Spojených státech prostřednictvím národní sítě "
+"spolupracujících knihoven."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
@@ -3559,12 +4029,28 @@ msgid "How do I find DAISYs on Open Library?"
 msgstr "Upozornění od Open Library"
 
 #: books/daisy.html
-msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
-msgstr "Kromě<a href=\"/subjects/accessible_book\" title=\"Předmět: Přístupná kniha\"> mnoha otevřených DAISY</a> nabízí Open Library menší výběr<a href=\"/subjects/protected_DAISY\" title=\"Předmět: Chráněné DAISY\"> chráněných titulů DAISY</a> přístupných těm, kdo mají klíč Library of Congress NLS. Tyto tituly vám přináší<a href=\"//archive.org/\"> Internet Archive</a>."
+msgid ""
+"In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: "
+"Accessible book\"> loads of open DAISYs</a>, the Open Library lists a "
+"smaller selection of<a href=\"/subjects/protected_DAISY\" "
+"title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible"
+" to those with a Library of Congress NLS key. These titles are brought to"
+" you by the<a href=\"//archive.org/\"> Internet Archive</a>."
+msgstr ""
+"Kromě<a href=\"/subjects/accessible_book\" title=\"Předmět: Přístupná "
+"kniha\"> mnoha otevřených DAISY</a> nabízí Open Library menší výběr<a "
+"href=\"/subjects/protected_DAISY\" title=\"Předmět: Chráněné DAISY\"> "
+"chráněných titulů DAISY</a> přístupných těm, kdo mají klíč Library of "
+"Congress NLS. Tyto tituly vám přináší<a href=\"//archive.org/\"> Internet"
+" Archive</a>."
 
 #: books/daisy.html
-msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
-msgstr "Hledáte konkrétní titul? Nejlepší způsob, jak ho najít, je<a href=\"/search\"> vyhledat ho</a>."
+msgid ""
+"Looking for a specific title? The best way to find it is to<a "
+"href=\"/search\"> search for it</a>."
+msgstr ""
+"Hledáte konkrétní titul? Nejlepší způsob, jak ho najít, je<a "
+"href=\"/search\"> vyhledat ho</a>."
 
 #: books/daisy.html lib/exports.html
 #, fuzzy
@@ -3572,32 +4058,50 @@ msgid "Need help?"
 msgstr "Získat pomoc"
 
 #: books/daisy.html
-msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
-msgstr " Přečtěte si prosím naše <a href=\"/help/faq\">FAQ o přístupu ke knihám prostřednictvím Open Library</a>."
+msgid ""
+" Please read our <a href=\"/help/faq\">FAQ on accessing books through "
+"Open Library</a>."
+msgstr ""
+" Přečtěte si prosím naše <a href=\"/help/faq\">FAQ o přístupu ke knihám "
+"prostřednictvím Open Library</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
 msgstr "Přidat něco navíc?"
 
 #: books/edit.html
-msgid "Thank you for adding that book! Any more information you could provide would be wonderful!"
-msgstr "Děkujeme za přidání této knihy! Jakékoli další informace, které byste mohli poskytnout, by byly skvělé!"
+msgid ""
+"Thank you for adding that book! Any more information you could provide "
+"would be wonderful!"
+msgstr ""
+"Děkujeme za přidání této knihy! Jakékoli další informace, které byste "
+"mohli poskytnout, by byly skvělé!"
 
 #: books/edit.html
 #, python-format
-msgid "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
-msgstr "O díle <b>%(work_title)s</b> již víme, ale ne o vydání <b>%(year)s %(publisher)s</b>. Díky! Víte o tomto vydání něco víc?"
+msgid ""
+"We already know about <b>%(work_title)s</b>, but not the <b>%(year)s "
+"%(publisher)s edition</b>. Thanks! Do you know any more about this "
+"edition?"
+msgstr ""
+"O díle <b>%(work_title)s</b> již víme, ale ne o vydání <b>%(year)s "
+"%(publisher)s</b>. Díky! Víte o tomto vydání něco víc?"
 
 #: books/edit.html
 #, python-format
-msgid "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!"
-msgstr "O vydání <b>%(year)s %(publisher)s</b> díla <b>%(work_title)s</b> již víme, ale prosím, řekněte nám více!"
+msgid ""
+"We already know about the <b>%(year)s %(publisher)s edition</b> of "
+"<b>%(work_title)s</b>, but please, tell us more!"
+msgstr ""
+"O vydání <b>%(year)s %(publisher)s</b> díla <b>%(work_title)s</b> již "
+"víme, ale prosím, řekněte nám více!"
 
 #: books/edit.html
 msgid "Editing..."
 msgstr "Upravuje..."
 
-#: books/edit.html type/author/edit.html type/tag/form.html type/template/edit.html
+#: books/edit.html type/author/edit.html type/tag/form.html
+#: type/template/edit.html
 msgid "Delete Record"
 msgstr "Smazat záznam"
 
@@ -3615,8 +4119,14 @@ msgid "This Work"
 msgstr ""
 
 #: books/edit.html
-msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
-msgstr "Můžete vyhledávat podle jména autora (např. <em>j k rowling</em>) nebo podle ID Open Library (např. <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
+msgid ""
+"You can search by author name (like <em>j k rowling</em>) or by Open "
+"Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
+"rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
+msgstr ""
+"Můžete vyhledávat podle jména autora (např. <em>j k rowling</em>) nebo "
+"podle ID Open Library (např. <a href=\"/authors/OL23919A\" "
+"target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -3636,8 +4146,15 @@ msgid "Work Series"
 msgstr "Řada"
 
 #: books/edit.html
-msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
-msgstr "Série jsou aktuálně v beta verzi a tato část je viditelná pouze super knihovníkům a správcům, jako jste vy! Nicméně každá série, kterou nastavíte, bude viditelná pro všechny. Prosím nahlaste jakékoli problémy na Slacku nebo GitHubu."
+msgid ""
+"Series are currently in beta, and this section is only visible to super "
+"librarians and admins, like you! Any series you set will be visible by "
+"everyone, however. Please report any issues you have on Slack or GitHub."
+msgstr ""
+"Série jsou aktuálně v beta verzi a tato část je viditelná pouze super "
+"knihovníkům a správcům, jako jste vy! Nicméně každá série, kterou "
+"nastavíte, bude viditelná pro všechny. Prosím nahlaste jakékoli problémy "
+"na Slacku nebo GitHubu."
 
 #: books/edit.html
 #, fuzzy
@@ -3658,10 +4175,19 @@ msgid "Do you know any identifiers for this work?"
 msgstr "Znáte neějaké identifikátory pro tohle vydání"
 
 #: books/edit.html
-msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr "Tyto identifikátory platí pro všechna vydání tohoto díla, například identifikátory díla Wikidata. Pro identifikátory specifické pro vydání, jako ISBN nebo LCCN, přejděte na záložku vydání."
+msgid ""
+"These identifiers apply to all editions of this work, for example "
+"Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
+" LCCN, go to the edition tab."
+msgstr ""
+"Tyto identifikátory platí pro všechna vydání tohoto díla, například "
+"identifikátory díla Wikidata. Pro identifikátory specifické pro vydání, "
+"jako ISBN nebo LCCN, přejděte na záložku vydání."
 
-#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
+#: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
+#: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
+#: lists/preview.html lists/snippet.html lists/widget.html
+#: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
 msgstr "Obálka: %(title)s"
@@ -3681,7 +4207,8 @@ msgstr "Datum vydání neznámo, %(publisher)s"
 msgid "in %(languagelist)s"
 msgstr "v %(languagelist)s"
 
-#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py
+#: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
+#: openlibrary/plugins/upstream/mybooks.py
 #, fuzzy
 msgid "Books"
 msgstr "Moje knihy"
@@ -3718,12 +4245,14 @@ msgstr "Přečteno (%(count)d)"
 msgid "Stopped Reading (%(count)d)"
 msgstr "Přestalo čtení (%(count)d)"
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/lists.py
+#: books/mybooks_breadcrumb_select.html
+#: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
 msgstr "Seznamy (%(count)d)"
 
-#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
+#: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
+#: type/edition/modal_links.html
 #, fuzzy
 msgid "Notes"
 msgstr "Poznámky:"
@@ -3779,32 +4308,56 @@ msgid "Please separate with commas."
 msgstr "Oddělte prosím čárkami."
 
 #: books/edit/about.html
-msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr "Například: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
+msgid ""
+"For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
+"href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
+"href=\"/subjects/psychology\">psychology</a></i>"
+msgstr ""
+"Například: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
+"href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
+"href=\"/subjects/psychology\">psychology</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
 msgstr "Osoba? nebo lidé?"
 
 #: books/edit/about.html
-msgid "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
-msgstr "Například: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
+msgid ""
+"For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+"Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
+msgstr ""
+"Například: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+"Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
 msgstr "Zínil autor nějaká místa?"
 
 #: books/edit/about.html
-msgid "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
-msgstr "Například: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
+msgid ""
+"For example: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
+msgstr ""
+"Například: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
 msgstr "Kdy se odehrává nebo čím se zabývá?"
 
 #: books/edit/about.html
-msgid "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr "Například: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
+msgid ""
+"For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
+msgstr ""
+"Například: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -3965,12 +4518,22 @@ msgid "Table of Contents"
 msgstr "Obsah"
 
 #: books/edit/edition.html
-msgid "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new lines. Like this:"
-msgstr "Použijte \"*\" pro odsazení, \"|\" pro přidání sloupce a zalomení řádků pro nové řádky. Například takto:"
+msgid ""
+"Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
+"new lines. Like this:"
+msgstr ""
+"Použijte \"*\" pro odsazení, \"|\" pro přidání sloupce a zalomení řádků "
+"pro nové řádky. Například takto:"
 
 #: books/edit/edition.html
-msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr "Tento obsah obsahuje další informace jako autory nebo popisy. Zatím nemáme dobré uživatelské rozhraní pro toto, takže editace těchto dat může být obtížná. Buďte opatrní!"
+msgid ""
+"This table of contents contains extra information like authors or "
+"descriptions. We don't have a great user interface for this yet, so "
+"editing this data could be difficult. Watch out!"
+msgstr ""
+"Tento obsah obsahuje další informace jako autory nebo popisy. Zatím "
+"nemáme dobré uživatelské rozhraní pro toto, takže editace těchto dat může"
+" být obtížná. Buďte opatrní!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -3990,28 +4553,48 @@ msgid "Is it known by any other titles?"
 msgstr "Je kniha známa i pod jiným názvem?"
 
 #: books/edit/edition.html
-msgid "Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here."
-msgstr "Použijte toto pole, pokud se název na obálce nebo hřbetu liší. Pokud je vydání sbírkou nebo antologií, můžete zde také přidat jednotlivé názvy každého díla."
+msgid ""
+"Use this field if the title is different on the cover or spine. If the "
+"edition is a collection or anthology, you may also add the individual "
+"titles of each work here."
+msgstr ""
+"Použijte toto pole, pokud se název na obálce nebo hřbetu liší. Pokud je "
+"vydání sbírkou nebo antologií, můžete zde také přidat jednotlivé názvy "
+"každého díla."
 
 #: books/edit/edition.html
-msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr "Například: <i>Eaters of the Dead</i> je alternativní název pro <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
+msgid ""
+"For example: <i>Eaters of the Dead</i> is an alternate title for <i><a "
+"href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
+msgstr ""
+"Například: <i>Eaters of the Dead</i> je alternativní název pro <i><a "
+"href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
 msgstr "Jakého díla je tohle vydání?"
 
 #: books/edit/edition.html
-msgid "Sometimes editions can be associated with the wrong work. You can correct that here."
+msgid ""
+"Sometimes editions can be associated with the wrong work. You can correct"
+" that here."
 msgstr "Někdy mohou být vydání spojena s nesprávným dílem. Zde to můžete opravit."
 
 #: books/edit/edition.html
-msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
-msgstr "Můžete vyhledávat podle názvu nebo podle ID Open Library (jako <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
+msgid ""
+"You can search by title or by Open Library ID (like <a "
+"href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL262757W</em></a>)."
+msgstr ""
+"Můžete vyhledávat podle názvu nebo podle ID Open Library (jako <a "
+"href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
-msgstr "VAROVÁNÍ: Jakékoliv úpravy provedené v díle z této stránky budou ignorovány."
+msgstr ""
+"VAROVÁNÍ: Jakékoliv úpravy provedené v díle z této stránky budou "
+"ignorovány."
 
 #: books/edit/edition.html
 msgid "Copy authors to new work"
@@ -4211,8 +4794,12 @@ msgid "That excerpt is too long."
 msgstr "Tento úryvek je příliš dlouhý."
 
 #: books/edit/excerpts.html
-msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
-msgstr "Pokud existují konkrétní (krátké) pasáže, které podle Vás dobře reprezentují knihu, neváhejte je zde přepsat."
+msgid ""
+"If there are particular (short) passages you feel represent the book "
+"well, please feel free to transcribe them here."
+msgstr ""
+"Pokud existují konkrétní (krátké) pasáže, které podle Vás dobře "
+"reprezentují knihu, neváhejte je zde přepsat."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
@@ -4272,8 +4859,12 @@ msgid "Please enter a valid URL."
 msgstr "Prosím vyberte roli."
 
 #: books/edit/web.html
-msgid "Please connect Open Library records to <u>good</u><span class=\"orange\">*</span> online resources."
-msgstr "Prosím propojte záznamy Open Library s <u>dobrými</u><span class=\"orange\">*</span> online zdroji."
+msgid ""
+"Please connect Open Library records to <u>good</u><span "
+"class=\"orange\">*</span> online resources."
+msgstr ""
+"Prosím propojte záznamy Open Library s <u>dobrými</u><span "
+"class=\"orange\">*</span> online zdroji."
 
 #: books/edit/web.html
 msgid "Give your link a label"
@@ -4297,8 +4888,14 @@ msgid "Remove this link"
 msgstr "Odebrat tento odkaz"
 
 #: books/edit/web.html
-msgid "\"Good\" means no spammy links, please. Keep them relevant to the book. Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
-msgstr "\"Dobrý\" znamená žádné spamové odkazy. Udržujte je relevantní pro knihu. Irelevantní weby mohou být odstraněny. Očividný spam bude bez milosti smazán."
+msgid ""
+"\"Good\" means no spammy links, please. Keep them relevant to the book. "
+"Irrelevant sites may be removed. Blatant spam will be deleted without "
+"remorse."
+msgstr ""
+"\"Dobrý\" znamená žádné spamové odkazy. Udržujte je relevantní pro knihu."
+" Irelevantní weby mohou být odstraněny. Očividný spam bude bez milosti "
+"smazán."
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
@@ -4330,8 +4927,12 @@ msgstr "Prosím poskytněte URL obrázku."
 
 #: covers/add.html
 #, python-format
-msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr "Zjistěte více čtením našich <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
+msgid ""
+"Learn more by reading our <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
+msgstr ""
+"Zjistěte více čtením našich <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
@@ -4457,8 +5058,12 @@ msgid "Or, use an image from %s"
 msgstr "Nebo použijte obrázek z %s"
 
 #: covers/manage.html
-msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
-msgstr "Můžete přetáhnout miniatury pro přeuspořádání nebo do koše pro jejich smazání."
+msgid ""
+"You can drag and drop thumbnails to reorder, or into the trash to delete "
+"them."
+msgstr ""
+"Můžete přetáhnout miniatury pro přeuspořádání nebo do koše pro jejich "
+"smazání."
 
 #: covers/saved.html
 msgid "New book cover"
@@ -4486,8 +5091,16 @@ msgstr "Přepínač"
 
 #: design/toggle.html
 #, python-format
-msgid "The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s."
-msgstr "Komponenta %(tag)s je přepínač s tučným popiskem a volitelným šedým podpopiskem. Celý prvek je jedno tlačítko %(role)s, takže celý povrch je klikatelný a Enter/Mezerník ho aktivuje. Spravuje svůj stav zapnuto/vypnuto: kliknutí přepíná %(checked)s a spouští %(event)s."
+msgid ""
+"The %(tag)s component is a switch with a bold label and an optional "
+"greyed sublabel. The whole control is one %(role)s button, so the entire "
+"surface is clickable and Enter/Space activate it. It owns its on/off "
+"state: clicking flips %(checked)s and fires %(event)s."
+msgstr ""
+"Komponenta %(tag)s je přepínač s tučným popiskem a volitelným šedým "
+"podpopiskem. Celý prvek je jedno tlačítko %(role)s, takže celý povrch je "
+"klikatelný a Enter/Mezerník ho aktivuje. Spravuje svůj stav "
+"zapnuto/vypnuto: kliknutí přepíná %(checked)s a spouští %(event)s."
 
 #: design/toggle.html
 msgid "Default"
@@ -4495,8 +5108,12 @@ msgstr "Výchozí"
 
 #: design/toggle.html
 #, python-format
-msgid "A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s."
-msgstr "Jednoduchý přepínač: jen spínač, tučný %(label)s a volitelný šedý %(sublabel)s."
+msgid ""
+"A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
+" %(sublabel)s."
+msgstr ""
+"Jednoduchý přepínač: jen spínač, tučný %(label)s a volitelný šedý "
+"%(sublabel)s."
 
 #: design/toggle.html
 msgid "Card variant"
@@ -4504,8 +5121,14 @@ msgstr "Varianta kartičky"
 
 #: design/toggle.html
 #, python-format
-msgid "Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s."
-msgstr "Použijte %(variant)s pro kontejner s ohraničením. Při zaškrtnutí se vyplní plným modrým pozadím a bílým textem — stejné zacházení jako u vybraného %(chip)s."
+msgid ""
+"Use %(variant)s for a bordered container. When checked, it fills with a "
+"solid primary-blue background and white text — the same treatment as a "
+"selected %(chip)s."
+msgstr ""
+"Použijte %(variant)s pro kontejner s ohraničením. Při zaškrtnutí se "
+"vyplní plným modrým pozadím a bílým textem — stejné zacházení jako u "
+"vybraného %(chip)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4514,8 +5137,14 @@ msgstr "Obsah"
 
 #: design/toggle.html
 #, python-format
-msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
-msgstr "Vložte obsah do výchozího slotu pro přizpůsobení popisku místo použití %(label)s / %(sublabel)s. Zadejte %(accessible_label)s, aby přepínač měl stále přístupný název."
+msgid ""
+"Put content in the default slot to customize the label instead of using "
+"%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
+" has an accessible name."
+msgstr ""
+"Vložte obsah do výchozího slotu pro přizpůsobení popisku místo použití "
+"%(label)s / %(sublabel)s. Zadejte %(accessible_label)s, aby přepínač měl "
+"stále přístupný název."
 
 #: design/toggle.html
 #, fuzzy
@@ -4559,8 +5188,13 @@ msgid "Thank you for your note. We'll get back to you as soon as possible."
 msgstr "Děkujeme za Vaši zprávu. Ozveme se Vám co nejdříve."
 
 #: email/case_created.html
-msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
-msgstr "Může nám chvíli trvat, než si ji přečteme, protože dostáváme hodně zpráv, ale ujišťujeme Vás, že tak učiníme a ozveme se Vám, pokud bude potřeba."
+msgid ""
+"It might take us a little while to read it because we receive lots of "
+"messages, but rest assured we will, and we'll get back to you if "
+"required."
+msgstr ""
+"Může nám chvíli trvat, než si ji přečteme, protože dostáváme hodně zpráv,"
+" ale ujišťujeme Vás, že tak učiníme a ozveme se Vám, pokud bude potřeba."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
@@ -4577,16 +5211,29 @@ msgid "About the Project"
 msgstr "O knize"
 
 #: home/about.html
-msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published."
-msgstr "Open Library je otevřený, editovatelný knihovní katalog, který se buduje směrem k webové stránce pro každou kdy vydanou knihu."
+msgid ""
+"Open Library is an open, editable library catalog, building towards a web"
+" page for every book ever published."
+msgstr ""
+"Open Library je otevřený, editovatelný knihovní katalog, který se buduje "
+"směrem k webové stránce pro každou kdy vydanou knihu."
 
 #: AffiliateLinks.html home/about.html search/work_search_facets.html
 msgid "More"
 msgstr "Další"
 
 #: home/about.html
-msgid "Just like Wikipedia, you can contribute new information or corrections to the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members have created. If you love books, why not help build a library?"
-msgstr "Stejně jako Wikipedia, můžete přispívat novými informacemi nebo opravami do katalogu. Můžete procházet dle <a href=\"/subjects\">témat</a>, <a href=\"/authors\">autorů</a> nebo <a href=\"/lists\">seznamů</a> vytvořených členy. Pokud milujete knihy, proč nepomoci vybudovat knihovnu?"
+msgid ""
+"Just like Wikipedia, you can contribute new information or corrections to"
+" the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a "
+"href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members "
+"have created. If you love books, why not help build a library?"
+msgstr ""
+"Stejně jako Wikipedia, můžete přispívat novými informacemi nebo opravami "
+"do katalogu. Můžete procházet dle <a href=\"/subjects\">témat</a>, <a "
+"href=\"/authors\">autorů</a> nebo <a href=\"/lists\">seznamů</a> "
+"vytvořených členy. Pokud milujete knihy, proč nepomoci vybudovat "
+"knihovnu?"
 
 #: home/about.html
 msgid "Latest Blog Posts"
@@ -4619,7 +5266,8 @@ msgstr "Klasifikace"
 msgid "Recently Returned"
 msgstr "Nedávno vráceno"
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
 msgid "Romance"
 msgstr "Romantické"
@@ -4633,7 +5281,8 @@ msgstr "Děti"
 msgid "Thrillers"
 msgstr "filtry"
 
-#: home/index.html openlibrary/plugins/openlibrary/api.py openlibrary/plugins/openlibrary/home.py
+#: home/index.html openlibrary/plugins/openlibrary/api.py
+#: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
 msgid "Textbooks"
 msgstr "knihy"
@@ -4648,23 +5297,41 @@ msgstr "Knihy v místním prostředí"
 
 #: home/loans.html
 #, python-format
-msgid "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one more book until you've hit the limit!"
-msgid_plural "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> %(count)d more books until you've hit the limit!"
-msgstr[0] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě jednu knihu, než dosáhnete limitu!"
-msgstr[1] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě %(count)d knihy, než dosáhnete limitu!"
-msgstr[2] "Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> ještě %(count)d knih, než dosáhnete limitu!"
+msgid ""
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one"
+" more book until you've hit the limit!"
+msgid_plural ""
+"You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
+"%(count)d more books until you've hit the limit!"
+msgstr[0] ""
+"Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> "
+"ještě jednu knihu, než dosáhnete limitu!"
+msgstr[1] ""
+"Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> "
+"ještě %(count)d knihy, než dosáhnete limitu!"
+msgstr[2] ""
+"Stále můžete <a href=\"/subjects/in_library#ebooks=true\">vypůjčit</a> "
+"ještě %(count)d knih, než dosáhnete limitu!"
 
 #: home/loans.html
-msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr "Dosáhli jste limitu výpůjček. Prosím vraťte knihu, abyste si mohli půjčit něco nového."
+msgid ""
+"You have reached the borrowing limit. Please return a book to checkout "
+"something new."
+msgstr ""
+"Dosáhli jste limitu výpůjček. Prosím vraťte knihu, abyste si mohli půjčit"
+" něco nového."
 
 #: home/stats.html
 msgid "Around the Library"
 msgstr "Kolem knihovny"
 
 #: home/stats.html
-msgid "Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>"
-msgstr "Zde je co se stalo za posledních 28 dní. Více <a href=\"/recentchanges\">nedávných změn</a>"
+msgid ""
+"Here's what's happened over the last 28 days. More <a "
+"href=\"/recentchanges\">recent changes</a>"
+msgstr ""
+"Zde je co se stalo za posledních 28 dní. Více <a "
+"href=\"/recentchanges\">nedávných změn</a>"
 
 #: home/stats.html
 #, fuzzy
@@ -4889,7 +5556,8 @@ msgstr "Nabídka"
 msgid "New!"
 msgstr "Novější"
 
-#: databarDiff.html databarEdit.html databarTemplate.html databarView.html lib/history.html openlibrary/plugins/openlibrary/home.py
+#: databarDiff.html databarEdit.html databarTemplate.html databarView.html
+#: lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
 msgstr "Historie"
 
@@ -4929,8 +5597,13 @@ msgid " Your new record is in the library. Thank you!"
 msgstr " Váš nový záznam je v knihovně. Děkujeme!"
 
 #: lib/message_addbook.html
-msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr "Je tu ještě několik jednoduchých věcí, které můžete přidat, abyste rychle zlepšili svůj nový záznam a usnadnili ostatním jeho pozdější nalezení."
+msgid ""
+"There are a few other simple things you can add while you're here to "
+"improve your new record quickly, and make it much easier for other people"
+" to find later."
+msgstr ""
+"Je tu ještě několik jednoduchých věcí, které můžete přidat, abyste rychle"
+" zlepšili svůj nový záznam a usnadnili ostatním jeho pozdější nalezení."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -5033,7 +5706,9 @@ msgstr "Prozkoumat autory"
 msgid "Explore subjects"
 msgstr "Prozkoumat témata"
 
-#: RelatedSubjects.html SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html SearchNavigation.html SubjectTags.html
+#: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
+#: subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
 msgstr "Témata"
 
@@ -5046,7 +5721,8 @@ msgstr "Prozkoumat sbírky"
 msgid "Collections"
 msgstr "Místo"
 
-#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html search/advancedsearch.html
+#: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
+#: search/advancedsearch.html
 msgid "Advanced Search"
 msgstr "Pokročilé vyhledávání"
 
@@ -5165,13 +5841,31 @@ msgid "Open Library logo"
 msgstr "Vítejte v Open Library"
 
 #: lib/nav_foot.html
-msgid "Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
-msgstr "Open Library je iniciativa <a href=\"//archive.org/\">Internet Archive</a>, neziskové organizace 501(c)(3), která buduje digitální knihovnu internetových stránek a dalších kulturních artefaktů v digitální formě. Další <a href=\"//archive.org/projects/\">projekty</a> zahrnují <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> a <a href=\"//archive-it.org\">archive-it.org</a>"
+msgid ""
+"Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
+"Archive</a>, a 501(c)(3) non-profit, building a digital library of "
+"Internet sites and other cultural artifacts in  digital form. Other <a "
+"href=\"//archive.org/projects/\">projects</a> include the <a "
+"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
+"\">archive-it.org</a>"
+msgstr ""
+"Open Library je iniciativa <a href=\"//archive.org/\">Internet "
+"Archive</a>, neziskové organizace 501(c)(3), která buduje digitální "
+"knihovnu internetových stránek a dalších kulturních artefaktů v digitální"
+" formě. Další <a href=\"//archive.org/projects/\">projekty</a> zahrnují "
+"<a href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> a <a href=\"//archive-it.org"
+"\">archive-it.org</a>"
 
 #: lib/nav_foot.html
 #, python-format
-msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr "verze <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgid ""
+"version <a "
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
+msgstr ""
+"verze <a "
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
@@ -5247,8 +5941,20 @@ msgid "Search by barcode"
 msgstr "Vyhledat podle čárového kódu"
 
 #: lib/not_logged.html
-msgid "<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>.</strong> Open Library will record your IP address and include it in this page's publicly accessible edit history. If you <a href=\"/account/create\" title=\"Create an Open Library account\">create an account</a>, your IP address is concealed and you can more easily keep track of all your edits and additions."
-msgstr "<strong>Nejste <a href=\"/account/login\" title=\"Přihlásit se nyní\">přihlášen/a</a>.</strong> Open Library zaznamená Vaší IP adresu a zahrne ji do veřejně přístupné historie úprav této stránky. Pokud si <a href=\"/account/create\" title=\"Vytvořit účet Open Library\">vytvoříte účet</a>, Vaše IP adresa bude skryta a snadněji udržíte přehled o všech svých úpravách a příspěvcích."
+msgid ""
+"<strong>You are not <a href=\"/account/login\" title=\"Log in "
+"now\">logged in</a>.</strong> Open Library will record your IP address "
+"and include it in this page's publicly accessible edit history. If you <a"
+" href=\"/account/create\" title=\"Create an Open Library account\">create"
+" an account</a>, your IP address is concealed and you can more easily "
+"keep track of all your edits and additions."
+msgstr ""
+"<strong>Nejste <a href=\"/account/login\" title=\"Přihlásit se "
+"nyní\">přihlášen/a</a>.</strong> Open Library zaznamená Vaší IP adresu a "
+"zahrne ji do veřejně přístupné historie úprav této stránky. Pokud si <a "
+"href=\"/account/create\" title=\"Vytvořit účet Open Library\">vytvoříte "
+"účet</a>, Vaše IP adresa bude skryta a snadněji udržíte přehled o všech "
+"svých úpravách a příspěvcích."
 
 #: librarian_dashboard/data_quality_table.html
 #, fuzzy
@@ -5349,13 +6055,25 @@ msgid "Create a list of any Subjects, Authors, Works or specific Editions."
 msgstr "Vytvořte seznam témat, autorů, děl nebo konkrétních vydání."
 
 #: lists/home.html
-msgid "Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See all your lists and any activity using the \"Lists\" link on your Account page."
+msgid ""
+"Once you've made a list, you can <strong>watch for updates</strong> or "
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or "
+"JSON. See all your lists and any activity using the \"Lists\" link on "
+"your Account page."
 msgstr ""
+"Po vytvoření seznamu můžete <strong>sledovat aktualizace</strong> nebo "
+"<strong>exportovat</strong> všechna vydání ze seznamu jako HTML, BibTeX "
+"nebo JSON. Všechny seznamy a aktivitu zobrazíte pomocí odkazu „Seznamů“ "
+"na stránce svého účtu."
 
 #: lists/home.html
 #, python-format
-msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr "Pro 2000+ nejžádanějších e-knih v Kalifornii pro čtenáře s postižěním tisku <a href=\"%(url)s\">klikněte zde</a>."
+msgid ""
+"For the top 2000+ most requested eBooks in California for the print "
+"disabled <a href=\"%(url)s\">click here</a>."
+msgstr ""
+"Pro 2000+ nejžádanějších e-knih v Kalifornii pro čtenáře s postižěním "
+"tisku <a href=\"%(url)s\">klikněte zde</a>."
 
 #: lists/home.html
 msgid "Find a list by name"
@@ -5371,7 +6089,8 @@ msgstr "Moje seznamy"
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
 msgstr "od <a href=\"%(key)s\">%(owner)s</a>"
 
-#: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html type/list/view_body.html
+#: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html
+#: type/list/view_body.html
 #, python-format
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
@@ -5755,8 +6474,12 @@ msgstr "Odpovědět"
 
 #: merge_request_table/table_row.html
 #, python-format
-msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr "MR #%(id)s otevřen %(date)s uživatelem <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
+msgid ""
+"MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a>"
+msgstr ""
+"MR #%(id)s otevřen %(date)s uživatelem <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
@@ -5795,12 +6518,14 @@ msgstr "Smazat tento záznam"
 msgid "Create a new list"
 msgstr "Vytvořit to?"
 
-#: CreateListModal.html my_books/dropdown_content.html type/permission/edit.html type/usergroup/edit.html
+#: CreateListModal.html my_books/dropdown_content.html
+#: type/permission/edit.html type/usergroup/edit.html
 #, fuzzy
 msgid "Description:"
 msgstr "Přidat vydání"
 
-#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html
+#: CreateListModal.html my_books/dropdown_content.html type/list/edit.html
+#: type/series/edit.html
 #, fuzzy
 msgid "Create new list"
 msgstr "Vytvořit to?"
@@ -5811,8 +6536,12 @@ msgid "saving..."
 msgstr "Upravuje..."
 
 #: my_books/dropdown_content.html
-msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr "Odebráním této knihy z vašich polic se smaže záznamy přečtení pro toto dílo. Pokračovat?"
+msgid ""
+"Removing this book from your shelves will delete your check-ins for this "
+"work.  Continue?"
+msgstr ""
+"Odebráním této knihy z vašich polic se smaže záznamy přečtení pro toto "
+"dílo. Pokračovat?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -5869,8 +6598,12 @@ msgid "December"
 msgstr "Prosinec"
 
 #: my_books/check_ins/check_in_form.html
-msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr "Přidejte volitelné datum záznamu. Data záznamů se používají ke sledování ročních čtenářských cílů."
+msgid ""
+"Add an optional check-in date. Check-in dates are used to track yearly "
+"reading goals."
+msgstr ""
+"Přidejte volitelné datum záznamu. Data záznamů se používají ke sledování "
+"ročních čtenářských cílů."
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5978,7 +6711,8 @@ msgstr "Zkusit něco jiného?"
 msgid "Publisher: %(name)s"
 msgstr "Nakladatelství: %(name)s"
 
-#: openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
+#: openlibrary/plugins/worksearch/code.py publishers/view.html
+#: search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
 msgstr "Vydavatel"
 
@@ -6000,8 +6734,14 @@ msgid "Publishing History"
 msgstr "Publikační historie"
 
 #: publishers/view.html
-msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr "Toto je graf zobrazující kdy toto nakladatelství vydávalo knihy. Na ose X je čas a na ose Y je počet vydaných vydání. <a href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
+msgid ""
+"This is a chart to show the when this publisher published books. Along "
+"the X axis is time, and on the y axis is the count of editions published."
+" <a href=\"#subjectRelated\">Click here to skip the chart</a>."
+msgstr ""
+"Toto je graf zobrazující kdy toto nakladatelství vydávalo knihy. Na ose X"
+" je čas a na ose Y je počet vydaných vydání. <a "
+"href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
@@ -6012,8 +6752,13 @@ msgid "or continue zooming in."
 msgstr "nebo pokračovat v přiblížení."
 
 #: publishers/view.html
-msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
-msgstr "Tento graf zobrazuje vydání od tohoto nakladatelství v průběhu času. Klikněte pro zobrazení jednotlivého roku nebo přetáhněte pro výběr rozsahu."
+msgid ""
+"This graph charts editions from this publisher over time. Click to view a"
+" single year, or drag across a range."
+msgstr ""
+"Tento graf zobrazuje vydání od tohoto nakladatelství v průběhu času. "
+"Klikněte pro zobrazení jednotlivého roku nebo přetáhněte pro výběr "
+"rozsahu."
 
 #: PublishingHistory.html publishers/view.html
 #, fuzzy
@@ -6056,12 +6801,20 @@ msgstr "Kolik knih chcete letos přečíst?"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr "Zadejte \"0\" pro zrušení čtenářského cíle. Vaše záznamy čtení budou zachovány."
+msgstr ""
+"Zadejte \"0\" pro zrušení čtenářského cíle. Vaše záznamy čtení budou "
+"zachovány."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
-msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> knih"
+msgid ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Books"
+msgstr ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> knih"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
@@ -6116,11 +6869,13 @@ msgstr "Vše"
 msgid "Admin view"
 msgstr "Správcovský pohled"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/render.html
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/render.html
 msgid "Older"
 msgstr "Starší"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/render.html
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/render.html
 msgid "Newer"
 msgstr "Novější"
 
@@ -6128,12 +6883,14 @@ msgstr "Novější"
 msgid "Review what's changed in from the previous revision"
 msgstr "Zkontrolovat změny oproti předchozí revizi"
 
-#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/default/path.html recentchanges/updated_records.html
+#: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
+#: recentchanges/default/path.html recentchanges/updated_records.html
 #, fuzzy
 msgid "diff"
 msgstr "rozdíl"
 
-#: recentchanges/add-book/path.html recentchanges/default/path.html recentchanges/edit-book/path.html recentchanges/merge/path.html
+#: recentchanges/add-book/path.html recentchanges/default/path.html
+#: recentchanges/edit-book/path.html recentchanges/merge/path.html
 #, fuzzy
 msgid "expand"
 msgstr "Číst"
@@ -6146,7 +6903,8 @@ msgstr "vytvořil nový Open Library účet!"
 msgid "Review what's changed from the previous revision"
 msgstr "Zkontrolovat změny oproti předchozí revizi"
 
-#: recentchanges/default/view.html recentchanges/merge/view.html recentchanges/undo/view.html
+#: recentchanges/default/view.html recentchanges/merge/view.html
+#: recentchanges/undo/view.html
 #, fuzzy
 msgid "Updated Records"
 msgstr "Smazat záznam"
@@ -6292,7 +7050,8 @@ msgstr "Vypůjčit online"
 msgid "Search Open Library for %s"
 msgstr "Hledat v Open Library %s"
 
-#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html search/inside.html search/snippets.html
+#: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
+#: search/inside.html search/snippets.html
 msgid "Search Inside"
 msgstr "Hledat uvnitř"
 
@@ -6645,8 +7404,14 @@ msgid "It looks like you're offline."
 msgstr "Vypadá to, že jste offline."
 
 #: site/head.html
-msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
-msgstr "Open Library je otevřený a editovatelný katalog knihovny, jehož cílem je mít webovou stránku pro každou kdy vydanou knihu. Čtěte, půjčujte si a objevujte více než 3 miliony knih zdarma."
+msgid ""
+"Open Library is an open, editable library catalog, building towards a web"
+" page for every book ever published. Read, borrow, and discover more than"
+" 3M books for free."
+msgstr ""
+"Open Library je otevřený a editovatelný katalog knihovny, jehož cílem je "
+"mít webovou stránku pro každou kdy vydanou knihu. Čtěte, půjčujte si a "
+"objevujte více než 3 miliony knih zdarma."
 
 #: site/stats.html
 msgid "Debug Stats"
@@ -6674,8 +7439,12 @@ msgid "# Unique Users Logging Books"
 msgstr "# unikátní uživatelé zaznamenávající knihy"
 
 #: stats/readinglog.html
-msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr "Celkový počet unikátních uživatelů, kteří zaznamenali alespoň jednu knihu pomocí funkce Čtenářský deník"
+msgid ""
+"The total number of unique users who have logged at least one book using "
+"the Reading Log feature"
+msgstr ""
+"Celkový počet unikátních uživatelů, kteří zaznamenali alespoň jednu knihu"
+" pomocí funkce Čtenářský deník"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
@@ -6731,13 +7500,16 @@ msgstr "Nenašli jsme žádné knihy o"
 msgid "OpenAPI"
 msgstr "OpenAPI"
 
-#: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
+#: type/about/edit.html type/page/edit.html type/permission/edit.html
+#: type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
 msgstr "Upravit %(title)s"
 
 #: type/about/edit.html
-msgid "This only appears in the document head, and gets attached to bookmark labels"
+msgid ""
+"This only appears in the document head, and gets attached to bookmark "
+"labels"
 msgstr "Toto se zobrazuje pouze v záhlaví dokumentu a přidává se k záložkám"
 
 #: type/about/edit.html
@@ -6770,15 +7542,21 @@ msgid "Edit Author"
 msgstr "Upravit autora"
 
 #: type/author/edit.html
-msgid "Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>."
-msgstr "Použíjte přirozené pořadí. Například: <strong>Lev Tolstoj</strong> ne <strong>Tolstoj, Lev</strong>."
+msgid ""
+"Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
+"<strong>Tolstoy, Leo</strong>."
+msgstr ""
+"Použíjte přirozené pořadí. Například: <strong>Lev Tolstoj</strong> ne "
+"<strong>Tolstoj, Lev</strong>."
 
 #: type/author/edit.html
 msgid "A short bio?"
 msgstr "Krátký životopis?"
 
 #: type/author/edit.html
-msgid "If you \"borrow\" information from somewhere, please make sure to cite the source."
+msgid ""
+"If you \"borrow\" information from somewhere, please make sure to cite "
+"the source."
 msgstr "Pokudsi informaci někde \"vypůjčíte\", uveďte rposím citaci zdroje. "
 
 #: type/author/edit.html
@@ -6790,20 +7568,34 @@ msgid "Date of death"
 msgstr "Datum úmrtí"
 
 #: type/author/edit.html
-msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr "Strukturovaná data (zatím) neukládáme, proto se doporučuje formát jako \"21. května 2000\"."
+msgid ""
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
+"is recommended."
+msgstr ""
+"Strukturovaná data (zatím) neukládáme, proto se doporučuje formát jako "
+"\"21. května 2000\"."
 
 #: type/author/edit.html
-msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr "Toto je zastaralé pole. Můžete pomoci vylepšit tento záznam odstraněním tohoto data a vyplněním polí \"Datum narození\" a \"Datum úmrtí\". Děkujeme!"
+msgid ""
+"This is a deprecated field. You can help improve this record by removing "
+"this date and populating the \"Date of birth\" and \"Date of death\" "
+"fields. Thanks!"
+msgstr ""
+"Toto je zastaralé pole. Můžete pomoci vylepšit tento záznam odstraněním "
+"tohoto data a vyplněním polí \"Datum narození\" a \"Datum úmrtí\". "
+"Děkujeme!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
 msgstr "Má tento autor nějaká další jména"
 
 #: type/author/edit.html
-msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr "Příklad: Lev Nikolajevič Tolstoj byl také znám jako Lev Tolstoj. Uvádějte prosím jedno jméno na řádek."
+msgid ""
+"For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. "
+"Please list one name per line."
+msgstr ""
+"Příklad: Lev Nikolajevič Tolstoj byl také znám jako Lev Tolstoj. Uvádějte"
+" prosím jedno jméno na řádek."
 
 #: type/author/edit.html
 msgid "Identifiers"
@@ -6837,8 +7629,12 @@ msgid "Refresh the page?"
 msgstr "Obnovit stránku?"
 
 #: type/author/view.html
-msgid "OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>"
-msgstr "OK. Sloučení probíhá. <i>Dokončení aktualizace <u>bude trvat několik minut</u>.</i>"
+msgid ""
+"OK. The merge is in motion. <i>It will take <u>a few minutes to "
+"finish</u> the update.</i>"
+msgstr ""
+"OK. Sloučení probíhá. <i>Dokončení aktualizace <u>bude trvat několik "
+"minut</u>.</i>"
 
 #: type/author/view.html
 msgid "Argh!"
@@ -6863,7 +7659,8 @@ msgstr "Hledat knihy %(author)s"
 msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
 msgstr "— Zobrazit <a href=\"%(url)s\">vše</a> od tohoto autora?"
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/author/view.html type/list/view_body.html
 #, fuzzy
 msgid "Places"
 msgstr "Místo"
@@ -6990,13 +7787,21 @@ msgstr "Seznamy četby"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
-msgid "This work doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr "Toto dílo zatím nemá popis. Můžete <b><a href='%(url)s'>přidat popis</a></b>?"
+msgid ""
+"This work doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+"Toto dílo zatím nemá popis. Můžete <b><a href='%(url)s'>přidat "
+"popis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
-msgid "This edition doesn't have a description yet. Can you <b><a href='%(url)s'>add one</a></b>?"
-msgstr "Toto vydání zatím nemá popis. Můžete <b><a href='%(url)s'>přidat popis</a></b>?"
+msgid ""
+"This edition doesn't have a description yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+"Toto vydání zatím nemá popis. Můžete <b><a href='%(url)s'>přidat "
+"popis</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7081,7 +7886,8 @@ msgstr "Externí odkazy"
 msgid "Format"
 msgstr "Formát"
 
-#: OlPagination.html OlPaginationArrows.html type/edition/view.html type/work/view.html
+#: OlPagination.html OlPaginationArrows.html type/edition/view.html
+#: type/work/view.html
 msgid "Pagination"
 msgstr "Stránkování"
 
@@ -7238,8 +8044,12 @@ msgid "Visit Open Library"
 msgstr "Vytvořit účet na Open Library"
 
 #: type/list/embed.html
-msgid "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page"
-msgstr "Otevřít v online čtečce knih. Stahování dostupné ve formátech ePub, DAISY, PDF, TXT na hlavní stránce knihy"
+msgid ""
+"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
+"formats from main book page"
+msgstr ""
+"Otevřít v online čtečce knih. Stahování dostupné ve formátech ePub, "
+"DAISY, PDF, TXT na hlavní stránce knihy"
 
 #: type/list/embed.html
 msgid "This book is checked out"
@@ -7293,13 +8103,21 @@ msgstr "Export není dostupný"
 
 #: type/list/exports.html
 #, python-format
-msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr "Exportovat lze pouze seznamy s nejvýše %(max)s vydáními. Tento seznam jich má %(count)s."
+msgid ""
+"Only lists with up to %(max)s editions can be exported. This one has "
+"%(count)s."
+msgstr ""
+"Exportovat lze pouze seznamy s nejvýše %(max)s vydáními. Tento seznam "
+"jich má %(count)s."
 
 #: type/list/exports.html
 #, python-format
-msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr "Zkuste odebrat část položek pro zaostření, nebo se podívejte na <a href=\"%s\">hromadné stahování</a> katalogu."
+msgid ""
+"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
+"download</a> of the catalog."
+msgstr ""
+"Zkuste odebrat část položek pro zaostření, nebo se podívejte na <a "
+"href=\"%s\">hromadné stahování</a> katalogu."
 
 #: type/list/view_body.html
 #, python-format
@@ -7341,21 +8159,34 @@ msgid "Remove Seed"
 msgstr "Smazáno"
 
 #: type/list/view_body.html
-msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr "Chystáte se odebrat poslední položku ze seznamu. Tím se odstraní celý seznam. Opravdu chcete pokračovat?"
+msgid ""
+"You are about to remove the last item in the list. That will delete the "
+"whole list. Are you sure you want to continue?"
+msgstr ""
+"Chystáte se odebrat poslední položku ze seznamu. Tím se odstraní celý "
+"seznam. Opravdu chcete pokračovat?"
 
 #: type/list/view_body.html
 #, python-format
-msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr "Tato série obsahuje %(limit)d nebo více děl. Momentálně se zobrazuje pouze prvních %(limit)d děl."
+msgid ""
+"This series contains %(limit)d or more works. Currently, only the first "
+"%(limit)d works are displayed."
+msgstr ""
+"Tato série obsahuje %(limit)d nebo více děl. Momentálně se zobrazuje "
+"pouze prvních %(limit)d děl."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
 msgstr "Tento seznam je prázdný."
 
 #: type/list/view_body.html
-msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Hledejte knihy, témata nebo autory</a> a přidejte je do svého seznamu."
+msgid ""
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search "
+"for book, subjects, or authors</a> to add to your list."
+msgstr ""
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">Hledejte knihy, témata nebo autory</a> a přidejte je do "
+"svého seznamu."
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7371,7 +8202,8 @@ msgstr "Další metadata"
 msgid "Derived from seed metadata"
 msgstr "Odvozeno z metadat zdroje"
 
-#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/list/view_body.html
+#: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
+#: type/list/view_body.html
 #, fuzzy
 msgid "Times"
 msgstr "Název"
@@ -7452,8 +8284,18 @@ msgid "We require a minimum set of fields to create a new collection tag."
 msgstr "Pro vytvoření nového záznamu vyžadujeme vyplnění minimálně těchto polí."
 
 #: EditButtons.html type/tag/form.html
-msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr "Uložením změny v tomto wiki souhlasíte, že vaše přispívání je dáváno světu zdarma pod licencí <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"Tento odkaz na Creative Commons se otevře v novém okně\">CC0</a>. Hurá!"
+msgid ""
+"By saving a change to this wiki, you agree that your contribution is "
+"given freely to the world under <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to "
+"Creative Commons will open in a new window\">CC0</a>. Yippee!"
+msgstr ""
+"Uložením změny v tomto wiki souhlasíte, že vaše přispívání je dáváno "
+"světu zdarma pod licencí <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"Tento odkaz na "
+"Creative Commons se otevře v novém okně\">CC0</a>. Hurá!"
 
 #: type/tag/form.html
 #, fuzzy
@@ -7488,7 +8330,9 @@ msgid "Tag Name"
 msgstr "Název"
 
 #: type/tag/tag_form_inputs.html
-msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
+msgid ""
+"Human-readable display name (e.g. \"Computer Science\", \"Horror "
+"Fiction\")"
 msgstr "Čitelný zobrazovaný název (např. \"Informatika\", \"Hororová fikce\")"
 
 #: type/tag/tag_form_inputs.html
@@ -7496,8 +8340,12 @@ msgid "Tag Slugs"
 msgstr "Slimáky štítků"
 
 #: type/tag/tag_form_inputs.html
-msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr "Čárkou oddělené URL slimáky mapující se na tento štítek (automaticky vyplněné z názvu). Např. \"computer_science, cs\""
+msgid ""
+"Comma-separated URL slugs that map to this tag (auto-populated from "
+"name). E.g. \"computer_science, cs\""
+msgstr ""
+"Čárkou oddělené URL slimáky mapující se na tento štítek (automaticky "
+"vyplněné z názvu). Např. \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7595,8 +8443,18 @@ msgstr "stránka správce"
 
 #: type/user/view.html
 #, python-format
-msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr "Veřejně sdílíte knihy, které <a href=\"%(username)s/books/currently-reading\">právě čtete</a>, <a href=\"%(username)s/books/already-read\">jste již přečetli</a>, <a href=\"%(username)s/books/want-to-read\">chcete přečíst</a>, a které <a href=\"%(username)s/books/stopped-reading\">jste přestali číst</a>!"
+msgid ""
+"You are publicly sharing the books you are <a href=\"%(username)s/books"
+"/currently-reading\">currently reading</a>, <a href=\"%(username)s/books"
+"/already-read\">have already read</a>, <a href=\"%(username)s/books/want-"
+"to-read\">want to read</a>, and have <a href=\"%(username)s/books"
+"/stopped-reading\">stopped reading</a>!"
+msgstr ""
+"Veřejně sdílíte knihy, které <a href=\"%(username)s/books/currently-"
+"reading\">právě čtete</a>, <a href=\"%(username)s/books/already-"
+"read\">jste již přečetli</a>, <a href=\"%(username)s/books/want-to-"
+"read\">chcete přečíst</a>, a které <a href=\"%(username)s/books/stopped-"
+"reading\">jste přestali číst</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -7613,8 +8471,18 @@ msgstr "Vaše nastavebí soukromý"
 
 #: type/user/view.html
 #, python-format
-msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr "Zde jsou knihy, které %(user)s <a href=\"%(username)s/books/currently-reading\">právě čte</a>, <a href=\"%(username)s/books/already-read\">již přečetl</a>, <a href=\"%(username)s/books/want-to-read\">chce přečíst</a>, a které <a href=\"%(username)s/books/stopped-reading\">přestal číst</a>!"
+msgid ""
+"Here are the books %(user)s is <a href=\"%(username)s/books/currently-"
+"reading\">currently reading</a>, <a href=\"%(username)s/books/already-"
+"read\">have already read</a>, <a href=\"%(username)s/books/want-to-"
+"read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
+"reading\">stopped reading</a>!"
+msgstr ""
+"Zde jsou knihy, které %(user)s <a href=\"%(username)s/books/currently-"
+"reading\">právě čte</a>, <a href=\"%(username)s/books/already-read\">již "
+"přečetl</a>, <a href=\"%(username)s/books/want-to-read\">chce "
+"přečíst</a>, a které <a href=\"%(username)s/books/stopped-"
+"reading\">přestal číst</a>!"
 
 #: type/user/view.html
 #, fuzzy
@@ -7682,8 +8550,12 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr "Hledat toto vydání k prodeji na %(store)s"
 
 #: AffiliateLinks.html
-msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr "Při nákupu knih přes tyto odkazy může Internet Archive získat <a class=\"nostyle\" href=\"/help/faq/about#selling\">malou provizi</a>."
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
+msgstr ""
+"Při nákupu knih přes tyto odkazy může Internet Archive získat <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">malou provizi</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
@@ -7717,8 +8589,12 @@ msgid "Preview Book"
 msgstr "Předchozí"
 
 #: DisplayCode.html
-msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr "Šablony na webu jsou nyní deaktivovány. Jejich úpravy nebudou mít žádný vliv na živý web."
+msgid ""
+"Templates in the website are disabled now. Editing them will not have any"
+" effect on the live website."
+msgstr ""
+"Šablony na webu jsou nyní deaktivovány. Jejich úpravy nebudou mít žádný "
+"vliv na živý web."
 
 #: EditionNavBar.html
 msgid "Go to previous section"
@@ -7930,8 +8806,15 @@ msgid "who have written the most books on this subject"
 msgstr "kteří napsali nejvíce knih na toto téma"
 
 #: PublishingHistory.html
-msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr "Toto je graf zobrazující historii vydávání děl o tomto tématu. Na ose X je čas a na ose Y je počet vydaných vydání. <a href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
+msgid ""
+"This is a chart to show the publishing history of editions of works about"
+" this subject. Along the X axis is time, and on the y axis is the count "
+"of editions published. <a href=\"#subjectRelated\">Click here to skip the"
+" chart</a>."
+msgstr ""
+"Toto je graf zobrazující historii vydávání děl o tomto tématu. Na ose X "
+"je čas a na ose Y je počet vydaných vydání. <a "
+"href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
@@ -7967,8 +8850,12 @@ msgid "Special Access"
 msgstr "Speciální přístup"
 
 #: ReadButton.html
-msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr "Speciální přístup k e-knihám z Internet Archive pro čtenáře s kvalifikovaným postižením tisku"
+msgid ""
+"Special ebook access from the Internet Archive for patrons with "
+"qualifying print disabilities"
+msgstr ""
+"Speciální přístup k e-knihám z Internet Archive pro čtenáře s "
+"kvalifikovaným postižením tisku"
 
 #: ReadButton.html
 #, fuzzy
@@ -8264,16 +9151,29 @@ msgid "Huh?"
 msgstr "Cože?"
 
 #: TypeChanger.html
-msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr "Každá část Open Library je definována typem obsahu, který zobrazuje, obvykle definicí obsahu (např. Autoři, Vydání, Díla), ale někdy způsobem použití obsahu (např. makro, šablona, rawtext). Změna tohoto u existující stránky změní její prezentaci a datová pole dostupná pro úpravu obsahu."
+msgid ""
+"Every piece of Open Library is defined by the type of content it "
+"displays, usually by content definition (e.g. Authors, Editions, Works) "
+"but sometimes by content use (e.g. macro, template, rawtext). Changing "
+"this for an existing page will alter its presentation and the data fields"
+" available for editing its content."
+msgstr ""
+"Každá část Open Library je definována typem obsahu, který zobrazuje, "
+"obvykle definicí obsahu (např. Autoři, Vydání, Díla), ale někdy způsobem "
+"použití obsahu (např. makro, šablona, rawtext). Změna tohoto u existující"
+" stránky změní její prezentaci a datová pole dostupná pro úpravu obsahu."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
 msgstr "Při změně typu stránky buďte prosím opatrní!"
 
 #: TypeChanger.html
-msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr "(Nejjednodušší řešení: Pokud si nejste jisti, zda to má být změněno, neměňte to.)"
+msgid ""
+"(Simplest solution: If you aren't sure whether this should be changed, "
+"don't change it.)"
+msgstr ""
+"(Nejjednodušší řešení: Pokud si nejste jisti, zda to má být změněno, "
+"neměňte to.)"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
@@ -8481,7 +9381,7 @@ msgstr "Rok vydání"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has cover"
-msgstr ""
+msgstr "Má obálku"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8500,7 +9400,7 @@ msgstr "Nejvíc vydání"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has dewey decimal"
-msgstr ""
+msgstr "Má Deweyho třídění"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8515,55 +9415,55 @@ msgstr "Počet stran"
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
+msgstr "Opravdu chcete odebrat <strong>%(title)s</strong> ze svého seznamu?"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " – včetně poštovného"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "Toto dílo se nevyskytuje v žádném seznamu."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Ještě žádný nemám/nemám"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "Zadaná e-mailová adresa je neplatná"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "Tento účet byl zablokován"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "Tento účet byl uzamčen"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Nebyl nalezen žádný účet s tímto e-mailem. Zkuste to prosím znovu"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "Zadané heslo je nesprávné. Zkuste to prosím znovu"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "Nesprávné heslo. Zkuste to prosím znovu"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8572,11 +9472,11 @@ msgstr "Zadejte prosím nové heslo pro účet na Open Library"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Před přihlášením prosím ověřte svůj účet Internet Archive"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Vyplňte prosím všechna pole a zkuste to znovu"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8590,15 +9490,21 @@ msgstr "Email už je používán"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "Vyskytl se problém a nebyli jsme schopni vás přihlásit."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
 msgstr ""
+"Přihlášení bylo provedeno s neplatnými přihlašovacími údaji Internet "
+"Archive s3."
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
+msgid ""
+"Servers are experiencing unusually high traffic, please try again later "
+"or email openlibrary@archive.org for help."
 msgstr ""
+"Servery zažívají neobvykle vysoký provoz. Zkuste to prosím později nebo "
+"napište na openlibrary@archive.org pro pomoc."
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8612,40 +9518,55 @@ msgstr "Hesla se neshodují"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "Vyskytl se problém a nebyli jsme schopni vás přihlásit"
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
+msgid ""
+"Login or registration attempt hit an unexpected error, please try again "
+"or contact info@archive.org"
 msgstr ""
+"Při pokusu o přihlášení nebo registraci došlo k neočekávané chybě. Zkuste"
+" to prosím znovu nebo kontaktujte info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Požadavek selhal s kódem chyby: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
+msgid ""
+"Thank you for registering an Open Library account and requesting special "
+"print disability access. You should receive an email detailing next steps"
+" in the process."
 msgstr ""
+"Děkujeme za registraci účtu Open Library a žádost o speciální přístup pro"
+" postižení tisku. Měli byste obdržet e-mail s podrobnostmi o dalších "
+"krocích."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "Uživatelské jméno není k dispozici"
 
-#: openlibrary/plugins/upstream/account.py openlibrary/plugins/upstream/forms.py
+#: openlibrary/plugins/upstream/account.py
+#: openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
 msgstr "Email už je používán"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Účet Internet Archive s tímto e-mailem již existuje"
 
 #: openlibrary/plugins/upstream/account.py
-msgid "Verification failed. The link may be invalid or expired. Please try registering again."
+msgid ""
+"Verification failed. The link may be invalid or expired. Please try "
+"registering again."
 msgstr ""
+"Ověření se nezdařilo. Odkaz může být neplatný nebo vypršel. Zkuste se "
+"prosím zaregistrovat znovu."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "Váš e-mail byl ověřen. Nyní jste přihlášeni."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
@@ -8653,21 +9574,27 @@ msgstr "Nastavení upozornění byla aktualizována."
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "this book"
-msgstr ""
+msgstr "tuto knihu"
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
 msgstr ""
+"Nelze vrátit %s. Zkuste to prosím později nebo kontaktujte "
+"info@archive.org."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%s bylo vráceno."
 
 #: openlibrary/plugins/upstream/borrow.py
-msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
+msgid ""
+"Your account has hit a lending limit. Please try again later or contact "
+"info@archive.org."
 msgstr ""
+"Váš účet dosáhl limitu výpůjček. Zkuste to prosím později nebo "
+"kontaktujte info@archive.org."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
@@ -8700,7 +9627,7 @@ msgstr "Vyberte si uživatelské jméno"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "Veřejné a nelze to později změnit."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -8716,12 +9643,18 @@ msgstr "Vyberte heslo"
 
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
-msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
+msgid ""
+"Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 msgstr ""
+"Pokračovat <a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
-msgstr ""
+msgstr "e-kniha?"
 
 #: openlibrary/plugins/worksearch/code.py
 #, fuzzy
@@ -8742,8 +9675,16 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Delete"
 #~ msgstr "Smazat"
 
-#~ msgid "Except where otherwise noted, content on this site is licensed under a <a href=\"http://creativecommons.org/choose/zero\">Creative Commons CC0 License"
-#~ msgstr "Kde není uvedeno jinak,je obsah těchto stránek licencován <a href=\"http://creativecommons.org/choose/zero\">Creative Commons CC0"
+#~ msgid ""
+#~ "Except where otherwise noted, content on"
+#~ " this site is licensed under a "
+#~ "<a href=\"http://creativecommons.org/choose/zero\">Creative "
+#~ "Commons CC0 License"
+#~ msgstr ""
+#~ "Kde není uvedeno jinak,je obsah těchto"
+#~ " stránek licencován <a "
+#~ "href=\"http://creativecommons.org/choose/zero\">Creative Commons"
+#~ " CC0"
 
 #~ msgid "Path"
 #~ msgstr "Cesta"
@@ -8799,11 +9740,22 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "YAML Representation:"
 #~ msgstr "Reprezentace YAML:"
 
-#~ msgid "The username you entered isn't in the Open Library system. Please try again?"
+#~ msgid ""
+#~ "The username you entered isn't in "
+#~ "the Open Library system. Please try "
+#~ "again?"
 #~ msgstr "Zadané uživatelské jméno není v systému Open Library. Zkuste to znovu."
 
-#~ msgid "That password seems incorrect. Please try again, or, if you've forgotten it, have your <a href=\"/acount/password/forgot\">password reset</a>."
-#~ msgstr "Heslo není správně. Zkuste to prosím znovu, nebo pokud jste ho zapoměli , zkuste <a href=\"/acount/password/forgot\">obnovení hesla</a>."
+#~ msgid ""
+#~ "That password seems incorrect. Please "
+#~ "try again, or, if you've forgotten "
+#~ "it, have your <a "
+#~ "href=\"/acount/password/forgot\">password reset</a>."
+#~ msgstr ""
+#~ "Heslo není správně. Zkuste to prosím "
+#~ "znovu, nebo pokud jste ho zapoměli "
+#~ ", zkuste <a "
+#~ "href=\"/acount/password/forgot\">obnovení hesla</a>."
 
 #~ msgid "You need to choose an image to upload."
 #~ msgstr "Musíte vybrat obrázek k nahrání."
@@ -8820,8 +9772,16 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "The Open Library is closed!"
 #~ msgstr "Open Library je zavřená!"
 
-#~ msgid "<strong>Open Library is temporarily offline.</strong><br/>Please <a href=\"https://blog.openlibrary.org/\">visit our blog</a> for updates about site status."
-#~ msgstr "<strong>Open Library je dočasně offline.</strong><br/>Prosím <a href=\"https://blog.openlibrary.org/\">navštivte náš blog</a> pro informace o stavu stránek."
+#~ msgid ""
+#~ "<strong>Open Library is temporarily "
+#~ "offline.</strong><br/>Please <a "
+#~ "href=\"https://blog.openlibrary.org/\">visit our blog</a>"
+#~ " for updates about site status."
+#~ msgstr ""
+#~ "<strong>Open Library je dočasně "
+#~ "offline.</strong><br/>Prosím <a "
+#~ "href=\"https://blog.openlibrary.org/\">navštivte náš "
+#~ "blog</a> pro informace o stavu stránek."
 
 #~ msgid "books in"
 #~ msgstr "knihy v"
@@ -8847,25 +9807,50 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Preferences"
 #~ msgstr "Nastavení"
 
-#~ msgid "We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email."
-#~ msgstr "Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na Oveřovací odkaz pro ověření emailu."
+#~ msgid ""
+#~ "We've sent the verification email to "
+#~ "%(email)s. You'll need to read that "
+#~ "and click on the verification link "
+#~ "to verify your email."
+#~ msgstr ""
+#~ "Poslali jsme zprávu na adresu %(email)s."
+#~ " Přečtěte si ji a klikněte na "
+#~ "Oveřovací odkaz pro ověření emailu."
 
-#~ msgid "We've sent an email to %(email)s. You'll need to read that and click on the verification link to update your email."
-#~ msgstr "Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na Oveřovací odkaz pro změnu emailu."
+#~ msgid ""
+#~ "We've sent an email to %(email)s. "
+#~ "You'll need to read that and click"
+#~ " on the verification link to update"
+#~ " your email."
+#~ msgstr ""
+#~ "Poslali jsme zprávu na adresu %(email)s."
+#~ " Přečtěte si ji a klikněte na "
+#~ "Oveřovací odkaz pro změnu emailu."
 
 #~ msgid "Email address is already used."
 #~ msgstr "Emailová adresa už je použita."
 
-#~ msgid "Your email address couldn't be updated. The specified email address is already used."
-#~ msgstr "Vaše emailová adresa nemůže být aktualizována. Zadaný email je už používán."
+#~ msgid ""
+#~ "Your email address couldn't be updated."
+#~ " The specified email address is "
+#~ "already used."
+#~ msgstr ""
+#~ "Vaše emailová adresa nemůže být "
+#~ "aktualizována. Zadaný email je už "
+#~ "používán."
 
 #~ msgid "Email verification successful."
 #~ msgstr "Ověření emailu bylo úspěšné"
 
-#~ msgid "Your email address has been successfully verified and updated in your account."
+#~ msgid ""
+#~ "Your email address has been successfully"
+#~ " verified and updated in your "
+#~ "account."
 #~ msgstr "Váš email úspěšně ověřen a aktualizován ve vašem účtu."
 
-#~ msgid "Your email address couldn't be verified. The verification link seems invalid."
+#~ msgid ""
+#~ "Your email address couldn't be verified."
+#~ " The verification link seems invalid."
 #~ msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný."
 
 #~ msgid "Your password has been updated successfully."
@@ -8898,31 +9883,67 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "There are 2 different sources for borrowing books through Open Library:"
 #~ msgstr ""
 
-#~ msgid "The <a href=\"//archive.org/\">Internet Archive</a> and several partner libraries are offering thousands of eBooks for loan to anyone with an Open Library account, anywhere in the world."
+#~ msgid ""
+#~ "The <a href=\"//archive.org/\">Internet Archive</a>"
+#~ " and several partner libraries are "
+#~ "offering thousands of eBooks for loan"
+#~ " to anyone with an Open Library "
+#~ "account, anywhere in the world."
 #~ msgstr ""
 
 #~ msgid "physical books from your local library"
 #~ msgstr "fyzické knížky z Vaší místní knihovny"
 
-#~ msgid "We connect our records to WorldCat wherever possible. You can tell WorldCat your postcode/zip code, and it will tell you the closest library with a copy of the book."
+#~ msgid ""
+#~ "We connect our records to WorldCat "
+#~ "wherever possible. You can tell WorldCat"
+#~ " your postcode/zip code, and it will"
+#~ " tell you the closest library with"
+#~ " a copy of the book."
 #~ msgstr ""
 
 #~ msgid "Getting Started"
 #~ msgstr "Jak začít"
 
-#~ msgid "All you need to borrow a book scanned at the Internet Archive is an Open Library account and Adobe Digital Editions."
-#~ msgstr "Vše, co potřebujete pro vypůjčení knihy naskenované v Internet Archive jeúčet u Open Library a Adobe Digital Editions"
+#~ msgid ""
+#~ "All you need to borrow a book "
+#~ "scanned at the Internet Archive is "
+#~ "an Open Library account and Adobe "
+#~ "Digital Editions."
+#~ msgstr ""
+#~ "Vše, co potřebujete pro vypůjčení knihy"
+#~ " naskenované v Internet Archive jeúčet "
+#~ "u Open Library a Adobe Digital "
+#~ "Editions"
 
-#~ msgid "Loans through WorldCat are managed through your local libraries, not through Open Library."
+#~ msgid ""
+#~ "Loans through WorldCat are managed "
+#~ "through your local libraries, not "
+#~ "through Open Library."
 #~ msgstr ""
 
-#~ msgid "Check out the <a href=\"/help/faq#section-borrowing\"><strong>Lending FAQ</strong></a> for more information."
-#~ msgstr "Podívejte se <a href=\"/help/faq#section-borrowing\"><strong>Výpujčky FAQ</strong></a> pro více informací"
+#~ msgid ""
+#~ "Check out the <a href=\"/help/faq#section-"
+#~ "borrowing\"><strong>Lending FAQ</strong></a> for "
+#~ "more information."
+#~ msgstr ""
+#~ "Podívejte se <a href=\"/help/faq#section-"
+#~ "borrowing\"><strong>Výpujčky FAQ</strong></a> pro "
+#~ "více informací"
 
-#~ msgid "Browse all the available books through the <a href=\"/subjects/lending_library\">\"Lending Library\"</a> subject, or try a <a href=\"/search?subject_facet=Lending%20library\">search</a>."
+#~ msgid ""
+#~ "Browse all the available books through"
+#~ " the <a href=\"/subjects/lending_library\">\"Lending"
+#~ " Library\"</a> subject, or try a <a"
+#~ " href=\"/search?subject_facet=Lending%20library\">search</a>."
 #~ msgstr ""
 
-#~ msgid "If you work at a library and are interested to find out more about lending ebooks through Open Library, please <a href=\"/contact\">get in touch with us</a>!"
+#~ msgid ""
+#~ "If you work at a library and "
+#~ "are interested to find out more "
+#~ "about lending ebooks through Open "
+#~ "Library, please <a href=\"/contact\">get in"
+#~ " touch with us</a>!"
 #~ msgstr ""
 
 #~ msgid "Complete the form below to create a new Internet Archive account."
@@ -8931,7 +9952,12 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Each field is required"
 #~ msgstr "Všechna pole jsou povinná"
 
-#~ msgid "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" onclick=\"document.forms['logout'].submit()\">log out</a> and start the signup process afresh."
+#~ msgid ""
+#~ "If you'd like to create a new, "
+#~ "different Open Library account, you'll "
+#~ "need to <a href=\"javascript:;\" "
+#~ "onclick=\"document.forms['logout'].submit()\">log out</a> "
+#~ "and start the signup process afresh."
 #~ msgstr ""
 
 #~ msgid "Letters and numbers only please, and at least 3 characters."
@@ -8940,11 +9966,26 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Please type in the text or number(s) below."
 #~ msgstr "Níže prosím vyplňte text nebo čísla."
 
-#~ msgid "If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
+#~ msgid ""
+#~ "If you have security settings or "
+#~ "privacy blockers installed, please disable "
+#~ "them to see the reCAPTCHA."
 #~ msgstr ""
 
-#~ msgid "I acknowledge that my use of Open Library is subject to the Internet Archive's <a href='//archive.org/about/terms.php' target='_new' title='Read the Terms of Use in a new browser.'>Terms of Use</a>."
-#~ msgstr "Beru na vědomí že používání Open Library podléhá <a href='//archive.org/about/terms.php' target='_new' title='Přečtěte si Pravidlům použití v nové panelu.'>Pravidlům použití</a>  Internet Archive."
+#~ msgid ""
+#~ "I acknowledge that my use of Open"
+#~ " Library is subject to the Internet"
+#~ " Archive's <a href='//archive.org/about/terms.php' "
+#~ "target='_new' title='Read the Terms of "
+#~ "Use in a new browser.'>Terms of "
+#~ "Use</a>."
+#~ msgstr ""
+#~ "Beru na vědomí že používání Open "
+#~ "Library podléhá <a "
+#~ "href='//archive.org/about/terms.php' target='_new' "
+#~ "title='Přečtěte si Pravidlům použití v "
+#~ "nové panelu.'>Pravidlům použití</a>  Internet "
+#~ "Archive."
 
 #~ msgid "Change Your Email Address"
 #~ msgstr "Změnit emailovou adresu"
@@ -8952,8 +9993,14 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Your current email address is"
 #~ msgstr "Vaše současná emailová adresa je"
 
-#~ msgid "Provide your existing password (to verify that it's you) and select a new password to replace it."
-#~ msgstr "Zadejte současné heslo (pro ověření vaší že jste to vy) a vyberte nové heslo které ho nahradí."
+#~ msgid ""
+#~ "Provide your existing password (to "
+#~ "verify that it's you) and select a"
+#~ " new password to replace it."
+#~ msgstr ""
+#~ "Zadejte současné heslo (pro ověření vaší"
+#~ " že jste to vy) a vyberte nové"
+#~ " heslo které ho nahradí."
 
 #~ msgid "Forgot your Archive.org password?"
 #~ msgstr "Zapoměli jste vaše Archive.org heslo?"
@@ -8961,19 +10008,36 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "The year it was published is plenty."
 #~ msgstr ""
 
-#~ msgid "Since you are not logged in, please type in the text or number(s) below."
+#~ msgid ""
+#~ "Since you are not logged in, "
+#~ "please type in the text or "
+#~ "number(s) below."
 #~ msgstr ""
 
-#~ msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%s</b> by <b>%s</b>."
+#~ msgid ""
+#~ "One moment... It looks like we "
+#~ "already have <em>some potential matches</em>"
+#~ " for <b>%s</b> by <b>%s</b>."
 #~ msgstr ""
 
-#~ msgid "<p class=\"alert thanks\">Thank you for adding that book! Any more information you could provide would be wonderful!</p>"
+#~ msgid ""
+#~ "<p class=\"alert thanks\">Thank you for "
+#~ "adding that book! Any more information"
+#~ " you could provide would be "
+#~ "wonderful!</p>"
 #~ msgstr ""
 
-#~ msgid "<p class=\"alert thanks\">We already know about <b>%s</b>, but not the <b>%s %s edition</b>. Thanks! Do you know any more about this edition?</p>"
+#~ msgid ""
+#~ "<p class=\"alert thanks\">We already know "
+#~ "about <b>%s</b>, but not the <b>%s "
+#~ "%s edition</b>. Thanks! Do you know "
+#~ "any more about this edition?</p>"
 #~ msgstr ""
 
-#~ msgid "<p class=\"alert info\">We already know about the <b>%s %s edition</b> of <b>%s</b>, but please, tell us more!</p>"
+#~ msgid ""
+#~ "<p class=\"alert info\">We already know "
+#~ "about the <b>%s %s edition</b> of "
+#~ "<b>%s</b>, but please, tell us more!</p>"
 #~ msgstr ""
 
 #~ msgid "What's It About?"
@@ -8994,7 +10058,10 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Either choose a JPG, GIF or PNG on your computer,"
 #~ msgstr ""
 
-#~ msgid "<span class=\"highlight\"><u>Or</u></span>, paste in a URL to an image if it's on the web."
+#~ msgid ""
+#~ "<span class=\"highlight\"><u>Or</u></span>, paste in"
+#~ " a URL to an image if it's "
+#~ "on the web."
 #~ msgstr ""
 
 #~ msgid "Add a New Contributor Role"
@@ -9018,7 +10085,10 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Please leave a note: Why is this classification useful?"
 #~ msgstr ""
 
-#~ msgid "Can you direct us to more information about this classification system online?"
+#~ msgid ""
+#~ "Can you direct us to more "
+#~ "information about this classification system"
+#~ " online?"
 #~ msgstr ""
 
 #~ msgid "Expose another 20 fields about the edition"
@@ -9030,7 +10100,10 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "You can search by title or by Open Library ID"
 #~ msgstr ""
 
-#~ msgid "WARNING: Any edits made to the work from this page will be applied to the <b>old work</b>."
+#~ msgid ""
+#~ "WARNING: Any edits made to the "
+#~ "work from this page will be "
+#~ "applied to the <b>old work</b>."
 #~ msgstr ""
 
 #~ msgid "There are occasionally title variants amongst editions."
@@ -9081,13 +10154,26 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Edited by %s"
 #~ msgstr ""
 
-#~ msgid "We use a system called Markdown to format the text in your edits on Open Library. Some HTML formatting is also accepted. Paragraphs are automatically generated from any hard-break returns (blank lines) within your text. You can preview your work in real time below the editing field."
+#~ msgid ""
+#~ "We use a system called Markdown to"
+#~ " format the text in your edits "
+#~ "on Open Library. Some HTML formatting"
+#~ " is also accepted. Paragraphs are "
+#~ "automatically generated from any hard-"
+#~ "break returns (blank lines) within your"
+#~ " text. You can preview your work "
+#~ "in real time below the editing "
+#~ "field."
 #~ msgstr ""
 
 #~ msgid "Formatting marks should envelope the effected text, for example:"
 #~ msgstr ""
 
-#~ msgid "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \\ prior to the character."
+#~ msgid ""
+#~ "To \"escape\" any Markdown tags (i.e."
+#~ " use an asterisk as an asterisk "
+#~ "rather than emphasizing text) place a"
+#~ " backslash \\ prior to the character."
 #~ msgstr ""
 
 #~ msgid "Go to the top of this page"
@@ -9135,10 +10221,35 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Search eBook text"
 #~ msgstr ""
 
-#~ msgid "Your use of the Open Library is subject to the Internet Archive's <a href=\"//archive.org/about/terms.php\">Terms of Use</a>."
-#~ msgstr "Vaše používání Open Library spadá pod <a href=\"//archive.org/about/terms.php\">Pravidla použití</a> Internet Archive."
+#~ msgid ""
+#~ "Your use of the Open Library is"
+#~ " subject to the Internet Archive's <a"
+#~ " href=\"//archive.org/about/terms.php\">Terms of "
+#~ "Use</a>."
+#~ msgstr ""
+#~ "Vaše používání Open Library spadá pod"
+#~ " <a href=\"//archive.org/about/terms.php\">Pravidla "
+#~ "použití</a> Internet Archive."
 
-#~ msgid "The Open Library website has not been optimized for Internet Explorer 6, so some features and graphic elements may not appear correctly. Many sites, including <a href=\"http://googleenterprise.blogspot.com/2010/01/modern-browsers-for-modern-applications.html\">Google</a> and Facebook, have phased out support for IE6 due to security and support issues. Please consider upgrading to <a href=\"http://www.microsoft.com/IE9\">Internet Explorer 9</a>, <a href=\"http://www.mozilla.com/firefox/\">Firefox</a>, <a href=\"http://www.google.com/chrome/\">Chrome</a>, <a href=\"http://www.apple.com/safari/\">Safari</a>, or <a href=\"http://www.opera.com/\">Opera</a> to use this and other web sites to your fullest advantage."
+#~ msgid ""
+#~ "The Open Library website has not "
+#~ "been optimized for Internet Explorer 6,"
+#~ " so some features and graphic "
+#~ "elements may not appear correctly. Many"
+#~ " sites, including <a "
+#~ "href=\"http://googleenterprise.blogspot.com/2010/01/modern-"
+#~ "browsers-for-modern-applications.html\">Google</a> "
+#~ "and Facebook, have phased out support"
+#~ " for IE6 due to security and "
+#~ "support issues. Please consider upgrading "
+#~ "to <a href=\"http://www.microsoft.com/IE9\">Internet "
+#~ "Explorer 9</a>, <a "
+#~ "href=\"http://www.mozilla.com/firefox/\">Firefox</a>, <a "
+#~ "href=\"http://www.google.com/chrome/\">Chrome</a>, <a "
+#~ "href=\"http://www.apple.com/safari/\">Safari</a>, or <a"
+#~ " href=\"http://www.opera.com/\">Opera</a> to use "
+#~ "this and other web sites to your"
+#~ " fullest advantage."
 #~ msgstr ""
 
 #~ msgid "We couldn't find any books published by %s."
@@ -9165,10 +10276,20 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "Sorry. There seems to be a problem with what you were just looking at."
 #~ msgstr "Promiňte. Oběvil se problém s obsahem který jste právě prohlížely."
 
-#~ msgid "We've noted the error %s and will look into it as soon as possible. Head for <a href=\"/\">home</a>?"
-#~ msgstr "Zaznamenaly jsme chybu a co nejdříve se na ni podíváme. Vrátit se <a href=\"/\">domů</a>?"
+#~ msgid ""
+#~ "We've noted the error %s and will"
+#~ " look into it as soon as "
+#~ "possible. Head for <a href=\"/\">home</a>?"
+#~ msgstr ""
+#~ "Zaznamenaly jsme chybu a co nejdříve "
+#~ "se na ni podíváme. Vrátit se <a"
+#~ " href=\"/\">domů</a>?"
 
-#~ msgid "This graph charts editions published on this subject. Click to view a single year, or drag across a range."
+#~ msgid ""
+#~ "This graph charts editions published on"
+#~ " this subject. Click to view a "
+#~ "single year, or drag across a "
+#~ "range."
 #~ msgstr ""
 
 #~ msgid "No hits"
@@ -9183,6 +10304,13 @@ msgstr "Zobrazit jen eKnihy"
 #~ msgid "(Optional, but very useful!)"
 #~ msgstr "(Volitelné, ale velmi užitečné!)"
 
-#~ msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
+#~ msgid ""
+#~ "By saving a change to this wiki,"
+#~ " you agree that your contribution is"
+#~ " given freely to the world under "
+#~ "<a href=\"https://creativecommons.org/publicdomain/zero/1.0/\""
+#~ " target=\"_blank\" title=\"This link to "
+#~ "Creative Commons will open in a "
+#~ "new window\">CC0</a>. Yippee!"
 #~ msgstr ""
 
