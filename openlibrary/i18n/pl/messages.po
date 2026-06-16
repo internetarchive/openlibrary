@@ -821,11 +821,11 @@ msgstr "Włączone funkcje"
 
 #: subjects.html
 msgid "Edit tag for this subject"
-msgstr ""
+msgstr "Edytuj tag dla tego tematu"
 
 #: subjects.html
 msgid "Create tag for this subject"
-msgstr ""
+msgstr "Utwórz tag dla tego tematu"
 
 #: subjects.html
 #, fuzzy
@@ -846,7 +846,7 @@ msgstr "Szukaj książek o tematyce %(name)s."
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "Ujednoznacznienia"
 
 #: trending.html
 #, fuzzy
@@ -855,11 +855,11 @@ msgstr "Nie"
 
 #: admin/graphs.html admin/index.html my_books/check_ins/check_in_form.html my_books/check_ins/check_in_prompt.html trending.html
 msgid "Today"
-msgstr ""
+msgstr "Dziś"
 
 #: admin/graphs.html trending.html
 msgid "This Week"
-msgstr ""
+msgstr "Ten tydzień"
 
 #: admin/graphs.html stats/readinglog.html trending.html
 #, fuzzy
@@ -868,7 +868,7 @@ msgstr "Te wydanie"
 
 #: trending.html
 msgid "This Year"
-msgstr ""
+msgstr "Ten rok"
 
 #: admin/index.html books/year_breadcrumb_select.html trending.html
 #, fuzzy
@@ -882,11 +882,11 @@ msgstr "Dziennik Lektur"
 
 #: trending.html
 msgid "See what readers from the community are adding to their bookshelves"
-msgstr ""
+msgstr "Zobacz, co czytelnicy ze społeczności dodają do swoich półek"
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "Najwcześniejsze dane o trendach pochodzą z października 2017"
 
 #. Label for the reading log shelf for books the user plans to read in the
 #. future (bookshelf ID 1). Used as a button label and shelf name.
@@ -914,17 +914,17 @@ msgstr "Przeczytaj"
 #. (bookshelf ID 4). Used as a button label and shelf name.
 #: account/mybooks.html account/readinglog_shelf_name.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Stopped Reading"
-msgstr ""
+msgstr "Przestał czytać"
 
 #: trending.html
 #, python-format
 msgid "Someone marked as %(shelf)s %(k_hours_ago)s"
-msgstr ""
+msgstr "Ktoś oznaczył jako %(shelf)s %(k_hours_ago)s"
 
 #: trending.html
 #, python-format
 msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgstr "Zarejestrowano %(count)i razy %(time_unit)s"
 
 #: verify_human.html
 #, fuzzy
@@ -933,11 +933,11 @@ msgstr "Weryfikacja adresu e-mail nie powiodła się"
 
 #: verify_human.html
 msgid "Please verify you are human to continue."
-msgstr ""
+msgstr "Proszę potwierdzić, że jesteś człowiekiem, aby kontynuować."
 
 #: verify_human.html
 msgid "Verify you are human"
-msgstr ""
+msgstr "Potwierdź, że jesteś człowiekiem"
 
 #: verify_human.html
 #, fuzzy
@@ -976,25 +976,25 @@ msgstr "Wypożycz"
 #: widget.html
 #, python-format
 msgid "Join waitlist for \"%(title)s\""
-msgstr ""
+msgstr "Dołącz do listy oczekujących na \"%(title)s\""
 
 #: LoanStatus.html widget.html
 msgid "Join Waitlist"
-msgstr ""
+msgstr "Dołącz do listy oczekujących"
 
 #: widget.html
 #, python-format
 msgid "Learn more about \"%(title)s\" at OpenLibrary"
-msgstr ""
+msgstr "Dowiedz się więcej o \"%(title)s\" w OpenLibrary"
 
 #: reading_goals/reading_goal_form.html widget.html
 msgid "Learn More"
-msgstr ""
+msgstr "Dowiedz się więcej"
 
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "na <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"%(link)s\">openlibrary.org</a>"
 
 #: work_search.html
 #, fuzzy
@@ -1008,7 +1008,7 @@ msgstr "Słowa kluczowe"
 
 #: work_search.html
 msgid "This is only visible to super librarians."
-msgstr ""
+msgstr "To jest widoczne tylko dla super bibliotekarzy."
 
 #: work_search.html
 #, fuzzy
@@ -1022,7 +1022,7 @@ msgstr "Tylko administratorzy"
 
 #: work_search.html
 msgid "Filter by availability"
-msgstr ""
+msgstr "Filtruj według dostępności"
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html type/edition/view.html type/work/view.html work_search.html
 msgid "Language"
@@ -1040,24 +1040,24 @@ msgstr "Język"
 
 #: work_search.html
 msgid "Filter by language"
-msgstr ""
+msgstr "Filtruj według języka"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "Wyszukiwarka zwróciła błąd."
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Debugowanie Solr:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "Pełny URL:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "Żaden <strong>%(path_id)s</strong> nie pasuje bezpośrednio do Twojego wyszukiwania."
 
 #: work_search.html
 #, fuzzy
@@ -1073,13 +1073,13 @@ msgstr "Szukaj w"
 #, python-format
 msgid "%(count)s hit"
 msgid_plural "%(count)s hits"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s wynik"
+msgstr[1] "%(count)s wyniki"
 
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Wyszukiwanie w solr zajęło %(count)s sekund"
 
 #: about/index.html
 #, fuzzy
@@ -1088,11 +1088,11 @@ msgstr "Open Library"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "Open Library jest możliwe dzięki zaangażowanemu zespołowi pracowników i ponad 100 wolontariuszy z całego świata."
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "Chcesz do nas dołączyć?"
 
 #: about/index.html
 #, fuzzy
@@ -1105,11 +1105,11 @@ msgstr "Wszystkie"
 
 #: about/index.html
 msgid "Staff"
-msgstr ""
+msgstr "Personel"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "Stypendyści"
 
 #: about/index.html
 #, fuzzy
@@ -1118,7 +1118,7 @@ msgstr "Tom"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "Dział:"
 
 #: about/index.html
 #, fuzzy
@@ -1132,15 +1132,15 @@ msgstr "Wymiary"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "Inżynieria"
 
 #: about/index.html
 msgid "Librarianship"
-msgstr ""
+msgstr "Bibliotekarstwo"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "Jeśli wolontariacko pracujesz z Open Library i chcesz być wymieniony jako część zespołu, wypełnij <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">formularz informacyjny zespołu Open Library</a>."
 
 #: account/create.html openlibrary/plugins/upstream/forms.py
 msgid "Must be a valid email address"
@@ -1152,11 +1152,11 @@ msgstr "Musi składać się z min. 3 i max. 20 znaków."
 
 #: account/create.html
 msgid "Username may only contain numbers, letters, - or _"
-msgstr ""
+msgstr "Nazwa użytkownika może zawierać tylko cyfry, litery, - lub _"
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "Należy wybrać kwalifikujący program"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
@@ -1168,7 +1168,7 @@ msgstr "Załóż konto"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Zdobądź bezpłatną kartę Open Library i wypożyczaj cyfrowe książki od organizacji non-profit Internet Archive"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
@@ -1186,31 +1186,31 @@ msgstr "Nazwa użytkownika"
 
 #: account/create.html
 msgid "I want to receive news, announcements, and resources from the <a href=\"https://archive.org/\">Internet Archive</a>, the non-profit that runs Open Library."
-msgstr ""
+msgstr "Chcę otrzymywać wiadomości, ogłoszenia i zasoby od <a href=\"https://archive.org/\">Internet Archive</a>, organizacji non-profit prowadzącej Open Library."
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "Chcę ubiegać się* o <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\" rel=\"noopener noreferrer\">specjalny dostęp dla osób z niepełnosprawnością druku</a> przez kwalifikujący program."
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Wybierz kwalifikujący program"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* Proszę użyć adresu e-mail powiązanego z tym kwalifikującym programem. Po aktywacji otrzymasz e-mail z kolejnymi krokami."
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Zarejestruj się przez e-mail"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr ""
+msgstr "Rejestrując się, zgadzasz się z <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Warunkami usługi</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Masz już konto? <a href=\"/account/login\">Zaloguj się</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -1227,15 +1227,15 @@ msgstr "Nie ma tu złych odpowiedzi."
 
 #: account/import.html
 msgid "Import from Goodreads"
-msgstr ""
+msgstr "Importuj z Goodreads"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "Instrukcje dotyczące eksportu danych znajdziesz tutaj: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
-msgstr ""
+msgstr "Limit rozmiaru pliku 10 MB, tylko pliki .csv"
 
 #: account/import.html
 #, fuzzy
@@ -1259,7 +1259,7 @@ msgstr "Dziennik Lektur"
 
 #: account/import.html
 msgid "Download (.csv format)"
-msgstr ""
+msgstr "Pobierz (format .csv)"
 
 #: account/import.html
 #, fuzzy
@@ -1268,7 +1268,7 @@ msgstr "Zobacz książki"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "Pobierz kopię swoich notatek o książkach."
 
 #: account/import.html
 #, fuzzy
@@ -1277,23 +1277,23 @@ msgstr "Jaki to rodzaj książki?"
 
 #: account/import.html
 msgid "Export your reviews"
-msgstr ""
+msgstr "Eksportuj swoje recenzje"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "Pobierz kopię tagów swoich recenzji."
 
 #: account/import.html
 msgid "What are review tags?"
-msgstr ""
+msgstr "Czym są tagi recenzji?"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "Eksportuj przegląd swoich list"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "Pobierz podsumowanie swoich list i ich zawartości."
 
 #: account/import.html
 #, fuzzy
@@ -1302,15 +1302,15 @@ msgstr "Aktywne Listy"
 
 #: account/import.html
 msgid "Export your star ratings"
-msgstr ""
+msgstr "Eksportuj swoje oceny gwiazdkowe"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "Pobierz kopię swoich ocen gwiazdkowych."
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "Czym są oceny gwiazdkowe?"
 
 #: account/import.html
 #, fuzzy
@@ -1329,11 +1329,11 @@ msgstr "ISBN"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "Nie znaleziono wypożyczeń w historii."
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">Wyszukaj książkę</a> do wypożyczenia."
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
@@ -1343,8 +1343,8 @@ msgstr "Obecnie nie masz zaznaczonych żadnych książek."
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d aktualne wypożyczenie"
+msgstr[1] "%(count)d aktualne wypożyczenia"
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
@@ -1358,8 +1358,8 @@ msgstr "Wypożycz..."
 #, python-format
 msgid "There is %(count)d person waiting for this book."
 msgid_plural "There are %(count)d people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Czeka %(count)d osoba na tę książkę."
+msgstr[1] "Czekają %(count)d osoby na tę książkę."
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."
@@ -1387,7 +1387,7 @@ msgstr "Opuść Listę Oczekujących"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "Czy na pewno chcesz opuścić listę oczekujących na<br/><strong>TITLE</strong>?"
 
 #: ProlificAuthors.html account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, fuzzy, python-format
@@ -1404,8 +1404,8 @@ msgstr "Akcje"
 #, python-format
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Oczekuje 1 dzień"
+msgstr[1] "Oczekuje %(count)d dni"
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
@@ -1426,8 +1426,8 @@ msgstr "Pozostało mniej niż godzina na wypożyczenie tej książki."
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Masz jeszcze jedną godzinę na wypożyczenie."
+msgstr[1] "Masz jeszcze %(hours)d godziny na wypożyczenie."
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Borrow Now"
@@ -1439,7 +1439,7 @@ msgstr "Opuścić listę oczekujących?"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "Szukasz książki do wypożyczenia? Sprawdź nasze polecenia lub wyszukaj książkę na określony temat:"
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
@@ -1447,7 +1447,7 @@ msgstr "Książki, które kochamy"
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "Lub sprawdź nasze <a href=\"/collections\">specjalne kolekcje</a>."
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
@@ -1473,11 +1473,11 @@ msgstr "Ten użytkownik postanowił nie udostępniać swojego Dziennika Lektur"
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
+msgstr "Cel czytelniczy %(year_span)s"
 
 #: account/mybooks.html
 msgid "View All Lists"
-msgstr ""
+msgstr "Zobacz wszystkie listy"
 
 #: account/mybooks.html
 #, fuzzy
@@ -1506,7 +1506,7 @@ msgstr "Mój profil"
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
+msgstr "Opcje importu i eksportu"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
@@ -1520,11 +1520,11 @@ msgstr "E-mail nie mógł zostać zweryfikowany."
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "Kiedy tworzyłeś swoje konto, wysłaliśmy e-mail na adres %(email)s zawierający link do weryfikacji Twojego adresu e-mail. Prosimy kliknąć ten link."
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "Jeśli nie możesz znaleźć e-maila, kliknij ten przycisk, aby wysłać nowy:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
@@ -1532,7 +1532,7 @@ msgstr "Wyślij e-mail weryfikacyjny ponownie"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "Dziękujemy!"
 
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
 msgid "Unknown author"
@@ -1550,7 +1550,7 @@ msgstr "brakuje imienia"
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
 msgid "Publish date unknown"
-msgstr ""
+msgstr "Data wydania nieznana"
 
 #: account/notes.html books/edition-sort.html lists/export_as_html.html type/work/editions.html
 msgid "Publisher unknown"
@@ -1559,7 +1559,7 @@ msgstr "Wydawnictwo nieznane"
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
+msgstr "w %(language)s"
 
 #: NotesModal.html account/notes.html
 #, fuzzy
