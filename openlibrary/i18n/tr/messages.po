@@ -4419,11 +4419,11 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
-msgstr ""
+msgstr "Bu baskıya dair notlarınız var mı?"
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
-msgstr ""
+msgstr "Kitap hakkında ilgi çekici olabilecek her şey."
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4432,7 +4432,7 @@ msgstr "Kitaplarım"
 
 #: books/edit/edition.html
 msgid "Is it known by any other titles?"
-msgstr ""
+msgstr "Başka başlıklarla da biliniyor mu?"
 
 #: books/edit/edition.html
 msgid ""
@@ -4449,7 +4449,7 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
-msgstr ""
+msgstr "Bu baskı hangi esere aittir?"
 
 #: books/edit/edition.html
 msgid ""
@@ -4466,39 +4466,39 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
-msgstr ""
+msgstr "UYARI: Bu sayfadan esere yapılan tüm düzenlemeler yok sayılacaktır."
 
 #: books/edit/edition.html
 msgid "Copy authors to new work"
-msgstr ""
+msgstr "Yazarları yeni esere kopyala"
 
 #: books/edit/edition.html
 msgid "Copy subjects to new work"
-msgstr ""
+msgstr "Konuları yeni esere kopyala"
 
 #: books/edit/edition.html
 msgid "Please select an identifier."
-msgstr ""
+msgstr "Lütfen bir tanımlayıcı seçin."
 
 #: books/edit/edition.html
 msgid "You need to give a value to ID."
-msgstr ""
+msgstr "Kimliğe bir değer vermeniz gerekiyor."
 
 #: books/edit/edition.html
 msgid "ID ids cannot contain whitespace."
-msgstr ""
+msgstr "Kimlik değerleri boşluk içeremez."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr ""
+msgstr "Kimlik tam olarak 10 karakter [0-9] veya X olmalıdır."
 
 #: books/edit/edition.html
 msgid "That ID already exists for this edition."
-msgstr ""
+msgstr "Bu kimlik bu baskı için zaten mevcut."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
+msgstr "Kimlik tam olarak 13 basamak [0-9] olmalıdır. Örneğin: 978-1-56619-909-4"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4507,159 +4507,159 @@ msgstr "Geçersiz şifre"
 
 #: books/edit/edition.html type/author/view.html
 msgid "ID Numbers"
-msgstr ""
+msgstr "Kimlik Numaraları"
 
 #: books/edit/edition.html
 msgid "Do you know any identifiers for this edition?"
-msgstr ""
+msgstr "Bu baskı için herhangi bir tanımlayıcı biliyor musunuz?"
 
 #: books/edit/edition.html
 msgid "Like, ISBN?"
-msgstr ""
+msgstr "ISBN gibi mi?"
 
 #: books/edit/edition.html
 msgid "Please select a classification."
-msgstr ""
+msgstr "Lütfen bir sınıflandırma seçin."
 
 #: books/edit/edition.html
 msgid "You need to give a value to CLASS."
-msgstr ""
+msgstr "SINIF'a bir değer vermeniz gerekiyor."
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
-msgstr ""
+msgstr "Sınıflandırmalar"
 
 #: books/edit/edition.html
 msgid "Do you know any classifications of this edition?"
-msgstr ""
+msgstr "Bu baskının herhangi bir sınıflandırmasını biliyor musunuz?"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
-msgstr ""
+msgstr "Dewey Ondalık sistemi gibi mi?"
 
 #: books/edit/edition.html
 msgid "Select one of many..."
-msgstr ""
+msgstr "Birini seçin..."
 
 #: books/edit/edition.html
 msgid "Add a new classification type"
-msgstr ""
+msgstr "Yeni sınıflandırma türü ekle"
 
 #: books/edit/edition.html
 msgid "Remove this classification"
-msgstr ""
+msgstr "Bu sınıflandırmayı kaldır"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "The Physical Object"
-msgstr ""
+msgstr "Fiziksel Nesne"
 
 #: books/edit/edition.html
 msgid "What sort of book is it?"
-msgstr ""
+msgstr "Ne tür bir kitap?"
 
 #: books/edit/edition.html
 msgid "Paperback; Hardcover, etc."
-msgstr ""
+msgstr "Karton kapak; Sert kapak, vb."
 
 #: books/edit/edition.html
 msgid "How many pages?"
-msgstr ""
+msgstr "Kaç sayfa?"
 
 #: books/edit/edition.html
 msgid "Pagination?"
-msgstr ""
+msgstr "Sayfalama?"
 
 #: books/edit/edition.html
 msgid "Note the highest number in each pagination pattern."
-msgstr ""
+msgstr "Her sayfalama düzenindeki en yüksek numarayı not edin."
 
 #: books/edit/edition.html lib/nav_foot.html
 msgid "Help"
-msgstr ""
+msgstr "Yardım"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Örneğin: <em>xii, 346s.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
-msgstr ""
+msgstr "Kitap ne kadar ağırlıkta?"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Dimensions"
-msgstr ""
+msgstr "Boyutlar"
 
 #: books/edit/edition.html
 msgid "dimensions"
-msgstr ""
+msgstr "boyutlar"
 
 #: books/edit/edition.html
 msgid "Height:"
-msgstr ""
+msgstr "Yükseklik:"
 
 #: books/edit/edition.html
 msgid "Width:"
-msgstr ""
+msgstr "Genişlik:"
 
 #: books/edit/edition.html
 msgid "Depth:"
-msgstr ""
+msgstr "Derinlik:"
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "Web Kitap Sağlayıcıları"
 
 #: books/edit/edition.html
 msgid "Access Type"
-msgstr ""
+msgstr "Erişim Türü"
 
 #: books/edit/edition.html
 msgid "File Format"
-msgstr ""
+msgstr "Dosya Biçimi"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "Sağlayıcı Adı"
 
 #: books/edit/edition.html
 msgid "Buy"
-msgstr ""
+msgstr "Satın Al"
 
 #: books/edit/edition.html
 msgid "Web"
-msgstr ""
+msgstr "Web"
 
 #: books/edit/edition.html
 msgid "Add a provider"
-msgstr ""
+msgstr "Sağlayıcı ekle"
 
 #: books/edit/edition.html
 msgid "First sentence"
-msgstr ""
+msgstr "İlk cümle"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "Giriş paragrafını başlatan açılış cümlesi"
 
 #: books/edit/edition.html
 msgid "Admin Only"
-msgstr ""
+msgstr "Yalnızca Yönetici"
 
 #: books/edit/edition.html
 msgid "Additional Metadata"
-msgstr ""
+msgstr "Ek Meta Veri"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "Bu alan rastgele anahtar:değer çiftleri kabul edebilir"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
-msgstr ""
+msgstr "Lütfen bir alıntı sağlayın."
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "Bu alıntı çok uzun."
 
 #: books/edit/excerpts.html
 msgid ""
@@ -4669,27 +4669,27 @@ msgstr ""
 
 #: books/edit/excerpts.html
 msgid "Page number?"
-msgstr ""
+msgstr "Sayfa numarası?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "Örneğin: <i>23, xi veya 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "Bu alıntı kitabın ilk cümlesidir."
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
-msgstr ""
+msgstr "Alıntıyı yazıya dökün"
 
 #: books/edit/excerpts.html
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr ""
+msgstr "Maksimum uzunluk 2000 karakterdir. HTML'ye izin verilmez."
 
 #: books/edit/excerpts.html
 msgid "Why did you choose this excerpt?"
-msgstr ""
+msgstr "Bu alıntıyı neden seçtiniz?"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
