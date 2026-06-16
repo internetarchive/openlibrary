@@ -3271,31 +3271,31 @@ msgstr "Mevcut değil"
 
 #: admin/people/view.html
 msgid "# Edits"
-msgstr ""
+msgstr "Düzenleme Sayısı"
 
 #: admin/people/view.html
 msgid "Member Since:"
-msgstr ""
+msgstr "Üyelik Tarihi:"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "Son Giriş:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "Etiketler:"
 
 #: admin/people/view.html
 msgid "Anonymize Account:"
-msgstr ""
+msgstr "Hesabı Anonimleştir:"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Kuru Çalıştırma"
 
 #: admin/people/view.html
 msgid "Anonymize Account"
-msgstr ""
+msgstr "Hesabı Anonimleştir"
 
 #: admin/people/view.html books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/upstream/account.py type/user/view.html
@@ -3304,24 +3304,24 @@ msgstr "Krediler"
 
 #: admin/people/view.html
 msgid "Account not activated yet."
-msgstr ""
+msgstr "Hesap henüz etkinleştirilmedi."
 
 #: admin/people/view.html
 msgid "Waiting Loans"
-msgstr ""
+msgstr "Bekleyen Ödünçler"
 
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d düzenleme"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "Hata Ayıklama Bilgisi"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "Hesap Bilgileri"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3336,11 +3336,11 @@ msgstr "Hiçbiri bulunamadı."
 #: SearchNavigation.html authors/index.html lib/nav_foot.html
 #: merge/authors.html publishers/view.html
 msgid "Authors"
-msgstr ""
+msgstr "Yazarlar"
 
 #: authors/index.html
 msgid "Search for an Author"
-msgstr ""
+msgstr "Yazar Ara"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html
 #: publishers/notfound.html publishers/view.html search/advancedsearch.html
@@ -3352,17 +3352,17 @@ msgstr "Ara"
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
-msgstr ""
+msgstr "%(subjects)s hakkında"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
-msgstr ""
+msgstr "<i>%(topwork)s</i> dahil"
 
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "%(site)s'te görüntüle"
 
 #: authors/infobox.html
 #, fuzzy
@@ -3383,224 +3383,224 @@ msgstr "Değiştirildi"
 #: book_providers/standard_ebooks_download_options.html
 #: book_providers/wikisource_download_options.html
 msgid "Download Options"
-msgstr ""
+msgstr "İndirme Seçenekleri"
 
 #: book_providers/cita_press_download_options.html
 msgid "Download PDF from Cita Press"
-msgstr ""
+msgstr "Cita Press'ten PDF İndir"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Cita Press'te Daha Fazlası"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg'den HTML İndir"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a text version from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg'den metin sürümü indir"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "Düz metin"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg'den ePub İndir"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg'den Kindle dosyası indir"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Kindle"
-msgstr ""
+msgstr "Kindle"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg'de Daha Fazlası"
 
 #: book_providers/ia_download_options.html
 msgid "Download a PDF from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan PDF İndir"
 
 #: book_providers/ia_download_options.html
 msgid "Download a text version from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan metin sürümü indir"
 
 #: book_providers/ia_download_options.html
 msgid "Download an ePub from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan ePub İndir"
 
 #: book_providers/ia_download_options.html
 msgid "Download a MOBI file from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan MOBI dosyası indir"
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
-msgstr ""
+msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
+msgstr "Internet Archive'dan açık DAISY indir (baskı engelli formatı)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
-msgstr ""
+msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan kitabın tamamının ZIP dosyasını indir"
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "Kitabın Tamamı MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "LibriVox'tan RSS Beslemesini Al"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "RSS Beslemesi"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "LibriVox'ta Daha Fazlası"
 
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
-msgstr ""
+msgstr "OpenStax'tan PDF İndir"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "OpenStax'ta Daha Fazlası"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "%s'ten bir okuma dinle"
 
 #: book_providers/read_button.html
 msgid "Audiobook"
-msgstr ""
+msgstr "Sesli Kitap"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "%s'ten ücretsiz çevrimiçi oku"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'den tüm taranmış görüntüleri indir"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Taranmış görüntüler"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'den tüm renkli görüntüleri indir"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
-msgstr ""
+msgstr "Renkli görüntüler"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'den tüm HTML dosyalarını indir"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'den tüm metin ve dizin dosyalarını indir"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "Metin ve dizin dosyaları"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'den tüm OCR metnini indir"
 
 #: book_providers/runeberg_download_options.html
 msgid "OCR text"
-msgstr ""
+msgstr "OCR metni"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg'de Daha Fazlası"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks'tan HTML İndir"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Standard Ebooks'tan ePub İndir."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks'tan Kindle dosyası indir"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks'tan Kobo dosyası indir"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "Bu Standard Ebook'un kaynak kodunu GitHub'da görüntüle"
 
 #: Subnavigation.html book_providers/standard_ebooks_download_options.html
 msgid "Source Code"
-msgstr ""
+msgstr "Kaynak Kod"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks'ta Daha Fazlası"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
-msgstr ""
+msgstr "Wikisource'tan PDF İndir"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download MOBI from Wikisource"
-msgstr ""
+msgstr "Wikisource'tan MOBI İndir"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "MOBI (Kindle için)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download EPUB from Wikisource"
-msgstr ""
+msgstr "Wikisource'tan EPUB İndir"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (diğer e-okuyucular için)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Wikisource'ta Oku"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
-msgstr ""
+msgstr "Bunları da beğenebilirsiniz"
 
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
@@ -3610,17 +3610,19 @@ msgstr[1] ""
 
 #: books/add.html books/check.html
 msgid "Add a book"
-msgstr ""
+msgstr "Kitap ekle"
 
 #: books/add.html
 msgid "Invalid ISBN checksum digit"
-msgstr ""
+msgstr "Geçersiz ISBN sağlama toplamı rakamı"
 
 #: books/add.html
 msgid ""
 "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or"
 " 0198534531"
 msgstr ""
+"Kimlik tam olarak 10 karakter [0-9 veya X] olmalıdır. Örneğin "
+"0-19-853453-1 veya 0198534531"
 
 #: books/add.html
 msgid ""
