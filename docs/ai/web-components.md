@@ -249,6 +249,113 @@ render() {
 </ol-card>
 ```
 
+## Registration
+
+Register the component once at the bottom of its file:
+
+```js
+customElements.define('ol-my-widget', OlMyWidget);
+```
+
+**`ol-components.js` is the single registration site for every `<ol-*>` custom element.** It is built from `openlibrary/components/lit/index.js` (which re-exports every component, running each `define()` as a side effect) and loaded site-wide from `openlibrary/templates/site/footer.html`.
+
+If you need to drive a Lit component from page JS that webpack bundles (e.g., the search-modal entrypoint), import the component's exported class only if you need the class identifier — and never as a bare side-effect import. Re-running `customElements.define()` from a second bundle throws `NotSupportedError: this name has already been used with this registry`, which surfaces as a blank page with no obvious cause. The component will already be registered by `ol-components.js` before any page-JS handler (jQuery `DOMContentLoaded`) runs.
+
+## Focus and Shadow DOM
+
+Shadow DOM breaks the assumptions most focus-management code makes. The helpers in `openlibrary/components/lit/utils/focus-utils.js` and `FocusableHostMixin` exist to handle the cases below — reach for them rather than rolling your own.
+
+### Make custom elements visible to outer focus traps
+
+A custom element whose only focusable content is a `<button>` inside its shadow root is **invisible** to a focus trap that calls `querySelectorAll(FOCUSABLE_SELECTOR)` on light DOM. Two problems compound:
+
+1. The trap's selector can't see into the shadow root, so the element is skipped entirely.
+2. Calling `host.focus()` focuses the *host*, not the inner button — `:focus-visible` lands on nothing.
+
+Apply `FocusableHostMixin` (`openlibrary/components/lit/utils/focusable-host-mixin.js`) to fix both at once. It sets `tabindex="0"` on the host (so traps discover it) and `delegatesFocus: true` on the shadow root (so `host.focus()` forwards to the first focusable inside and `:focus-visible` fires correctly). Override `_focusTarget` if the desired target isn't the first focusable in DOM order.
+
+```js
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
+
+export class OlMyWidget extends FocusableHostMixin(LitElement) {
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.default-trigger');
+    }
+}
+```
+
+### Filter hidden elements from trap lists
+
+Calling `.focus()` on a `display:none` or `visibility:hidden` element is a silent no-op. But `querySelectorAll(FOCUSABLE_SELECTOR)` still returns it, so the trap thinks focus moved when it didn't — Tab/Shift+Tab appear stuck on the previous element.
+
+Use `el.checkVisibility({ visibilityProperty: true })` to filter (or `isFocusable()` from `focus-utils.js`, which wraps it). This bit us when a `display:none` close button in `SearchModal` kept jamming the dialog's focus trap.
+
+### Walk shadow boundaries when reading active element
+
+`document.activeElement` returns the *host*, not the deeply focused element inside a shadow root. When a trap needs to know "where is focus right now relative to my managed list?", use `getDeepActiveElement()` to drill in, then `findFocusableIndex()` to climb back out across shadow boundaries until it finds a host that the trap recognizes. Both are in `focus-utils.js`.
+
+### Restore focus after Lit re-renders
+
+When a `repeat` directive destroys a node — e.g., an item moves between two groups based on selected state, or a list re-sorts — the browser drops focus to `<body>`. Stash an identifying value, then refocus in `updated()` after the new node mounts:
+
+```js
+_onItemToggle(e) {
+    // Only restore if the checkbox actually owned focus at toggle time
+    if (this.shadowRoot?.activeElement === e.target) {
+        this._restoreFocusToValue = e.target.value;
+    }
+    this._emitChange(/* ... */);
+}
+
+updated(changedProperties) {
+    super.updated?.(changedProperties);
+    if (this._restoreFocusToValue !== null && changedProperties.has('selected')) {
+        const value = this._restoreFocusToValue;
+        this._restoreFocusToValue = null;
+        const target = this.shadowRoot?.querySelector(`[data-value="${value}"]`);
+        target?.focus({ preventScroll: true });
+    }
+}
+```
+
+See `OlSelectPopover._onItemToggle` for the reference implementation.
+
+## ARIA on lists
+
+Putting a non-list role like `role="radiogroup"` directly on a `<ul>` **strips the list semantics**. The `<li>` children then become invalid in the accessibility tree (a `<li>` is only valid inside `<ul>`, `<ol>`, or `<menu>`), and accesslint will flag it.
+
+Separate the roles: wrap the list in a `<div role="radiogroup">` and keep the `<ul>` pure.
+
+```js
+// Bad — strips list semantics
+html`<ul role="radiogroup" aria-label=${label}>
+       ${items.map(item => html`<li>...</li>`)}
+     </ul>`;
+
+// Good — separate roles
+html`<div role="radiogroup" aria-label=${label}>
+       <ul>${items.map(item => html`<li>...</li>`)}</ul>
+     </div>`;
+```
+
+Related: whitespace inside `<ul>` template literals creates real text nodes that accesslint flags as direct text content inside a list. Keep `<li>` flush against the opening `<ul>` tag — no leading newline.
+
+## Autofocus on mobile
+
+Don't auto-focus a text input when a component opens on a mobile breakpoint — the soft keyboard pops up and shrinks the visible panel area to nothing. Gate the focus call:
+
+```js
+_onPopoverOpen() {
+    if (!window.matchMedia('(max-width: 767px)').matches) {
+        this.shadowRoot.querySelector('.filter-input')?.focus();
+    }
+}
+```
+
+767px matches the breakpoint that `ol-popover` uses to switch into its mobile tray layout — stay consistent with that so behavior matches what the user sees.
+
+(Inputs in this component should also use `font-size: 16px` to prevent iOS Safari's auto-zoom on focus — see [design.md](design.md#mobile).)
+
 ## New Component Checklist
 
 1. Create a file in `openlibrary/components/lit/` named after the class (e.g., `OlMyWidget.js`).

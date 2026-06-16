@@ -69,6 +69,15 @@ class CommonExtras:
         rows_deleted = 0
         failed_deletes = 0
 
+        # `cls.PRIMARY_KEY` is a class-defined tuple, but the values pulled out
+        # of `row` for those keys come from user-writable columns (username,
+        # work_id, edition_id, ...). Build the WHERE clause as `col=$col` named
+        # parameters with `vars=` so the values are passed as bound parameters
+        # rather than being f-string-interpolated into the SQL. See
+        # https://github.com/internetarchive/openlibrary/pull/12460 for the
+        # /merges precedent that motivated this hardening.
+        primary_key_columns = tuple(cls.PRIMARY_KEY) if isinstance(cls.PRIMARY_KEY, (tuple, list)) else (cls.PRIMARY_KEY,)
+
         # get records with old work_id
         # `list` used to solve sqlite cursor test
         rows = list(
@@ -79,17 +88,25 @@ class CommonExtras:
             )
         )
         for row in rows:
-            where = " AND ".join([f"{k}='{v}'" for k, v in row.items() if k in cls.PRIMARY_KEY])
+            row_pk = {k: row[k] for k in primary_key_columns if k in row}
+            where = " AND ".join(f"{k}=${k}" for k in row_pk)
+            update_vars = dict(row_pk, new_work_id=new_work_id)
             try:
                 # try to update the row to new_work_id
                 t_update = oldb.transaction()
-                oldb.query(f"UPDATE {cls.TABLENAME} set work_id={new_work_id} where {where}")
+                oldb.query(
+                    f"UPDATE {cls.TABLENAME} SET work_id=$new_work_id WHERE {where}",
+                    vars=update_vars,
+                )
                 rows_changed += 1
                 t_update.rollback() if _test else t_update.commit()
             except UniqueViolation, IntegrityError:
                 t_delete = oldb.transaction()
                 # otherwise, delete row with current_work_id if failed
-                oldb.query(f"DELETE FROM {cls.TABLENAME} WHERE {where}")
+                oldb.query(
+                    f"DELETE FROM {cls.TABLENAME} WHERE {where}",
+                    vars=row_pk,
+                )
                 rows_deleted += 1
                 if _test or not cls.ALLOW_DELETE_ON_CONFLICT:
                     t_delete.rollback()
