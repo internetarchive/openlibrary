@@ -53,7 +53,7 @@ msgstr "Wyświetl lub edytuj Twoje Listy"
 
 #: account.html
 msgid "Import and Export Options"
-msgstr ""
+msgstr "Opcje importu i eksportu"
 
 #: account.html
 #, fuzzy
@@ -67,7 +67,7 @@ msgstr "Zarządzaj swoimi ustawieniami prywatności"
 
 #: account.html
 msgid "Manage Mailing List Subscriptions"
-msgstr ""
+msgstr "Zarządzaj subskrypcjami listy mailingowej"
 
 #: account.html
 msgid "Change Password"
@@ -88,7 +88,7 @@ msgstr "Skontaktuj się z nami, jeśli potrzebujesz pomocy w innej sprawie."
 
 #: barcodescanner.html
 msgid "Barcode Scanner (Beta)"
-msgstr ""
+msgstr "Skaner kodów kreskowych (Beta)"
 
 #: batch_import.html
 #, fuzzy
@@ -97,23 +97,23 @@ msgstr "Autorzy"
 
 #: BatchImportNavigation.html batch_import.html
 msgid "New Batch Import"
-msgstr ""
+msgstr "Nowy import zbiorczy"
 
 #: batch_import.html
 msgid "Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea."
-msgstr ""
+msgstr "Załącz dokument w formacie JSONL z rekordami importu lub wklej tekst JSONL do pola tekstowego."
 
 #: batch_import.html
 msgid "See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more."
-msgstr ""
+msgstr "Zobacz <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">schematy importu olclient</a>, aby dowiedzieć się więcej."
 
 #: batch_import.html
 msgid "Attach a file:"
-msgstr ""
+msgstr "Załącz plik:"
 
 #: batch_import.html
 msgid "Or copy/paste JSONL text:"
-msgstr ""
+msgstr "Lub wklej tekst JSONL:"
 
 #: batch_import.html import_preview.html
 #, fuzzy
@@ -127,52 +127,52 @@ msgstr "Nie udało się ustawić nowego hasła."
 
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
-msgstr ""
+msgstr "Żaden import nie zostanie dodany do kolejki, dopóki *każdy* rekord nie przejdzie walidacji pomyślnie."
 
 #: batch_import.html
 msgid "Please update the JSONL file and reload this page (there should be no need to reattach the file)."
-msgstr ""
+msgstr "Zaktualizuj plik JSONL i odśwież tę stronę (nie powinno być potrzeby ponownego załączania pliku)."
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "Błędy walidacji:"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "Linia %d:"
 
 #: batch_import.html
 msgid "Import results for batch:"
-msgstr ""
+msgstr "Wyniki importu dla partii:"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "Rekordy przesłane:"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "Łącznie w kolejce:"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "Łącznie pominięte:"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "Nie dodano do kolejki, ponieważ są już w kolejce:"
 
 #: batch_import.html
 msgid "View Batch Status"
-msgstr ""
+msgstr "Zobacz status partii"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "Oczekujące importy zbiorcze"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "identyfikator_partii"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
 #, fuzzy
@@ -195,11 +195,11 @@ msgstr "Komentarz"
 
 #: batch_import_view.html
 msgid "Batch Import Status"
-msgstr ""
+msgstr "Status importu zbiorczego"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "ID partii:"
 
 #: batch_import_view.html
 #, fuzzy
@@ -228,19 +228,19 @@ msgstr "Usuń"
 
 #: batch_import_view.html
 msgid "Import Items"
-msgstr ""
+msgstr "Importuj elementy"
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
+msgstr "Czas importu"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
-msgstr ""
+msgstr "Błąd"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "ID IA"
 
 #: batch_import_view.html
 #, fuzzy
@@ -249,7 +249,7 @@ msgstr "Dorzuć się"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "Klucz OL"
 
 #: batch_import_view.html
 #, fuzzy
@@ -313,11 +313,11 @@ msgstr "Anuluj i wróć."
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
+msgstr "Reprezentacja YAML:"
 
 #: BookPreview.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
 msgid "Preview"
-msgstr ""
+msgstr "Podgląd"
 
 #: history.html
 msgid "History of edits to"
@@ -358,7 +358,7 @@ msgstr "Zobacz korekty %s"
 
 #: history.html
 msgid "Compare this version..."
-msgstr ""
+msgstr "Porównaj tę wersję..."
 
 #: history.html
 #, fuzzy
@@ -367,7 +367,7 @@ msgstr "Te wydanie"
 
 #: import_preview.html
 msgid "Import Preview"
-msgstr ""
+msgstr "Podgląd importu"
 
 #: import_preview.html
 #, fuzzy
@@ -376,57 +376,57 @@ msgstr "Wypożycz teraz"
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "Pokaż surowe dane importu"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "Zostanie utworzony nowy rekord %(thing_type)s"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "Zmiany w %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "Błąd wewnętrzny"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "Wystąpił problem"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "Przepraszamy, wystąpił problem podczas przetwarzania Twojego żądania:"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Kod referencyjny %s i identyfikator śladu Sentry %s zostały utworzone, aby śledzić ten błąd – zbadamy go w miarę możliwości."
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Kod referencyjny %s został utworzony, aby śledzić ten błąd – zbadamy go w miarę możliwości."
 
 #: internalerror.html
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr ""
+msgstr "Wróć do <a class=\"go-back-link\" href=\"javascript:;\">poprzedniej strony</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "Za chwilę zostaniesz przekierowany do swojej książki"
 
 #: interstitial.html
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr ""
+msgstr "Ta książka jest udostępniana przez %(book_provider)s, zaufanego zewnętrznego dostawcę książek Open Library"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "Za %(time)s sekund zostaniesz automatycznie przekierowany do: %(url)s"
 
 #: CreateListModal.html EditButtons.html account/notifications.html account/password/reset.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
@@ -434,7 +434,7 @@ msgstr "Anuluj"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "Kontynuuj bez czekania"
 
 #: lib/nav_head.html library_explorer.html
 #, fuzzy
@@ -452,7 +452,7 @@ msgstr "Zaloguj się"
 
 #: login.html
 msgid "This is a development instance, the default credentials are automatically filled."
-msgstr ""
+msgstr "To jest instancja deweloperska – domyślne dane logowania są wypełniane automatycznie."
 
 #: login.html
 #, fuzzy
@@ -466,7 +466,7 @@ msgstr "Hasło"
 
 #: login.html
 msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Zaloguj się, aby używać bezpłatnej karty Open Library do wypożyczania cyfrowych książek od organizacji non-profit Internet Archive"
 
 #: account/create.html login.html
 #, fuzzy
@@ -505,7 +505,7 @@ msgstr "Nie pamiętasz swojego hasła?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "Przełącz widoczność hasła"
 
 #: login.html
 msgid "Remember me"
@@ -538,7 +538,7 @@ msgstr "Dodaj książkę"
 
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
+msgstr "Dziękujemy za ulepszanie katalogu Open Library!"
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
 msgid "Close"
@@ -547,7 +547,7 @@ msgstr "Zamknij"
 #: notfound.html
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s nie został znaleziony"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
@@ -556,7 +556,7 @@ msgstr "404 - Strona nie istnieje"
 #: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s nie istnieje."
 
 #: notfound.html
 msgid "Create it?"
@@ -564,12 +564,12 @@ msgstr "Utworzyć?"
 
 #: notfound.html
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "Szukasz szablonu/makra?"
 
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "Uprawnienia dla %(key)s"
 
 #: permission.html
 #, fuzzy
@@ -598,12 +598,12 @@ msgstr "Odmowa zezwolenia."
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "Tylko zalogowani użytkownicy mogą dodawać rekordy w Open Library. Proszę <a href=\"%s\">zaloguj się</a>, aby dodać książkę."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "Tylko zalogowani użytkownicy mogą modyfikować rekordy w Open Library. Proszę <a href=\"%s\">zaloguj się</a>, aby edytować tę stronę."
 
 #: permission_denied.html
 #, python-format
@@ -617,15 +617,15 @@ msgstr "Jeśli nie widzisz reCAPTCHA, wyłącz chwilowo ustawienia zabezpieczeń
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
-msgstr ""
+msgstr "Nieprawidłowo. Proszę spróbuj ponownie."
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
-msgstr ""
+msgstr "Szczegóły rekordu"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
-msgstr ""
+msgstr "Ten rekord pochodzi z"
 
 #: showia.html showmarc.html
 #, fuzzy
@@ -682,31 +682,31 @@ msgstr "Status"
 
 #: status.html
 msgid "Testing Environment"
-msgstr ""
+msgstr "Środowisko testowe"
 
 #: status.html
 msgid "Deploy triggered!"
-msgstr ""
+msgstr "Wdrożenie uruchomione!"
 
 #: status.html
 msgid "View Jenkins progress"
-msgstr ""
+msgstr "Zobacz postęp Jenkins"
 
 #: status.html
 msgid "GitHub status refreshed."
-msgstr ""
+msgstr "Status GitHub odświeżony."
 
 #: status.html
 msgid "PR numbers or URLs, space/comma separated"
-msgstr ""
+msgstr "Numery PR lub adresy URL, oddzielone spacją/przecinkiem"
 
 #: status.html
 msgid "Add PR(s)"
-msgstr ""
+msgstr "Dodaj PR(y)"
 
 #: status.html
 msgid "PR"
-msgstr ""
+msgstr "PR"
 
 #: books/add.html books/edit.html books/edit/edition.html search/advancedsearch.html status.html type/about/edit.html type/page/edit.html type/template/edit.html
 msgid "Title"
@@ -718,15 +718,15 @@ msgstr "Autor"
 
 #: status.html
 msgid "Assignee"
-msgstr ""
+msgstr "Przypisany"
 
 #: status.html
 msgid "Pinned Commit"
-msgstr ""
+msgstr "Przypięty commit"
 
 #: status.html
 msgid "Branch HEAD"
-msgstr ""
+msgstr "HEAD gałęzi"
 
 #: status.html
 #, fuzzy
@@ -740,7 +740,7 @@ msgstr "Umieść"
 
 #: status.html
 msgid "up to date"
-msgstr ""
+msgstr "aktualne"
 
 #: status.html
 #, fuzzy
@@ -749,12 +749,12 @@ msgstr "Nieznany autor"
 
 #: status.html
 msgid "1 commit behind"
-msgstr ""
+msgstr "1 commit za"
 
 #: status.html
 #, python-format
 msgid "%(count)s commits behind"
-msgstr ""
+msgstr "%(count)s commitów za"
 
 #: admin/solr.html status.html
 #, fuzzy
@@ -792,15 +792,15 @@ msgstr "Rozwijaj"
 
 #: status.html
 msgid "No PRs in testing set."
-msgstr ""
+msgstr "Brak PR-ów w zestawie testowym."
 
 #: status.html
 msgid "Last Build Result"
-msgstr ""
+msgstr "Ostatni wynik budowania"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "Zobacz PR-y na GitHub"
 
 #: status.html
 #, fuzzy
@@ -813,11 +813,11 @@ msgstr "Imię i nazwisko"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "Informacje o systemie"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "Włączone funkcje"
 
 #: subjects.html
 msgid "Edit tag for this subject"
