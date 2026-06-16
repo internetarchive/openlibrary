@@ -3220,78 +3220,78 @@ msgstr "OCR text"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Více na Project Runeberg"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Stáhnout HTML ze Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Stáhnout ePub ze Standard Ebooks."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Stáhnout soubor pro Kindle ze Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Stáhnout soubor pro Kobo ze Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "Zobrazit zdrojový kód tohoto Standard Ebook na GitHubu"
 
 #: Subnavigation.html book_providers/standard_ebooks_download_options.html
 msgid "Source Code"
-msgstr ""
+msgstr "Zdrojový kód"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Více na Standard Ebooks"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download PDF from Wikisource"
-msgstr ""
+msgstr "Stáhnout PDF z Wikizdroje"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download MOBI from Wikisource"
-msgstr ""
+msgstr "Stáhnout MOBI z Wikizdroje"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "MOBI (pro Kindle)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Download EPUB from Wikisource"
-msgstr ""
+msgstr "Stáhnout EPUB z Wikizdroje"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (pro většinu ostatních čteček e-knih)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Číst na Wikizdroji"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
-msgstr ""
+msgstr "Mohlo by se vám líbit"
 
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
 msgid_plural "More by these authors"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Více od tohoto autora"
+msgstr[1] "Více od těchto autorů"
+msgstr[2] "Více od těchto autorů"
 
 #: books/add.html books/check.html
 msgid "Add a book"
@@ -3299,31 +3299,31 @@ msgstr "Přidat knihu"
 
 #: books/add.html
 msgid "Invalid ISBN checksum digit"
-msgstr ""
+msgstr "Neplatná kontrolní číslice ISBN"
 
 #: books/add.html
 msgid "ID must be exactly 10 characters [0-9 or X]. For example 0-19-853453-1 or 0198534531"
-msgstr ""
+msgstr "ID musí mít přesně 10 znaků [0-9 nebo X]. Například 0-19-853453-1 nebo 0198534531"
 
 #: books/add.html
 msgid "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or 9783161484100"
-msgstr ""
+msgstr "ID musí mít přesně 13 znaků [0-9]. Například 978-3-16-148410-0 nebo 9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "Neplatný formát kontrolního čísla LC"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "Neplatný formát kontrolního čísla OCLC/WorldCat"
 
 #: books/add.html
 msgid "Please enter a value for the selected identifier"
-msgstr ""
+msgstr "Zadejte prosím hodnotu pro vybraný identifikátor"
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Jste si jisti, že se jedná o datum vydání?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
@@ -3335,7 +3335,7 @@ msgstr "Pro vytvoření nového záznamu vyžadujeme vyplnění minimálně těc
 
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
+msgstr "K přidání podtitulu použijte <b><i>Název: Podtitul</i></b>."
 
 #: books/add.html books/edit.html type/author/edit.html type/tag/tag_form_inputs.html
 msgid "Required field"
@@ -3355,7 +3355,7 @@ msgstr "Například"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
@@ -3363,7 +3363,7 @@ msgstr "Kdy byla vydána?"
 
 #: books/add.html books/edit/edition.html
 msgid "You should be able to find this in the first few pages of the book."
-msgstr ""
+msgstr "Měli byste to najít v prvních několika stránkách knihy."
 
 #: books/add.html
 msgid "And optionally, an ID number &#151; like an ISBN &#151; would be helpful..."
@@ -3371,11 +3371,11 @@ msgstr "A volitelně, identifikační číslo - jako ISBN"
 
 #: books/add.html
 msgid "ID Type"
-msgstr ""
+msgstr "Typ ID"
 
 #: books/add.html
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
-msgstr ""
+msgstr "ISBN může být neplatné. Kliknutím na \"Přidat\" znovu odešlete."
 
 #: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
@@ -3383,44 +3383,44 @@ msgstr "Vybrat"
 
 #: books/add.html
 msgid "ISBN 10"
-msgstr ""
+msgstr "ISBN 10"
 
 #: books/add.html
 msgid "ISBN 13"
-msgstr ""
+msgstr "ISBN 13"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 msgid "LibriVox"
-msgstr ""
+msgstr "LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 msgid "Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg"
 
 #: books/add.html books/edit/edition.html
 msgid "Book URL"
-msgstr ""
+msgstr "URL knihy"
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
+msgstr "Vyplňte pouze tehdy, pokud se jedná o webovou knihu"
 
 #: books/add.html
 #, python-format
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
-msgstr ""
+msgstr "Uložením změny na tento wiki souhlasíte s tím, že váš příspěvek je volně darován světu pod licencí <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Tento odkaz na Creative Commons se otevře v novém okně"
 
 #: books/add.html
 msgid "Add this book now"
@@ -3450,11 +3450,11 @@ msgstr "Přidat knihu"
 #: books/check.html
 #, python-format
 msgid "One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
-msgstr ""
+msgstr "Moment... Zdá se, že již máme <em>některé potenciální shody</em> pro <b>%(title)s</b> od <b>%(author)s</b>."
 
 #: books/check.html
 msgid "Rather than creating a duplicate record, please click through the result you think best matches your book."
-msgstr ""
+msgstr "Místo vytváření duplicitního záznamu prosím klikněte na výsledek, který nejlépe odpovídá vaší knize."
 
 #: books/check.html
 #, fuzzy
@@ -3465,18 +3465,18 @@ msgstr "Smazat tento záznam"
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)s vydání"
+msgstr[1] "%(count)s vydání"
+msgstr[2] "%(count)s vydání"
 
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
-msgstr ""
+msgstr "Poprvé vydáno v %(year)d"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "Žádný z nich neodpovídá knize, kterou chci přidat."
 
 #: books/check.html
 #, fuzzy
@@ -3485,12 +3485,12 @@ msgstr "Přispěvatelé"
 
 #: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
-msgstr ""
+msgstr "chybí název"
 
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
-msgstr ""
+msgstr " od %(name)s"
 
 #: books/daisy.html
 msgid "Back"
@@ -3503,28 +3503,28 @@ msgstr "Vítejte v Open Library"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "Pro tuto knihu není k dispozici žádný soubor DAISY "
 
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "<a href=\"%(daisy_url)s\"><strong>Stáhnout DAISY.zip</strong></a> pro <a href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "Knihy pro lidi, kteří nečtou tiskopis?"
 
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
-msgstr ""
+msgstr "<a href=\"//archive.org\">Internet Archive</a> je hrdé na to, že distribuuje přes 1 milion knih zdarma ve formátu DAISY, navržené pro ty z nás, kteří mají problémy s používáním běžných tiskových médií. "
 
 #: books/daisy.html
 msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr ""
+msgstr "Na Open Library existují dva typy DAISY: <i>otevřené</i> a <i>chráněné</i>. Otevřené DAISY může číst kdokoli na světě na mnoha různých zařízeních. Chráněné DAISY lze otevřít pouze pomocí klíče vydaného <a href=\"http://www.loc.gov/nls/\">programem Library of Congress NLS</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
-msgstr ""
+msgstr "Užijte si to!"
 
 #: books/daisy.html
 #, fuzzy
@@ -3533,7 +3533,7 @@ msgstr "Kdo je vydavatel?"
 
 #: books/daisy.html
 msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
-msgstr ""
+msgstr "Digitální formát DAISY pomáhá lidem, kteří mají problémy s používáním běžných tiskových médií. Digitální <span class=\"highlight\">mluvené knihy</span> DAISY nabízejí výhody běžných audioknih s navigací uvnitř knihy, po kapitolách nebo konkrétních stránkách."
 
 #: books/daisy.html
 #, fuzzy
@@ -3547,11 +3547,11 @@ msgstr "Kdo je vydavatel?"
 
 #: books/daisy.html
 msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
-msgstr ""
+msgstr "Kongresová knihovna <a href=\"http://www.loc.gov/nls/\">Národní knihovní služba pro nevidomé a tělesně postižené (NLS)</a> spravuje bezplatný knihovnický program braillových a zvukových materiálů distribuovaných způsobilým uživatelům ve Spojených státech prostřednictvím národní sítě spolupracujících knihoven."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "Máte nárok se zaregistrovat?"
 
 #: books/daisy.html
 #, fuzzy
@@ -3560,11 +3560,11 @@ msgstr "Upozornění od Open Library"
 
 #: books/daisy.html
 msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
-msgstr ""
+msgstr "Kromě<a href=\"/subjects/accessible_book\" title=\"Předmět: Přístupná kniha\"> mnoha otevřených DAISY</a> nabízí Open Library menší výběr<a href=\"/subjects/protected_DAISY\" title=\"Předmět: Chráněné DAISY\"> chráněných titulů DAISY</a> přístupných těm, kdo mají klíč Library of Congress NLS. Tyto tituly vám přináší<a href=\"//archive.org/\"> Internet Archive</a>."
 
 #: books/daisy.html
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
-msgstr ""
+msgstr "Hledáte konkrétní titul? Nejlepší způsob, jak ho najít, je<a href=\"/search\"> vyhledat ho</a>."
 
 #: books/daisy.html lib/exports.html
 #, fuzzy
@@ -3573,7 +3573,7 @@ msgstr "Získat pomoc"
 
 #: books/daisy.html
 msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
-msgstr ""
+msgstr " Přečtěte si prosím naše <a href=\"/help/faq\">FAQ o přístupu ke knihám prostřednictvím Open Library</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
@@ -3581,17 +3581,17 @@ msgstr "Přidat něco navíc?"
 
 #: books/edit.html
 msgid "Thank you for adding that book! Any more information you could provide would be wonderful!"
-msgstr ""
+msgstr "Děkujeme za přidání této knihy! Jakékoli další informace, které byste mohli poskytnout, by byly skvělé!"
 
 #: books/edit.html
 #, python-format
 msgid "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
-msgstr ""
+msgstr "O díle <b>%(work_title)s</b> již víme, ale ne o vydání <b>%(year)s %(publisher)s</b>. Díky! Víte o tomto vydání něco víc?"
 
 #: books/edit.html
 #, python-format
 msgid "We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!"
-msgstr ""
+msgstr "O vydání <b>%(year)s %(publisher)s</b> díla <b>%(work_title)s</b> již víme, ale prosím, řekněte nám více!"
 
 #: books/edit.html
 msgid "Editing..."
@@ -3603,11 +3603,11 @@ msgstr "Smazat záznam"
 
 #: books/edit.html
 msgid "Work Details"
-msgstr ""
+msgstr "Podrobnosti díla"
 
 #: books/edit.html
 msgid "Unknown publisher edition"
-msgstr ""
+msgstr "Vydání neznámého vydavatele"
 
 #: books/edit.html
 #, fuzzy
@@ -3616,11 +3616,11 @@ msgstr ""
 
 #: books/edit.html
 msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
-msgstr ""
+msgstr "Můžete vyhledávat podle jména autora (např. <em>j k rowling</em>) nebo podle ID Open Library (např. <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
-msgstr ""
+msgstr "Úprava autora vyžaduje JavaScript"
 
 #: books/edit.html
 msgid "Add Excerpts"
@@ -3637,7 +3637,7 @@ msgstr "Řada"
 
 #: books/edit.html
 msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
-msgstr ""
+msgstr "Série jsou aktuálně v beta verzi a tato část je viditelná pouze super knihovníkům a správcům, jako jste vy! Nicméně každá série, kterou nastavíte, bude viditelná pro všechny. Prosím nahlaste jakékoli problémy na Slacku nebo GitHubu."
 
 #: books/edit.html
 #, fuzzy
@@ -3646,11 +3646,11 @@ msgstr "Je kniha součástí nějaké řady?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Např. Harry Potter, Meč pravdy"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
-msgstr ""
+msgstr "Identifikátory díla"
 
 #: books/edit.html
 #, fuzzy
@@ -3659,22 +3659,22 @@ msgstr "Znáte neějaké identifikátory pro tohle vydání"
 
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr ""
+msgstr "Tyto identifikátory platí pro všechna vydání tohoto díla, například identifikátory díla Wikidata. Pro identifikátory specifické pro vydání, jako ISBN nebo LCCN, přejděte na záložku vydání."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
-msgstr ""
+msgstr "Obálka: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "%(title)s: %(subtitle)s"
-msgstr ""
+msgstr "%(title)s: %(subtitle)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "Publish date unknown, %(publisher)s"
-msgstr ""
+msgstr "Datum vydání neznámo, %(publisher)s"
 
 #: books/edition-sort.html type/work/editions.html
 #, python-format
