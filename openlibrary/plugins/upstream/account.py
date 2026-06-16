@@ -1234,14 +1234,10 @@ def get_account_loans_json(user) -> dict[str, Any]:
     return {"loans": loans}
 
 
-def get_account_loan_history_data(user, page: int) -> dict[str, Any]:
+def get_account_loan_history_json(user, page: int) -> dict[str, Any]:
     username = user["key"].split("/")[-1]
     mb = MyBooksTemplate(username, key="loan_history")
-    return get_loan_history_data(page=page, mb=mb)
-
-
-def get_account_loan_history_json(user, page: int) -> dict[str, Any]:
-    loan_history_data = dict(get_account_loan_history_data(user, page))
+    loan_history_data = dict(get_loan_history_data(page=page, mb=mb))
     # Ensure all `docs` are `dicts`, as some are `Edition`s.
     loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
     return {"loans_history": loan_history_data}

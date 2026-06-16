@@ -2,7 +2,7 @@
 
 import json
 from contextlib import nullcontext
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import web
@@ -114,7 +114,8 @@ class TestAccountLoansJson:
         with (
             _mock_legacy_context(),
             patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
-            patch("openlibrary.plugins.upstream.account.get_account_loan_history_data", return_value=loan_history_data) as get_data,
+            patch("openlibrary.plugins.upstream.account.MyBooksTemplate", return_value=MagicMock()),
+            patch("openlibrary.plugins.upstream.account.get_loan_history_data", return_value=loan_history_data) as get_data,
         ):
             response = fastapi_client.get(path)
 
@@ -130,7 +131,8 @@ class TestAccountLoansJson:
                 "page": page,
             }
         }
-        get_data.assert_called_once_with(legacy_user, page)
+        assert get_data.called
+        assert get_data.call_args.kwargs["page"] == page
 
     def test_loan_history_json_rejects_invalid_page(self, fastapi_client, mock_authenticated_user):
         response = fastapi_client.get("/account/loan-history.json?page=0")
