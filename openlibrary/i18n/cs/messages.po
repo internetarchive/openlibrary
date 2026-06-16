@@ -5257,15 +5257,15 @@ msgstr "Číst"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "failing"
-msgstr ""
+msgstr "selhání"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tabulka kvality dat"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Kritéria kvality"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 #, fuzzy
@@ -5275,7 +5275,7 @@ msgstr "Vše"
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
-msgstr ""
+msgstr "%(list)s – Vydání"
 
 #: lists/export_as_html.html type/list/embed.html type/list/view_body.html
 #, fuzzy
@@ -5284,7 +5284,7 @@ msgstr "Autoři"
 
 #: lists/export_as_html.html
 msgid "Title unknown"
-msgstr ""
+msgstr "Název neznámý"
 
 #: lists/export_as_html.html
 #, fuzzy
@@ -5293,60 +5293,60 @@ msgstr "Prvně vydáno"
 
 #: lists/export_as_html.html
 msgid "Name unknown"
-msgstr ""
+msgstr "Jméno neznámé"
 
 #: lists/header.html
 #, python-format
 msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Seznamy"
 
 #: lists/header.html
 #, python-format
 msgid "This author is on <strong>1 list</strong>."
 msgid_plural "This author is on <strong>%(count)s lists</strong>."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Tento autor je na <strong>1 seznamu</strong>."
+msgstr[1] "Tento autor je na <strong>%(count)s seznamech</strong>."
+msgstr[2] "Tento autor je na <strong>%(count)s seznamech</strong>."
 
 #: lists/header.html
 #, python-format
 msgid "This is edition is on <strong>1 list</strong>."
 msgid_plural "This edition is on <strong>%(count)s lists</strong>."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Toto vydání je na <strong>1 seznamu</strong>."
+msgstr[1] "Toto vydání je na <strong>%(count)s seznamech</strong>."
+msgstr[2] "Toto vydání je na <strong>%(count)s seznamech</strong>."
 
 #: lists/header.html
 #, python-format
 msgid "This work is on <strong>1 list</strong>."
 msgid_plural "This work is on <strong>%(count)s lists</strong>."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Toto dílo je na <strong>1 seznamu</strong>."
+msgstr[1] "Toto dílo je na <strong>%(count)s seznamech</strong>."
+msgstr[2] "Toto dílo je na <strong>%(count)s seznamech</strong>."
 
 #: lists/header.html
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(name)s má 1 seznam."
+msgstr[1] "%(name)s má %(count)s seznamy."
+msgstr[2] "%(name)s má %(count)s seznamů."
 
 #: lists/header.html
 #, python-format
 msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Toto téma je na <strong>1 seznamu</strong>."
+msgstr[1] "Toto téma je na <strong>%(count)s seznamech</strong>."
+msgstr[2] "Toto téma je na <strong>%(count)s seznamách</strong>."
 
 #: lists/header.html
 msgid "Hm. Can't find it."
-msgstr ""
+msgstr "Hmm. Nelze najít."
 
 #: lists/home.html
 msgid "Create a list of any Subjects, Authors, Works or specific Editions."
-msgstr ""
+msgstr "Vytvořte seznam témat, autorů, děl nebo konkrétních vydání."
 
 #: lists/home.html
 msgid "Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See all your lists and any activity using the \"Lists\" link on your Account page."
@@ -5355,11 +5355,11 @@ msgstr ""
 #: lists/home.html
 #, python-format
 msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr ""
+msgstr "Pro 2000+ nejžádanějších e-knih v Kalifornii pro čtenáře s postižěním tisku <a href=\"%(url)s\">klikněte zde</a>."
 
 #: lists/home.html
 msgid "Find a list by name"
-msgstr ""
+msgstr "Najít seznam podle názvu"
 
 #: lists/home.html
 #, fuzzy
@@ -5369,56 +5369,56 @@ msgstr "Moje seznamy"
 #: lists/home.html
 #, python-format
 msgid "from <a href=\"%(key)s\">%(owner)s</a>"
-msgstr ""
+msgstr "od <a href=\"%(key)s\">%(owner)s</a>"
 
 #: lists/home.html lists/preview.html lists/snippet.html type/list/embed.html type/list/view_body.html
 #, python-format
 msgid "%(count)d item"
 msgid_plural "%(count)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)d položka"
+msgstr[1] "%(count)d položky"
+msgstr[2] "%(count)d položek"
 
 #: lists/home.html lists/preview.html lists/snippet.html
 #, python-format
 msgid "Last modified %(date)s"
-msgstr ""
+msgstr "Naposledy upraveno %(date)s"
 
 #: lists/home.html lists/snippet.html
 msgid "No description."
-msgstr ""
+msgstr "Bez popisu."
 
 #: RecentChangesUsers.html lists/home.html lists/lists.html type/user/view.html
 msgid "Recent Activity"
-msgstr ""
+msgstr "Nedávná aktivita"
 
 #: lists/list_follow.html
 msgid "Cover of book"
-msgstr ""
+msgstr "Obálka knihy"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Avatar vlastníka seznamu"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
-msgstr ""
+msgstr "Vy"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Tento čtenář nepovolil sledování"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Sledovat"
 
 #: lists/list_follow.html
 msgid "OpenLibrary Logo"
-msgstr ""
+msgstr "Logo OpenLibrary"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -5438,21 +5438,21 @@ msgstr "Zobrazit nebo upravit váše seznamy"
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
+msgstr "od <a href=\"%(link)s\">Vás</a>"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
+msgstr "od <a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
 msgid "%(owner)s / Lists"
-msgstr ""
+msgstr "%(owner)s / Seznamy"
 
 #: lists/lists.html type/list/view_body.html
 msgid "Yes, I'm sure"
-msgstr ""
+msgstr "Ano, jsem si jist/a"
 
 #: lists/lists.html type/list/view_body.html
 #, fuzzy
@@ -5471,7 +5471,7 @@ msgstr "Smazat tento záznam"
 
 #: lists/lists.html
 msgid "Are you sure you want to delete this list?"
-msgstr ""
+msgstr "Opravdu chcete smazat tento seznam?"
 
 #: lists/lists.html
 #, fuzzy
@@ -5481,41 +5481,41 @@ msgstr "Smazat tento záznam"
 #: lists/lists.html
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
-msgstr ""
+msgstr "Opravdu chcete odebrat <strong>%(title)s</strong> z tohoto seznamu?"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "Tento čtenář ještě nevytvořil žádné seznamy."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr ""
+msgstr "Ještě jste nevytvořili žádné seznamy."
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
-msgstr ""
+msgstr "Zjistěte, jak vytvořit svůj první seznam."
 
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "od <a href=\"%s\">Vás</a>"
 
 #: lists/showcase.html
 #, python-format
 msgid "My Lists (%(count)d)"
-msgstr ""
+msgstr "Moje seznamy (%(count)d)"
 
 #: lists/showcase.html
 msgid "You have no lists."
-msgstr ""
+msgstr "Nemáte žádné seznamy."
 
 #: lists/widget.html my_books/dropdown_content.html type/type/view.html
 msgid "from"
-msgstr ""
+msgstr "od"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Načítání<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 #, fuzzy
@@ -5539,35 +5539,35 @@ msgstr "Prosím vyberte roli."
 
 #: merge/authors.html
 msgid "Select the oldest profile as primary -"
-msgstr ""
+msgstr "Vyberte nejstarší profil jako primární –"
 
 #: merge/authors.html
 msgid "Select author records which should be merged with the primary"
-msgstr ""
+msgstr "Vyberte záznamy autorů, které mají být sloučeny s primárním"
 
 #: merge/authors.html
 msgid "Press MERGE AUTHORS."
-msgstr ""
+msgstr "Stiskněte SLOUČIT AUTORY."
 
 #: merge/authors.html
 msgid "No primary record"
-msgstr ""
+msgstr "Žádný primární záznam"
 
 #: merge/authors.html
 msgid "You must select a primary record to point the duplicates toward."
-msgstr ""
+msgstr "Musíte vybrat primární záznam, na který budou odkazovat duplicity."
 
 #: merge/authors.html
 msgid "Please Be Careful..."
-msgstr ""
+msgstr "Buďte prosím opatrní…"
 
 #: merge/authors.html
 msgid "<b>Are you sure</b> you want to merge these records?"
-msgstr ""
+msgstr "<b>Opravdu chcete</b> sloučit tyto záznamy?"
 
 #: merge/authors.html recentchanges/merge/view.html
 msgid "Primary"
-msgstr ""
+msgstr "Primární"
 
 #: merge/authors.html
 #, fuzzy
@@ -5576,11 +5576,11 @@ msgstr "více"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "datum narození/úmrtí"
 
 #: merge/authors.html
 msgid "Open in a new window"
-msgstr ""
+msgstr "Otevřít v novém okně"
 
 #: merge/authors.html search/work_search_selected_facets.html
 #, fuzzy
@@ -5589,19 +5589,19 @@ msgstr "Prvně vydáno"
 
 #: merge/authors.html
 msgid "Visit this author's page in a new window"
-msgstr ""
+msgstr "Navštívit stránku tohoto autora v novém okně"
 
 #: merge/authors.html
 msgid "Comment:"
-msgstr ""
+msgstr "Komentář:"
 
 #: merge/authors.html
 msgid "Comment..."
-msgstr ""
+msgstr "Komentář…"
 
 #: merge/authors.html
 msgid "Request Merge"
-msgstr ""
+msgstr "Požádat o sloučení"
 
 #: merge/authors.html
 #, fuzzy
@@ -5610,40 +5610,40 @@ msgstr "Vybrat roli"
 
 #: merge/works.html
 msgid "Merge Works"
-msgstr ""
+msgstr "Sloučit díla"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "Odeslání komentáře se nezdařilo. Zkuste to prosím za chvíli znovu."
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(Volitelně) Proč uzavíráte tento požadavek?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
 msgid "Showing %(username)s's requests only."
-msgstr ""
+msgstr "Zobrazují se pouze požadavky %(username)s."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show all requests"
-msgstr ""
+msgstr "Zobrazit všechny požadavky"
 
 #: merge_request_table/merge_request_table.html
 msgid "Showing all requests."
-msgstr ""
+msgstr "Zobrazují se všechny požadavky."
 
 #: merge_request_table/merge_request_table.html
 msgid "Show my requests"
-msgstr ""
+msgstr "Zobrazit moje požadavky"
 
 #: merge_request_table/merge_request_table.html
 msgid "Community Edit Requests"
-msgstr ""
+msgstr "Požadavky na komunitní úpravy"
 
 #: merge_request_table/merge_request_table.html
 msgid "No entries here!"
-msgstr ""
+msgstr "Žádné záznamy!"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5657,11 +5657,11 @@ msgstr "Zvařít"
 
 #: merge_request_table/table_header.html
 msgid "Status ▾"
-msgstr ""
+msgstr "Stav ▾"
 
 #: merge_request_table/table_header.html
 msgid "Request Status"
-msgstr ""
+msgstr "Stav požadavku"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 #, fuzzy
@@ -5670,7 +5670,7 @@ msgstr "Číst"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "Zamítnuto"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5679,11 +5679,11 @@ msgstr "Odeslat"
 
 #: merge_request_table/table_header.html
 msgid "Filter submitters"
-msgstr ""
+msgstr "Filtrovat odesílatele"
 
 #: merge_request_table/table_header.html
 msgid "Submitted by me"
-msgstr ""
+msgstr "Odesláno mnou"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
