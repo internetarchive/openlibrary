@@ -3629,117 +3629,123 @@ msgid ""
 "ID must be exactly 13 characters [0-9]. For example 978-3-16-148410-0 or "
 "9783161484100"
 msgstr ""
+"Kimlik tam olarak 13 karakter [0-9] olmalıdır. Örneğin 978-3-16-148410-0 "
+"veya 9783161484100"
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "Geçersiz LC Kontrol Numarası biçimi"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "Geçersiz OCLC/WorldCat Kontrol Numarası biçimi"
 
 #: books/add.html
 msgid "Please enter a value for the selected identifier"
-msgstr ""
+msgstr "Lütfen seçili tanımlayıcı için bir değer girin"
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Bu yayım tarihi olduğundan emin misiniz?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
-msgstr ""
+msgstr "Open Library'ye kitap ekle"
 
 #: books/add.html
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
 msgstr ""
+"Yeni bir kayıt oluşturmak için minimum alan seti gereklidir. Bunlar o "
+"alanlardır."
 
 #: books/add.html books/edit.html
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
+msgstr "Alt başlık eklemek için <b><i>Başlık: Alt Başlık</i></b> kullanın."
 
 #: books/add.html books/edit.html type/author/edit.html
 #: type/tag/tag_form_inputs.html
 msgid "Required field"
-msgstr ""
+msgstr "Zorunlu alan"
 
 #: books/add.html
 msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
+"\"Agatha Christie\" veya \"Jean-Paul Sartre\" gibi. Yazarı zaten tanıyıp "
+"tanımadığımızı kontrol edeceğiz."
 
 #: books/add.html books/edit/edition.html
 msgid "Who is the publisher?"
-msgstr ""
+msgstr "Yayıncı kim?"
 
 #: books/add.html books/edit/edition.html
 msgid "For example:"
-msgstr ""
+msgstr "Örneğin:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
-msgstr ""
+msgstr "Ne zaman yayımlandı?"
 
 #: books/add.html books/edit/edition.html
 msgid "You should be able to find this in the first few pages of the book."
-msgstr ""
+msgstr "Bunu kitabın ilk birkaç sayfasında bulabilirsiniz."
 
 #: books/add.html
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be "
 "helpful..."
-msgstr ""
+msgstr "Ve isteğe bağlı olarak, ISBN gibi bir kimlik numarası yararlı olur..."
 
 #: books/add.html
 msgid "ID Type"
-msgstr ""
+msgstr "Kimlik Türü"
 
 #: books/add.html
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
-msgstr ""
+msgstr "ISBN geçersiz olabilir. Göndermek için tekrar \"Ekle\"ye tıklayın."
 
 #: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
-msgstr ""
+msgstr "Seç"
 
 #: books/add.html
 msgid "ISBN 10"
-msgstr ""
+msgstr "ISBN 10"
 
 #: books/add.html
 msgid "ISBN 13"
-msgstr ""
+msgstr "ISBN 13"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 msgid "LibriVox"
-msgstr ""
+msgstr "LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 msgid "Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg"
 
 #: books/add.html books/edit/edition.html
 msgid "Book URL"
-msgstr ""
+msgstr "Kitap URL'si"
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
+msgstr "Bunu yalnızca bir web kitabıysa doldurun"
 
 #: books/add.html
 #, python-format
@@ -3750,14 +3756,19 @@ msgid ""
 "target=\"_blank\" rel=\"noopener noreferrer\" "
 "title=\"%(cc_link_title)s\">CC0</a>."
 msgstr ""
+"Bu wikiye bir değişiklik kaydederek, katkınızın <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" "
+"title=\"%(cc_link_title)s\">CC0</a> lisansı altında dünyaya ücretsiz "
+"verildiğini kabul etmiş olursunuz."
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Creative Commons'a bu bağlantı yeni bir pencerede açılacaktır"
 
 #: books/add.html
 msgid "Add this book now"
-msgstr ""
+msgstr "Bu kitabı şimdi ekle"
 
 #: books/author-autocomplete.html
 #, fuzzy
@@ -3766,19 +3777,19 @@ msgstr "Yeni yazar kaydı oluşturuldu."
 
 #: books/author-autocomplete.html books/series-autocomplete.html
 msgid "Create a new record for"
-msgstr ""
+msgstr "Yeni kayıt oluştur"
 
 #: books/author-autocomplete.html
 msgid "Remove this author"
-msgstr ""
+msgstr "Bu yazarı kaldır"
 
 #: books/author-autocomplete.html
 msgid "Add another author?"
-msgstr ""
+msgstr "Başka bir yazar eklensin mi?"
 
 #: books/check.html lib/nav_foot.html lib/nav_head.html
 msgid "Add a Book"
-msgstr ""
+msgstr "Kitap Ekle"
 
 #: books/check.html
 #, python-format
@@ -3786,16 +3797,20 @@ msgid ""
 "One moment... It looks like we already have <em>some potential "
 "matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
+"Bir dakika... <em>bazı olası eşleşmeler</em> olduğu görünüyor: "
+"<b>%(title)s</b>, <b>%(author)s</b> tarafından."
 
 #: books/check.html
 msgid ""
 "Rather than creating a duplicate record, please click through the result "
 "you think best matches your book."
 msgstr ""
+"Yinelenen bir kayıt oluşturmak yerine, kitabınızla en iyi eşleştiğini "
+"düşündüğünüz sonuca tıklayın."
 
 #: books/check.html
 msgid "Select this book"
-msgstr ""
+msgstr "Bu kitabı seç"
 
 #: SearchResultsWork.html books/check.html merge/authors.html
 #: publishers/view.html
@@ -3808,24 +3823,24 @@ msgstr[1] "%(count)s baskı"
 #: books/check.html
 #, python-format
 msgid "First published in %(year)d"
-msgstr ""
+msgstr "İlk yayım: %(year)d"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "Bunların hiçbiri eklemek istediğim kitapla eşleşmiyor."
 
 #: books/check.html
 msgid "Continue"
-msgstr ""
+msgstr "Devam et"
 
 #: books/custom_carousel_card.html type/author/view.html
 msgid "name missing"
-msgstr ""
+msgstr "ad eksik"
 
 #: books/custom_carousel_card.html books/mobile_carousel.html
 #, python-format
 msgid " by %(name)s"
-msgstr ""
+msgstr " — %(name)s"
 
 #: books/daisy.html
 msgid "Back"
@@ -3833,11 +3848,11 @@ msgstr "Geri"
 
 #: books/daisy.html
 msgid "Open Library Home"
-msgstr ""
+msgstr "Open Library Ana Sayfa"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "Bunun için bir DAISY dosyası mevcut değil "
 
 #: books/daisy.html
 #, python-format
@@ -3845,10 +3860,12 @@ msgid ""
 "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for"
 " <a href=\"%(url)s\">%(title)s</a>"
 msgstr ""
+"<a href=\"%(daisy_url)s\"><strong>DAISY.zip İndir</strong></a> — <a "
+"href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "Baskılı okumayan kişiler için kitaplar?"
 
 #: books/daisy.html
 msgid ""
@@ -3856,6 +3873,9 @@ msgid ""
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
 msgstr ""
+"<a href=\"//archive.org\">Internet Archive</a>, düzenli basılı medyayı "
+"kullanmakta güçlük çekenler için tasarlanmış DAISY adlı bir formatta 1 "
+"milyondan fazla kitabı ücretsiz dağıtmaktan gurur duymaktadır."
 
 #: books/daisy.html
 msgid ""
@@ -3865,10 +3885,15 @@ msgid ""
 " by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
 msgstr ""
+"Open Library'de iki tür DAISY vardır: <i>açık</i> ve <i>korumalı</i>. "
+"Açık DAISY'ler dünyada herkes tarafından birçok farklı cihazda "
+"okunabilir. Korumalı DAISY'ler yalnızca <a "
+"href=\"http://www.loc.gov/nls/\">Library of Congress NLS programı</a> "
+"tarafından verilen bir anahtarla açılabilir."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
-msgstr ""
+msgstr "İyi okumalar!"
 
 #: books/daisy.html
 #, fuzzy
@@ -3901,10 +3926,15 @@ msgid ""
 "circulated to eligible borrowers in the United States through a national "
 "network of cooperating libraries."
 msgstr ""
+"Library of Congress <a href=\"http://www.loc.gov/nls/\">Görme ve Fiziksel"
+" Engelli Ulusal Kütüphane Hizmeti (NLS)</a>, iş birliği yapan "
+"kütüphanelerin ulusal ağı aracılığıyla Amerika Birleşik Devletleri'ndeki "
+"uygun ödünç alıcılara dağıtılan braille ve sesli materyallerden oluşan "
+"ücretsiz bir kütüphane programını yönetmektedir."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "Kayıt olmaya uygun musunuz?"
 
 #: books/daisy.html
 #, fuzzy
@@ -3920,12 +3950,20 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
+"<a href=\"/subjects/accessible_book\" title=\"Konu: Erişilebilir kitap\">"
+" Çok sayıda açık DAISY</a> yanı sıra Open Library, Library of Congress "
+"NLS anahtarına sahip olanlara erişilebilen daha küçük bir<a "
+"href=\"/subjects/protected_DAISY\" title=\"Konu: Korumalı DAISY\"> "
+"korumalı DAISY başlıkları</a> seçkisi de sunmaktadır. Bu başlıklar size<a"
+" href=\"//archive.org/\"> Internet Archive</a> tarafından sunulmaktadır."
 
 #: books/daisy.html
 msgid ""
 "Looking for a specific title? The best way to find it is to<a "
 "href=\"/search\"> search for it</a>."
 msgstr ""
+"Belirli bir başlık mı arıyorsunuz? Bulmanın en iyi yolu<a "
+"href=\"/search\"> aramaktır</a>."
 
 #: books/daisy.html lib/exports.html
 #, fuzzy
@@ -3937,10 +3975,12 @@ msgid ""
 " Please read our <a href=\"/help/faq\">FAQ on accessing books through "
 "Open Library</a>."
 msgstr ""
+" Lütfen <a href=\"/help/faq\">Open Library aracılığıyla kitaplara erişim "
+"hakkındaki SSS</a> bölümümüzü okuyun."
 
 #: books/edit.html
 msgid "Add a little more?"
-msgstr ""
+msgstr "Biraz daha bilgi ekleyin mi?"
 
 #: books/edit.html
 msgid ""
@@ -3955,6 +3995,9 @@ msgid ""
 "%(publisher)s edition</b>. Thanks! Do you know any more about this "
 "edition?"
 msgstr ""
+"<b>%(work_title)s</b> hakkında bilgimiz var, ancak <b>%(year)s "
+"%(publisher)s baskısı</b> hakkında yok. Teşekkürler! Bu baskı hakkında "
+"daha fazla bilen var mı?"
 
 #: books/edit.html
 #, python-format
@@ -3962,27 +4005,29 @@ msgid ""
 "We already know about the <b>%(year)s %(publisher)s edition</b> of "
 "<b>%(work_title)s</b>, but please, tell us more!"
 msgstr ""
+"<b>%(work_title)s</b>'in <b>%(year)s %(publisher)s baskısı</b> hakkında "
+"bilgimiz var, ancak lütfen bize daha fazla anlatın!"
 
 #: books/edit.html
 msgid "Editing..."
-msgstr ""
+msgstr "Düzenleniyor..."
 
 #: books/edit.html type/author/edit.html type/tag/form.html
 #: type/template/edit.html
 msgid "Delete Record"
-msgstr ""
+msgstr "Kaydı Sil"
 
 #: books/edit.html
 msgid "Work Details"
-msgstr ""
+msgstr "Eser Ayrıntıları"
 
 #: books/edit.html
 msgid "Unknown publisher edition"
-msgstr ""
+msgstr "Bilinmeyen yayıncı baskısı"
 
 #: books/edit.html
 msgid "This Work"
-msgstr ""
+msgstr "Bu Eser"
 
 #: books/edit.html
 msgid ""
@@ -3990,22 +4035,25 @@ msgid ""
 "Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
 "rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 msgstr ""
+"Yazar adına (örn. <em>j k rowling</em>) veya Open Library kimliğine (örn."
+" <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL23919A</em></a>) göre arama yapabilirsiniz."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
-msgstr ""
+msgstr "Yazar düzenleme javascript gerektirir"
 
 #: books/edit.html
 msgid "Add Excerpts"
-msgstr ""
+msgstr "Alıntı Ekle"
 
 #: books/edit.html type/about/edit.html type/author/edit.html
 msgid "Links"
-msgstr ""
+msgstr "Bağlantılar"
 
 #: books/edit.html
 msgid "Work Series"
-msgstr ""
+msgstr "Eser Serisi"
 
 #: books/edit.html
 msgid ""
@@ -4013,10 +4061,14 @@ msgid ""
 "librarians and admins, like you! Any series you set will be visible by "
 "everyone, however. Please report any issues you have on Slack or GitHub."
 msgstr ""
+"Seriler şu anda beta aşamasındadır ve bu bölüm yalnızca sizin gibi süper "
+"kütüphaneciler ve yöneticiler tarafından görülebilmektedir! Ancak "
+"ayarladığınız seriler herkes tarafından görülebilecektir. Lütfen Slack "
+"veya GitHub'da yaşadığınız sorunları bildirin."
 
 #: books/edit.html
 msgid "Is this work part of a larger series?"
-msgstr ""
+msgstr "Bu eser daha büyük bir serinin parçası mı?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
