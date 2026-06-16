@@ -7751,7 +7751,7 @@ msgstr "Wypożycz teraz"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "Szablony na stronie są teraz wyłączone. Ich edytowanie nie będzie miało żadnego wpływu na działającą stronę."
 
 #: EditionNavBar.html
 msgid "Go to previous section"
@@ -8700,11 +8700,11 @@ msgstr "Nie można zwrócić %s. Spróbuj ponownie później lub skontaktuj się
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%s zostało zwrócone."
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid "Your account has hit a lending limit. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Twoje konto osiągnęło limit wypożyczeń. Spróbuj ponownie później lub skontaktuj się z info@archive.org."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
@@ -8737,7 +8737,7 @@ msgstr "Nazwa użytkownika"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "Publiczny i nie można tego później zmienić."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -8754,7 +8754,7 @@ msgstr "Wybierz hasło"
 #: openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Continue <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
-msgstr ""
+msgstr "Kontynuuj <a href=\"%(url)s\" class=\"pending-action-link\" data-action=\"%(raw_action)s\"><strong>%(action)s</strong> <em>%(name)s</em></a>"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
