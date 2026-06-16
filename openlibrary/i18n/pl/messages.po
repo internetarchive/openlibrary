@@ -1616,7 +1616,7 @@ msgstr "Usuń listę"
 
 #: account/observations.html
 msgid "Update Reviews"
-msgstr ""
+msgstr "Zaktualizuj recenzje"
 
 #: account/observations.html
 #, fuzzy
@@ -1634,11 +1634,11 @@ msgstr "Ustawienia prywatności"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "Czy chcesz upublicznić swój <a href=\"/account/books\">Dziennik Lektury</a>?"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "Umożliwi to innym zobaczenie, jakie książki chcesz przeczytać, czytasz, przestałeś czytać lub już przeczytałeś. Użytkownicy z publicznymi dziennikami lektury mogą być obserwowani."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -1650,11 +1650,11 @@ msgstr "Nie"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "Włączyć tryb bezpieczny?"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "Tryb bezpieczny rozmywa okładki książek oznaczone jako zawierające wrażliwe treści graficzne."
 
 #: account/reading_log.html
 #, python-format
@@ -1689,12 +1689,12 @@ msgstr "%(username)s chce przeczytać %(total)d książek. Dołącz do %(usernam
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "Książki przeczytane przez %(username)s w %(year)d"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s przeczytał(a) %(total)d książek w %(year)d. Dołącz do %(username)s na OpenLibrary.org i opowiedz światu o książkach, które są dla Ciebie ważne."
 
 #: account/reading_log.html
 #, python-format
@@ -1714,7 +1714,7 @@ msgstr "Książki przeczytane przez %(username)s"
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "Książki dodane przez osoby obserwowane przez %(username)s"
 
 #: account/reading_log.html
 #, fuzzy
@@ -1724,7 +1724,7 @@ msgstr "Wyświetl lub edytuj Dziennik Lektur"
 #: account/reading_log.html type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— Pokaż <a href=\"%(url)s\">tylko e-booki</a>?"
 
 #: account/reading_log.html
 #, fuzzy, python-format
@@ -1739,7 +1739,7 @@ msgstr "Brak wyników."
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr ""
+msgstr "Wyszukać \"%s\" w całym Open Library?"
 
 #: account/reading_log.html
 #, fuzzy
@@ -1753,11 +1753,11 @@ msgstr "Obecnie nie masz zaznaczonych żadnych książek."
 
 #: account/reading_log.html
 msgid "<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
-msgstr ""
+msgstr "<a href=\"/search\">Wyszukaj książkę</a>, aby dodać ją do dziennika lektury. <a href=\"/help/faq/reading-log\">Dowiedz się więcej</a> o dzienniku lektury."
 
 #: account/reading_log.html
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr ""
+msgstr "W Twoim kanale nie ma ostatnich książek. Gdy zaczniesz obserwować publiczne konta, ich aktualizacje książek będą się tutaj pojawiać."
 
 #. Display name for the "want-to-read" reading log shelf used in page headings
 #. and breadcrumbs.
@@ -1769,7 +1769,7 @@ msgstr "Chcę przeczytać"
 #: account/readinglog_stats.html
 #, python-format
 msgid "My %(shelf_name)s Stats"
-msgstr ""
+msgstr "Moje statystyki %(shelf_name)s"
 
 #: account/readinglog_stats.html home/loans.html lib/nav_head.html
 msgid "My Books"
@@ -1778,7 +1778,7 @@ msgstr "Moje książki"
 #: account/readinglog_stats.html
 #, python-format
 msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr ""
+msgstr "Wyświetlanie statystyk dla <strong>%(works_count)d</strong> książek. Uwaga: wszystkie wykresy pokazują tylko 20 najważniejszych pozycji. Statystyki dziennika lektury są prywatne."
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1792,19 +1792,19 @@ msgstr "Zobacz autorów"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Sex"
-msgstr ""
+msgstr "Dzieła według płci autora"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Citizenship"
-msgstr ""
+msgstr "Dzieła według kraju obywatelstwa autora"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Birth"
-msgstr ""
+msgstr "Dzieła według kraju urodzenia autora"
 
 #: account/readinglog_stats.html
 msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
-msgstr ""
+msgstr "Statystyki demograficzne dostarczane przez <a href=\"https://www.wikidata.org/\">Wikidata</a>. Oto <a id=\"wd-query-sample\" href=\"\">przykład</a> użytego zapytania. <br />Popraw te statystyki, dodając identyfikator autora Wikidata zgodnie z <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">tymi instrukcjami</a>."
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1828,15 +1828,15 @@ msgstr "Przeglądaj według tematów"
 
 #: account/readinglog_stats.html
 msgid "Works by People"
-msgstr ""
+msgstr "Dzieła według osób"
 
 #: account/readinglog_stats.html
 msgid "Works by Places"
-msgstr ""
+msgstr "Dzieła według miejsc"
 
 #: account/readinglog_stats.html
 msgid "Works by Time Period"
-msgstr ""
+msgstr "Dzieła według okresu"
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1845,7 +1845,7 @@ msgstr "Usuń tę pozycję"
 
 #: account/readinglog_stats.html
 msgid "Click on a bar to see matching works"
-msgstr ""
+msgstr "Kliknij na słupek, aby zobaczyć pasujące dzieła"
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, fuzzy
@@ -1855,12 +1855,12 @@ msgstr "1 plik inicujuący"
 #: account/sidebar.html
 #, python-format
 msgid "%(year)d Reading Goal"
-msgstr ""
+msgstr "Cel czytelniczy %(year)d"
 
 #: account/sidebar.html
 #, python-format
 msgid "Set %(year_span)s reading goal"
-msgstr ""
+msgstr "Ustaw cel czytelniczy %(year_span)s"
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
@@ -1887,16 +1887,16 @@ msgstr "Stwórz nową listę"
 
 #: account/sidebar.html
 msgid "Untitled list"
-msgstr ""
+msgstr "Lista bez tytułu"
 
 #: account/topmenu.html
 msgid "Import & Export"
-msgstr ""
+msgstr "Import i eksport"
 
 #: account/topmenu.html
 #, python-format
 msgid "Privacy settings: %(public)s"
-msgstr ""
+msgstr "Ustawienia prywatności: %(public)s"
 
 #: account/verify.html
 msgid "Verification email sent"
@@ -1914,7 +1914,7 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
-msgstr ""
+msgstr "Następnie wróć do Open Library i znajdź świetne książki!"
 
 #: account/view.html
 #, fuzzy
@@ -1923,7 +1923,7 @@ msgstr "Mój Dziennik Lektur"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
-msgstr ""
+msgstr "Obserwowani"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 #, fuzzy
@@ -1937,20 +1937,20 @@ msgstr "Zachowaj"
 
 #: account/view.html
 msgid "Your book notes are private and cannot be viewed by other patrons."
-msgstr ""
+msgstr "Twoje notatki do książek są prywatne i nie mogą być przeglądane przez innych użytkowników."
 
 #: account/view.html
 msgid "Your book reviews will be shared anonymously with other patrons."
-msgstr ""
+msgstr "Twoje recenzje książek będą udostępniane anonimowo innym użytkownikom."
 
 #: account/yrg_banner.html
 #, python-format
 msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr ""
+msgstr "Ustaw swój roczny cel czytelniczy %(year)s:"
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "Ustaw mój cel"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
@@ -1977,7 +1977,7 @@ msgstr "Open Library"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
-msgstr ""
+msgstr "Pobierz adres e-mail Archive.org"
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
@@ -1989,7 +1989,7 @@ msgstr "Nazwa użytkownika/Przypomnij hasło"
 
 #: account/password/forgot.html
 msgid "Click here."
-msgstr ""
+msgstr "Kliknij tutaj."
 
 #: account/password/forgot.html
 msgid "Send It"
@@ -2026,39 +2026,39 @@ msgstr "Wysłaliśmy e-mail na\" %(email)s z przypomnieniem o Twojej nazwie uży
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "Sprawdzenie bezpieczeństwa konta — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "Sprawdzenie bezpieczeństwa konta"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "Data zdarzenia: 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Check whether your Open Library account was in a set of accounts requiring attention."
-msgstr ""
+msgstr "Sprawdź, czy Twoje konto Open Library znalazło się w grupie kont wymagających uwagi."
 
 #: account/security/check_email.html
 msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
-msgstr ""
+msgstr "Proszę <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">zaloguj się</a>, aby sprawdzić, czy Twoje konto zostało naruszone."
 
 #: account/security/check_email.html
 msgid "Your account is in the affected set."
-msgstr ""
+msgstr "Twoje konto znajduje się w grupie dotkniętych."
 
 #: account/security/check_email.html
 msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
-msgstr ""
+msgstr "Twoje konto zostało znalezione na liście dotkniętych kont. Prosimy zapoznać się z ostatnimi komunikatami od Open Library i rozważyć zmianę hasła."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "Twoje konto <em>nie</em> znajduje się w grupie dotkniętych."
 
 #: account/security/check_email.html
 msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr ""
+msgstr "Twoje konto <em>nie</em> zostało znalezione na liście dotkniętych kont. Nie jest wymagane żadne działanie."
 
 #: account/verify/activated.html
 msgid "Account already activated"
@@ -2079,7 +2079,7 @@ msgstr "Twój adres e-mail nie został zweryfikowany. Twój link weryfikacyjnyst
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
+msgstr "Wprowadź swój adres e-mail i kliknij ten przycisk, aby ponownie wysłać e-mail weryfikacyjny:"
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -2100,20 +2100,20 @@ msgstr "Super! Twój e-mail został zweryfikowany.<a href='%s'>Zaloguj się, aby
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "Dołącz debugger"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Dołącz debugger do Python %(version_number)s"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "Uruchom debugger na porcie 3000."
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
-msgstr ""
+msgstr "Oczekiwanie na dołączenie debuggera..."
 
 #: admin/attach_debugger.html
 #, fuzzy
@@ -2128,15 +2128,15 @@ msgstr "Twój adres e-mail"
 #: admin/block.html
 #, python-format
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr ""
+msgstr "Adres IP %(address)s został dodany do pola tekstowego. Kliknij Zapisz, aby zablokować ten adres IP."
 
 #: admin/block.html
 msgid "Blocked IP Addresses"
-msgstr ""
+msgstr "Zablokowane adresy IP"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "Wykresy wydajności"
 
 #: admin/graphs.html
 #, fuzzy
@@ -2145,15 +2145,15 @@ msgstr "Liczba stron"
 
 #: admin/graphs.html
 msgid "Page Load Times"
-msgstr ""
+msgstr "Czasy ładowania stron"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "Podział czasów ładowania stron"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "Średnia Infobase"
 
 #: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
 #, fuzzy
@@ -2181,7 +2181,7 @@ msgstr "Dodaj nową książkę do Open Library"
 
 #: admin/imports-add.html
 msgid "Please add IA identifiers to be imported, one per line."
-msgstr ""
+msgstr "Proszę dodać identyfikatory IA do zaimportowania, jeden w wierszu."
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
@@ -2189,7 +2189,7 @@ msgstr "Zatwierdź"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
-msgstr ""
+msgstr "Nowe książki zaimportowane dziennie"
 
 #: PublishingHistory.html admin/imports.html publishers/view.html
 msgid "You need to have JavaScript turned on to see the nifty chart!"
@@ -2197,7 +2197,7 @@ msgstr "Musisz mieć włączony JavaScript, aby zobaczyć fajny wykres!"
 
 #: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
 msgid "Summary"
-msgstr ""
+msgstr "Podsumowanie"
 
 #: admin/imports.html
 #, fuzzy
@@ -2207,7 +2207,7 @@ msgstr "Moje listy lektur:"
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>Bieżące tempo importu:</strong> %(num)d importów/godzinę."
 
 #: admin/imports.html
 #, fuzzy
@@ -2216,7 +2216,7 @@ msgstr "Grubość"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "Podsumowanie według daty"
 
 #: admin/imports.html
 #, fuzzy
@@ -2230,27 +2230,27 @@ msgstr "Utworzone Listy"
 
 #: admin/imports.html
 msgid "#books already found"
-msgstr ""
+msgstr "#książki już znalezione"
 
 #: admin/imports.html
 msgid "#books failed to import"
-msgstr ""
+msgstr "#książki, których import się nie powiódł"
 
 #: admin/imports.html
 msgid "#books pending"
-msgstr ""
+msgstr "#książki oczekujące"
 
 #: admin/imports.html
 msgid "Recent Imports"
-msgstr ""
+msgstr "Ostatnie importy"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
+msgstr "Identyfikator"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Imported Time"
-msgstr ""
+msgstr "Czas importu"
 
 #: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 #, fuzzy
@@ -2274,7 +2274,7 @@ msgstr "filtrów"
 
 #: admin/imports_by_date.html openlibrary/core/edits.py
 msgid "Pending"
-msgstr ""
+msgstr "Oczekujące"
 
 #: admin/imports_by_date.html
 #, fuzzy
@@ -2283,7 +2283,7 @@ msgstr "Motywy:"
 
 #: admin/index.html
 msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr ""
+msgstr "<span class=\"login-counts\">0</span> użytkowników zalogowało się co najmniej raz w ciągu ostatnich 30 dni."
 
 #: admin/index.html
 #, fuzzy
@@ -2292,7 +2292,7 @@ msgstr "Status"
 
 #: admin/index.html
 msgid "Edits Per Day"
-msgstr ""
+msgstr "Edycje dziennie"
 
 #: admin/index.html admin/people/index.html
 #, fuzzy
@@ -2301,19 +2301,19 @@ msgstr "Edytuj"
 
 #: admin/index.html
 msgid "Yesterday"
-msgstr ""
+msgstr "Wczoraj"
 
 #: admin/index.html
 msgid "Last 7 days"
-msgstr ""
+msgstr "Ostatnie 7 dni"
 
 #: admin/index.html
 msgid "Last 28 days"
-msgstr ""
+msgstr "Ostatnie 28 dni"
 
 #: admin/index.html
 msgid "Human"
-msgstr ""
+msgstr "Człowiek"
 
 #: admin/index.html admin/people/view.html
 #, fuzzy
