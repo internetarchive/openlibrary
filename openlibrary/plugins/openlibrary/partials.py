@@ -303,7 +303,6 @@ class AffiliateLinksPartial:
         asin: str | None,
         prices: bool,
     ) -> dict:
-
         bwb_metadata = None
         amz_metadata = None
         should_fetch_prices = not is_bot() and prices

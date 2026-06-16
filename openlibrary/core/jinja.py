@@ -20,13 +20,11 @@ def get_jinja_env() -> Environment:
         trim_blocks=True,
         lstrip_blocks=True,
     )
-    """
-    Note on ``env.globals``:
-    Only register a callable here when it is used by roughly 10 or more
-    templates. For one-off helpers, pass the function as a keyword argument
-    to ``template.render(...)`` at the call site instead. This keeps the
-    shared env's surface area small and makes template dependencies
-    explicit and easy to grep for at the render call.
-    """
+    # Note on ``env.globals``:
+    # Only register a callable here when it is used by roughly 10 or more
+    # templates. For one-off helpers, pass the function as a keyword argument
+    # to ``template.render(...)`` at the call site instead. This keeps the
+    # shared env's surface area small and makes template dependencies
+    # explicit and easy to grep for at the render call.
     env.globals["_"] = _
     return env
