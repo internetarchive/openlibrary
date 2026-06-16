@@ -5,18 +5,38 @@ import json
 import mimetypes
 import os
 import random
+import re
 import string
 import traceback
 from io import IOBase as file
+from typing import Final
 from urllib.parse import parse_qsl, unquote, unquote_plus, urlsplit, urlunsplit  # type: ignore[attr-defined]
 from urllib.parse import urlencode as real_urlencode
 
 import requests
 
 COVERSTORE_USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+# Note: These domains need to also be kept insync with the IA squid proxy
+ALLOWED_COVER_URLS: Final = (
+    # e.g. https://archive.org/download/goody/page/title.jpg
+    # e.g. https://archive.org/download/goody/page/cover_w500_h500.jpg
+    r"^https?://archive.org/download/[^?#]+/page/(cover|title)(_w\d+)?(_h\d+)?(\.jpg)?$",
+    # e.g. https://archive.org/services/img/goody/full/pct:600/0/default.jpg
+    r"^https?://archive.org/services/img/[^?#]+/full/pct:\d+/0/(default)\.jpg$",
+    # e.g. https://covers.openlibrary.org/b/id/15082914-M.jpg
+    r"^https?://covers.openlibrary.org/b/[^/?#]+/[^/?#.]+(-[A-Z])?\.jpg$",
+    r"^https?://books.google.com/.*$",
+    r"^https?://commons.wikimedia.org/.*$",
+    r"^https?://m.media-amazon.com/.*$",
+)
+
 
 session = requests.Session()
 session.headers.update({"User-Agent": COVERSTORE_USER_AGENT})
+
+
+def is_allowed_cover_url(url: str) -> bool:
+    return any(re.match(pattern, url) for pattern in ALLOWED_COVER_URLS)
 
 
 def safeint(value, default=None):
@@ -79,7 +99,14 @@ def ol_get(olkey: str) -> dict | None:
         return None
 
 
+class DisallowedCoverUrl(Exception):
+    pass
+
+
 def download_external_image(url: str) -> bytes:
+    if not is_allowed_cover_url(url):
+        raise DisallowedCoverUrl(f"URL {url} is not an allowed cover URL")
+
     return session.get(url, timeout=10).content
 
 
