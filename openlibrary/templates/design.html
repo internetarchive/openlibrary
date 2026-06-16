@@ -20,6 +20,8 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#pagination">Pagination</a></li>
         <li><a href="#popover">Popover</a></li>
         <li><a href="#select-popover">Select Popover</a></li>
+        <li><a href="#options-popover">Options Popover</a></li>
+        <li><a href="#dialog">Dialog</a></li>
         <li><a href="#read-more">Read More</a></li>
         <li>
           <a href="#chip-group">Chip Group</a>
@@ -29,6 +31,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         </li>
         <li><a href="#button">Button</a></li>
         <li><a href="#segmented-control">Segmented Control</a></li>
+        <li><a href="#toggle">Toggle</a></li>
         <li><a href="#toast">Toast</a></li>
         <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
@@ -139,6 +142,10 @@ $ _x = ctx.setdefault('cssfile', 'design')
       $:render_template("design/popover", components.get("ol-popover"))
 
       $:render_template("design/select-popover", components.get("ol-select-popover"))
+
+      $:render_template("design/options-popover")
+
+      $:render_template("design/dialog")
 
       <article class="design-pattern" id="read-more">
         <h2 class="design-pattern__title">Read More</h2>
@@ -401,12 +408,43 @@ $ _x = ctx.setdefault('cssfile', 'design')
           </script>
         </section>
 
+        <section class="example">
+          <h3 class="example__title">Domain variants</h3>
+          <p>Use <code>variant</code> to color a chip by the kind of thing it represents (language, subject, genre, author, place, or a neutral facet). The chip maps the variant to a soft-tint palette internally.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language"&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="language">English</ol-chip>
+            <ol-chip variant="subject">Science Fiction</ol-chip>
+            <ol-chip variant="genre">Memoir</ol-chip>
+            <ol-chip variant="author">Ursula K. Le Guin</ol-chip>
+            <ol-chip variant="place">San Francisco</ol-chip>
+            <ol-chip variant="neutral">Read now</ol-chip>
+          </div>
+        </section>
+
+        <section class="example">
+          <h3 class="example__title">Removable filter pills</h3>
+          <p>Combine <code>variant</code> with <code>selected</code> to make a removable, category-colored filter pill. The selected state adds a close icon; listen for <code>ol-chip-select</code> to remove the filter.</p>
+          <pre class="example__code"><code class="language-html">&lt;ol-chip variant="language" selected&gt;
+  English
+&lt;/ol-chip&gt;</code></pre>
+          <div class="example__output">
+            <ol-chip variant="neutral" size="small" selected>Read now</ol-chip>
+            <ol-chip variant="language" size="small" selected>English</ol-chip>
+            <ol-chip variant="language" size="small" selected>French</ol-chip>
+          </div>
+        </section>
+
         $:render_template("design/api_tables", components.get("ol-chip"))
       </article>
 
       $:render_template("design/button", components.get("ol-button"))
 
       $:render_template("design/segmented-control", components.get("ol-segmented-control"))
+
+      $:render_template("design/toggle")
 
       $:render_template("design/toast", components.get("ol-toast"))
 

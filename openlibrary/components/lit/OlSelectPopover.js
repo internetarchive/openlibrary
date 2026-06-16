@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing } from 'lit';
 import { ifDefined } from 'lit/directives/if-defined.js';
 import { repeat } from 'lit/directives/repeat.js';
+import { FocusableHostMixin } from './utils/focusable-host-mixin.js';
 import './OlPopover.js';
 import './OLButton.js';
 
@@ -70,7 +71,7 @@ let _idCounter = 0;
  *     @ol-select-popover-change=${e => updateUrl(e.detail.selected)}
  * ></ol-select-popover>
  */
-export class OlSelectPopover extends LitElement {
+export class OlSelectPopover extends FocusableHostMixin(LitElement) {
     static properties = {
         items: { type: Array },
         selected: { type: Array, reflect: true },
@@ -112,7 +113,7 @@ export class OlSelectPopover extends LitElement {
         .filter {
             position: relative;
             padding: var(--spacing-inset-sm);
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .filter-input {
@@ -123,7 +124,7 @@ export class OlSelectPopover extends LitElement {
             border: 1px solid var(--color-border-subtle);
             border-radius: var(--border-radius-input);
             font: inherit;
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
             color: inherit;
         }
 
@@ -135,6 +136,12 @@ export class OlSelectPopover extends LitElement {
             outline: none;
             border-color: var(--color-border-focused);
             box-shadow: 0 0 0 1px var(--color-border-focused);
+        }
+
+        /* iOS zooms in on focus when the input font is < 16px; bump it up on
+           mobile to suppress that. */
+        @media (max-width: 767px) {
+            .filter-input { font-size: var(--font-size-body-large); }
         }
 
         .filter-icon {
@@ -171,21 +178,21 @@ export class OlSelectPopover extends LitElement {
             flex-shrink: 0;
             max-height: 200px;
             overflow-y: auto;
-            border-bottom: 1px solid var(--color-border-subtle);
+            border-bottom: var(--border-divider);
         }
 
         .group-heading {
             margin: 0;
             padding: var(--spacing-inset-sm) var(--spacing-inset-md) var(--spacing-inset-xs);
             color: var(--accessible-grey);
-            font-size: 12px;
+            font-size: var(--font-size-label-medium);
             font-weight: 700;
             letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
         .item {
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
         }
 
         .item-row {
@@ -229,7 +236,7 @@ export class OlSelectPopover extends LitElement {
         }
 
         .item-checkbox:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
             border-radius: 2px;
         }
@@ -246,7 +253,7 @@ export class OlSelectPopover extends LitElement {
             padding: var(--spacing-inset-md);
             text-align: center;
             color: var(--accessible-grey);
-            font-size: 14px;
+            font-size: var(--font-size-body-medium);
         }
 
         /* ── Footer ──────────────────────────────────────────────── */
@@ -255,7 +262,7 @@ export class OlSelectPopover extends LitElement {
             display: flex;
             justify-content: center;
             padding: var(--spacing-inset-sm);
-            border-top: 1px solid var(--color-border-subtle);
+            border-top: var(--border-divider);
         }
 
         .clear-button {
@@ -263,16 +270,16 @@ export class OlSelectPopover extends LitElement {
             background: transparent;
             border: 1px solid transparent;
             border-radius: var(--border-radius-button);
-            color: var(--dark-red);
+            color: var(--accessible-grey);
             font: inherit;
-            font-size: 14px;
-            font-weight: 600;
+            font-size: var(--font-size-label-large);
+            font-weight: 500;
             cursor: pointer;
         }
 
         @media (hover: hover) and (pointer: fine) {
             .clear-button:hover {
-                background: hsla(8, 70%, 44%, 0.08);
+                background: var(--lightest-grey);
             }
         }
 
@@ -281,7 +288,7 @@ export class OlSelectPopover extends LitElement {
         }
 
         .clear-button:focus-visible {
-            outline: 2px solid var(--color-focus-ring);
+            outline: var(--focus-width) solid var(--color-focus-ring);
             outline-offset: 2px;
         }
     `;
@@ -308,6 +315,42 @@ export class OlSelectPopover extends LitElement {
         // One-shot flag set by ArrowDown on the trigger to focus into the list
         // after the popover opens (vs. just focusing the filter on plain click).
         this._pendingFocusFirst = false;
+        // Item value to refocus after the next render — set by a toggle that
+        // re-homes the item between the selected/suggestions groups (which
+        // destroys its DOM node, so its focus is lost).
+        this._restoreFocusToValue = null;
+    }
+
+    /**
+     * Send focus to the default-trigger button rather than the first
+     * focusable in shadow order.
+     */
+    get _focusTarget() {
+        return this.shadowRoot?.querySelector('.default-trigger')
+            ?? this.querySelector('[slot="trigger"]')
+            ?? null;
+    }
+
+    updated(changedProperties) {
+        super.updated?.(changedProperties);
+        if (changedProperties.has('label') || changedProperties.has('selected')) {
+            this._updateDefaultTriggerLabel();
+        }
+        // Restore focus to the checkbox of an item that just moved between
+        // the selected/suggestions groups (see _onItemToggle). Lit binds the
+        // checkbox value via `.value=` (the JS property, not the attribute),
+        // so we match by property at lookup time.
+        if (this._restoreFocusToValue !== null && changedProperties.has('selected')) {
+            const value = this._restoreFocusToValue;
+            this._restoreFocusToValue = null;
+            const checkboxes = this.shadowRoot?.querySelectorAll('.item-checkbox') ?? [];
+            for (const cb of checkboxes) {
+                if (cb.value === value) {
+                    cb.focus({ preventScroll: true });
+                    break;
+                }
+            }
+        }
     }
 
     render() {
@@ -351,12 +394,6 @@ export class OlSelectPopover extends LitElement {
         );
         if (!hasConsumerTrigger && !this._defaultTrigger) {
             this._createDefaultTrigger();
-        }
-    }
-
-    updated(changed) {
-        if (changed.has('label') || changed.has('selected')) {
-            this._updateDefaultTriggerLabel();
         }
     }
 
@@ -526,6 +563,16 @@ export class OlSelectPopover extends LitElement {
         const nextSelected = (this.items || [])
             .map(it => it.value)
             .filter(v => current.has(v));
+
+        // The toggled item is about to move between the "selected" and
+        // "suggestions" groups, which destroys its checkbox DOM node — focus
+        // would fall back to <body>. Only restore if the checkbox actually
+        // owned focus at toggle time (skips the mouse-click-without-focus
+        // path on Safari).
+        if (this.shadowRoot?.activeElement === e.target) {
+            this._restoreFocusToValue = value;
+        }
+
         this._emitChange(nextSelected, checked ? value : null, checked ? null : value);
     }
 
@@ -589,4 +636,6 @@ export class OlSelectPopover extends LitElement {
     }
 }
 
-customElements.define('ol-select-popover', OlSelectPopover);
+if (!customElements.get('ol-select-popover')) {
+    customElements.define('ol-select-popover', OlSelectPopover);
+}

@@ -82,9 +82,8 @@ ol-button > button {
     inset 0 1px 0 color-mix(in srgb, var(--white) 35%, var(--control-surface));
   cursor: pointer;
   user-select: none;
-  /* Only the press feedback (scale) transitions. Hover changes — fill, border,
-     color, specular highlight — are intentionally instant so the hover gives
-     immediate feedback rather than fading in. */
+  /* Hover color changes are instant (see docs/ai/design.md); only the
+     :active press-scale animates. */
   transition: transform 0.08s;
 }
 

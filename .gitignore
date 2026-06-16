@@ -53,3 +53,6 @@ manifest-checksum.txt
 
 # Auto-synced docs wiki (cloned by docker/ol-home-start.sh)
 docs/wiki/
+
+# uv lockfile (we resolve from requirements*.txt; not tracked)
+uv.lock
