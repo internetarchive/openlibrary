@@ -55,11 +55,11 @@ msgstr "Zobrazit nebo upravit váše seznamy"
 
 #: account.html
 msgid "Import and Export Options"
-msgstr ""
+msgstr "Možnosti importu a exportu"
 
 #: account.html
 msgid "Manage Privacy & Content Moderation Settings"
-msgstr ""
+msgstr "Spravovat nastavení soukromí a moderování obsahu"
 
 #: account.html
 #, fuzzy
@@ -68,7 +68,7 @@ msgstr "Vaše upozornění"
 
 #: account.html
 msgid "Manage Mailing List Subscriptions"
-msgstr ""
+msgstr "Spravovat odběry mailing listů"
 
 #: account.html
 msgid "Change Password"
@@ -89,7 +89,7 @@ msgstr "Kontaktujte nás prosím, pokud potřebujete pomoc s něčím dalším."
 
 #: barcodescanner.html
 msgid "Barcode Scanner (Beta)"
-msgstr ""
+msgstr "Skener čárových kódů (beta)"
 
 #: batch_import.html
 #, fuzzy
@@ -98,23 +98,23 @@ msgstr "Autoři"
 
 #: BatchImportNavigation.html batch_import.html
 msgid "New Batch Import"
-msgstr ""
+msgstr "Nový hromadný import"
 
 #: batch_import.html
 msgid "Attach a JSONL formatted document with import records or copy/paste the JSONL text into the textarea."
-msgstr ""
+msgstr "Připojte dokument ve formátu JSONL se záznamy importu nebo vložte text JSONL do textového pole níže."
 
 #: batch_import.html
 msgid "See the <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master/olclient/schemata\">olclient import schemata</a> for more."
-msgstr ""
+msgstr "Viz <a href=\"https://github.com/internetarchive/openlibrary-client/tree/master\">dokumentaci klienta Open Library</a> pro specifikaci formátu záznamu."
 
 #: batch_import.html
 msgid "Attach a file:"
-msgstr ""
+msgstr "Připojit soubor:"
 
 #: batch_import.html
 msgid "Or copy/paste JSONL text:"
-msgstr ""
+msgstr "Nebo vložte text JSONL:"
 
 #: batch_import.html import_preview.html
 #, fuzzy
@@ -128,52 +128,52 @@ msgstr "Selhalo obnovení hesla."
 
 #: batch_import.html
 msgid "No import will be queued until *every* record validates successfully."
-msgstr ""
+msgstr "Import nebude zařazen do fronty, dokud *každý* záznam neproběhne úspěšnou validací."
 
 #: batch_import.html
 msgid "Please update the JSONL file and reload this page (there should be no need to reattach the file)."
-msgstr ""
+msgstr "Prosím aktualizujte soubor JSONL a znovu načtěte tuto stránku (nemusíte znovu procházet importním procesem)."
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "Chyby validace:"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "Řádek %d:"
 
 #: batch_import.html
 msgid "Import results for batch:"
-msgstr ""
+msgstr "Výsledky importu pro dávku:"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "Odeslaných záznamů:"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "Celkem zařazeno do fronty:"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "Celkem přeskočeno:"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "Nezařazeno do fronty, protože jsou již ve frontě:"
 
 #: batch_import.html
 msgid "View Batch Status"
-msgstr ""
+msgstr "Zobrazit stav dávky"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "Čekající hromadné importy"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "ID dávky"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
 #, fuzzy
@@ -182,7 +182,7 @@ msgstr "Přidáno"
 
 #: account/import.html account/loans.html admin/imports.html admin/imports_by_date.html admin/loans_table.html admin/menu.html batch_import_pending_view.html batch_import_view.html librarian_dashboard/data_quality_table.html status.html
 msgid "Status"
-msgstr ""
+msgstr "Stav"
 
 #: batch_import_pending_view.html batch_import_view.html merge_request_table/table_header.html
 #, fuzzy
@@ -196,15 +196,15 @@ msgstr "Témata"
 
 #: batch_import_view.html
 msgid "Batch Import Status"
-msgstr ""
+msgstr "Stav hromadného importu"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "ID dávky:"
 
 #: batch_import_view.html
 msgid "Batch Name:"
-msgstr ""
+msgstr "Název dávky:"
 
 #: batch_import_view.html
 #, fuzzy
@@ -218,44 +218,44 @@ msgstr "Odeslat"
 
 #: batch_import_view.html
 msgid "Status Summary"
-msgstr ""
+msgstr "Shrnutí stavu"
 
 #: batch_import_view.html
 msgid "Approve"
-msgstr ""
+msgstr "Schválit"
 
 #: batch_import_view.html
 msgid "Import Items"
-msgstr ""
+msgstr "Importovat položky"
 
 #: batch_import_view.html
 msgid "Import Time"
-msgstr ""
+msgstr "Čas importu"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
-msgstr ""
+msgstr "Chyba"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "ID v IA"
 
 #: batch_import_view.html
 msgid "Data"
-msgstr ""
+msgstr "Data"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "Klíč OL"
 
 #: batch_import_view.html
 msgid "Not yet imported"
-msgstr ""
+msgstr "Zatím neimportováno"
 
 #: diff.html
 #, python-format
 msgid "Diff on %s"
-msgstr ""
+msgstr "Rozdíl u %s"
 
 #: diff.html
 #, python-format
@@ -310,7 +310,7 @@ msgstr "Zrušit, a jít zpět."
 
 #: edit_yaml.html
 msgid "YAML Representation:"
-msgstr ""
+msgstr "Reprezentace YAML:"
 
 #: BookPreview.html book_providers/read_button.html books/edit/edition.html editpage.html import_preview.html
 #, fuzzy
@@ -319,7 +319,7 @@ msgstr "Zobrazit"
 
 #: history.html
 msgid "History of edits to"
-msgstr ""
+msgstr "Historie úprav záznamu"
 
 #: history.html
 msgid "Revision"
@@ -335,7 +335,7 @@ msgstr "Kdo"
 
 #: RecentChanges.html RecentChangesUsers.html admin/history.html admin/ip/view.html admin/people/edits.html history.html recentchanges/render.html recentchanges/updated_records.html
 msgid "Comment"
-msgstr ""
+msgstr "Komentář"
 
 #: history.html
 #, fuzzy
@@ -358,7 +358,7 @@ msgstr "Zobrazit revize  %s"
 
 #: history.html
 msgid "Compare this version..."
-msgstr ""
+msgstr "Porovnat tuto verzi..."
 
 #: history.html
 #, fuzzy
@@ -367,65 +367,65 @@ msgstr "Toto vydání"
 
 #: import_preview.html
 msgid "Import Preview"
-msgstr ""
+msgstr "Náhled importu"
 
 #: import_preview.html
 msgid "Preview Import"
-msgstr ""
+msgstr "Náhled importu"
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "Zobrazit nezpracovaná importní data"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "Bude vytvořen nový záznam %(thing_type)s"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "Změny záznamu %(key)s"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "Interní chyba"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "Vyskytl se problém"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "Omlouváme se, při zpracování vašeho požadavku došlo k chybě:"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Referenční kód %s a ID Sentry trasování %s byly vytvořeny pro sledování této chyby a problém prošetříme."
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "Referenční kód %s byl vytvořen pro sledování této chyby a problém prošetříme."
 
 #: internalerror.html
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr ""
+msgstr "Vrátit se na <a class=\"go-back-link\" href=\"javascript:;\">předchozí stránku</a>?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "Přesměrováváme vás na vaši knihu"
 
 #: interstitial.html
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr ""
+msgstr "Tuto knihu poskytuje %(book_provider)s, důvěryhodný dodavatel třetí strany Open Library."
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "Za %(time)s sekund budete automaticky přesměrováni na: %(url)s"
 
 #: CreateListModal.html EditButtons.html account/notifications.html account/password/reset.html account/privacy.html admin/imports-add.html admin/permissions.html books/add.html databarEdit.html interstitial.html merge/authors.html my_books/dropdown_content.html type/list/edit.html type/series/edit.html type/tag/form.html
 msgid "Cancel"
@@ -433,7 +433,7 @@ msgstr "Zrušit"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "Pokračovat bez čekání"
 
 #: lib/nav_head.html library_explorer.html
 #, fuzzy
@@ -451,11 +451,11 @@ msgstr "Přihlásit se"
 
 #: login.html
 msgid "This is a development instance, the default credentials are automatically filled."
-msgstr ""
+msgstr "Toto je vývojová instance, výchozí přihlašovací údaje jsou automaticky vyplněny výše."
 
 #: login.html
 msgid "email:"
-msgstr ""
+msgstr "e-mail:"
 
 #: login.html
 #, fuzzy
@@ -464,7 +464,7 @@ msgstr "Heslo"
 
 #: login.html
 msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "Přihlaste se pomocí vaší bezplatné karty Open Library a půjčujte si digitální knihy z neziskového archivu."
 
 #: account/create.html login.html
 #, fuzzy
@@ -478,16 +478,15 @@ msgstr "Již jste přihlášeni v Open Library jako uživatel %(user)s."
 
 #: account/create.html login.html
 msgid "If you'd like to create a new, different Open Library account, you'll need to <a href=\"javascript:;\" onclick=\"document.forms['hamburger-logout'].submit()\">log out</a> and start the signup process afresh."
-msgstr ""
+msgstr "Pokud chcete vytvořit nový, jiný účet Open Library, budete muset <a href=\"%(url)s\" onclick=\"document.forms[\">odhlásit váš aktuální účet Internet Archive</a>."
 
 #: login.html
-#, fuzzy
 msgid "Please enter your <a href=\"https://archive.org\">Internet Archive</a> email and password to access your Open Library account."
-msgstr "Zadejte prosím nové heslo pro účet na Open Library"
+msgstr ""
 
 #: login.html openlibrary/plugins/upstream/forms.py
 msgid "Email"
-msgstr ""
+msgstr "E-mail"
 
 #: login.html
 #, fuzzy
@@ -504,11 +503,11 @@ msgstr "Zapoměly jste svoje heslo?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "Přepnout viditelnost hesla"
 
 #: login.html
 msgid "Remember me"
-msgstr ""
+msgstr "Zapamatovat si mě"
 
 #: login.html
 #, fuzzy
@@ -537,7 +536,7 @@ msgstr "Přidat knihu"
 
 #: messages.html
 msgid "Thank you for improving the Open Library catalog!"
-msgstr ""
+msgstr "Děkujeme za vylepšení katalogu Open Library!"
 
 #: BookPreview.html CreateListModal.html NotesModal.html ObservationsModal.html ShareModal.html covers/author_photo.html covers/book_cover.html covers/change.html lib/exports.html my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html native_dialog.html
 msgid "Close"
@@ -546,7 +545,7 @@ msgstr "Zvařít"
 #: notfound.html
 #, python-format
 msgid "%(path)s is not found"
-msgstr ""
+msgstr "%(path)s nebyl nalezen"
 
 #: languages/notfound.html notfound.html
 msgid "404 - Page Not Found"
@@ -555,7 +554,7 @@ msgstr "404 - Stránka nenalezena"
 #: notfound.html
 #, python-format
 msgid "%(path)s does not exist."
-msgstr ""
+msgstr "%(path)s neexistuje."
 
 #: notfound.html
 #, fuzzy
@@ -564,12 +563,12 @@ msgstr "Vytvořit to?"
 
 #: notfound.html
 msgid "Looking for a template/macro?"
-msgstr ""
+msgstr "Hledáte šablonu/makro?"
 
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "Oprávnění záznamu %(key)s"
 
 #: permission.html
 #, fuzzy
@@ -583,7 +582,7 @@ msgstr "Osoba"
 
 #: permission.html
 msgid "Child Permission"
-msgstr ""
+msgstr "Podřízené oprávnění"
 
 #: permission_denied.html
 #, fuzzy
@@ -598,12 +597,12 @@ msgstr "Přístup odepřen"
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "K přidávání záznamů na Open Library jsou oprávněni pouze přihlášení uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "K úpravám záznamů na Open Library jsou oprávněni pouze přihlášení uživatelé. Prosím <a href=\"%s\">přihlaste se nebo si vytvořte účet</a>."
 
 #: permission_denied.html
 #, python-format
@@ -612,19 +611,19 @@ msgstr "Můžete se <a href=\"%s\">přihlásit</a> pokud máte požadovaná opr�
 
 #: recaptcha.html
 msgid "Please satisfy the reCAPTCHA below. If you have security settings or privacy blockers installed, please disable them to see the reCAPTCHA."
-msgstr ""
+msgstr "Prosím vyplňte reCAPTCHA níže. Pokud máte nastavení zabezpečení nebo blokátory ochrany soukromí, možná budete muset reCAPTCHA dočasně povolit."
 
 #: recaptcha.html
 msgid "Incorrect. Please try again."
-msgstr ""
+msgstr "Nesprávně. Zkuste to prosím znovu."
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "Record details of"
-msgstr ""
+msgstr "Podrobnosti záznamu"
 
 #: showamazon.html showbwb.html showgoogle_books.html
 msgid "This record came from"
-msgstr ""
+msgstr "Tento záznam pochází z"
 
 #: showia.html showmarc.html
 #, fuzzy
@@ -642,11 +641,11 @@ msgstr "Internetový Archiv"
 
 #: showia.html
 msgid "Download MARC XML"
-msgstr ""
+msgstr "Stáhnout MARC XML"
 
 #: showia.html
 msgid "Download MARC binary"
-msgstr ""
+msgstr "Stáhnout MARC binárně"
 
 #: showia.html showmarc.html
 #, fuzzy
@@ -2821,9 +2820,8 @@ msgid "Reverted by %(revert_author)s"
 msgstr ""
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
-#, fuzzy
 msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr "Zanechte prosím krátkou poznámku o tom, co jste upravili:"
+msgstr ""
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -5167,9 +5165,8 @@ msgid "Open Library logo"
 msgstr "Vítejte v Open Library"
 
 #: lib/nav_foot.html
-#, fuzzy
 msgid "Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
-msgstr "Open Library je iniciativa <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) nezisková organisace, budující  knihovnu internetových stránek a dalších kulturních artefaktů v digitální podobě.<br/>Další <a href=\"//archive.org/projects/\">projekty</a> zahrnují <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> a <a href=\"//archive-it.org\">archive-it.org</a>"
+msgstr ""
 
 #: lib/nav_foot.html
 #, python-format
