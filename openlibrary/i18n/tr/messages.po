@@ -2927,6 +2927,8 @@ msgid ""
 "Sync the metadata of various types of Open Library items (e.g. lists, "
 "subjects, works) with Archive.org."
 msgstr ""
+"Çeşitli Open Library öğesi türlerinin (ör. listeler, konular, eserler) "
+"meta verilerini Archive.org verileriyle senkronize edin."
 
 #: admin/sync.html
 msgid "Add Works to Staff Picks"
@@ -2996,6 +2998,8 @@ msgid ""
 "For example, <code>observations-</code> should be entered in the text "
 "area if the key is <code>observations</code>."
 msgstr ""
+"Örneğin, anahtar <code>observations</code> ise metin alanına "
+"<code>observations-</code> girilmelidir."
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -3907,6 +3911,10 @@ msgid ""
 "books</span> offer the benefits of regular audiobooks, with navigation "
 "within the book, to chapters or specific pages."
 msgstr ""
+"DAISY dijital formatı, düzenli basılı medyayı kullanmakta güçlük çeken "
+"kişilere yardımcı olur. DAISY dijital <span class=\"highlight\">sesli "
+"kitaplar</span>, bölümlere veya belirli sayfalara gezinme imkânıyla "
+"düzenli sesli kitapların avantajlarını sunar."
 
 #: books/daisy.html
 #, fuzzy
@@ -3987,6 +3995,8 @@ msgid ""
 "Thank you for adding that book! Any more information you could provide "
 "would be wonderful!"
 msgstr ""
+"Bu kitabı eklediğiniz için teşekkürler! Sağlayabileceğiniz ek bilgiler "
+"harika olur!"
 
 #: books/edit.html
 #, python-format
@@ -4088,6 +4098,9 @@ msgid ""
 "Wikidata work identifiers. For edition-specific identifiers, like ISBN or"
 " LCCN, go to the edition tab."
 msgstr ""
+"Bu tanımlayıcılar bu eserin tüm baskılarına uygulanır; örneğin Wikidata "
+"eser tanımlayıcıları. ISBN veya LCCN gibi baskıya özgü tanımlayıcılar "
+"için baskı sekmesine gidin."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html
 #: books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html
@@ -4214,6 +4227,9 @@ msgid ""
 "href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
 "href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
+"Örneğin: <i><a href=\"/subjects/cheese\">peynir</a>, <a "
+"href=\"/subjects/roman_empire\">Roma İmparatorluğu</a>, <a "
+"href=\"/subjects/psychology\">psikoloji</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -4225,6 +4241,9 @@ msgid ""
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
 "Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 msgstr ""
+"Örneğin: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+"Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Norwich'li "
+"Julian</a>, <a href=\"/subjects/person:Tintin\">Tenten</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -4236,6 +4255,9 @@ msgid ""
 "href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
 "href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
+"Örneğin: <i><a href=\"/subjects/place:London\">Londra</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -4247,6 +4269,9 @@ msgid ""
 "href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
 "href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 msgstr ""
+"Örneğin: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">Orta Çağlar</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -4409,6 +4434,8 @@ msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
 "new lines. Like this:"
 msgstr ""
+"Girinti için \"*\", sütun eklemek için \"|\" ve yeni satırlar için satır "
+"sonları kullanın. Şöyle:"
 
 #: books/edit/edition.html
 msgid ""
@@ -4416,6 +4443,9 @@ msgid ""
 "descriptions. We don't have a great user interface for this yet, so "
 "editing this data could be difficult. Watch out!"
 msgstr ""
+"Bu içindekiler tablosu, yazarlar veya açıklamalar gibi ekstra bilgiler "
+"içermektedir. Bunun için henüz iyi bir kullanıcı arayüzümüz yok, bu "
+"nedenle bu verileri düzenlemek zor olabilir. Dikkatli olun!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -4440,12 +4470,18 @@ msgid ""
 "edition is a collection or anthology, you may also add the individual "
 "titles of each work here."
 msgstr ""
+"Kapakta veya sırtta başlık farklıysa bu alanı kullanın. Baskı bir derleme"
+" veya antoloji ise her bir eserin bireysel başlıklarını da buraya "
+"ekleyebilirsiniz."
 
 #: books/edit/edition.html
 msgid ""
 "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a "
 "href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 msgstr ""
+"Örneğin: <i>Ölülerin Yiyicileri</i>, <i><a "
+"href=\"/books/OL24923038M\">13. Savaşçı</a></i> için alternatif bir "
+"başlıktır."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -4456,6 +4492,8 @@ msgid ""
 "Sometimes editions can be associated with the wrong work. You can correct"
 " that here."
 msgstr ""
+"Bazen baskılar yanlış bir eserle ilişkilendirilebilir. Bunu buradan "
+"düzeltebilirsiniz."
 
 #: books/edit/edition.html
 msgid ""
@@ -4463,6 +4501,9 @@ msgid ""
 "href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
 "noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
+"Başlığa veya Open Library kimliğine göre arama yapabilirsiniz (örn. <a "
+"href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -4666,6 +4707,8 @@ msgid ""
 "If there are particular (short) passages you feel represent the book "
 "well, please feel free to transcribe them here."
 msgstr ""
+"Kitabı iyi temsil ettiğini düşündüğünüz belirli (kısa) pasajlar varsa "
+"lütfen buraya yazıya dökün."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
@@ -4693,61 +4736,63 @@ msgstr "Bu alıntıyı neden seçtiniz?"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
-msgstr ""
+msgstr "İsteğe bağlı bir not ekleyin."
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
-msgstr ""
+msgstr "Şimdiye kadarki alıntılar..."
 
 #: books/edit/excerpts.html
 msgid "noted:"
-msgstr ""
+msgstr "not alındı:"
 
 #: books/edit/excerpts.html
 msgid "An anonymous note:"
-msgstr ""
+msgstr "Anonim bir not:"
 
 #: books/edit/excerpts.html
 msgid "From page"
-msgstr ""
+msgstr "Sayfadan"
 
 #: books/edit/web.html
 msgid "Please provide a label."
-msgstr ""
+msgstr "Lütfen bir etiket girin."
 
 #: books/edit/web.html
 msgid "Please provide a URL."
-msgstr ""
+msgstr "Lütfen bir URL girin."
 
 #: books/edit/web.html
 msgid "Please enter a valid URL."
-msgstr ""
+msgstr "Lütfen geçerli bir URL girin."
 
 #: books/edit/web.html
 msgid ""
 "Please connect Open Library records to <u>good</u><span "
 "class=\"orange\">*</span> online resources."
 msgstr ""
+"Lütfen Open Library kayıtlarını <u>iyi</u><span class=\"orange\">*</span>"
+" çevrimiçi kaynaklara bağlayın."
 
 #: books/edit/web.html
 msgid "Give your link a label"
-msgstr ""
+msgstr "Bağlantınıza bir etiket verin"
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Örneğin: <em>New York Times incelemesi</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 msgid "Add Link"
-msgstr ""
+msgstr "Bağlantı Ekle"
 
 #: books/edit/web.html
 msgid "Remove this link"
-msgstr ""
+msgstr "Bu bağlantıyı kaldır"
 
 #: books/edit/web.html
 msgid ""
@@ -4755,34 +4800,36 @@ msgid ""
 "Irrelevant sites may be removed. Blatant spam will be deleted without "
 "remorse."
 msgstr ""
+"\"İyi\" demek spam içermeyen bağlantılar demektir. Kitapla alakalı tutun."
+" Alakasız siteler kaldırılabilir. Açık spam acımasızca silinir."
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "Toplu Arama (beta)"
 
 #: covers/add.html
 msgid "There are two ways to put an author's image on Open Library."
-msgstr ""
+msgstr "Bir yazarın fotoğrafını Open Library'ye eklemenin iki yolu vardır."
 
 #: covers/add.html
 msgid "Image Guidelines"
-msgstr ""
+msgstr "Görsel Kuralları"
 
 #: covers/add.html
 msgid "There are a few ways to put a cover image on Open Library."
-msgstr ""
+msgstr "Kitap kapağı görseli eklemenin birkaç yolu vardır."
 
 #: covers/add.html
 msgid "Cover Guidelines"
-msgstr ""
+msgstr "Kapak Kuralları"
 
 #: covers/add.html
 msgid "Please provide a valid image."
-msgstr ""
+msgstr "Lütfen geçerli bir görsel sağlayın."
 
 #: covers/add.html
 msgid "Please provide an image URL."
-msgstr ""
+msgstr "Lütfen bir görsel URL'si sağlayın."
 
 #: covers/add.html
 #, python-format
@@ -4790,150 +4837,154 @@ msgid ""
 "Learn more by reading our <a href=\"/help/faq/editing#picture\" "
 "target=\"blank\">%(guidelines)s</a>."
 msgstr ""
+"Daha fazla bilgi için <a href=\"/help/faq/editing#picture\" "
+"target=\"blank\">%(guidelines)s</a> bölümümüzü okuyun."
 
 #: covers/add.html
 msgid "<strong>Pick one</strong> from the existing covers"
-msgstr ""
+msgstr "<strong>Birini seçin</strong> mevcut kapaklar arasından"
 
 #: covers/add.html
 msgid "Use this image"
-msgstr ""
+msgstr "Bu görseli kullan"
 
 #: covers/add.html
 msgid "Choose a JPG, GIF, PNG or WebP on your computer"
-msgstr ""
+msgstr "Bilgisayarınızdan bir JPG, GIF, PNG veya WebP seçin"
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "Yükle"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Veya panodan bir görsel yapıştırın"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Panodan görsel yapıştırın"
 
 #: covers/add.html
 msgid "Paste Image"
-msgstr ""
+msgstr "Görsel Yapıştır"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Görsel yükle"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Görsel Yükle"
 
 #: covers/add.html
 msgid "Uploading..."
-msgstr ""
+msgstr "Yükleniyor..."
 
 #: covers/add.html
 msgid "Wikidata"
-msgstr ""
+msgstr "Wikidata"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "Daha büyük yazar fotoğrafını göster"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "%(author)s fotoğrafı"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Kapatmak için tıklayın"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "%(author)s fotoğrafına ihtiyacımız var"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "Daha büyük kitap kapağını göster"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "%(authors)s tarafından %(title)s kapağı"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "%(title)s ana sayfasına git"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "%(title)s için kitap kapağına ihtiyacımız var"
 
 #: covers/change.html
 msgid "Author Photos"
-msgstr ""
+msgstr "Yazar Fotoğrafları"
 
 #: covers/change.html
 msgid "Manage Author Photos"
-msgstr ""
+msgstr "Yazar Fotoğraflarını Yönet"
 
 #: covers/change.html
 msgid "Add Author Photo"
-msgstr ""
+msgstr "Yazar Fotoğrafı Ekle"
 
 #: covers/change.html
 msgid "Book Covers"
-msgstr ""
+msgstr "Kitap Kapakları"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "Kapakları Yönet"
 
 #: covers/change.html
 msgid "Add Cover Image"
-msgstr ""
+msgstr "Kapak Görseli Ekle"
 
 #: covers/change.html
 msgid "Manage"
-msgstr ""
+msgstr "Yönet"
 
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "%s sitesinden bir görsel kullanın"
 
 #: covers/manage.html
 msgid ""
 "You can drag and drop thumbnails to reorder, or into the trash to delete "
 "them."
 msgstr ""
+"Küçük resimleri yeniden sıralamak için sürükleyip bırakabilir veya silmek"
+" için çöp kutusuna atabilirsiniz."
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "Yeni kitap kapağı"
 
 #: covers/saved.html
 msgid "Saved!"
-msgstr ""
+msgstr "Kaydedildi!"
 
 #: covers/saved.html
 msgid "Notes:"
-msgstr ""
+msgstr "Notlar:"
 
 #: covers/saved.html
 msgid "Add another image"
-msgstr ""
+msgstr "Başka bir görsel ekle"
 
 #: covers/saved.html
 msgid "Finished"
-msgstr ""
+msgstr "Tamamlandı"
 
 #: design/toggle.html
 msgid "Toggle"
-msgstr ""
+msgstr "Geçiş yap"
 
 #: design/toggle.html
 #, python-format
@@ -4943,6 +4994,11 @@ msgid ""
 "surface is clickable and Enter/Space activate it. It owns its on/off "
 "state: clicking flips %(checked)s and fires %(event)s."
 msgstr ""
+"%(tag)s bileşeni, kalın bir etiket ve isteğe bağlı gri bir alt etiket "
+"içeren bir anahtardır. Tüm kontrol tek bir %(role)s düğmesidir; yüzeyinin"
+" tamamı tıklanabilir ve Enter/Boşluk tuşuyla etkinleştirilebilir. "
+"Açık/kapalı durumunu kendi yönetir: tıklamak %(checked)s değerini "
+"değiştirir ve %(event)s olayını tetikler."
 
 #: design/toggle.html
 #, fuzzy
