@@ -2280,7 +2280,7 @@ msgstr "Nastavení"
 
 #: admin/index.html
 msgid "Edits Per Day"
-msgstr ""
+msgstr "Úpravy za den"
 
 #: admin/index.html admin/people/index.html
 #, fuzzy
@@ -2289,19 +2289,19 @@ msgstr "Editovat"
 
 #: admin/index.html
 msgid "Yesterday"
-msgstr ""
+msgstr "Včera"
 
 #: admin/index.html
 msgid "Last 7 days"
-msgstr ""
+msgstr "Posledních 7 dní"
 
 #: admin/index.html
 msgid "Last 28 days"
-msgstr ""
+msgstr "Posledních 28 dní"
 
 #: admin/index.html
 msgid "Human"
-msgstr ""
+msgstr "Člověk"
 
 #: admin/index.html admin/people/view.html
 #, fuzzy
@@ -2310,11 +2310,11 @@ msgstr "O autorovi"
 
 #: admin/index.html
 msgid "New Accounts Per Day"
-msgstr ""
+msgstr "Nové účty za den"
 
 #: admin/index.html
 msgid "Members"
-msgstr ""
+msgstr "Členové"
 
 #: admin/index.html
 #, fuzzy
@@ -2343,7 +2343,7 @@ msgstr "Autoři"
 
 #: admin/index.html recentchanges/index.html
 msgid "Covers Added"
-msgstr ""
+msgstr "Přidané obálky"
 
 #: admin/index.html home/stats.html
 #, fuzzy
@@ -2357,11 +2357,11 @@ msgstr "Seznamy"
 
 #: admin/index.html
 msgid "Books Logged"
-msgstr ""
+msgstr "Zaznamenaných knih"
 
 #: admin/index.html
 msgid "Users Logging"
-msgstr ""
+msgstr "Uživatelé zaznamenávající"
 
 #: admin/index.html
 #, fuzzy
@@ -2370,7 +2370,7 @@ msgstr "Můj záznam četby"
 
 #: admin/index.html
 msgid "Books Review Tags"
-msgstr ""
+msgstr "Značky recenzí knih"
 
 #: admin/index.html
 #, fuzzy
@@ -2379,11 +2379,11 @@ msgstr "eKnihy kdekoliv"
 
 #: admin/index.html
 msgid "Users Reviewing"
-msgstr ""
+msgstr "Uživatelé recenzující"
 
 #: admin/index.html
 msgid "Patrons Following"
-msgstr ""
+msgstr "Sledující čtenáři"
 
 #: admin/index.html
 #, fuzzy
@@ -2401,15 +2401,15 @@ msgstr "eKnihy kdekoliv"
 
 #: admin/index.html
 msgid "Star Rating Patrons"
-msgstr ""
+msgstr "Čtenáři hodnotící hvězdičkami"
 
 #: admin/index.html home/stats.html
 msgid "Unique Visitors"
-msgstr ""
+msgstr "Unikátní návštěvníci"
 
 #: admin/index.html
 msgid "Unique visitors IPs per day graph"
-msgstr ""
+msgstr "Graf unikátních IP návštěvníků za den"
 
 #: admin/index.html
 #, fuzzy
@@ -2418,31 +2418,31 @@ msgstr "Procházet"
 
 #: admin/index.html
 msgid "Borrows, last 3 months graph"
-msgstr ""
+msgstr "Graf výpůjček za poslední 3 měsíce"
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
-msgstr ""
+msgstr "Graf výpůjček za poslední 2 roky"
 
 #: admin/index.html
 msgid "Unique Logins"
-msgstr ""
+msgstr "Unikátní přihlášení"
 
 #: admin/index.html
 msgid "Gathering login statistics..."
-msgstr ""
+msgstr "Shromažďování statistik přihlášení..."
 
 #: admin/loans_table.html
 msgid "BookReader"
-msgstr ""
+msgstr "BookReader"
 
 #: admin/loans_table.html book_providers/cita_press_download_options.html book_providers/ia_download_options.html book_providers/openstax_download_options.html book_providers/wikisource_download_options.html books/edit/edition.html
 msgid "PDF"
-msgstr ""
+msgstr "PDF"
 
 #: admin/loans_table.html book_providers/gutenberg_download_options.html book_providers/ia_download_options.html book_providers/standard_ebooks_download_options.html books/edit/edition.html
 msgid "ePub"
-msgstr ""
+msgstr "ePub"
 
 #: admin/loans_table.html
 #, fuzzy
@@ -2453,9 +2453,9 @@ msgstr "Současné výpůjčky"
 #, python-format
 msgid "%d Current Loan"
 msgid_plural "%d Current Loans"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d aktuální výpůjčka"
+msgstr[1] "%d aktuální výpůjčky"
+msgstr[2] "%d aktuálních výpůjček"
 
 #: RecentChanges.html RecentChangesUsers.html admin/ip/view.html admin/loans_table.html admin/people/edits.html recentchanges/render.html recentchanges/updated_records.html
 msgid "What"
@@ -2469,28 +2469,28 @@ msgstr ""
 #: admin/loans_table.html
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
-msgstr ""
+msgstr "#%(num_position)d z %(num_waitlist)d lidí čekajících na tuto knihu"
 
 #: ManageLoansButtons.html admin/loans_table.html
 #, python-format
 msgid "Borrowed %(date)s"
-msgstr ""
+msgstr "Vypůjčeno %(date)s"
 
 #: admin/menu.html
 msgid "Admin Center"
-msgstr ""
+msgstr "Centrum správy"
 
 #: RelatedSubjects.html SubjectTags.html admin/menu.html admin/people/index.html admin/people/view.html openlibrary/plugins/worksearch/code.py type/author/view.html type/list/view_body.html
 msgid "People"
-msgstr ""
+msgstr "Lidé"
 
 #: admin/menu.html
 msgid "PD Access Requests"
-msgstr ""
+msgstr "Žádosti o přístup PD"
 
 #: admin/menu.html
 msgid "Block IPs"
-msgstr ""
+msgstr "Blokovat IP adresy"
 
 #: admin/menu.html admin/spamwords.html
 #, fuzzy
@@ -2509,7 +2509,7 @@ msgstr "Životopisné"
 
 #: admin/menu.html
 msgid "Inspect store"
-msgstr ""
+msgstr "Prozkoumat úložiště"
 
 #: admin/menu.html
 #, fuzzy
@@ -2518,55 +2518,55 @@ msgstr "Témata"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "Žádosti o přístup pro osoby se zrakovým postižením"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "Přehled podle oprávňujícího orgánu"
 
 #: admin/pd_dashboard.html
 msgid "PDA"
-msgstr ""
+msgstr "PDA"
 
 #: admin/pd_dashboard.html
 msgid "Emailed"
-msgstr ""
+msgstr "Odesláno e-mailem"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "Splněno"
 
 #: admin/pd_dashboard.html
 msgid "Totals"
-msgstr ""
+msgstr "Celkem"
 
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
-msgstr ""
+msgstr "[Centrum správy] Oprávnění webu"
 
 #: admin/permissions.html
 msgid "Site Permissions"
-msgstr ""
+msgstr "Oprávnění webu"
 
 #: admin/permissions.html
 msgid "Change the policy of who can edit the site."
-msgstr ""
+msgstr "Změňte zásady pro to, kdo může upravovat web."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library records?"
-msgstr ""
+msgstr "Kdo může upravovat záznamy Open Library?"
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "Platí pro záznamy /authors/*, /books/* a /works/*."
 
 #: admin/permissions.html
 msgid "Who can edit Open Library pages?"
-msgstr ""
+msgstr "Kdo může upravovat stránky Open Library?"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "Platí pro /about/*, /help/*, /dev/*, /docs/* atd."
 
 #: admin/permissions.html
 #, fuzzy
@@ -2575,15 +2575,15 @@ msgstr "Aktualizovat emailovou adresu"
 
 #: admin/permissions.html
 msgid "This updates \"permission\" and \"child_permission\" fields of /, /works, /books and /authors records in the database."
-msgstr ""
+msgstr "Toto aktualizuje pole \"permission\" a \"child_permission\" záznamů /, /works, /books a /authors v databázi."
 
 #: admin/solr.html
 msgid "Solr Admin"
-msgstr ""
+msgstr "Správa Solr"
 
 #: admin/solr.html
 msgid "Enter the keys of pages to be updated in OL search engine."
-msgstr ""
+msgstr "Zadejte klíče stránek, které mají být aktualizovány ve vyhledávači OL."
 
 #: admin/solr.html
 #, fuzzy
@@ -2592,31 +2592,31 @@ msgstr "Například"
 
 #: admin/solr.html
 msgid "On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr."
-msgstr ""
+msgstr "Po aktualizaci budou tyto klíče přidány do fronty aktualizací Solr a jejich reindexace v Solr bude trvat přibližně 15 minut."
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
-msgstr ""
+msgstr "Zadejte klíče k reindexaci v Solr"
 
 #: admin/solr.html
 msgid "Write one entry per line"
-msgstr ""
+msgstr "Napište jeden záznam na řádek"
 
 #: admin/spamwords.html
 msgid "[Admin Center] Spam Words"
-msgstr ""
+msgstr "[Centrum správy] Spamová slova"
 
 #: admin/spamwords.html
 msgid "Please enter the SPAM regular expressions in the textarea below, one per line."
-msgstr ""
+msgstr "Zadejte prosím regulární výrazy pro SPAM do textového pole níže, jeden na řádek."
 
 #: admin/spamwords.html
 msgid "Be sure to escape any meta characters that are meant to be character literals."
-msgstr ""
+msgstr "Nezapomeňte escapovat všechny metaznaky, které mají být literálními znaky."
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "Pokud přidáváte doménu, přidejte před doménu následující:"
 
 #: admin/spamwords.html
 msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
@@ -2629,23 +2629,23 @@ msgstr "Moje výpůjčky"
 
 #: admin/spamwords.html
 msgid "Please enter domains to blacklist in the textarea below, one per line."
-msgstr ""
+msgstr "Zadejte prosím domény k zablokování do textového pole níže, jednu na řádek."
 
 #: admin/sync.html
 msgid "Sync"
-msgstr ""
+msgstr "Synchronizovat"
 
 #: admin/sync.html
 msgid "Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org."
-msgstr ""
+msgstr "Synchronizuje metadata různých typů položek Open Library (např. seznamy, předměty, díla) s Archive.org."
 
 #: admin/sync.html
 msgid "Add Works to Staff Picks"
-msgstr ""
+msgstr "Přidat díla do výběru pracovníků"
 
 #: admin/sync.html
 msgid "This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item."
-msgstr ""
+msgstr "Tento nástroj přidá vaše dílo do seznamu Open Library nazvaného `Staff Picks` pod uživatelem `openlibrary`. Poté přidané dílo rozloží na seznam všech jeho čitelných vydání. Pro každé vydání Open Library bude do metadat archive.org odpovídající položky archive.org vloženo pole metadat nazývané `openlibrary_subject`."
 
 #: admin/sync.html
 #, fuzzy
@@ -2664,15 +2664,15 @@ msgstr "Přidat vydání"
 
 #: admin/sync.html
 msgid "Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values"
-msgstr ""
+msgstr "Aktualizuje vydání na archive.org zápisem jeho nejnovějších hodnot identifikátorů openlibrary_edition a openlibrary_work"
 
 #: admin/sync.html
 msgid "TODO"
-msgstr ""
+msgstr "TODO"
 
 #: admin/inspect/memcache.html
 msgid "[Admin Center] Inspect Memcache"
-msgstr ""
+msgstr "[Centrum správy] Prozkoumat Memcache"
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -2681,15 +2681,15 @@ msgstr "Témata"
 
 #: admin/inspect/memcache.html
 msgid "Add one memcache key per line in the text area. Each key must include a '-' as the last character."
-msgstr ""
+msgstr "Přidejte jeden klíč memcache na řádek do textového pole. Každý klíč musí jako poslední znak obsahovat '-'."
 
 #: admin/inspect/memcache.html
 msgid "For example, <code>observations-</code> should be entered in the text area if the key is <code>observations</code>."
-msgstr ""
+msgstr "Například <code>observations-</code> by mělo být zadáno do textového pole, pokud je klíč <code>observations</code>."
 
 #: admin/inspect/memcache.html
 msgid "Keys:"
-msgstr ""
+msgstr "Klíče:"
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -2698,7 +2698,7 @@ msgstr "Obnovit"
 
 #: admin/inspect/memcache.html
 msgid "No keys selected."
-msgstr ""
+msgstr "Nebyly vybrány žádné klíče."
 
 #: admin/inspect/memcache.html
 #, fuzzy
@@ -2707,27 +2707,27 @@ msgstr "Nenalezeno"
 
 #: admin/inspect/store.html
 msgid "Admin Center / Inspect"
-msgstr ""
+msgstr "Centrum správy / Prozkoumat"
 
 #: admin/inspect/store.html
 msgid "Inspect Store"
-msgstr ""
+msgstr "Prozkoumat úložiště"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "Získat"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "Klíč"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "Dotaz"
 
 #: admin/inspect/store.html
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: admin/inspect/store.html
 #, fuzzy
@@ -2736,7 +2736,7 @@ msgstr "Ćíslo"
 
 #: admin/inspect/store.html
 msgid "Documents"
-msgstr ""
+msgstr "Dokumenty"
 
 #: admin/inspect/store.html
 #, fuzzy
