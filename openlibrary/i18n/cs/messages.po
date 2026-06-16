@@ -2750,7 +2750,7 @@ msgstr "Nenalezeno"
 
 #: admin/ip/index.html
 msgid "[Admin Center] IP Addresses"
-msgstr ""
+msgstr "[Centrum správy] IP adresy"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -2759,11 +2759,11 @@ msgstr "Vaše emailová adresa"
 
 #: admin/ip/index.html
 msgid "List of Banned IPs"
-msgstr ""
+msgstr "Seznam zakázaných IP adres"
 
 #: admin/ip/index.html admin/people/index.html
 msgid "Date/Time"
-msgstr ""
+msgstr "Datum/Čas"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -2772,7 +2772,7 @@ msgstr "Vaše emailová adresa"
 
 #: admin/ip/index.html
 msgid "Admin Comment"
-msgstr ""
+msgstr "Komentář správce"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -2781,29 +2781,29 @@ msgstr "Nejvíc vydání"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "před x minutami"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: admin/ip/index.html
 msgid "comment"
-msgstr ""
+msgstr "komentář"
 
 #: admin/ip/view.html admin/people/view.html
 msgid "[Admin Center]"
-msgstr ""
+msgstr "[Centrum správy]"
 
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "IP %(ip)s je <a href=\"/admin/block\">zablokována</a>."
 
 #: admin/ip/view.html
 #, python-format
 msgid "Block %(ip)s"
-msgstr ""
+msgstr "Blokovat %(ip)s"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -2812,16 +2812,16 @@ msgstr "Prosím vyberte roli."
 
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "Pokud zde vidíte čísla, jedná se o IP adresu anonymního editora"
 
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
-msgstr ""
+msgstr "Vráceno zpět uživatelem %(revert_author)s"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr ""
+msgstr "Prosím, napište krátkou poznámku o tom, co jste změnili: <span class=\"small gray\">(Volitelné, ale velmi užitečné!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -2831,11 +2831,11 @@ msgstr "Vytvořte to"
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "[Centrum správy] Úpravy uživatele %(user)s"
 
 #: admin/people/edits.html
 msgid "people"
-msgstr ""
+msgstr "lidé"
 
 #: admin/people/edits.html
 #, fuzzy
@@ -2844,7 +2844,7 @@ msgstr "Editovat"
 
 #: admin/people/index.html
 msgid "[Admin Center] People"
-msgstr ""
+msgstr "[Centrum správy] Lidé"
 
 #: admin/people/index.html
 #, fuzzy
@@ -2868,15 +2868,15 @@ msgstr "Nebyl nalezen uživatel s tímto emailem"
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "IA ID:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "např. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "Nebyl nalezen žádný účet s tímto ID."
 
 #: admin/people/index.html
 #, fuzzy
@@ -2885,7 +2885,7 @@ msgstr "Smazat účet"
 
 #: admin/people/index.html
 msgid "email"
-msgstr ""
+msgstr "e-mail"
 
 #: admin/people/index.html
 #, fuzzy
@@ -2899,7 +2899,7 @@ msgstr "Historie"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "zablokovat a vrátit všechny úpravy"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2909,20 +2909,20 @@ msgstr "Smazat účet"
 #: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr ""
+msgstr "Registrován dne <span class=\"time\">%(date)s</span>."
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "přihlásit se jako tento uživatel"
 
 #: admin/people/view.html
 #, python-format
 msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
+msgstr "Aktivováno dne <span class=\"time\">%(date)s</span> z adresy <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "odblokovat tento účet"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2945,11 +2945,11 @@ msgstr "Změnit"
 
 #: admin/people/view.html
 msgid "Admin"
-msgstr ""
+msgstr "Správce"
 
 #: admin/people/view.html
 msgid "Make Human"
-msgstr ""
+msgstr "Označit jako člověka"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2958,7 +2958,7 @@ msgstr "O autorovi"
 
 #: admin/people/view.html
 msgid "Not available"
-msgstr ""
+msgstr "Není k dispozici"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2967,15 +2967,15 @@ msgstr "Editovat"
 
 #: admin/people/view.html
 msgid "Member Since:"
-msgstr ""
+msgstr "Členem od:"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "Poslední přihlášení:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "Štítky:"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2984,7 +2984,7 @@ msgstr "Váš účet"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Testovací spuštění"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3008,15 +3008,15 @@ msgstr ""
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d úprav"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "Ladící informace"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "Informace o účtu"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3034,7 +3034,7 @@ msgstr "Autoři"
 
 #: authors/index.html
 msgid "Search for an Author"
-msgstr ""
+msgstr "Hledat autora"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
@@ -3043,17 +3043,17 @@ msgstr "Hledat"
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
-msgstr ""
+msgstr "o %(subjects)s"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
-msgstr ""
+msgstr "včetně <i>%(topwork)s</i>"
 
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "Zobrazit na %(site)s"
 
 #: authors/infobox.html
 #, fuzzy
@@ -3072,43 +3072,43 @@ msgstr "Akce"
 
 #: book_providers/cita_press_download_options.html
 msgid "Download PDF from Cita Press"
-msgstr ""
+msgstr "Stáhnout PDF z Cita Press"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Více na Cita Press"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Stáhnout HTML z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a text version from Project Gutenberg"
-msgstr ""
+msgstr "Stáhnout textovou verzi z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "Prostý text"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Stáhnout ePub z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Stáhnout soubor pro Kindle z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Kindle"
-msgstr ""
+msgstr "Kindle"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Více na Project Gutenberg"
 
 #: book_providers/ia_download_options.html
 #, fuzzy
@@ -3117,60 +3117,60 @@ msgstr "Internetový Archiv"
 
 #: book_providers/ia_download_options.html
 msgid "Download a text version from Internet Archive"
-msgstr ""
+msgstr "Stáhnout textovou verzi z Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "Download an ePub from Internet Archive"
-msgstr ""
+msgstr "Stáhnout ePub z Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "Download a MOBI file from Internet Archive"
-msgstr ""
+msgstr "Stáhnout soubor MOBI z Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
-msgstr ""
+msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
+msgstr "Stáhnout otevřený DAISY formát z Internet Archive (formát pro osoby s omezenou schopností tisku)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
-msgstr ""
+msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html
 msgid "Download a ZIP file of the whole book from Internet Archive"
-msgstr ""
+msgstr "Stáhnout ZIP soubor celé knihy z Internet Archive"
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "Celá kniha MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "Získat RSS kanál z LibriVox"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "RSS kanál"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "Více na LibriVox"
 
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
-msgstr ""
+msgstr "Stáhnout PDF z OpenStax"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "Více na OpenStax"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "Poslechnout čtení z %s"
 
 #: book_providers/read_button.html
 #, fuzzy
@@ -3180,43 +3180,43 @@ msgstr "Náhodna kniha"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Číst zdarma online z %s"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Stáhnout všechny naskenované obrázky z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Naskenované obrázky"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Stáhnout všechny barevné obrázky z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
-msgstr ""
+msgstr "Barevné obrázky"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Stáhnout všechny HTML soubory z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
-msgstr ""
+msgstr "Stáhnout všechny textové a indexové soubory z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "Textové a indexové soubory"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Stáhnout veškerý OCR text z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "OCR text"
-msgstr ""
+msgstr "OCR text"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
