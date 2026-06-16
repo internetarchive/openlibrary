@@ -7317,31 +7317,31 @@ msgstr "Subskrybuj"
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
+msgstr "Obserwuj aktywność przez <a rel=\"nofollow\" href=\"%s\">kanał Atom</a>"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "Eksport niedostępny"
 
 #: type/list/exports.html
 #, python-format
 msgid "Only lists with up to %(max)s editions can be exported. This one has %(count)s."
-msgstr ""
+msgstr "Można eksportować tylko listy z maksymalnie %(max)s wydaniami. Ta lista ma %(count)s."
 
 #: type/list/exports.html
 #, python-format
 msgid "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk download</a> of the catalog."
-msgstr ""
+msgstr "Spróbuj usunąć niektóre źródła dla większej precyzji lub skorzystaj z <a href=\"%s\">masowego pobierania</a> katalogu."
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | Listy | Open Library"
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7356,7 +7356,7 @@ msgstr "Usunąć ten plik inicujuący?"
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "Ostatnio zmodyfikowano <span>%(date)s</span>"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7375,24 +7375,24 @@ msgstr "Usunąć ten plik inicujuący?"
 
 #: type/list/view_body.html
 msgid "You are about to remove the last item in the list. That will delete the whole list. Are you sure you want to continue?"
-msgstr ""
+msgstr "Zamierzasz usunąć ostatni element z listy. Spowoduje to usunięcie całej listy. Czy na pewno chcesz kontynuować?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "Ta seria zawiera %(limit)d lub więcej dzieł. Aktualnie wyświetlane są tylko pierwsze %(limit)d dzieł."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "Na tej liście nie ma żadnych elementów."
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Wyszukaj książki, tematy lub autorów</a>, aby dodać do swojej listy."
 
 #: type/list/view_body.html
 msgid "Learn more."
-msgstr ""
+msgstr "Dowiedz się więcej."
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7401,7 +7401,7 @@ msgstr "Dodatkowe metadane"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "Pochodzi z metadanych źródłowych"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py type/list/view_body.html
 msgid "Times"
@@ -7409,11 +7409,11 @@ msgstr "Okres"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "Lokalne identyfikatory"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "Element źródłowy"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7422,7 +7422,7 @@ msgstr "Lokalizaja"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Wyrażenie regularne kodu kreskowego"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7485,7 +7485,7 @@ msgstr "Aby utworzyć nowy wpis wymagane jest uzupełnienie nastepujących pól.
 
 #: EditButtons.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr ""
+msgstr "Zapisując zmianę w tym wiki, zgadzasz się, że Twój wkład jest przekazywany swobodnie światu na warunkach <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"Ten link do Creative Commons otworzy się w nowym oknie\">CC0</a>. Hurra!"
 
 #: type/tag/form.html
 #, fuzzy
@@ -7499,7 +7499,7 @@ msgstr "Status"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Tagi opracowane przez bibliotekarzy Open Library."
 
 #: type/tag/index.html
 #, fuzzy
@@ -7522,15 +7522,15 @@ msgstr "Imię i nazwisko"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "Czytelna dla człowieka nazwa wyświetlana (np. „Informatyka”, „Horror”)"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Slugi tagów"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "Slugi URL oddzielone przecinkami, które odwzorowują ten tag (wypełniane automatycznie na podstawie nazwy). Np. „computer_science, cs”"
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7549,12 +7549,12 @@ msgstr "Rodzaj strony"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Zastępca tagu"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Typ:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -7562,16 +7562,16 @@ msgstr "Opis"
 
 #: type/tag/view.html
 msgid "Tag Body"
-msgstr ""
+msgstr "Treść tagu"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "Slugi URL"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "Zobacz stronę tematu dla %(name)s."
 
 #: type/template/edit.html
 #, fuzzy
@@ -7616,7 +7616,7 @@ msgstr "Różnice"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "Edytowanie %(name)s"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
@@ -7633,15 +7633,15 @@ msgstr "strona administratora"
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Publicznie udostępniasz książki, które <a href=\"%(username)s/books/currently-reading\">aktualnie czytasz</a>, <a href=\"%(username)s/books/already-read\">już przeczytałeś/aś</a>, <a href=\"%(username)s/books/want-to-read\">chcesz przeczytać</a> i <a href=\"%(username)s/books/stopped-reading\">przestałeś/aś czytać</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "Wybrałeś/aś, aby Twój"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "prywatny"
 
 #: type/user/view.html
 msgid "Manage your privacy settings"
@@ -7650,7 +7650,7 @@ msgstr "Zarządzaj swoimi ustawieniami prywatności"
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Oto książki, które %(user)s <a href=\"%(username)s/books/currently-reading\">aktualnie czyta</a>, <a href=\"%(username)s/books/already-read\">już przeczytał/a</a>, <a href=\"%(username)s/books/want-to-read\">chce przeczytać</a> i <a href=\"%(username)s/books/stopped-reading\">przestał/a czytać</a>!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -7673,7 +7673,7 @@ msgstr "Po raz pierwszy opublikowana w %(year)s"
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "Dodaj kolejne wydanie %(work)s"
 
 #: UserEditRow.html type/work/editions.html
 msgid "Add another"
@@ -7688,13 +7688,13 @@ msgstr "brakuje imienia"
 #, python-format
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Wyświetlanie %(count)d wyróżnionego wydania."
+msgstr[1] "Wyświetlanie %(count)d wyróżnionych wydań."
 
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "Wyświetlić wszystkie %(count)d wydania?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
@@ -7713,26 +7713,26 @@ msgstr "Dodaj kolejne wydanie"
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "Poszukaj tego wydania na sprzedaż w %(store)s"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "Kupując książki za pomocą tych linków, Internet Archive może otrzymać <a class=\"nostyle\" href=\"/help/faq/about#selling\">małą prowizję</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
-msgstr ""
+msgstr "Pobieranie cen"
 
 #: BatchImportNavigation.html
 msgid "Pending Imports"
-msgstr ""
+msgstr "Oczekujące importy"
 
 #: BookByline.html
 #, python-format
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s inny"
+msgstr[1] "%(n)s inne"
 
 #: BookByline.html
 #, fuzzy
@@ -7755,7 +7755,7 @@ msgstr ""
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "Przejdź do poprzedniej sekcji"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7766,15 +7766,15 @@ msgstr "Wyświetl"
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Wyświetl %(count)s wydanie"
+msgstr[1] "Wyświetl %(count)s wydania"
 
 #: EditionNavBar.html
 #, python-format
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(reviews)s recenzja"
+msgstr[1] "%(reviews)s recenzje"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7783,15 +7783,15 @@ msgstr "Losowa książka"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Przejdź do następnej sekcji"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "Przestań obserwować"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Nie udało się zaktualizować obserwujących. Spróbuj ponownie za chwilę."
 
 #: FormatExpiry.html
 #, fuzzy
@@ -7800,7 +7800,7 @@ msgstr "Termin zwrotu"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Sprawdzanie dopasowań Szukaj w środku"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -7815,38 +7815,38 @@ msgstr "Szukaj w"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s książek znalezionych z pasującymi fragmentami"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Zobacz wszystkie %(results_count)s dopasowania Szukaj w środku"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "strzałka w prawo"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "Strona: %(page)s"
 
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Wypożyczono z Internet Archive: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "Wskaźnik ładowania"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
@@ -7865,15 +7865,15 @@ msgstr "Opuścić listę oczekujących?"
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "Czytelnicy w kolejce: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "Będziesz następny/a w kolejce."
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "Ta książka jest aktualnie wypożyczona, proszę wróć później."
 
 #: LoanStatus.html
 #, fuzzy
@@ -7902,8 +7902,8 @@ msgstr[1] "Oczekujesz %d dni"
 #, python-format
 msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Masz jeszcze %(count)d godzinę na wypożyczenie."
+msgstr[1] "Masz jeszcze %(count)d godziny na wypożyczenie."
 
 #: NotInLibrary.html
 msgid "Not in Library"
@@ -7922,7 +7922,7 @@ msgstr "Dodatkowe uwagi na temat tego wydania?"
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "przez  %(authors)s"
 
 #: ObservationsModal.html
 #, fuzzy
@@ -7931,21 +7931,21 @@ msgstr "Moje książki"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Przejdź do poprzedniej strony"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Przejdź do następnej strony"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "Przejdź do strony {page}"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Strona {page}, bieżąca strona"
 
 #: Profile.html
 #, fuzzy
@@ -7970,23 +7970,23 @@ msgstr "Ten diagram przedstawia wydania publikacji na ten temat."
 
 #: RawQueryCarousel.html
 msgid "Loading carousel"
-msgstr ""
+msgstr "Ładowanie karuzeli"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Nie udało się załadować karuzeli."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Spróbować ponownie?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Żadne książki nie pasują do bieżących filtrów."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Spróbować ponownie bez filtrów?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -8000,7 +8000,7 @@ msgstr "Miejsca"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "Specjalny dostęp do e-booków z Internet Archive dla czytelników z kwalifikującymi się niepełnosprawnościami druku"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
@@ -8036,7 +8036,7 @@ msgstr "Edytuj"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "Brak historii edycji."
 
 #: RelatedSubjects.html
 msgid "Related..."
@@ -8059,7 +8059,7 @@ msgstr "Dodano"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Książka %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
