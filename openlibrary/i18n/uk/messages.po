@@ -7309,19 +7309,19 @@ msgstr "Документація API"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Регулярний вираз штрихкоду"
 
 #: type/local_id/view.html
 msgid "URN prefix"
-msgstr ""
+msgstr "Префікс URN"
 
 #: type/local_id/view.html
 msgid "Example"
-msgstr ""
+msgstr "Приклад"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "Тіло документа:"
 
 #: type/page/view.html
 #, fuzzy
@@ -7340,11 +7340,11 @@ msgstr "фільтри"
 
 #: type/permission/view.html
 msgid "Readers"
-msgstr ""
+msgstr "Читачі"
 
 #: type/permission/view.html
 msgid "Writers"
-msgstr ""
+msgstr "Автори"
 
 #: type/tag/form.html
 #, fuzzy
@@ -7368,7 +7368,7 @@ msgstr "Нам потрібен мінімальний набір даних, щ
 
 #: EditButtons.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
-msgstr ""
+msgstr "Зберігаючи зміни на цьому вікі, ви погоджуєтеся, що ваш внесок безкоштовно передається світу за ліцензією <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Ура!"
 
 #: type/tag/form.html
 #, fuzzy
@@ -7382,7 +7382,7 @@ msgstr "Теги:"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Теги, відібрані бібліотекарями Open Library."
 
 #: type/tag/index.html
 #, fuzzy
@@ -7405,15 +7405,15 @@ msgstr "Ім'я"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "Зрозуміла назва для відображення (напр. «Інформатика», «Жахи»)"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Слаги тегів"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "Слаги URL через кому, що відповідають цьому тегу (заповнюється автоматично з назви). Напр.: «computer_science, cs»"
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7422,7 +7422,7 @@ msgstr "Опис"
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
+msgstr "Тіло сторінки"
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7431,12 +7431,12 @@ msgstr "Тип ID"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Заступник тегу"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Тип:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -7449,12 +7449,12 @@ msgstr "Сьогодні"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "Слаги URL"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "Переглянути сторінку теми %(name)s."
 
 #: type/template/edit.html
 #, fuzzy
@@ -7463,7 +7463,7 @@ msgstr "Увійти"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "Тіло документа"
 
 #: type/template/edit.html
 msgid "Delete this template?"
@@ -7476,7 +7476,7 @@ msgstr "Увійти"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "Тип"
 
 #: type/type/view.html
 #, fuzzy
@@ -7490,29 +7490,29 @@ msgstr "Тип ID"
 
 #: type/type/view.html
 msgid "Backreferences"
-msgstr ""
+msgstr "Зворотні посилання"
 
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "Редагування %(name)s"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "Наразі редагується:"
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "Відображуване ім'я"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "сторінка адміністратора"
 
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Ви публічно ділитеся книгами, які <a href=\"%(username)s/books/currently-reading\">читаєте зараз</a>, <a href=\"%(username)s/books/already-read\">вже прочитали</a>, <a href=\"%(username)s/books/want-to-read\">хочете прочитати</a> та <a href=\"%(username)s/books/stopped-reading\">припинили читати</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -7529,7 +7529,7 @@ msgstr "Керуйте своїми налаштуваннями приватн�
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Ось книги, які %(user)s <a href=\"%(username)s/books/currently-reading\">читає зараз</a>, <a href=\"%(username)s/books/already-read\">вже прочитав</a>, <a href=\"%(username)s/books/want-to-read\">хоче прочитати</a> та <a href=\"%(username)s/books/stopped-reading\">припинив читати</a>!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -7590,11 +7590,11 @@ msgstr "Додати інше видання?"
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "Шукайте це видання у продажі на %(store)s"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "Коли ви купуєте книги за цими посиланнями, Internet Archive може отримати <a class=\"nostyle\" href=\"/help/faq/about#selling\">невелику комісію</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 #, fuzzy
@@ -7610,9 +7610,9 @@ msgstr "Невирішені запити на об'єднання"
 #, python-format
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(n)s інший"
+msgstr[1] "%(n)s інших"
+msgstr[2] "%(n)s інших"
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
@@ -7629,7 +7629,7 @@ msgstr "Передперегляд книги"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "Шаблони на сайті наразі вимкнені. Їх редагування не матиме жодного ефекту на живому сайті."
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7644,17 +7644,17 @@ msgstr "Огляд"
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Переглянути %(count)s видання"
+msgstr[1] "Переглянути %(count)s видання"
+msgstr[2] "Переглянути %(count)s видань"
 
 #: EditionNavBar.html
 #, python-format
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(reviews)s відгук"
+msgstr[1] "%(reviews)s відгуки"
+msgstr[2] "%(reviews)s відгуків"
 
 #: EditionNavBar.html
 msgid "Related Books"
@@ -7662,15 +7662,15 @@ msgstr "Пов'язані книги"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Перейти до наступного розділу"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "Відписатися"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Не вдалося оновити підписників. Спробуйте ще раз за кілька хвилин."
 
 #: FormatExpiry.html
 msgid "Expires"
@@ -7678,7 +7678,7 @@ msgstr "Закінчується"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Перевірка збігів у пошуку всередині"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -7693,24 +7693,24 @@ msgstr "Шукати всередині"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "Знайдено %(book_count)s книг із відповідними уривками"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Переглянути всі %(results_count)s збіги пошуку всередині"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "стрілка вправо"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, fuzzy, python-format
@@ -7720,7 +7720,7 @@ msgstr "Сторінка %(page)s"
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Позичено з Internet Archive: %(title)s"
 
 #: LoadingIndicator.html
 #, fuzzy
@@ -7729,33 +7729,33 @@ msgstr "Історія позик"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "Ви <strong>наступний</strong> у черзі очікування"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
+msgstr "Ви <strong>#%(spot)d</strong> із %(wlsize)d у черзі очікування."
 
 #: LoanStatus.html
 msgid "Leave waiting list"
-msgstr ""
+msgstr "Покинути чергу очікування"
 
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "Читачів у черзі: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "Ви будете наступним у черзі."
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "Ця книга зараз позичена, перевірте пізніше."
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "Позичено"
 
 #: LocateButton.html
 #, fuzzy
@@ -7766,9 +7766,9 @@ msgstr "Пожертвувати"
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Одна людина очікує цю книгу."
+msgstr[1] "%(n)s людини очікують цю книгу."
+msgstr[2] "%(n)s людей очікують цю книгу."
 
 #: ManageWaitlistButton.html
 #, python-format
@@ -7782,9 +7782,9 @@ msgstr[2] "Очікує %d днів"
 #, python-format
 msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "У вас є ще %(count)d година, щоб позичити її."
+msgstr[1] "У вас є ще %(count)d години, щоб позичити її."
+msgstr[2] "У вас є ще %(count)d годин, щоб позичити її."
 
 #: NotInLibrary.html
 msgid "Not in Library"
@@ -7796,34 +7796,34 @@ msgstr "Мої нотатки до книг"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "Мої приватні нотатки про це видання:"
 
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "автор: %(authors)s"
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
+msgstr "Мій відгук про книгу"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Перейти до попередньої сторінки"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Перейти до наступної сторінки"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "Перейти на сторінку {page}"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Сторінка {page}, поточна сторінка"
 
 #: Profile.html
 #, fuzzy
@@ -7853,19 +7853,19 @@ msgstr "Не можете ввійти"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Не вдалося завантажити карусель."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Спробувати ще раз?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Жодна книга не відповідає поточним фільтрам."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Спробувати без фільтрів?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -7874,19 +7874,19 @@ msgstr "Дослідити колекції"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "Спеціальний доступ"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "Спеціальний доступ до електронних книг від Internet Archive для читачів з вадами читання друку"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr ""
+msgstr "Позичити електронну книгу з Internet Archive"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
+msgstr "Читати електронну книгу з Internet Archive"
 
 #: ReadButton.html
 msgid "Listen"
@@ -7898,7 +7898,7 @@ msgstr "Показати MARC"
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
+msgstr "Шлях"
 
 #: RecentChangesAdmin.html
 msgid "view"
@@ -7919,11 +7919,11 @@ msgstr "Пов'язане..."
 
 #: ReturnForm.html
 msgid "Really return this book?"
-msgstr ""
+msgstr "Справді повернути цю книгу?"
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
+msgstr "Повернути книгу"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7933,7 +7933,7 @@ msgstr "Додано"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Книга %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -7948,15 +7948,15 @@ msgstr "Показати усі запити"
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "Обкладинка видання %(id)s"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d мовою</a>"
+msgstr[1] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d мовами</a>"
+msgstr[2] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d мовами</a>"
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
@@ -7969,7 +7969,7 @@ msgstr "Назва"
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "Поділитися на %(share_link)s"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
