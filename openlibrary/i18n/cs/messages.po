@@ -7931,31 +7931,31 @@ msgstr "kteří napsali nejvíce knih na toto téma"
 
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "Toto je graf zobrazující historii vydávání děl o tomto tématu. Na ose X je čas a na ose Y je počet vydaných vydání. <a href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
 
 #: PublishingHistory.html
 msgid "This graph charts editions published on this subject."
-msgstr ""
+msgstr "Tento graf zobrazuje vydání publikovaná na toto téma."
 
 #: RawQueryCarousel.html
 msgid "Loading carousel"
-msgstr ""
+msgstr "Načítání kolotoče"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Načítání kolotoče se nezdařilo."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Zkusit znovu?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Žádné knihy neodpovídají aktuálním filtrům."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Zkusit znovu bez filtrů?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -7964,11 +7964,11 @@ msgstr "Rok vydání"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "Speciální přístup"
 
 #: ReadButton.html
 msgid "Special ebook access from the Internet Archive for patrons with qualifying print disabilities"
-msgstr ""
+msgstr "Speciální přístup k e-knihám z Internet Archive pro čtenáře s kvalifikovaným postižením tisku"
 
 #: ReadButton.html
 #, fuzzy
@@ -8007,7 +8007,7 @@ msgstr "Editovat"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "Žádná historie úprav není k dispozici."
 
 #: RelatedSubjects.html
 msgid "Related..."
@@ -8031,7 +8031,7 @@ msgstr "Přidáno"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Kniha %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -8046,19 +8046,19 @@ msgstr "méně"
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "Obálka vydání %(id)s"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "v <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jazyce</a>"
+msgstr[1] "ve <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jazycích</a>"
+msgstr[2] "v <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d jazycích</a>"
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "Toto je viditelné pouze knihovníkům."
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -8068,7 +8068,7 @@ msgstr "Ostatní názvy"
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "Sdílet na %(share_link)s"
 
 #: ShareModal.html
 #, fuzzy
@@ -8077,7 +8077,7 @@ msgstr "Přidat tuto knihu"
 
 #: ShareModal.html
 msgid "Embed icon"
-msgstr ""
+msgstr "Ikona vložení"
 
 #: ShareModal.html
 #, fuzzy
@@ -8086,51 +8086,51 @@ msgstr "Smazáno"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "Kopírovat URL do schránky"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "Ikona kopírování URL"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "Kopírovat URL"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "Otevřít QR kód"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "Ikona QR kódu"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "QR kód"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "zanechání hodnocení 1 hvězdičkou pro"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "zanechání hodnocení 2 hvězdičkami pro"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "zanechání hodnocení 3 hvězdičkami pro"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "zanechání hodnocení 4 hvězdičkami pro"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "zanechání hodnocení 5 hvězdičkami pro"
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "Smazat moje hodnocení"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 #, fuzzy
@@ -8149,18 +8149,18 @@ msgstr "Nastavení"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s Chci přečíst"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
-msgstr ""
+msgstr "Chci přečíst"
 
 #. Short label displayed next to the count of readers currently reading this
 #. book, shown in the stats bar on a book page. Example: "1,247 Currently
@@ -8183,7 +8183,7 @@ msgstr "Číst"
 #. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
-msgstr ""
+msgstr "Přestal/a číst"
 
 #: SubjectTags.html
 #, fuzzy
@@ -8197,15 +8197,15 @@ msgstr "Vývojářské centrum"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Webové API"
 
 #: Subnavigation.html
 msgid "Client Library"
-msgstr ""
+msgstr "Klientská knihovna"
 
 #: Subnavigation.html
 msgid "Data Dumps"
-msgstr ""
+msgstr "Datové exporty"
 
 #: Subnavigation.html
 #, fuzzy
@@ -8219,7 +8219,7 @@ msgstr "Rozměry"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "Vítejte"
 
 #: Subnavigation.html
 #, fuzzy
@@ -8243,95 +8243,95 @@ msgstr "Témata"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
+msgstr "Časté dotazy Open Library"
 
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "Strana %s"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "Trendy: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
-msgstr ""
+msgstr "Typ stránky"
 
 #: TypeChanger.html
 msgid "Huh?"
-msgstr ""
+msgstr "Cože?"
 
 #: TypeChanger.html
 msgid "Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content."
-msgstr ""
+msgstr "Každá část Open Library je definována typem obsahu, který zobrazuje, obvykle definicí obsahu (např. Autoři, Vydání, Díla), ale někdy způsobem použití obsahu (např. makro, šablona, rawtext). Změna tohoto u existující stránky změní její prezentaci a datová pole dostupná pro úpravu obsahu."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
-msgstr ""
+msgstr "Při změně typu stránky buďte prosím opatrní!"
 
 #: TypeChanger.html
 msgid "(Simplest solution: If you aren't sure whether this should be changed, don't change it.)"
-msgstr ""
+msgstr "(Nejjednodušší řešení: Pokud si nejste jisti, zda to má být změněno, neměňte to.)"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Žádný odkaz na Wikipedii ve vašem jazyce"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "Zkontrolovat blízké knihovny"
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
-msgstr ""
+msgstr "Zkontrolovat WorldCat pro vydání ve vašem okolí"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
-msgstr ""
+msgstr "Zobrazit historii úprav této stránky"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "Zobrazit tuto stránku (opustit pohled srovnání)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "Zobrazit tuto stránku (opustit režim úprav)"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "Naposledy upravil/a %(author_link)s"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
-msgstr ""
+msgstr "Naposledy upraveno anonymně"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "Zobrazit historii úprav této šablony"
 
 #: databarTemplate.html
 msgid "Edit this template"
-msgstr ""
+msgstr "Upravit tuto šablonu"
 
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "Zobrazit svazek %(num)d"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
-msgstr ""
+msgstr "[Záznam smazán]"
 
 #: openlibrary/core/edits.py
 msgid "Unknown"
-msgstr ""
+msgstr "Neznámý"
 
 #: openlibrary/plugins/openlibrary/api.py
 msgid "Search Results"
@@ -8343,7 +8343,7 @@ msgstr "Arabsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
-msgstr ""
+msgstr "Česky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "German"
@@ -8363,7 +8363,7 @@ msgstr "Francouzsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Hindi"
-msgstr ""
+msgstr "Hindsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 #, fuzzy
@@ -8385,15 +8385,15 @@ msgstr "Romantické"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "Sardinsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
-msgstr ""
+msgstr "Telugu"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "Ukrajinsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
@@ -8401,11 +8401,11 @@ msgstr "Čínsky"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "Filipínsky"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
-msgstr ""
+msgstr "Umění"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8427,7 +8427,7 @@ msgstr "Řada"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "Děti"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8441,7 +8441,7 @@ msgstr "Revize"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "Mystérie a detektivky"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8450,7 +8450,7 @@ msgstr "Místo"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "Hudba"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science"
@@ -8458,7 +8458,7 @@ msgstr "Věda"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "Alespoň 1 téma"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8472,7 +8472,7 @@ msgstr "Toto vydání"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Má dílo (osiřelé)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
