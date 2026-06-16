@@ -174,13 +174,17 @@ def account_loan_history_json(
 ) -> dict[str, Any]:
     try:
         return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
-    except Exception:
+    except Exception as e:  # noqa: BLE001
         if os.getenv("LOCAL_DEV"):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
             )
-        raise
+        return {
+            "error": f"{type(e).__name__}: {e}",
+            "error_type": type(e).__name__,
+            "detail": str(e),
+        }
 
 
 class LoginForm(BaseModel):
