@@ -8362,106 +8362,108 @@ msgstr[1] "%(count)s Baskıyı Görüntüle"
 #, python-format
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(reviews)s Yorum"
+msgstr[1] "%(reviews)s Yorum"
 
 #: EditionNavBar.html
 msgid "Related Books"
-msgstr ""
+msgstr "İlgili Kitaplar"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Sonraki bölüme git"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "Takibi Bırak"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Takipçiler güncellenemedi. Lütfen birkaç dakika sonra tekrar deneyin."
 
 #: FormatExpiry.html
 msgid "Expires"
-msgstr ""
+msgstr "Sona eriyor"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "İçinde Ara eşleşmeleri kontrol ediliyor"
 
 #: FulltextSearchSuggestion.html
 msgid "Search Inside Icon"
-msgstr ""
+msgstr "İçinde Ara Simgesi"
 
 #: FulltextSearchSuggestion.html
 msgid "search inside icon"
-msgstr ""
+msgstr "içinde ara simgesi"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s kitapta eşleşen pasaj bulundu"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Tüm %(results_count)s İçinde Ara eşleşmelerini gör"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "sağ ok"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "Sayfa: %(page)s"
 
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Internet Archive'dan ödünç alındı: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "Yükleme göstergesi"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "Bekleme listesinde <strong>sıradaki</strong> sizsiniz"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr ""
+"Bekleme listesinde %(wlsize)d kişiden <strong>%(spot)d. "
+"sıradasınız</strong>."
 
 #: LoanStatus.html
 msgid "Leave waiting list"
-msgstr ""
+msgstr "Bekleme listesinden ayrıl"
 
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "Sıradaki okuyucu sayısı: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "Sıradaki siz olacaksınız."
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "Bu kitap şu anda ödünç alındı, lütfen daha sonra tekrar kontrol edin."
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "Ödünç Alındı"
 
 #: LocateButton.html
 #, fuzzy
@@ -8472,8 +8474,8 @@ msgstr "Bağış yap"
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Bu kitabı bekleyen bir kişi var."
+msgstr[1] "Bu kitabı bekleyen %(n)s kişi var."
 
 #: ManageWaitlistButton.html
 #, python-format
@@ -8486,47 +8488,47 @@ msgstr[1] "%d gündür bekliyor"
 #, python-format
 msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Ödünç almak için %(count)d saatiniz daha var."
+msgstr[1] "Ödünç almak için %(count)d saatiniz daha var."
 
 #: NotInLibrary.html
 msgid "Not in Library"
-msgstr ""
+msgstr "Kütüphanede Yok"
 
 #: NotesModal.html
 msgid "My Book Notes"
-msgstr ""
+msgstr "Kitap Notlarım"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "Bu baskı hakkındaki özel notlarım:"
 
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "%(authors)s tarafından"
 
 #: ObservationsModal.html
 msgid "My Book Review"
-msgstr ""
+msgstr "Kitap Yorumum"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Önceki sayfaya git"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Sonraki sayfaya git"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "{page}. sayfaya git"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Sayfa {page}, geçerli sayfa"
 
 #: Profile.html
 #, fuzzy
@@ -8564,19 +8566,19 @@ msgstr "Oturum açma Sorunu"
 
 #: RawQueryCarousel.html
 msgid "Failed to fetch carousel."
-msgstr ""
+msgstr "Döngü yüklenemedi."
 
 #: RawQueryCarousel.html
 msgid "Retry?"
-msgstr ""
+msgstr "Yeniden dene?"
 
 #: RawQueryCarousel.html
 msgid "No books match the current filters."
-msgstr ""
+msgstr "Mevcut filtrelere uyan kitap yok."
 
 #: RawQueryCarousel.html
 msgid "Retry without filters?"
-msgstr ""
+msgstr "Filtreler olmadan tekrar dene?"
 
 #: RawQueryCarousel.html
 #, fuzzy
@@ -8585,45 +8587,45 @@ msgstr "Kitap ara"
 
 #: ReadButton.html
 msgid "Special Access"
-msgstr ""
+msgstr "Özel Erişim"
 
 #: ReadButton.html
 msgid ""
 "Special ebook access from the Internet Archive for patrons with "
 "qualifying print disabilities"
-msgstr ""
+msgstr "Baskı engelli okuyucular için Internet Archive'dan özel e-kitap erişimi"
 
 #: ReadButton.html
 msgid "Borrow ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan e-kitap ödünç al"
 
 #: ReadButton.html
 msgid "Read ebook from Internet Archive"
-msgstr ""
+msgstr "Internet Archive'dan e-kitap oku"
 
 #: ReadButton.html
 msgid "Listen"
-msgstr ""
+msgstr "Dinle"
 
 #: RecentChanges.html
 msgid "View MARC"
-msgstr ""
+msgstr "MARC'ı Görüntüle"
 
 #: RecentChangesAdmin.html
 msgid "Path"
-msgstr ""
+msgstr "Yol"
 
 #: RecentChangesAdmin.html
 msgid "view"
-msgstr ""
+msgstr "görüntüle"
 
 #: RecentChangesAdmin.html
 msgid "edit"
-msgstr ""
+msgstr "düzenle"
 
 #: RecentChangesAdmin.html RecentChangesUsers.html
 msgid "No edit history available."
-msgstr ""
+msgstr "Düzenleme geçmişi mevcut değil."
 
 #: RelatedSubjects.html
 msgid "Related..."
@@ -8631,11 +8633,11 @@ msgstr "Bağlantılı…"
 
 #: ReturnForm.html
 msgid "Really return this book?"
-msgstr ""
+msgstr "Bu kitabı gerçekten iade edecek misiniz?"
 
 #: ReturnForm.html
 msgid "Return book"
-msgstr ""
+msgstr "Kitabı iade et"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -8645,7 +8647,7 @@ msgstr "Eklendi"
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
+msgstr "Kitap %(position)s"
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -8660,87 +8662,87 @@ msgstr "Şifre"
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "%(id)s numaralı baskının kapağı"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d dilde</a>"
+msgstr[1] "<a class=\"hoverlink\" title=\"%(langs)s\">%(count)d dilde</a>"
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "Bu yalnızca kütüphaneciler tarafından görülebilir."
 
 #: SearchResultsWork.html
 msgid "Work Title"
-msgstr ""
+msgstr "Eser Başlığı"
 
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "%(share_link)s'de paylaş"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
-msgstr ""
+msgstr "Bu kitabı web sitenize göm"
 
 #: ShareModal.html
 msgid "Embed icon"
-msgstr ""
+msgstr "Gömme simgesi"
 
 #: ShareModal.html
 msgid "Embed"
-msgstr ""
+msgstr "Göm"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "URL'yi panoya kopyala"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "URL kopyalama simgesi"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "URL Kopyala"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "QR kodu aç"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "QR kodu simgesi"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "QR Kodu"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "için 1 yıldız yorumu yazılıyor"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "için 2 yıldız yorumu yazılıyor"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "için 3 yıldız yorumu yazılıyor"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "için 4 yıldız yorumu yazılıyor"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "için 5 yıldız yorumu yazılıyor"
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "Oyumu temizle"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 #, fuzzy
@@ -8759,39 +8761,39 @@ msgstr "Her şey"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s Okumak İstiyor"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
 #: StarRatingsStats.html
 msgid "Want to read"
-msgstr ""
+msgstr "Okumak istiyorum"
 
 #. Short label displayed next to the count of readers currently reading this
 #. book, shown in the stats bar on a book page. Example: "1,247 Currently
 #. reading".
 #: StarRatingsStats.html
 msgid "Currently reading"
-msgstr ""
+msgstr "Şu an okuyorum"
 
 #. Short label displayed next to the count of readers who have finished this
 #. book, shown in the stats bar on a book page. Example: "15,420 Have read".
 #. This refers to the same shelf as the "Already Read" button.
 #: StarRatingsStats.html
 msgid "Have read"
-msgstr ""
+msgstr "Okudum"
 
 #. Short label displayed next to the count of readers who stopped reading this
 #. book before finishing, shown in the stats bar on a book page. Example: "348
 #. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
-msgstr ""
+msgstr "Okumayı bıraktım"
 
 #: SubjectTags.html
 #, fuzzy
@@ -8800,69 +8802,69 @@ msgstr "Konular"
 
 #: Subnavigation.html
 msgid "Developer Center (Home)"
-msgstr ""
+msgstr "Geliştirici Merkezi (Ana Sayfa)"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Web API"
 
 #: Subnavigation.html
 msgid "Client Library"
-msgstr ""
+msgstr "İstemci Kütüphanesi"
 
 #: Subnavigation.html
 msgid "Data Dumps"
-msgstr ""
+msgstr "Veri Dökümleri"
 
 #: Subnavigation.html
 msgid "Report an Issue"
-msgstr ""
+msgstr "Sorun Bildir"
 
 #: Subnavigation.html
 msgid "Licensing"
-msgstr ""
+msgstr "Lisanslama"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "Hoş Geldiniz"
 
 #: Subnavigation.html
 msgid "Searching Open Library"
-msgstr ""
+msgstr "Open Library'de Arama"
 
 #: Subnavigation.html
 msgid "Reading Books"
-msgstr ""
+msgstr "Kitap Okuma"
 
 #: Subnavigation.html
 msgid "Adding & Editing Books"
-msgstr ""
+msgstr "Kitap Ekleme ve Düzenleme"
 
 #: Subnavigation.html
 msgid "Using Subjects"
-msgstr ""
+msgstr "Konuları Kullanma"
 
 #: Subnavigation.html
 msgid "Open Library F.A.Q."
-msgstr ""
+msgstr "Open Library SSS"
 
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "Sayfa %s"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "Trend: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
-msgstr ""
+msgstr "Sayfa Türü"
 
 #: TypeChanger.html
 msgid "Huh?"
-msgstr ""
+msgstr "Ne?"
 
 #: TypeChanger.html
 msgid ""
@@ -8872,66 +8874,73 @@ msgid ""
 "this for an existing page will alter its presentation and the data fields"
 " available for editing its content."
 msgstr ""
+"Open Library'deki her parça, genellikle içerik tanımıyla (ör. Yazarlar, "
+"Baskılar, Eserler) bazen de içerik kullanımıyla (ör. makro, şablon, ham "
+"metin) belirlenen görüntülediği içerik türüyle tanımlanır. Mevcut bir "
+"sayfada bunu değiştirmek, sunumunu ve içerik düzenleme için "
+"kullanılabilir veri alanlarını değiştirecektir."
 
 #: TypeChanger.html
 msgid "Please use caution changing Page Type!"
-msgstr ""
+msgstr "Lütfen Sayfa Türünü değiştirirken dikkatli olun!"
 
 #: TypeChanger.html
 msgid ""
 "(Simplest solution: If you aren't sure whether this should be changed, "
 "don't change it.)"
 msgstr ""
+"(En basit çözüm: Bunun değiştirilip değiştirilmemesi gerektiğinden emin "
+"değilseniz, değiştirmeyin.)"
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Dilinizde Wikipedia bağlantısı yok"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
-msgstr ""
+msgstr "Yakın kütüphaneleri kontrol et"
 
 #: WorldcatLink.html
 msgid "Check WorldCat for an edition near you"
-msgstr ""
+msgstr "Yakınınızdaki bir baskı için WorldCat'i kontrol et"
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 msgid "View the editing history of this page"
-msgstr ""
+msgstr "Bu sayfanın düzenleme geçmişini görüntüle"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "Bu sayfayı görüntüle (Karşılaştırma görünümünden çık)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "Bu sayfayı görüntüle (Düzenleme modundan çık)"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "Son düzenleyen: %(author_link)s"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
-msgstr ""
+msgstr "Son anonim düzenleme"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "Bu şablonun düzenleme geçmişini görüntüle"
 
 #: databarTemplate.html
 msgid "Edit this template"
-msgstr ""
+msgstr "Bu şablonu düzenle"
 
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "%(num)d. Cildi Görüntüle"
 
 #: openlibrary/core/bookshelves.py
 #, fuzzy
@@ -8950,63 +8959,63 @@ msgstr "Kitap ara"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Arabic"
-msgstr ""
+msgstr "Arapça"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
-msgstr ""
+msgstr "Çekçe"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "German"
-msgstr ""
+msgstr "Almanca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "English"
-msgstr ""
+msgstr "İngilizce"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Spanish"
-msgstr ""
+msgstr "İspanyolca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "French"
-msgstr ""
+msgstr "Fransızca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Hindi"
-msgstr ""
+msgstr "Hintçe"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Croatian"
-msgstr ""
+msgstr "Hırvatça"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Italian"
-msgstr ""
+msgstr "İtalyanca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Portuguese"
-msgstr ""
+msgstr "Portekizce"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Romanian"
-msgstr ""
+msgstr "Romence"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "Sarduca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
-msgstr ""
+msgstr "Teluguca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "Ukraynaca"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
-msgstr ""
+msgstr "Çince"
 
 #: openlibrary/plugins/openlibrary/code.py
 #, fuzzy
@@ -9015,19 +9024,19 @@ msgstr "Her şey"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
-msgstr ""
+msgstr "Sanat"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Science Fiction"
-msgstr ""
+msgstr "Bilim Kurgu"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Fantasy"
-msgstr ""
+msgstr "Fantezi"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Biographies"
-msgstr ""
+msgstr "Biyografiler"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9036,7 +9045,7 @@ msgstr "Yorumlar"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "Çocuk"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9050,7 +9059,7 @@ msgstr "Revizyon"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "Gizem ve Dedektif Hikayeleri"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9059,7 +9068,7 @@ msgstr "Yerler"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "Müzik"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -9068,19 +9077,19 @@ msgstr "İptal et"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "En az 1 konu"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 author"
-msgstr ""
+msgstr "En az 1 yazar"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 edition"
-msgstr ""
+msgstr "En az 1 baskı"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Esere sahip (sahipsiz)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -9089,7 +9098,7 @@ msgstr "Yayınlanma Yılı"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has cover"
-msgstr ""
+msgstr "Kapak var"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -9108,125 +9117,132 @@ msgstr "Solr basımı"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has dewey decimal"
-msgstr ""
+msgstr "Dewey ondalık var"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has LoC classification"
-msgstr ""
+msgstr "LoC sınıflandırması var"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has number of pages"
-msgstr ""
+msgstr "Sayfa sayısı var"
 
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
 msgstr ""
+"<strong>%(title)s</strong>'i listenizden kaldırmak istediğinizden emin "
+"misiniz?"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " - kargo dahil"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "Bu eser herhangi bir listede görünmüyor."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Henüz bir tanem yok"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "Girdiğiniz e-posta adresi geçersiz"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "Bu hesap engellendi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "Bu hesap kilitlendi"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Bu e-posta ile kayıtlı hesap bulunamadı. Lütfen tekrar deneyin"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "Girdiğiniz şifre yanlış. Lütfen tekrar deneyin"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "Yanlış şifre. Lütfen tekrar deneyin"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Open Library account before logging in"
-msgstr ""
+msgstr "Giriş yapmadan önce Open Library hesabınızı doğrulayın"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Giriş yapmadan önce Internet Archive hesabınızı doğrulayın"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Lütfen tüm alanları doldurup tekrar deneyin"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This email is already registered"
-msgstr ""
+msgstr "Bu e-posta zaten kayıtlı"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This username is already registered"
-msgstr ""
+msgstr "Bu kullanıcı adı zaten kayıtlı"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "Bir sorun oluştu ve giriş yapılamadı."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "Geçersiz Internet Archive s3 kimlik bilgileriyle giriş denemesi yapıldı."
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
 "Servers are experiencing unusually high traffic, please try again later "
 "or email openlibrary@archive.org for help."
 msgstr ""
+"Sunucular olağandışı yüksek trafikle karşılaşıyor, lütfen daha sonra "
+"tekrar deneyin veya yardım için openlibrary@archive.org adresine e-posta "
+"gönderin."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Email provider not recognized."
-msgstr ""
+msgstr "E-posta sağlayıcısı tanınmadı."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Password requirements not met."
-msgstr ""
+msgstr "Şifre gereksinimleri karşılanmadı."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "Bir sorun oluştu ve giriş yapılamadı"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
 "Login or registration attempt hit an unexpected error, please try again "
 "or contact info@archive.org"
 msgstr ""
+"Giriş veya kayıt denemesinde beklenmedik bir hatayla karşılaşıldı, lütfen"
+" tekrar deneyin veya info@archive.org ile iletişime geçin"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "İstek hata kodu ile başarısız oldu: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
@@ -9234,33 +9250,38 @@ msgid ""
 "print disability access. You should receive an email detailing next steps"
 " in the process."
 msgstr ""
+"Open Library hesabı oluşturduğunuz ve özel baskı engeli erişimi talep "
+"ettiğiniz için teşekkür ederiz. Süreçte sonraki adımları detaylandıran "
+"bir e-posta alacaksınız."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "Kullanıcı adı mevcut değil"
 
 #: openlibrary/plugins/upstream/account.py
 #: openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
-msgstr ""
+msgstr "E-posta zaten kayıtlı"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Bu e-posta ile zaten bir Internet Archive hesabı mevcut"
 
 #: openlibrary/plugins/upstream/account.py
 msgid ""
 "Verification failed. The link may be invalid or expired. Please try "
 "registering again."
 msgstr ""
+"Doğrulama başarısız. Bağlantı geçersiz veya süresi dolmuş olabilir. "
+"Lütfen tekrar kayıt olmayı deneyin."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "E-postanız doğrulandı. Giriş yaptınız."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
-msgstr ""
+msgstr "Bildirim tercihleri başarıyla güncellendi."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, fuzzy
@@ -9271,41 +9292,45 @@ msgstr "Bu hafta"
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
 msgstr ""
+"%s iade edilemedi. Lütfen daha sonra tekrar deneyin veya info@archive.org"
+" ile iletişime geçin."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "%s has been returned."
-msgstr ""
+msgstr "%s iade edildi."
 
 #: openlibrary/plugins/upstream/borrow.py
 msgid ""
 "Your account has hit a lending limit. Please try again later or contact "
 "info@archive.org."
 msgstr ""
+"Hesabınız ödünç alma limitine ulaştı. Lütfen daha sonra tekrar deneyin "
+"veya info@archive.org ile iletişime geçin."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username"
-msgstr ""
+msgstr "Kullanıcı Adı"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "No user registered with this email address"
-msgstr ""
+msgstr "Bu e-posta adresiyle kayıtlı kullanıcı yok"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "Tek kullanımlık e-postaya izin verilmez"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "E-posta sağlayıcınız tanınmıyor."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Username already used"
-msgstr ""
+msgstr "Kullanıcı adı zaten kullanımda"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "3 ile 20 arasında harf ve rakam olmalıdır"
 
 #: openlibrary/plugins/upstream/forms.py
 #, fuzzy
@@ -9314,7 +9339,7 @@ msgstr "Adınız"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Public and cannot be changed later."
-msgstr ""
+msgstr "Herkese açık ve daha sonra değiştirilemez."
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Invalid password"
@@ -9322,7 +9347,7 @@ msgstr "Geçersiz şifre"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Your email address"
-msgstr ""
+msgstr "E-posta adresiniz"
 
 #: openlibrary/plugins/upstream/forms.py
 msgid "Choose a password"
@@ -9335,6 +9360,9 @@ msgid ""
 "action=\"%(raw_action)s\"><strong>%(action)s</strong> "
 "<em>%(name)s</em></a>"
 msgstr ""
+"<a href=\"%(url)s\" class=\"pending-action-link\" data-"
+"action=\"%(raw_action)s\"><strong>%(action)s</strong> "
+"<em>%(name)s</em></a> devam et"
 
 #: openlibrary/plugins/worksearch/code.py
 msgid "eBook?"
