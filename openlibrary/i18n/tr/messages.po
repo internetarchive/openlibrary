@@ -5426,54 +5426,54 @@ msgstr "Hesabı sil"
 #: lib/header_dropdown.html type/user/view.html
 #, python-format
 msgid "Joined %(date)s"
-msgstr ""
+msgstr "%(date)s tarihinde katıldı"
 
 #: lib/header_dropdown.html
 msgid "Menu"
-msgstr ""
+msgstr "Menü"
 
 #: lib/header_dropdown.html
 msgid "New!"
-msgstr ""
+msgstr "Yeni!"
 
 #: databarDiff.html databarEdit.html databarTemplate.html databarView.html
 #: lib/history.html openlibrary/plugins/openlibrary/home.py
 msgid "History"
-msgstr ""
+msgstr "Geçmiş"
 
 #: lib/history.html
 #, python-format
 msgid "Created %(date)s"
-msgstr ""
+msgstr "%(date)s tarihinde oluşturuldu"
 
 #: lib/history.html
 #, python-format
 msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d revizyon"
+msgstr[1] "%(count)d revizyon"
 
 #: lib/history.html
 msgid "an anonymous user"
-msgstr ""
+msgstr "anonim bir kullanıcı"
 
 #: lib/history.html
 #, python-format
 msgid "Created by %(user)s"
-msgstr ""
+msgstr "%(user)s tarafından oluşturuldu"
 
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
-msgstr ""
+msgstr "%(user)s tarafından düzenlendi"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Süper!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Yeni kaydınız kütüphanede. Teşekkürler!"
 
 #: lib/message_addbook.html
 msgid ""
@@ -5481,22 +5481,27 @@ msgid ""
 "improve your new record quickly, and make it much easier for other people"
 " to find later."
 msgstr ""
+"Yeni kaydınızı hızla iyileştirmek ve başkalarının daha sonra bulmasını "
+"kolaylaştırmak için buraya kolayca ekleyebileceğiniz birkaç basit şey "
+"daha var."
 
 #: lib/message_addbook.html
 msgid "Upload a cover image"
-msgstr ""
+msgstr "Kapak görseli yükle"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Paylaşmak için kapağın hızlı bir fotoğrafını çeker misiniz?"
 
 #: lib/message_addbook.html
 msgid "Add an ISBN"
-msgstr ""
+msgstr "ISBN ekle"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
 msgstr ""
+"Kütüphanenin Amazon gibi diğer sistemlerle bağlantı kurmasına yardımcı "
+"olun."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -5505,47 +5510,47 @@ msgstr "Konular"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "Bunlar etiket gibidir."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Kitabın ne hakkında olduğunu açıklayın"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Bir ya da iki cümle yeterli."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
-msgstr ""
+msgstr "Open Library"
 
 #: lib/nav_foot.html
 msgid "Vision"
-msgstr ""
+msgstr "Vizyon"
 
 #: lib/nav_foot.html
 msgid "Volunteer"
-msgstr ""
+msgstr "Gönüllü Olun"
 
 #: lib/nav_foot.html
 msgid "Partner With Us"
-msgstr ""
+msgstr "Bizimle Ortak Olun"
 
 #: lib/nav_foot.html
 msgid "Jobs"
-msgstr ""
+msgstr "İş İlanları"
 
 #: lib/nav_foot.html
 msgid "Careers"
-msgstr ""
+msgstr "Kariyer"
 
 #: lib/nav_foot.html
 msgid "Blog"
-msgstr ""
+msgstr "Blog"
 
 #: lib/nav_foot.html
 msgid "Terms of Service"
-msgstr ""
+msgstr "Hizmet Koşulları"
 
 #: lib/nav_foot.html site/alert.html
 msgid "Donate"
@@ -5553,27 +5558,27 @@ msgstr "Bağış yap"
 
 #: lib/nav_foot.html
 msgid "Discover"
-msgstr ""
+msgstr "Keşfet"
 
 #: lib/nav_foot.html
 msgid "Go home"
-msgstr ""
+msgstr "Ana sayfaya git"
 
 #: lib/nav_foot.html
 msgid "Home"
-msgstr ""
+msgstr "Ana Sayfa"
 
 #: lib/nav_foot.html
 msgid "Explore Books"
-msgstr ""
+msgstr "Kitapları Keşfet"
 
 #: lib/nav_foot.html
 msgid "Explore authors"
-msgstr ""
+msgstr "Yazarları keşfet"
 
 #: lib/nav_foot.html
 msgid "Explore subjects"
-msgstr ""
+msgstr "Konuları keşfet"
 
 #: RelatedSubjects.html SearchNavigation.html SubjectTags.html
 #: lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py
@@ -5583,64 +5588,64 @@ msgstr "Konular"
 
 #: lib/nav_foot.html
 msgid "Explore collections"
-msgstr ""
+msgstr "Koleksiyonları keşfet"
 
 #: lib/nav_foot.html lib/nav_head.html
 msgid "Collections"
-msgstr ""
+msgstr "Koleksiyonlar"
 
 #: SearchNavigation.html lib/nav_foot.html lib/nav_head.html
 #: search/advancedsearch.html
 msgid "Advanced Search"
-msgstr ""
+msgstr "Gelişmiş Arama"
 
 #: lib/nav_foot.html
 msgid "Navigate to top of this page"
-msgstr ""
+msgstr "Bu sayfanın üstüne git"
 
 #: lib/nav_foot.html
 msgid "Return to Top"
-msgstr ""
+msgstr "Başa Dön"
 
 #: lib/nav_foot.html
 msgid "Develop"
-msgstr ""
+msgstr "Geliştir"
 
 #: lib/nav_foot.html
 msgid "Explore Open Library Developer Center"
-msgstr ""
+msgstr "Open Library Geliştirici Merkezini keşfet"
 
 #: lib/nav_foot.html lib/nav_head.html
 msgid "Developer Center"
-msgstr ""
+msgstr "Geliştirici Merkezi"
 
 #: lib/nav_foot.html
 msgid "Explore Open Library APIs"
-msgstr ""
+msgstr "Open Library API'lerini keşfet"
 
 #: lib/nav_foot.html
 msgid "API Documentation"
-msgstr ""
+msgstr "API Belgeleri"
 
 #: lib/nav_foot.html
 msgid "Bulk Open Library data"
-msgstr ""
+msgstr "Toplu Open Library verileri"
 
 #: lib/nav_foot.html
 msgid "Bulk Data Dumps"
-msgstr ""
+msgstr "Toplu Veri Dökümleri"
 
 #: lib/nav_foot.html
 msgid "Write a bot"
-msgstr ""
+msgstr "Bot yaz"
 
 #: lib/nav_foot.html
 msgid "Writing Bots"
-msgstr ""
+msgstr "Bot Yazımı"
 
 #: lib/nav_foot.html
 msgid "Help Center"
-msgstr ""
+msgstr "Yardım Merkezi"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5649,27 +5654,27 @@ msgstr "Bağış yap"
 
 #: lib/nav_foot.html
 msgid "Contact Us"
-msgstr ""
+msgstr "Bize Ulaşın"
 
 #: lib/nav_foot.html
 msgid "Suggest Edits"
-msgstr ""
+msgstr "Düzenleme Öner"
 
 #: lib/nav_foot.html
 msgid "Suggesting Edits"
-msgstr ""
+msgstr "Düzenleme Önerisi"
 
 #: lib/nav_foot.html
 msgid "Add a new book to Open Library"
-msgstr ""
+msgstr "Open Library'ye yeni kitap ekle"
 
 #: lib/nav_foot.html
 msgid "Release Notes"
-msgstr ""
+msgstr "Sürüm Notları"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5678,7 +5683,7 @@ msgstr "Kütüphane gezgini"
 
 #: lib/nav_foot.html
 msgid "Twitter"
-msgstr ""
+msgstr "Twitter"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5687,7 +5692,7 @@ msgstr "Kütüphane gezgini"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5696,11 +5701,11 @@ msgstr "Kütüphane gezgini"
 
 #: lib/nav_foot.html site/alert.html
 msgid "Change Website Language"
-msgstr ""
+msgstr "Web Sitesi Dilini Değiştir"
 
 #: lib/nav_foot.html lib/nav_head.html type/list/embed.html
 msgid "Open Library logo"
-msgstr ""
+msgstr "Open Library logosu"
 
 #: lib/nav_foot.html
 msgid ""
@@ -5712,6 +5717,13 @@ msgid ""
 "href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 msgstr ""
+"Open Library, İnternet sitelerinin ve diğer kültürel eserlerin dijital "
+"kütüphanesini oluşturan 501(c)(3) kâr amacı gütmeyen kuruluş <a "
+"href=\"//archive.org/\">Internet Archive</a>'ın bir girişimidir. Diğer <a"
+" href=\"//archive.org/projects/\">projeler</a> arasında <a "
+"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> ve <a href=\"//archive-it.org"
+"\">archive-it.org</a> yer almaktadır"
 
 #: lib/nav_foot.html
 #, python-format
@@ -5719,30 +5731,32 @@ msgid ""
 "version <a "
 "href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 msgstr ""
+"sürüm <a "
+"href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
-msgstr ""
+msgstr "Ödünç Almalar, Okuma Günlüğü, Listeler, İstatistikler"
 
 #: lib/nav_head.html
 msgid "My Profile"
-msgstr ""
+msgstr "Profilim"
 
 #: lib/nav_head.html
 msgid "Log out"
-msgstr ""
+msgstr "Çıkış yap"
 
 #: lib/nav_head.html
 msgid "Pending Merge Requests"
-msgstr ""
+msgstr "Bekleyen Birleştirme İstekleri"
 
 #: lib/nav_head.html search/sort_options.html
 msgid "Trending"
-msgstr ""
+msgstr "Trend"
 
 #: lib/nav_head.html
 msgid "K-12 Student Library"
-msgstr ""
+msgstr "K-12 Öğrenci Kütüphanesi"
 
 #: lib/nav_head.html
 #, fuzzy
@@ -5751,23 +5765,23 @@ msgstr "Kitap Notları"
 
 #: lib/nav_head.html
 msgid "Random Book"
-msgstr ""
+msgstr "Rastgele Kitap"
 
 #: lib/nav_head.html
 msgid "Recent Community Edits"
-msgstr ""
+msgstr "Son Topluluk Düzenlemeleri"
 
 #: lib/nav_head.html
 msgid "Help & Support"
-msgstr ""
+msgstr "Yardım ve Destek"
 
 #: lib/nav_head.html
 msgid "Librarians Portal"
-msgstr ""
+msgstr "Kütüphaneciler Portalı"
 
 #: lib/nav_head.html
 msgid "My Open Library"
-msgstr ""
+msgstr "Benim Open Library'im"
 
 #: databarWork.html lib/nav_head.html
 msgid "Browse"
@@ -5775,15 +5789,15 @@ msgstr "Göz at"
 
 #: lib/nav_head.html
 msgid "Contribute"
-msgstr ""
+msgstr "Katkıda Bulun"
 
 #: lib/nav_head.html
 msgid "Resources"
-msgstr ""
+msgstr "Kaynaklar"
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
+msgstr "Internet Archive'ın Open Library'si: Her kitap için bir sayfa"
 
 #: lib/nav_head.html
 #, fuzzy
