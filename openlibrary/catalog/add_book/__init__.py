@@ -196,15 +196,30 @@ def split_subtitle(full_title: str):
 
 def find_matching_work(e):
     """
-    Looks for an existing Work representing the new import edition by
-    comparing normalized titles for every work by each author of the current edition.
-    Returns the first match found, or None.
+    Looks for an existing Work representing the new import edition.
+
+    First tries to match by work_identifiers (external IDs such as Goodreads
+    work ID or Wikidata Q-number) if any are present in the record.  Identifier
+    matches take priority over title matching: a caller that supplies a work
+    identifier is asserting they already know which Work this is.
+
+    Falls back to comparing normalized titles for every work by each author,
+    which is the original behaviour.
 
     :param dict e: An OL edition suitable for saving, has a key, and has full Authors with keys
                    but has not yet been saved.
     :rtype: None or str
     :return: the matched work key "/works/OL..W" if found
     """
+    # --- identifier-based match (priority) ---
+    for identifier, vals in e.get("work_identifiers", {}).items():
+        for val in vals:
+            q = {"type": "/type/work", f"identifiers.{identifier}": val}
+            matches = list(site.get().things(q))
+            if matches:
+                return matches[0]
+
+    # --- title-based match (fallback) ---
     seen = set()
     for a in e["authors"]:
         q = {"type": "/type/work", "authors": {"author": {"key": a["key"]}}}
@@ -929,6 +944,16 @@ def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any],
         authors = [author_import_record_to_author(a) for a in rec.get("authors", [])]
         work["authors"] = [{"type": {"key": "/type/author_role"}, "author": a.get("key")} for a in authors if a.get("key")]
         if work.get("authors"):
+            need_work_save = True
+
+    # Add new work_identifiers, merging with any already on the work.
+    if "work_identifiers" in rec:
+        identifiers = defaultdict(list, work.get("identifiers", {}))
+        for k, vals in rec["work_identifiers"].items():
+            identifiers[k].extend(vals)
+            identifiers[k] = list(set(identifiers[k]))
+        if work.get("identifiers") != identifiers:
+            work["identifiers"] = dict(identifiers)
             need_work_save = True
 
     return need_work_save
