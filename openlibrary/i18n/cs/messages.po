@@ -1185,23 +1185,23 @@ msgstr "Chci požádat* o <a href=\"https://help.archive.org/help/program-overvi
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "Vybrat kvalifikační program"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* Použijte prosím e-mailovou adresu spojenou s tímto kvalifikačním programem"
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "Zaregistrovat se e-mailem"
 
 #: account/create.html
 msgid "By signing up, you agree to the Internet Archive's <a class=\"ol-signup-form__link\" href=\"//archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">Terms of Service</a>."
-msgstr ""
+msgstr "Registrací souhlasíte s <a class=\"ol-signup__tos-link\" href=\"https://archive.org/about/terms.php\" target=\"_blank\" rel=\"noopener noreferrer\">podmínkami použití</a> Internet Archive."
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "Máte již účet? <a href=\"/account/login\">Přihlaste se</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -1218,19 +1218,19 @@ msgstr "Neexistuje špatná odpověď."
 
 #: account/import.html
 msgid "Import from Goodreads"
-msgstr ""
+msgstr "Importovat z Goodreads"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "Pokyny pro export dat naleznete na: <a href=\"https://www.goodreads.com/review/import\">stránce exportu Goodreads</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
-msgstr ""
+msgstr "Maximální velikost souboru je 10 MB, povolený je pouze formát .csv"
 
 #: account/import.html
 msgid "Load Books"
-msgstr ""
+msgstr "Načíst knihy"
 
 #: account/import.html
 #, fuzzy
@@ -1249,15 +1249,15 @@ msgstr "Čtenářské záznamy"
 
 #: account/import.html
 msgid "Download (.csv format)"
-msgstr ""
+msgstr "Stáhnout (formát .csv)"
 
 #: account/import.html
 msgid "Export your book notes"
-msgstr ""
+msgstr "Exportovat poznámky ke knihám"
 
 #: account/import.html
 msgid "Download a copy of your book notes."
-msgstr ""
+msgstr "Stáhnout kopii vašich poznámek ke knihám."
 
 #: account/import.html
 #, fuzzy
@@ -1266,39 +1266,39 @@ msgstr "Jaký je druh vazby"
 
 #: account/import.html
 msgid "Export your reviews"
-msgstr ""
+msgstr "Exportovat recenze"
 
 #: account/import.html
 msgid "Download a copy of your review tags."
-msgstr ""
+msgstr "Stáhnout kopii štítků vašich recenzí."
 
 #: account/import.html
 msgid "What are review tags?"
-msgstr ""
+msgstr "Co jsou štítky recenzí?"
 
 #: account/import.html
 msgid "Export your list overview"
-msgstr ""
+msgstr "Exportovat přehled seznamů"
 
 #: account/import.html
 msgid "Download a summary of your lists and their contents."
-msgstr ""
+msgstr "Stáhnout přehled vašich seznamů a jejich obsahu."
 
 #: account/import.html
 msgid "What are lists?"
-msgstr ""
+msgstr "Co jsou seznamy?"
 
 #: account/import.html
 msgid "Export your star ratings"
-msgstr ""
+msgstr "Exportovat hvězdičková hodnocení"
 
 #: account/import.html
 msgid "Download a copy of your star ratings."
-msgstr ""
+msgstr "Stáhnout kopii vašich hvězdičkových hodnocení."
 
 #: account/import.html
 msgid "What are star ratings?"
-msgstr ""
+msgstr "Co jsou hvězdičková hodnocení?"
 
 #: account/import.html
 #, fuzzy
@@ -1317,23 +1317,23 @@ msgstr "Přihlásit se"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "V historii výpůjček nebyly nalezeny žádné výpůjčky."
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "<a href=\"/search\">Vyhledejte knihu</a> k vypůjčení."
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
-msgstr ""
+msgstr "Momentálně nemáte žádné vypůjčené knihy."
 
 #: account/loans.html
 #, python-format
 msgid "%(count)d Current Loan"
 msgid_plural "%(count)d Current Loans"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)d aktivní výpůjčka"
+msgstr[1] "%(count)d aktivní výpůjčky"
+msgstr[2] "%(count)d aktivních výpůjček"
 
 #: account/loans.html admin/loans_table.html
 msgid "Loan Expires"
@@ -1347,21 +1347,21 @@ msgstr "Akce"
 #, python-format
 msgid "There is %(count)d person waiting for this book."
 msgid_plural "There are %(count)d people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Na tuto knihu čeká %(count)d osoba."
+msgstr[1] "Na tuto knihu čekají %(count)d osoby."
+msgstr[2] "Na tuto knihu čeká %(count)d osob."
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Not yet downloaded."
-msgstr ""
+msgstr "Zatím nestaženo."
 
 #: ManageLoansButtons.html account/loans.html
 msgid "Download Now"
-msgstr ""
+msgstr "Stáhnout nyní"
 
 #: account/loans.html
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr ""
+msgstr "Vrátit přes<br/>Adobe Digital Editions"
 
 #: account/loans.html
 msgid "Books You're Waiting For"
@@ -1369,23 +1369,23 @@ msgstr "Knihy na které čekáte"
 
 #: account/loans.html
 msgid "You are not waiting for any books at this moment."
-msgstr ""
+msgstr "Momentálně na žádné knihy nečekáte."
 
 #: account/loans.html
 msgid "Leave the Waiting List"
-msgstr ""
+msgstr "Opustit čekací listinu"
 
 #: account/loans.html
 msgid "Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?"
-msgstr ""
+msgstr "Opravdu chcete opustit čekací listinu pro<br/><strong>TITLE</strong>?"
 
 #: ProlificAuthors.html account/loans.html authors/index.html lists/list_follow.html lists/showcase.html publishers/view.html search/authors.html search/publishers.html search/subjects.html
 #, python-format
 msgid "%(count)d book"
 msgid_plural "%(count)d books"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)d kniha"
+msgstr[1] "%(count)d knihy"
+msgstr[2] "%(count)d knih"
 
 #: RecentChangesAdmin.html account/loans.html admin/loans_table.html
 #, fuzzy
@@ -1396,45 +1396,45 @@ msgstr "Akce"
 #, python-format
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Čekám 1 den"
+msgstr[1] "Čekám 1 den"
 msgstr[2] ""
 
 #: account/loans.html
 msgid "You are the next person to receive this book."
-msgstr ""
+msgstr "Budete příští osobou, která obdrží tuto knihu."
 
 #: ManageWaitlistButton.html account/loans.html
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Před vámi v čekací listině je jedna osoba."
+msgstr[1] "Před vámi v čekací listině je jedna osoba."
 msgstr[2] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "You have less than an hour to borrow it."
-msgstr ""
+msgstr "Máte méně než hodinu na výpůjčku."
 
 #: account/loans.html
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Máte ještě jednu hodinu na výpůjčku."
+msgstr[1] "Máte ještě jednu hodinu na výpůjčku."
 msgstr[2] ""
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Borrow Now"
-msgstr ""
+msgstr "Půjčit nyní"
 
 #: ManageWaitlistButton.html account/loans.html
 msgid "Leave the waiting list?"
-msgstr ""
+msgstr "Opustit čekací listinu?"
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "Hledáte knihu k výpůjčce? Prohlédněte si naše tipy od zaměstnanců nebo prohledejte náš katalog."
 
 #: account/loans.html home/index.html
 #, fuzzy
@@ -1443,11 +1443,11 @@ msgstr "eKnihy kdekoliv"
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "Nebo si prohlédněte naše <a href=\"/collections\">speciální sbírky</a>."
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
-msgstr ""
+msgstr "Na tomto regálu nejsou žádné knihy"
 
 #: account/mybooks.html account/sidebar.html
 msgid "My Loans"
@@ -1464,16 +1464,16 @@ msgstr "Email už je používán"
 
 #: account/mybooks.html type/user/view.html
 msgid "This reader has chosen to make their Reading Log private."
-msgstr ""
+msgstr "Tento čtenář se rozhodl zpřístupnit svůj čtenářský deník soukromě."
 
 #: account/mybooks.html
 #, python-format
 msgid "%(year_span)s reading goal"
-msgstr ""
+msgstr "Čtenářský cíl na rok %(year_span)s"
 
 #: account/mybooks.html
 msgid "View All Lists"
-msgstr ""
+msgstr "Zobrazit všechny seznamy"
 
 #: account/mybooks.html
 #, fuzzy
@@ -1502,7 +1502,7 @@ msgstr "Můj profil"
 
 #: account/mybooks.html account/sidebar.html
 msgid "Import & Export Options"
-msgstr ""
+msgstr "Možnosti importu a exportu"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Oops!"
@@ -1516,11 +1516,11 @@ msgstr "Email se nepodařilo ověřit."
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "Po vytvoření účtu jsme na adresu %(email)s zaslali ověřovací e-mail."
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "Pokud e-mail nenajdete, klikněte na toto tlačítko pro zaslání nového:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
@@ -1528,7 +1528,7 @@ msgstr "Znovu zaslat ověřovací email"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "Děkujeme!"
 
 #: BookByline.html FulltextSearchSuggestionItem.html SearchResultsWork.html account/notes.html account/observations.html
 #, fuzzy
@@ -1542,7 +1542,7 @@ msgstr "Jakého díla je tohle vydání?"
 
 #: account/notes.html
 msgid "Title Missing"
-msgstr ""
+msgstr "Chybí název"
 
 #: account/notes.html lists/export_as_html.html type/work/editions.html
 #, fuzzy
@@ -1557,7 +1557,7 @@ msgstr "Vydavatel"
 #: account/notes.html
 #, python-format
 msgid "in %(language)s"
-msgstr ""
+msgstr "v %(language)s"
 
 #: NotesModal.html account/notes.html
 #, fuzzy
@@ -1585,11 +1585,11 @@ msgstr "Vaše upozornění"
 
 #: account/notifications.html
 msgid "Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want."
-msgstr ""
+msgstr "Oznámení jsou momentálně spojena se seznamy. Pokud je některá ze sledovaných knih dostupná, přidejte ji do svého seznamu a dostávejte upozornění."
 
 #: account/notifications.html
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr ""
+msgstr "Přejete si dostávat příležitostné e-maily od Open Library?"
 
 #: account/notifications.html
 msgid "No, thank you"
@@ -1615,7 +1615,7 @@ msgstr "Vybrat"
 
 #: account/observations.html
 msgid "Update Reviews"
-msgstr ""
+msgstr "Aktualizovat recenze"
 
 #: account/observations.html
 #, fuzzy
@@ -1633,11 +1633,11 @@ msgstr "Nastavení soukromý"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "Chcete zpřístupnit svůj <a href=\"/account/books\">čtenářský deník</a> veřejně?"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, stopped reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "Ostatní tak budou moci vidět, co chcete číst, co právě čtete a co jste přečetli."
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -1649,71 +1649,71 @@ msgstr "Ne"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "Povolit bezpečný režim?"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "Bezpečný režim rozmaže obálky knih, které byly označeny jako obsahující citlivý obsah."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s is reading"
-msgstr ""
+msgstr "Knihy, které čte %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s is reading %(total)d books. Join %(username)s on OpenLibrary.org and tell the world what you're reading."
-msgstr ""
+msgstr "%(username)s čte %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s wants to read"
-msgstr ""
+msgstr "Knihy, které chce číst %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s wants to read %(total)d books. Join %(username)s on OpenLibrary.org and share the books that you'll soon be reading!"
-msgstr ""
+msgstr "%(username)s chce přečíst %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s stopped reading"
-msgstr ""
+msgstr "Knihy, které přestal/a číst %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s stopped reading %(total)d books. Join %(username)s on OpenLibrary.org to share your own reading updates!"
-msgstr ""
+msgstr "%(username)s přestal/a číst %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "Knihy přečtené uživatelem %(username)s v roce %(year)d"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s přečetl/a %(total)d knih v roce %(year)d. Přidejte se k %(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read"
-msgstr ""
+msgstr "Přečtené knihy uživatele %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(username)s přečetl/a %(total)d knih. Přidejte se k %(username)s na OpenLibrary."
 
 #: account/reading_log.html
 #, python-format
 msgid "Books in %(username)s feed"
-msgstr ""
+msgstr "Knihy ve feedu %(username)s"
 
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "Knihy přidané lidmi, které sleduje %(username)s"
 
 #: account/reading_log.html
 #, fuzzy
@@ -1723,21 +1723,21 @@ msgstr "Zobrazit nebo upravit váš záznam četby"
 #: account/reading_log.html type/author/view.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
-msgstr ""
+msgstr "— Zobrazit <a href=\"%(url)s\">pouze e-knihy</a>?"
 
 #: account/reading_log.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">everything</a> in this shelf?"
-msgstr ""
+msgstr "— Zobrazit <a href=\"%(url)s\">vše</a> na tomto regálu?"
 
 #: account/reading_log.html
 msgid "No results found in this shelf"
-msgstr ""
+msgstr "Na tomto regálu nebyly nalezeny žádné výsledky"
 
 #: account/reading_log.html
 #, python-format
 msgid "Search all of Open Library for \"%s\"?"
-msgstr ""
+msgstr "Prohledat celou Open Library pro \"%s\"?"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
