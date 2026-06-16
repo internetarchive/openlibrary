@@ -22,6 +22,7 @@ from openlibrary.fastapi.auth import (
 )
 from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
+from openlibrary.utils.request_context import legacy_web_ctx_from_fastapi
 
 router = APIRouter()
 
@@ -154,33 +155,38 @@ async def optional_auth_endpoint(
 
 @router.get("/account/loans.json")
 def account_loans_json(
+    request: Request,
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict[str, Any]:
-    try:
-        return legacy_account.get_account_loans_json(accounts.get_current_user())
-    except Exception:
-        if os.getenv("LOCAL_DEV"):
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
-            )
-        raise
+    with legacy_web_ctx_from_fastapi(request):
+        try:
+            return legacy_account.get_account_loans_json(accounts.get_current_user())
+        except Exception:
+            if os.getenv("LOCAL_DEV"):
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
+                )
+            raise
 
 
 @router.get("/account/loan-history.json")
 def account_loan_history_json(
+    request: Request,
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
     page: Annotated[int, Query(ge=1)] = 1,
 ) -> dict[str, Any]:
-    try:
-        return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
-    except Exception:
-        if os.getenv("LOCAL_DEV"):
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
-            )
-        raise
+    with legacy_web_ctx_from_fastapi(request):
+        try:
+            return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
+        except Exception:
+            if os.getenv("LOCAL_DEV"):
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Loan history requires credentials for the production Internet Archive "
+                    "server and is not available in the local development environment.",
+                )
+            raise
 
 
 class LoginForm(BaseModel):

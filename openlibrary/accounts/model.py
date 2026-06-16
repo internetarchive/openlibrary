@@ -26,7 +26,6 @@ from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.edits import CommunityEditsQueue
 from openlibrary.core.observations import Observations
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.request_context import site
 
 try:
     from simplejson.errors import JSONDecodeError
@@ -224,7 +223,7 @@ class Link(web.storage):
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
 
     def delete(self) -> None:
-        del site.get().store[self["_key"]]
+        del web.ctx.site.store[self["_key"]]
 
 
 class Account(web.storage):
@@ -262,27 +261,27 @@ class Account(web.storage):
 
     def get_recentchanges(self, limit: int = 100, offset: int = 0):
         q = {"author": self.get_user().key, "limit": limit, "offset": offset}
-        return site.get().recentchanges(q)
+        return web.ctx.site.recentchanges(q)
 
     def verify_password(self, password) -> bool:
         return verify_hash(get_secret_key(), password, self.enc_password)
 
     def update_password(self, new_password) -> None:
-        site.get().update_account(self.username, password=new_password)
+        web.ctx.site.update_account(self.username, password=new_password)
 
     def update_email(self, email) -> None:
-        site.get().update_account(self.username, email=email)
+        web.ctx.site.update_account(self.username, email=email)
 
     def activate(self) -> None:
-        site.get().activate_account(username=self.username)
+        web.ctx.site.activate_account(username=self.username)
 
     def block(self) -> None:
         """Blocks this account."""
-        site.get().update_account(self.username, status="blocked")
+        web.ctx.site.update_account(self.username, status="blocked")
 
     def unblock(self) -> None:
         """Unblocks this account."""
-        site.get().update_account(self.username, status="active")
+        web.ctx.site.update_account(self.username, status="active")
 
     def is_blocked(self) -> bool:
         """Tests if this account is blocked."""
@@ -304,7 +303,7 @@ class Account(web.storage):
         if self.is_blocked():
             return "account_blocked"
         try:
-            site.get().login(self.username, password)
+            web.ctx.site.login(self.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
             return code
@@ -323,7 +322,7 @@ class Account(web.storage):
 
     def _save(self) -> None:
         """Saves this account in store."""
-        site.get().store[self._key] = self
+        web.ctx.site.store[self._key] = self
 
     @property
     def last_login(self) -> datetime.datetime:
@@ -344,30 +343,30 @@ class Account(web.storage):
         :returns: Not an Account obj, but a /people/xxx User
         """
         key = "/people/" + self.username
-        return site.get().get(key)
+        return web.ctx.site.get(key)
 
     def get_creation_info(self) -> dict:
         key = "/people/" + self.username
-        doc = site.get().get(key)
+        doc = web.ctx.site.get(key)
         return doc.get_creation_info()
 
     def get_activation_link(self) -> Link | bool:
         key = f"account/{self.username}/verify"
-        if doc := site.get().store.get(key):
+        if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_password_reset_link(self) -> Link | bool:
         key = f"account/{self.username}/password"
-        if doc := site.get().store.get(key):
+        if doc := web.ctx.site.store.get(key):
             return Link(doc)
         else:
             return False
 
     def get_links(self) -> list[Link]:
         """Returns all the verification links present in the database."""
-        return site.get().store.values(type="account-link", name="username", value=self.username)
+        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
 
     def get_tags(self) -> list[str]:
         """Returns list of tags that this user has."""
@@ -410,13 +409,13 @@ class Account(web.storage):
             patron.set_data(data, "delete-profile")
 
             # Remove account information from store:
-            del site.get().store[f"account/{username}"]
-            del site.get().store[f"account/{username}/verify"]
-            del site.get().store[f"account/{username}/password"]
-            del site.get().store[f"account-email/{email}"]
-            del site.get().store[f"account-email/{email.lower()}"]
+            del web.ctx.site.store[f"account/{username}"]
+            del web.ctx.site.store[f"account/{username}/verify"]
+            del web.ctx.site.store[f"account/{username}/password"]
+            del web.ctx.site.store[f"account-email/{email}"]
+            del web.ctx.site.store[f"account-email/{email.lower()}"]
             # Delete preferences:
-            del site.get().store[f"/people/{username}/preferences"]
+            del web.ctx.site.store[f"/people/{username}/preferences"]
 
         # Generate new unique username for patron:
         # Note: Cannot test get_activation_link() locally
@@ -511,7 +510,7 @@ class OpenLibraryAccount(Account):
                 test=True,
             )
         try:
-            site.get().register(
+            web.ctx.site.register(
                 username=username,
                 email=email,
                 password=password,
@@ -523,8 +522,8 @@ class OpenLibraryAccount(Account):
         if verified:
             key = f"account/{username}/verify"
             doc = create_link_doc(key, username, email)
-            site.get().store[key] = doc
-            site.get().activate_account(username=username)
+            web.ctx.site.store[key] = doc
+            web.ctx.site.activate_account(username=username)
 
         ol_account = cls.get_by_email(email)
 
@@ -566,12 +565,12 @@ class OpenLibraryAccount(Account):
     @classmethod
     def get_by_username(cls, username: str) -> OpenLibraryAccount | None:
         """Retrieves and OpenLibraryAccount by username if it exists or"""
-        match = site.get().store.values(type="account", name="username", value=username, limit=1)
+        match = web.ctx.site.store.values(type="account", name="username", value=username, limit=1)
 
         if len(match):
             return cls(match[0])
 
-        lower_match = site.get().store.values(type="account", name="lusername", value=username, limit=1)
+        lower_match = web.ctx.site.store.values(type="account", name="lusername", value=username, limit=1)
 
         if len(lower_match):
             return cls(lower_match[0])
@@ -583,7 +582,7 @@ class OpenLibraryAccount(Account):
         """
         :rtype: OpenLibraryAccount or None
         """
-        ol_accounts = site.get().store.values(type="account", name="internetarchive_itemname", value=link)
+        ol_accounts = web.ctx.site.store.values(type="account", name="internetarchive_itemname", value=link)
         return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
@@ -598,9 +597,9 @@ class OpenLibraryAccount(Account):
         if that fails.
         """
         email = email.strip()
-        email_doc = site.get().store.get("account-email/" + email) or site.get().store.get("account-email/" + email.lower())
+        email_doc = web.ctx.site.store.get("account-email/" + email) or web.ctx.site.store.get("account-email/" + email.lower())
         if email_doc and "username" in email_doc:
-            doc = site.get().store.get("account/" + email_doc["username"])
+            doc = web.ctx.site.store.get("account/" + email_doc["username"])
             return cls(doc) if doc else None
         return None
 
@@ -616,9 +615,9 @@ class OpenLibraryAccount(Account):
         """Careful, this will save any other changes to the ol user object as
         well
         """
-        _ol_account = site.get().store.get(self._key)
+        _ol_account = web.ctx.site.store.get(self._key)
         _ol_account["internetarchive_itemname"] = None
-        site.get().store[self._key] = _ol_account
+        web.ctx.site.store[self._key] = _ol_account
         self.internetarchive_itemname = None
         stats.increment("ol.account.xauth.unlinked")
 
@@ -628,23 +627,23 @@ class OpenLibraryAccount(Account):
         """
         itemname = itemname if itemname.startswith("@") else f"@{itemname}"
 
-        _ol_account = site.get().store.get(self._key)
+        _ol_account = web.ctx.site.store.get(self._key)
         _ol_account["internetarchive_itemname"] = itemname
-        site.get().store[self._key] = _ol_account
+        web.ctx.site.store[self._key] = _ol_account
         self.internetarchive_itemname = itemname
         stats.increment("ol.account.xauth.linked")
 
     def save_s3_keys(self, s3_keys: dict) -> None:
-        _ol_account = site.get().store.get(self._key)
+        _ol_account = web.ctx.site.store.get(self._key)
         _ol_account["s3_keys"] = s3_keys
-        site.get().store[self._key] = _ol_account
+        web.ctx.site.store[self._key] = _ol_account
         self.s3_keys = s3_keys
 
     def update_last_login(self):
-        _ol_account = site.get().store.get(self._key)
+        _ol_account = web.ctx.site.store.get(self._key)
         last_login = datetime.datetime.utcnow().isoformat()
         _ol_account["last_login"] = last_login
-        site.get().store[self._key] = _ol_account
+        web.ctx.site.store[self._key] = _ol_account
         self.last_login = last_login
 
     @property
@@ -689,7 +688,7 @@ class OpenLibraryAccount(Account):
         if ol_account.is_blocked():
             return "account_blocked"
         try:
-            site.get().login(ol_account.username, password)
+            web.ctx.site.login(ol_account.username, password)
         except ClientException as e:
             code = e.get_data().get("code")
             return code
@@ -1073,13 +1072,13 @@ def audit_accounts(  # noqa: PLR0912
     elif ol_account.pd_authority and has_special_access and ol_account.pd_status != PDRequestStatus.FULFILLED:
         ol_account.update_pd(rpd=PDRequestStatus.FULFILLED.value)
 
-    # When a user logs in with OL credentials, the site.get().login() is called with
+    # When a user logs in with OL credentials, the web.ctx.site.login() is called with
     # their OL user credentials, which internally sets an auth_token enabling the
-    # user's session.  The site.get().login method requires OL credentials which are
+    # user's session.  The web.ctx.site.login method requires OL credentials which are
     # not present in the case where a user logs in with their IA credentials. As a
     # result, when users login with their valid IA credentials, the following kludge
     # allows us to fetch the OL account linked to their IA account, bypass this
-    # site.get().login method (which requires OL credentials), and directly set an
+    # web.ctx.site.login method (which requires OL credentials), and directly set an
     # auth_token to enable the user's session.
     web.ctx.conn.set_auth_token(ol_account.generate_login_code())
     ol_account.update_last_login()

@@ -32,7 +32,6 @@ from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
 from openlibrary.utils.dateutil import current_year
-from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from web.template import TemplateResult
@@ -77,7 +76,7 @@ class mybooks_home(delegate.page):
             # TODO: should do in one web.ctx.get_many fetch
             for loan in myloans:
                 # Book will be None if no OL edition exists for the book
-                if book := site.get().get(loan["book"]):
+                if book := web.ctx.site.get(loan["book"]):
                     book.loan = loan
                     loans.docs.append(book)
             docs["loans"] = loans
@@ -165,7 +164,7 @@ class readinglog_stats(delegate.page):
     path = "/people/([^/]+)/books/(want-to-read|currently-reading|already-read|stopped-reading)(/year/\\d{4})?/stats"
 
     def GET(self, username, key="want-to-read", year=None):
-        user = site.get().get("/people/%s" % username)
+        user = web.ctx.site.get("/people/%s" % username)
         if not user:
             return render.notfound("User %s" % username, create=False)
 
@@ -202,7 +201,7 @@ class readinglog_stats(delegate.page):
                 "name": a.name,
                 "birth_date": a.get("birth_date"),
             }
-            for a in site.get().get_many(list(author_keys))
+            for a in web.ctx.site.get_many(list(author_keys))
         ]
         return render["account/readinglog_stats"](
             works_json,
@@ -330,7 +329,7 @@ class public_my_books_json(delegate.page):
         page = safeint(i.page, 1)
         limit = safeint(i.limit, 100)
         # check if user's reading log is public
-        user = site.get().get("/people/%s" % username)
+        user = web.ctx.site.get("/people/%s" % username)
         if not user:
             return delegate.RawText(
                 json.dumps({"error": "User %s not found" % username}),
@@ -425,7 +424,7 @@ class MyBooksTemplate:
     def __init__(self, username: str, key: str) -> None:
         """The following is data required by every My Books sub-template (e.g. sidebar)"""
         self.username = username
-        self.user = site.get().get("/people/%s" % self.username)
+        self.user = web.ctx.site.get("/people/%s" % self.username)
 
         if not self.user:
             raise web.notfound("User %s" % self.username)
@@ -624,7 +623,7 @@ class PatronBooknotes:
             entry["work"] = self._get_work(entry["work_key"])
             entry["work_details"] = self._get_work_details(entry["work"])
             entry["notes"] = {i["edition_id"]: i["notes"] for i in entry["notes"]}
-            entry["editions"] = {k: site.get().get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
+            entry["editions"] = {k: web.ctx.site.get(f"/books/OL{k}M") for k in entry["notes"] if k != Booknotes.NULL_EDITION_VALUE}
         return notes
 
     def get_observations(self, limit: int = RESULTS_PER_PAGE, page: int = 1) -> list:
@@ -641,7 +640,7 @@ class PatronBooknotes:
         return observations
 
     def _get_work(self, work_key: str) -> Work | None:
-        return site.get().get(work_key)
+        return web.ctx.site.get(work_key)
 
     def _get_work_details(self, work: Work) -> dict[str, list[str] | str | int | None]:
         author_keys = [a.author.key for a in work.get("authors", [])]
@@ -649,7 +648,7 @@ class PatronBooknotes:
         return {
             "cover_url": (work.get_cover_url("S") or "https://openlibrary.org/static/images/icons/avatar_book-sm.png"),
             "title": work.get("title"),
-            "authors": [a.name for a in site.get().get_many(author_keys)],
+            "authors": [a.name for a in web.ctx.site.get_many(author_keys)],
             "first_publish_year": work.first_publish_year or None,
         }
 

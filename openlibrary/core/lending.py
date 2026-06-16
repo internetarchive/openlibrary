@@ -25,7 +25,6 @@ from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.request_context import (
     req_context,
     set_context_from_legacy_web_py,
-    site,
 )
 
 from . import helpers as h
@@ -299,7 +298,7 @@ async def get_available_async(
         for item in items:
             if item.get("openlibrary_work"):
                 results[item["openlibrary_work"]] = item["openlibrary_edition"]
-        books = site.get().get_many([f"/books/{olid}" for olid in results.values()])
+        books = web.ctx.site.get_many([f"/books/{olid}" for olid in results.values()])
         books = await add_availability_async(books)
         return books
     except Exception:  # TODO: Narrow exception scope
@@ -575,7 +574,7 @@ def get_items_and_add_availability(ocaids: list[str]) -> dict[str, Edition]:
     Returns a dict of the form: `{"ocaid1": edition1, "ocaid2": edition2, ...}`
     """
     ocaid_availability = get_availability("identifier", ocaids)
-    editions = site.get().get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
+    editions = web.ctx.site.get_many([f"/books/{item.get('openlibrary_edition')}" for item in ocaid_availability.values() if item.get("openlibrary_edition")])
 
     # Attach availability
     for edition in editions:
@@ -624,7 +623,7 @@ def get_loan(identifier: str, user_key: str | None = None):
         else:
             account = OpenLibraryAccount.get_by_key(user_key)
 
-    d = site.get().store.get("loan-" + identifier)
+    d = web.ctx.site.store.get("loan-" + identifier)
     if d and (user_key is None or (account and d["user"] == account.username) or (account and d["user"] == account.itemname)):
         loan = Loan(d)
         if loan.is_expired():
@@ -659,7 +658,7 @@ def get_loans_of_user(user_key: str) -> list[Loan]:
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = site.get().store.values(type="/type/loan", name="user", value=user_key)
+    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
     loans = [Loan(d) for d in loandata]
     if account and account.itemname:
         loans += _get_ia_loans_of_user(account.itemname)
@@ -788,7 +787,7 @@ class EBookRecord(dict):
     @staticmethod
     def find(identifier: str) -> EBookRecord:
         key = "ebooks/" + identifier
-        d = site.get().store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
+        d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
 
     def update(self, **kwargs):
@@ -800,7 +799,7 @@ class EBookRecord(dict):
             return
 
         dict.update(self, **kwargs)
-        site.get().store[self["_key"]] = self
+        web.ctx.site.store[self["_key"]] = self
 
 
 class Loan(dict):
@@ -902,7 +901,7 @@ class Loan(dict):
         if self.get("stored_at") == "ia":
             return
 
-        site.get().store[self["_key"]] = self
+        web.ctx.site.store[self["_key"]] = self
 
         # Inform listers that a loan is created/updated
         eventer.trigger("loan-created", self)
@@ -933,7 +932,7 @@ class Loan(dict):
             if account and account.itemname:
                 ia_lending_api.delete_loan(self["ocaid"], account.itemname)
         else:
-            site.get().store.delete(self["_key"])
+            web.ctx.site.store.delete(self["_key"])
 
         sync_loan(self["ocaid"])
         # Inform listers that a loan is completed
@@ -942,7 +941,7 @@ class Loan(dict):
 
 def resolve_identifier(identifier: str) -> str | None:
     """Returns the OL book key for given IA identifier."""
-    if keys := site.get().things({"type": "/type/edition", "ocaid": identifier}):
+    if keys := web.ctx.site.things({"type": "/type/edition", "ocaid": identifier}):
         return keys[0]
     else:
         return "/books/ia:" + identifier
