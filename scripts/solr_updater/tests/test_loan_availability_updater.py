@@ -11,7 +11,7 @@ from scripts.solr_updater.loan_availability_updater import (
     process_changes,
     query_solr_uid,
     read_state,
-    resolve_work_keys,
+    resolve_edition_keys,
     write_state,
 )
 
@@ -68,7 +68,7 @@ EXPIRE_ROW = {
     "event_type": "expire_browse",
     "extra": "{}",
 }
-ID_TO_WORK = {"bookabc": "/works/OL1W", "bookxyz": "/works/OL2W"}
+ID_TO_EDITION = {"bookabc": "/books/OL1M", "bookxyz": "/books/OL2M"}
 
 
 def test_process_changes_single_borrow():
@@ -105,10 +105,10 @@ def test_process_changes_bad_extra_json():
 
 
 def test_build_solr_updates_borrow():
-    updates = build_solr_updates(process_changes([BORROW_ROW]), ID_TO_WORK)
+    updates = build_solr_updates(process_changes([BORROW_ROW]), ID_TO_EDITION)
     assert len(updates) == 1
     assert updates[0] == {
-        "key": "/works/OL1W",
+        "key": "/editions/OL1W",
         "ebook_availability": {"set": "unavailable"},
         "ebook_becomes_available": {"set": "2026-05-15T10:00:00Z"},
         "loan_uid": {"set": 100},
@@ -116,10 +116,10 @@ def test_build_solr_updates_borrow():
 
 
 def test_build_solr_updates_return():
-    updates = build_solr_updates(process_changes([RETURN_ROW]), ID_TO_WORK)
+    updates = build_solr_updates(process_changes([RETURN_ROW]), ID_TO_EDITION)
     assert len(updates) == 1
     assert updates[0] == {
-        "key": "/works/OL1W",
+        "key": "/books/OL1M",
         "ebook_availability": {"set": "available"},
         "ebook_becomes_available": {"set": None},
         "loan_uid": {"set": 200},
@@ -131,12 +131,12 @@ def test_build_solr_updates_unknown_identifier_skipped():
 
 
 def test_build_solr_updates_mixed():
-    updates = build_solr_updates(process_changes([BORROW_ROW, BROWSE_ROW, RETURN_ROW, EXPIRE_ROW]), ID_TO_WORK)
+    updates = build_solr_updates(process_changes([BORROW_ROW, BROWSE_ROW, RETURN_ROW, EXPIRE_ROW]), ID_TO_EDITION)
     by_key = {u["key"]: u for u in updates}
-    assert by_key["/works/OL1W"]["ebook_availability"] == {"set": "available"}
-    assert by_key["/works/OL2W"]["ebook_availability"] == {"set": "available"}
-    assert by_key["/works/OL1W"]["loan_uid"] == {"set": 200}
-    assert by_key["/works/OL2W"]["loan_uid"] == {"set": 300}
+    assert by_key["/books/OL1M"]["ebook_availability"] == {"set": "available"}
+    assert by_key["/books/OL2M"]["ebook_availability"] == {"set": "available"}
+    assert by_key["/books/OL1M"]["loan_uid"] == {"set": 200}
+    assert by_key["/books/OL2M"]["loan_uid"] == {"set": 300}
 
 
 def test_query_solr_uid_with_data():
@@ -164,14 +164,14 @@ def test_resolve_work_keys_empty():
 def test_resolve_work_keys_basic():
     mock_result = MagicMock()
     mock_result.docs = [
-        {"key": "/works/OL1W", "ia": ["bookabc", "bookdef"]},
-        {"key": "/works/OL2W", "ia": ["bookxyz"]},
+        {"key": "/books/OL1M", "ia": ["bookabc", "bookdef"]},
+        {"key": "/books/OL2M", "ia": ["bookxyz"]},
     ]
     with patch("scripts.solr_updater.loan_availability_updater.get_solr") as mock_get_solr:
         mock_get_solr.return_value.select.return_value = mock_result
         result = resolve_work_keys(["bookabc", "bookxyz"])
 
-    assert result == {"bookabc": "/works/OL1W", "bookxyz": "/works/OL2W"}
+    assert result == {"bookabc": "/books/OL1M", "bookxyz": "/books/OL2M"}
     # Identifiers must be quoted in the Solr query
     call_args = str(mock_get_solr.return_value.select.call_args)
     assert '"bookabc"' in call_args

@@ -16,6 +16,7 @@ import json
 import logging
 import time
 #remove after testing. 
+import urllib3
 import requests 
 from pathlib import Path
 
@@ -34,6 +35,8 @@ LOAN_MAX_AGE_DAYS = 14
 BATCH_SIZE = 1000
 POLL_INTERVAL = 30  # seconds between polls when caught up
 
+#remove after testing. 
+LOCAL_DEV  = True 
 
 def read_state(path: Path) -> int:
     """Return last processed uid, or 0 if the state file is absent/corrupt."""
@@ -53,8 +56,19 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
     Uses limit=1 probes. Returns 0 if the API has no history or all history
     is newer than target_age_days.
     """
+
+    #--------------Remove these lines when I'm finished.
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(
+       max_retries=urllib3.Retry(total=3, backoff_factor=0.5, allowed_methods=None)
+    )
+    session.mount("http://", adapter)
+    #---------------------------
     try:
-        resp = lending.get_loan_changes(after_uid=0, limit=1)
+        if not LOCAL_DEV:   
+            resp = lending.get_loan_changes(after_uid=0, limit=1)
+        else:
+            resp = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": 0, "limit": 1}).json()
     except Exception:
         logger.exception("Loan changes API unreachable on startup probe; starting from uid 0")
         return 0
@@ -75,7 +89,10 @@ def find_start_uid(target_age_days: int = LOAN_MAX_AGE_DAYS) -> int:
             break
         mid = (low + high) // 2
         try:
-            rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
+            if not LOCAL_DEV:   
+                rows = lending.get_loan_changes(after_uid=mid, limit=1).get("rows", [])
+            else:
+                rows = session.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": mid, "limit": 1}).json().get("rows", [])
         except Exception:
             logger.exception("Binary-search probe failed at uid %d; shrinking window", mid)
             high = mid
@@ -124,19 +141,21 @@ def ia_until_to_solr_date(until: str | None) -> str | None:
         return None
 
 
-def resolve_work_keys(identifiers: list[str]) -> dict[str, str]:
-    """Batch-resolve IA identifiers to Solr work keys via the ia field."""
+def resolve_edition_keys(identifiers: list[str]) -> dict[str, str]:
+    """Batch-resolve IA identifiers to Solr edition keys via the ia field."""
     if not identifiers:
         return {}
     # Quote each term so identifiers with special characters are treated literally
-    quoted = " ".join(f'"{id_}"' for id_ in identifiers)
+    quoted = ",".join(f'"{id_}"' for id_ in identifiers)
+    logger.info("Resolving %s identifiers to edition keys via Solr", quoted)
     result = get_solr().select(
-        query=f"ia:({quoted})",
-        fields=["key", "ia"],
-        rows=len(identifiers) * 2,
+        query=f'ia:({quoted})',
+        fields=["key", "ia", "_version_", "_root_"],
+        rows=len(identifiers) * 3,
     )
     id_set = set(identifiers)
-    return {ia_id: doc["key"] for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set}
+    logger.info(f"returned docs: {result.docs}")
+    return {ia_id: {"key":doc["key"], "_version_": doc["_version_"], "_root_": doc["_root_"], } for doc in result.docs for ia_id in doc.get("ia", []) if ia_id in id_set and doc["key"].startswith("/books/")}
 
 
 def query_solr_uid() -> int:
@@ -155,16 +174,18 @@ def query_solr_uid() -> int:
     return 0
 
 
-def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) -> list[dict]:
+def build_solr_updates(id_state: dict[str, dict], id_to_edition: dict[str, str]) -> list[dict]:
     """Build Solr atomic-update documents from the latest per-identifier loan state."""
     updates = []
     for identifier, state in id_state.items():
-        work_key = id_to_work.get(identifier)
-        if not work_key:
+        edition_data= id_to_edition.get(identifier)
+        if not edition_data:
             continue
         if state["event_type"] in LOAN_ACTIVE_EVENTS:
             update: dict = {
-                "key": work_key,
+                "key": edition_data["key"],
+                "_root_": edition_data["_root_"],
+                "_version_": edition_data["_version_"],
                 "ebook_availability": {"set": "unavailable"},
                 "loan_uid": {"set": state["uid"]},
             }
@@ -175,7 +196,9 @@ def build_solr_updates(id_state: dict[str, dict], id_to_work: dict[str, str]) ->
         elif state["event_type"] in LOAN_ENDED_EVENTS:
             updates.append(
                 {
-                    "key": work_key,
+                    "key": edition_data["key"],
+                    "_root_": edition_data["_root_"],
+                    "_version_": edition_data["_version_"],
                     "ebook_availability": {"set": "available"},
                     "ebook_becomes_available": {"set": None},
                     "loan_uid": {"set": state["uid"]},
@@ -191,16 +214,18 @@ def build_eviction_updates() -> list[dict]:
     """
     result = get_solr().select(
         query="ebook_becomes_available:[* TO NOW]",
-        fields=["key"],
+        fields=["key", "_version_", "_root_"],
         rows=10000,
     )
     return [
         {
             "key": doc["key"],
+            "_version_": doc["_version_"],
+            "_root_": doc["_root_"],
             "ebook_availability": {"set": "available"},
             "ebook_becomes_available": {"set": None},
         }
-        for doc in result.docs
+        for doc in result.docs if doc["key"].startswith("/books/")
     ]
 
 
@@ -210,7 +235,6 @@ def main(
     poll_interval: int = POLL_INTERVAL,
     dry_run: bool = False,
     reset: bool = False,
-    use_ia: bool= True,
 ):
     """Poll IA loan changes and update Solr ebook_availability fields.
 
@@ -222,10 +246,9 @@ def main(
     :param poll_interval: Seconds to sleep when caught up with the event stream.
     :param dry_run: Fetch and log updates but do not write to Solr.
     :param reset: Ignore existing state and binary-search for the start uid.
-    :param use_ia: If True, use IA's loan changes API; if False, use a local mock for testing.
     """
     logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(levelname)s %(message)s")
-    logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s, use_ia=%s", dry_run, reset, use_ia)
+    logger.info("BEGIN loan_availability_updater dry_run=%s reset=%s", dry_run, reset)
 
     load_config(ol_config)
     lending.setup(infogami.config)
@@ -246,7 +269,10 @@ def main(
 
     while True:
         try:
-            resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
+            if LOCAL_DEV:
+                resp = requests.get("http://dummy_provider:8000", params={"action": "changes", "after_uid": last_uid, "limit": BATCH_SIZE}).json()
+            else:
+                resp = lending.get_loan_changes(after_uid=last_uid, limit=BATCH_SIZE)
         except Exception:
             logger.exception("Failed to fetch loan changes; will retry in %ds", poll_interval)
             time.sleep(poll_interval)
@@ -256,21 +282,21 @@ def main(
             logger.error("Loan changes API returned status=%r; sleeping", resp.get("status"))
             time.sleep(poll_interval)
             continue
-
         rows = resp.get("rows", [])
         did_updates = False
-
         if rows:
             new_uid = max(r["uid"] for r in rows)
             id_state = process_changes(rows)
+            logger.info(f"id_state: {id_state}")
             try:
-                id_to_work = resolve_work_keys(list(id_state.keys()))
+                id_to_edition = resolve_edition_keys(list(id_state.keys()))
             except Exception:
-                logger.exception("Failed to resolve work keys; skipping batch")
+                logger.exception("Failed to resolve edition keys; skipping batch")
                 time.sleep(poll_interval)
                 continue
 
-            updates = build_solr_updates(id_state, id_to_work)
+            updates = build_solr_updates(id_state, id_to_edition)
+            logger.info(f"updates: {updates}")
             if updates:
                 logger.info(
                     "%d Solr updates from %d loan events (uid %d→%d)",
@@ -280,13 +306,15 @@ def main(
                     new_uid,
                 )
                 if not dry_run:
-                    get_solr().update_in_place(updates, commit=False)
+                    response =get_solr().update_in_place(updates, commit=True)
+                    logger.info(f"Solr update response #1: {response}")
                 did_updates = True
 
             last_uid = new_uid
 
         try:
             evictions = build_eviction_updates()
+            logger.info(f"evictions: {evictions}")
         except Exception:
             logger.exception("Failed to build eviction updates")
             evictions = []
@@ -294,11 +322,12 @@ def main(
         if evictions:
             logger.info("Evicting %d expired loans from Solr", len(evictions))
             if not dry_run:
-                get_solr().update_in_place(evictions, commit=False)
+                get_solr().update_in_place(evictions, commit=True)
             did_updates = True
 
         if did_updates and not dry_run:
             try:
+                logger.info("Committing Solr updates")
                 get_solr().update_in_place([], commit=True)
             except Exception:
                 logger.exception("Solr commit failed; state not advanced")
@@ -311,6 +340,8 @@ def main(
             continue
 
         logger.debug("Caught up at uid=%d; sleeping %ds", last_uid, poll_interval)
+        #Delete after testing. 
+        break
         time.sleep(poll_interval)
 
 

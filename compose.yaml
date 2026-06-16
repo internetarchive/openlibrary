@@ -124,10 +124,16 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.oldev
+    depends_on:
+      solr:
+        condition: service_healthy
+      dummy_provider:
+        condition: service_healthy
     networks:
       - webnet 
     environment:
-      - LOCAL_DEV=true
+      - OL_CONFIG=conf/openlibrary.yml
+      - STATE_FILE=solr-loan-updater.last_uuid
     command: docker/ol-solr-loan-updater-start.sh
     volumes:
       - ${OL_MOUNT_DIR:-.}:/openlibrary
@@ -146,6 +152,12 @@ services:
       - webnet 
     environment:
       - LOCAL_DEV=true
+    healthcheck:
+      test: ["CMD", "curl", "-sS", "http://localhost:8000?action=changes&after_uid=0&limit=5"]
+      interval: 5s
+      start_period: 10s
+      timeout: 3s
+      retries: 10
     command: ["python3", "openlibrary/temp/dummy_api.py"]
     volumes:
       - ${OL_MOUNT_DIR:-.}:/openlibrary

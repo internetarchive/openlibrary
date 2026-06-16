@@ -21,6 +21,8 @@ class EditionSearchScheme(SearchScheme):
             "alternative_subtitle",
             "cover_i",
             "ebook_access",
+            "ebook_availability", 
+            "ebook_becomes_available",
             "publish_date",
             "lccn",
             "ia",
