@@ -5687,7 +5687,7 @@ msgstr "Odesláno mnou"
 
 #: merge_request_table/table_header.html
 msgid "Reviewer ▾"
-msgstr ""
+msgstr "Recenzent ▾"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5701,7 +5701,7 @@ msgstr "filtry"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "Nepřiřazeno nikomu"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5725,7 +5725,7 @@ msgstr "Starší"
 
 #: merge_request_table/table_row.html
 msgid "An untitled work"
-msgstr ""
+msgstr "Dílo bez názvu"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5734,15 +5734,15 @@ msgstr "Upravit autora"
 
 #: merge_request_table/table_row.html
 msgid "Open request"
-msgstr ""
+msgstr "Otevřený požadavek"
 
 #: merge_request_table/table_row.html
 msgid "Closed request"
-msgstr ""
+msgstr "Uzavřený požadavek"
 
 #: merge_request_table/table_row.html
 msgid "No comments yet."
-msgstr ""
+msgstr "Zatím žádné komentáře."
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5751,20 +5751,20 @@ msgstr "Editováno bez komentáře"
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "Odpovědět"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s otevřen %(date)s uživatelem <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
 
 #: merge_request_table/table_row.html
 msgid "Click to close this Merge Request"
-msgstr ""
+msgstr "Kliknutím zavřete tento požadavek na sloučení"
 
 #: merge_request_table/table_row.html
 msgid "Review <!-- (merge request) -->"
-msgstr ""
+msgstr "Zkontrolovat <!-- (merge request) -->"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5773,7 +5773,7 @@ msgstr "Témata"
 
 #: my_books/dropdown_content.html
 msgid "Remove From Shelf"
-msgstr ""
+msgstr "Odebrat z police"
 
 #: my_books/dropdown_content.html
 #, fuzzy
@@ -5812,19 +5812,19 @@ msgstr "Upravuje..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "Odebráním této knihy z vašich polic se smaže záznamy přečtení pro toto dílo. Pokračovat?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
-msgstr ""
+msgstr "Přidat do seznamu"
 
 #: my_books/check_ins/check_in_form.html
 msgid "January"
-msgstr ""
+msgstr "Leden"
 
 #: my_books/check_ins/check_in_form.html
 msgid "February"
-msgstr ""
+msgstr "Únor"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5833,31 +5833,31 @@ msgstr "Hledat"
 
 #: my_books/check_ins/check_in_form.html
 msgid "April"
-msgstr ""
+msgstr "Duben"
 
 #: my_books/check_ins/check_in_form.html
 msgid "May"
-msgstr ""
+msgstr "Květen"
 
 #: my_books/check_ins/check_in_form.html
 msgid "June"
-msgstr ""
+msgstr "Červen"
 
 #: my_books/check_ins/check_in_form.html
 msgid "July"
-msgstr ""
+msgstr "Červenec"
 
 #: my_books/check_ins/check_in_form.html
 msgid "August"
-msgstr ""
+msgstr "Srpen"
 
 #: my_books/check_ins/check_in_form.html
 msgid "September"
-msgstr ""
+msgstr "Září"
 
 #: my_books/check_ins/check_in_form.html
 msgid "October"
-msgstr ""
+msgstr "Říjen"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5866,11 +5866,11 @@ msgstr "Novější"
 
 #: my_books/check_ins/check_in_form.html
 msgid "December"
-msgstr ""
+msgstr "Prosinec"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Add an optional check-in date. Check-in dates are used to track yearly reading goals."
-msgstr ""
+msgstr "Přidejte volitelné datum záznamu. Data záznamů se používají ke sledování ročních čtenářských cílů."
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5879,7 +5879,7 @@ msgstr "Poslat ho"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Year:"
-msgstr ""
+msgstr "Rok:"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5888,19 +5888,19 @@ msgstr "Hledat"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month:"
-msgstr ""
+msgstr "Měsíc:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Month"
-msgstr ""
+msgstr "Měsíc"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day:"
-msgstr ""
+msgstr "Den:"
 
 #: my_books/check_ins/check_in_form.html
 msgid "Day"
-msgstr ""
+msgstr "Den"
 
 #: my_books/check_ins/check_in_form.html
 #, fuzzy
@@ -5909,16 +5909,16 @@ msgstr "Smazat účet"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Smazání záznamu se nezdařilo. Zkuste to prosím za chvíli znovu."
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "Odeslání záznamu se nezdařilo. Zkuste to prosím za chvíli znovu."
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "Přečteno <time class=\"check-in-date\">%(date)s</time>"
 
 #: my_books/check_ins/check_in_prompt.html
 #, fuzzy
@@ -5932,23 +5932,23 @@ msgstr "Starší"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Check-In"
-msgstr ""
+msgstr "Záznam čtení"
 
 #: observations/review_component.html
 msgid "Community Reviews"
-msgstr ""
+msgstr "Komunitní recenze"
 
 #: observations/review_component.html
 msgid "No community reviews have been submitted for this work."
-msgstr ""
+msgstr "Pro toto dílo nebyly odeslány žádné komunitní recenze."
 
 #: observations/review_component.html
 msgid "+ Add your community review"
-msgstr ""
+msgstr "+ Přidat komunitní recenzi"
 
 #: observations/review_component.html
 msgid "+ Log in to add your community review"
-msgstr ""
+msgstr "+ Přihlaste se a přidejte komunitní recenzi"
 
 #: publishers/index.html publishers/notfound.html
 #, fuzzy
@@ -5962,12 +5962,12 @@ msgstr "vydáno v"
 
 #: publishers/index.html publishers/view.html
 msgid "Try a keyword."
-msgstr ""
+msgstr "Zkuste klíčové slovo."
 
 #: publishers/notfound.html
 #, python-format
 msgid "We couldn't find any books published by %(publisher)s."
-msgstr ""
+msgstr "Nenašli jsme žádné knihy vydané nakladatelstvím %(publisher)s."
 
 #: publishers/notfound.html subjects/notfound.html
 msgid "Try something else?"
@@ -5976,7 +5976,7 @@ msgstr "Zkusit něco jiného?"
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "Nakladatelství: %(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
@@ -5986,9 +5986,9 @@ msgstr "Vydavatel"
 #, python-format
 msgid "%(count)s ebook"
 msgid_plural "%(count)s ebooks"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)s e-kniha"
+msgstr[1] "%(count)s e-knihy"
+msgstr[2] "%(count)s e-knih"
 
 #: publishers/view.html
 #, fuzzy
@@ -6001,19 +6001,19 @@ msgstr "Publikační historie"
 
 #: publishers/view.html
 msgid "This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
-msgstr ""
+msgstr "Toto je graf zobrazující kdy toto nakladatelství vydávalo knihy. Na ose X je čas a na ose Y je počet vydaných vydání. <a href=\"#subjectRelated\">Klikněte zde pro přeskočení grafu</a>."
 
 #: PublishingHistory.html publishers/view.html
 msgid "Reset chart"
-msgstr ""
+msgstr "Obnovit graf"
 
 #: PublishingHistory.html publishers/view.html
 msgid "or continue zooming in."
-msgstr ""
+msgstr "nebo pokračovat v přiblížení."
 
 #: publishers/view.html
 msgid "This graph charts editions from this publisher over time. Click to view a single year, or drag across a range."
-msgstr ""
+msgstr "Tento graf zobrazuje vydání od tohoto nakladatelství v průběhu času. Klikněte pro zobrazení jednotlivého roku nebo přetáhněte pro výběr rozsahu."
 
 #: PublishingHistory.html publishers/view.html
 #, fuzzy
@@ -6032,7 +6032,7 @@ msgstr "Témata"
 #: publishers/view.html
 #, python-format
 msgid "Search for books published by %(publisher)s"
-msgstr ""
+msgstr "Hledat knihy vydané nakladatelstvím %(publisher)s"
 
 #: RelatedSubjects.html publishers/view.html
 msgid "None found."
@@ -6040,7 +6040,7 @@ msgstr "Nenalezeno"
 
 #: ProlificAuthors.html publishers/view.html
 msgid "See more books by, and learn about, this author"
-msgstr ""
+msgstr "Zobrazit více knih tohoto autora a zjistit více informací"
 
 #: publishers/view.html
 msgid "published most by this publisher"
@@ -6052,21 +6052,21 @@ msgstr "Získat další informace o tomto vydavately"
 
 #: reading_goals/reading_goal_form.html
 msgid "How many books would you like to read this year?"
-msgstr ""
+msgstr "Kolik knih chcete letos přečíst?"
 
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
-msgstr ""
+msgstr "Zadejte \"0\" pro zrušení čtenářského cíle. Vaše záznamy čtení budou zachovány."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> Books"
-msgstr ""
+msgstr "<span class=\"reading-goal-progress__books-read\">%(books_read)d</span>/<span class=\"reading-goal-progress__goal\">%(goal)d</span> knih"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "Edit %(year)d Reading Goal"
-msgstr ""
+msgstr "Upravit čtenářský cíl %(year)d"
 
 #: recentchanges/header.html
 #, fuzzy
@@ -6075,7 +6075,7 @@ msgstr "od"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Vrátit vše"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -6083,7 +6083,7 @@ msgstr "Poslední změny"
 
 #: recentchanges/index.html
 msgid "Books Edited"
-msgstr ""
+msgstr "Upravené knihy"
 
 #: recentchanges/index.html
 #, fuzzy
@@ -6092,7 +6092,7 @@ msgstr "Autoři"
 
 #: recentchanges/index.html
 msgid "Work Merges"
-msgstr ""
+msgstr "Sloučení děl"
 
 #: recentchanges/index.html
 #, fuzzy
@@ -6101,7 +6101,7 @@ msgstr "Přidáno"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
-msgstr ""
+msgstr "Lidmi"
 
 #: RecentChanges.html recentchanges/index.html
 #, fuzzy
@@ -6110,11 +6110,11 @@ msgstr "Moje knihy"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "Everything"
-msgstr ""
+msgstr "Vše"
 
 #: recentchanges/render.html
 msgid "Admin view"
-msgstr ""
+msgstr "Správcovský pohled"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/render.html
 msgid "Older"
@@ -6126,7 +6126,7 @@ msgstr "Novější"
 
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
-msgstr ""
+msgstr "Zkontrolovat změny oproti předchozí revizi"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html recentchanges/default/path.html recentchanges/updated_records.html
 #, fuzzy
@@ -6144,7 +6144,7 @@ msgstr "vytvořil nový Open Library účet!"
 
 #: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
 msgid "Review what's changed from the previous revision"
-msgstr ""
+msgstr "Zkontrolovat změny oproti předchozí revizi"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html recentchanges/undo/view.html
 #, fuzzy
@@ -6154,65 +6154,65 @@ msgstr "Smazat záznam"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "Sloučeny duplicitní záznamy %(record_type)s."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "Viz <a href=\"%s\">podrobnosti</a>."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Sloučen %(count)d duplicitní záznam %(type)s do tohoto primárního."
+msgstr[1] "Sloučeny %(count)d duplicitní záznamy %(type)s do tohoto primárního."
+msgstr[2] "Sloučeno %(count)d duplicitních záznamů %(type)s do tohoto primárního."
 
 #: recentchanges/merge/comment.html
 msgid "Marked as duplicate."
-msgstr ""
+msgstr "Označeno jako duplikát."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "Sloučeno %(page_type)s do primárního záznamu %(record_type)s."
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(who)s sloučil jeden duplikát %(master)s"
+msgstr[1] "%(who)s sloučil %(count)d duplikáty %(master)s"
+msgstr[2] "%(who)s sloučil %(count)d duplikátů %(master)s"
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "jeden duplikát %(master)s byl sloučen anonymně"
+msgstr[1] "%(count)d duplikáty %(master)s byly sloučeny anonymně"
+msgstr[2] "%(count)d duplikátů %(master)s bylo sloučeno anonymně"
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
-msgstr ""
+msgstr "Toto sloučení bylo vráceno."
 
 #: recentchanges/merge/view.html
 msgid "Details here"
-msgstr ""
+msgstr "Podrobnosti zde"
 
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
-msgstr ""
+msgstr "Duplikáty"
 
 #: recentchanges/merge/view.html
 #, python-format
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)d záznam upraven."
+msgstr[1] "%(count)d záznamy upraveny."
+msgstr[2] "%(count)d záznamů upraveno."
 
 #: recentchanges/undo/view.html
 #, python-format
