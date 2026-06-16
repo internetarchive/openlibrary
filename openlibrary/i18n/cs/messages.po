@@ -3679,7 +3679,7 @@ msgstr "Datum vydání neznámo, %(publisher)s"
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
+msgstr "v %(languagelist)s"
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html openlibrary/plugins/upstream/mybooks.py
 #, fuzzy
@@ -3692,7 +3692,7 @@ msgstr "Moje knihy"
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
-msgstr ""
+msgstr "Chci přečíst (%(count)d)"
 
 #. Page title for the "Currently Reading" shelf page.
 #. Example: "Currently Reading (42)". %(count)d is the number of books on this
@@ -3700,7 +3700,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
-msgstr ""
+msgstr "Právě čtu (%(count)d)"
 
 #. Page title for the "Already Read" shelf page.
 #. Example: "Already Read (203)". %(count)d is the number of books on this
@@ -3708,7 +3708,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
-msgstr ""
+msgstr "Přečteno (%(count)d)"
 
 #. Page title for the "Stopped Reading" shelf page.
 #. Example: "Stopped Reading (8)". %(count)d is the number of books on this
@@ -3716,12 +3716,12 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Stopped Reading (%(count)d)"
-msgstr ""
+msgstr "Přestalo čtení (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
-msgstr ""
+msgstr "Seznamy (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py type/edition/modal_links.html
 #, fuzzy
@@ -3730,7 +3730,7 @@ msgstr "Poznámky:"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
-msgstr ""
+msgstr "Importy a exporty"
 
 #: books/series-autocomplete.html
 #, fuzzy
@@ -3744,7 +3744,7 @@ msgstr "Uživatelské jméno"
 
 #: books/series-autocomplete.html
 msgid "Series position"
-msgstr ""
+msgstr "Pozice v sérii"
 
 #: books/series-autocomplete.html
 #, fuzzy
@@ -3780,7 +3780,7 @@ msgstr "Oddělte prosím čárkami."
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr ""
+msgstr "Například: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -3788,7 +3788,7 @@ msgstr "Osoba? nebo lidé?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
-msgstr ""
+msgstr "Například: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -3796,15 +3796,15 @@ msgstr "Zínil autor nějaká místa?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
-msgstr ""
+msgstr "Například: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
-msgstr ""
+msgstr "Kdy se odehrává nebo čím se zabývá?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr ""
+msgstr "Například: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -3820,7 +3820,7 @@ msgstr "Smazat tento záznam"
 
 #: books/edit/edition.html
 msgid "-- Move to a new work"
-msgstr ""
+msgstr "-- Přesunout do nového díla"
 
 #: books/edit/edition.html
 msgid "This Edition"
@@ -3828,7 +3828,7 @@ msgstr "Toto vydání"
 
 #: books/edit/edition.html
 msgid "Enter the title of this specific edition."
-msgstr ""
+msgstr "Zadejte název tohoto konkrétního vydání."
 
 #: books/edit/edition.html
 msgid "Subtitle"
@@ -3836,11 +3836,11 @@ msgstr "Podtitul"
 
 #: books/edit/edition.html
 msgid "Usually distinguished by different or smaller type."
-msgstr ""
+msgstr "Obvykle odlišen jiným nebo menším písmem."
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "Například: <i>envisioning the next 50 years</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
@@ -3848,7 +3848,7 @@ msgstr "Publikační informace"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Například <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
@@ -3860,7 +3860,7 @@ msgstr "Město, stát prosím."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "Například: <i>New York, USA; Sydney, Australia</i>"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -3869,27 +3869,27 @@ msgstr "Kdo je vydavatel?"
 
 #: books/edit/edition.html
 msgid "The year following the copyright statement."
-msgstr ""
+msgstr "Rok uvedený za prohlášením o autorských právech."
 
 #: books/edit/edition.html
 msgid "Edition Name (if applicable):"
-msgstr ""
+msgstr "Název vydání (pokud je to relevantní):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "Například: <i>Centennial edition</i>; <i>First edition</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
-msgstr ""
+msgstr "Název série (pokud je to relevantní)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
-msgstr ""
+msgstr "Název nakladatelské série."
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "Například: <i>The Story of Civilization, Part III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
@@ -3901,7 +3901,7 @@ msgstr "Prosím vyberte roli."
 
 #: books/edit/edition.html
 msgid "You need to give this ROLE a name."
-msgstr ""
+msgstr "Musíte pojmenovat tuto ROLI."
 
 #: books/edit/edition.html
 msgid "List the people involved"
@@ -3921,11 +3921,11 @@ msgstr "Smazat tohoto tvůrce"
 
 #: books/edit/edition.html
 msgid "By Statement:"
-msgstr ""
+msgstr "Prohlášení autora:"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Například: <em>edited by David Anderson</em>"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
@@ -3958,7 +3958,7 @@ msgstr "Popis tohoto vydání"
 
 #: books/edit/edition.html
 msgid "Only if it's different from the work's description"
-msgstr ""
+msgstr "Pouze pokud se liší od popisu díla"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Table of Contents"
@@ -3966,19 +3966,19 @@ msgstr "Obsah"
 
 #: books/edit/edition.html
 msgid "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for new lines. Like this:"
-msgstr ""
+msgstr "Použijte \"*\" pro odsazení, \"|\" pro přidání sloupce a zalomení řádků pro nové řádky. Například takto:"
 
 #: books/edit/edition.html
 msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr ""
+msgstr "Tento obsah obsahuje další informace jako autory nebo popisy. Zatím nemáme dobré uživatelské rozhraní pro toto, takže editace těchto dat může být obtížná. Buďte opatrní!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
-msgstr ""
+msgstr "Máte nějaké poznámky k tomuto konkrétnímu vydání?"
 
 #: books/edit/edition.html
 msgid "Anything about the book that may be of interest."
-msgstr ""
+msgstr "Cokoliv o knize, co může být zajímavé."
 
 #: books/edit/edition.html
 #, fuzzy
@@ -3987,15 +3987,15 @@ msgstr "Přidat knihu"
 
 #: books/edit/edition.html
 msgid "Is it known by any other titles?"
-msgstr ""
+msgstr "Je kniha známa i pod jiným názvem?"
 
 #: books/edit/edition.html
 msgid "Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here."
-msgstr ""
+msgstr "Použijte toto pole, pokud se název na obálce nebo hřbetu liší. Pokud je vydání sbírkou nebo antologií, můžete zde také přidat jednotlivé názvy každého díla."
 
 #: books/edit/edition.html
 msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr ""
+msgstr "Například: <i>Eaters of the Dead</i> je alternativní název pro <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -4003,47 +4003,47 @@ msgstr "Jakého díla je tohle vydání?"
 
 #: books/edit/edition.html
 msgid "Sometimes editions can be associated with the wrong work. You can correct that here."
-msgstr ""
+msgstr "Někdy mohou být vydání spojena s nesprávným dílem. Zde to můžete opravit."
 
 #: books/edit/edition.html
 msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
-msgstr ""
+msgstr "Můžete vyhledávat podle názvu nebo podle ID Open Library (jako <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
-msgstr ""
+msgstr "VAROVÁNÍ: Jakékoliv úpravy provedené v díle z této stránky budou ignorovány."
 
 #: books/edit/edition.html
 msgid "Copy authors to new work"
-msgstr ""
+msgstr "Kopírovat autory do nového díla"
 
 #: books/edit/edition.html
 msgid "Copy subjects to new work"
-msgstr ""
+msgstr "Kopírovat předměty do nového díla"
 
 #: books/edit/edition.html
 msgid "Please select an identifier."
-msgstr ""
+msgstr "Prosím vyberte identifikátor."
 
 #: books/edit/edition.html
 msgid "You need to give a value to ID."
-msgstr ""
+msgstr "Musíte zadat hodnotu pro ID."
 
 #: books/edit/edition.html
 msgid "ID ids cannot contain whitespace."
-msgstr ""
+msgstr "ID nemůže obsahovat mezery."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 10 characters [0-9] or X."
-msgstr ""
+msgstr "ID musí mít přesně 10 znaků [0-9] nebo X."
 
 #: books/edit/edition.html
 msgid "That ID already exists for this edition."
-msgstr ""
+msgstr "Toto ID již pro toto vydání existuje."
 
 #: books/edit/edition.html
 msgid "ID must be exactly 13 digits [0-9]. For example: 978-1-56619-909-4"
-msgstr ""
+msgstr "ID musí mít přesně 13 číslic [0-9]. Například: 978-1-56619-909-4"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4064,11 +4064,11 @@ msgstr "Jako ISBN?"
 
 #: books/edit/edition.html
 msgid "Please select a classification."
-msgstr ""
+msgstr "Prosím vyberte klasifikaci."
 
 #: books/edit/edition.html
 msgid "You need to give a value to CLASS."
-msgstr ""
+msgstr "Musíte zadat hodnotu pro TŘÍDU."
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Classifications"
@@ -4076,23 +4076,23 @@ msgstr "Klasifikace"
 
 #: books/edit/edition.html
 msgid "Do you know any classifications of this edition?"
-msgstr ""
+msgstr "Znáte nějakou klasifikaci tohoto vydání?"
 
 #: books/edit/edition.html
 msgid "Like, Dewey Decimal?"
-msgstr ""
+msgstr "Třeba Deweyho desetinné třídění?"
 
 #: books/edit/edition.html
 msgid "Select one of many..."
-msgstr ""
+msgstr "Vyberte jednu z mnoha..."
 
 #: books/edit/edition.html
 msgid "Add a new classification type"
-msgstr ""
+msgstr "Přidat nový typ klasifikace"
 
 #: books/edit/edition.html
 msgid "Remove this classification"
-msgstr ""
+msgstr "Odebrat tuto klasifikaci"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "The Physical Object"
@@ -4104,7 +4104,7 @@ msgstr "Jaký je druh vazby"
 
 #: books/edit/edition.html
 msgid "Paperback; Hardcover, etc."
-msgstr ""
+msgstr "Brožovaná; Tvrdá vazba, atd."
 
 #: books/edit/edition.html
 msgid "How many pages?"
@@ -4124,7 +4124,7 @@ msgstr "Pomoc"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Například: <em>xii, 346p.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
@@ -4153,19 +4153,19 @@ msgstr "Hloubka:"
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "Poskytovatelé webových knih"
 
 #: books/edit/edition.html
 msgid "Access Type"
-msgstr ""
+msgstr "Typ přístupu"
 
 #: books/edit/edition.html
 msgid "File Format"
-msgstr ""
+msgstr "Formát souboru"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "Název poskytovatele"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4188,11 +4188,11 @@ msgstr "První věta"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "Úvodní věta zahajující úvodní odstavec"
 
 #: books/edit/edition.html
 msgid "Admin Only"
-msgstr ""
+msgstr "Pouze pro správce"
 
 #: books/edit/edition.html
 msgid "Additional Metadata"
@@ -4200,47 +4200,47 @@ msgstr "Další metadata"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "Toto pole může přijmout libovolné páry klíč:hodnota"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
-msgstr ""
+msgstr "Prosím poskytněte úryvek."
 
 #: books/edit/excerpts.html
 msgid "That excerpt is too long."
-msgstr ""
+msgstr "Tento úryvek je příliš dlouhý."
 
 #: books/edit/excerpts.html
 msgid "If there are particular (short) passages you feel represent the book well, please feel free to transcribe them here."
-msgstr ""
+msgstr "Pokud existují konkrétní (krátké) pasáže, které podle Vás dobře reprezentují knihu, neváhejte je zde přepsat."
 
 #: books/edit/excerpts.html
 msgid "Page number?"
-msgstr ""
+msgstr "Číslo stránky?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "Například: <i>23, xi nebo 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "Tento úryvek je první větou knihy."
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
-msgstr ""
+msgstr "Přepište úryvek"
 
 #: books/edit/excerpts.html
 msgid "Maximum length is 2000 characters. No HTML allowed."
-msgstr ""
+msgstr "Maximální délka je 2000 znaků. HTML není povoleno."
 
 #: books/edit/excerpts.html
 msgid "Why did you choose this excerpt?"
-msgstr ""
+msgstr "Proč jste zvolili tento úryvek?"
 
 #: books/edit/excerpts.html
 msgid "Add an optional note."
-msgstr ""
+msgstr "Přidejte volitelnou poznámku."
 
 #: books/edit/excerpts.html
 msgid "Excerpts so far..."
