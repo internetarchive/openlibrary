@@ -1958,7 +1958,7 @@ msgstr "Nie pamiętasz swojego adresu e-mail na Internet Archive?"
 
 #: account/email/forgot-ia.html
 msgid "Please enter your Open Library email and password, and we’ll retrieve your Archive.org email."
-msgstr ""
+msgstr "Wprowadź swój adres e-mail i hasło Open Library, a my pobierzemy Twój adres e-mail Archive.org."
 
 #: account/email/forgot-ia.html
 #, fuzzy
@@ -3617,11 +3617,11 @@ msgstr "Szukasz konkretnego tytułu? Najlepszym sposobem jest<a href=\"/search\"
 
 #: books/daisy.html lib/exports.html
 msgid "Need help?"
-msgstr ""
+msgstr "Potrzebujesz pomocy?"
 
 #: books/daisy.html
 msgid " Please read our <a href=\"/help/faq\">FAQ on accessing books through Open Library</a>."
-msgstr ""
+msgstr " Proszę przeczytaj nasze <a href=\"/help/faq\">FAQ dotyczące dostępu do książek przez Open Library</a>."
 
 #: books/edit.html
 msgid "Add a little more?"
@@ -3635,7 +3635,7 @@ msgstr "<p class=\"alert thanks\">Dziękujemy za dodanie tej książki! Jeśli m
 #: books/edit.html
 #, python-format
 msgid "We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?"
-msgstr ""
+msgstr "Wiemy już o <b>%(work_title)s</b>, ale nie o wydaniu <b>%(year)s %(publisher)s</b>. Dziękujemy! Czy wiesz coś więcej o tym wydaniu?"
 
 #: books/edit.html
 #, fuzzy, python-format
@@ -3652,11 +3652,11 @@ msgstr "Usuń wpis"
 
 #: books/edit.html
 msgid "Work Details"
-msgstr ""
+msgstr "Szczegóły dzieła"
 
 #: books/edit.html
 msgid "Unknown publisher edition"
-msgstr ""
+msgstr "Wydanie nieznanego wydawcy"
 
 #: books/edit.html
 #, fuzzy
@@ -3665,11 +3665,11 @@ msgstr "Usuń tę pozycję"
 
 #: books/edit.html
 msgid "You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
-msgstr ""
+msgstr "Możesz wyszukiwać według imienia autora (jak <em>j k rowling</em>) lub według identyfikatora Open Library (jak <a href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
-msgstr ""
+msgstr "Edycja autora wymaga javascript"
 
 #: books/edit.html
 msgid "Add Excerpts"
@@ -3686,7 +3686,7 @@ msgstr "Seria"
 
 #: books/edit.html
 msgid "Series are currently in beta, and this section is only visible to super librarians and admins, like you! Any series you set will be visible by everyone, however. Please report any issues you have on Slack or GitHub."
-msgstr ""
+msgstr "Serie są obecnie w fazie beta i ta sekcja jest widoczna tylko dla super bibliotekarzy i administratorów, takich jak Ty! Jednak wszystkie ustawione serie będą widoczne dla wszystkich. Zgłaszaj wszelkie problemy na Slacku lub GitHub."
 
 #: books/edit.html
 #, fuzzy
@@ -3695,11 +3695,11 @@ msgstr "Czy ta książka jest częścią serii?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Np. Harry Potter, Miecz Prawdy"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
-msgstr ""
+msgstr "Identyfikatory dzieła"
 
 #: books/edit.html
 #, fuzzy
@@ -3708,12 +3708,12 @@ msgstr "Czy znasz oznaczenia tego wydania?"
 
 #: books/edit.html
 msgid "These identifiers apply to all editions of this work, for example Wikidata work identifiers. For edition-specific identifiers, like ISBN or LCCN, go to the edition tab."
-msgstr ""
+msgstr "Te identyfikatory dotyczą wszystkich wydań tego dzieła, na przykład identyfikatory dzieła Wikidata. W przypadku identyfikatorów specyficznych dla wydania, takich jak ISBN lub LCCN, przejdź na kartę wydania."
 
 #: FulltextSearchSuggestionItem.html IABook.html SearchResultsWork.html books/edition-sort.html jsdef/LazyWorkPreview.html lists/list_overview.html lists/preview.html lists/snippet.html lists/widget.html my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
-msgstr ""
+msgstr "Okładka: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
@@ -3723,7 +3723,7 @@ msgstr "%(title)s: %(subtitle)s"
 #: books/edition-sort.html
 #, python-format
 msgid "Publish date unknown, %(publisher)s"
-msgstr ""
+msgstr "Data wydania nieznana, %(publisher)s"
 
 #: books/edition-sort.html type/work/editions.html
 #, python-format
@@ -3778,7 +3778,7 @@ msgstr "Notatki:"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
-msgstr ""
+msgstr "Importy i eksporty"
 
 #: books/series-autocomplete.html
 #, fuzzy
@@ -3828,7 +3828,7 @@ msgstr "Wpisuj słowa kluczowe po przecinku."
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/cheese\">cheese</a>, <a href=\"/subjects/roman_empire\">Roman Empire</a>, <a href=\"/subjects/psychology\">psychology</a></i>"
-msgstr ""
+msgstr "Na przykład: <i><a href=\"/subjects/cheese\">ser</a>, <a href=\"/subjects/roman_empire\">Cesarstwo Rzymskie</a>, <a href=\"/subjects/psychology\">psychologia</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -3836,7 +3836,7 @@ msgstr "jedna czy więcej osób?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
-msgstr ""
+msgstr "Na przykład: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -3844,7 +3844,7 @@ msgstr "Czy zostały wspomniane jakieś miejsca?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/place:London\">London</a>, <a href=\"/subjects/place:Atlantis\">Atlantis</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
-msgstr ""
+msgstr "Na przykład: <i><a href=\"/subjects/place:London\">Londyn</a>, <a href=\"/subjects/place:Atlantis\">Atlantyda</a>, <a href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -3852,7 +3852,7 @@ msgstr "Kiedy odbywa się akcja książki, o czym jest?"
 
 #: books/edit/about.html
 msgid "For example: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
-msgstr ""
+msgstr "Na przykład: <i><a href=\"/subjects/time:1984\">1984</a>, <a href=\"/subjects/time:the_middle_ages\">Średniowiecze</a>, <a href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -3888,7 +3888,7 @@ msgstr "Zwykle wydrukowany mniejszą lub inną czcionką."
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "Na przykład: <i>wyobrażając sobie następne 50 lat</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
@@ -3896,7 +3896,7 @@ msgstr "Informacje wydawnicze"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Na przykład <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
@@ -3908,7 +3908,7 @@ msgstr "Prosimy o podanie państwa i miasta publikacji."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "Na przykład: <i>Nowy Jork, USA; Sydney, Australia</i>"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -3921,15 +3921,15 @@ msgstr "Rok podany po informacji o prawach autorskich."
 
 #: books/edit/edition.html
 msgid "Edition Name (if applicable):"
-msgstr ""
+msgstr "Nazwa wydania (jeśli dotyczy):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "Na przykład: <i>Wydanie jubileuszowe</i>; <i>Pierwsze wydanie</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
-msgstr ""
+msgstr "Nazwa serii (jeśli dotyczy)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
@@ -3937,7 +3937,7 @@ msgstr "Nazwa serii wydawnictwa"
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "Na przykład: <i>Historia cywilizacji, część III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
@@ -3974,7 +3974,7 @@ msgstr "Czy podany jest autor?"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Na przykład: <em>pod redakcją Davida Andersona</em>"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
@@ -4019,7 +4019,7 @@ msgstr "Użyj \"*\" by zrobić wcięcie, \"|\" by dodać kolumnę oraz zakończe
 
 #: books/edit/edition.html
 msgid "This table of contents contains extra information like authors or descriptions. We don't have a great user interface for this yet, so editing this data could be difficult. Watch out!"
-msgstr ""
+msgstr "Ten spis treści zawiera dodatkowe informacje, takie jak autorzy lub opisy. Nie mamy jeszcze dobrego interfejsu użytkownika do tego, więc edycja tych danych może być trudna. Uważaj!"
 
 #: books/edit/edition.html
 msgid "Any notes about this specific edition?"
@@ -4044,7 +4044,7 @@ msgstr "Wypełnij te pole jeśli tytuł jest inny na okładce lub grzbiecie ksi�
 
 #: books/edit/edition.html
 msgid "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
-msgstr ""
+msgstr "Na przykład: <i>Eaters of the Dead</i> to alternatywny tytuł dla <i><a href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -4056,7 +4056,7 @@ msgstr "Zdarza się, że wydania są skojarzone z niepoprawnymi książkami. Mo�
 
 #: books/edit/edition.html
 msgid "You can search by title or by Open Library ID (like <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
-msgstr ""
+msgstr "Możesz wyszukiwać według tytułu lub identyfikatora Open Library (jak <a href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>)."
 
 #: books/edit/edition.html
 msgid "WARNING: Any edits made to the work from this page will be ignored."
@@ -4090,7 +4090,7 @@ msgstr "ID musi zawierać dokładnie 10 znaków [0-9] lub X."
 
 #: books/edit/edition.html
 msgid "That ID already exists for this edition."
-msgstr ""
+msgstr "Ten identyfikator już istnieje dla tego wydania."
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4176,7 +4176,7 @@ msgstr "Pomoc"
 
 #: books/edit/edition.html
 msgid "For example: <em>xii, 346p.</em>"
-msgstr ""
+msgstr "Na przykład: <em>xii, 346 s.</em>"
 
 #: books/edit/edition.html
 msgid "How much does the book weigh?"
@@ -4205,7 +4205,7 @@ msgstr "Grubość"
 
 #: books/edit/edition.html
 msgid "Web Book Providers"
-msgstr ""
+msgstr "Dostawcy e-booków internetowych"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4219,7 +4219,7 @@ msgstr "Format"
 
 #: books/edit/edition.html
 msgid "Provider Name"
-msgstr ""
+msgstr "Nazwa dostawcy"
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4242,7 +4242,7 @@ msgstr "Pierwsze zdanie"
 
 #: books/edit/edition.html
 msgid "The opening line that starts the lead paragraph"
-msgstr ""
+msgstr "Pierwsze zdanie rozpoczynające wiodący akapit"
 
 #: books/edit/edition.html
 msgid "Admin Only"
@@ -4254,7 +4254,7 @@ msgstr "Dodatkowe metadane"
 
 #: books/edit/edition.html
 msgid "This field can accept arbitrary key:value pairs"
-msgstr ""
+msgstr "To pole może przyjmować dowolne pary klucz:wartość"
 
 #: books/edit/excerpts.html
 msgid "Please provide an excerpt."
@@ -4274,11 +4274,11 @@ msgstr "Jaki jest numer strony?"
 
 #: books/edit/excerpts.html
 msgid "For example: <i>23, xi or 433-434</i>"
-msgstr ""
+msgstr "Na przykład: <i>23, xi lub 433-434</i>"
 
 #: books/edit/excerpts.html
 msgid "This excerpt is the first sentence of the book."
-msgstr ""
+msgstr "Ten fragment to pierwsze zdanie książki."
 
 #: books/edit/excerpts.html
 msgid "Transcribe the excerpt"
@@ -4335,11 +4335,11 @@ msgstr "Nadaj etykietę swojemu linkowi."
 
 #: books/edit/web.html
 msgid "For example: <em>New York Times review</em>"
-msgstr ""
+msgstr "Na przykład: <em>recenzja New York Times</em>"
 
 #: books/edit/web.html
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: books/edit/web.html
 #, fuzzy
@@ -4356,7 +4356,7 @@ msgstr "\"Poprwany\" oznacza link bez spamu. Linki muszą być powiązane z tą 
 
 #: bulk_search/bulk_search.html search/advancedsearch.html
 msgid "Bulk Search (beta)"
-msgstr ""
+msgstr "Wyszukiwanie zbiorcze (beta)"
 
 #: covers/add.html
 #, fuzzy
@@ -4388,7 +4388,7 @@ msgstr "Podaj ULR tego obrazu."
 #: covers/add.html
 #, python-format
 msgid "Learn more by reading our <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
-msgstr ""
+msgstr "Dowiedz się więcej, czytając nasze <a href=\"/help/faq/editing#picture\" target=\"blank\">%(guidelines)s</a>."
 
 #: covers/add.html
 #, fuzzy
@@ -4407,15 +4407,15 @@ msgstr "Wybierz plik JPG, GIF lub PNG z Twojego komputera."
 
 #: covers/add.html
 msgid "Upload"
-msgstr ""
+msgstr "Prześlij"
 
 #: covers/add.html
 msgid "Or, paste an image from your clipboard"
-msgstr ""
+msgstr "Lub wklej obraz ze schowka"
 
 #: covers/add.html
 msgid "Paste image from clipboard"
-msgstr ""
+msgstr "Wklej obraz ze schowka"
 
 #: covers/add.html
 #, fuzzy
@@ -4424,11 +4424,11 @@ msgstr "Dodaj kolejny obraz"
 
 #: covers/add.html
 msgid "Upload image"
-msgstr ""
+msgstr "Prześlij obraz"
 
 #: covers/add.html covers/external_image.html
 msgid "Upload Image"
-msgstr ""
+msgstr "Prześlij obraz"
 
 #: covers/add.html
 #, fuzzy
@@ -4442,40 +4442,40 @@ msgstr "Wikipedia"
 
 #: covers/author_photo.html
 msgid "Pull up a larger author photo"
-msgstr ""
+msgstr "Powiększ zdjęcie autora"
 
 #: covers/author_photo.html search/authors.html
 #, python-format
 msgid "Photo of %(author)s"
-msgstr ""
+msgstr "Zdjęcie %(author)s"
 
 #: covers/author_photo.html
 msgid "Click to close"
-msgstr ""
+msgstr "Kliknij, aby zamknąć"
 
 #: covers/author_photo.html
 #, python-format
 msgid "We need a photo of %(author)s"
-msgstr ""
+msgstr "Potrzebujemy zdjęcia %(author)s"
 
 #: covers/book_cover.html
 msgid "Pull up a bigger book cover"
-msgstr ""
+msgstr "Powiększ okładkę książki"
 
 #: covers/book_cover.html covers/book_cover_small.html
 #, python-format
 msgid "Cover of: %(title)s by %(authors)s"
-msgstr ""
+msgstr "Okładka: %(title)s autorstwa %(authors)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "Go to the main page for %(title)s"
-msgstr ""
+msgstr "Przejdź do głównej strony %(title)s"
 
 #: covers/book_cover_small.html
 #, python-format
 msgid "We need a book cover for: %(title)s"
-msgstr ""
+msgstr "Potrzebujemy okładki dla: %(title)s"
 
 #: covers/change.html
 #, fuzzy
@@ -4499,7 +4499,7 @@ msgstr "Książki, które kochamy"
 
 #: covers/change.html
 msgid "Manage Covers"
-msgstr ""
+msgstr "Zarządzaj okładkami"
 
 #: covers/change.html
 #, fuzzy
@@ -4514,7 +4514,7 @@ msgstr "Język"
 #: covers/external_image.html
 #, python-format
 msgid "Or, use an image from %s"
-msgstr ""
+msgstr "Lub użyj obrazu z %s"
 
 #: covers/manage.html
 msgid "You can drag and drop thumbnails to reorder, or into the trash to delete them."
@@ -4522,7 +4522,7 @@ msgstr "Możesz przeciągać i upuszczać miniatury w celu zmiany kolejności, l
 
 #: covers/saved.html
 msgid "New book cover"
-msgstr ""
+msgstr "Nowa okładka książki"
 
 #: covers/saved.html
 msgid "Saved!"
@@ -4542,30 +4542,30 @@ msgstr "Zakończono"
 
 #: design/toggle.html
 msgid "Toggle"
-msgstr ""
+msgstr "Przełącz"
 
 #: design/toggle.html
 #, python-format
 msgid "The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s."
-msgstr ""
+msgstr "Komponent %(tag)s to przełącznik z pogrubioną etykietą i opcjonalną szarą podetyketą. Cała kontrolka to jeden przycisk %(role)s, więc cała powierzchnia jest klikalna, a Enter/Spacja ją aktywuje. Zarządza swoim stanem włącz/wyłącz: kliknięcie zmienia %(checked)s i wywołuje %(event)s."
 
 #: design/toggle.html
 msgid "Default"
-msgstr ""
+msgstr "Domyślny"
 
 #: design/toggle.html
 #, python-format
 msgid "A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s."
-msgstr ""
+msgstr "Prosty przełącznik: tylko przełącznik, pogrubiona %(label)s i opcjonalna szara %(sublabel)s."
 
 #: design/toggle.html
 msgid "Card variant"
-msgstr ""
+msgstr "Wariant kart"
 
 #: design/toggle.html
 #, python-format
 msgid "Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s."
-msgstr ""
+msgstr "Użyj %(variant)s dla kontenera z obramowaniem. Po zaznaczeniu wypełnia się jednolitym niebieskim tłem i białym tekstem — takie samo traktowanie jak wybrany %(chip)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4575,15 +4575,15 @@ msgstr "Spis treści"
 #: design/toggle.html
 #, python-format
 msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
-msgstr ""
+msgstr "Umieść zawartość w domyślnym slocie, aby dostosować etykietę zamiast używać %(label)s / %(sublabel)s. Podaj %(accessible_label)s, aby przełącznik nadal miał dostępną nazwę."
 
 #: design/toggle.html
 msgid "Dark mode"
-msgstr ""
+msgstr "Tryb ciemny"
 
 #: design/toggle.html
 msgid "easier on the eyes"
-msgstr ""
+msgstr "łagodniejszy dla oczu"
 
 #: design/toggle.html
 #, fuzzy
@@ -4593,20 +4593,20 @@ msgstr "Dla osób z trudnościami w czytaniu druku"
 #: design/toggle.html
 #, python-format
 msgid "Add %(disabled)s to block interaction."
-msgstr ""
+msgstr "Dodaj %(disabled)s, aby zablokować interakcję."
 
 #: design/toggle.html
 msgid "Change event"
-msgstr ""
+msgstr "Zdarzenie zmiany"
 
 #: design/toggle.html
 #, python-format
 msgid "Toggling fires %(event)s with the new state in %(detail)s."
-msgstr ""
+msgstr "Przełączanie wyzwala %(event)s z nowym stanem w %(detail)s."
 
 #: design/toggle.html
 msgid "Checked:"
-msgstr ""
+msgstr "Zaznaczone:"
 
 #: email/case_created.html
 #, fuzzy
@@ -4615,7 +4615,7 @@ msgstr "Wyślij"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Dziękujemy za wiadomość. Odpowiemy tak szybko, jak to możliwe."
 
 #: email/case_created.html
 msgid "It might take us a little while to read it because we receive lots of messages, but rest assured we will, and we'll get back to you if required."
@@ -4623,7 +4623,7 @@ msgstr ""
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Kwalifikowanie się do specjalnego dostępu dla osób z niepełnosprawnością druku"
 
 #: history/sources.html
 #, fuzzy
@@ -4658,8 +4658,8 @@ msgstr "Przeglądaj według tematów"
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s książka"
+msgstr[1] "%(count)s książki"
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
@@ -4691,22 +4691,22 @@ msgstr "Podręczniki"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance & MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Książki w środowisku lokalnym"
 
 #: home/loans.html
 #, python-format
 msgid "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> one more book until you've hit the limit!"
 msgid_plural "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> %(count)d more books until you've hit the limit!"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Możesz jeszcze <a href=\"/subjects/in_library#ebooks=true\">wypożyczyć</a> jedną książkę, zanim osiągniesz limit!"
+msgstr[1] "Możesz jeszcze <a href=\"/subjects/in_library#ebooks=true\">wypożyczyć</a> %(count)d książki, zanim osiągniesz limit!"
 
 #: home/loans.html
 msgid "You have reached the borrowing limit. Please return a book to checkout something new."
-msgstr ""
+msgstr "Osiągnąłeś/aś limit wypożyczeń. Proszę zwrócić książkę, aby wypożyczyć coś nowego."
 
 #: home/stats.html
 msgid "Around the Library"
@@ -4722,7 +4722,7 @@ msgstr "Zobacz wszystkich odwiedzających OpenLibrary.org"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
-msgstr ""
+msgstr "Wykres obszarowy ostatnich unikalnych odwiedzających"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
@@ -4739,7 +4739,7 @@ msgstr "Użytkownicy na bierząco aktualizujący katalog"
 
 #: home/stats.html
 msgid "Area graph of recent catalog edits"
-msgstr ""
+msgstr "Wykres obszarowy ostatnich edycji katalogu"
 
 #: home/stats.html
 msgid "Catalog Edits"
@@ -4751,7 +4751,7 @@ msgstr "Użytkownicy mogą tworzyć Listy"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
-msgstr ""
+msgstr "Wykres obszarowy ostatnio utworzonych list"
 
 #: home/stats.html
 msgid "Lists Created"
@@ -4763,7 +4763,7 @@ msgstr "Jesteśmy biblioteką, więc równierz wypożyczamy książki"
 
 #: home/stats.html
 msgid "Area graph of ebooks borrowed recently"
-msgstr ""
+msgstr "Wykres obszarowy ostatnio wypożyczonych e-booków"
 
 #: home/stats.html
 msgid "eBooks Borrowed"
@@ -4771,35 +4771,35 @@ msgstr "Wypożyczone e-booki"
 
 #: home/welcome.html
 msgid "Read Free Library Books Online"
-msgstr ""
+msgstr "Czytaj bezpłatne książki biblioteczne online"
 
 #: home/welcome.html
 msgid "Millions of books available through Controlled Digital Lending"
-msgstr ""
+msgstr "Miliony książek dostępnych poprzez kontrolowane cyfrowe wypożyczanie"
 
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
-msgstr ""
+msgstr "Ustaw roczny cel czytelniczy"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "Dowiedz się, jak ustawić roczny cel czytelniczy i śledzić przeczytane książki"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
-msgstr ""
+msgstr "Śledź swoje ulubione książki"
 
 #: home/welcome.html
 msgid "Organize your Books using Lists & the Reading Log"
-msgstr ""
+msgstr "Organizuj swoje książki za pomocą list i dziennika czytelniczego"
 
 #: home/welcome.html
 msgid "Try the virtual Library Explorer"
-msgstr ""
+msgstr "Wypróbuj wirtualnego Eksploratora Biblioteki"
 
 #: home/welcome.html
 msgid "Digital shelves organized like a physical library"
-msgstr ""
+msgstr "Cyfrowe półki zorganizowane jak fizyczna biblioteka"
 
 #: home/welcome.html
 #, fuzzy
@@ -4808,7 +4808,7 @@ msgstr "Wyszukiwanie pełnotekstowe"
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "Znajdź pasujące wyniki w tekście milionów książek"
 
 #: home/welcome.html
 #, fuzzy
@@ -4817,7 +4817,7 @@ msgstr "Open Library"
 
 #: home/welcome.html
 msgid "Dozens of ways you can help improve the library"
-msgstr ""
+msgstr "Dziesiątki sposobów, w jakie możesz pomóc ulepszyć bibliotekę"
 
 #: home/welcome.html
 #, fuzzy
@@ -4826,15 +4826,15 @@ msgstr "Witamy w Open Library"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Odkryj możliwości ulepszenia biblioteki"
 
 #: home/welcome.html
 msgid "Send us feedback"
-msgstr ""
+msgstr "Wyślij nam opinię"
 
 #: home/welcome.html
 msgid "Your feedback will help us improve these cards"
-msgstr ""
+msgstr "Twoja opinia pomoże nam ulepszyć te karty"
 
 #: jsdef/LazyWorkPreview.html
 #, fuzzy
@@ -4855,15 +4855,15 @@ msgstr "Wydawnictwo"
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s dzieło"
+msgstr[1] "%s dzieła"
 
 #: languages/index.html
 #, python-format
 msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s wydanie e-book"
+msgstr[1] "%s wydania e-book"
 
 #: languages/notfound.html
 #, fuzzy, python-format
@@ -4889,7 +4889,7 @@ msgstr "Pobierz wpis w katalogu:"
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
+msgstr "RDF"
 
 #: lib/exports.html type/list/exports.html
 #, fuzzy
@@ -4930,7 +4930,7 @@ msgstr "Dołączył\\(a\\) %(date)s"
 
 #: lib/header_dropdown.html
 msgid "Menu"
-msgstr ""
+msgstr "Menu"
 
 #: lib/header_dropdown.html
 #, fuzzy
@@ -4965,15 +4965,15 @@ msgstr ""
 #: lib/history.html
 #, python-format
 msgid "Edited by %(user)s"
-msgstr ""
+msgstr "Edytowane przez %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Super!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Twój nowy rekord jest w bibliotece. Dziękujemy!"
 
 #: lib/message_addbook.html
 msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
@@ -4986,7 +4986,7 @@ msgstr "Dodaj kolejny obraz"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Zrób szybkie zdjęcie okładki, aby się podzielić?"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4995,7 +4995,7 @@ msgstr "Dodaj książkę"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Pomóż bibliotece połączyć się z innymi systemami, takimi jak Amazon."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -5004,15 +5004,15 @@ msgstr "Wspólne tematy"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "Są jak tagi."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Opisz, o czym jest ta książka"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Wystarczy jedno lub dwa zdania."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 msgid "Open Library"
@@ -5024,11 +5024,11 @@ msgstr "Wizja"
 
 #: lib/nav_foot.html
 msgid "Volunteer"
-msgstr ""
+msgstr "Wolontariusz"
 
 #: lib/nav_foot.html
 msgid "Partner With Us"
-msgstr ""
+msgstr "Zostań naszym partnerem"
 
 #: lib/nav_foot.html
 msgid "Jobs"
@@ -5170,7 +5170,7 @@ msgstr "Związek z tematem"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5189,7 +5189,7 @@ msgstr "Open Library"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5198,7 +5198,7 @@ msgstr "Open Library"
 
 #: lib/nav_foot.html site/alert.html
 msgid "Change Website Language"
-msgstr ""
+msgstr "Zmień język strony"
 
 #: lib/nav_foot.html lib/nav_head.html type/list/embed.html
 #, fuzzy
@@ -5216,7 +5216,7 @@ msgstr "wersja <a href=\"https://github.com/internetarchive/openlibrary/commit/%
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
-msgstr ""
+msgstr "Wypożyczenia, dziennik czytelniczy, listy, statystyki"
 
 #: lib/nav_head.html
 msgid "My Profile"
@@ -5228,7 +5228,7 @@ msgstr "Wyloguj się"
 
 #: lib/nav_head.html
 msgid "Pending Merge Requests"
-msgstr ""
+msgstr "Oczekujące prośby o scalenie"
 
 #: lib/nav_head.html search/sort_options.html
 #, fuzzy
@@ -5259,7 +5259,7 @@ msgstr "Pomoc i wsparcie"
 
 #: lib/nav_head.html
 msgid "Librarians Portal"
-msgstr ""
+msgstr "Portal bibliotekarzy"
 
 #: lib/nav_head.html
 #, fuzzy
@@ -5277,11 +5277,11 @@ msgstr "Współtwórcy"
 
 #: lib/nav_head.html
 msgid "Resources"
-msgstr ""
+msgstr "Zasoby"
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
+msgstr "Open Library Internet Archive: Jedna strona dla każdej książki"
 
 #: lib/nav_head.html
 #, fuzzy
@@ -5299,15 +5299,15 @@ msgstr "Przeczytaj"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "failing"
-msgstr ""
+msgstr "niepowodzenie"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Data quality table"
-msgstr ""
+msgstr "Tabela jakości danych"
 
 #: librarian_dashboard/data_quality_table.html
 msgid "Quality Criteria"
-msgstr ""
+msgstr "Kryteria jakości"
 
 #: lists/carousel.html lists/home.html lists/showcase.html
 msgid "See all"
@@ -5316,7 +5316,7 @@ msgstr "Zobacz wszystkie"
 #: lists/export_as_html.html
 #, python-format
 msgid "%(list)s - Editions"
-msgstr ""
+msgstr "%(list)s - Wydania"
 
 #: lists/export_as_html.html type/list/embed.html type/list/view_body.html
 #, fuzzy
@@ -5330,16 +5330,16 @@ msgstr "Wydawnictwo nieznane"
 
 #: lists/export_as_html.html
 msgid "First publish date unknown"
-msgstr ""
+msgstr "Data pierwszej publikacji nieznana"
 
 #: lists/export_as_html.html
 msgid "Name unknown"
-msgstr ""
+msgstr "Imię nieznane"
 
 #: lists/header.html
 #, python-format
 msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
-msgstr ""
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Listy"
 
 #: lists/header.html
 #, python-format
@@ -5366,8 +5366,8 @@ msgstr[1] "Ta książka znajduje się na <strong> %(count)s listach</strong>."
 #, python-format
 msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(name)s ma 1 listę."
+msgstr[1] "%(name)s ma %(count)s listy."
 
 #: lists/header.html
 #, python-format
@@ -5391,7 +5391,7 @@ msgstr "Po utworzeniu listy możesz <strong>obserwować aktualizacje</strong> lu
 #: lists/home.html
 #, python-format
 msgid "For the top 2000+ most requested eBooks in California for the print disabled <a href=\"%(url)s\">click here</a>."
-msgstr ""
+msgstr "Aby zapoznać się z ponad 2000 najczęściej żądanych e-booków w Kalifornii dla osób z niepełnosprawnością druku, <a href=\"%(url)s\">kliknij tutaj</a>."
 
 #: lists/home.html
 msgid "Find a list by name"
@@ -5433,7 +5433,7 @@ msgstr "Wypożycz teraz"
 
 #: lists/list_follow.html
 msgid "Avatar of the owner of the list"
-msgstr ""
+msgstr "Awatar właściciela listy"
 
 #: lists/list_follow.html lists/widget.html my_books/dropdown_content.html
 msgid "You"
@@ -5441,15 +5441,15 @@ msgstr "Ty"
 
 #: lists/list_follow.html
 msgid "This patron has not enabled following"
-msgstr ""
+msgstr "Ten użytkownik nie włączył obserwowania"
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
+msgstr "🔒︎"
 
 #: Follow.html lists/list_follow.html
 msgid "Follow"
-msgstr ""
+msgstr "Obserwuj"
 
 #: lists/list_follow.html
 #, fuzzy
@@ -5458,7 +5458,7 @@ msgstr "Open Library"
 
 #: lists/list_follow.html
 msgid "Community List"
-msgstr ""
+msgstr "Lista społeczności"
 
 #: lists/list_overview.html lists/widget.html my_books/dropdown_content.html
 msgid "See this list"
@@ -5471,12 +5471,12 @@ msgstr "Usnunąć z listy?"
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">You</a>"
-msgstr ""
+msgstr "od <a href=\"%(link)s\">Ciebie</a>"
 
 #: lists/list_overview.html
 #, python-format
 msgid "from <a href=\"%(link)s\">%(name)s</a>"
-msgstr ""
+msgstr "od <a href=\"%(link)s\">%(name)s</a>"
 
 #: lists/lists.html
 #, python-format
@@ -5485,7 +5485,7 @@ msgstr "%(owner)s / Listy"
 
 #: lists/lists.html type/list/view_body.html
 msgid "Yes, I'm sure"
-msgstr ""
+msgstr "Tak, jestem pewien/pewna"
 
 #: lists/lists.html type/list/view_body.html
 #, fuzzy
@@ -5515,20 +5515,20 @@ msgstr "Czy na pewno chcesz usunąć<strong>%(title)s</strong> z tej listy?"
 
 #: lists/lists.html
 msgid "This reader hasn't created any lists yet."
-msgstr ""
+msgstr "Ten czytelnik nie utworzył jeszcze żadnych list."
 
 #: lists/lists.html
 msgid "You haven't created any lists yet."
-msgstr ""
+msgstr "Nie utworzyłeś/aś jeszcze żadnych list."
 
 #: lists/lists.html
 msgid "Learn how to create your first list."
-msgstr ""
+msgstr "Dowiedz się, jak utworzyć swoją pierwszą listę."
 
 #: lists/preview.html
 #, python-format
 msgid "by <a href=\"%s\">You</a>"
-msgstr ""
+msgstr "przez <a href=\"%s\">Ciebie</a>"
 
 #: lists/showcase.html
 #, fuzzy, python-format
@@ -5547,7 +5547,7 @@ msgstr "Ze strony"
 
 #: lists/widget.html
 msgid "Loading<span class=\"loading-ellipsis\">...</span>"
-msgstr ""
+msgstr "Ładowanie<span class=\"loading-ellipsis\">...</span>"
 
 #: merge/authors.html
 msgid "Merge Authors"
