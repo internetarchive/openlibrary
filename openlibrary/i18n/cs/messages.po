@@ -4701,7 +4701,7 @@ msgstr "Členové mohou vytvářet Seznamy"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
-msgstr ""
+msgstr "Plošný graf nedávno vytvořených seznamů"
 
 #: home/stats.html
 #, fuzzy
@@ -4710,47 +4710,47 @@ msgstr "Vytvořte to"
 
 #: home/stats.html
 msgid "We're a library, so we lend books, too"
-msgstr ""
+msgstr "Jsme knihovna, takže půjčujeme i knihy"
 
 #: home/stats.html
 msgid "Area graph of ebooks borrowed recently"
-msgstr ""
+msgstr "Plošný graf nedávno půjčených e-knih"
 
 #: home/stats.html
 msgid "eBooks Borrowed"
-msgstr ""
+msgstr "Půjčené e-knihy"
 
 #: home/welcome.html
 msgid "Read Free Library Books Online"
-msgstr ""
+msgstr "Čtěte knihy z bezplatné knihovny online"
 
 #: home/welcome.html
 msgid "Millions of books available through Controlled Digital Lending"
-msgstr ""
+msgstr "Miliony knih dostupných prostřednictvím řízeného digitálního půjčování"
 
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
-msgstr ""
+msgstr "Nastavte si roční čtenářský cíl"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
-msgstr ""
+msgstr "Naučte se, jak si nastavit roční čtenářský cíl a sledovat, co čtete"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
-msgstr ""
+msgstr "Sledujte své oblíbené knihy"
 
 #: home/welcome.html
 msgid "Organize your Books using Lists & the Reading Log"
-msgstr ""
+msgstr "Organizujte své knihy pomocí Seznamů a Deníku čtení"
 
 #: home/welcome.html
 msgid "Try the virtual Library Explorer"
-msgstr ""
+msgstr "Vyzkoušejte virtuální průzkumník knihovny"
 
 #: home/welcome.html
 msgid "Digital shelves organized like a physical library"
-msgstr ""
+msgstr "Digitální police uspořádané jako fyzická knihovna"
 
 #: home/welcome.html
 #, fuzzy
@@ -4759,7 +4759,7 @@ msgstr "Témata"
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "Najděte odpovídající výsledky v textu milionů knih"
 
 #: home/welcome.html
 #, fuzzy
@@ -4768,7 +4768,7 @@ msgstr "vytvořil nový Open Library účet!"
 
 #: home/welcome.html
 msgid "Dozens of ways you can help improve the library"
-msgstr ""
+msgstr "Desítky způsobů, jak můžete pomoci zlepšit knihovnu"
 
 #: home/welcome.html
 #, fuzzy
@@ -4777,15 +4777,15 @@ msgstr "Vítejte v Open Library"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Objevte příležitosti ke zlepšení knihovny"
 
 #: home/welcome.html
 msgid "Send us feedback"
-msgstr ""
+msgstr "Pošlete nám zpětnou vazbu"
 
 #: home/welcome.html
 msgid "Your feedback will help us improve these cards"
-msgstr ""
+msgstr "Vaše zpětná vazba nám pomůže zlepšit tyto kartičky"
 
 #: jsdef/LazyWorkPreview.html
 #, fuzzy
@@ -4806,17 +4806,17 @@ msgstr "Njvíc vydání"
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%s dílo"
+msgstr[1] "%s díla"
+msgstr[2] "%s děl"
 
 #: languages/index.html
 #, python-format
 msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%s vydání e-knihy"
+msgstr[1] "%s vydání e-knih"
+msgstr[2] "%s vydání e-knih"
 
 #: languages/notfound.html
 #, python-format
@@ -4830,19 +4830,19 @@ msgstr "%s neexistuje."
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
-msgstr ""
+msgstr "Tento dokument naposledy upravil/a"
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited anonymously"
-msgstr ""
+msgstr "Tento dokument byl naposledy upraven anonymně"
 
 #: lib/exports.html
 msgid "Download catalog record:"
-msgstr ""
+msgstr "Stáhnout záznam katalogu:"
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
+msgstr "RDF"
 
 #: lib/exports.html type/list/exports.html
 #, fuzzy
@@ -4856,19 +4856,19 @@ msgstr "Hups!"
 
 #: lib/exports.html
 msgid "Cite this on Wikipedia"
-msgstr ""
+msgstr "Citujte to na Wikipedii"
 
 #: lib/exports.html
 msgid "Wikipedia citation"
-msgstr ""
+msgstr "Citace Wikipedie"
 
 #: lib/exports.html
 msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
+msgstr "Zkopírujte a vložte tento kód do vaší stránky Wikipedie."
 
 #: lib/exports.html
 msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
+msgstr "Získejte pokyny na Wikipedii v novém okně"
 
 #: lib/header_dropdown.html
 #, fuzzy
@@ -4878,11 +4878,11 @@ msgstr "Váš účet"
 #: lib/header_dropdown.html type/user/view.html
 #, python-format
 msgid "Joined %(date)s"
-msgstr ""
+msgstr "Připojil/a se %(date)s"
 
 #: lib/header_dropdown.html
 msgid "Menu"
-msgstr ""
+msgstr "Nabídka"
 
 #: lib/header_dropdown.html
 #, fuzzy
@@ -4902,9 +4902,9 @@ msgstr ""
 #, python-format
 msgid "%(count)d revision"
 msgid_plural "%(count)d revisions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(count)d revize"
+msgstr[1] "%(count)d revize"
+msgstr[2] "%(count)d revizí"
 
 #: lib/history.html
 msgid "an anonymous user"
@@ -4922,15 +4922,15 @@ msgstr "Ahoj %(user)s"
 
 #: lib/message_addbook.html
 msgid "Super!"
-msgstr ""
+msgstr "Skvěle!"
 
 #: lib/message_addbook.html
 msgid " Your new record is in the library. Thank you!"
-msgstr ""
+msgstr " Váš nový záznam je v knihovně. Děkujeme!"
 
 #: lib/message_addbook.html
 msgid "There are a few other simple things you can add while you're here to improve your new record quickly, and make it much easier for other people to find later."
-msgstr ""
+msgstr "Je tu ještě několik jednoduchých věcí, které můžete přidat, abyste rychle zlepšili svůj nový záznam a usnadnili ostatním jeho pozdější nalezení."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4939,7 +4939,7 @@ msgstr "Přidat další obrázek"
 
 #: lib/message_addbook.html
 msgid "Snap a quick photo of the cover to share?"
-msgstr ""
+msgstr "Pořídit rychlou fotografii obálky ke sdílení?"
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4948,7 +4948,7 @@ msgstr "Přidat knihu"
 
 #: lib/message_addbook.html
 msgid "Help the library connect with other systems, like Amazon."
-msgstr ""
+msgstr "Pomozte knihovně propojit se s jinými systémy, jako je Amazon."
 
 #: lib/message_addbook.html
 #, fuzzy
@@ -4957,15 +4957,15 @@ msgstr "Další témata"
 
 #: lib/message_addbook.html
 msgid "They're just like tags."
-msgstr ""
+msgstr "Jsou to jen jako štítky."
 
 #: lib/message_addbook.html
 msgid "Describe what the book's about"
-msgstr ""
+msgstr "Popište, o čem kniha je"
 
 #: lib/message_addbook.html
 msgid "Just a sentence or two is good."
-msgstr ""
+msgstr "Stačí jedna nebo dvě věty."
 
 #: lib/nav_foot.html openlibrary/plugins/openlibrary/api.py site/head.html
 #, fuzzy
@@ -4984,15 +4984,15 @@ msgstr "Ćíslo"
 
 #: lib/nav_foot.html
 msgid "Partner With Us"
-msgstr ""
+msgstr "Staňte se naším partnerem"
 
 #: lib/nav_foot.html
 msgid "Jobs"
-msgstr ""
+msgstr "Pracovní místa"
 
 #: lib/nav_foot.html
 msgid "Careers"
-msgstr ""
+msgstr "Kariéra"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5001,7 +5001,7 @@ msgstr "Přihlásit se"
 
 #: lib/nav_foot.html
 msgid "Terms of Service"
-msgstr ""
+msgstr "Podmínky služby"
 
 #: lib/nav_foot.html site/alert.html
 #, fuzzy
@@ -5010,7 +5010,7 @@ msgstr "Hotovo."
 
 #: lib/nav_foot.html
 msgid "Discover"
-msgstr ""
+msgstr "Objevovat"
 
 #: lib/nav_foot.html
 msgid "Go home"
@@ -5027,11 +5027,11 @@ msgstr "knihy"
 
 #: lib/nav_foot.html
 msgid "Explore authors"
-msgstr ""
+msgstr "Prozkoumat autory"
 
 #: lib/nav_foot.html
 msgid "Explore subjects"
-msgstr ""
+msgstr "Prozkoumat témata"
 
 #: RelatedSubjects.html SearchNavigation.html SubjectTags.html lib/nav_foot.html lib/nav_head.html openlibrary/plugins/worksearch/code.py subjects/notfound.html type/author/view.html type/list/view_body.html
 msgid "Subjects"
@@ -5039,7 +5039,7 @@ msgstr "Témata"
 
 #: lib/nav_foot.html
 msgid "Explore collections"
-msgstr ""
+msgstr "Prozkoumat sbírky"
 
 #: lib/nav_foot.html lib/nav_head.html
 #, fuzzy
@@ -5052,11 +5052,11 @@ msgstr "Pokročilé vyhledávání"
 
 #: lib/nav_foot.html
 msgid "Navigate to top of this page"
-msgstr ""
+msgstr "Přejít na začátek této stránky"
 
 #: lib/nav_foot.html
 msgid "Return to Top"
-msgstr ""
+msgstr "Zpět nahoru"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5079,7 +5079,7 @@ msgstr "Vítejte v Open Library"
 
 #: lib/nav_foot.html
 msgid "API Documentation"
-msgstr ""
+msgstr "Dokumentace API"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5088,11 +5088,11 @@ msgstr "Přidat knhu do Open Library"
 
 #: lib/nav_foot.html
 msgid "Bulk Data Dumps"
-msgstr ""
+msgstr "Hromadné výpisy dat"
 
 #: lib/nav_foot.html
 msgid "Write a bot"
-msgstr ""
+msgstr "Napsat bota"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5106,11 +5106,11 @@ msgstr "Vývojářské centrum"
 
 #: lib/nav_foot.html
 msgid "Contact"
-msgstr ""
+msgstr "Kontakt"
 
 #: lib/nav_foot.html
 msgid "Contact Us"
-msgstr ""
+msgstr "Kontaktujte nás"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5119,7 +5119,7 @@ msgstr "Nejvíc vydání"
 
 #: lib/nav_foot.html
 msgid "Suggesting Edits"
-msgstr ""
+msgstr "Navrhování úprav"
 
 #: lib/nav_foot.html
 msgid "Add a new book to Open Library"
@@ -5132,11 +5132,11 @@ msgstr "Relevance"
 
 #: lib/nav_foot.html
 msgid "Bluesky"
-msgstr ""
+msgstr "Bluesky"
 
 #: lib/nav_foot.html
 msgid "Open Library on Bluesky"
-msgstr ""
+msgstr "Open Library na Bluesky"
 
 #: lib/nav_foot.html
 #, fuzzy
@@ -5145,19 +5145,19 @@ msgstr "Název"
 
 #: lib/nav_foot.html
 msgid "Open Library on Twitter"
-msgstr ""
+msgstr "Open Library na Twitteru"
 
 #: lib/nav_foot.html
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: lib/nav_foot.html
 msgid "Open Library on GitHub"
-msgstr ""
+msgstr "Open Library na GitHubu"
 
 #: lib/nav_foot.html site/alert.html
 msgid "Change Website Language"
-msgstr ""
+msgstr "Změnit jazyk webu"
 
 #: lib/nav_foot.html lib/nav_head.html type/list/embed.html
 #, fuzzy
@@ -5166,16 +5166,16 @@ msgstr "Vítejte v Open Library"
 
 #: lib/nav_foot.html
 msgid "Open Library is an initiative of the <a href=\"//archive.org/\">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href=\"//archive.org/projects/\">projects</a> include the <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org\">archive-it.org</a>"
-msgstr ""
+msgstr "Open Library je iniciativa <a href=\"//archive.org/\">Internet Archive</a>, neziskové organizace 501(c)(3), která buduje digitální knihovnu internetových stránek a dalších kulturních artefaktů v digitální formě. Další <a href=\"//archive.org/projects/\">projekty</a> zahrnují <a href=\"//archive.org/web/\">Wayback Machine</a>, <a href=\"//archive.org/\">archive.org</a> a <a href=\"//archive-it.org\">archive-it.org</a>"
 
 #: lib/nav_foot.html
 #, python-format
 msgid "version <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
-msgstr ""
+msgstr "verze <a href=\"https://github.com/internetarchive/openlibrary/commit/%s\">%s</a>"
 
 #: lib/nav_head.html
 msgid "Loans, Reading Log, Lists, Stats"
-msgstr ""
+msgstr "Výpůjčky, Deník čtení, Seznamy, Statistiky"
 
 #: lib/nav_head.html
 msgid "My Profile"
@@ -5187,7 +5187,7 @@ msgstr "Odhlásit"
 
 #: lib/nav_head.html
 msgid "Pending Merge Requests"
-msgstr ""
+msgstr "Čekající požadavky na sloučení"
 
 #: lib/nav_head.html search/sort_options.html
 #, fuzzy
@@ -5196,11 +5196,11 @@ msgstr "Čtenářské záznamy"
 
 #: lib/nav_head.html
 msgid "K-12 Student Library"
-msgstr ""
+msgstr "Knihovna pro žáky K-12"
 
 #: lib/nav_head.html
 msgid "Book Talks"
-msgstr ""
+msgstr "Knižní rozhovory"
 
 #: lib/nav_head.html
 #, fuzzy
@@ -5209,7 +5209,7 @@ msgstr "Náhodna kniha"
 
 #: lib/nav_head.html
 msgid "Recent Community Edits"
-msgstr ""
+msgstr "Nedávné komunitní úpravy"
 
 #: lib/nav_head.html
 msgid "Help & Support"
@@ -5236,19 +5236,19 @@ msgstr "Přispěvatelé"
 
 #: lib/nav_head.html
 msgid "Resources"
-msgstr ""
+msgstr "Zdroje"
 
 #: lib/nav_head.html
 msgid "The Internet Archive's Open Library: One page for every book"
-msgstr ""
+msgstr "Open Library Internet Archive: Jedna stránka pro každou knihu"
 
 #: lib/nav_head.html
 msgid "Search by barcode"
-msgstr ""
+msgstr "Vyhledat podle čárového kódu"
 
 #: lib/not_logged.html
 msgid "<strong>You are not <a href=\"/account/login\" title=\"Log in now\">logged in</a>.</strong> Open Library will record your IP address and include it in this page's publicly accessible edit history. If you <a href=\"/account/create\" title=\"Create an Open Library account\">create an account</a>, your IP address is concealed and you can more easily keep track of all your edits and additions."
-msgstr ""
+msgstr "<strong>Nejste <a href=\"/account/login\" title=\"Přihlásit se nyní\">přihlášen/a</a>.</strong> Open Library zaznamená Vaší IP adresu a zahrne ji do veřejně přístupné historie úprav této stránky. Pokud si <a href=\"/account/create\" title=\"Vytvořit účet Open Library\">vytvoříte účet</a>, Vaše IP adresa bude skryta a snadněji udržíte přehled o všech svých úpravách a příspěvcích."
 
 #: librarian_dashboard/data_quality_table.html
 #, fuzzy
