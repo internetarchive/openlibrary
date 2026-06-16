@@ -137,6 +137,27 @@ class TestAccountLoansJson:
 
         assert response.status_code == 422
 
+    @pytest.mark.parametrize(
+        ("endpoint", "helper_path"),
+        [
+            ("/account/loans.json", "openlibrary.fastapi.account.legacy_account.get_account_loans_json"),
+            ("/account/loan-history.json", "openlibrary.fastapi.account.legacy_account.get_account_loan_history_json"),
+        ],
+    )
+    def test_local_dev_returns_503_with_helpful_message(self, fastapi_client, mock_authenticated_user, endpoint, helper_path, monkeypatch):
+        monkeypatch.setenv("LOCAL_DEV", "true")
+        legacy_user = FakeLegacyUser()
+
+        with (
+            _mock_legacy_context(),
+            patch("openlibrary.fastapi.account.accounts.get_current_user", return_value=legacy_user),
+            patch(helper_path, side_effect=ConnectionError("Unable to reach archive.org")),
+        ):
+            response = fastapi_client.get(endpoint)
+
+        assert response.status_code == 503
+        assert "production Internet Archive" in response.json()["detail"]
+
     def test_legacy_and_fastapi_loans_json_match_shared_helper_response(self, fastapi_client, mock_authenticated_user, monkeypatch):
         legacy_user = FakeLegacyUser()
         expected = {"loans": [{"book": "/books/OL1M", "ocaid": "test_ocaid"}]}

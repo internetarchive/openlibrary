@@ -37,16 +37,6 @@ def _safe_redirect(url: str, default: str = "/") -> str:
     return url
 
 
-def _require_legacy_current_user():
-    if user := accounts.get_current_user():
-        return user
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required",
-        headers={"WWW-Authenticate": "Session"},
-    )
-
-
 class AuthTestResponse(BaseModel):
     """Response model for the auth test endpoint."""
 
@@ -169,7 +159,15 @@ def account_loans_json(
     _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
 ) -> dict[str, Any]:
     with legacy_web_ctx_from_fastapi(request):
-        return legacy_account.get_account_loans_json(_require_legacy_current_user())
+        try:
+            return legacy_account.get_account_loans_json(accounts.get_current_user())
+        except Exception:
+            if os.getenv("LOCAL_DEV"):
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
+                )
+            raise
 
 
 @router.get("/account/loan-history.json")
@@ -179,7 +177,16 @@ def account_loan_history_json(
     page: Annotated[int, Query(ge=1)] = 1,
 ) -> dict[str, Any]:
     with legacy_web_ctx_from_fastapi(request):
-        return legacy_account.get_account_loan_history_json(_require_legacy_current_user(), page)
+        try:
+            return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
+        except Exception:
+            if os.getenv("LOCAL_DEV"):
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Loan history requires credentials for the production Internet Archive "
+                    "server and is not available in the local development environment.",
+                )
+            raise
 
 
 class LoginForm(BaseModel):
