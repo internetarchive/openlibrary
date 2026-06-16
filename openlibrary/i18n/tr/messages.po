@@ -2652,7 +2652,7 @@ msgstr "Değiştirilmedi"
 
 #: admin/index.html
 msgid "Patrons Creating Notes"
-msgstr ""
+msgstr "Not Oluşturan Okuyucular"
 
 #: admin/index.html
 #, fuzzy
@@ -3605,8 +3605,8 @@ msgstr "Bunları da beğenebilirsiniz"
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
 msgid_plural "More by these authors"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Bu yazarın diğer eserleri"
+msgstr[1] "Bu yazarın diğer eserleri"
 
 #: books/add.html books/check.html
 msgid "Add a book"
@@ -4072,15 +4072,15 @@ msgstr "Bu eser daha büyük bir serinin parçası mı?"
 
 #: books/edit.html
 msgid "E.g. Harry Potter, The Sword of Truth"
-msgstr ""
+msgstr "Ör. Harry Potter, Gerçeğin Kılıcı"
 
 #: books/edit.html type/edition/view.html type/work/view.html
 msgid "Work Identifiers"
-msgstr ""
+msgstr "Eser Tanımlayıcıları"
 
 #: books/edit.html
 msgid "Do you know any identifiers for this work?"
-msgstr ""
+msgstr "Bu eser için herhangi bir tanımlayıcı biliyor musunuz?"
 
 #: books/edit.html
 msgid ""
@@ -4095,27 +4095,27 @@ msgstr ""
 #: my_books/dropdown_content.html type/work/editions.html
 #, python-format
 msgid "Cover of: %(title)s"
-msgstr ""
+msgstr "Kapak: %(title)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "%(title)s: %(subtitle)s"
-msgstr ""
+msgstr "%(title)s: %(subtitle)s"
 
 #: books/edition-sort.html
 #, python-format
 msgid "Publish date unknown, %(publisher)s"
-msgstr ""
+msgstr "Yayım tarihi bilinmiyor, %(publisher)s"
 
 #: books/edition-sort.html type/work/editions.html
 #, python-format
 msgid "in %(languagelist)s"
-msgstr ""
+msgstr "%(languagelist)s dilinde"
 
 #: SearchNavigation.html books/mybooks_breadcrumb_select.html lib/nav_foot.html
 #: openlibrary/plugins/upstream/mybooks.py
 msgid "Books"
-msgstr ""
+msgstr "Kitaplar"
 
 #. Page title for the "Want to Read" shelf page.
 #. Example: "Want to Read (17)". %(count)d is the number of books on this
@@ -4123,7 +4123,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Want to Read (%(count)d)"
-msgstr ""
+msgstr "Okumak İstiyorum (%(count)d)"
 
 #. Page title for the "Currently Reading" shelf page.
 #. Example: "Currently Reading (42)". %(count)d is the number of books on this
@@ -4131,7 +4131,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Currently Reading (%(count)d)"
-msgstr ""
+msgstr "Şu An Okuyorum (%(count)d)"
 
 #. Page title for the "Already Read" shelf page.
 #. Example: "Already Read (203)". %(count)d is the number of books on this
@@ -4139,7 +4139,7 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Already Read (%(count)d)"
-msgstr ""
+msgstr "Okudum (%(count)d)"
 
 #. Page title for the "Stopped Reading" shelf page.
 #. Example: "Stopped Reading (8)". %(count)d is the number of books on this
@@ -4147,18 +4147,18 @@ msgstr ""
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #, python-format
 msgid "Stopped Reading (%(count)d)"
-msgstr ""
+msgstr "Okumayı Bıraktım (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html
 #: openlibrary/plugins/openlibrary/lists.py
 #, python-format
 msgid "Lists (%(count)d)"
-msgstr ""
+msgstr "Listeler (%(count)d)"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 #: type/edition/modal_links.html
 msgid "Notes"
-msgstr ""
+msgstr "Notlar"
 
 #: books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/account.py
 msgid "Imports and Exports"
@@ -4186,27 +4186,27 @@ msgstr "Bu revizyona geri dön"
 
 #: books/series-autocomplete.html
 msgid "Add another series?"
-msgstr ""
+msgstr "Başka bir seri eklensin mi?"
 
 #: books/edit/about.html
 msgid "Select this subject"
-msgstr ""
+msgstr "Bu konuyu seç"
 
 #: books/edit/about.html
 msgid "How would you describe this book?"
-msgstr ""
+msgstr "Bu kitabı nasıl tanımlarsınız?"
 
 #: books/edit/about.html
 msgid "There's no wrong answer here."
-msgstr ""
+msgstr "Burada yanlış cevap yoktur."
 
 #: books/edit/about.html
 msgid "Subject keywords?"
-msgstr ""
+msgstr "Konu anahtar kelimeleri?"
 
 #: books/edit/about.html
 msgid "Please separate with commas."
-msgstr ""
+msgstr "Lütfen virgülle ayırın."
 
 #: books/edit/about.html
 msgid ""
@@ -4217,7 +4217,7 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
-msgstr ""
+msgstr "Bir kişi mi? Yoksa kişiler mi?"
 
 #: books/edit/about.html
 msgid ""
@@ -4228,7 +4228,7 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
-msgstr ""
+msgstr "Bahsedilen yerleri not edin mi?"
 
 #: books/edit/about.html
 msgid ""
@@ -4239,7 +4239,7 @@ msgstr ""
 
 #: books/edit/about.html
 msgid "When is it set or about?"
-msgstr ""
+msgstr "Ne zaman geçiyor veya hangi dönemi ele alıyor?"
 
 #: books/edit/about.html
 msgid ""
@@ -4250,159 +4250,159 @@ msgstr ""
 
 #: books/edit/edition.html
 msgid "Select this language"
-msgstr ""
+msgstr "Bu dili seç"
 
 #: books/edit/edition.html
 msgid "Remove this language"
-msgstr ""
+msgstr "Bu dili kaldır"
 
 #: books/edit/edition.html
 msgid "Remove this work"
-msgstr ""
+msgstr "Bu eseri kaldır"
 
 #: books/edit/edition.html
 msgid "-- Move to a new work"
-msgstr ""
+msgstr "-- Yeni bir esere taşı"
 
 #: books/edit/edition.html
 msgid "This Edition"
-msgstr ""
+msgstr "Bu Baskı"
 
 #: books/edit/edition.html
 msgid "Enter the title of this specific edition."
-msgstr ""
+msgstr "Bu baskının başlığını girin."
 
 #: books/edit/edition.html
 msgid "Subtitle"
-msgstr ""
+msgstr "Alt Başlık"
 
 #: books/edit/edition.html
 msgid "Usually distinguished by different or smaller type."
-msgstr ""
+msgstr "Genellikle farklı veya daha küçük yazı tipiyle ayırt edilir."
 
 #: books/edit/edition.html
 msgid "For example: <i>envisioning the next 50 years</i>"
-msgstr ""
+msgstr "Örneğin: <i>önümüzdeki 50 yılı hayal etmek</i>"
 
 #: books/edit/edition.html
 msgid "Publishing Info"
-msgstr ""
+msgstr "Yayımlama Bilgisi"
 
 #: books/edit/edition.html
 msgid "For example <em>Oxford University Press; Penguin; W.W. Norton</em>"
-msgstr ""
+msgstr "Örneğin <em>Oxford University Press; Penguin; W.W. Norton</em>"
 
 #: books/edit/edition.html
 msgid "Where was the book published?"
-msgstr ""
+msgstr "Kitap nerede yayımlandı?"
 
 #: books/edit/edition.html
 msgid "City, Country please."
-msgstr ""
+msgstr "Lütfen şehir ve ülke belirtin."
 
 #: books/edit/edition.html
 msgid "For example: <i>New York, USA; Sydney, Australia</i>"
-msgstr ""
+msgstr "Örneğin: <i>New York, ABD; Sydney, Avustralya</i>"
 
 #: books/edit/edition.html
 msgid "What is the copyright date?"
-msgstr ""
+msgstr "Telif hakkı tarihi nedir?"
 
 #: books/edit/edition.html
 msgid "The year following the copyright statement."
-msgstr ""
+msgstr "Telif hakkı ifadesinin ardından gelen yıl."
 
 #: books/edit/edition.html
 msgid "Edition Name (if applicable):"
-msgstr ""
+msgstr "Baskı Adı (uygulanabiliyorsa):"
 
 #: books/edit/edition.html
 msgid "For example: <i>Centennial edition</i>; <i>First edition</i>"
-msgstr ""
+msgstr "Örneğin: <i>Yüzüncü yıl baskısı</i>; <i>Birinci baskı</i>"
 
 #: books/edit/edition.html
 msgid "Series Name (if applicable)"
-msgstr ""
+msgstr "Seri Adı (uygulanabiliyorsa)"
 
 #: books/edit/edition.html
 msgid "The name of the publisher's series."
-msgstr ""
+msgstr "Yayıncının seri adı."
 
 #: books/edit/edition.html
 msgid "For example: <i>The Story of Civilization, Part III</i>"
-msgstr ""
+msgstr "Örneğin: <i>Uygarlığın Hikayesi, Bölüm III</i>"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Contributors"
-msgstr ""
+msgstr "Katkıda Bulunanlar"
 
 #: books/edit/edition.html
 msgid "Please select a role."
-msgstr ""
+msgstr "Lütfen bir rol seçin."
 
 #: books/edit/edition.html
 msgid "You need to give this ROLE a name."
-msgstr ""
+msgstr "Bu ROL için bir isim vermeniz gerekiyor."
 
 #: books/edit/edition.html
 msgid "List the people involved"
-msgstr ""
+msgstr "Dahil olan kişileri listeleyin"
 
 #: books/edit/edition.html
 msgid "Select role"
-msgstr ""
+msgstr "Rol seç"
 
 #: books/edit/edition.html
 msgid "Add a new role"
-msgstr ""
+msgstr "Yeni rol ekle"
 
 #: books/edit/edition.html
 msgid "Remove this contributor"
-msgstr ""
+msgstr "Bu katkıda bulunanı kaldır"
 
 #: books/edit/edition.html
 msgid "By Statement:"
-msgstr ""
+msgstr "Açıklama ile:"
 
 #: books/edit/edition.html
 msgid "For example: <em>edited by David Anderson</em>"
-msgstr ""
+msgstr "Örneğin: <em>David Anderson tarafından düzenlenmiştir</em>"
 
 #: books/edit/edition.html
 msgid "What language is this edition written in?"
-msgstr ""
+msgstr "Bu baskı hangi dilde yazılmıştır?"
 
 #: books/edit/edition.html
 msgid "Add another language?"
-msgstr ""
+msgstr "Başka bir dil eklensin mi?"
 
 #: books/edit/edition.html
 msgid "Is it a translation of another book?"
-msgstr ""
+msgstr "Başka bir kitabın çevirisi mi?"
 
 #: books/edit/edition.html
 msgid "Yes, it's a translation"
-msgstr ""
+msgstr "Evet, bu bir çeviridir"
 
 #: books/edit/edition.html
 msgid "What's the original book?"
-msgstr ""
+msgstr "Orijinal kitap hangisi?"
 
 #: books/edit/edition.html
 msgid "What language was the original written in?"
-msgstr ""
+msgstr "Orijinal hangi dilde yazılmıştır?"
 
 #: books/edit/edition.html
 msgid "Description of this edition"
-msgstr ""
+msgstr "Bu baskının açıklaması"
 
 #: books/edit/edition.html
 msgid "Only if it's different from the work's description"
-msgstr ""
+msgstr "Yalnızca eserin açıklamasından farklıysa"
 
 #: books/edit/edition.html type/edition/view.html type/work/view.html
 msgid "Table of Contents"
-msgstr ""
+msgstr "İçindekiler"
 
 #: books/edit/edition.html
 msgid ""
