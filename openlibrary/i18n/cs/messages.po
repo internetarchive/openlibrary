@@ -6217,7 +6217,7 @@ msgstr[2] "%(count)d záznamů upraveno."
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "Vrácení <a href=\"$parent.url()\">%(kind)s</a>."
 
 #: recentchanges/undo/view.html
 #, python-format
@@ -6226,7 +6226,7 @@ msgstr ""
 
 #: search/advancedsearch.html
 msgid "ISBN"
-msgstr ""
+msgstr "ISBN"
 
 #: search/advancedsearch.html
 msgid "Subject"
@@ -6254,7 +6254,7 @@ msgstr "Témata"
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Hledat v Open Library \"%(query)s\""
 
 #: search/authors.html
 #, fuzzy
@@ -6263,7 +6263,7 @@ msgstr "Autoři"
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "Je stejný autor uveden dvakrát?"
 
 #: search/authors.html
 #, fuzzy
@@ -6272,7 +6272,7 @@ msgstr "Autoři"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Žádní <strong>autoři</strong> přímo neodpovídají vašemu vyhledávání"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6281,48 +6281,48 @@ msgstr "Moje knihy"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Free to read now"
-msgstr ""
+msgstr "Zdarma ke čtení"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Borrow online"
-msgstr ""
+msgstr "Vypůjčit online"
 
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
-msgstr ""
+msgstr "Hledat v Open Library %s"
 
 #: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html search/inside.html search/snippets.html
 msgid "Search Inside"
-msgstr ""
+msgstr "Hledat uvnitř"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Žádný text <strong>Hledat uvnitř</strong> neodpovídá vašemu vyhledávání"
 
 #: search/inside.html
 #, python-format
 msgid "About %(count)s result found"
 msgid_plural "About %(count)s results found"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Nalezen přibližně %(count)s výsledek"
+msgstr[1] "Nalezeny přibližně %(count)s výsledky"
+msgstr[2] "Nalezeno přibližně %(count)s výsledků"
 
 #: search/inside.html
 #, python-format
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "za %(seconds)s sekundu"
+msgstr[1] "za %(seconds)s sekundy"
+msgstr[2] "za %(seconds)s sekund"
 
 #: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
-msgstr ""
+msgstr "Podrobnosti"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Mřížka"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6341,7 +6341,7 @@ msgstr "Výsledky hledání"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Žádné <strong>seznamy</strong> přímo neodpovídají vašemu vyhledávání"
 
 #: search/publishers.html
 #, fuzzy
@@ -6355,7 +6355,7 @@ msgstr "Vítejte v Open Library"
 
 #: search/search_modal_i18n.html
 msgid "Search books and authors…"
-msgstr ""
+msgstr "Hledat knihy a autory…"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6375,16 +6375,16 @@ msgstr "Výsledky hledání"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s result"
-msgstr ""
+msgstr "Zobrazit všech %s výsledek"
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s results"
-msgstr ""
+msgstr "Zobrazit všech %s výsledků"
 
 #: search/search_modal_i18n.html
 msgid "Clear all"
-msgstr ""
+msgstr "Vymazat vše"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6393,7 +6393,7 @@ msgstr "Výsledky hledání"
 
 #: search/search_modal_i18n.html type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
+msgstr "Dostupnost"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6408,7 +6408,7 @@ msgstr "Nenalezeno"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
+msgstr "Zobrazeno %s z %s výsledků"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6428,7 +6428,7 @@ msgstr "Číst"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "In %s"
-msgstr ""
+msgstr "V %s"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6438,12 +6438,12 @@ msgstr "Poslední změny"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
-msgstr ""
+msgstr "Odebrat \"%s\" z nedávných vyhledávání"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "Na straně číslo %(page_num)d:"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -6461,19 +6461,19 @@ msgstr "Náhodna kniha"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Jméno (beta: pouze knihovníci)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Datum narození (nejstarší) (beta: pouze knihovníci)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Datum narození (nejmladší) (beta: pouze knihovníci)"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "Pořadí v seznamu"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6492,11 +6492,11 @@ msgstr "Poznámk vydání"
 
 #: search/sort_options.html
 msgid "Date Added (newest)"
-msgstr ""
+msgstr "Datum přidání (nejnovější)"
 
 #: search/sort_options.html
 msgid "Date Added (oldest)"
-msgstr ""
+msgstr "Datum přidání (nejstarší)"
 
 #: search/sort_options.html
 msgid "Most Editions"
@@ -6512,7 +6512,7 @@ msgstr "Nejčerstvější"
 
 #: search/sort_options.html
 msgid "Top Rated"
-msgstr ""
+msgstr "Nejlépe hodnocené"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6521,7 +6521,7 @@ msgstr "Fantasy"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "Název díla (beta: pouze knihovníci)"
 
 #: search/sort_options.html
 msgid "Sorting by"
@@ -6529,7 +6529,7 @@ msgstr "Řadit dle"
 
 #: search/sort_options.html
 msgid "Shuffle"
-msgstr ""
+msgstr "Náhodné pořadí"
 
 #: search/subjects.html
 #, fuzzy
@@ -6538,7 +6538,7 @@ msgstr "Výsledky hledání"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "Žádná <strong>témata</strong> přímo neodpovídají vašemu vyhledávání"
 
 #: search/subjects.html
 #, fuzzy
@@ -6577,11 +6577,11 @@ msgstr ""
 
 #: search/work_search_facets.html
 msgid "Merge duplicate authors from this search"
-msgstr ""
+msgstr "Sloučit duplicitní autory z tohoto vyhledávání"
 
 #: search/work_search_facets.html type/work/editions.html
 msgid "Merge duplicates"
-msgstr ""
+msgstr "Sloučit duplikáty"
 
 #: search/work_search_facets.html
 #, fuzzy
@@ -6591,11 +6591,11 @@ msgstr "méně"
 #: search/work_search_facets.html
 #, python-format
 msgid "Filter results for %(facet)s"
-msgstr ""
+msgstr "Filtrovat výsledky pro %(facet)s"
 
 #: search/work_search_facets.html
 msgid "Filter results for ebook availability"
-msgstr ""
+msgstr "Filtrovat výsledky podle dostupnosti e-knih"
 
 #: search/work_search_facets.html
 #, fuzzy
@@ -6614,7 +6614,7 @@ msgstr "kniha v"
 
 #: search/work_search_facets.html
 msgid "Focus your results using these <a href=\"/search/howto\">filters</a>"
-msgstr ""
+msgstr "Upřesněte výsledky pomocí těchto <a href=\"/search/howto\">filtrů</a>"
 
 #: search/work_search_selected_facets.html
 #, fuzzy
@@ -6628,12 +6628,12 @@ msgstr "Zobrazit jen eKnihy"
 
 #: search/work_search_selected_facets.html
 msgid "Classic eBooks hidden"
-msgstr ""
+msgstr "Klasické e-knihy skryty"
 
 #: search/work_search_selected_facets.html
 #, python-format
 msgid "%(title)s - search"
-msgstr ""
+msgstr "%(title)s – vyhledávání"
 
 #: site/alert.html
 #, fuzzy
@@ -6642,15 +6642,15 @@ msgstr "Internetový Archiv"
 
 #: site/body.html
 msgid "It looks like you're offline."
-msgstr ""
+msgstr "Vypadá to, že jste offline."
 
 #: site/head.html
 msgid "Open Library is an open, editable library catalog, building towards a web page for every book ever published. Read, borrow, and discover more than 3M books for free."
-msgstr ""
+msgstr "Open Library je otevřený a editovatelný katalog knihovny, jehož cílem je mít webovou stránku pro každou kdy vydanou knihu. Čtěte, půjčujte si a objevujte více než 3 miliony knih zdarma."
 
 #: site/stats.html
 msgid "Debug Stats"
-msgstr ""
+msgstr "Statistiky ladění"
 
 #: stats/readinglog.html
 #, fuzzy
@@ -6659,51 +6659,51 @@ msgstr "Seznamy četby"
 
 #: stats/readinglog.html
 msgid "# Books Logged"
-msgstr ""
+msgstr "# zaznamenané knihy"
 
 #: stats/readinglog.html
 msgid "The total number of books logged using the Reading Log feature"
-msgstr ""
+msgstr "Celkový počet knih zaznamenaných pomocí funkce Čtenářský deník"
 
 #: stats/readinglog.html
 msgid "All time"
-msgstr ""
+msgstr "Celkově"
 
 #: stats/readinglog.html
 msgid "# Unique Users Logging Books"
-msgstr ""
+msgstr "# unikátní uživatelé zaznamenávající knihy"
 
 #: stats/readinglog.html
 msgid "The total number of unique users who have logged at least one book using the Reading Log feature"
-msgstr ""
+msgstr "Celkový počet unikátních uživatelů, kteří zaznamenali alespoň jednu knihu pomocí funkce Čtenářský deník"
 
 #: stats/readinglog.html
 msgid "# Books Starred"
-msgstr ""
+msgstr "# knihy s hvězdičkou"
 
 #: stats/readinglog.html
 msgid "The total number of books which have been starred"
-msgstr ""
+msgstr "Celkový počet knih označených hvězdičkou"
 
 #: stats/readinglog.html
 msgid "Total # Unique Raters (all time)"
-msgstr ""
+msgstr "Celkový počet unikátních hodnotitelů (celkově)"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (This Month)"
-msgstr ""
+msgstr "Nejžádanější knihy (tento měsíc)"
 
 #: stats/readinglog.html
 #, python-format
 msgid "Added %(count)d time"
 msgid_plural "Added %(count)d times"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Přidáno %(count)d krát"
+msgstr[1] "Přidáno %(count)d krát"
+msgstr[2] "Přidáno %(count)d krát"
 
 #: stats/readinglog.html
 msgid "Most Wanted Books (All Time)"
-msgstr ""
+msgstr "Nejžádanější knihy (celkově)"
 
 #: stats/readinglog.html
 #, fuzzy
@@ -6712,7 +6712,7 @@ msgstr "Nejvíc vydání"
 
 #: stats/readinglog.html
 msgid "Most Read Books (All Time)"
-msgstr ""
+msgstr "Nejčtenější knihy (celkově)"
 
 #: stats/readinglog.html
 #, fuzzy
@@ -6721,36 +6721,36 @@ msgstr "O knize"
 
 #: stats/readinglog.html
 msgid "Most Rated Books (All Time)"
-msgstr ""
+msgstr "Nejhodnocenější knihy (celkově)"
 
 #: subjects/notfound.html
 msgid "We couldn't find any books about"
-msgstr ""
+msgstr "Nenašli jsme žádné knihy o"
 
 #: swagger/swaggerui.html
 msgid "OpenAPI"
-msgstr ""
+msgstr "OpenAPI"
 
 #: type/about/edit.html type/page/edit.html type/permission/edit.html type/template/edit.html type/usergroup/edit.html
 #, python-format
 msgid "Edit %(title)s"
-msgstr ""
+msgstr "Upravit %(title)s"
 
 #: type/about/edit.html
 msgid "This only appears in the document head, and gets attached to bookmark labels"
-msgstr ""
+msgstr "Toto se zobrazuje pouze v záhlaví dokumentu a přidává se k záložkám"
 
 #: type/about/edit.html
 msgid "Intro"
-msgstr ""
+msgstr "Úvod"
 
 #: type/about/edit.html
 msgid "This appears in first column."
-msgstr ""
+msgstr "Toto se zobrazuje v prvním sloupci."
 
 #: type/about/edit.html
 msgid "This appears in the second column, at top."
-msgstr ""
+msgstr "Toto se zobrazuje ve druhém sloupci nahoře."
 
 #: type/about/edit.html
 #, fuzzy
@@ -6759,11 +6759,11 @@ msgstr "Seznamy četby"
 
 #: type/about/edit.html
 msgid "This appears below the links list."
-msgstr ""
+msgstr "Toto se zobrazuje pod seznamem odkazů."
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "Pro více informací"
 
 #: type/author/edit.html
 msgid "Edit Author"
@@ -6791,11 +6791,11 @@ msgstr "Datum úmrtí"
 
 #: type/author/edit.html
 msgid "We're not storing structured dates (yet) so a date like \"21 May 2000\" is recommended."
-msgstr ""
+msgstr "Strukturovaná data (zatím) neukládáme, proto se doporučuje formát jako \"21. května 2000\"."
 
 #: type/author/edit.html
 msgid "This is a deprecated field. You can help improve this record by removing this date and populating the \"Date of birth\" and \"Date of death\" fields. Thanks!"
-msgstr ""
+msgstr "Toto je zastaralé pole. Můžete pomoci vylepšit tento záznam odstraněním tohoto data a vyplněním polí \"Datum narození\" a \"Datum úmrtí\". Děkujeme!"
 
 #: type/author/edit.html
 msgid "Does this author go by any other names?"
@@ -6803,7 +6803,7 @@ msgstr "Má tento autor nějaká další jména"
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "Příklad: Lev Nikolajevič Tolstoj byl také znám jako Lev Tolstoj. Uvádějte prosím jedno jméno na řádek."
 
 #: type/author/edit.html
 msgid "Identifiers"
