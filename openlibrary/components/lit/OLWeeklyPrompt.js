@@ -291,7 +291,7 @@ export class OLWeeklyPrompt extends LitElement {
         this.nominationsJson = '[]';
         this.totalVoters = 0;
         this.username = '';
-        this.promptUrl = '/prompts';
+        this.promptUrl = '';
     }
 
     get _nominations() {
@@ -390,7 +390,7 @@ export class OLWeeklyPrompt extends LitElement {
     _renderCTA() {
         const href = this.username
             ? (this.promptUrl ? `${this.promptUrl}#nominate` : '#nominate')
-            : `/account/login?redirect=${encodeURIComponent(this.promptUrl || '/prompts')}`;
+            : (this.promptUrl ? `/account/login?redirect=${encodeURIComponent(this.promptUrl)}` : '/account/login');
 
         return html`
             <a class="nominate-btn" href="${href}" @click=${this._handleNominateClick}>
