@@ -5,7 +5,6 @@ import json
 import mimetypes
 import os
 import random
-import socket
 import string
 import traceback
 from io import IOBase as file
@@ -14,9 +13,10 @@ from urllib.parse import urlencode as real_urlencode
 
 import requests
 
-from openlibrary.coverstore import config, oldb
+COVERSTORE_USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 
-socket.setdefaulttimeout(10.0)
+session = requests.Session()
+session.headers.update({"User-Agent": COVERSTORE_USER_AGENT})
 
 
 def safeint(value, default=None):
@@ -34,44 +34,53 @@ def safeint(value, default=None):
 
 
 def get_ol_url():
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import config
+
     return config.ol_url.removesuffix("/")
 
 
 def ol_things(key: str, value: str) -> list[str]:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.query(key, value)
-    else:
-        query = {
-            "type": "/type/edition",
-            key: value,
-            "sort": "last_modified",
-            "limit": 10,
-        }
-        try:
-            d = {"query": json.dumps(query)}
-            result = download(get_ol_url() + "/api/things?" + real_urlencode(d))
-            result = json.loads(result)
-            return result["result"]
-        except OSError:
-            traceback.print_exc()
-            return []
+
+    query = {
+        "type": "/type/edition",
+        key: value,
+        "sort": "last_modified",
+        "limit": 10,
+    }
+    try:
+        resp = session.get(
+            f"{get_ol_url()}/api/things",
+            params={"query": json.dumps(query)},
+            timeout=10,
+        )
+        result = resp.json()
+        return result["result"]
+    except OSError:
+        traceback.print_exc()
+        return []
 
 
 def ol_get(olkey: str) -> dict | None:
+    # Import here to avoid top-level import with side-effects (requires config being loaded)
+    from openlibrary.coverstore import oldb
+
     if oldb.is_supported():
         return oldb.get(olkey)
-    else:
-        try:
-            return json.loads(download(get_ol_url() + olkey + ".json"))
-        except OSError:
-            return None
+
+    try:
+        return session.get(f"{get_ol_url()}/{olkey}.json", timeout=10).json()
+    except OSError:
+        return None
 
 
-USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
-
-
-def download(url):
-    return requests.get(url, headers={"User-Agent": USER_AGENT}).content
+def download_external_image(url: str) -> bytes:
+    return session.get(url, timeout=10).content
 
 
 def urldecode(url: str) -> tuple[str, dict[str, str]]:
