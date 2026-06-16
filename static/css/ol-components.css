@@ -15,6 +15,7 @@
  */
 
 @import "components/ol-button.css";
+@import "components/ol-banner.css";
 
 /* Pre-hydration sizing for shadow-DOM web components. These rules apply
    only until the component upgrades and renders its own shadow root. */

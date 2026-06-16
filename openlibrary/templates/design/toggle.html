@@ -1,0 +1,70 @@
+$def with()
+
+<article class="design-pattern" id="toggle">
+  <h2 class="design-pattern__title">$_("Toggle")</h2>
+  <p class="design-pattern__description">$:_("The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s.", tag="<code>ol-toggle</code>", role='<code>role="switch"</code>', checked="<code>checked</code>", event="<code>ol-toggle-change</code>")</p>
+
+  <section class="example">
+    <h3 class="example__title">$_("Default")</h3>
+    <p>$:_("A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s.", label="<code>label</code>", sublabel="<code>sublabel</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;</code></pre>
+    <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+      <ol-toggle label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
+      <ol-toggle label="$_('Readable Only')" sublabel="4.6M" checked></ol-toggle>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">$_("Card variant")</h3>
+    <p>$:_("Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s.", variant='<code>variant="card"</code>', chip="<code>ol-chip</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
+&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M" checked&gt;&lt;/ol-toggle&gt;</code></pre>
+    <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
+      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M" checked></ol-toggle>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">$_("Custom label content")</h3>
+    <p>$:_("Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name.", label="<code>label</code>", sublabel="<code>sublabel</code>", accessible_label="<code>accessible-label</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle accessible-label="Dark mode"&gt;
+  &lt;strong&gt;Dark mode&lt;/strong&gt; &amp;mdash; easier on the eyes
+&lt;/ol-toggle&gt;</code></pre>
+    <div class="example__output">
+      <ol-toggle accessible-label="$_('Dark mode')"><strong>$_("Dark mode")</strong> &mdash; $_("easier on the eyes")</ol-toggle>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">$_("Disabled")</h3>
+    <p>$:_("Add %(disabled)s to block interaction.", disabled="<code>disabled</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle label="Readable Only" sublabel="4.6M" disabled&gt;&lt;/ol-toggle&gt;
+&lt;ol-toggle variant="card" label="Readable Only" sublabel="4.6M" checked disabled&gt;&lt;/ol-toggle&gt;</code></pre>
+    <div class="example__output" style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start;">
+      <ol-toggle label="$_('Readable Only')" sublabel="4.6M" disabled></ol-toggle>
+      <ol-toggle variant="card" label="$_('Readable Only')" sublabel="4.6M" checked disabled></ol-toggle>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">$_("Change event")</h3>
+    <p>$:_("Toggling fires %(event)s with the new state in %(detail)s.", event="<code>ol-toggle-change</code>", detail="<code>event.detail.checked</code>")</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-toggle id="demo-toggle" variant="card" label="Readable Only" sublabel="4.6M"&gt;&lt;/ol-toggle&gt;
+
+&lt;script&gt;
+  toggle.addEventListener('ol-toggle-change', (e) =&gt; {
+    console.log(e.detail.checked);
+  });
+&lt;/script&gt;</code></pre>
+    <div class="example__output">
+      <ol-toggle id="demo-toggle" variant="card" label="$_('Readable Only')" sublabel="4.6M"></ol-toggle>
+      <p>$_("Checked:") <strong id="demo-toggle-state">false</strong></p>
+    </div>
+    <script>
+      document.getElementById('demo-toggle').addEventListener('ol-toggle-change', (e) => {
+        document.getElementById('demo-toggle-state').textContent = e.detail.checked;
+      });
+    </script>
+  </section>
+</article>

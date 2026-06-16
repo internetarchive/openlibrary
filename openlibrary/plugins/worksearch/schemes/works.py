@@ -498,8 +498,24 @@ class WorkSearchScheme(SearchScheme):
                 if param_name != "fq" or param_value.startswith("type:"):
                     continue
                 field_name, field_val = param_value.split(":", 1)
+                # facet_rewrites can produce negated fq values like
+                # '-ebook_access:public' (from public_scan=false). The leading
+                # '-' is Solr negation syntax, not part of the field name —
+                # strip it before lookup and re-apply to the rewritten field.
+                negate = field_name.startswith("-")
+                if negate:
+                    field_name = field_name[1:]
                 if ed_field := convert_work_field_to_edition_field(field_name):
-                    editions_fq.append(f"{ed_field}:{field_val}")
+                    if negate:
+                        # A pure-negative query matches nothing inside the
+                        # block-join `filters=$editions.fq` local param (it gets
+                        # no top-level `*:*` fixup the way a real `fq` does), so
+                        # an unguarded `-ebook_access:public` zeroed out the
+                        # "Borrow online" filter (public_scan=false). Anchor
+                        # with `*:*` so it subtracts instead of matching nothing.
+                        editions_fq.append(f"(*:* -{ed_field}:{field_val})")
+                    else:
+                        editions_fq.append(f"{ed_field}:{field_val}")
             for fq in editions_fq:
                 new_params.append(("editions.fq", fq))
 

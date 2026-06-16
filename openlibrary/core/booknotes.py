@@ -122,7 +122,8 @@ class Booknotes(db.CommonExtras):
         if work_id:
             query += "AND work_id=$work_id AND edition_id=$edition_id "
         if search:
-            query += "AND notes LIKE '%$search%' "
+            data["search_pattern"] = f"%{search}%"
+            query += "AND notes LIKE $search_pattern "
         query += "LIMIT $limit OFFSET $offset"
         return list(oldb.query(query, vars=data))
 

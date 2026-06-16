@@ -3,6 +3,7 @@ import { exposeGlobally } from './jsdef';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import initServiceWorker from './service-worker-init.js';
+import './experiments.js';
 import '../../../../static/css/js-all.css';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
@@ -335,6 +336,12 @@ jQuery(function() {
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
+    const searchFilterBar = document.querySelector('.search-filter-row');
+    if (searchFilterBar) {
+        import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
+            .then((module) => module.initSearchFilterBar(searchFilterBar));
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
@@ -519,6 +526,12 @@ jQuery(function() {
     if (banners.length) {
         import(/* webpackChunkName: "dismissible-banner" */ './banner')
             .then(module => module.initDismissibleBanners(banners));
+    }
+
+    // Persist <ol-banner> dismissals (the component itself is persistence-agnostic):
+    if (document.querySelector('ol-banner[dismiss-id]')) {
+        import(/* webpackChunkName: "dismissible-banner" */ './banner')
+            .then(module => module.initOlBannerDismissals());
     }
 
     const returnForms = document.querySelectorAll('.return-form');

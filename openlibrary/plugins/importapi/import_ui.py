@@ -1,6 +1,7 @@
 import json
 from dataclasses import dataclass
 from typing import Literal, cast, override
+from warnings import deprecated
 
 import requests
 import web
@@ -62,6 +63,7 @@ class import_preview(delegate.page):
             )
 
 
+@deprecated("migrated to fastapi")
 class import_preview_json(delegate.page):
     path = "/import/preview"
     encoding = "json"

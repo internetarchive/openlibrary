@@ -30,5 +30,6 @@ $ id = '--mobile' if mobile else ''
     $code: pass  # NOTE: Short label displayed next to the count of readers who have finished this book, shown in the stats bar on a book page. Example: "15,420 Have read". This refers to the same shelf as the "Already Read" button.
     <li class="reading-log-stat"><span class="readers-stats__stat">$already_read_count</span> <span class="readers-stats__label">$_("Have read")</span></li>
   $if stopped_reading_count:
+    $code: pass  # NOTE: Short label displayed next to the count of readers who stopped reading this book before finishing, shown in the stats bar on a book page. Example: "348 Stopped reading".
     <li class="reading-log-stat"><span class="readers-stats__stat">$stopped_reading_count</span> <span class="readers-stats__label">$_("Stopped reading")</span></li>
 </ul>
