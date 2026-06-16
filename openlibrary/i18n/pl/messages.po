@@ -2978,7 +2978,7 @@ msgstr "strona administratora"
 
 #: admin/people/view.html
 msgid "Make Human"
-msgstr ""
+msgstr "Oznacz jako człowieka"
 
 #: admin/people/view.html
 #, fuzzy
@@ -2987,7 +2987,7 @@ msgstr "Opis"
 
 #: admin/people/view.html
 msgid "Not available"
-msgstr ""
+msgstr "Niedostępne"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3001,11 +3001,11 @@ msgstr "\"Zapamniętaj mnie"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "Ostatnie logowanie:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "Tagi:"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3014,7 +3014,7 @@ msgstr "Moje konto"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "Próba sucha"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3038,15 +3038,15 @@ msgstr "Pisanie botów"
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d edycji"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "Informacje debugowania"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "Informacje o koncie"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3064,7 +3064,7 @@ msgstr "Autorzy"
 
 #: authors/index.html
 msgid "Search for an Author"
-msgstr ""
+msgstr "Wyszukaj autora"
 
 #: authors/index.html lib/nav_head.html lists/home.html publishers/index.html publishers/notfound.html publishers/view.html search/advancedsearch.html search/publishers.html search/search_modal_i18n.html search/searchbox.html type/local_id/view.html
 msgid "Search"
@@ -3083,7 +3083,7 @@ msgstr "włączając <i>%(topwork)s</i>"
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "Wyświetl na %(site)s"
 
 #: authors/infobox.html
 #, fuzzy
@@ -3107,15 +3107,15 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Więcej na Cita Press"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Pobierz HTML z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html book_providers/runeberg_download_options.html book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 #, fuzzy
@@ -3124,7 +3124,7 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/gutenberg_download_options.html book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "Zwykły tekst"
 
 #: book_providers/gutenberg_download_options.html
 #, fuzzy
@@ -3133,7 +3133,7 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Pobierz plik Kindle z Project Gutenberg"
 
 #: book_providers/gutenberg_download_options.html
 #, fuzzy
@@ -3142,7 +3142,7 @@ msgstr "Książki dla dzieci"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Więcej na Project Gutenberg"
 
 #: book_providers/ia_download_options.html
 #, fuzzy
@@ -3166,15 +3166,15 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
-msgstr ""
+msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
-msgstr ""
+msgstr "Pobierz otwarty DAISY z Internet Archive (format dla osób z niepełnosprawnością druku)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 msgid "DAISY"
-msgstr ""
+msgstr "DAISY"
 
 #: book_providers/librivox_download_options.html
 #, fuzzy
@@ -3183,19 +3183,19 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "Cała książka MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "Pobierz kanał RSS z LibriVox"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "Kanał RSS"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "Więcej na LibriVox"
 
 #: book_providers/openstax_download_options.html
 #, fuzzy
@@ -3204,12 +3204,12 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "Więcej na OpenStax"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "Posłuchaj czytania z %s"
 
 #: book_providers/read_button.html
 #, fuzzy
@@ -3219,39 +3219,39 @@ msgstr "Losowa książka"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "Czytaj bezpłatnie online z %s"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Pobierz wszystkie zeskanowane obrazy z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "Zeskanowane obrazy"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Pobierz wszystkie kolorowe obrazy z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
-msgstr ""
+msgstr "Kolorowe obrazy"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Pobierz wszystkie pliki HTML z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
-msgstr ""
+msgstr "Pobierz wszystkie pliki tekstowe i indeksowe z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "Pliki tekstowe i indeksowe"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Pobierz cały tekst OCR z Project Runeberg"
 
 #: book_providers/runeberg_download_options.html
 #, fuzzy
@@ -3260,11 +3260,11 @@ msgstr "Tekst"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Więcej na Project Runeberg"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Pobierz HTML z Standard Ebooks"
 
 #: book_providers/standard_ebooks_download_options.html
 #, fuzzy
@@ -3278,7 +3278,7 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 #, fuzzy
@@ -3287,19 +3287,19 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
-msgstr ""
+msgstr "Kobo (kepub)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "View the source code for this Standard Ebook at GitHub"
-msgstr ""
+msgstr "Zobacz kod źródłowy tej Standard Ebook na GitHub"
 
 #: Subnavigation.html book_providers/standard_ebooks_download_options.html
 msgid "Source Code"
-msgstr ""
+msgstr "Kod źródłowy"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "More at Standard Ebooks"
-msgstr ""
+msgstr "Więcej na Standard Ebooks"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3313,7 +3313,7 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/wikisource_download_options.html
 msgid "MOBI (for Kindle)"
-msgstr ""
+msgstr "MOBI (dla Kindle)"
 
 #: book_providers/wikisource_download_options.html
 #, fuzzy
@@ -3322,21 +3322,21 @@ msgstr "Przeczytaj e-book z Internet Archive"
 
 #: book_providers/wikisource_download_options.html
 msgid "EPUB (for most other e-readers)"
-msgstr ""
+msgstr "EPUB (dla większości innych czytników e-booków)"
 
 #: book_providers/wikisource_download_options.html
 msgid "Read at Wikisource"
-msgstr ""
+msgstr "Czytaj na Wikisource"
 
 #: books/RelatedWorksCarousel.html
 msgid "You might also like"
-msgstr ""
+msgstr "Może Ci się też spodobać"
 
 #: books/RelatedWorksCarousel.html
 msgid "More by this author"
 msgid_plural "More by these authors"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Więcej od tego autora"
+msgstr[1] "Więcej od tych autorów"
 
 #: books/add.html books/check.html
 msgid "Add a book"
@@ -3344,7 +3344,7 @@ msgstr "Dodaj książkę"
 
 #: books/add.html
 msgid "Invalid ISBN checksum digit"
-msgstr ""
+msgstr "Nieprawidłowa cyfra kontrolna ISBN"
 
 #: books/add.html
 #, fuzzy
@@ -3358,11 +3358,11 @@ msgstr "ID musi zawierać dokładnie 10 znaków [0-9] lub X."
 
 #: books/add.html
 msgid "Invalid LC Control Number format"
-msgstr ""
+msgstr "Nieprawidłowy format numeru kontrolnego LC"
 
 #: books/add.html
 msgid "Invalid OCLC/WorldCat Control Number format"
-msgstr ""
+msgstr "Nieprawidłowy format numeru kontrolnego OCLC/WorldCat"
 
 #: books/add.html
 #, fuzzy
@@ -3371,7 +3371,7 @@ msgstr "Wybierz typ identyfikacji."
 
 #: books/add.html
 msgid "Are you sure that's the published date?"
-msgstr ""
+msgstr "Czy na pewno to jest data wydania?"
 
 #: books/add.html
 msgid "Add a book to Open Library"
@@ -3403,7 +3403,7 @@ msgstr "Na przykład:"
 
 #: books/add.html
 msgid "Oxford University Press; Penguin; W.W. Norton"
-msgstr ""
+msgstr "Oxford University Press; Penguin; W.W. Norton"
 
 #: books/add.html books/edit/edition.html
 msgid "When was it published?"
@@ -3423,7 +3423,7 @@ msgstr "Rodzaj numeru identyfikacyjnego"
 
 #: books/add.html
 msgid "ISBN may be invalid. Click \"Add\" again to submit."
-msgstr ""
+msgstr "ISBN może być nieprawidłowy. Kliknij \"Dodaj\" ponownie, aby przesłać."
 
 #: books/add.html type/tag/tag_form_inputs.html
 msgid "Select"
@@ -3441,19 +3441,19 @@ msgstr "ISBN"
 
 #: books/add.html
 msgid "LCCN"
-msgstr ""
+msgstr "LCCN"
 
 #: books/add.html
 msgid "LibriVox"
-msgstr ""
+msgstr "LibriVox"
 
 #: books/add.html
 msgid "OCLC/WorldCat"
-msgstr ""
+msgstr "OCLC/WorldCat"
 
 #: books/add.html
 msgid "Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg"
 
 #: books/add.html books/edit/edition.html
 #, fuzzy
@@ -3462,16 +3462,16 @@ msgstr "E-book"
 
 #: books/add.html
 msgid "Only fill this out if this is a web book"
-msgstr ""
+msgstr "Wypełnij to tylko jeśli jest to e-book internetowy"
 
 #: books/add.html
 #, python-format
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
-msgstr ""
+msgstr "Zapisując zmianę w tym wiki, zgadzasz się, że Twój wkład jest przekazany światu bezpłatnie na zasadzie <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" rel=\"noopener noreferrer\" title=\"%(cc_link_title)s\">CC0</a>."
 
 #: books/add.html
 msgid "This link to Creative Commons will open in a new window"
-msgstr ""
+msgstr "Ten link do Creative Commons otworzy się w nowym oknie"
 
 #: books/add.html
 msgid "Add this book now"
@@ -3515,8 +3515,8 @@ msgstr "Wybierz tę książkę"
 #, python-format
 msgid "%(count)s edition"
 msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s wydanie"
+msgstr[1] "%(count)s wydania"
 
 #: books/check.html
 #, python-format
@@ -3525,7 +3525,7 @@ msgstr "Pierwsze wydanie w %(year)d"
 
 #: books/check.html
 msgid "None of these match the book I want to add."
-msgstr ""
+msgstr "Żadne z nich nie pasuje do książki, którą chcę dodać."
 
 #: books/check.html
 #, fuzzy
@@ -3552,24 +3552,24 @@ msgstr "Open Library"
 
 #: books/daisy.html
 msgid "There isn't a DAISY file available for "
-msgstr ""
+msgstr "Nie ma dostępnego pliku DAISY dla "
 
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "<a href=\"%(daisy_url)s\"><strong>Pobierz DAISY.zip</strong></a> dla <a href=\"%(url)s\">%(title)s</a>"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
-msgstr ""
+msgstr "Książki dla osób nieczytelnych w druku?"
 
 #: books/daisy.html
 msgid "The <a href=\"//archive.org\">Internet Archive</a> is proud to be distributing over 1 million books free in a format called DAISY, designed for those of us who find it challenging to use regular printed media. "
-msgstr ""
+msgstr "<a href=\"//archive.org\">Internet Archive</a> z dumą dystrybuuje ponad 1 milion książek bezpłatnie w formacie DAISY, zaprojektowanym dla tych, którym trudno korzystać z tradycyjnych materiałów drukowanych. "
 
 #: books/daisy.html
 msgid "There are two types of DAISYs on Open Library: <i>open</i> and <i>protected</i>. Open DAISYs can be read by anyone in the world on many different devices. Protected DAISYs can only be opened using a key issued by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS program</a>."
-msgstr ""
+msgstr "W Open Library dostępne są dwa typy DAISY: <i>otwarte</i> i <i>chronione</i>. Otwarte DAISY mogą być czytane przez każdego na świecie na wielu urządzeniach. Chronione DAISY można otwierać tylko przy użyciu klucza wydanego przez <a href=\"http://www.loc.gov/nls/\">program NLS Biblioteki Kongresu</a>."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -3582,7 +3582,7 @@ msgstr "Wydawnictwo"
 
 #: books/daisy.html
 msgid "The DAISY digital format helps people who have challenges using regular printed media. DAISY digital <span class=\"highlight\">talking books</span> offer the benefits of regular audiobooks, with navigation within the book, to chapters or specific pages."
-msgstr ""
+msgstr "Format cyfrowy DAISY pomaga osobom mającym trudności z korzystaniem z tradycyjnych materiałów drukowanych. Cyfrowe <span class=\"highlight\">audiobooki</span> DAISY oferują zalety zwykłych audiobooków, z nawigacją po książce, do rozdziałów lub konkretnych stron."
 
 #: books/daisy.html
 #, fuzzy
@@ -3596,11 +3596,11 @@ msgstr "Wydawnictwo"
 
 #: books/daisy.html
 msgid "The Library of Congress <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administers a free library program of braille and audio materials circulated to eligible borrowers in the United States through a national network of cooperating libraries."
-msgstr ""
+msgstr "Biblioteka Kongresu <a href=\"http://www.loc.gov/nls/\">National Library Service for the Blind and Physically Handicapped (NLS)</a> administruje bezpłatny program biblioteczny materiałów brajlowskich i audio udostępnianych uprawnionym wypożyczającym w Stanach Zjednoczonych za pośrednictwem krajowej sieci bibliotek współpracujących."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
-msgstr ""
+msgstr "Czy kwalifikujesz się do rejestracji?"
 
 #: books/daisy.html
 #, fuzzy
@@ -3609,11 +3609,11 @@ msgstr "Zobacz wszystkich odwiedzających OpenLibrary.org"
 
 #: books/daisy.html
 msgid "In addition to<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> loads of open DAISYs</a>, the Open Library lists a smaller selection of<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> protected DAISY titles</a> accessible to those with a Library of Congress NLS key. These titles are brought to you by the<a href=\"//archive.org/\"> Internet Archive</a>."
-msgstr ""
+msgstr "Oprócz<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\"> wielu otwartych DAISY</a>, Open Library zawiera mniejszy wybór<a href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> chronionych tytułów DAISY</a> dostępnych dla posiadaczy klucza NLS Biblioteki Kongresu. Te tytuły są dostarczane przez<a href=\"//archive.org/\"> Internet Archive</a>."
 
 #: books/daisy.html
 msgid "Looking for a specific title? The best way to find it is to<a href=\"/search\"> search for it</a>."
-msgstr ""
+msgstr "Szukasz konkretnego tytułu? Najlepszym sposobem jest<a href=\"/search\"> wyszukanie go</a>."
 
 #: books/daisy.html lib/exports.html
 msgid "Need help?"
