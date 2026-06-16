@@ -5011,10 +5011,12 @@ msgid ""
 "A plain toggle: just the switch, a bold %(label)s, and an optional greyed"
 " %(sublabel)s."
 msgstr ""
+"Basit bir geçiş: sadece düğme, kalın %(label)s ve isteğe bağlı gri "
+"%(sublabel)s."
 
 #: design/toggle.html
 msgid "Card variant"
-msgstr ""
+msgstr "Kart varyantı"
 
 #: design/toggle.html
 #, python-format
@@ -5023,10 +5025,12 @@ msgid ""
 "solid primary-blue background and white text — the same treatment as a "
 "selected %(chip)s."
 msgstr ""
+"Kenarlıklı bir kapsayıcı için %(variant)s kullanın. İşaretlendiğinde "
+"seçili %(chip)s gibi düz birincil mavi arka plan ve beyaz metinle dolar."
 
 #: design/toggle.html
 msgid "Custom label content"
-msgstr ""
+msgstr "Özel etiket içeriği"
 
 #: design/toggle.html
 #, python-format
@@ -5035,6 +5039,9 @@ msgid ""
 "%(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still"
 " has an accessible name."
 msgstr ""
+"%(label)s / %(sublabel)s yerine etiketi özelleştirmek için varsayılan "
+"yuvaya içerik koyun. Anahtarın erişilebilir bir ada sahip olması için "
+"%(accessible_label)s girin."
 
 #: design/toggle.html
 #, fuzzy
@@ -5043,7 +5050,7 @@ msgstr "Daha fazla bilgi"
 
 #: design/toggle.html
 msgid "easier on the eyes"
-msgstr ""
+msgstr "göze daha hoş"
 
 #: design/toggle.html
 #, fuzzy
@@ -5053,7 +5060,7 @@ msgstr "Değiştirildi"
 #: design/toggle.html
 #, python-format
 msgid "Add %(disabled)s to block interaction."
-msgstr ""
+msgstr "Etkileşimi engellemek için %(disabled)s ekleyin."
 
 #: design/toggle.html
 #, fuzzy
@@ -5063,11 +5070,11 @@ msgstr "Değiştirilmedi"
 #: design/toggle.html
 #, python-format
 msgid "Toggling fires %(event)s with the new state in %(detail)s."
-msgstr ""
+msgstr "Geçiş, %(detail)s içindeki yeni durumu %(event)s olayıyla tetikler."
 
 #: design/toggle.html
 msgid "Checked:"
-msgstr ""
+msgstr "İşaretli:"
 
 #: email/case_created.html
 #, fuzzy
@@ -5076,7 +5083,7 @@ msgstr "Gönder"
 
 #: email/case_created.html
 msgid "Thank you for your note. We'll get back to you as soon as possible."
-msgstr ""
+msgstr "Notunuz için teşekkürler. En kısa sürede size geri döneceğiz."
 
 #: email/case_created.html
 msgid ""
@@ -5084,10 +5091,12 @@ msgid ""
 "messages, but rest assured we will, and we'll get back to you if "
 "required."
 msgstr ""
+"Çok sayıda mesaj aldığımız için okumamız biraz zaman alabilir, ancak "
+"kesinlikle okuyacağız ve gerekirse size geri döneceğiz."
 
 #: email/account/pd_request.html
 msgid "Qualifying for Print Disability Special Access"
-msgstr ""
+msgstr "Baskı Engeli Özel Erişimi için Uygunluk"
 
 #: history/sources.html
 #, fuzzy
@@ -5096,17 +5105,19 @@ msgstr "Kaldırıldı"
 
 #: home/about.html
 msgid "About the Project"
-msgstr ""
+msgstr "Proje Hakkında"
 
 #: home/about.html
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published."
 msgstr ""
+"Open Library, yayımlanmış her kitap için bir web sayfası oluşturmayı "
+"hedefleyen açık ve düzenlenebilir bir kütüphane kataloğudur."
 
 #: AffiliateLinks.html home/about.html search/work_search_facets.html
 msgid "More"
-msgstr ""
+msgstr "Daha Fazla"
 
 #: home/about.html
 msgid ""
@@ -5115,59 +5126,64 @@ msgid ""
 "href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members "
 "have created. If you love books, why not help build a library?"
 msgstr ""
+"Tıpkı Wikipedia gibi, kataloğa yeni bilgi ekleyebilir veya düzeltmeler "
+"yapabilirsiniz. Üyelerin oluşturduğu <a href=\"/subjects\">konulara</a>, "
+"<a href=\"/authors\">yazarlara</a> veya <a href=\"/lists\">listelere</a> "
+"göre göz atabilirsiniz. Kitapları seviyorsanız neden bir kütüphane "
+"kurmaya yardım etmiyorsunuz?"
 
 #: home/about.html
 msgid "Latest Blog Posts"
-msgstr ""
+msgstr "Son Blog Yazıları"
 
 #: home/categories.html
 msgid "Browse by Subject"
-msgstr ""
+msgstr "Konuya Göre Gözat"
 
 #: home/categories.html
 #, python-format
 msgid "%(count)s Book"
 msgid_plural "%(count)s Books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s eser"
+msgstr[1] "%s eser"
 
 #: home/index.html home/welcome.html
 msgid "Welcome to Open Library"
-msgstr ""
+msgstr "Open Library'ye Hoş Geldiniz"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Classic Books"
-msgstr ""
+msgstr "Klasik Kitaplar"
 
 #: home/index.html
 msgid "Recently Returned"
-msgstr ""
+msgstr "Son İade Edilenler"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Romance"
-msgstr ""
+msgstr "Romantik"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Kids"
-msgstr ""
+msgstr "Çocuk"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 msgid "Thrillers"
-msgstr ""
+msgstr "Gerilim"
 
 #: home/index.html openlibrary/plugins/openlibrary/api.py
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Textbooks"
-msgstr ""
+msgstr "Ders Kitapları"
 
 #: home/index.html
 msgid "Authors Alliance & MIT Press"
-msgstr ""
+msgstr "Authors Alliance ve MIT Press"
 
 #: home/index.html
 msgid "Books in Local Environment"
-msgstr ""
+msgstr "Yerel Ortamdaki Kitaplar"
 
 #: home/loans.html
 #, python-format
@@ -5178,139 +5194,149 @@ msgid_plural ""
 "You can still <a href=\"/subjects/in_library#ebooks=true\">borrow</a> "
 "%(count)d more books until you've hit the limit!"
 msgstr[0] ""
+"Limiti doldurana kadar bir kitap daha <a "
+"href=\"/subjects/in_library#ebooks=true\">ödünç alabilirsiniz</a>!"
 msgstr[1] ""
+"Limiti doldurana kadar bir kitap daha <a "
+"href=\"/subjects/in_library#ebooks=true\">ödünç alabilirsiniz</a>!"
 
 #: home/loans.html
 msgid ""
 "You have reached the borrowing limit. Please return a book to checkout "
 "something new."
 msgstr ""
+"Ödünç alma limitine ulaştınız. Yeni bir şey almak için lütfen bir kitap "
+"iade edin."
 
 #: home/stats.html
 msgid "Around the Library"
-msgstr ""
+msgstr "Kütüphane Çevresinde"
 
 #: home/stats.html
 msgid ""
 "Here's what's happened over the last 28 days. More <a "
 "href=\"/recentchanges\">recent changes</a>"
 msgstr ""
+"Son 28 günde neler oldu. Daha fazla <a href=\"/recentchanges\">son "
+"değişiklik</a>"
 
 #: home/stats.html
 msgid "See all visitors to OpenLibrary.org"
-msgstr ""
+msgstr "OpenLibrary.org'daki tüm ziyaretçileri gör"
 
 #: home/stats.html
 msgid "Area graph of recent unique visitors"
-msgstr ""
+msgstr "Son benzersiz ziyaretçilerin alan grafiği"
 
 #: home/stats.html
 msgid "How many new Open Library members have we welcomed?"
-msgstr ""
+msgstr "Kaç yeni Open Library üyesi karşıladık?"
 
 #: home/stats.html
 msgid "Area graph of new members"
-msgstr ""
+msgstr "Yeni üyelerin alan grafiği"
 
 #: home/stats.html
 msgid "People are constantly updating the catalog"
-msgstr ""
+msgstr "İnsanlar kataloğu sürekli güncelliyor"
 
 #: home/stats.html
 msgid "Area graph of recent catalog edits"
-msgstr ""
+msgstr "Son katalog düzenlemelerinin alan grafiği"
 
 #: home/stats.html
 msgid "Catalog Edits"
-msgstr ""
+msgstr "Katalog Düzenlemeleri"
 
 #: home/stats.html
 msgid "Members can create Lists"
-msgstr ""
+msgstr "Üyeler Liste oluşturabilir"
 
 #: home/stats.html
 msgid "Area graph of lists created recently"
-msgstr ""
+msgstr "Son oluşturulan listelerin alan grafiği"
 
 #: home/stats.html
 msgid "Lists Created"
-msgstr ""
+msgstr "Oluşturulan Listeler"
 
 #: home/stats.html
 msgid "We're a library, so we lend books, too"
-msgstr ""
+msgstr "Biz bir kütüphaneyiz, bu yüzden kitap da ödünç veriyoruz"
 
 #: home/stats.html
 msgid "Area graph of ebooks borrowed recently"
-msgstr ""
+msgstr "Son ödünç alınan e-kitapların alan grafiği"
 
 #: home/stats.html
 msgid "eBooks Borrowed"
-msgstr ""
+msgstr "Ödünç Alınan E-Kitaplar"
 
 #: home/welcome.html
 msgid "Read Free Library Books Online"
-msgstr ""
+msgstr "Ücretsiz Kütüphane Kitaplarını Çevrimiçi Okuyun"
 
 #: home/welcome.html
 msgid "Millions of books available through Controlled Digital Lending"
-msgstr ""
+msgstr "Kontrollü Dijital Ödünç Verme yoluyla milyonlarca kitap mevcut"
 
 #: home/welcome.html
 msgid "Set a Yearly Reading Goal"
-msgstr ""
+msgstr "Yıllık Okuma Hedefi Belirleyin"
 
 #: home/welcome.html
 msgid "Learn how to set a yearly reading goal and track what you read"
 msgstr ""
+"Yıllık okuma hedefi nasıl belirlenir ve okuduklarınızı nasıl takip "
+"edersiniz öğrenin"
 
 #: home/welcome.html
 msgid "Keep Track of your Favorite Books"
-msgstr ""
+msgstr "Favori Kitaplarınızı Takip Edin"
 
 #: home/welcome.html
 msgid "Organize your Books using Lists & the Reading Log"
-msgstr ""
+msgstr "Listeler ve Okuma Günlüğü kullanarak kitaplarınızı düzenleyin"
 
 #: home/welcome.html
 msgid "Try the virtual Library Explorer"
-msgstr ""
+msgstr "Sanal Kütüphane Gezginini Deneyin"
 
 #: home/welcome.html
 msgid "Digital shelves organized like a physical library"
-msgstr ""
+msgstr "Fiziksel kütüphane gibi düzenlenmiş dijital raflar"
 
 #: home/welcome.html
 msgid "Try Fulltext Search"
-msgstr ""
+msgstr "Tam Metin Aramasını Deneyin"
 
 #: home/welcome.html
 msgid "Find matching results within the text of millions of books"
-msgstr ""
+msgstr "Milyonlarca kitabın metni içinde eşleşen sonuçlar bulun"
 
 #: home/welcome.html
 msgid "Be an Open Librarian"
-msgstr ""
+msgstr "Açık Kütüphaneci Olun"
 
 #: home/welcome.html
 msgid "Dozens of ways you can help improve the library"
-msgstr ""
+msgstr "Kütüphaneyi iyileştirmeye katkıda bulunabileceğiniz düzinelerce yol"
 
 #: home/welcome.html
 msgid "Volunteer at Open Library"
-msgstr ""
+msgstr "Open Library'de Gönüllü Olun"
 
 #: home/welcome.html
 msgid "Discover opportunities to improve the library"
-msgstr ""
+msgstr "Kütüphaneyi iyileştirme fırsatlarını keşfedin"
 
 #: home/welcome.html
 msgid "Send us feedback"
-msgstr ""
+msgstr "Geri bildirim gönderin"
 
 #: home/welcome.html
 msgid "Your feedback will help us improve these cards"
-msgstr ""
+msgstr "Geri bildiriminiz bu kartları iyileştirmemize yardımcı olacak"
 
 #: jsdef/LazyWorkPreview.html
 #, fuzzy
@@ -5331,45 +5357,45 @@ msgstr "Solr basımı"
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s eser"
+msgstr[1] "%s eser"
 
 #: languages/index.html
 #, python-format
 msgid "%s ebook edition"
 msgid_plural "%s ebook editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%s e-kitap baskısı"
+msgstr[1] "%s e-kitap baskısı"
 
 #: languages/notfound.html
 #, python-format
 msgid "%s is not found"
-msgstr ""
+msgstr "%s bulunamadı"
 
 #: languages/notfound.html
 #, python-format
 msgid "%s does not exist."
-msgstr ""
+msgstr "%s mevcut değil."
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited by"
-msgstr ""
+msgstr "Bu belge son olarak şu kişi tarafından düzenlendi:"
 
 #: lib/edit_head.html lib/view_head.html
 msgid "This doc was last edited anonymously"
-msgstr ""
+msgstr "Bu belge son olarak anonim olarak düzenlendi"
 
 #: lib/exports.html
 msgid "Download catalog record:"
-msgstr ""
+msgstr "Katalog kaydını indir:"
 
 #: lib/exports.html
 msgid "RDF"
-msgstr ""
+msgstr "RDF"
 
 #: lib/exports.html type/list/exports.html
 msgid "JSON"
-msgstr ""
+msgstr "JSON"
 
 #: lib/exports.html
 #, fuzzy
@@ -5378,19 +5404,19 @@ msgstr "daha az"
 
 #: lib/exports.html
 msgid "Cite this on Wikipedia"
-msgstr ""
+msgstr "Wikipedia'da alıntıla"
 
 #: lib/exports.html
 msgid "Wikipedia citation"
-msgstr ""
+msgstr "Wikipedia alıntısı"
 
 #: lib/exports.html
 msgid "Copy and paste this code into your Wikipedia page."
-msgstr ""
+msgstr "Bu kodu Wikipedia sayfanıza kopyalayıp yapıştırın."
 
 #: lib/exports.html
 msgid "Get instructions at Wikipedia in a new window"
-msgstr ""
+msgstr "Yeni pencerede Wikipedia'daki talimatları alın"
 
 #: lib/header_dropdown.html
 #, fuzzy
