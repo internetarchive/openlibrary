@@ -7896,38 +7896,40 @@ msgstr "%(name)s | Listeler | Open Library"
 #: type/list/view_body.html
 #, python-format
 msgid "%(title)s: %(description)s"
-msgstr ""
+msgstr "%(title)s: %(description)s"
 
 #: type/list/view_body.html
 msgid "View the list on Open Library."
-msgstr ""
+msgstr "Listeyi Open Library'de görüntüle."
 
 #: type/list/view_body.html
 msgid "Remove this item?"
-msgstr ""
+msgstr "Bu öğeyi kaldır?"
 
 #: type/list/view_body.html
 #, python-format
 msgid "Last modified <span>%(date)s</span>"
-msgstr ""
+msgstr "Son değişiklik <span>%(date)s</span>"
 
 #: type/list/view_body.html
 msgid "Remove seed"
-msgstr ""
+msgstr "Öğeyi kaldır"
 
 #: type/list/view_body.html
 msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
+msgstr "Bu öğeyi listeden kaldırmak istediğinizden emin misiniz?"
 
 #: type/list/view_body.html
 msgid "Remove Seed"
-msgstr ""
+msgstr "Öğeyi Kaldır"
 
 #: type/list/view_body.html
 msgid ""
 "You are about to remove the last item in the list. That will delete the "
 "whole list. Are you sure you want to continue?"
 msgstr ""
+"Listedeki son öğeyi kaldırmak üzeresiniz. Bu işlem tüm listeyi "
+"silecektir. Devam etmek istediğinizden emin misiniz?"
 
 #: type/list/view_body.html
 #, python-format
@@ -7935,16 +7937,20 @@ msgid ""
 "This series contains %(limit)d or more works. Currently, only the first "
 "%(limit)d works are displayed."
 msgstr ""
+"Bu seri %(limit)d veya daha fazla eser içermektedir. Şu anda yalnızca ilk"
+" %(limit)d eser görüntülenmektedir."
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "Bu listede hiç öğe yok."
 
 #: type/list/view_body.html
 msgid ""
 "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search "
 "for book, subjects, or authors</a> to add to your list."
 msgstr ""
+"<a href=\"/search\" target=\"_blank\" rel=\"noopener "
+"noreferrer\">Listenize eklemek için kitap, konu veya yazar arayın</a>."
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7953,11 +7959,11 @@ msgstr "Daha fazla bilgi"
 
 #: type/list/view_body.html
 msgid "List Metadata"
-msgstr ""
+msgstr "Liste Meta Verisi"
 
 #: type/list/view_body.html
 msgid "Derived from seed metadata"
-msgstr ""
+msgstr "Öğe meta verisinden türetildi"
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
 #: type/list/view_body.html
@@ -7966,31 +7972,31 @@ msgstr "Zaman"
 
 #: type/local_id/view.html
 msgid "Local IDs"
-msgstr ""
+msgstr "Yerel Kimlikler"
 
 #: type/local_id/view.html
 msgid "Source Item"
-msgstr ""
+msgstr "Kaynak Öğe"
 
 #: type/local_id/view.html
 msgid "ID location"
-msgstr ""
+msgstr "Kimlik konumu"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "Barkod regex"
 
 #: type/local_id/view.html
 msgid "URN prefix"
-msgstr ""
+msgstr "URN öneki"
 
 #: type/local_id/view.html
 msgid "Example"
-msgstr ""
+msgstr "Örnek"
 
 #: type/page/edit.html
 msgid "Document Body:"
-msgstr ""
+msgstr "Belge Gövdesi:"
 
 #: type/page/view.html
 #, fuzzy
@@ -8009,11 +8015,11 @@ msgstr "filtreler"
 
 #: type/permission/view.html
 msgid "Readers"
-msgstr ""
+msgstr "Okuyucular"
 
 #: type/permission/view.html
 msgid "Writers"
-msgstr ""
+msgstr "Yazarlar"
 
 #: type/tag/form.html
 #, fuzzy
@@ -8022,7 +8028,7 @@ msgstr "Düzenle"
 
 #: type/tag/form.html
 msgid "Add a tag"
-msgstr ""
+msgstr "Etiket ekle"
 
 #: type/tag/form.html
 #, fuzzy
@@ -8031,7 +8037,7 @@ msgstr "OpenLibrary'ye yeni bir kitap mı ekliyorsunuz?"
 
 #: type/tag/form.html
 msgid "We require a minimum set of fields to create a new collection tag."
-msgstr ""
+msgstr "Yeni bir koleksiyon etiketi oluşturmak için minimum alan seti gereklidir."
 
 #: EditButtons.html type/tag/form.html
 msgid ""
@@ -8041,10 +8047,15 @@ msgid ""
 "target=\"_blank\" rel=\"noopener noreferrer\" title=\"This link to "
 "Creative Commons will open in a new window\">CC0</a>. Yippee!"
 msgstr ""
+"Bu wikiye bir değişiklik kaydederek, katkınızın <a "
+"href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
+"target=\"_blank\" rel=\"noopener noreferrer\" title=\"Creative Commons'a "
+"bu bağlantı yeni pencerede açılacak\">CC0</a> lisansı altında dünyaya "
+"ücretsiz verildiğini kabul etmiş olursunuz. Yaşasın!"
 
 #: type/tag/form.html
 msgid "Add this tag now"
-msgstr ""
+msgstr "Bu etiketi şimdi ekle"
 
 #: type/tag/index.html
 #, fuzzy
@@ -8053,15 +8064,15 @@ msgstr "İstatistikler"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Open Library kütüphanecileri tarafından düzenlenen etiketler."
 
 #: type/tag/index.html
 msgid "View subject page"
-msgstr ""
+msgstr "Konu sayfasını görüntüle"
 
 #: type/tag/index.html
 msgid "Previous"
-msgstr ""
+msgstr "Önceki"
 
 #: type/tag/index.html
 #, fuzzy
@@ -8070,27 +8081,31 @@ msgstr "Hiçbiri bulunamadı."
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Name"
-msgstr ""
+msgstr "Etiket Adı"
 
 #: type/tag/tag_form_inputs.html
 msgid ""
 "Human-readable display name (e.g. \"Computer Science\", \"Horror "
 "Fiction\")"
 msgstr ""
+"İnsan tarafından okunabilir görünen ad (ör. \"Bilgisayar Bilimi\", "
+"\"Korku Kurgu\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Etiket Slug'ları"
 
 #: type/tag/tag_form_inputs.html
 msgid ""
 "Comma-separated URL slugs that map to this tag (auto-populated from "
 "name). E.g. \"computer_science, cs\""
 msgstr ""
+"Bu etiketle eşleşen virgülle ayrılmış URL slug'ları (addan otomatik "
+"doldurulur). Ör. \"bilgisayar_bilimi, bb\""
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Description"
-msgstr ""
+msgstr "Etiket Açıklaması"
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -8099,20 +8114,20 @@ msgstr "Yerler"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
-msgstr ""
+msgstr "Etiket türü"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Etiket Yardımcısı"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Tür:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
-msgstr ""
+msgstr "Açıklama"
 
 #: type/tag/view.html
 #, fuzzy
@@ -8121,12 +8136,12 @@ msgstr "Bugün"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL Slug'ları"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "%(name)s için konu sayfasını görüntüle."
 
 #: type/template/edit.html
 #, fuzzy
@@ -8135,11 +8150,11 @@ msgstr "Oturum aç"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "Belge Gövdesi"
 
 #: type/template/edit.html
 msgid "Delete this template?"
-msgstr ""
+msgstr "Bu şablon silinsin mi?"
 
 #: type/template/view.html
 #, fuzzy
@@ -8148,36 +8163,36 @@ msgstr "Oturum aç"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "Tür"
 
 #: type/type/view.html
 msgid "Properties"
-msgstr ""
+msgstr "Özellikler"
 
 #: type/type/view.html
 msgid "of type"
-msgstr ""
+msgstr "türü"
 
 #: type/type/view.html
 msgid "Backreferences"
-msgstr ""
+msgstr "Geri Referanslar"
 
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)s düzenleniyor"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "Şu An Düzenleniyor:"
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "Görünen Ad"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "yönetim sayfası"
 
 #: type/user/view.html
 #, python-format
@@ -8188,18 +8203,23 @@ msgid ""
 "to-read\">want to read</a>, and have <a href=\"%(username)s/books"
 "/stopped-reading\">stopped reading</a>!"
 msgstr ""
+"<a href=\"%(username)s/books/currently-reading\">şu an okuduğunuz</a>, <a"
+" href=\"%(username)s/books/already-read\">okuduğunuz</a>, <a "
+"href=\"%(username)s/books/want-to-read\">okumak istediğiniz</a> ve <a "
+"href=\"%(username)s/books/stopped-reading\">okumayı bıraktığınız</a> "
+"kitapları kamuoyu ile paylaşıyorsunuz!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "Şunları gizli yapmayı tercih ettiniz:"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "gizli"
 
 #: type/user/view.html
 msgid "Manage your privacy settings"
-msgstr ""
+msgstr "Gizlilik ayarlarınızı yönetin"
 
 #: type/user/view.html
 #, python-format
@@ -8210,6 +8230,11 @@ msgid ""
 "read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-"
 "reading\">stopped reading</a>!"
 msgstr ""
+"%(user)s'ın <a href=\"%(username)s/books/currently-reading\">şu an "
+"okuduğu</a>, <a href=\"%(username)s/books/already-read\">okuduğu</a>, <a "
+"href=\"%(username)s/books/want-to-read\">okumak istediği</a> ve <a "
+"href=\"%(username)s/books/stopped-reading\">okumayı bıraktığı</a> "
+"kitaplar!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -8217,7 +8242,7 @@ msgstr "Listelerim"
 
 #: RecentChangesUsers.html type/user/view.html
 msgid "No edits. Yet."
-msgstr ""
+msgstr "Henüz düzenleme yok."
 
 #: type/usergroup/edit.html
 #, fuzzy
@@ -8227,55 +8252,58 @@ msgstr "Beni hatırla"
 #: SearchResultsWork.html type/work/editions.html
 #, python-format
 msgid "First published in %(year)s"
-msgstr ""
+msgstr "İlk yayım: %(year)s"
 
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "%(work)s'ın başka bir baskısını ekle"
 
 #: UserEditRow.html type/work/editions.html
 msgid "Add another"
-msgstr ""
+msgstr "Başka ekle"
 
 #: type/work/editions.html
 msgid "Title missing"
-msgstr ""
+msgstr "Başlık eksik"
 
 #: type/work/editions_datatable.html
 #, python-format
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d öne çıkan baskı gösteriliyor."
+msgstr[1] "%(count)d öne çıkan baskı gösteriliyor."
 
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "Tüm %(count)d baskıyı görüntüle?"
 
 #: type/work/editions_datatable.html
 msgid "Edition"
-msgstr ""
+msgstr "Baskı"
 
 #: type/work/editions_datatable.html
 msgid "No editions available"
-msgstr ""
+msgstr "Mevcut baskı yok"
 
 #: type/work/editions_datatable.html
 msgid "Add another edition?"
-msgstr ""
+msgstr "Başka bir baskı ekleyin mi?"
 
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "%(store)s'da satışta olan bu baskıyı ara"
 
 #: AffiliateLinks.html
 msgid ""
 "When you buy books using these links the Internet Archive may earn a <a "
 "class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
+"Bu bağlantıları kullanarak kitap satın aldığınızda Internet Archive küçük"
+" bir <a class=\"nostyle\" href=\"/help/faq/about#selling\">komisyon</a> "
+"kazanabilir."
 
 #: AffiliateLinksLoadingIndicator.html
 #, fuzzy
@@ -8291,12 +8319,12 @@ msgstr "Trend Kitaplar"
 #, python-format
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(n)s diğer"
+msgstr[1] "%(n)s diğer"
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
-msgstr ""
+msgstr "<em>bilinmeyen yazar</em> tarafından"
 
 #: BookPreview.html
 #, fuzzy
@@ -8305,28 +8333,30 @@ msgstr "Önizleme"
 
 #: BookPreview.html
 msgid "Preview Book"
-msgstr ""
+msgstr "Kitabı Önizle"
 
 #: DisplayCode.html
 msgid ""
 "Templates in the website are disabled now. Editing them will not have any"
 " effect on the live website."
 msgstr ""
+"Web sitesindeki şablonlar şu anda devre dışıdır. Bunları düzenlemek "
+"herhangi bir etkiye sahip olmayacaktır."
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "Önceki bölüme git"
 
 #: EditionNavBar.html
 msgid "Overview"
-msgstr ""
+msgstr "Genel Bakış"
 
 #: EditionNavBar.html
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)s Baskıyı Görüntüle"
+msgstr[1] "%(count)s Baskıyı Görüntüle"
 
 #: EditionNavBar.html
 #, python-format
