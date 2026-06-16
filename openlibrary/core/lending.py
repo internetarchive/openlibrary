@@ -648,29 +648,36 @@ def _get_ia_loan(identifier: str, userid: str | None = None):
 
 
 def get_loans_of_user(user_key: str) -> list[Loan]:
-    """TODO: Remove inclusion of local data; should only come from IA"""
+    """Returns all active loans for the given user from Archive.org.
+
+    Loan records are authoritative at IA; the local OL store previously held a
+    mirror of them but that mirror is no longer maintained.
+
+    Next step (issue #11232): replace the ia_lending_api.find_loans() call below
+    with s3_loan_api(s3_keys, action="user_bookshelf"), which uses the patron's
+    own S3 credentials against the official /services/loans/loan/ endpoint.
+    That change requires plumbing s3_keys into this function and is deferred
+    because the privilege API cannot be exercised in a local dev environment.
+    """
     if "env" not in web.ctx:
-        """For the get_cached_user_loans to call the API if no cache is present,
-        we have to fakeload the web.ctx
-        """
+        # fakeload is required so that the memcache wrapper can call this
+        # function from a background context with no live web request.
         delegate.fakeload()
         set_context_from_legacy_web_py()
 
     account = OpenLibraryAccount.get_by_username(user_key.rsplit("/", maxsplit=1)[-1])
 
-    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
-    loans = [Loan(d) for d in loandata]
-    if account and account.itemname:
-        loans += _get_ia_loans_of_user(account.itemname)
-    # Set patron's loans in cache w/ now timestamp
-    get_cached_loans_of_user.memcache_set((user_key,), {}, loans or [], time.time())  # rehydrate cache
+    loans = _get_ia_loans_of_user(account.itemname) if account and account.itemname else []
+    # Rehydrate the memcache entry so callers that use get_cached_loans_of_user
+    # immediately after this call get a fresh result without an extra round-trip.
+    get_cached_loans_of_user.memcache_set((user_key,), {}, loans, time.time())
     return loans
 
 
 get_cached_loans_of_user = cache.memcache_memoize(
     get_loans_of_user,
     key_prefix="lending.cached_loans",
-    timeout=5 * dateutil.MINUTE_SECS,  # time to live for cached loans = 5 minutes
+    timeout=10 * dateutil.MINUTE_SECS,
 )
 
 
@@ -967,7 +974,44 @@ def update_loan_status(identifier):
 
 
 class IA_Lending_API:
-    """Archive.org waiting list API."""
+    """Server-side client for Archive.org's internal loan/waitinglist RPC API.
+
+    This class POSTs to config_ia_loan_api_url using OL's shared server key.
+    The goal (issue #11232) is to replace all calls here with s3_loan_api(),
+    which uses the patron's own S3 credentials against the official public
+    endpoint (S3_LOAN_URL = https://<host>/services/loans/loan/).
+
+    Migration status per method
+    ---------------------------
+    find_loans(userid=…)
+        → s3_loan_api(s3_keys, action="user_bookshelf")
+        Blocked on: plumbing patron s3_keys into get_loans_of_user().
+        Tracked in: issue #11232.
+
+    create_loan(identifier, userid, format, ol_key)
+        Already replaced in the user-facing borrow flow by
+        s3_loan_api(s3_keys, action="borrow_book") in borrow.py.
+        lending.create_loan() itself has no remaining callers and can be
+        removed once the method below is confirmed dead.
+
+    delete_loan(identifier, userid)
+        Used server-side in Loan.delete() for expired/forced returns.
+        → s3_loan_api(s3_keys, action="return_loan") requires patron keys.
+        Needs investigation: does IA accept a server-keyed return, or must
+        it always be patron-signed?
+
+    get_loan(identifier, userid)
+        Used in _get_ia_loan() / sync_loan() to check whether a specific
+        identifier is on loan.  No direct s3_loan_api equivalent today.
+        Needs investigation: does user_bookshelf or another action cover it?
+
+    Waitinglist methods (join/leave/update/query)
+        join_waitinglist / leave_waitinglist already have patron-signed
+        equivalents in borrow.py (s3_loan_api join_waitlist/leave_waitlist).
+        update_waitinglist and query are used internally by waitinglist.py
+        for background processing (e.g. notifying next patron in queue).
+        These need a confirmed s3 equivalent before migrating.
+    """
 
     def get_loan(self, identifier: str, userid: str | None = None):
         params = {"method": "loan.query", "identifier": identifier}
@@ -1033,7 +1077,7 @@ class IA_Lending_API:
             logger.info("POST response: %s", jsontext)
             return jsontext
         except JSONDecodeError:
-            logger.exception("POST failed to openlibrary.php, no json")
+            logger.exception("POST failed to %s, no json", config_ia_loan_api_url)
             return {}
         except Exception:  # TODO: Narrow exception scope
             logger.exception("POST failed")

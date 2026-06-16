@@ -371,7 +371,10 @@ def get_all_loans() -> list:
 
 
 def get_loans(user):
-    return lending.get_loans_of_user(user.key)
+    # Use the cached version: get_loans_of_user always rehydrates the cache on
+    # a fresh fetch, so callers that follow an update_loan_status() call get a
+    # cache hit here instead of a redundant round-trip to the IA loan API.
+    return lending.get_cached_loans_of_user(user.key)
 
 
 def get_edition_loans(edition):
