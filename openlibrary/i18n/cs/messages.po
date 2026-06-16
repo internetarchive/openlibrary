@@ -1741,30 +1741,30 @@ msgstr "Prohledat celou Open Library pro \"%s\"?"
 
 #: account/reading_log.html
 msgid "You haven't marked any books as read for this year."
-msgstr ""
+msgstr "Za tento rok jste neoznačili žádné knihy jako přečtené."
 
 #: account/reading_log.html
 msgid "You haven't added any books to this shelf yet."
-msgstr ""
+msgstr "Na tento regál jste zatím nepřidali žádné knihy."
 
 #: account/reading_log.html
 msgid "<a href=\"/search\">Search for a book</a> to add to your reading log. <a href=\"/help/faq/reading-log\">Learn more</a> about the reading log."
-msgstr ""
+msgstr "<a href=\"/search\">Vyhledejte knihu</a> a přidejte ji do svého čtenářského deníku. <a href=\"/account/import\">Importujte z Goodreads</a>."
 
 #: account/reading_log.html
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr ""
+msgstr "Ve vašem feedu nejsou žádné nedávné knihy. Až budete sledovat veřejné účty, zde se zobrazí jejich přidané knihy."
 
 #. Display name for the "want-to-read" reading log shelf used in page headings
 #. and breadcrumbs.
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
-msgstr ""
+msgstr "Chci přečíst"
 
 #: account/readinglog_stats.html
 #, python-format
 msgid "My %(shelf_name)s Stats"
-msgstr ""
+msgstr "Statistiky regálu %(shelf_name)s"
 
 #: account/readinglog_stats.html home/loans.html lib/nav_head.html
 #, fuzzy
@@ -1774,7 +1774,7 @@ msgstr "Moje knihy"
 #: account/readinglog_stats.html
 #, python-format
 msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr ""
+msgstr "Zobrazuji statistiky pro <strong>%(works_count)d</strong> knih. Poznámka: všechna data pocházejí z Wikidata."
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1788,23 +1788,23 @@ msgstr "Nejvíc vydání"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Sex"
-msgstr ""
+msgstr "Díla podle pohlaví autora"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Citizenship"
-msgstr ""
+msgstr "Díla podle státního občanství autora"
 
 #: account/readinglog_stats.html
 msgid "Works by Author Country of Birth"
-msgstr ""
+msgstr "Díla podle místa narození autora"
 
 #: account/readinglog_stats.html
 msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
-msgstr ""
+msgstr "Demografické statistiky jsou napájeny z <a href=\"https://www.wikidata.org/\">Wikidata</a>. Zde je <a id=\"wd-query-sample\" href=\"\">ukázka</a> použitého dotazu. <br />Vylepšete tyto statistiky přidáním identifikátoru autora ve Wikidata podle <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">těchto pokynů</a>."
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
-msgstr ""
+msgstr "Statistiky děl"
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1823,15 +1823,15 @@ msgstr "Další témata"
 
 #: account/readinglog_stats.html
 msgid "Works by People"
-msgstr ""
+msgstr "Díla podle osob"
 
 #: account/readinglog_stats.html
 msgid "Works by Places"
-msgstr ""
+msgstr "Díla podle místa"
 
 #: account/readinglog_stats.html
 msgid "Works by Time Period"
-msgstr ""
+msgstr "Díla podle časového období"
 
 #: account/readinglog_stats.html
 #, fuzzy
@@ -1840,21 +1840,21 @@ msgstr "Smazat tento záznam"
 
 #: account/readinglog_stats.html
 msgid "Click on a bar to see matching works"
-msgstr ""
+msgstr "Kliknutím na sloupec zobrazíte odpovídající díla"
 
 #: account/sidebar.html books/mybooks_breadcrumb_select.html openlibrary/plugins/upstream/mybooks.py
 msgid "My Feed"
-msgstr ""
+msgstr "Můj feed"
 
 #: account/sidebar.html
 #, python-format
 msgid "%(year)d Reading Goal"
-msgstr ""
+msgstr "Čtenářský cíl na rok %(year)d"
 
 #: account/sidebar.html
 #, python-format
 msgid "Set %(year_span)s reading goal"
-msgstr ""
+msgstr "Nastavit čtenářský cíl na rok %(year_span)s"
 
 #: account/sidebar.html search/sort_options.html type/user/view.html
 msgid "Reading Log"
@@ -1881,16 +1881,16 @@ msgstr "Vytvořit to?"
 
 #: account/sidebar.html
 msgid "Untitled list"
-msgstr ""
+msgstr "Nepojmenovaný seznam"
 
 #: account/topmenu.html
 msgid "Import & Export"
-msgstr ""
+msgstr "Import a export"
 
 #: account/topmenu.html
 #, python-format
 msgid "Privacy settings: %(public)s"
-msgstr ""
+msgstr "Nastavení soukromí: %(public)s"
 
 #: account/verify.html
 msgid "Verification email sent"
@@ -1904,11 +1904,11 @@ msgstr "Ahoj %(user)s"
 #: account/verify.html
 #, python-format
 msgid "We’ve sent an email to %(email)s containing a link to verify your account. Click/tap on the link to finish creating your Internet Archive account."
-msgstr ""
+msgstr "Na adresu %(email)s jsme zaslali e-mail s odkazem pro ověření vašeho účtu."
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
-msgstr ""
+msgstr "Pak se vraťte na Open Library a najděte skvělé knihy!"
 
 #: account/view.html
 #, fuzzy
@@ -1917,7 +1917,7 @@ msgstr "Můj záznam četby"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
-msgstr ""
+msgstr "Sleduje"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 #, fuzzy
@@ -1931,20 +1931,20 @@ msgstr "Uložit"
 
 #: account/view.html
 msgid "Your book notes are private and cannot be viewed by other patrons."
-msgstr ""
+msgstr "Vaše poznámky ke knihám jsou soukromé a ostatní čtenáři je nemohou zobrazit."
 
 #: account/view.html
 msgid "Your book reviews will be shared anonymously with other patrons."
-msgstr ""
+msgstr "Vaše recenze knih budou sdíleny anonymně s ostatními čtenáři."
 
 #: account/yrg_banner.html
 #, python-format
 msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr ""
+msgstr "Nastavte svůj čtenářský cíl na rok %(year)s:"
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "Nastavit cíl"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
@@ -1952,7 +1952,7 @@ msgstr "Zapoměli jste váš Internet Archive email"
 
 #: account/email/forgot-ia.html
 msgid "Please enter your Open Library email and password, and we’ll retrieve your Archive.org email."
-msgstr ""
+msgstr "Zadejte prosím svůj e-mail a heslo k Open Library a my načteme váš e-mail v Internet Archive."
 
 #: account/email/forgot-ia.html
 #, fuzzy
@@ -1961,7 +1961,7 @@ msgstr "Vaše emailová adresa"
 
 #: account/email/forgot-ia.html
 msgid "Return to Log In?"
-msgstr ""
+msgstr "Vrátit se na přihlášení?"
 
 #: account/email/forgot-ia.html
 #, fuzzy
@@ -1970,7 +1970,7 @@ msgstr "Zapoměli jste váš Open Library email"
 
 #: account/email/forgot-ia.html
 msgid "Retrieve Archive.org Email"
-msgstr ""
+msgstr "Načíst e-mail z Archive.org"
 
 #: account/email/forgot-ia.html account/password/forgot.html
 msgid "Forgot your Archive.org Password?"
@@ -1982,7 +1982,7 @@ msgstr "Připomínka jména/hesla"
 
 #: account/password/forgot.html
 msgid "Click here."
-msgstr ""
+msgstr "Klikněte zde."
 
 #: account/password/forgot.html
 msgid "Send It"
@@ -2015,43 +2015,43 @@ msgstr "Hotovo."
 #: account/password/sent.html
 #, python-format
 msgid "We've sent an email to %(email)s with a reminder of your username and instructions to help you reset your Open Library password. Please check your inbox for a note from us."
-msgstr ""
+msgstr "Na adresu %(email)s jsme zaslali e-mail s připomenutím vašeho uživatelského jména a pokyny pro obnovu hesla."
 
 #: account/security/check_email.html
 msgid "Account Security Check — 2026-04-28T18Z"
-msgstr ""
+msgstr "Bezpečnostní kontrola účtu — 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Account Security Check"
-msgstr ""
+msgstr "Bezpečnostní kontrola účtu"
 
 #: account/security/check_email.html
 msgid "Incident date: 2026-04-28T18Z"
-msgstr ""
+msgstr "Datum incidentu: 2026-04-28T18Z"
 
 #: account/security/check_email.html
 msgid "Check whether your Open Library account was in a set of accounts requiring attention."
-msgstr ""
+msgstr "Zkontrolujte, zda byl váš účet Open Library součástí skupiny účtů, u nichž byla vyžadována změna hesla."
 
 #: account/security/check_email.html
 msgid "Please <a href=\"/account/login?redirect=/account/security/2026-04-28T18\">log in</a> to check whether your account was affected."
-msgstr ""
+msgstr "Prosím <a href=\"/account/login?redirect=/account/security/2026-04-28T18Z\">přihlaste se</a> a zkontrolujte svůj účet."
 
 #: account/security/check_email.html
 msgid "Your account is in the affected set."
-msgstr ""
+msgstr "Váš účet je v zasažené skupině."
 
 #: account/security/check_email.html
 msgid "Your account was found in our affected accounts list. Please review any recent communications from Open Library and consider updating your password."
-msgstr ""
+msgstr "Váš účet byl nalezen v seznamu zasažených účtů. Prosím zkontrolujte a aktualizujte své heslo."
 
 #: account/security/check_email.html
 msgid "Your account is <em>not</em> in the affected set."
-msgstr ""
+msgstr "Váš účet <em>není</em> v zasažené skupině."
 
 #: account/security/check_email.html
 msgid "Your account was <em>not</em> found in the affected accounts list. No action is required."
-msgstr ""
+msgstr "Váš účet <em>nebyl</em> nalezen v seznamu zasažených účtů. Nemusíte podnikat žádné kroky."
 
 #: account/verify/activated.html
 msgid "Account already activated"
@@ -2060,7 +2060,7 @@ msgstr "Účet již byl aktivován"
 #: account/verify/activated.html
 #, python-format
 msgid "Your account has been activated already. Please <a href=\"%s\">log in to continue</a>."
-msgstr ""
+msgstr "Váš účet byl již aktivován. Prosím <a href=\"%s\">přihlaste se</a> pro přístup ke svému účtu."
 
 #: account/verify/failed.html
 msgid "Email Verification Failed"
@@ -2072,7 +2072,7 @@ msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je 
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
+msgstr "Vyplňte svůj e-mail a kliknutím na toto tlačítko znovu odešlete ověřovací e-mail."
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -2089,28 +2089,28 @@ msgstr "Ověření emailu uspělo"
 #: account/verify/success.html
 #, python-format
 msgid "Yay! Your email address has been verified. Please <a href='%s'>log in to continue</a>."
-msgstr ""
+msgstr "Výborně! Vaše e-mailová adresa byla ověřena. Prosím <a href=\"%s\">přihlaste se</a> pro přístup ke svému účtu."
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "Připojit debugger"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Připojit debugger na Python %(version_number)s"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "Spustit debugger na portu 3000."
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
-msgstr ""
+msgstr "Čekám na připojení debuggeru..."
 
 #: admin/attach_debugger.html
 msgid "Start"
-msgstr ""
+msgstr "Spustit"
 
 #: admin/block.html
 #, fuzzy
@@ -2120,15 +2120,15 @@ msgstr "Vaše emailová adresa"
 #: admin/block.html
 #, python-format
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr ""
+msgstr "IP adresa %(address)s byla přidána do textového pole. Prosím klikněte na Uložit."
 
 #: admin/block.html
 msgid "Blocked IP Addresses"
-msgstr ""
+msgstr "Blokované IP adresy"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "Výkonnostní grafy"
 
 #: admin/graphs.html
 #, fuzzy
@@ -2137,19 +2137,19 @@ msgstr "Počet stran"
 
 #: admin/graphs.html
 msgid "Page Load Times"
-msgstr ""
+msgstr "Časy načítání stránek"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "Rozložení časů načítání stránek"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "Průměr Infobase"
 
 #: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: admin/history.html
 #, fuzzy
@@ -2158,7 +2158,7 @@ msgstr "Místo"
 
 #: admin/imports-add.html admin/imports.html admin/imports_by_date.html admin/menu.html
 msgid "Imports"
-msgstr ""
+msgstr "Importy"
 
 #: admin/imports-add.html books/add.html books/edit/edition.html books/edit/excerpts.html covers/change.html type/tag/form.html
 msgid "Add"
@@ -2171,7 +2171,7 @@ msgstr "Přidat do Open Library novou knihu"
 
 #: admin/imports-add.html
 msgid "Please add IA identifiers to be imported, one per line."
-msgstr ""
+msgstr "Přidejte identifikátory IA k importu, jeden na řádek."
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
@@ -2179,24 +2179,24 @@ msgstr "Odeslat"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
-msgstr ""
+msgstr "Nově importované knihy za den"
 
 #: PublishingHistory.html admin/imports.html publishers/view.html
 msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
+msgstr "Pro zobrazení pěkného grafu musíte mít zapnutý JavaScript!"
 
 #: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
 msgid "Summary"
-msgstr ""
+msgstr "Souhrn"
 
 #: admin/imports.html
 msgid "Pending Items:"
-msgstr ""
+msgstr "Čekající položky:"
 
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>Aktuální rychlost importu:</strong> %(num)d importů/hodinu."
 
 #: admin/imports.html
 #, fuzzy
@@ -2205,7 +2205,7 @@ msgstr "Hloubka:"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "Souhrn podle data"
 
 #: admin/imports.html
 #, fuzzy
@@ -2214,31 +2214,31 @@ msgstr "Název"
 
 #: admin/imports.html
 msgid "#books created"
-msgstr ""
+msgstr "Počet vytvořených knih"
 
 #: admin/imports.html
 msgid "#books already found"
-msgstr ""
+msgstr "Počet knih již nalezených"
 
 #: admin/imports.html
 msgid "#books failed to import"
-msgstr ""
+msgstr "Počet knih, u nichž import selhal"
 
 #: admin/imports.html
 msgid "#books pending"
-msgstr ""
+msgstr "Počet čekajících knih"
 
 #: admin/imports.html
 msgid "Recent Imports"
-msgstr ""
+msgstr "Nedávné importy"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
+msgstr "Identifikátor"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Imported Time"
-msgstr ""
+msgstr "Čas importu"
 
 #: admin/imports_by_date.html admin/index.html admin/pd_dashboard.html
 #, fuzzy
@@ -2262,7 +2262,7 @@ msgstr "filtry"
 
 #: admin/imports_by_date.html openlibrary/core/edits.py
 msgid "Pending"
-msgstr ""
+msgstr "Čekající"
 
 #: admin/imports_by_date.html
 #, fuzzy
@@ -2271,7 +2271,7 @@ msgstr "filtry"
 
 #: admin/index.html
 msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr ""
+msgstr "<span class=\"login-counts\">0</span> čtenářů se přihlásilo alespoň jednou za posledních 30 dní."
 
 #: admin/index.html
 #, fuzzy
