@@ -7462,11 +7462,11 @@ msgstr "Přidat tuto knihu"
 
 #: type/tag/index.html
 msgid "Tags"
-msgstr ""
+msgstr "Štítky"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Štítky spravované knihovníky Open Library."
 
 #: type/tag/index.html
 #, fuzzy
@@ -7489,15 +7489,15 @@ msgstr "Název"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "Čitelný zobrazovaný název (např. \"Informatika\", \"Hororová fikce\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "Slimáky štítků"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "Čárkou oddělené URL slimáky mapující se na tento štítek (automaticky vyplněné z názvu). Např. \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7506,20 +7506,20 @@ msgstr "Přidat vydání"
 
 #: type/tag/tag_form_inputs.html
 msgid "Page Body"
-msgstr ""
+msgstr "Tělo stránky"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag type"
-msgstr ""
+msgstr "Typ štítku"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "Zástupný štítek"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>Typ:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 #, fuzzy
@@ -7528,16 +7528,16 @@ msgstr "Přidat vydání"
 
 #: type/tag/view.html
 msgid "Tag Body"
-msgstr ""
+msgstr "Tělo štítku"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL slimáky"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "Zobrazit stránku tématu pro %(name)s."
 
 #: type/template/edit.html
 #, fuzzy
@@ -7546,7 +7546,7 @@ msgstr "Přihlásit se"
 
 #: type/template/edit.html
 msgid "Document Body"
-msgstr ""
+msgstr "Tělo dokumentu"
 
 #: type/template/edit.html
 #, fuzzy
@@ -7560,7 +7560,7 @@ msgstr "Přihlásit se"
 
 #: type/type/view.html
 msgid "Kind"
-msgstr ""
+msgstr "Druh"
 
 #: type/type/view.html
 #, fuzzy
@@ -7569,7 +7569,7 @@ msgstr "Ostatní názvy"
 
 #: type/type/view.html
 msgid "of type"
-msgstr ""
+msgstr "typu"
 
 #: type/type/view.html
 #, fuzzy
@@ -7579,32 +7579,32 @@ msgstr "Rozdíly"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "Úprava %(name)s"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
-msgstr ""
+msgstr "Aktuálně upravováno:"
 
 #: type/user/edit.html
 msgid "Display Name"
-msgstr ""
+msgstr "Zobrazované jméno"
 
 #: type/user/view.html
 msgid "admin page"
-msgstr ""
+msgstr "stránka správce"
 
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Veřejně sdílíte knihy, které <a href=\"%(username)s/books/currently-reading\">právě čtete</a>, <a href=\"%(username)s/books/already-read\">jste již přečetli</a>, <a href=\"%(username)s/books/want-to-read\">chcete přečíst</a>, a které <a href=\"%(username)s/books/stopped-reading\">jste přestali číst</a>!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
-msgstr ""
+msgstr "Rozhodli jste se nastavit svůj"
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "soukromý"
 
 #: type/user/view.html
 #, fuzzy
@@ -7614,7 +7614,7 @@ msgstr "Vaše nastavebí soukromý"
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "Zde jsou knihy, které %(user)s <a href=\"%(username)s/books/currently-reading\">právě čte</a>, <a href=\"%(username)s/books/already-read\">již přečetl</a>, <a href=\"%(username)s/books/want-to-read\">chce přečíst</a>, a které <a href=\"%(username)s/books/stopped-reading\">přestal číst</a>!"
 
 #: type/user/view.html
 #, fuzzy
@@ -7623,21 +7623,21 @@ msgstr "Moje seznamy"
 
 #: RecentChangesUsers.html type/user/view.html
 msgid "No edits. Yet."
-msgstr ""
+msgstr "Žádné úpravy. Zatím."
 
 #: type/usergroup/edit.html
 msgid "Members:"
-msgstr ""
+msgstr "Členové:"
 
 #: SearchResultsWork.html type/work/editions.html
 #, python-format
 msgid "First published in %(year)s"
-msgstr ""
+msgstr "Poprvé vydáno v %(year)s"
 
 #: type/work/editions.html type/work/editions_datatable.html
 #, python-format
 msgid "Add another edition of %(work)s"
-msgstr ""
+msgstr "Přidat další vydání díla %(work)s"
 
 #: UserEditRow.html type/work/editions.html
 #, fuzzy
@@ -7646,20 +7646,20 @@ msgstr "Přidat další obrázek"
 
 #: type/work/editions.html
 msgid "Title missing"
-msgstr ""
+msgstr "Chybí název"
 
 #: type/work/editions_datatable.html
 #, python-format
 msgid "Showing %(count)d featured edition."
 msgid_plural "Showing %(count)d featured editions."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Zobrazeno %(count)d vybrané vydání."
+msgstr[1] "Zobrazena %(count)d vybraná vydání."
+msgstr[2] "Zobrazeno %(count)d vybraných vydání."
 
 #: type/work/editions_datatable.html
 #, python-format
 msgid "View all %(count)d editions?"
-msgstr ""
+msgstr "Zobrazit všech %(count)d vydání?"
 
 #: type/work/editions_datatable.html
 #, fuzzy
@@ -7679,15 +7679,15 @@ msgstr "Přidat další vydání"
 #: AffiliateLinks.html
 #, python-format
 msgid "Look for this edition for sale at %(store)s"
-msgstr ""
+msgstr "Hledat toto vydání k prodeji na %(store)s"
 
 #: AffiliateLinks.html
 msgid "When you buy books using these links the Internet Archive may earn a <a class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
-msgstr ""
+msgstr "Při nákupu knih přes tyto odkazy může Internet Archive získat <a class=\"nostyle\" href=\"/help/faq/about#selling\">malou provizi</a>."
 
 #: AffiliateLinksLoadingIndicator.html
 msgid "Fetching prices"
-msgstr ""
+msgstr "Načítání cen"
 
 #: BatchImportNavigation.html
 #, fuzzy
@@ -7698,13 +7698,13 @@ msgstr "Seznamy četby"
 #, python-format
 msgid "%(n)s other"
 msgid_plural "%(n)s others"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(n)s další"
+msgstr[1] "%(n)s další"
+msgstr[2] "%(n)s dalších"
 
 #: BookByline.html
 msgid "by an <em>unknown author</em>"
-msgstr ""
+msgstr "od <em>neznámého autora</em>"
 
 #: BookPreview.html
 #, fuzzy
@@ -7718,11 +7718,11 @@ msgstr "Předchozí"
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "Šablony na webu jsou nyní deaktivovány. Jejich úpravy nebudou mít žádný vliv na živý web."
 
 #: EditionNavBar.html
 msgid "Go to previous section"
-msgstr ""
+msgstr "Přejít na předchozí sekci"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7733,17 +7733,17 @@ msgstr "Zobrazit"
 #, python-format
 msgid "View %(count)s Edition"
 msgid_plural "View %(count)s Editions"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Zobrazit %(count)s vydání"
+msgstr[1] "Zobrazit %(count)s vydání"
+msgstr[2] "Zobrazit %(count)s vydání"
 
 #: EditionNavBar.html
 #, python-format
 msgid "%(reviews)s Review"
 msgid_plural "%(reviews)s Reviews"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(reviews)s recenze"
+msgstr[1] "%(reviews)s recenze"
+msgstr[2] "%(reviews)s recenzí"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7752,15 +7752,15 @@ msgstr "Vytvořte to"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "Přejít na další sekci"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "Přestat sledovat"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "Aktualizace sledujících se nezdařila. Zkuste to prosím za chvíli znovu."
 
 #: FormatExpiry.html
 #, fuzzy
@@ -7769,60 +7769,60 @@ msgstr "Propadlé výpůjčky"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "Hledání shod v textu knih"
 
 #: FulltextSearchSuggestion.html
 msgid "Search Inside Icon"
-msgstr ""
+msgstr "Ikona hledání v knize"
 
 #: FulltextSearchSuggestion.html
 msgid "search inside icon"
-msgstr ""
+msgstr "ikona hledání v knize"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s knih nalezeno se shodujícími pasážemi"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "Zobrazit všech %(results_count)s shod hledání v knize"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "šipka doprava"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, python-format
 msgid "Page: %(page)s"
-msgstr ""
+msgstr "Strana: %(page)s"
 
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Vypůjčeno z Internet Archive: %(title)s"
 
 #: LoadingIndicator.html
 msgid "Loading indicator"
-msgstr ""
+msgstr "Indikátor načítání"
 
 #: LoanStatus.html
 msgid "You are <strong>next</strong> on the waiting list"
-msgstr ""
+msgstr "Jste <strong>další</strong> na čekacím listině"
 
 #: LoanStatus.html
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
-msgstr ""
+msgstr "Jste <strong>#%(spot)d</strong> z %(wlsize)d na čekacím listině."
 
 #: LoanStatus.html
 #, fuzzy
@@ -7832,19 +7832,19 @@ msgstr "Seznamy četby"
 #: LoanStatus.html
 #, python-format
 msgid "Readers in line: %(count)s"
-msgstr ""
+msgstr "Čtenáři v řadě: %(count)s"
 
 #: LoanStatus.html
 msgid "You'll be next in line."
-msgstr ""
+msgstr "Budete další v řadě."
 
 #: LoanStatus.html
 msgid "This book is currently checked out, please check back later."
-msgstr ""
+msgstr "Tato kniha je momentálně vypůjčena. Zkuste to prosím znovu later."
 
 #: LoanStatus.html
 msgid "Checked Out"
-msgstr ""
+msgstr "Vypůjčeno"
 
 #: LocateButton.html
 #, fuzzy
@@ -7863,21 +7863,21 @@ msgstr[2] ""
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Čekání %d den"
+msgstr[1] "Čekání %d dny"
+msgstr[2] "Čekání %d dní"
 
 #: ManageWaitlistButton.html
 #, python-format
 msgid "You have %(count)d more hour to borrow it."
 msgid_plural "You have %(count)d more hours to borrow it."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Máte %(count)d hodinu na vypůjčení."
+msgstr[1] "Máte %(count)d hodiny na vypůjčení."
+msgstr[2] "Máte %(count)d hodin na vypůjčení."
 
 #: NotInLibrary.html
 msgid "Not in Library"
-msgstr ""
+msgstr "Není v knihovně"
 
 #: NotesModal.html
 #, fuzzy
@@ -7886,12 +7886,12 @@ msgstr "Moje knihy"
 
 #: NotesModal.html
 msgid "My private notes about this edition:"
-msgstr ""
+msgstr "Moje soukromé poznámky k tomuto vydání:"
 
 #: OLID.html
 #, python-format
 msgid "by  %(authors)s"
-msgstr ""
+msgstr "od  %(authors)s"
 
 #: ObservationsModal.html
 #, fuzzy
@@ -7900,21 +7900,21 @@ msgstr "Moje knihy"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to previous page"
-msgstr ""
+msgstr "Přejít na předchozí stránku"
 
 #: OlPagination.html OlPaginationArrows.html
 msgid "Go to next page"
-msgstr ""
+msgstr "Přejít na další stránku"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Go to page {page}"
-msgstr ""
+msgstr "Přejít na stránku {page}"
 
 #: OlPagination.html
 #, python-brace-format
 msgid "Page {page}, current page"
-msgstr ""
+msgstr "Stránka {page}, aktuální stránka"
 
 #: Profile.html
 #, fuzzy
@@ -7923,11 +7923,11 @@ msgstr "Porovnat"
 
 #: ProlificAuthors.html
 msgid "Prolific Authors"
-msgstr ""
+msgstr "Prolifikovaní autoři"
 
 #: ProlificAuthors.html
 msgid "who have written the most books on this subject"
-msgstr ""
+msgstr "kteří napsali nejvíce knih na toto téma"
 
 #: PublishingHistory.html
 msgid "This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href=\"#subjectRelated\">Click here to skip the chart</a>."
