@@ -7496,35 +7496,35 @@ msgstr "Ne yapmak istersiniz?"
 
 #: type/delete/view.html
 msgid "Go back where I came from"
-msgstr ""
+msgstr "Geldiğim yere geri dön"
 
 #: type/delete/view.html
 msgid "View the previous version"
-msgstr ""
+msgstr "Önceki sürümü görüntüle"
 
 #: type/delete/view.html
 msgid "See the page's history"
-msgstr ""
+msgstr "Sayfanın geçmişini gör"
 
 #: type/delete/view.html
 msgid "Recreate it"
-msgstr ""
+msgstr "Yeniden oluştur"
 
 #: type/edition/admin_bar.html
 msgid "Add IA Book to Staff Picks"
-msgstr ""
+msgstr "IA Kitabını Personel Seçimlerine Ekle"
 
 #: type/edition/admin_bar.html
 msgid "Sync Archive.org ID"
-msgstr ""
+msgstr "Archive.org Kimliğini Senkronize Et"
 
 #: type/edition/admin_bar.html
 msgid "View Book on Archive.org"
-msgstr ""
+msgstr "Kitabı Archive.org'da Görüntüle"
 
 #: SearchResultsWork.html type/edition/admin_bar.html
 msgid "Orphaned Edition"
-msgstr ""
+msgstr "Sahipsiz Baskı"
 
 #: databarHistory.html databarView.html type/edition/compact_title.html
 #, fuzzy
@@ -7533,7 +7533,7 @@ msgstr "Düzenle"
 
 #: type/edition/modal_links.html
 msgid "Review"
-msgstr ""
+msgstr "İncele"
 
 #: type/edition/modal_links.html
 #, fuzzy
@@ -7547,17 +7547,17 @@ msgstr "Eklendi"
 
 #: type/edition/title_and_author.html
 msgid "An edition of"
-msgstr ""
+msgstr "Baskısı"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "First published in %s"
-msgstr ""
+msgstr "İlk yayım: %s"
 
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
-msgstr ""
+msgstr "Kitap %s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7566,7 +7566,7 @@ msgstr "Daha fazla bilgi"
 
 #: type/edition/view.html type/work/view.html
 msgid "Read Less"
-msgstr ""
+msgstr "Daha Az Oku"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
@@ -7574,6 +7574,8 @@ msgid ""
 "This work doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
+"Bu eserin henüz açıklaması yok. <b><a href='%(url)s'>Ekleyebilir "
+"misiniz</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
@@ -7581,135 +7583,137 @@ msgid ""
 "This edition doesn't have a description yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
+"Bu baskının henüz açıklaması yok. <b><a href='%(url)s'>Ekleyebilir "
+"misiniz</a></b>?"
 
 #: type/edition/view.html type/work/view.html
 msgid "Publish Date"
-msgstr ""
+msgstr "Yayım Tarihi"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Show other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)s yayınevinin diğer kitaplarını göster"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Search for other books from %(publisher)s"
-msgstr ""
+msgstr "%(publisher)s yayınevinin diğer kitaplarını ara"
 
 #: type/edition/view.html type/work/view.html
 msgid "Pages"
-msgstr ""
+msgstr "Sayfalar"
 
 #: type/edition/view.html type/work/view.html
 msgid "ISBNs"
-msgstr ""
+msgstr "ISBN'ler"
 
 #: databarWork.html type/edition/view.html type/work/view.html
 msgid "Buy this book"
-msgstr ""
+msgstr "Bu kitabı satın al"
 
 #: type/edition/view.html type/work/view.html
 msgid "Book Details"
-msgstr ""
+msgstr "Kitap Ayrıntıları"
 
 #: type/edition/view.html type/work/view.html
 msgid "First Sentence"
-msgstr ""
+msgstr "İlk Cümle"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Notes"
-msgstr ""
+msgstr "Baskı Notları"
 
 #: type/edition/view.html type/work/view.html
 msgid "Published in"
-msgstr ""
+msgstr "Yayımlandığı yer"
 
 #: type/edition/view.html type/work/view.html
 msgid "Series"
-msgstr ""
+msgstr "Seri"
 
 #: type/edition/view.html type/work/view.html
 msgid "Volume"
-msgstr ""
+msgstr "Cilt"
 
 #: type/edition/view.html type/work/view.html
 msgid "Genre"
-msgstr ""
+msgstr "Tür"
 
 #: type/edition/view.html type/work/view.html
 msgid "Other Titles"
-msgstr ""
+msgstr "Diğer Başlıklar"
 
 #: type/edition/view.html type/work/view.html
 msgid "Copyright Date"
-msgstr ""
+msgstr "Telif Hakkı Tarihi"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translation Of"
-msgstr ""
+msgstr "Çevirisi"
 
 #: type/edition/view.html type/work/view.html
 msgid "Translated From"
-msgstr ""
+msgstr "Çevirilen Dil"
 
 #: type/edition/view.html type/work/view.html
 msgid "External Links"
-msgstr ""
+msgstr "Dış Bağlantılar"
 
 #: type/edition/view.html type/work/view.html
 msgid "Format"
-msgstr ""
+msgstr "Biçim"
 
 #: OlPagination.html OlPaginationArrows.html type/edition/view.html
 #: type/work/view.html
 msgid "Pagination"
-msgstr ""
+msgstr "Sayfalama"
 
 #: type/edition/view.html type/work/view.html
 msgid "Number of pages"
-msgstr ""
+msgstr "Sayfa sayısı"
 
 #: type/edition/view.html type/work/view.html
 msgid "Weight"
-msgstr ""
+msgstr "Ağırlık"
 
 #: type/edition/view.html type/work/view.html
 msgid "Edition Identifiers"
-msgstr ""
+msgstr "Baskı Tanımlayıcıları"
 
 #: type/edition/view.html type/work/view.html
 msgid "Source records"
-msgstr ""
+msgstr "Kaynak kayıtlar"
 
 #: type/edition/view.html type/work/view.html
 msgid "Work Description"
-msgstr ""
+msgstr "Eser Açıklaması"
 
 #: type/edition/view.html type/work/view.html
 msgid "Original languages"
-msgstr ""
+msgstr "Özgün diller"
 
 #: type/edition/view.html type/work/view.html
 msgid "Excerpts"
-msgstr ""
+msgstr "Alıntılar"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "Page %(page)s"
-msgstr ""
+msgstr "Sayfa %(page)s"
 
 #: type/edition/view.html type/work/view.html
 #, python-format
 msgid "added by %(authorlink)s."
-msgstr ""
+msgstr "%(authorlink)s tarafından eklendi."
 
 #: type/edition/view.html type/work/view.html
 msgid "added anonymously."
-msgstr ""
+msgstr "anonim olarak eklendi."
 
 #: type/edition/view.html type/work/view.html
 msgid "Wikipedia"
-msgstr ""
+msgstr "Wikipedia"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7719,7 +7723,7 @@ msgstr "Bekleme Listesi"
 #: type/language/view.html
 #, python-format
 msgid "%(language)s [deprecated]"
-msgstr ""
+msgstr "%(language)s [kullanımdan kaldırıldı]"
 
 #: type/language/view.html
 #, fuzzy
@@ -7728,7 +7732,7 @@ msgstr "Dil"
 
 #: type/language/view.html
 msgid "Code"
-msgstr ""
+msgstr "Kod"
 
 #: type/language/view.html
 #, fuzzy
@@ -7739,6 +7743,8 @@ msgstr ""
 #, python-format
 msgid "Try a <a href=\"%(href)s\">search for readable books in %(language)s</a>?"
 msgstr ""
+"%(language)s dilinde <a href=\"%(href)s\">okunabilir kitap arama</a> "
+"deneyin mi?"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7748,12 +7754,12 @@ msgstr "Oluşturmak mı?"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "Seriyi düzenleniyor: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "Liste düzenleniyor: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7762,11 +7768,11 @@ msgstr "Solr basımı"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Edit List"
-msgstr ""
+msgstr "Listeyi Düzenle"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Move..."
-msgstr ""
+msgstr "Taşı..."
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7775,15 +7781,15 @@ msgstr "Kitap ara"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "Konum (isteğe bağlı), ör. 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "Notlar (isteğe bağlı)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "List Name"
-msgstr ""
+msgstr "Liste Adı"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7792,11 +7798,11 @@ msgstr "Adınız"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Description (optional)"
-msgstr ""
+msgstr "Açıklama (isteğe bağlı)"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Add another book"
-msgstr ""
+msgstr "Başka bir kitap ekle"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7805,60 +7811,64 @@ msgstr "Oluşturmak mı?"
 
 #: type/list/embed.html
 msgid "Visit Open Library"
-msgstr ""
+msgstr "Open Library'yi ziyaret et"
 
 #: type/list/embed.html
 msgid ""
 "Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
 "formats from main book page"
 msgstr ""
+"Çevrimiçi Kitap Okuyucusunda aç. Ana kitap sayfasından ePub, DAISY, PDF, "
+"TXT formatlarında indirme mevcuttur"
 
 #: type/list/embed.html
 msgid "This book is checked out"
-msgstr ""
+msgstr "Bu kitap ödünç alındı"
 
 #: type/list/embed.html
 msgid "Checked out"
-msgstr ""
+msgstr "Ödünç alındı"
 
 #: type/list/embed.html
 msgid "Borrow book"
-msgstr ""
+msgstr "Kitabı ödünç al"
 
 #: type/list/embed.html
 msgid "Protected DAISY"
-msgstr ""
+msgstr "Korumalı DAISY"
 
 #: BookByline.html type/list/embed.html
 #, python-format
 msgid "by %(name)s"
-msgstr ""
+msgstr "%(name)s tarafından"
 
 #: type/list/exports.html
 msgid "BibTex"
-msgstr ""
+msgstr "BibTex"
 
 #: type/list/exports.html
 msgid "Export"
-msgstr ""
+msgstr "Dışa Aktar"
 
 #: type/list/exports.html
 #, python-format
 msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
-msgstr ""
+msgstr "%(json_link)s, %(html_link)s veya %(bibtex_link)s olarak"
 
 #: type/list/exports.html
 msgid "Subscribe"
-msgstr ""
+msgstr "Abone ol"
 
 #: type/list/exports.html
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
 msgstr ""
+"<a rel=\"nofollow\" href=\"%s\">Atom akışı</a> aracılığıyla etkinlikleri "
+"izleyin"
 
 #: type/list/exports.html
 msgid "Export Not Available"
-msgstr ""
+msgstr "Dışa Aktarım Mevcut Değil"
 
 #: type/list/exports.html
 #, python-format
@@ -7866,6 +7876,8 @@ msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
 "%(count)s."
 msgstr ""
+"Yalnızca %(max)s baskıya kadar olan listeler dışa aktarılabilir. Bu "
+"listede %(count)s baskı var."
 
 #: type/list/exports.html
 #, python-format
@@ -7873,11 +7885,13 @@ msgid ""
 "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
 "download</a> of the catalog."
 msgstr ""
+"Daha odaklı olmak için bazı öğeleri kaldırmayı deneyin veya kataloğun <a "
+"href=\"%s\">toplu indirme</a> seçeneğine bakın."
 
 #: type/list/view_body.html
 #, python-format
 msgid "%(name)s | Lists | Open Library"
-msgstr ""
+msgstr "%(name)s | Listeler | Open Library"
 
 #: type/list/view_body.html
 #, python-format
