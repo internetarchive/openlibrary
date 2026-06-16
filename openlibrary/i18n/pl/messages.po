@@ -8074,18 +8074,18 @@ msgstr "mniej"
 #: SearchResultsWork.html
 #, python-format
 msgid "Cover of edition %(id)s"
-msgstr ""
+msgstr "Okładka wydania %(id)s"
 
 #: SearchResultsWork.html
 #, python-format
 msgid "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d language</a>"
 msgid_plural "in <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d languages</a>"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "w <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d języku</a>"
+msgstr[1] "w <a class=\"hoverlink\" title=\"%(langs)s\">%(count)d językach</a>"
 
 #: SearchResultsWork.html TrendingBadge.html
 msgid "This is only visible to librarians."
-msgstr ""
+msgstr "To jest widoczne tylko dla bibliotekarzy."
 
 #: SearchResultsWork.html
 #, fuzzy
@@ -8095,7 +8095,7 @@ msgstr "Podobe tytuły"
 #: ShareModal.html
 #, python-format
 msgid "Share on %(share_link)s"
-msgstr ""
+msgstr "Udostępnij w %(share_link)s"
 
 #: ShareModal.html
 msgid "Embed this book in your website"
@@ -8112,51 +8112,51 @@ msgstr "Umieść"
 
 #: ShareModal.html
 msgid "Copy url to clipboard"
-msgstr ""
+msgstr "Skopiuj adres URL do schowka"
 
 #: ShareModal.html
 msgid "Copy URL icon"
-msgstr ""
+msgstr "Ikona kopiowania URL"
 
 #: ShareModal.html
 msgid "Copy URL"
-msgstr ""
+msgstr "Kopiuj URL"
 
 #: ShareModal.html
 msgid "Open QR code"
-msgstr ""
+msgstr "Otwórz kod QR"
 
 #: ShareModal.html
 msgid "QR code icon"
-msgstr ""
+msgstr "Ikona kodu QR"
 
 #: ShareModal.html
 msgid "QR Code"
-msgstr ""
+msgstr "Kod QR"
 
 #: StarRatings.html
 msgid "leaving a 1 star review for"
-msgstr ""
+msgstr "wystawianie recenzji 1 gwiazdkowej dla"
 
 #: StarRatings.html
 msgid "leaving a 2 star review for"
-msgstr ""
+msgstr "wystawianie recenzji 2 gwiazdkowej dla"
 
 #: StarRatings.html
 msgid "leaving a 3 star review for"
-msgstr ""
+msgstr "wystawianie recenzji 3 gwiazdkowej dla"
 
 #: StarRatings.html
 msgid "leaving a 4 star review for"
-msgstr ""
+msgstr "wystawianie recenzji 4 gwiazdkowej dla"
 
 #: StarRatings.html
 msgid "leaving a 5 star review for"
-msgstr ""
+msgstr "wystawianie recenzji 5 gwiazdkowej dla"
 
 #: StarRatings.html
 msgid "Clear my rating"
-msgstr ""
+msgstr "Usuń moją ocenę"
 
 #: StarRatingsByline.html StarRatingsComponent.html
 #, fuzzy
@@ -8175,12 +8175,12 @@ msgstr "Akcje"
 #: StarRatingsByline.html
 #, python-format
 msgid "%(want_to_read_count)s Want to read"
-msgstr ""
+msgstr "%(want_to_read_count)s Chce przeczytać"
 
 #: StarRatingsComponent.html
 #, python-format
 msgid "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
-msgstr ""
+msgstr "%(ratings_avg)s (%(ratings_count)s %(ratings_label)s)"
 
 #. Short label displayed next to the count of readers who want to read this
 #. book, shown in the stats bar on a book page. Example: "2,389 Want to read".
@@ -8210,7 +8210,7 @@ msgstr "Przeczytane"
 #. Stopped reading".
 #: StarRatingsStats.html
 msgid "Stopped reading"
-msgstr ""
+msgstr "Przerwano czytanie"
 
 #: SubjectTags.html
 #, fuzzy
@@ -8224,7 +8224,7 @@ msgstr "Centrum programistów"
 
 #: Subnavigation.html
 msgid "Web API"
-msgstr ""
+msgstr "Web API"
 
 #: Subnavigation.html
 #, fuzzy
@@ -8248,7 +8248,7 @@ msgstr "Wymiary"
 
 #: Subnavigation.html
 msgid "Welcome"
-msgstr ""
+msgstr "Witamy"
 
 #: Subnavigation.html
 #, fuzzy
@@ -8262,7 +8262,7 @@ msgstr "Dziennik Lektur"
 
 #: Subnavigation.html
 msgid "Adding & Editing Books"
-msgstr ""
+msgstr "Dodawanie i edytowanie książek"
 
 #: Subnavigation.html
 #, fuzzy
@@ -8277,12 +8277,12 @@ msgstr "Open Library"
 #: TableOfContents.html
 #, python-format
 msgid "Page %s"
-msgstr ""
+msgstr "Strona %s"
 
 #: TrendingBadge.html
 #, python-format
 msgid "Trending: %(score).2f"
-msgstr ""
+msgstr "Trendy: %(score).2f"
 
 #: TypeChanger.html
 msgid "Page Type"
@@ -8306,7 +8306,7 @@ msgstr "(Najprostsze rozwiązanie: jeśli nie masz pewności, czy należy to zmi
 
 #: WorkInfo.html
 msgid "No link to Wikipedia in your language"
-msgstr ""
+msgstr "Brak linku do Wikipedii w Twoim języku"
 
 #: WorldcatLink.html
 msgid "Check nearby libraries"
@@ -8318,7 +8318,7 @@ msgstr "Przejdź na WorldCat, by znaleźć najbliższa bibliotekę z tym wydanie
 
 #: WorldcatLink.html
 msgid "WorldCat"
-msgstr ""
+msgstr "WorldCat"
 
 #: databarDiff.html databarEdit.html
 #, fuzzy
@@ -8327,16 +8327,16 @@ msgstr "Wróć na górę tej strony"
 
 #: databarDiff.html
 msgid "View this page (exit Comparison view)"
-msgstr ""
+msgstr "Wyświetl tę stronę (wyjdź z widoku porównania)"
 
 #: databarEdit.html
 msgid "View this page (exit Edit mode)"
-msgstr ""
+msgstr "Wyświetl tę stronę (wyjdź z trybu edycji)"
 
 #: databarHistory.html databarView.html
 #, python-format
 msgid "Last edited by %(author_link)s"
-msgstr ""
+msgstr "Ostatnio edytowane przez %(author_link)s"
 
 #: databarHistory.html databarView.html
 msgid "Last edited anonymously"
@@ -8344,7 +8344,7 @@ msgstr "Ostatnio edydowano anonimowo"
 
 #: databarTemplate.html databarView.html
 msgid "View this template's edit history"
-msgstr ""
+msgstr "Wyświetl historię edycji tego szablonu"
 
 #: databarTemplate.html
 msgid "Edit this template"
@@ -8353,11 +8353,11 @@ msgstr "Edytuj ten szablon"
 #: databarWork.html
 #, python-format
 msgid "View Volume %(num)d"
-msgstr ""
+msgstr "Wyświetl Tom %(num)d"
 
 #: openlibrary/core/bookshelves.py
 msgid "[Record deleted]"
-msgstr ""
+msgstr "[Rekord usunięty]"
 
 #: openlibrary/core/edits.py
 #, fuzzy
@@ -8375,7 +8375,7 @@ msgstr "Arabski"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Czech"
-msgstr ""
+msgstr "Czeski"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "German"
@@ -8395,7 +8395,7 @@ msgstr "Francuski"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Hindi"
-msgstr ""
+msgstr "Hindi"
 
 #: openlibrary/plugins/openlibrary/code.py
 #, fuzzy
@@ -8417,15 +8417,15 @@ msgstr "Romanse"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Sardinian"
-msgstr ""
+msgstr "Sardyński"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Telugu"
-msgstr ""
+msgstr "Telugu"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Ukrainian"
-msgstr ""
+msgstr "Ukraiński"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Chinese"
@@ -8433,11 +8433,11 @@ msgstr "Chiński"
 
 #: openlibrary/plugins/openlibrary/code.py
 msgid "Filipino"
-msgstr ""
+msgstr "Filipiński"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Art"
-msgstr ""
+msgstr "Sztuka"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8451,7 +8451,7 @@ msgstr "dowolny"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Biographies"
-msgstr ""
+msgstr "Biografie"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8460,7 +8460,7 @@ msgstr "Seria"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Children"
-msgstr ""
+msgstr "Dla dzieci"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8474,7 +8474,7 @@ msgstr "Korekta"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Mystery and Detective Stories"
-msgstr ""
+msgstr "Kryminały i opowiadania detektywistyczne"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8483,7 +8483,7 @@ msgstr "Miejsca"
 
 #: openlibrary/plugins/openlibrary/home.py
 msgid "Music"
-msgstr ""
+msgstr "Muzyka"
 
 #: openlibrary/plugins/openlibrary/home.py
 #, fuzzy
@@ -8492,7 +8492,7 @@ msgstr "Anuluj"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "At least 1 subject"
-msgstr ""
+msgstr "Co najmniej 1 temat"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8506,7 +8506,7 @@ msgstr "1 wydanie"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 msgid "Has work (orphaned)"
-msgstr ""
+msgstr "Ma dzieło (osierocone)"
 
 #: openlibrary/plugins/openlibrary/librarian_dashboard.py
 #, fuzzy
@@ -8555,51 +8555,51 @@ msgstr "Na pewno chcesz usunąć <strong>%(title)s</strong> z Twoich list?"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Better World Books"
-msgstr ""
+msgstr "Better World Books"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid " - includes shipping"
-msgstr ""
+msgstr " - wliczono koszt wysyłki"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Amazon"
-msgstr ""
+msgstr "Amazon"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "Bookshop.org"
-msgstr ""
+msgstr "Bookshop.org"
 
 #: openlibrary/plugins/openlibrary/partials.py
 msgid "This work does not appear on any lists."
-msgstr ""
+msgstr "To dzieło nie pojawia się na żadnych listach."
 
 #: openlibrary/plugins/openlibrary/pd.py
 msgid "I don't have one yet"
-msgstr ""
+msgstr "Nie mam jeszcze żadnego"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The email address you entered is invalid"
-msgstr ""
+msgstr "Podany adres e-mail jest nieprawidłowy"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been blocked"
-msgstr ""
+msgstr "To konto zostało zablokowane"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "This account has been locked"
-msgstr ""
+msgstr "To konto zostało zablokowane"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "No account was found with this email. Please try again"
-msgstr ""
+msgstr "Nie znaleziono konta z tym adresem e-mail. Spróbuj ponownie"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "The password you entered is incorrect. Please try again"
-msgstr ""
+msgstr "Podane hasło jest nieprawidłowe. Spróbuj ponownie"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Wrong password. Please try again"
-msgstr ""
+msgstr "Błędne hasło. Spróbuj ponownie"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8608,11 +8608,11 @@ msgstr "Wpisz nowe hasło do Twojego konta na Open Library"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please verify your Internet Archive account before logging in"
-msgstr ""
+msgstr "Zweryfikuj swoje konto Internet Archive przed zalogowaniem się"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Please fill out all fields and try again"
-msgstr ""
+msgstr "Wypełnij wszystkie pola i spróbuj ponownie"
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8626,15 +8626,15 @@ msgstr "Podany e-mail jest już zarejestrowany"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in."
-msgstr ""
+msgstr "Wystąpił problem i nie mogliśmy Cię zalogować."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login attempted with invalid Internet Archive s3 credentials."
-msgstr ""
+msgstr "Próba logowania z nieprawidłowymi poświadczeniami s3 Internet Archive."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Servers are experiencing unusually high traffic, please try again later or email openlibrary@archive.org for help."
-msgstr ""
+msgstr "Serwery doświadczają niezwykle wysokiego ruchu, spróbuj ponownie później lub napisz na openlibrary@archive.org po pomoc."
 
 #: openlibrary/plugins/upstream/account.py
 #, fuzzy
@@ -8648,24 +8648,24 @@ msgstr "Hasła nie są identyczne."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "A problem occurred and we were unable to log you in"
-msgstr ""
+msgstr "Wystąpił problem i nie mogliśmy Cię zalogować"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Login or registration attempt hit an unexpected error, please try again or contact info@archive.org"
-msgstr ""
+msgstr "Próba logowania lub rejestracji napotkała nieoczekiwany błąd, spróbuj ponownie lub skontaktuj się z info@archive.org"
 
 #: openlibrary/plugins/upstream/account.py
 #, python-format
 msgid "Request failed with error code: %(error_code)s"
-msgstr ""
+msgstr "Żądanie nie powiodło się z kodem błędu: %(error_code)s"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Thank you for registering an Open Library account and requesting special print disability access. You should receive an email detailing next steps in the process."
-msgstr ""
+msgstr "Dziękujemy za rejestrację konta Open Library i ubieganie się o specjalny dostęp dla osób z niepełnosprawnością druku. Powinieneś/aś otrzymać wiadomość e-mail z informacjami o następnych krokach."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Username unavailable"
-msgstr ""
+msgstr "Nazwa użytkownika niedostępna"
 
 #: openlibrary/plugins/upstream/account.py openlibrary/plugins/upstream/forms.py
 msgid "Email already registered"
@@ -8673,15 +8673,15 @@ msgstr "Podany e-mail jest już zarejestrowany"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "An Internet Archive account already exists with this email"
-msgstr ""
+msgstr "Konto Internet Archive z tym adresem e-mail już istnieje"
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Verification failed. The link may be invalid or expired. Please try registering again."
-msgstr ""
+msgstr "Weryfikacja nie powiodła się. Link może być nieprawidłowy lub wygasł. Spróbuj zarejestrować się ponownie."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Your email has been verified. You are now logged in."
-msgstr ""
+msgstr "Twój adres e-mail został zweryfikowany. Jesteś teraz zalogowany/a."
 
 #: openlibrary/plugins/upstream/account.py
 msgid "Notification preferences have been updated successfully."
@@ -8695,7 +8695,7 @@ msgstr "Kup tą książkę"
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
 msgid "Unable to return %s. Please try again later or contact info@archive.org."
-msgstr ""
+msgstr "Nie można zwrócić %s. Spróbuj ponownie później lub skontaktuj się z info@archive.org."
 
 #: openlibrary/plugins/upstream/borrow.py
 #, python-format
