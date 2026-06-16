@@ -6632,6 +6632,8 @@ msgstr "Bu yıl kaç kitap okumak istersiniz?"
 #: reading_goals/reading_goal_form.html
 msgid "Enter \"0\" to unset your reading goal. Your check-ins will be preserved."
 msgstr ""
+"Okuma hedefinizi kaldırmak için \"0\" girin. Giriş kayıtlarınız "
+"korunacaktır."
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
@@ -6640,11 +6642,14 @@ msgid ""
 "read\">%(books_read)d</span>/<span class=\"reading-goal-"
 "progress__goal\">%(goal)d</span> Books"
 msgstr ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> Kitap"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
 msgid "Edit %(year)d Reading Goal"
-msgstr ""
+msgstr "%(year)d Okuma Hedefini Düzenle"
 
 #: recentchanges/header.html
 #, fuzzy
@@ -6653,35 +6658,35 @@ msgstr "tarafından"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "Tümünü Geri Al"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
-msgstr ""
+msgstr "Son Değişiklikler"
 
 #: recentchanges/index.html
 msgid "Books Edited"
-msgstr ""
+msgstr "Düzenlenen Kitaplar"
 
 #: recentchanges/index.html
 msgid "Author Merges"
-msgstr ""
+msgstr "Yazar Birleştirmeleri"
 
 #: recentchanges/index.html
 msgid "Work Merges"
-msgstr ""
+msgstr "Eser Birleştirmeleri"
 
 #: recentchanges/index.html
 msgid "Books Added"
-msgstr ""
+msgstr "Eklenen Kitaplar"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Humans"
-msgstr ""
+msgstr "İnsanlar Tarafından"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "By Bots"
-msgstr ""
+msgstr "Botlar Tarafından"
 
 #: RecentChanges.html recentchanges/index.html
 msgid "Everything"
@@ -6689,26 +6694,26 @@ msgstr "Her şey"
 
 #: recentchanges/render.html
 msgid "Admin view"
-msgstr ""
+msgstr "Yönetici görünümü"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/render.html
 msgid "Older"
-msgstr ""
+msgstr "Daha Eski"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/render.html
 msgid "Newer"
-msgstr ""
+msgstr "Daha Yeni"
 
 #: recentchanges/updated_records.html
 msgid "Review what's changed in from the previous revision"
-msgstr ""
+msgstr "Önceki revizyondan bu yana değişenleri inceleyin"
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
 #: recentchanges/default/path.html recentchanges/updated_records.html
 msgid "diff"
-msgstr ""
+msgstr "fark"
 
 #: recentchanges/add-book/path.html recentchanges/default/path.html
 #: recentchanges/edit-book/path.html recentchanges/merge/path.html
@@ -6718,16 +6723,16 @@ msgstr "Gönder"
 
 #: recentchanges/default/message.html recentchanges/edit-book/message.html
 msgid "opened a new Open Library account!"
-msgstr ""
+msgstr "yeni bir Open Library hesabı açtı!"
 
 #: RecentChanges.html RecentChangesUsers.html recentchanges/default/path.html
 msgid "Review what's changed from the previous revision"
-msgstr ""
+msgstr "Önceki revizyondan değişenleri inceleyin"
 
 #: recentchanges/default/view.html recentchanges/merge/view.html
 #: recentchanges/undo/view.html
 msgid "Updated Records"
-msgstr ""
+msgstr "Güncellenen Kayıtlar"
 
 #: recentchanges/merge/comment.html
 #, fuzzy, python-format
@@ -6737,14 +6742,14 @@ msgstr ""
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "Bkz. <a href=\"%s\">ayrıntılar</a>."
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(count)d duplicate %(type)s record into this primary."
 msgid_plural "Merged %(count)d duplicate %(type)s records into this primary."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d kopya %(type)s kaydı bu birincil kayıtla birleştirildi."
+msgstr[1] "%(count)d kopya %(type)s kaydı bu birincil kayıtla birleştirildi."
 
 #: recentchanges/merge/comment.html
 #, fuzzy
@@ -6754,45 +6759,45 @@ msgstr "Yinelenenleri birleştir"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s, birincil %(record_type)s kaydıyla birleştirildi."
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(who)s, %(master)s'ın bir kopyasını birleştirdi"
+msgstr[1] "%(who)s, %(master)s'ın %(count)d kopyasını birleştirdi"
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(master)s'ın bir kopyası anonim olarak birleştirildi"
+msgstr[1] "%(master)s'ın %(count)d kopyası anonim olarak birleştirildi"
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
-msgstr ""
+msgstr "Bu birleştirme geri alındı."
 
 #: recentchanges/merge/view.html
 msgid "Details here"
-msgstr ""
+msgstr "Ayrıntılar burada"
 
 #: recentchanges/merge/view.html type/author/view.html
 msgid "Duplicates"
-msgstr ""
+msgstr "Kopyalar"
 
 #: recentchanges/merge/view.html
 #, python-format
 msgid "%(count)d record modified."
 msgid_plural "%(count)d records modified."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(count)d kayıt değiştirildi."
+msgstr[1] "%(count)d kayıt değiştirildi."
 
 #: recentchanges/undo/view.html
 #, python-format
 msgid "Undo of <a href=\"$parent.url()\">%(kind)s</a>."
-msgstr ""
+msgstr "<a href=\"$parent.url()\">%(kind)s</a> işleminin geri alınması."
 
 #: recentchanges/undo/view.html
 #, fuzzy, python-format
@@ -6801,19 +6806,19 @@ msgstr ""
 
 #: search/advancedsearch.html
 msgid "ISBN"
-msgstr ""
+msgstr "ISBN"
 
 #: search/advancedsearch.html
 msgid "Subject"
-msgstr ""
+msgstr "Konu"
 
 #: search/advancedsearch.html
 msgid "Place"
-msgstr ""
+msgstr "Yer"
 
 #: search/advancedsearch.html
 msgid "Person"
-msgstr ""
+msgstr "Kişi"
 
 #: search/advancedsearch.html
 #, fuzzy
@@ -6822,28 +6827,28 @@ msgstr "Ara"
 
 #: search/advancedsearch.html
 msgid "Full Text Search?"
-msgstr ""
+msgstr "Tam Metin Araması?"
 
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "\"%(query)s\" için Open Library'de arama yapın"
 
 #: search/authors.html
 msgid "Search Authors"
-msgstr ""
+msgstr "Yazarları Ara"
 
 #: search/authors.html
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "Aynı yazar iki kez mi listelendi?"
 
 #: search/authors.html
 msgid "Merge authors"
-msgstr ""
+msgstr "Yazarları birleştir"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "Aramanızla doğrudan eşleşen <strong>yazar</strong> bulunamadı"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6852,7 +6857,7 @@ msgstr "Kitaplarım"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Free to read now"
-msgstr ""
+msgstr "Şimdi ücretsiz oku"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6862,38 +6867,38 @@ msgstr "Ödünç al"
 #: search/inside.html
 #, python-format
 msgid "Search Open Library for %s"
-msgstr ""
+msgstr "Open Library'de %s için arama yapın"
 
 #: BookSearchInside.html FulltextSearchSuggestion.html SearchNavigation.html
 #: search/inside.html search/snippets.html
 msgid "Search Inside"
-msgstr ""
+msgstr "İçinde Ara"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "Aramanızla eşleşen <strong>İçinde Ara</strong> metni bulunamadı"
 
 #: search/inside.html
 #, python-format
 msgid "About %(count)s result found"
 msgid_plural "About %(count)s results found"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Yaklaşık %(count)s sonuç bulundu"
+msgstr[1] "Yaklaşık %(count)s sonuç bulundu"
 
 #: search/inside.html
 #, python-format
 msgid "in %(seconds)s second"
 msgid_plural "in %(seconds)s seconds"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(seconds)s saniyede"
+msgstr[1] "%(seconds)s saniyede"
 
 #: EditionNavBar.html search/layout_options.html site/stats.html
 msgid "Details"
-msgstr ""
+msgstr "Ayrıntılar"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "Izgara"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6902,19 +6907,19 @@ msgstr "Görüntüle"
 
 #: search/lists.html
 msgid "Search results for Lists"
-msgstr ""
+msgstr "Listeler için arama sonuçları"
 
 #: search/lists.html
 msgid "Search Lists"
-msgstr ""
+msgstr "Listeleri Ara"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "Aramanızla doğrudan eşleşen <strong>liste</strong> bulunamadı"
 
 #: search/publishers.html
 msgid "Publishers Search"
-msgstr ""
+msgstr "Yayıncı Arama"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6944,16 +6949,16 @@ msgstr "Kitap ara"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s result"
-msgstr ""
+msgstr "Tüm %s sonucu gör"
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s results"
-msgstr ""
+msgstr "Tüm %s sonucu gör"
 
 #: search/search_modal_i18n.html
 msgid "Clear all"
-msgstr ""
+msgstr "Tümünü temizle"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6962,7 +6967,7 @@ msgstr "Kitap ara"
 
 #: search/search_modal_i18n.html type/work/editions_datatable.html
 msgid "Availability"
-msgstr ""
+msgstr "Kullanılabilirlik"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6977,7 +6982,7 @@ msgstr "Sonuç bulunamadı."
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
+msgstr "%s / %s sonuçtan gösteriliyor"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6986,11 +6991,11 @@ msgstr "Sonuç bulunamadı."
 
 #: search/search_modal_i18n.html
 msgid "Untitled"
-msgstr ""
+msgstr "Başlıksız"
 
 #: search/search_modal_i18n.html
 msgid "Readable"
-msgstr ""
+msgstr "Okunabilir"
 
 #: search/search_modal_i18n.html
 #, fuzzy, python-format
@@ -6999,45 +7004,45 @@ msgstr "%s üzerindeki fark"
 
 #: search/search_modal_i18n.html
 msgid "Recent searches"
-msgstr ""
+msgstr "Son aramalar"
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
-msgstr ""
+msgstr "\"%s\"yi son aramalardan kaldır"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "%(page_num)d numaralı yaprakta:"
 
 #: search/sort_options.html
 msgid "Relevance"
-msgstr ""
+msgstr "Alaka düzeyi"
 
 #: search/sort_options.html
 msgid "Work Count"
-msgstr ""
+msgstr "Eser Sayısı"
 
 #: search/sort_options.html
 msgid "Random"
-msgstr ""
+msgstr "Rastgele"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "Ad (beta: Yalnızca Kütüphaneci)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "Doğum Tarihi (en eski) (beta: Yalnızca Kütüphaneci)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "Doğum Tarihi (en genç) (beta: Yalnızca Kütüphaneci)"
 
 #: search/sort_options.html
 msgid "List Order"
-msgstr ""
+msgstr "Liste Sırası"
 
 #: search/sort_options.html
 #, fuzzy
@@ -7051,27 +7056,27 @@ msgstr "Dil"
 
 #: search/sort_options.html
 msgid "Ebook Edition Count"
-msgstr ""
+msgstr "E-Kitap Baskı Sayısı"
 
 #: search/sort_options.html
 msgid "Date Added (newest)"
-msgstr ""
+msgstr "Eklenme Tarihi (en yeni)"
 
 #: search/sort_options.html
 msgid "Date Added (oldest)"
-msgstr ""
+msgstr "Eklenme Tarihi (en eski)"
 
 #: search/sort_options.html
 msgid "Most Editions"
-msgstr ""
+msgstr "En Fazla Baskı"
 
 #: search/sort_options.html
 msgid "First Published"
-msgstr ""
+msgstr "İlk Yayım"
 
 #: search/sort_options.html
 msgid "Most Recent"
-msgstr ""
+msgstr "En Son"
 
 #: search/sort_options.html
 msgid "Top Rated"
