@@ -67,7 +67,7 @@ def mock_merge_engine():
 def mock_process_merge_request():
     """Mock process_merge_request to avoid actual merge request creation."""
     with patch(
-        "openlibrary.fastapi.merge_authors.process_merge_request",
+        "openlibrary.plugins.upstream.edits.process_merge_request",
         autospec=True,
     ) as mock:
         yield mock

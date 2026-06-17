@@ -11,11 +11,11 @@ from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
 from openlibrary.accounts import get_current_user
-from openlibrary.plugins.upstream.edits import process_merge_request
+from openlibrary.plugins.upstream.edits import perform_merge_update, process_merge_request
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import dicthash, uniq
 from openlibrary.utils.request_context import site
-from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
+from openlibrary.utils.retry import MaxRetriesExceeded
 
 
 class BasicRedirectEngine:
@@ -336,29 +336,11 @@ class merge_authors_json(delegate.page):
             except ClientException as e:
                 raise web.badrequest(json.loads(e.json))
 
-        def update_request() -> None:
-            data = {}
-            if mrid:
-                # Update the request
-                rtype = "update-request"
-                data = {"action": "approve", "mrid": mrid}
-            else:
-                # Create new request
-                rtype = "create-request"
-                data = {"mr_type": 2, "olids": olids, "action": "create-merged"}
-            if comment:
-                data["comment"] = comment
-            process_merge_request(rtype, data)
-
         # actually perform merge and save affected records to db
         merge_result = merge_records()
         # attempt to update the merge request status with retries
         try:
-            RetryStrategy(
-                [ClientException],
-                max_retries=5,
-                delay=2,
-            )(update_request)
+            perform_merge_update(mrid=mrid, olids=olids, comment=comment)
         except MaxRetriesExceeded as e:
             raise web.badrequest(str(e.last_exception))
         return delegate.RawText(json.dumps(merge_result), content_type="application/json")

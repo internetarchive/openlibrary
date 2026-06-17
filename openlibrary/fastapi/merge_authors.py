@@ -13,13 +13,13 @@ from pydantic import BaseModel
 
 from infogami.infobase.client import ClientException
 from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
-from openlibrary.plugins.upstream.edits import process_merge_request
+from openlibrary.plugins.upstream.edits import perform_merge_update
 from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
 )
 from openlibrary.utils.request_context import req_context, web_ctx_ip
-from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
+from openlibrary.utils.retry import MaxRetriesExceeded
 
 router = APIRouter(tags=["merge-authors"])
 
@@ -44,23 +44,8 @@ def merge_authors_json(_: LibrarianDep, data: MergeAuthorsBody) -> Any:
                 detail=json.loads(e.json),
             )
 
-        def update_request() -> None:
-            if data.mrid:
-                rtype = "update-request"
-                update_data: dict[str, Any] = {"action": "approve", "mrid": data.mrid}
-            else:
-                rtype = "create-request"
-                update_data = {"mr_type": 2, "olids": data.olids, "action": "create-merged"}
-            if data.comment:
-                update_data["comment"] = data.comment
-            process_merge_request(rtype, update_data)
-
         try:
-            RetryStrategy(
-                [ClientException],
-                max_retries=5,
-                delay=2,
-            )(update_request)
+            perform_merge_update(mrid=data.mrid, olids=data.olids, comment=data.comment)
         except MaxRetriesExceeded as e:
             raise HTTPException(
                 status_code=400,
