@@ -1,0 +1,72 @@
+$def with (icons, icon_api)
+
+$# Icon system section of /developers/design. `icons` is the sorted list of
+$# sprite glyph names (design.py load_icons); `icon_api` is the cleaned Custom
+$# Elements Manifest for <ol-icon>.
+
+<article class="design-pattern" id="icons">
+  <h2 class="design-pattern__title">Icons</h2>
+  <p class="design-pattern__description">
+    One curated set on a 24×24 grid, single 2px stroke, <code>currentColor</code>.
+    Server-rendered templates use the <code>$$:icon()</code> macro; Lit components
+    use the <code>&lt;ol-icon&gt;</code> element. Both draw from the same build-time
+    sprite, so a glyph looks identical either way.
+  </p>
+
+  <section class="example">
+    <h3 class="example__title">Usage</h3>
+    <pre class="example__code"><code class="language-html">$$:icon("search")
+$$:icon("globe", size="lg")
+$$:icon("globe", label=_("Language"))
+
+&lt;ol-icon name="search"&gt;&lt;/ol-icon&gt;
+&lt;ol-icon name="globe" size="lg" label="Language"&gt;&lt;/ol-icon&gt;</code></pre>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Gallery</h3>
+    <p>Click an icon to copy its name.</p>
+    <input
+      type="search"
+      id="icon-gallery-filter"
+      class="icon-gallery__filter"
+      placeholder="Filter $len(icons) icons…"
+      aria-label="Filter icons"
+    >
+    <ul class="icon-gallery" id="icon-gallery">
+      $for name in icons:
+        <li class="icon-gallery__item">
+          <button type="button" class="icon-gallery__cell" data-icon-name="$name" title="Copy &quot;$name&quot;">
+            $:macros.icon(name, size="lg")
+            <span class="icon-gallery__name">$name</span>
+          </button>
+        </li>
+    </ul>
+    <script>
+      (function () {
+        const grid = document.getElementById('icon-gallery');
+        const filter = document.getElementById('icon-gallery-filter');
+        filter.addEventListener('input', () => {
+          const q = filter.value.trim().toLowerCase();
+          for (const item of grid.children) {
+            const name = item.querySelector('.icon-gallery__cell').dataset.iconName;
+            item.hidden = q && !name.includes(q);
+          }
+        });
+        grid.addEventListener('click', async (e) => {
+          const cell = e.target.closest('.icon-gallery__cell');
+          if (!cell) return;
+          const name = cell.dataset.iconName;
+          try {
+            await navigator.clipboard.writeText(name);
+            if (window.showToast) window.showToast(`Copied "${name}"`);
+          } catch (err) {
+            console.error('Could not copy icon name', err);
+          }
+        });
+      })();
+    </script>
+  </section>
+
+  $:render_template("design/api_tables", icon_api)
+</article>

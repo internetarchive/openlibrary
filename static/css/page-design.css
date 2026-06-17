@@ -301,4 +301,48 @@ pre.example__code code[class*="language-"] {
   color: var(--mid-grey);
 }
 
+/* Icon gallery */
+.icon-gallery__filter {
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: var(--spacing-stack-md);
+  padding: var(--spacing-inset-sm);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+}
+
+.icon-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--spacing-inline-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.icon-gallery__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-stack-xs);
+  align-items: center;
+  width: 100%;
+  padding: var(--spacing-inset-md);
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.icon-gallery__cell:hover {
+  background: var(--grey-f3f3f3);
+}
+
+.icon-gallery__name {
+  font-size: 0.75rem;
+  color: var(--grey);
+  text-align: center;
+  word-break: break-word;
+}
+
 @import "legacy.css";

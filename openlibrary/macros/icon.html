@@ -1,0 +1,23 @@
+$def with (name, size="md", label="")
+
+$# Render an icon from the build-time sprite (static/build/icons/sprite.svg).
+$#
+$# This is the server-rendered counterpart to the <ol-icon> Lit component; both
+$# draw from the same sprite, so a glyph looks identical whether it is rendered
+$# by a Templetor template or a web component. Prefer this macro in templates —
+$# it paints at first byte with no JavaScript.
+$#
+$# Usage:
+$#   $:macros.icon("search")                       decorative (aria-hidden)
+$#   $:macros.icon("globe", size="lg")             larger (sm | md | lg)
+$#   $:macros.icon("globe", label=_("Language"))   labelled for screen readers
+$#
+$# Glyph color follows the surrounding text color (currentColor).
+$#
+$# Uses a same-document <use href="#name"> reference; the sprite is inlined once
+$# per page near the end of the body (see site/footer -> icon_sprite()).
+
+$if label:
+    <svg class="ol-icon ol-icon--${size}" role="img" aria-label="$label" focusable="false"><use href="#${name}"></use></svg>
+$else:
+    <svg class="ol-icon ol-icon--${size}" aria-hidden="true" focusable="false"><use href="#${name}"></use></svg>

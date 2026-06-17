@@ -1,8 +1,9 @@
-$def with (components)
+$def with (components, icons)
 $# /developers/design
 $# `components` maps each component tag name (e.g. "ol-chip") to its cleaned
 $# Custom Elements Manifest API, built in design.py. Passed to design/api_tables
 $# to render auto-generated API reference tables alongside the hand-written demos.
+$# `icons` is the sorted list of icon names in the sprite (design.py load_icons).
 $# This page is developer-facing and intentionally English-only — no i18n.
 $ _x = ctx.setdefault('cssfile', 'design')
 
@@ -33,6 +34,7 @@ $ _x = ctx.setdefault('cssfile', 'design')
         <li><a href="#toast">Toast</a></li>
         <li><a href="#banner">Banner</a></li>
         <li><a href="#markdown-editor">Markdown Editor</a></li>
+        <li><a href="#icons">Icons</a></li>
       </ul>
     </nav>
 
@@ -541,6 +543,8 @@ The response includes `title`, `authors`, and a `description` field formatted as
 
         $:render_template("design/api_tables", components.get("ol-markdown-editor"))
       </article>
+
+      $:render_template("design/icons", icons, components.get("ol-icon"))
     </main>
   </div>
 </div>
