@@ -324,7 +324,7 @@ def post_work_bookshelves(
 @router.get("/works/OL{work_id}W/editions.json")
 def work_editions(
     request: Request,
-    work_id: Annotated[int, Path(gt=0)],
+    work_id: Annotated[int, Path(ge=0)],
     limit: Annotated[str | None, Query()] = "50",
     offset: Annotated[str | None, Query()] = "0",
 ) -> Any:
@@ -348,7 +348,7 @@ def work_editions(
 @router.get("/authors/OL{author_id}A/works.json")
 def author_works(
     request: Request,
-    author_id: Annotated[int, Path(gt=0)],
+    author_id: Annotated[int, Path(ge=0)],
     limit: Annotated[str | None, Query()] = "50",
     offset: Annotated[str | None, Query()] = "0",
 ) -> Any:

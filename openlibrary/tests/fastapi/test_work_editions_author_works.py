@@ -47,12 +47,10 @@ def legacy_get_work_editions_json(current_site, data=None):
     data = data or {}
     path = "/works/OL123W/editions.json"
     fullpath = path if not data else f"{path}?{urlencode(data)}"
-
-    web.ctx.site = current_site
-    web.ctx.path = path
-    web.ctx.fullpath = fullpath
+    ctx = web.storage(site=current_site, path=path, fullpath=fullpath)
 
     with (
+        patch("openlibrary.plugins.openlibrary.api.web.ctx", ctx),
         patch("openlibrary.plugins.openlibrary.api.web.input", side_effect=mock_web_input_func(data)),
         patch("openlibrary.plugins.openlibrary.api.web.changequery", side_effect=lambda **kw: changequery(path, data, **kw)),
         pytest.deprecated_call(match="migrated to fastapi"),
@@ -64,12 +62,10 @@ def legacy_get_author_works_json(current_site, data=None):
     data = data or {}
     path = "/authors/OL456A/works.json"
     fullpath = path if not data else f"{path}?{urlencode(data)}"
-
-    web.ctx.site = current_site
-    web.ctx.path = path
-    web.ctx.fullpath = fullpath
+    ctx = web.storage(site=current_site, path=path, fullpath=fullpath)
 
     with (
+        patch("openlibrary.plugins.openlibrary.api.web.ctx", ctx),
         patch("openlibrary.plugins.openlibrary.api.web.input", side_effect=mock_web_input_func(data)),
         patch("openlibrary.plugins.openlibrary.api.web.changequery", side_effect=lambda **kw: changequery(path, data, **kw)),
         pytest.deprecated_call(match="migrated to fastapi"),
@@ -160,6 +156,19 @@ class TestWorkEditions:
 
         assert response.status_code == 404
         assert response.json() == {}
+        current_site.things.assert_not_called()
+        current_site.get_many.assert_not_called()
+
+    def test_work_editions_allows_zero_id_and_returns_legacy_json_404(self, fastapi_client):
+        current_site = make_site(None, [], [])
+
+        with patch("openlibrary.fastapi.internal.api.site") as site_context:
+            site_context.get.return_value = current_site
+            response = fastapi_client.get("/works/OL0W/editions.json")
+
+        assert response.status_code == 404
+        assert response.json() == {}
+        current_site.get.assert_called_once_with("/works/OL0W")
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()
 
@@ -264,6 +273,19 @@ class TestAuthorWorks:
 
         assert response.status_code == 404
         assert response.json() == {}
+        current_site.things.assert_not_called()
+        current_site.get_many.assert_not_called()
+
+    def test_author_works_allows_zero_id_and_returns_legacy_json_404(self, fastapi_client):
+        current_site = make_site(None, [], [])
+
+        with patch("openlibrary.fastapi.internal.api.site") as site_context:
+            site_context.get.return_value = current_site
+            response = fastapi_client.get("/authors/OL0A/works.json")
+
+        assert response.status_code == 404
+        assert response.json() == {}
+        current_site.get.assert_called_once_with("/authors/OL0A")
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()
 
