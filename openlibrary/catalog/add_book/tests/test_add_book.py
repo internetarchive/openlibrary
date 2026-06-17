@@ -2020,6 +2020,16 @@ class TestNormalizeImportRecord:
         normalize_import_record(rec=rec)
         assert rec["title"] == "Foo &amp; Bar"
 
+    def test_mixed_numeric_and_named_entities(self):
+        """When a numeric entity triggers the guard, named entities are also decoded."""
+        rec = {
+            "title": "&#1059; &amp; bar",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # &#1059; -> U+0423 (triggers guard); &amp; -> & (decoded as side-effect)
+        assert rec["title"] == "У & bar"  # noqa: RUF001
+
     def test_description_as_dict_unescaped(self):
         """description stored as {type, value} dict is unescaped."""
         rec = {

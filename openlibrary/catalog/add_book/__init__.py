@@ -99,10 +99,14 @@ _HTML_NUMERIC_ENTITY_RE = re.compile(r"&#(?:[0-9]{1,6}|x[0-9a-fA-F]{1,6});")
 
 
 def _unescape_html_entities(s: str) -> str:
-    """Unescape HTML numeric/hex character references in s (e.g. &#1059; -> \\u0423).
+    """Unescape HTML entities in s, but only when a numeric/hex entity is present.
 
-    Only acts when a numeric or hex entity is detected, so clean strings pass
-    through unchanged without the overhead of html_unescape().
+    The guard (_HTML_NUMERIC_ENTITY_RE) fires on decimal (&#1059;) and hex
+    (&#x41B;) entities only — bare & and named entities (&amp;) do not trigger
+    it, so strings with only those pass through unchanged.  However, once the
+    guard fires, html.unescape() decodes ALL entities in the string, including
+    any named ones that happen to be present alongside the numeric ones.
+    Example: '&#1059; &amp; bar' -> '\\u0423 & bar'.
     """
     return html_unescape(s) if _HTML_NUMERIC_ENTITY_RE.search(s) else s
 
