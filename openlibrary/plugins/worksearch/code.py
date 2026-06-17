@@ -121,7 +121,9 @@ def get_facet_map() -> tuple[tuple[str, str]]:
 
 
 # Server-side mirror of AVAILABILITY_TO_PARAMS in
-# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync.
+# openlibrary/plugins/openlibrary/js/search-modal/constants.js. Keep in sync —
+# drift between the two copies is caught by
+# openlibrary/plugins/worksearch/tests/test_availability_sync.py.
 # The keys are the user-facing availability "value" the header modal and the
 # search-page filter row use; the values are the Solr filter params they
 # materialize as in the URL.

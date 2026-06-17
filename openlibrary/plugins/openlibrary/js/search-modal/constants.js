@@ -125,6 +125,9 @@ export function searchModalStringsFromElement(el) {
  * Shared by the header modal and the search-page filter row so both produce
  * identical filters. The param names match WorkSearchScheme.facet_rewrites
  * (`public_scan`, `print_disabled`, `has_fulltext`).
+ *
+ * Mirrored server-side in openlibrary/plugins/worksearch/code.py; the two copies
+ * are kept in lockstep by openlibrary/plugins/worksearch/tests/test_availability_sync.py.
  */
 export const AVAILABILITY_TO_PARAMS = {
     all: {},
@@ -340,30 +343,69 @@ export function readableEditionLanguages({ edition, languages, options }) {
 }
 
 /**
- * sessionStorage keys for per-session filter persistence.
+ * Reading-preference storage keys.
+ *
+ * Availability and language are a durable, cross-session *reading preference* —
+ * "what I can read" and "what language I read in" — not per-search scope. They
+ * live in localStorage (survive a closed tab) and are shared by every listing
+ * surface that renders the filter controls: the header search modal, the
+ * /search filter row, and (Phase 1+) author and other listing pages. Facets
+ * (subject, publisher, year, …) are deliberately NOT stored here — they're
+ * scope, kept in the URL only.
+ *
+ * The keys are intentionally un-prefixed by surface ("reading-pref", not
+ * "header-search") because the value is global, owned by no single surface.
  */
-export const SS_AVAILABILITY_KEY = 'ol-header-search-availability';
-export const SS_LANGUAGES_KEY    = 'ol-header-search-languages';
+export const LS_AVAILABILITY_KEY = 'ol-reading-pref-availability';
+export const LS_LANGUAGES_KEY    = 'ol-reading-pref-languages';
 
 /**
- * sessionStorage read/write that swallow access errors (private browsing, quota,
- * disabled storage). `ssGet` returns null on failure; `ssSet` is a no-op. Shared
- * by the header modal and the search-page filter row so both persist filter
- * state the same way.
+ * localStorage read/write that swallow access errors (private browsing, quota,
+ * disabled storage). `lsGet` returns null on failure; `lsSet` is a no-op.
  *
  * @param {string} key
  * @returns {string|null}
  */
-export function ssGet(key) {
-    try { return sessionStorage.getItem(key); } catch { return null; }
+export function lsGet(key) {
+    try { return localStorage.getItem(key); } catch { return null; }
 }
 
 /**
  * @param {string} key
  * @param {string} value
  */
-export function ssSet(key, value) {
-    try { sessionStorage.setItem(key, value); } catch { /* ignore */ }
+export function lsSet(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* ignore */ }
+}
+
+/**
+ * Read the stored availability preference, falling back to DEFAULT_AVAILABILITY
+ * when unset or unreadable. The single read path shared by every surface.
+ *
+ * @returns {string}
+ */
+export function readStoredAvailability() {
+    return lsGet(LS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
+}
+
+/**
+ * Persist the availability preference. A falsy value is coerced to the default
+ * so an empty write clears the preference rather than storing "".
+ *
+ * @param {string} value
+ */
+export function writeStoredAvailability(value) {
+    lsSet(LS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);
+}
+
+/**
+ * Persist the language preference as a JSON array of MARC codes. The single
+ * write path shared by every surface; `readStoredLanguages` is its inverse.
+ *
+ * @param {string[]} values
+ */
+export function writeStoredLanguages(values) {
+    lsSet(LS_LANGUAGES_KEY, JSON.stringify(values || []));
 }
 
 /**
@@ -420,7 +462,7 @@ export function removeRecentSearch(query) {
 }
 
 /**
- * Read the language list from sessionStorage. Guards against missing values,
+ * Read the language preference from localStorage. Guards against missing values,
  * unparseable JSON, and values that parse to a non-array (e.g. a previously
  * stored object or string), any of which would otherwise leave callers with a
  * non-iterable or character-iterable value. Non-string entries are dropped so a
@@ -429,7 +471,7 @@ export function removeRecentSearch(query) {
  * @returns {string[]}
  */
 export function readStoredLanguages() {
-    const raw = ssGet(SS_LANGUAGES_KEY);
+    const raw = lsGet(LS_LANGUAGES_KEY);
     if (!raw) return [];
     try {
         const parsed = JSON.parse(raw);

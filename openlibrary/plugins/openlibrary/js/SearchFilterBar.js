@@ -2,23 +2,23 @@
  * Wires the availability toggle + language filter popover on the search results
  * page (openlibrary/templates/work_search.html). They render empty from the
  * template; this module seeds them with the current selection, navigates to an
- * updated /search URL when a filter changes, and keeps the cross-page
- * sticky-filter state in sessionStorage so the header search modal and the
- * search-page filters stay in sync.
+ * updated /search URL when a filter changes, and keeps the durable reading
+ * preference (availability + language) in localStorage so the header search
+ * modal, the search-page filters, and other listing surfaces stay in sync.
  *
  * Persistence model — URL is the source of truth on /search:
  *
  *  - On init, if the URL carries any filter param (availability params or
- *    `language`), sessionStorage is mirrored from the URL. This way the modal
+ *    `language`), the stored preference is mirrored from the URL. This way the modal
  *    will reflect a filter change made via the toggle, the language popover, or
  *    the sidebar language facet (which navigates the page with a new `language=`
  *    param) the next time it opens.
  *
- *  - On init, if the URL carries NO filter params and sessionStorage has a
- *    non-default value, we replace-navigate to /search with those sticky
+ *  - On init, if the URL carries NO filter params and the stored preference has
+ *    a non-default value, we replace-navigate to /search with those sticky
  *    filters applied. This handles arriving at /search from a search box
  *    submit on another page or from `?q=foo` typed straight into the address
- *    bar — the user gets the filters they last set in this session.
+ *    bar — the user gets the filters they last set, including on a prior visit.
  *
  * The full language catalogue is fetched lazily on first popover open.
  */
@@ -27,12 +27,11 @@ import {
     AVAILABILITY_TO_PARAMS,
     DEFAULT_AVAILABILITY,
     DEFAULT_LANGUAGE_OPTIONS,
-    SS_AVAILABILITY_KEY,
-    SS_LANGUAGES_KEY,
-    ssGet,
-    ssSet,
     availabilityFromParams,
+    readStoredAvailability,
     readStoredLanguages,
+    writeStoredAvailability,
+    writeStoredLanguages,
 } from './search-modal/constants.js';
 import { fetchLanguageOptions } from './search-modal/languages.js';
 
@@ -43,14 +42,6 @@ const AVAILABILITY_PARAM_KEYS = [
     ...new Set(Object.values(AVAILABILITY_TO_PARAMS).flatMap(Object.keys)),
 ];
 
-function writeStoredAvailability(value) {
-    ssSet(SS_AVAILABILITY_KEY, value || DEFAULT_AVAILABILITY);
-}
-
-function writeStoredLanguages(values) {
-    ssSet(SS_LANGUAGES_KEY, JSON.stringify(values || []));
-}
-
 // ── URL / sticky-filter helpers ────────────────────────────────────────────
 
 function urlHasAnyFilterParam(params) {
@@ -60,18 +51,19 @@ function urlHasAnyFilterParam(params) {
 }
 
 /**
- * Mirror the current URL's filter state to sessionStorage so the modal opens
- * with the same selection next time. We always write both keys so removing a
- * filter via the popovers/sidebar clears the stored value too.
+ * Mirror the current URL's filter state to the stored preference so the modal
+ * (and other surfaces) open with the same selection next time. We always write
+ * both keys so removing a filter via the popovers/sidebar clears the stored
+ * value too.
  */
-function syncSessionStorageFromUrl(params) {
+function syncStoredPrefFromUrl(params) {
     writeStoredAvailability(availabilityFromParams(name => params.get(name)));
     writeStoredLanguages(params.getAll('language'));
 }
 
 /**
- * If the URL has no filter params at all and sessionStorage has a non-default
- * value, replace-navigate to /search with the sticky filters applied. Returns
+ * If the URL has no filter params at all and the stored preference has a
+ * non-default value, replace-navigate to /search with the sticky filters applied. Returns
  * true when a navigation was kicked off (caller should stop further init).
  *
  * `replace` is used so the unfiltered URL doesn't end up in the back-stack.
@@ -79,7 +71,7 @@ function syncSessionStorageFromUrl(params) {
 function maybeApplyStickyFilters(params) {
     if (urlHasAnyFilterParam(params)) return false;
 
-    const storedAvail = ssGet(SS_AVAILABILITY_KEY) || DEFAULT_AVAILABILITY;
+    const storedAvail = readStoredAvailability();
     const storedLangs = readStoredLanguages();
     if (storedAvail === DEFAULT_AVAILABILITY && storedLangs.length === 0) {
         return false;
@@ -118,10 +110,10 @@ export function initSearchFilterBar(container) {
     // about to unload.
     if (maybeApplyStickyFilters(currentParams)) return;
 
-    // URL is now the source of truth — mirror it into sessionStorage so the
-    // modal sees the same filters next time it opens. Has to run *before* the
-    // popovers are seeded so a stale sessionStorage doesn't leak into them.
-    syncSessionStorageFromUrl(currentParams);
+    // URL is now the source of truth — mirror it into the stored preference so
+    // the modal sees the same filters next time it opens. Has to run *before* the
+    // popovers are seeded so a stale stored value doesn't leak into them.
+    syncStoredPrefFromUrl(currentParams);
 
     const availabilityEl = container.querySelector('ol-toggle');
     const languageEl = container.querySelector('ol-select-popover');
