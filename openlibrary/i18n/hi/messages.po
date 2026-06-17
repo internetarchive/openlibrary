@@ -5544,7 +5544,7 @@ msgstr "मिलाएं"
 
 #: merge/authors.html
 msgid "birth/death date"
-msgstr ""
+msgstr "जन्म/मृत्यु तारीख"
 
 #: merge/authors.html
 msgid "Open in a new window"
@@ -5580,11 +5580,11 @@ msgstr "वर्क्स मर्ज करें"
 
 #: merge_request_table/merge_request_table.html
 msgid "Failed to submit comment. Please try again in a few moments."
-msgstr ""
+msgstr "टिप्पणी सबमिट करने में विफल। कृपया कुछ क्षण बाद पुनः प्रयास करें।"
 
 #: merge_request_table/merge_request_table.html
 msgid "(Optional) Why are you closing this request?"
-msgstr ""
+msgstr "(वैकल्पिक) आप यह अनुरोध क्यों बंद कर रहे हैं?"
 
 #: merge_request_table/merge_request_table.html
 #, python-format
@@ -5636,7 +5636,7 @@ msgstr "मिलाएं"
 
 #: merge_request_table/table_header.html openlibrary/core/edits.py
 msgid "Declined"
-msgstr ""
+msgstr "अस्वीकार किया गया"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5669,7 +5669,7 @@ msgstr "समीक्षाएँ अपडेट करें"
 
 #: merge_request_table/table_header.html
 msgid "Assigned to nobody"
-msgstr ""
+msgstr "किसी को असाइन नहीं"
 
 #: merge_request_table/table_header.html
 #, fuzzy
@@ -5721,12 +5721,12 @@ msgstr "टिप्पणी जोड़े..."
 
 #: merge_request_table/table_row.html
 msgid "Reply"
-msgstr ""
+msgstr "जवाब दें"
 
 #: merge_request_table/table_row.html
 #, python-format
 msgid "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a>"
-msgstr ""
+msgstr "MR #%(id)s को %(date)s को <a href=\"/people/%(submitter)s\" class=\"commenter\">@%(submitter)s</a> द्वारा खोला गया"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -5780,7 +5780,7 @@ msgstr "संपादन..."
 
 #: my_books/dropdown_content.html
 msgid "Removing this book from your shelves will delete your check-ins for this work.  Continue?"
-msgstr ""
+msgstr "इस पुस्तक को अपनी अलमारियों से हटाने से इस कृति के लिए आपके चेक-इन हट जाएंगे। जारी रखें?"
 
 #: my_books/primary_action.html
 msgid "Add to List"
@@ -5873,16 +5873,16 @@ msgstr "इवेंट मिटाएँ"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to delete check-in. Please try again in a few moments."
-msgstr ""
+msgstr "चेक-इन हटाने में विफल। कृपया कुछ क्षण बाद पुनः प्रयास करें।"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "Failed to submit check-in. Please try again in a few moments."
-msgstr ""
+msgstr "चेक-इन सबमिट करने में विफल। कृपया कुछ क्षण बाद पुनः प्रयास करें।"
 
 #: my_books/check_ins/check_in_prompt.html
 #, python-format
 msgid "Read <time class=\"check-in-date\">%(date)s</time>"
-msgstr ""
+msgstr "<time class=\"check-in-date\">%(date)s</time> को पढ़ा"
 
 #: my_books/check_ins/check_in_prompt.html
 msgid "When did you finish this book?"
@@ -5938,7 +5938,7 @@ msgstr "कुछ और आज़माएँ?"
 #: publishers/view.html
 #, python-format
 msgid "Publisher: %(name)s"
-msgstr ""
+msgstr "प्रकाशक: %(name)s"
 
 #: openlibrary/plugins/worksearch/code.py publishers/view.html search/advancedsearch.html type/edition/view.html type/work/view.html
 msgid "Publisher"
@@ -6035,7 +6035,7 @@ msgstr "द्वारा"
 
 #: recentchanges/header.html
 msgid "Undo All"
-msgstr ""
+msgstr "सब वापस लें"
 
 #: recentchanges/header.html recentchanges/index.html
 msgid "Recent Changes"
@@ -6113,12 +6113,12 @@ msgstr "अपडेट किए गए रिकॉर्ड"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged duplicate %(record_type)s records."
-msgstr ""
+msgstr "डुप्लिकेट %(record_type)s रिकॉर्ड मर्ज किए गए।"
 
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "See <a href=\"%s\">details</a>."
-msgstr ""
+msgstr "<a href=\"%s\">विवरण</a> देखें।"
 
 #: recentchanges/merge/comment.html
 #, python-format
@@ -6135,21 +6135,21 @@ msgstr "डुप्लिकेट मर्ज करें"
 #: recentchanges/merge/comment.html
 #, python-format
 msgid "Merged %(page_type)s into primary %(record_type)s record."
-msgstr ""
+msgstr "%(page_type)s को प्राथमिक %(record_type)s रिकॉर्ड में मर्ज किया गया।"
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(who)s ने %(master)s का एक डुप्लिकेट मर्ज किया"
+msgstr[1] "%(who)s ने %(master)s के %(count)d डुप्लिकेट मर्ज किए"
 
 #: recentchanges/merge/message.html
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%(master)s का एक डुप्लिकेट गुमनाम रूप से मर्ज किया गया"
+msgstr[1] "%(master)s के %(count)d डुप्लिकेट गुमनाम रूप से मर्ज किए गए"
 
 #: recentchanges/merge/view.html
 msgid "This merge has been undone."
@@ -6209,7 +6209,7 @@ msgstr "पूरा टेक्स्ट खोजें"
 #: search/authors.html
 #, python-format
 msgid "Search Open Library for \"%(query)s\""
-msgstr ""
+msgstr "Open Library में \"%(query)s\" खोजें"
 
 #: search/authors.html
 msgid "Search Authors"
@@ -6225,7 +6225,7 @@ msgstr "लेखकों को मिलाएँ"
 
 #: search/authors.html
 msgid "No <strong>authors</strong> directly matched your search"
-msgstr ""
+msgstr "आपकी खोज से सीधे कोई <strong>लेखक</strong> मेल नहीं खाया"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6234,7 +6234,7 @@ msgstr "किताबें लोड करें"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Free to read now"
-msgstr ""
+msgstr "अभी निःशुल्क पढ़ें"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6252,7 +6252,7 @@ msgstr "अंदर खोजें"
 
 #: search/inside.html
 msgid "No <strong>Search Inside</strong> text matched your search"
-msgstr ""
+msgstr "आपकी खोज से कोई <strong>अंदर खोज</strong> टेक्स्ट मेल नहीं खाया"
 
 #: search/inside.html
 #, python-format
@@ -6274,7 +6274,7 @@ msgstr "विवरण"
 
 #: search/layout_options.html
 msgid "Grid"
-msgstr ""
+msgstr "ग्रिड"
 
 #: search/layout_options.html
 #, fuzzy
@@ -6291,7 +6291,7 @@ msgstr "खोज सूचियाँ"
 
 #: search/lists.html
 msgid "No <strong>lists</strong> directly matched your search"
-msgstr ""
+msgstr "आपकी खोज से सीधे कोई <strong>सूची</strong> मेल नहीं खाई"
 
 #: search/publishers.html
 msgid "Publishers Search"
@@ -6325,12 +6325,12 @@ msgstr "सभी काम देखें"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s result"
-msgstr ""
+msgstr "%s परिणाम देखें"
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s results"
-msgstr ""
+msgstr "सभी %s परिणाम देखें"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6359,7 +6359,7 @@ msgstr "कोई नतीजा नहीं मिला।"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
+msgstr "%s में से %s परिणाम दिखाए जा रहे हैं"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6389,12 +6389,12 @@ msgstr "Recent changes"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
-msgstr ""
+msgstr "हाल की खोजों से \"%s\" हटाएँ"
 
 #: search/snippets.html
 #, python-format
 msgid "On leaf number %(page_num)d:"
-msgstr ""
+msgstr "पत्ती संख्या %(page_num)d पर:"
 
 #: search/sort_options.html
 msgid "Relevance"
@@ -6411,15 +6411,15 @@ msgstr "बेतरतीब"
 
 #: search/sort_options.html
 msgid "Name (beta: Librarian only)"
-msgstr ""
+msgstr "नाम (बीटा: केवल लाइब्रेरियन)"
 
 #: search/sort_options.html
 msgid "Birth Date (oldest) (beta: Librarian only)"
-msgstr ""
+msgstr "जन्म तारीख (सबसे पुराने) (बीटा: केवल लाइब्रेरियन)"
 
 #: search/sort_options.html
 msgid "Birth Date (youngest) (beta: Librarian only)"
-msgstr ""
+msgstr "जन्म तारीख (सबसे युवा) (बीटा: केवल लाइब्रेरियन)"
 
 #: search/sort_options.html
 #, fuzzy
@@ -6473,7 +6473,7 @@ msgstr "मई"
 
 #: search/sort_options.html
 msgid "Work Title (beta: Librarian only)"
-msgstr ""
+msgstr "कृति शीर्षक (बीटा: केवल लाइब्रेरियन)"
 
 #: search/sort_options.html
 msgid "Sorting by"
@@ -6489,7 +6489,7 @@ msgstr "विषय खोजें"
 
 #: search/subjects.html
 msgid "No <strong>subjects</strong> directly matched your search"
-msgstr ""
+msgstr "आपकी खोज से सीधे कोई <strong>विषय</strong> मेल नहीं खाया"
 
 #: search/subjects.html
 msgid "time"
@@ -6700,7 +6700,7 @@ msgstr "यह लिंक सूची के नीचे दिखाई द
 
 #: type/about/view.html
 msgid "For more information"
-msgstr ""
+msgstr "अधिक जानकारी के लिए"
 
 #: type/author/edit.html
 msgid "Edit Author"
@@ -6740,11 +6740,11 @@ msgstr "क्या यह लेखक किसी अन्य नाम स
 
 #: type/author/edit.html
 msgid "For example: Lev Nikolayevich Tolstoy was also known as Leo Tolstoy. Please list one name per line."
-msgstr ""
+msgstr "उदाहरण: Lev Nikolayevich Tolstoy को Leo Tolstoy के नाम से भी जाना जाता था। कृपया प्रति पंक्ति एक नाम लिखें।"
 
 #: type/author/edit.html
 msgid "Identifiers"
-msgstr ""
+msgstr "पहचानकर्ता"
 
 #: type/author/edit.html
 msgid "Author Identifiers Purpose"
@@ -6791,7 +6791,7 @@ msgstr "एक और जोड़ें?"
 #: type/author/view.html
 #, python-format
 msgid "Search %(author)s books"
-msgstr ""
+msgstr "%(author)s की पुस्तकें खोजें"
 
 #: type/author/view.html
 #, fuzzy, python-format
@@ -6812,7 +6812,7 @@ msgstr "OLID"
 
 #: type/author/view.html
 msgid "Inventaire.io:"
-msgstr ""
+msgstr "Inventaire.io:"
 
 #: type/author/view.html type/edition/view.html type/work/view.html
 msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
@@ -6902,7 +6902,7 @@ msgstr "पहली बार %s में प्रकाशित किय�
 #: type/edition/title_and_author.html
 #, python-format
 msgid "Book %s"
-msgstr ""
+msgstr "पुस्तक %s"
 
 #: type/edition/view.html type/work/view.html
 #, fuzzy
@@ -7076,7 +7076,7 @@ msgstr "कोड"
 
 #: type/language/view.html
 msgid "Current"
-msgstr ""
+msgstr "वर्तमान"
 
 #: type/language/view.html
 #, python-format
@@ -7091,12 +7091,12 @@ msgstr "नई कार्य सूची सृजित करें"
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing series: %(list_name)s"
-msgstr ""
+msgstr "श्रृंखला संपादित करें: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, python-format
 msgid "Editing list: %(list_name)s"
-msgstr ""
+msgstr "सूची संपादित करें: %(list_name)s"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7119,11 +7119,11 @@ msgstr "किताबों के लिए खोज करें"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Position (optional), e.g. 1, 2, 1-7"
-msgstr ""
+msgstr "स्थिति (वैकल्पिक), जैसे 1, 2, 1-7"
 
 #: type/list/edit.html type/series/edit.html
 msgid "Notes (optional)"
-msgstr ""
+msgstr "नोट्स (वैकल्पिक)"
 
 #: type/list/edit.html type/series/edit.html
 #, fuzzy
@@ -7258,15 +7258,15 @@ msgstr "आप सूची में से अंतिम आइटम को
 #: type/list/view_body.html
 #, python-format
 msgid "This series contains %(limit)d or more works. Currently, only the first %(limit)d works are displayed."
-msgstr ""
+msgstr "इस श्रृंखला में %(limit)d या अधिक कृतियाँ हैं। वर्तमान में, केवल पहली %(limit)d कृतियाँ दिखाई जा रही हैं।"
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "इस सूची में कोई आइटम नहीं है।"
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "अपनी सूची में जोड़ने के लिए <a href=\"/search\" target=\"_blank\" rel=\"noopener noreferrer\">पुस्तक, विषय या लेखक खोजें</a>।"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -7301,7 +7301,7 @@ msgstr "लोकेशन"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "बारकोड रेगेक्स"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -7376,7 +7376,7 @@ msgstr "टैग :"
 
 #: type/tag/index.html
 msgid "Tags curated by Open Library librarians."
-msgstr ""
+msgstr "Open Library लाइब्रेरियन द्वारा क्यूरेट किए गए टैग।"
 
 #: type/tag/index.html
 #, fuzzy
@@ -7399,15 +7399,15 @@ msgstr "नाम"
 
 #: type/tag/tag_form_inputs.html
 msgid "Human-readable display name (e.g. \"Computer Science\", \"Horror Fiction\")"
-msgstr ""
+msgstr "मानव-पठनीय प्रदर्शन नाम (उदाहरण: \"Computer Science\", \"Horror Fiction\")"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Slugs"
-msgstr ""
+msgstr "टैग स्लग"
 
 #: type/tag/tag_form_inputs.html
 msgid "Comma-separated URL slugs that map to this tag (auto-populated from name). E.g. \"computer_science, cs\""
-msgstr ""
+msgstr "अल्पविराम से अलग URL स्लग जो इस टैग से मैप होते हैं (नाम से स्वचालित रूप से भरे जाते हैं)। जैसे \"computer_science, cs\""
 
 #: type/tag/tag_form_inputs.html
 #, fuzzy
@@ -7426,12 +7426,12 @@ msgstr "पेज का प्रकार"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "टैग डेप्युटी"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>प्रकार:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -7444,12 +7444,12 @@ msgstr "आज"
 
 #: type/tag/view.html
 msgid "URL Slugs"
-msgstr ""
+msgstr "URL स्लग"
 
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "%(name)s के लिए विषय पृष्ठ देखें।"
 
 #: type/template/edit.html
 #, fuzzy
@@ -7490,7 +7490,7 @@ msgstr "बैकरेफ़रेंस"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)s संपादित करें"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
@@ -7507,7 +7507,7 @@ msgstr "एडमिन पेज"
 #: type/user/view.html
 #, python-format
 msgid "You are publicly sharing the books you are <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and have <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "आप सार्वजनिक रूप से वे पुस्तकें साझा कर रहे हैं जो आप <a href=\"%(username)s/books/currently-reading\">वर्तमान में पढ़</a> रहे हैं, <a href=\"%(username)s/books/already-read\">पहले ही पढ़ चुके</a> हैं, <a href=\"%(username)s/books/want-to-read\">पढ़ना चाहते</a> हैं, और <a href=\"%(username)s/books/stopped-reading\">पढ़ना बंद कर दिया</a> है!"
 
 #: type/user/view.html
 msgid "You have chosen to make your"
@@ -7524,7 +7524,7 @@ msgstr "अपनी निजता सेटिंग मैनेज कर�
 #: type/user/view.html
 #, python-format
 msgid "Here are the books %(user)s is <a href=\"%(username)s/books/currently-reading\">currently reading</a>, <a href=\"%(username)s/books/already-read\">have already read</a>, <a href=\"%(username)s/books/want-to-read\">want to read</a>, and has <a href=\"%(username)s/books/stopped-reading\">stopped reading</a>!"
-msgstr ""
+msgstr "यहाँ वे पुस्तकें हैं जो %(user)s <a href=\"%(username)s/books/currently-reading\">वर्तमान में पढ़</a> रहे हैं, <a href=\"%(username)s/books/already-read\">पहले ही पढ़ चुके</a> हैं, <a href=\"%(username)s/books/want-to-read\">पढ़ना चाहते</a> हैं, और <a href=\"%(username)s/books/stopped-reading\">पढ़ना बंद कर दिया</a> है!"
 
 #: type/user/view.html
 msgid "My Lists"
@@ -7588,11 +7588,11 @@ msgstr "%(store)s पर बिक्री के लिए इस संस्
 
 #: AffiliateLinks.html.jinja
 msgid "When you buy books using these links the Internet Archive may earn a"
-msgstr ""
+msgstr "जब आप इन लिंक का उपयोग करके पुस्तकें खरीदते हैं तो Internet Archive एक"
 
 #: AffiliateLinks.html.jinja
 msgid "small commission"
-msgstr ""
+msgstr "छोटा कमीशन"
 
 #: AffiliateLinksLoadingIndicator.html
 #, fuzzy
@@ -7626,7 +7626,7 @@ msgstr "पुस्तक का पूर्वावलोकन करें
 
 #: DisplayCode.html
 msgid "Templates in the website are disabled now. Editing them will not have any effect on the live website."
-msgstr ""
+msgstr "वेबसाइट में टेम्पलेट अभी अक्षम हैं। उन्हें संपादित करने से लाइव वेबसाइट पर कोई प्रभाव नहीं पड़ेगा।"
 
 #: EditionNavBar.html
 #, fuzzy
@@ -7657,15 +7657,15 @@ msgstr "संबंधित पुस्तकें"
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
+msgstr "अगले अनुभाग पर जाएँ"
 
 #: Follow.html
 msgid "Unfollow"
-msgstr ""
+msgstr "अनफ़ॉलो करें"
 
 #: Follow.html
 msgid "Failed to update followers. Please try again in a few moments."
-msgstr ""
+msgstr "अनुयायी अपडेट करने में विफल। कृपया कुछ क्षण बाद पुनः प्रयास करें।"
 
 #: FormatExpiry.html
 msgid "Expires"
@@ -7673,7 +7673,7 @@ msgstr "समाप्त हो रहा"
 
 #: FulltextSearchSuggestion.html
 msgid "Checking for Search Inside matches"
-msgstr ""
+msgstr "अंदर खोज मिलान जाँचा जा रहा है"
 
 #: FulltextSearchSuggestion.html
 #, fuzzy
@@ -7688,24 +7688,24 @@ msgstr "अंदर खोजें"
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "%(book_count)s books found with matching passages"
-msgstr ""
+msgstr "%(book_count)s पुस्तकें मिलान वाले अंशों के साथ मिलीं"
 
 #: FulltextSearchSuggestion.html
 #, python-format
 msgid "See all %(results_count)s Search Inside Matches"
-msgstr ""
+msgstr "सभी %(results_count)s अंदर खोज मिलान देखें"
 
 #: FulltextSearchSuggestion.html
 msgid "right chevron"
-msgstr ""
+msgstr "दायाँ चेवरॉन"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❝"
-msgstr ""
+msgstr "❝"
 
 #: FulltextSnippet.html FulltextSuggestionSnippet.html
 msgid "❞"
-msgstr ""
+msgstr "❞"
 
 #: FulltextSuggestionSnippet.html
 #, fuzzy, python-format
@@ -7715,7 +7715,7 @@ msgstr "पेज %(page)s"
 #: IABook.html
 #, python-format
 msgid "Borrowed from Internet Archive: %(title)s"
-msgstr ""
+msgstr "Internet Archive से उधार लिया: %(title)s"
 
 #: LoadingIndicator.html
 #, fuzzy
