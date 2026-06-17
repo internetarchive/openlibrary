@@ -1,7 +1,7 @@
 import { listCreationForm } from './sample-html/lists-test-data';
 import { checkInForm } from './sample-html/checkIns-test-data';
 import { CreateListForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/CreateListForm';
-import { CheckInForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents';
+import { CheckInComponents, CheckInForm } from '../../../openlibrary/plugins/openlibrary/js/my-books/MyBooksDropper/CheckInComponents';
 
 jest.mock('jquery-ui/ui/widgets/dialog', () => {});
 
@@ -147,5 +147,38 @@ describe('CheckInForm class', () => {
         expect(yearSelect.id).toBe(expectedYearId);
         expect(monthSelect.id).toBe(expectedMonthId);
         expect(daySelect.id).toBe(expectedDayId);
+    });
+});
+
+describe('CheckInComponents class', () => {
+    const originalFetch = global.fetch;
+
+    afterEach(() => {
+        global.fetch = originalFetch;
+    });
+
+    it('sends check-in POST requests as JSON', () => {
+        global.fetch = jest.fn();
+        const checkInComponents = new CheckInComponents();
+        const eventData = {
+            event_type: 3,
+            year: 2026,
+            month: 6,
+            day: 18,
+            event_id: null,
+            edition_key: '/books/OL456M'
+        };
+        const url = '/works/OL123W/check-ins.json';
+
+        checkInComponents.postCheckIn(eventData, url);
+
+        expect(global.fetch).toHaveBeenCalledWith(url, {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json',
+                accept: 'application/json'
+            },
+            body: JSON.stringify(eventData)
+        });
     });
 });
