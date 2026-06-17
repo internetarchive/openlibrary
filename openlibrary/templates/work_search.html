@@ -46,12 +46,16 @@ $ bodyclass.append('search-page')
         $# rendered into the sublabel here, so it's present on first paint with no
         $# async flash-in or layout shift. Empty when there's nothing to count.
         $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
+        $# Render the on/off state server-side so the toggle paints in its final
+        $# position — without `checked` it starts off and the client-side seed
+        $# animates it on after load.
         <div class="search-filter-row" id="search-filter-row">
           <ol-toggle
             variant="card"
             label="$_('Readable Only')"
             accessible-label="$_('Filter by availability')"
             sublabel="$readable_sublabel"
+            $:cond(get_active_availability(param) != 'all', 'checked')
           ></ol-toggle>
           <ol-select-popover
             label="$_('Language')"

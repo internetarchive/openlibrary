@@ -143,10 +143,14 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                 $# single-work, no-filter case has nothing to filter, so it's hidden.
                 $if filter_active or books_count > 1:
                     <div class="search-filter-row" id="search-filter-row">
+                      $# Render the on/off state server-side so the toggle paints in
+                      $# its final position — without `checked` it starts off and the
+                      $# client-side seed animates it on after load.
                       <ol-toggle
                         variant="card"
                         label="$_('Readable Only')"
                         accessible-label="$_('Filter by availability')"
+                        $cond(active_availability != 'all', 'checked')
                       ></ol-toggle>
                       <ol-select-popover
                         label="$_('Language')"
