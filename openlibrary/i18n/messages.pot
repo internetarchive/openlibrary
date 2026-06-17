@@ -6914,7 +6914,7 @@ msgstr ""
 
 #: type/author/view.html
 #, python-format
-msgid "<a href=\"%(url)s\">Show all %(count)s works</a>?"
+msgid "Show all %(count)s works"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py
