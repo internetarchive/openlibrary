@@ -338,11 +338,10 @@ def render_combined(
     json_pattern: str,
     nonjson_pattern: str,
 ) -> str:
-    """Render one combined regex with labeled JSON and non-JSON groups.
+    """Render one combined regex combining .json and non-.json branches.
 
-    Uses PCRE ``(?#comment)`` to label the two groups — nginx ignores
-    the comments but they make the regex readable. Falls back to a
-    single-group regex if one of the two partitions is empty.
+    Falls back to a single-group regex if one of the two partitions
+    is empty.
     """
     json_inner = _extract_inner(json_pattern)
     nonjson_inner = _extract_inner(nonjson_pattern)
@@ -352,7 +351,7 @@ def render_combined(
         # Strip suffix from each JSON branch (since \.json is now outside the group).
         json_branches = [b.removesuffix(esc) for b in json_inner.split("|")]
         json_combined = "|".join(json_branches)
-        return f"^/(?:(?#JSON){json_combined}){esc}|(?#Non-JSON)(?:{nonjson_inner})$"
+        return f"^/(?:{json_combined}){esc}|(?:{nonjson_inner})$"
     if json_inner:
         return json_pattern
     if nonjson_inner:
