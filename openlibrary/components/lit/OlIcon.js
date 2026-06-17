@@ -1,5 +1,7 @@
 import { LitElement, html, nothing } from 'lit';
 
+const SIZE_CLASSES = { sm: 'ol-icon--sm', md: 'ol-icon--md', lg: 'ol-icon--lg' };
+
 /**
  * A single icon from the Open Library icon sprite.
  *
@@ -33,9 +35,6 @@ import { LitElement, html, nothing } from 'lit';
  * <ol-icon name="search"></ol-icon>
  * <ol-icon name="globe" size="lg" label="Language"></ol-icon>
  */
-
-const SIZE_CLASSES = { sm: 'ol-icon--sm', md: 'ol-icon--md', lg: 'ol-icon--lg' };
-
 export class OlIcon extends LitElement {
     static properties = {
         name: { type: String, reflect: true },

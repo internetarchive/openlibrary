@@ -1866,7 +1866,7 @@
       "declarations": [
         {
           "kind": "class",
-          "description": "",
+          "description": "A single icon from the Open Library icon sprite.\n\nRenders into the **light DOM** (no shadow root) and references the sprite via\na same-document `<use href=\"#name\">`. Both choices are deliberate: the sprite\nis inlined once per page (see the icon_sprite() helper), and same-document\nreferences resolve in every browser OL supports — external references\n(`file.svg#name`) are unreliable in older Safari/iOS. Same-document `<use>`\nalso cannot cross a shadow boundary, so this element must live in the light\nDOM; for icons inside another component's shadow root, inline the glyph\ninstead of using <ol-icon>. In the light DOM the glyph also inherits `color`\nfor its `currentColor` strokes, themed by whatever context it sits in.\n\nThis is the client-side counterpart of the `$:icon()` Templetor macro — both\npoint at the same sprite and share static/css/components/ol-icon.css, so an\nicon looks identical whether server- or component-rendered. Use this inside\nLit components; use the macro in server-rendered templates.\n\nDecorative by default (`aria-hidden`). Pass `label` to expose the icon to\nassistive tech as `role=\"img\"` with that accessible name.",
           "name": "OlIcon",
           "members": [
             {
@@ -1874,9 +1874,10 @@
               "name": "name",
               "privacy": "public",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "''",
+              "description": "Icon name (a symbol id in the sprite, e.g. \"search\").",
               "attribute": "name",
               "reflects": true
             },
@@ -1885,9 +1886,10 @@
               "name": "size",
               "privacy": "public",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "'md'",
+              "description": "\"sm\" (16px) | \"md\" (20px, default) | \"lg\" (24px), or a raw pixel number (e.g. \"32\") for a one-off size.",
               "attribute": "size",
               "reflects": true
             },
@@ -1896,9 +1898,10 @@
               "name": "label",
               "privacy": "public",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "''",
+              "description": "Accessible name. When set, the icon is exposed as role=\"img\"; when omitted, it is aria-hidden.",
               "attribute": "label"
             }
           ],
@@ -1906,25 +1909,28 @@
             {
               "name": "name",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "''",
+              "description": "Icon name (a symbol id in the sprite, e.g. \"search\").",
               "fieldName": "name"
             },
             {
               "name": "size",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "'md'",
+              "description": "\"sm\" (16px) | \"md\" (20px, default) | \"lg\" (24px), or a raw pixel number (e.g. \"32\") for a one-off size.",
               "fieldName": "size"
             },
             {
               "name": "label",
               "type": {
-                "text": "string"
+                "text": "String"
               },
               "default": "''",
+              "description": "Accessible name. When set, the icon is exposed as role=\"img\"; when omitted, it is aria-hidden.",
               "fieldName": "label"
             }
           ],
