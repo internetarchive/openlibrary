@@ -354,5 +354,5 @@ identifiers:
 -   label: ITAN Book ID
     name: itan_technologies
     notes: "Unique book identifier assigned by ITAN Global Publishing, an African literature digital marketplace"
-    url: https://itan.app/bookstore?search=@@@
+    url: https://itan.app/bookstore/@@@
     website: https://itan.app
