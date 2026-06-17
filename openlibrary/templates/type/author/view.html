@@ -172,10 +172,14 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     $# clear back to the full bibliography, with its real size.
                     $if filter_active and books_count == 0:
                         $ clear_url = changequery(has_fulltext=None, public_scan=None, print_disabled=None, language=None, mode=None, page=None)
+                        $# The js-clear-reading-prefs class lets SearchFilterBar.js wipe the
+                        $# stored global preference on click — otherwise it'd be re-inherited
+                        $# on reload and zero the page again. Works without JS too (no
+                        $# inheritance happens without JS).
                         <p class="search-results-empty collapse">
                             $_('No matching works by this author with the current filters.')
                             <br/>
-                            $:_('<a href="%(url)s">Show all %(count)s works</a>?', url=clear_url, count=commify(page.get_work_count()))
+                            <a class="js-clear-reading-prefs" href="$clear_url">$_('Show all %(count)s works', count=commify(page.get_work_count()))</a>?
                         </p>
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $for doc in books.docs:

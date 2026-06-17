@@ -171,4 +171,17 @@ export function initSearchFilterBar(container) {
             });
         });
     }
+
+    // Empty-state escape hatch ("Show all N works"): the link already clears the
+    // filter params from the URL, but the stored global preference would be
+    // re-inherited on reload and zero the page again. Wipe the stored preference
+    // here so "show all" actually sticks; the link's own href then navigates to
+    // the unfiltered page.
+    const clearLink = document.querySelector('.js-clear-reading-prefs');
+    if (clearLink) {
+        clearLink.addEventListener('click', () => {
+            writeStoredAvailability(DEFAULT_AVAILABILITY);
+            writeStoredLanguages([]);
+        });
+    }
 }
