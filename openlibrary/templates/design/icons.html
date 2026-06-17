@@ -7,25 +7,86 @@ $# Elements Manifest for <ol-icon>.
 <article class="design-pattern" id="icons">
   <h2 class="design-pattern__title">Icons</h2>
   <p class="design-pattern__description">
-    One curated set on a 24×24 grid, single 2px stroke, <code>currentColor</code>.
-    Server-rendered templates use the <code>$$:icon()</code> macro; Lit components
-    use the <code>&lt;ol-icon&gt;</code> element. Both draw from the same build-time
-    sprite, so a glyph looks identical either way.
+    One curated set on a 24×24 grid, single 2px stroke, themed with
+    <code>currentColor</code>. There are three ways to render a glyph — all draw
+    from the same source (<code>static/icons/src/</code>), so an icon looks
+    identical no matter which you use. Pick by <em>where</em> the icon lives.
   </p>
 
   <section class="example">
+    <h3 class="example__title">Which technique to use</h3>
+    <div class="component-api__table-wrap">
+      <table class="component-api__table">
+        <thead>
+          <tr><th>Use</th><th>When</th><th>Why</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>$$:icon()</code> macro</td>
+            <td>Server-rendered <code>.html</code> templates. <strong>The default.</strong></td>
+            <td>Plain inline <code>&lt;svg&gt;</code> against the page-inlined sprite. Paints at first byte — no JavaScript, no layout shift, no flash.</td>
+          </tr>
+          <tr>
+            <td>Fragment import<br><code>icons.generated.js</code></td>
+            <td>Inside a web component's own (shadow-DOM) template.</td>
+            <td>Shadow roots can't reach the page sprite via <code>&lt;use&gt;</code>, so import the glyph and inline it in your own <code>&lt;svg&gt;</code>. Paints with the component.</td>
+          </tr>
+          <tr>
+            <td><code>&lt;ol-icon&gt;</code> element</td>
+            <td>Icons you insert from client JS, or consumers who only have HTML + the custom element.</td>
+            <td>Self-contained custom element. The box is reserved (no layout shift), but the glyph appears only after the JS upgrades it — so prefer the macro whenever the markup is server-rendered.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="example">
     <h3 class="example__title">Usage</h3>
+    <p>In a Templetor template (preferred). Pass <code>label</code> for an
+    accessible name; without it the icon is <code>aria-hidden</code>:</p>
     <pre class="example__code"><code class="language-html">$$:icon("search")
 $$:icon("globe", size="lg")
-$$:icon("globe", label=_("Language"))
-
-&lt;ol-icon name="search"&gt;&lt;/ol-icon&gt;
+$$:icon("globe", label=_("Language"))</code></pre>
+    <p>Inside a Lit component — import the fragment and wrap it in your own
+    <code>&lt;svg&gt;</code>, which controls size and stroke-width via the
+    component's CSS:</p>
+    <pre class="example__code"><code class="language-js">import { search } from './icons.generated.js';
+html`&lt;svg class="icon" viewBox="0 0 24 24"&gt;$${search}&lt;/svg&gt;`</code></pre>
+    <p>As a custom element (client-side / consumers):</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-icon name="search"&gt;&lt;/ol-icon&gt;
 &lt;ol-icon name="globe" size="lg" label="Language"&gt;&lt;/ol-icon&gt;</code></pre>
   </section>
 
   <section class="example">
+    <h3 class="example__title">What you control</h3>
+    <p>
+      <strong>Size.</strong> Three tokens — <code>sm</code> 16px, <code>md</code>
+      20px (default), <code>lg</code> 24px — defined as <code>--icon-size-*</code>
+      in <code>rem</code>, so they scale with the user's font size. The macro and
+      <code>&lt;ol-icon&gt;</code> take <code>size="sm|md|lg"</code>;
+      <code>&lt;ol-icon&gt;</code> also accepts a raw pixel number
+      (<code>size="32"</code>) for one-offs. When you import a fragment, you set
+      <code>width</code>/<code>height</code> on your own wrapping
+      <code>&lt;svg&gt;</code>.
+    </p>
+    <p>
+      <strong>Color.</strong> Every glyph is drawn with <code>currentColor</code>,
+      so an icon is simply the text color of wherever it sits. To recolor one, set
+      <code>color</code> on the icon or any ancestor — e.g. a button with
+      <code>color: var(--red)</code> gets a red icon. No <code>fill</code> or
+      <code>stroke</code> overrides needed.
+    </p>
+    <p>
+      <strong>Stroke weight.</strong> A single 2px stroke across the whole set —
+      this is intentionally <em>not</em> a knob. (A fragment import can override
+      <code>stroke-width</code> on its wrapper if a component genuinely needs to,
+      but that's the exception.)
+    </p>
+  </section>
+
+  <section class="example">
     <h3 class="example__title">Gallery</h3>
-    <p>Click an icon to copy its name.</p>
     <input
       type="search"
       id="icon-gallery-filter"
@@ -35,11 +96,11 @@ $$:icon("globe", label=_("Language"))
     >
     <ul class="icon-gallery" id="icon-gallery">
       $for name in icons:
-        <li class="icon-gallery__item">
-          <button type="button" class="icon-gallery__cell" data-icon-name="$name" title="Copy &quot;$name&quot;">
+        <li class="icon-gallery__item" data-icon-name="$name">
+          <div class="icon-gallery__cell">
             $:macros.icon(name, size="lg")
             <span class="icon-gallery__name">$name</span>
-          </button>
+          </div>
         </li>
     </ul>
     <script>
@@ -49,19 +110,7 @@ $$:icon("globe", label=_("Language"))
         filter.addEventListener('input', () => {
           const q = filter.value.trim().toLowerCase();
           for (const item of grid.children) {
-            const name = item.querySelector('.icon-gallery__cell').dataset.iconName;
-            item.hidden = q && !name.includes(q);
-          }
-        });
-        grid.addEventListener('click', async (e) => {
-          const cell = e.target.closest('.icon-gallery__cell');
-          if (!cell) return;
-          const name = cell.dataset.iconName;
-          try {
-            await navigator.clipboard.writeText(name);
-            if (window.showToast) window.showToast(`Copied "${name}"`);
-          } catch (err) {
-            console.error('Could not copy icon name', err);
+            item.hidden = q && !item.dataset.iconName.includes(q);
           }
         });
       })();
