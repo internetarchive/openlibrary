@@ -314,10 +314,21 @@ pre.example__code code[class*="language-"] {
 .icon-gallery {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: var(--spacing-inline-md);
   margin: 0;
   padding: 0;
   list-style: none;
+  border-top: var(--border-card);
+  border-left: var(--border-card);
+}
+
+.icon-gallery__item {
+  display: flex;
+  border-right: var(--border-card);
+  border-bottom: var(--border-card);
+}
+
+.icon-gallery__item[hidden] {
+  display: none;
 }
 
 .icon-gallery__cell {
@@ -325,17 +336,10 @@ pre.example__code code[class*="language-"] {
   flex-direction: column;
   gap: var(--spacing-stack-xs);
   align-items: center;
+  justify-content: center;
   width: 100%;
   padding: var(--spacing-inset-md);
-  border: var(--border-card);
-  border-radius: var(--border-radius-card);
-  background: none;
   color: inherit;
-  cursor: pointer;
-}
-
-.icon-gallery__cell:hover {
-  background: var(--grey-f3f3f3);
 }
 
 .icon-gallery__name {
