@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Literal, cast
 
 import aiofiles
 
-from openlibrary.catalog.utils.query import set_query_host
 from openlibrary.solr.data_provider import (
     DataProvider,
     ExternalDataProvider,
@@ -139,18 +138,12 @@ async def update_keys(
     return net_update
 
 
-async def do_updates(keys):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    await update_keys(keys, commit=False)
-
-
 def load_configs(
     c_host: str,
     c_config: str,
-    c_data_provider: (DataProvider | Literal["default", "legacy", "external"]) = "default",
+    c_data_provider: (DataProvider | Literal["default", "external"]) = "default",
 ) -> DataProvider:
     host = c_host.removeprefix("http://").strip("/")
-    set_query_host(host)
 
     load_config(c_config)
 
@@ -172,7 +165,7 @@ async def main(
     ol_config="openlibrary.yml",
     output_file: str | None = None,
     commit=True,
-    data_provider: Literal["default", "legacy", "external"] = "default",
+    data_provider: Literal["default", "external"] = "default",
     solr_base: str | None = None,
     solr_next=False,
     update: Literal["update", "print", "pprint"] = "update",
