@@ -200,7 +200,7 @@ msgstr "Open Library হলো <a href=\"https://archive.org/about\">Internet Ar
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid "Please, leave a short note about what you changed: <span class=\"small gray\">(Optional, but very useful!)</span>"
-msgstr ""
+msgstr "আপনি কী পরিবর্তন করলেন সে সম্পর্কে একটি ছোট নোট রাখুন: <span class=\"small gray\">(ঐচ্ছিক, কিন্তু খুব কার্যকর!)</span>"
 
 #: EditButtons.html books/add.html type/tag/form.html
 msgid "By saving a change to this wiki, you agree that your contribution is given freely to the world under <a href=\"https://creativecommons.org/publicdomain/zero/1.0/\" target=\"_blank\" title=\"This link to Creative Commons will open in a new window\">CC0</a>. Yippee!"
@@ -1592,32 +1592,32 @@ msgstr "JSONL ফাইল আপডেট করুন এবং এই পৃ�
 
 #: batch_import.html
 msgid "Validation errors:"
-msgstr ""
+msgstr "যাচাইকরণ ত্রুটি:"
 
 #: batch_import.html
 #, python-format
 msgid "Line %d:"
-msgstr ""
+msgstr "লাইন %d:"
 
 #: batch_import.html
 msgid "Import results for batch:"
-msgstr ""
+msgstr "ব্যাচের জন্য আমদানির ফলাফল:"
 
 #: batch_import.html
 msgid "Records submitted:"
-msgstr ""
+msgstr "জমা দেওয়া রেকর্ড:"
 
 #: batch_import.html
 msgid "Total queued:"
-msgstr ""
+msgstr "মোট সারিবদ্ধ:"
 
 #: batch_import.html
 msgid "Total skipped:"
-msgstr ""
+msgstr "মোট এড়িয়ে যাওয়া:"
 
 #: batch_import.html
 msgid "Not queued because they are already present in the queue:"
-msgstr ""
+msgstr "সারিবদ্ধ করা হয়নি কারণ এগুলি ইতোমধ্যে সারিতে আছে:"
 
 #: batch_import.html
 #, fuzzy
@@ -1626,11 +1626,11 @@ msgstr "लेखक के आँकड़े"
 
 #: batch_import_pending_view.html
 msgid "Pending Batch Imports"
-msgstr ""
+msgstr "অপেক্ষমাণ ব্যাচ আমদানি"
 
 #: batch_import_pending_view.html
 msgid "batch_id"
-msgstr ""
+msgstr "ব্যাচ_আইডি"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_pending_view.html batch_import_view.html
 #, fuzzy
@@ -1652,7 +1652,7 @@ msgstr "लेखक के आँकड़े"
 
 #: batch_import_view.html
 msgid "Batch ID:"
-msgstr ""
+msgstr "ব্যাচ আইডি:"
 
 #: batch_import_view.html
 #, fuzzy
@@ -1691,11 +1691,11 @@ msgstr "आयात"
 
 #: account/import.html admin/imports.html admin/imports_by_date.html batch_import_view.html librarian_dashboard/data_quality_table.html
 msgid "Error"
-msgstr ""
+msgstr "ত্রুটি"
 
 #: batch_import_view.html
 msgid "IA ID"
-msgstr ""
+msgstr "IA আইডি"
 
 #: batch_import_view.html
 #, fuzzy
@@ -1704,7 +1704,7 @@ msgstr "तारीख़"
 
 #: admin/imports.html admin/imports_by_date.html batch_import_view.html
 msgid "OL Key"
-msgstr ""
+msgstr "OL কী"
 
 #: batch_import_view.html
 #, fuzzy
@@ -1723,19 +1723,19 @@ msgstr "बंद करें"
 
 #: design.html
 msgid "Background"
-msgstr ""
+msgstr "পটভূমি"
 
 #: design.html
 msgid "Primary Call To Action"
-msgstr ""
+msgstr "প্রাথমিক কার্যকর আহ্বান"
 
 #: design.html
 msgid "Link (unclicked)"
-msgstr ""
+msgstr "লিঙ্ক (ক্লিক করা হয়নি)"
 
 #: design.html
 msgid "Link (clicked)"
-msgstr ""
+msgstr "লিঙ্ক (ক্লিক করা হয়েছে)"
 
 #: design.html
 #, fuzzy
@@ -1744,7 +1744,7 @@ msgstr "पृष्ठांकन"
 
 #: design.html
 msgid "The ol-pagination component provides support for both event-based and URL-based navigation."
-msgstr ""
+msgstr "ol-pagination কম্পোনেন্ট ইভেন্ট-ভিত্তিক এবং URL-ভিত্তিক উভয় নেভিগেশনের জন্য সমর্থন দেয়।"
 
 #: design.html
 #, fuzzy
@@ -1754,7 +1754,7 @@ msgstr "आयोजन"
 #: design.html
 #, python-format
 msgid "When a page is clicked, the component fires an %(update_page)s event with the page number in %(event_detail)s."
-msgstr ""
+msgstr "একটি পৃষ্ঠা ক্লিক করলে, কম্পোনেন্টটি %(event_detail)s-এ পৃষ্ঠা নম্বর সহ একটি %(update_page)s ইভেন্ট ফায়ার করে।"
 
 #: design.html
 #, fuzzy
@@ -1763,23 +1763,23 @@ msgstr "भूमिका चुनें"
 
 #: design.html
 msgid "URL-based Navigation"
-msgstr ""
+msgstr "URL-ভিত্তিক নেভিগেশন"
 
 #: design.html
 msgid "When base-url is provided, pagination renders anchor tags for SEO-friendly links."
-msgstr ""
+msgstr "base-url দেওয়া হলে, পেজিনেশন SEO-বান্ধব লিঙ্কের জন্য অ্যাঙ্কর ট্যাগ রেন্ডার করে।"
 
 #: design.html
 msgid "First page (no previous arrow)"
-msgstr ""
+msgstr "প্রথম পৃষ্ঠা (আগের তীর নেই)"
 
 #: design.html
 msgid "Middle page (both arrows visible)"
-msgstr ""
+msgstr "মাঝের পৃষ্ঠা (উভয় তীর দৃশ্যমান)"
 
 #: design.html
 msgid "Last page (no next arrow)"
-msgstr ""
+msgstr "শেষ পৃষ্ঠা (পরবর্তী তীর নেই)"
 
 #: design.html
 #, fuzzy
@@ -1788,11 +1788,11 @@ msgstr "पेज"
 
 #: design.html
 msgid "5 pages (no ellipsis needed)"
-msgstr ""
+msgstr "৫টি পৃষ্ঠা (ইলিপসিস দরকার নেই)"
 
 #: design.html
 msgid "100 pages with ellipsis:"
-msgstr ""
+msgstr "ইলিপসিস সহ ১০০টি পৃষ্ঠা:"
 
 #: design.html
 #, fuzzy
@@ -1801,64 +1801,64 @@ msgstr "और पढ़ें"
 
 #: design.html
 msgid "The ol-read-more component provides expandable/collapsible content with two truncation modes: height-based and line-based."
-msgstr ""
+msgstr "ol-read-more কম্পোনেন্ট দুটি ছাঁটাই মোড সহ বিস্তারযোগ্য/সংকোচযোগ্য বিষয়বস্তু দেয়: উচ্চতা-ভিত্তিক এবং লাইন-ভিত্তিক।"
 
 #: design.html
 msgid "Height-based truncation"
-msgstr ""
+msgstr "উচ্চতা-ভিত্তিক ছাঁটাই"
 
 #: design.html
 #, python-format
 msgid "Use %(max_height)s to limit content by pixel height."
-msgstr ""
+msgstr "পিক্সেল উচ্চতায় বিষয়বস্তু সীমাবদ্ধ করতে %(max_height)s ব্যবহার করুন।"
 
 #: design.html
 msgid "Line-based truncation"
-msgstr ""
+msgstr "লাইন-ভিত্তিক ছাঁটাই"
 
 #: design.html
 #, python-format
 msgid "Use %(max_lines)s to limit content by number of lines."
-msgstr ""
+msgstr "লাইনের সংখ্যায় বিষয়বস্তু সীমাবদ্ধ করতে %(max_lines)s ব্যবহার করুন।"
 
 #: design.html
 msgid "Custom button text"
-msgstr ""
+msgstr "কাস্টম বোতামের টেক্সট"
 
 #: design.html
 #, python-format
 msgid "Use %(more_text)s and %(less_text)s to customize the toggle button labels. We'll use the i18n strings for this example."
-msgstr ""
+msgstr "টগল বোতামের লেবেল কাস্টমাইজ করতে %(more_text)s এবং %(less_text)s ব্যবহার করুন। এই উদাহরণের জন্য আমরা i18n স্ট্রিং ব্যবহার করব।"
 
 #: design.html
 msgid "Custom background color"
-msgstr ""
+msgstr "কাস্টম পটভূমির রঙ"
 
 #: design.html
 #, python-format
 msgid "Use %(background_color)s to match the gradient fade to your container background."
-msgstr ""
+msgstr "গ্রেডিয়েন্ট ফেডকে আপনার কন্টেইনারের পটভূমির সাথে মেলাতে %(background_color)s ব্যবহার করুন।"
 
 #: design.html
 msgid "Small label size"
-msgstr ""
+msgstr "ছোট লেবেলের আকার"
 
 #: design.html
 #, python-format
 msgid "Use %(label_size)s for a smaller toggle button."
-msgstr ""
+msgstr "ছোট টগল বোতামের জন্য %(label_size)s ব্যবহার করুন।"
 
 #: design.html
 msgid "Content shorter than limit (no button)"
-msgstr ""
+msgstr "সীমার চেয়ে ছোট বিষয়বস্তু (কোনো বোতাম নেই)"
 
 #: design.html
 msgid "When content fits within the limit, no toggle button is shown."
-msgstr ""
+msgstr "বিষয়বস্তু সীমার মধ্যে ফিট হলে কোনো টগল বোতাম দেখানো হয় না।"
 
 #: design.html
 msgid "This is short content that fits within 5 lines, so no button appears."
-msgstr ""
+msgstr "এটি ছোট বিষয়বস্তু যা ৫ লাইনের মধ্যে ফিট হয়, তাই কোনো বোতাম দেখা যায় না।"
 
 #: diff.html
 #, python-format
@@ -1876,7 +1876,7 @@ msgstr "দ্বারা"
 
 #: diff.html
 msgid "by Anonymous"
-msgstr ""
+msgstr "বেনামী লেখক"
 
 #: diff.html
 #, fuzzy
@@ -1946,7 +1946,7 @@ msgstr "संशोधन %s देखें"
 
 #: history.html
 msgid "Compare this version..."
-msgstr ""
+msgstr "এই সংস্করণ তুলনা করুন..."
 
 #: history.html
 #, fuzzy
@@ -1969,61 +1969,61 @@ msgstr "पुस्तक का पूर्वावलोकन करें
 
 #: import_preview.html
 msgid "Show Raw Import Data"
-msgstr ""
+msgstr "কাঁচা আমদানি ডেটা দেখুন"
 
 #: import_preview.html
 #, python-format
 msgid "New %(thing_type)s record will be created"
-msgstr ""
+msgstr "নতুন %(thing_type)s রেকর্ড তৈরি করা হবে"
 
 #: import_preview.html
 #, python-format
 msgid "Changes to %(key)s"
-msgstr ""
+msgstr "%(key)s-এ পরিবর্তন"
 
 #: internalerror.html
 msgid "Internal Error"
-msgstr ""
+msgstr "অভ্যন্তরীণ ত্রুটি"
 
 #: internalerror.html
 msgid "A Problem Occurred"
-msgstr ""
+msgstr "একটি সমস্যা ঘটেছে"
 
 #: internalerror.html
 msgid "We're sorry, a problem occurred while responding to your request:"
-msgstr ""
+msgstr "দুঃখিত, আপনার অনুরোধে সাড়া দেওয়ার সময় একটি সমস্যা ঘটেছে:"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s and Sentry trace ID %s have been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "রেফারেন্স কোড %s এবং Sentry ট্রেস আইডি %s এই ত্রুটি ট্র্যাক করতে তৈরি করা হয়েছে এবং আমরা যথাসম্ভব তদন্ত করব।"
 
 #: internalerror.html
 #, python-format
 msgid "The reference code %s has been created to track this error and we will investigate as we're able."
-msgstr ""
+msgstr "রেফারেন্স কোড %s এই ত্রুটি ট্র্যাক করতে তৈরি করা হয়েছে এবং আমরা যথাসম্ভব তদন্ত করব।"
 
 #: internalerror.html
 msgid "Return to the <a class=\"go-back-link\" href=\"javascript:;\">previous page</a>?"
-msgstr ""
+msgstr "পূর্ববর্তী <a class=\"go-back-link\" href=\"javascript:;\">পৃষ্ঠায়</a> ফিরে যাবেন?"
 
 #: interstitial.html
 msgid "You are being redirected to your book"
-msgstr ""
+msgstr "আপনাকে আপনার বইতে পাঠানো হচ্ছে"
 
 #: interstitial.html
 #, python-format
 msgid "This book is provided by %(book_provider)s, a third-party Open Library Trusted Book Provider"
-msgstr ""
+msgstr "এই বইটি %(book_provider)s দ্বারা প্রদান করা হয়েছে, যা একটি তৃতীয়-পক্ষের Open Library বিশ্বস্ত বই প্রদানকারী"
 
 #: interstitial.html
 #, python-format
 msgid "In %(time)s seconds, you will be automatically redirected to: %(url)s"
-msgstr ""
+msgstr "%(time)s সেকেন্ডে, আপনি স্বয়ংক্রিয়ভাবে পুনর্নির্দেশিত হবেন: %(url)s"
 
 #: interstitial.html
 msgid "Continue without waiting"
-msgstr ""
+msgstr "অপেক্ষা না করে চালিয়ে যান"
 
 #: lib/nav_head.html library_explorer.html
 msgid "Library Explorer"
@@ -2040,7 +2040,7 @@ msgstr "लॉग इन करें"
 
 #: login.html
 msgid "This is a development instance, the default credentials are automatically filled."
-msgstr ""
+msgstr "এটি একটি ডেভেলপমেন্ট ইনস্ট্যান্স, ডিফল্ট শংসাপত্রগুলি স্বয়ংক্রিয়ভাবে পূরণ করা হয়েছে।"
 
 #: login.html
 #, fuzzy
@@ -2054,7 +2054,7 @@ msgstr "पासवर्ड"
 
 #: login.html
 msgid "Log in to use your free Open Library card to borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "অলাভজনক Internet Archive থেকে ডিজিটাল বই ধার করতে আপনার বিনামূল্যের Open Library কার্ড ব্যবহার করতে লগ ইন করুন"
 
 #: account/create.html login.html
 msgid "OR"
@@ -2084,7 +2084,7 @@ msgstr "अपना पासवर्ड भूल गए?"
 
 #: account/create.html login.html
 msgid "Toggle Password Visibility"
-msgstr ""
+msgstr "পাসওয়ার্ড দৃশ্যমানতা টগল করুন"
 
 #: login.html
 msgid "Remember me"
@@ -2141,7 +2141,7 @@ msgstr "टेम्पलेट/मैक्रो की तलाश है?"
 #: permission.html
 #, python-format
 msgid "Permission of %(key)s"
-msgstr ""
+msgstr "%(key)s-এর অনুমতি"
 
 #: permission.html
 msgid "Permission of"
@@ -2167,12 +2167,12 @@ msgstr "अनुमति अस्वीकृत।"
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to add records on Open Library. Please <a href=\"%s\">log in</a> to add a book."
-msgstr ""
+msgstr "শুধুমাত্র লগ ইন করা ব্যবহারকারীরা Open Library-তে রেকর্ড যোগ করতে পারবেন। বই যোগ করতে অনুগ্রহ করে <a href=\"%s\">লগ ইন</a> করুন।"
 
 #: permission_denied.html
 #, python-format
 msgid "Only logged users are allowed to modify records on Open Library. Please <a href=\"%s\">log in</a> to edit this page."
-msgstr ""
+msgstr "শুধুমাত্র লগ ইন করা ব্যবহারকারীরা Open Library-তে রেকর্ড পরিবর্তন করতে পারবেন। এই পৃষ্ঠা সম্পাদনা করতে অনুগ্রহ করে <a href=\"%s\">লগ ইন</a> করুন।"
 
 #: permission_denied.html
 #, python-format
@@ -2246,11 +2246,11 @@ msgstr "सर्वर की स्थिति"
 
 #: status.html
 msgid "System information"
-msgstr ""
+msgstr "সিস্টেম তথ্য"
 
 #: status.html
 msgid "Features enabled"
-msgstr ""
+msgstr "সক্রিয় বৈশিষ্ট্যসমূহ"
 
 #: status.html
 #, fuzzy
@@ -2259,7 +2259,7 @@ msgstr "सेव किया गया!"
 
 #: status.html
 msgid "View PRs on GitHub"
-msgstr ""
+msgstr "GitHub-এ PR দেখুন"
 
 #: status.html
 #, fuzzy
@@ -2298,7 +2298,7 @@ msgstr "विषय %(name)s वाली पुस्तकें खोजे
 
 #: subjects.html
 msgid "Disambiguations"
-msgstr ""
+msgstr "দ্ব্যর্থতা নিরসন"
 
 #: trending.html
 msgid "Now"
@@ -2330,7 +2330,7 @@ msgstr "देखें कि समुदाय के पाठक अपन�
 
 #: trending.html
 msgid "Earliest trending data is from October 2017"
-msgstr ""
+msgstr "প্রথম ট্রেন্ডিং ডেটা অক্টোবর ২০১৭ থেকে"
 
 #: account/mybooks.html account/sidebar.html my_books/dropdown_content.html my_books/primary_action.html search/sort_options.html trending.html
 msgid "Want to Read"
@@ -2385,7 +2385,7 @@ msgstr "अधिक जानें"
 #: widget.html
 #, python-format
 msgid "on <a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>"
-msgstr ""
+msgstr "<a target=\"_blank\" href=\"%(link)s\">openlibrary.org</a>-এ"
 
 #: work_search.html
 msgid "Search Books"
@@ -2409,20 +2409,20 @@ msgstr "सोलर एडिशन"
 
 #: work_search.html
 msgid "The search engine returned an error."
-msgstr ""
+msgstr "সার্চ ইঞ্জিন একটি ত্রুটি ফেরত দিয়েছে।"
 
 #: work_search.html
 msgid "Solr Debugging:"
-msgstr ""
+msgstr "Solr ডিবাগিং:"
 
 #: work_search.html
 msgid "Full URL:"
-msgstr ""
+msgstr "সম্পূর্ণ URL:"
 
 #: work_search.html
 #, python-format
 msgid "No <strong>%(path_id)s</strong> directly matched your search."
-msgstr ""
+msgstr "কোনো <strong>%(path_id)s</strong> সরাসরি আপনার অনুসন্ধানের সাথে মেলেনি।"
 
 #: work_search.html
 #, fuzzy
@@ -2444,7 +2444,7 @@ msgstr[1] "%(count)s हिट"
 #: work_search.html
 #, python-format
 msgid "Searching solr took %(count)s seconds"
-msgstr ""
+msgstr "Solr অনুসন্ধানে %(count)s সেকেন্ড লেগেছে"
 
 #: about/index.html
 #, fuzzy
@@ -2453,11 +2453,11 @@ msgstr "ओपन लाइब्रेरी ईमेल"
 
 #: about/index.html
 msgid "Open Library is made possible because of a dedicated team of staff and over 100 volunteers from around the globe."
-msgstr ""
+msgstr "Open Library সম্ভব হয়েছে একটি নিবেদিত কর্মী দল এবং বিশ্বের বিভিন্ন প্রান্ত থেকে ১০০-এরও বেশি স্বেচ্ছাসেবীর জন্য।"
 
 #: about/index.html
 msgid "Want to join us?"
-msgstr ""
+msgstr "আমাদের সাথে যোগ দিতে চান?"
 
 #: about/index.html
 #, fuzzy
