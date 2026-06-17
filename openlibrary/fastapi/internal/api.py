@@ -276,20 +276,17 @@ def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
 def post_work_bookshelves(
     work_id: Annotated[int, Path(gt=0)],
     user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
-    query_edition_id: Annotated[str | None, Query(alias="edition_id", pattern=r"(?i)^(?:/books/)?OL\d+M$")] = None,
-    query_bookshelf_id: Annotated[str | None, Query(alias="bookshelf_id")] = None,
-    query_dont_remove: Annotated[bool | None, Query(alias="dont_remove")] = None,
-    form_edition_id: Annotated[str | None, Form(alias="edition_id", pattern=r"(?i)^(?:/books/)?OL\d+M$")] = None,
-    form_bookshelf_id: Annotated[str | None, Form(alias="bookshelf_id")] = None,
-    form_dont_remove: Annotated[bool | None, Form(alias="dont_remove")] = None,
+    bookshelf_id: Annotated[str | None, Form()] = None,
+    edition_id: Annotated[str | None, Form(pattern=r"(?i)^(?:/books/)?OL\d+M$")] = None,
+    dont_remove: Annotated[bool | None, Form()] = None,
 ) -> dict:
     """Add a work to, move a work between, or remove a work from a reading-log shelf."""
     return legacy_work_bookshelves.process_work_bookshelves(
         username=user.username,
         work_id=work_id,
-        bookshelf_id=form_bookshelf_id if form_bookshelf_id is not None else query_bookshelf_id,
-        edition_id=form_edition_id if form_edition_id is not None else query_edition_id,
-        dont_remove=form_dont_remove if form_dont_remove is not None else query_dont_remove or False,
+        bookshelf_id=bookshelf_id,
+        edition_id=edition_id,
+        dont_remove=dont_remove or False,
     )
 
 
