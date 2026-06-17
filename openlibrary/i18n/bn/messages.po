@@ -4144,7 +4144,7 @@ msgstr "এই ব্যবহারকারী হিসেবে লগ ই�
 #: admin/people/view.html
 #, python-format
 msgid "Activated on <span class=\"time\">%(date)s</span> from <a href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
-msgstr ""
+msgstr "<span class=\"time\">%(date)s</span>-এ <a href=\"/admin/ip/%(ip)s\">%(ip)s</a> থেকে সক্রিয় করা হয়েছে।"
 
 #: admin/people/view.html
 msgid "unblock this account"
@@ -4734,7 +4734,7 @@ msgstr "এটি শুধুমাত্র Library of Congress প্রদ�
 #: books/daisy.html
 #, python-format
 msgid "<a href=\"%(daisy_url)s\"><strong>Download the DAISY.zip</strong></a> for <a href=\"%(url)s\">%(title)s</a>"
-msgstr ""
+msgstr "<a href=\"%(daisy_url)s\"><strong>DAISY.zip ডাউনলোড করুন</strong></a> <a href=\"%(url)s\">%(title)s</a>-এর জন্য"
 
 #: books/daisy.html
 msgid "Books for people who don't read print?"
@@ -7983,11 +7983,11 @@ msgstr "आप सूची में से अंतिम आइटम को
 
 #: type/list/view_body.html
 msgid "There are no items on this list."
-msgstr ""
+msgstr "এই তালিকায় কোনো আইটেম নেই।"
 
 #: type/list/view_body.html
 msgid "<a href=\"/search\" target=\"_blank\">Search for book, subjects, or authors</a> to add to your list."
-msgstr ""
+msgstr "আপনার তালিকায় যোগ করতে <a href=\"/search\" target=\"_blank\">বই, বিষয় বা লেখক খুঁজুন</a>।"
 
 #: type/list/view_body.html
 #, fuzzy
@@ -8018,7 +8018,7 @@ msgstr "लोकेशन"
 
 #: type/local_id/view.html
 msgid "Barcode regex"
-msgstr ""
+msgstr "বারকোড রেজেক্স"
 
 #: type/local_id/view.html
 #, fuzzy
@@ -8103,12 +8103,12 @@ msgstr "पेज का प्रकार"
 
 #: type/tag/tag_form_inputs.html
 msgid "Tag Deputy"
-msgstr ""
+msgstr "ট্যাগ ডেপুটি"
 
 #: type/tag/view.html
 #, python-format
 msgid "<strong>Type:</strong> %(tag_type)s"
-msgstr ""
+msgstr "<strong>ধরন:</strong> %(tag_type)s"
 
 #: type/tag/view.html type/user/edit.html
 msgid "Description"
@@ -8122,7 +8122,7 @@ msgstr "आज"
 #: type/tag/view.html
 #, python-format
 msgid "View subject page for %(name)s."
-msgstr ""
+msgstr "%(name)s-এর বিষয় পৃষ্ঠা দেখুন।"
 
 #: type/template/edit.html
 #, fuzzy
@@ -8163,7 +8163,7 @@ msgstr "बैकरेफ़रेंस"
 #: type/user/edit.html
 #, python-format
 msgid "Editing %(name)s"
-msgstr ""
+msgstr "%(name)s সম্পাদনা করা হচ্ছে"
 
 #: type/user/edit.html
 msgid "Currently Editing:"
