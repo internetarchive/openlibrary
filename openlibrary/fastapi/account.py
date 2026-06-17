@@ -5,7 +5,6 @@ FastAPI account endpoints for authentication.
 from __future__ import annotations
 
 import os
-import traceback
 from typing import Annotated, Any
 from urllib.parse import unquote, urlparse
 
@@ -175,18 +174,13 @@ def account_loan_history_json(
 ) -> dict[str, Any]:
     try:
         return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
-    except Exception as e:  # noqa: BLE001
+    except Exception:
         if os.getenv("LOCAL_DEV"):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
             )
-        return {
-            "error": f"{type(e).__name__}: {e}",
-            "error_type": type(e).__name__,
-            "detail": str(e),
-            "traceback": traceback.format_exc(),
-        }
+        raise
 
 
 class LoginForm(BaseModel):
