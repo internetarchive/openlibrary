@@ -9,6 +9,31 @@
  * so an icon's color simply follows the surrounding text color — nothing to set
  * here but box sizing.
  */
+
+/* The <ol-icon> host. Sized from the `size` attribute (present in the HTML
+   before the component JS runs), so the box is reserved at first paint and the
+   element does not cause layout shift when it upgrades. The glyph itself still
+   appears on upgrade — for instant, JS-free rendering use the $:icon() macro. */
+ol-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+  vertical-align: middle;
+}
+
+ol-icon[size="sm"] {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+
+ol-icon[size="lg"] {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+}
+
+/* The rendered glyph. The .ol-icon--* sizes drive the macro's bare <svg>; inside
+   an <ol-icon> host the svg simply fills the reserved box. */
 .ol-icon {
   display: inline-block;
   flex-shrink: 0;
@@ -30,4 +55,9 @@
 .ol-icon--lg {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
+}
+
+ol-icon > .ol-icon {
+  width: 100%;
+  height: 100%;
 }
