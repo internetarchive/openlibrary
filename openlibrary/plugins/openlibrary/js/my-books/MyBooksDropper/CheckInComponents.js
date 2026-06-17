@@ -236,7 +236,7 @@ export class CheckInComponents {
         return fetch(url, {
             method: 'POST',
             headers: {
-                'content-type': 'application/x-www-form-urlencoded',
+                'content-type': 'application/json',
                 accept: 'application/json'
             },
             body: JSON.stringify(eventData)

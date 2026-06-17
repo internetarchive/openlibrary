@@ -11,6 +11,50 @@ jest.mock('../../../openlibrary/plugins/openlibrary/js/Toast', () => ({
     PersistentToast: jest.fn().mockImplementation(() => ({ show: jest.fn() })),
 }));
 
+/**
+ * Creates and initializes a CheckInComponents instance for testing.
+ * @returns {CheckInComponents}
+ */
+function createAndInitialize() {
+    const containerElem = document.querySelector('.check-in-container');
+    const components = new CheckInComponents(containerElem);
+    components.initialize();
+    return components;
+}
+
+/** Shorthand to flush pending promises in async tests. */
+function flushPromises() {
+    return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/**
+ * Dispatches a submit-check-in event on the check-in prompt element
+ * and waits for async resolution.
+ * @param {CheckInComponents} components
+ * @param {{year: number, month: number, day: number}} detail
+ */
+async function dispatchSubmitOnPrompt(components, {year, month, day}) {
+    const submitEvent = new CustomEvent('submit-check-in', {
+        detail: {year, month, day},
+    });
+    components.checkInPrompt.getRootElement().dispatchEvent(submitEvent);
+    await flushPromises();
+}
+
+/**
+ * Dispatches a submit-check-in event on the form element
+ * and waits for async resolution.
+ * @param {CheckInComponents} components
+ * @param {{year: number, month: number, day: number}} detail
+ */
+async function dispatchSubmitOnForm(components, {year, month, day}) {
+    const submitEvent = new CustomEvent('submit-check-in', {
+        detail: {year, month, day},
+    });
+    components.checkInForm.getRootElement().dispatchEvent(submitEvent);
+    await flushPromises();
+}
+
 describe('CheckInComponents class', () => {
     beforeEach(() => {
         document.body.innerHTML = checkInContainer + checkInFormModal;
@@ -28,18 +72,9 @@ describe('CheckInComponents class', () => {
             json: jest.fn().mockResolvedValue({ status: 'ok', id: 789 }),
         });
 
-        const containerElem = document.querySelector('.check-in-container');
-        const components = new CheckInComponents(containerElem);
-        components.initialize();
+        const components = createAndInitialize();
 
-        // Simulate clicking "Today" shortcut in the check-in prompt
-        const submitEvent = new CustomEvent('submit-check-in', {
-            detail: { year: 2024, month: 6, day: 15 },
-        });
-        components.checkInPrompt.getRootElement().dispatchEvent(submitEvent);
-
-        // Wait for the fetch promise and json() to resolve
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await dispatchSubmitOnPrompt(components, {year: 2024, month: 6, day: 15});
 
         // The event id returned by the server should now be stored in the form
         // so that a subsequent DELETE request uses the correct URL
@@ -52,17 +87,9 @@ describe('CheckInComponents class', () => {
             json: jest.fn().mockResolvedValue({ status: 'ok', id: 456 }),
         });
 
-        const containerElem = document.querySelector('.check-in-container');
-        const components = new CheckInComponents(containerElem);
-        components.initialize();
+        const components = createAndInitialize();
 
-        // Simulate submitting via the modal form's submit button
-        const submitEvent = new CustomEvent('submit-check-in', {
-            detail: { year: 2024, month: 1, day: 1 },
-        });
-        components.checkInForm.getRootElement().dispatchEvent(submitEvent);
-
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await dispatchSubmitOnForm(components, {year: 2024, month: 1, day: 1});
 
         expect(components.checkInForm.getEventId()).toBe('456');
     });
@@ -74,19 +101,39 @@ describe('CheckInComponents class', () => {
             json: jest.fn().mockResolvedValue({ status: 'ok' }),
         });
 
-        const containerElem = document.querySelector('.check-in-container');
-        const components = new CheckInComponents(containerElem);
-        components.initialize();
+        const components = createAndInitialize();
 
-        const submitEvent = new CustomEvent('submit-check-in', {
-            detail: { year: 2024, month: 3, day: 10 },
-        });
-        components.checkInPrompt.getRootElement().dispatchEvent(submitEvent);
-
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await dispatchSubmitOnPrompt(components, {year: 2024, month: 3, day: 10});
 
         // eventId should remain empty — no crash, no bad value stored
         expect(components.checkInForm.getEventId()).toBe('');
+    });
+
+    it('performs a DELETE request with the stored event id after a check-in then delete', async() => {
+        const mockFetch = jest.fn()
+            .mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValue({ status: 'ok', id: 789 }),
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: jest.fn().mockResolvedValue({ status: 'ok' }),
+            });
+        global.fetch = mockFetch;
+
+        const components = createAndInitialize();
+
+        // Step 1: Check in — stores the event id from the response
+        await dispatchSubmitOnPrompt(components, {year: 2024, month: 6, day: 15});
+        expect(components.checkInForm.getEventId()).toBe('789');
+
+        // Step 2: Dispatch delete event — triggers DELETE /check-ins/<id>
+        const deleteEvent = new CustomEvent('delete-check-in');
+        components.checkInForm.getRootElement().dispatchEvent(deleteEvent);
+        await flushPromises();
+
+        // Step 3: Verify the DELETE was sent to the correct URL
+        expect(mockFetch).toHaveBeenNthCalledWith(2, '/check-ins/789', { method: 'DELETE' });
     });
 });
 
