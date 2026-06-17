@@ -4543,7 +4543,7 @@ msgstr "Переключить меня"
 #: design/toggle.html
 #, python-format
 msgid "The %(tag)s component is a switch with a bold label and an optional greyed sublabel. The whole control is one %(role)s button, so the entire surface is clickable and Enter/Space activate it. It owns its on/off state: clicking flips %(checked)s and fires %(event)s."
-msgstr ""
+msgstr "Компонент %(tag)s — это переключатель с выделенной жирным шрифтом подписью и необязательной серой дополнительной подписью. Весь элемент управления является одной кнопкой %(role)s, поэтому вся поверхность кликабельна, а Enter/Space активируют его. Он управляет собственным состоянием вкл/выкл: нажатие изменяет %(checked)s и генерирует %(event)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4553,7 +4553,7 @@ msgstr "Сбросить"
 #: design/toggle.html
 #, python-format
 msgid "A plain toggle: just the switch, a bold %(label)s, and an optional greyed %(sublabel)s."
-msgstr ""
+msgstr "Простой переключатель: только сам переключатель, выделенная жирным шрифтом подпись %(label)s и необязательная серая дополнительная подпись %(sublabel)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4563,7 +4563,7 @@ msgstr "Варианты"
 #: design/toggle.html
 #, python-format
 msgid "Use %(variant)s for a bordered container. When checked, it fills with a solid primary-blue background and white text — the same treatment as a selected %(chip)s."
-msgstr ""
+msgstr "Используйте %(variant)s для контейнера с рамкой. В активном состоянии он заполняется однотонным синим фоном и белым текстом — так же, как выбранный %(chip)s."
 
 #: design/toggle.html
 #, fuzzy
@@ -4573,7 +4573,7 @@ msgstr "Пользовательский текст кнопки"
 #: design/toggle.html
 #, python-format
 msgid "Put content in the default slot to customize the label instead of using %(label)s / %(sublabel)s. Supply %(accessible_label)s so the switch still has an accessible name."
-msgstr ""
+msgstr "Поместите содержимое в слот по умолчанию, чтобы настроить подпись вместо использования %(label)s / %(sublabel)s. Укажите %(accessible_label)s, чтобы переключатель по-прежнему имел доступное имя."
 
 #: design/toggle.html
 #, fuzzy
@@ -4582,7 +4582,7 @@ msgstr "Больше"
 
 #: design/toggle.html
 msgid "easier on the eyes"
-msgstr ""
+msgstr "мягче для глаз"
 
 #: design/toggle.html
 #, fuzzy
@@ -4592,7 +4592,7 @@ msgstr "Отключить"
 #: design/toggle.html
 #, python-format
 msgid "Add %(disabled)s to block interaction."
-msgstr ""
+msgstr "Добавьте %(disabled)s, чтобы заблокировать взаимодействие."
 
 #: design/toggle.html
 #, fuzzy
@@ -6332,7 +6332,7 @@ msgstr "Загрузить книги"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 msgid "Free to read now"
-msgstr ""
+msgstr "Читать бесплатно сейчас"
 
 #: openlibrary/plugins/worksearch/code.py search/availability_i18n.html
 #, fuzzy
@@ -6427,12 +6427,12 @@ msgstr "Результаты поисков для списков"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s result"
-msgstr ""
+msgstr "Посмотреть все результаты %s"
 
 #: search/search_modal_i18n.html
 #, python-format
 msgid "See all %s results"
-msgstr ""
+msgstr "Посмотреть все результаты %s"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6461,7 +6461,7 @@ msgstr "Результаты не найдены."
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Showing %s of %s results"
-msgstr ""
+msgstr "Показано %s из %s результатов"
 
 #: search/search_modal_i18n.html
 #, fuzzy
@@ -6491,7 +6491,7 @@ msgstr "Последние изменения"
 #: search/search_modal_i18n.html
 #, python-format
 msgid "Remove \"%s\" from recent searches"
-msgstr ""
+msgstr "Удалить \"%s\" из последних поисков"
 
 #: search/snippets.html
 #, python-format
