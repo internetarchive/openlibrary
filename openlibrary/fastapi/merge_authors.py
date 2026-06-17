@@ -33,17 +33,14 @@ class MergeAuthorsBody(BaseModel):
 
 @router.post("/authors/merge.json")
 def merge_authors_json(_: LibrarianDep, data: MergeAuthorsBody) -> Any:
-    def merge_records() -> Any:
-        try:
-            engine = AuthorMergeEngine(AuthorRedirectEngine())
-            return engine.merge(data.master, data.duplicates)
-        except ClientException as e:
-            raise HTTPException(
-                status_code=400,
-                detail=json.loads(e.json),
-            )
-
-    merge_result = merge_records()
+    try:
+        engine = AuthorMergeEngine(AuthorRedirectEngine())
+        merge_result = engine.merge(data.master, data.duplicates)
+    except ClientException as e:
+        raise HTTPException(
+            status_code=400,
+            detail=json.loads(e.json),
+        )
 
     def update_request() -> None:
         if data.mrid:
