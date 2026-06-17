@@ -8,6 +8,7 @@ import io
 import json
 import logging
 from collections import defaultdict
+from collections.abc import Callable
 from typing import Any, Literal
 from warnings import deprecated
 
@@ -50,6 +51,76 @@ from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger(__name__)
+
+
+def get_work_editions_pagination(limit, offset):
+    return h.safeint(limit) or 50, h.safeint(offset) or 0
+
+
+def get_author_works_pagination(limit, offset):
+    return h.safeint(limit, 50), h.safeint(offset, 0)
+
+
+def get_work_editions_data(work, limit, offset, *, current_site=None, fullpath: str | None = None, changequery: Callable[..., str] | None = None):
+    current_site = current_site or web.ctx.site
+    fullpath = fullpath or web.ctx.fullpath
+    changequery = changequery or web.changequery
+    limit = min(limit, 1000)
+
+    keys = current_site.things(
+        {
+            "type": "/type/edition",
+            "works": work.key,
+            "limit": limit,
+            "offset": offset,
+        }
+    )
+    editions = current_site.get_many(keys, raw=True)
+
+    size = work.edition_count
+    links = {
+        "self": fullpath,
+        "work": work.key,
+    }
+
+    if offset > 0:
+        links["prev"] = changequery(offset=min(0, offset - limit))
+
+    if offset + len(editions) < size:
+        links["next"] = changequery(offset=offset + limit)
+
+    return {"links": links, "size": size, "entries": editions}
+
+
+def get_author_works_data(author, limit, offset, *, current_site=None, fullpath: str | None = None, changequery: Callable[..., str] | None = None):
+    current_site = current_site or web.ctx.site
+    fullpath = fullpath or web.ctx.fullpath
+    changequery = changequery or web.changequery
+    limit = min(limit, 1000)
+
+    keys = current_site.things(
+        {
+            "type": "/type/work",
+            "authors": {"author": {"key": author.key}},
+            "limit": limit,
+            "offset": offset,
+        }
+    )
+    works = current_site.get_many(keys, raw=True)
+
+    size = author.get_work_count()
+    links = {
+        "self": fullpath,
+        "author": author.key,
+    }
+
+    if offset > 0:
+        links["prev"] = changequery(offset=min(0, offset - limit))
+
+    if offset + len(works) < size:
+        links["next"] = changequery(offset=offset + limit)
+
+    return {"links": links, "size": size, "entries": works}
 
 
 class ratings:
@@ -232,6 +303,7 @@ class work_bookshelves(delegate.page):
         )
 
 
+@deprecated("migrated to fastapi")
 class work_editions(delegate.page):
     path = r"(/works/OL\d+W)/editions"
     encoding = "json"
@@ -242,41 +314,17 @@ class work_editions(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
+            limit, offset = get_work_editions_pagination(i.limit, i.offset)
 
             data = self.get_editions_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
     def get_editions_data(work, limit, offset):
-        limit = min(limit, 1000)
-
-        keys = web.ctx.site.things(
-            {
-                "type": "/type/edition",
-                "works": work.key,
-                "limit": limit,
-                "offset": offset,
-            }
-        )
-        editions = web.ctx.site.get_many(keys, raw=True)
-
-        size = work.edition_count
-        links = {
-            "self": web.ctx.fullpath,
-            "work": work.key,
-        }
-
-        if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
-
-        if offset + len(editions) < size:
-            links["next"] = web.changequery(offset=offset + limit)
-
-        return {"links": links, "size": size, "entries": editions}
+        return get_work_editions_data(work, limit, offset)
 
 
+@deprecated("migrated to fastapi")
 class author_works(delegate.page):
     path = r"(/authors/OL\d+A)/works"
     encoding = "json"
@@ -287,39 +335,14 @@ class author_works(delegate.page):
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit, 50)
-            offset = h.safeint(i.offset, 0)
+            limit, offset = get_author_works_pagination(i.limit, i.offset)
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
     def get_works_data(author, limit, offset):
-        limit = min(limit, 1000)
-
-        keys = web.ctx.site.things(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": author.key}},
-                "limit": limit,
-                "offset": offset,
-            }
-        )
-        works = web.ctx.site.get_many(keys, raw=True)
-
-        size = author.get_work_count()
-        links = {
-            "self": web.ctx.fullpath,
-            "author": author.key,
-        }
-
-        if offset > 0:
-            links["prev"] = web.changequery(offset=min(0, offset - limit))
-
-        if offset + len(works) < size:
-            links["next"] = web.changequery(offset=offset + limit)
-
-        return {"links": links, "size": size, "entries": works}
+        return get_author_works_data(author, limit, offset)
 
 
 async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:

@@ -13,9 +13,9 @@ from datetime import datetime
 from typing import Annotated, Any, Literal
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, status
 from pydantic import BaseModel, BeforeValidator, Field
-from starlette.responses import RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
@@ -32,10 +32,18 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
+from openlibrary.plugins.openlibrary.api import (
+    bestbook_award,
+    get_author_works_data,
+    get_author_works_pagination,
+    get_price_data_async,
+    get_work_editions_data,
+    get_work_editions_pagination,
+)
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
 from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -46,6 +54,29 @@ router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 # This guarantees that our path parameter validated by FastAPI is always
 # a safe dictionary key when we pass it to the legacy backend function.
 TrendingPeriod = Literal["now", "daily", "weekly", "monthly", "yearly", "forever"]
+
+
+def _request_fullpath(request: Request) -> str:
+    if request.url.query:
+        return f"{request.url.path}?{request.url.query}"
+    return request.url.path
+
+
+def _changequery_for_request(request: Request, **kw) -> str:
+    query = dict(request.query_params)
+    for key, value in kw.items():
+        if value is None:
+            query.pop(key, None)
+        else:
+            query[key] = str(value)
+
+    if query:
+        return f"{request.url.path}?{urlencode(query)}"
+    return request.url.path
+
+
+def _json_not_found() -> JSONResponse:
+    return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
 
 
 class AvailabilityStatusV2(BaseModel):
@@ -290,12 +321,52 @@ def post_work_bookshelves(
     )
 
 
-async def work_editions():
-    pass
+@router.get("/works/OL{work_id}W/editions.json")
+def work_editions(
+    request: Request,
+    work_id: Annotated[int, Path(gt=0)],
+    limit: Annotated[str | None, Query()] = "50",
+    offset: Annotated[str | None, Query()] = "0",
+) -> Any:
+    """Get paginated editions for a work."""
+    current_site = site.get()
+    work = current_site.get(f"/works/OL{work_id}W")
+    if not work or work.type.key != "/type/work":
+        return _json_not_found()
+
+    resolved_limit, resolved_offset = get_work_editions_pagination(limit, offset)
+    return get_work_editions_data(
+        work,
+        limit=resolved_limit,
+        offset=resolved_offset,
+        current_site=current_site,
+        fullpath=_request_fullpath(request),
+        changequery=lambda **kw: _changequery_for_request(request, **kw),
+    )
 
 
-async def author_works():
-    pass
+@router.get("/authors/OL{author_id}A/works.json")
+def author_works(
+    request: Request,
+    author_id: Annotated[int, Path(gt=0)],
+    limit: Annotated[str | None, Query()] = "50",
+    offset: Annotated[str | None, Query()] = "0",
+) -> Any:
+    """Get paginated works for an author."""
+    current_site = site.get()
+    author = current_site.get(f"/authors/OL{author_id}A")
+    if not author or author.type.key != "/type/author":
+        return _json_not_found()
+
+    resolved_limit, resolved_offset = get_author_works_pagination(limit, offset)
+    return get_author_works_data(
+        author,
+        limit=resolved_limit,
+        offset=resolved_offset,
+        current_site=current_site,
+        fullpath=_request_fullpath(request),
+        changequery=lambda **kw: _changequery_for_request(request, **kw),
+    )
 
 
 class PriceResponse(BaseModel):
