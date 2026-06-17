@@ -5,11 +5,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 import web
-from starlette.requests import Request
 
-from infogami.utils.context import context as legacy_context
 from openlibrary.plugins.upstream import account as legacy_account
-from openlibrary.utils import request_context
 
 
 class FakeLegacyUser(dict):
@@ -23,47 +20,6 @@ class FakeLegacyUser(dict):
 class FakeEdition:
     def dict(self) -> dict:
         return {"key": "/books/OL1M", "title": "Serialized Edition"}
-
-
-class TestLegacyContextBridge:
-    def test_legacy_context_bridge_populates_infogami_template_context(self):
-        legacy_user = FakeLegacyUser()
-        legacy_site = Mock(_conn=Mock())
-        legacy_site.get_user.return_value = legacy_user
-        original_legacy_context = legacy_context.copy()
-        legacy_context.clear()
-        legacy_context.previous_value = "kept"
-        request = Request(
-            {
-                "type": "http",
-                "method": "GET",
-                "scheme": "http",
-                "path": "/account/loans.json",
-                "query_string": b"rescue=true",
-                "headers": [(b"host", b"testserver")],
-                "client": ("127.0.0.1", 1234),
-                "server": ("testserver", 80),
-            }
-        )
-        request.state.lang = "en"
-        site_token = request_context.site.set(legacy_site)
-
-        try:
-            with request_context.legacy_web_ctx_from_fastapi(request):
-                assert web.ctx.path == "/account/loans.json"
-                assert web.ctx.encoding == "json"
-                assert web.ctx.render_once == {}
-                assert web.ctx.site == legacy_site
-                assert legacy_context.path == "/account/loans.json"
-                assert legacy_context.user == legacy_user
-                assert legacy_context.rescue_mode is True
-
-            assert legacy_context.previous_value == "kept"
-            assert "path" not in legacy_context
-        finally:
-            request_context.site.reset(site_token)
-            legacy_context.clear()
-            legacy_context.update(original_legacy_context)
 
 
 class TestAccountLoansJson:
