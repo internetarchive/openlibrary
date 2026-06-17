@@ -7,6 +7,7 @@ from openlibrary.plugins.worksearch.code import (
     _prepare_solr_query_params,
     get_doc,
     process_facet,
+    works_by_author,
 )
 from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 from openlibrary.utils.request_context import RequestContextVars, req_context
@@ -230,3 +231,36 @@ def test_get_readable_count_queries_with_readable_filter_when_toggle_off():
     assert readable_param["has_fulltext"] == "true"
     assert "public_scan" not in readable_param
     assert mock_query.call_args.kwargs["rows"] == 0
+
+
+def test_works_by_author_merges_availability_and_languages_into_param():
+    """An author page can scope its works by availability + language; the values
+    are merged into the param dict the same way /search expresses them, so
+    run_solr_query rewrites them into identical Solr filters."""
+    with (
+        patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query",
+            return_value=web.storage(docs=[]),
+        ) as mock_query,
+        patch("openlibrary.plugins.worksearch.code.add_availability"),
+    ):
+        works_by_author("OL1A", availability="borrowable", languages=["eng", "fre"])
+    param = mock_query.call_args.kwargs["param"]
+    # 'borrowable' == readable but not public-domain.
+    assert param["has_fulltext"] == "true"
+    assert param["public_scan"] == "false"
+    assert param["language"] == ["eng", "fre"]
+
+
+def test_works_by_author_default_scope_injects_no_filters():
+    """The default availability ('all') with no languages leaves a bare author
+    scope — no availability or language params added to the query."""
+    with (
+        patch(
+            "openlibrary.plugins.worksearch.code.run_solr_query",
+            return_value=web.storage(docs=[]),
+        ) as mock_query,
+        patch("openlibrary.plugins.worksearch.code.add_availability"),
+    ):
+        works_by_author("OL1A")
+    assert mock_query.call_args.kwargs["param"] == {"q": "*:*"}
