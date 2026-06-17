@@ -14,17 +14,17 @@
  *                                    cannot reach the document sprite via <use>
  *                                    and must inline the geometry instead.
  *
+ * Source SVGs are authored clean (24x24, currentColor, no width/height), so this
+ * script has NO dependencies — only Node built-ins. That keeps `make icons` and
+ * the freshness check runnable everywhere (CI, containers, fresh checkouts)
+ * without installing devDependencies.
+ *
  * Usage: node scripts/build_icon_sprite.mjs [--out <dir>]
  *   --out defaults to static/build/icons
  */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
-import { optimize } from "svgo";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-const spriteConfig = require("../config/svgo.sprite.config.js");
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SRC_DIR = join(ROOT, "static", "icons", "src");
@@ -93,14 +93,10 @@ function collectIcons() {
                 throw new Error(`Duplicate icon name "${name}" (found again in ${group}/)`);
             }
             const raw = readFileSync(join(dir, file), "utf8");
-            // prefixIds per-glyph so internal ids (gradients, clip-paths) can't
-            // collide once every symbol lives in one document.
-            const { data } = optimize(raw, {
-                path: file,
-                ...spriteConfig,
-                plugins: [...spriteConfig.plugins, { name: "prefixIds", params: { prefix: name } }],
-            });
-            const { attrs, inner } = parseSvg(data, name);
+            // Sources are pre-optimized and id-free, so we parse them directly.
+            // (If an id-bearing glyph — gradient/clip-path — is ever added, give
+            // its ids a per-glyph prefix here to avoid collisions in the sprite.)
+            const { attrs, inner } = parseSvg(raw, name);
             icons.set(name, { symbol: toSymbol(name, attrs, inner), inner });
         }
     }
