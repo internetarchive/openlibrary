@@ -15,11 +15,11 @@ from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
+from validate_email import validate_email
+
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
-from validate_email import validate_email
-
 from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
@@ -941,6 +941,22 @@ class InternetArchiveAccount(web.storage):
         )
 
     @classmethod
+    def issue_s3_key(cls, email: str | None = None, itemname: str | None = None) -> dict | None:
+        """Fetch a new S3 keypair via the xauthn issue_key op.
+
+        xauthn's info/authenticate/activate/redeem_otp ops no longer return S3
+        keys; callers must request them separately after a successful auth step.
+        Returns {"access": ..., "secret": ...} on success, None on failure.
+        """
+        kwargs: dict = {"op": "issue_key", "key_type": "s3"}
+        if email:
+            kwargs["email"] = email.strip().lower()
+        if itemname:
+            kwargs["itemname"] = itemname
+        response = cls.xauth(**kwargs)
+        return response.get("s3") or None
+
+    @classmethod
     def verify(cls, token, welcome_email=True, test=False):
         """
         Verifies (activates) an Internet Archive account using a one-time token sent to the user's email.
@@ -958,7 +974,13 @@ class InternetArchiveAccount(web.storage):
                 "code": response.get("code", 409),
             }
 
-        return response.get("values", response)
+        values = response.get("values", {})
+        # activate no longer returns S3 keys — fetch them via issue_key
+        s3_keys = cls.issue_s3_key(email=values.get("email"))
+        if not s3_keys:
+            return {"error": "s3_key_issue_failed", "code": 500}
+        values["s3"] = s3_keys
+        return values
 
 
 def audit_accounts(  # noqa: PLR0912
@@ -1092,12 +1114,12 @@ def audit_accounts(  # noqa: PLR0912
         if ol_account and not ol_account.itemname:
             return {"error": "accounts_not_connected"}
 
-    s3_keys = None
-    if "values" in ia_login:
-        s3_keys = {
-            "access": ia_login["values"].pop("access"),
-            "secret": ia_login["values"].pop("secret"),
-        }
+    # authenticate/info no longer return S3 keys (xauthn breaking change, issue #12942).
+    # S3-path callers pass keys directly; password-path callers must fetch via issue_key.
+    if s3_access_key and s3_secret_key:
+        s3_keys: dict | None = {"access": s3_access_key, "secret": s3_secret_key}
+    else:
+        s3_keys = InternetArchiveAccount.issue_s3_key(email=email)
 
     # Handle Print Disability Processing
     has_special_access = getattr(ia_account, "has_disability_access", False)

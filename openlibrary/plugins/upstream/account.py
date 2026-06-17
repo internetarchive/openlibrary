@@ -11,9 +11,10 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
+
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -22,7 +23,6 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
-
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -57,7 +57,6 @@ from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
-from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.core.models import SubjectType
@@ -132,10 +131,7 @@ class xauth(delegate.page):
             result = {
                 "success": True,
                 "version": 1,
-                "values": {
-                    "access": "foo",
-                    "secret": "foo",
-                },
+                "values": {},
             }
         elif i.op == "info":
             result = {
@@ -153,7 +149,7 @@ class xauth(delegate.page):
             # Pretend to send an OTP email; accept any email in dev
             result = {"success": True, "version": 1}
         elif i.op == "redeem_otp":
-            # Accept "123456" as the dev OTP code
+            # Accept "123456" as the dev OTP code; S3 keys no longer returned here
             if body.get("password") == "123456":
                 result = {
                     "success": True,
@@ -162,7 +158,6 @@ class xauth(delegate.page):
                         "email": "openlibrary@example.org",
                         "itemname": "@openlibrary",
                         "screenname": "openlibrary",
-                        "s3": {"access": "foo", "secret": "foo"},
                     },
                 }
             else:
@@ -171,6 +166,23 @@ class xauth(delegate.page):
                     "version": 1,
                     "error": "invalid_otp",
                 }
+        elif i.op == "issue_key":
+            result = {
+                "success": True,
+                "version": 1,
+                "s3": {"access": "foo", "secret": "foo"},
+                "ttl": 3600,
+            }
+        elif i.op == "activate":
+            result = {
+                "success": True,
+                "version": 1,
+                "values": {
+                    "email": "openlibrary@example.org",
+                    "itemname": "@openlibrary",
+                    "screenname": "openlibrary",
+                },
+            }
         return delegate.RawText(json.dumps(result), content_type="application/json")
 
 
@@ -520,11 +532,12 @@ class account_login_otp_redeem(delegate.page):
         result = InternetArchiveAccount.redeem_otp(i.email, i.otp, originating_ip=originating_ip)
         if not result.get("success"):
             return delegate.RawText(json.dumps({"error": result.get("error", "invalid_otp")}))
-        s3 = result.get("values", {}).get("s3", {})
-        access = s3.get("access")
-        secret = s3.get("secret")
-        if not access or not secret:
+        # redeem_otp no longer returns S3 keys (xauthn breaking change, issue #12942)
+        s3_keys = InternetArchiveAccount.issue_s3_key(email=i.email)
+        if not s3_keys:
             return delegate.RawText(json.dumps({"error": "otp_redeem_incomplete"}))
+        access = s3_keys["access"]
+        secret = s3_keys["secret"]
         audit = audit_accounts(
             None,
             None,

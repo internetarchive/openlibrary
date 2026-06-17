@@ -106,20 +106,37 @@ def test_get(mock_web, mock_site):
 
 @mock.patch.object(InternetArchiveAccount, "xauth")
 def test_verify_success(mock_xauth):
-    mock_xauth.return_value = {
-        "success": True,
-        "values": {
-            "email": "test@example.com",
-            "itemname": "@test",
-            "screenname": "test",
-            "s3": {"access": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI"},
+    # activate response no longer includes S3 keys; a second issue_key call is made
+    mock_xauth.side_effect = [
+        {
+            "success": True,
+            "values": {
+                "email": "test@example.com",
+                "itemname": "@test",
+                "screenname": "test",
+            },
         },
-    }
+        {"s3": {"access": "AKIAIOSFODNN7EXAMPLE", "secret": "wJalrXUtnFEMI"}, "ttl": 3600},
+    ]
     result = InternetArchiveAccount.verify(token="sometoken")
     assert "error" not in result
     assert result["email"] == "test@example.com"
     assert result["s3"]["access"] == "AKIAIOSFODNN7EXAMPLE"
     assert result["s3"]["secret"] == "wJalrXUtnFEMI"
+
+
+@mock.patch.object(InternetArchiveAccount, "xauth")
+def test_verify_issue_key_failure_returns_error(mock_xauth):
+    """If issue_key fails after activation, verify() returns an error dict."""
+    mock_xauth.side_effect = [
+        {
+            "success": True,
+            "values": {"email": "test@example.com", "itemname": "@test", "screenname": "test"},
+        },
+        {"success": False, "error": "issue_key_failed"},
+    ]
+    result = InternetArchiveAccount.verify(token="sometoken")
+    assert result.get("error") == "s3_key_issue_failed"
 
 
 @mock.patch.object(InternetArchiveAccount, "xauth")
