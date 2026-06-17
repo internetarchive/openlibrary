@@ -1964,6 +1964,75 @@ class TestNormalizeImportRecord:
         normalize_import_record(rec=rec)
         assert rec == expected
 
+    def test_unescape_html_entities_in_title(self):
+        """HTML numeric entities in titles are unescaped (BWB-sourced mangled Unicode)."""
+        rec = {
+            "title": "&#1059;&#1073;&#1077;&#1079;&#1087;&#1077;&#1094;&#1110;&#1079;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # U+0423 U+0431 U+0435 U+0437 U+043F U+0435 U+0446 U+0456 U+0437
+        assert rec["title"] == "Убезпеціз"
+
+    def test_unescape_html_entities_in_subtitle(self):
+        rec = {
+            "title": "My Book",
+            "subtitle": "&#1057;&#1077;&#1088;&#1075;&#1077;&#1081;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        # U+0421 U+0435 U+0440 U+0433 U+0435 U+0439 = Sergei in Russian
+        assert rec["subtitle"] == "Сергей"
+
+    def test_unescape_html_entities_in_author_name(self):
+        rec = {
+            "title": "My Book",
+            "source_records": ["bwb:9781234567890"],
+            "authors": [{"name": "&#1057;&#1077;&#1088;&#1075;&#1077;&#1081;"}],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["authors"][0]["name"] == "Сергей"
+
+    def test_hex_entity_unescaped(self):
+        """Hex-form entities (&#x41B;) are also unescaped."""
+        rec = {
+            "title": "&#x41B;",
+            "source_records": ["bwb:9781234567890"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Л"  # CYRILLIC CAPITAL LETTER EL
+
+    def test_legitimate_ampersand_unchanged(self):
+        """A bare & in a title is not corrupted."""
+        rec = {
+            "title": "Tom & Jerry",
+            "source_records": ["ia:tomjerry"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Tom & Jerry"
+
+    def test_named_entity_unchanged(self):
+        """Named entities like &amp; are not unescaped (strict numeric-only pattern)."""
+        rec = {
+            "title": "Foo &amp; Bar",
+            "source_records": ["ia:foobar"],
+        }
+        normalize_import_record(rec=rec)
+        assert rec["title"] == "Foo &amp; Bar"
+
+    def test_description_as_dict_unescaped(self):
+        """description stored as {type, value} dict is unescaped."""
+        rec = {
+            "title": "My Book",
+            "source_records": ["bwb:9781234567890"],
+            "description": {
+                "type": "/type/text",
+                "value": "&#1057;&#1077;&#1088;",
+            },
+        }
+        normalize_import_record(rec=rec)
+        assert rec["description"]["value"] == "Сер"  # noqa: RUF001  # Cyrillic chars
+
 
 def test_find_match_title_only_promiseitem_against_noisbn_marc(mock_site):
     # An existing light title + ISBN only record should not match an
