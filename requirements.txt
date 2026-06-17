@@ -2,7 +2,7 @@ aiofiles==25.1.0
 amightygirl.paapi5-python-sdk==1.0.0
 APScheduler==3.11.2
 Babel==2.18.0
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
 eventer==0.1.1
 fastapi==0.136.3
 feedparser==6.0.12
