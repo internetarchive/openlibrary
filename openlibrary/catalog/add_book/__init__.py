@@ -705,6 +705,22 @@ def load_data(  # noqa: PLR0912, PLR0915
         if cover_id:
             work.setdefault("covers", []).append(cover_id)
             need_update = True
+        if "work_identifiers" in rec:
+            existing_raw = work.get("identifiers") or {}
+            # work is a Thing object; .dict() normalizes it to a plain dict for comparison
+            existing = existing_raw.dict() if hasattr(existing_raw, "dict") else dict(existing_raw)
+            # Only enrich if this work was matched via one of the rec's identifiers.
+            # Title-based fallback matches don't confirm the work_identifiers apply here.
+            if any(v in (existing.get(k) or []) for k, vals in rec["work_identifiers"].items() for v in vals):
+                # Deep-copy lists to avoid aliasing existing[k] through the defaultdict
+                identifiers = defaultdict(list, {k: list(v) for k, v in existing.items()})
+                for k, vals in rec["work_identifiers"].items():
+                    identifiers[k].extend(vals)
+                    identifiers[k] = list(set(identifiers[k]))
+                new_ids = dict(identifiers)
+                if existing != new_ids:
+                    work["identifiers"] = new_ids
+                    need_update = True
         if need_update:
             work_state = "modified"
             edits.append(work.dict())
@@ -948,12 +964,16 @@ def update_work_with_rec_data(rec: dict, edition: Edition, work: dict[str, Any],
 
     # Add new work_identifiers, merging with any already on the work.
     if "work_identifiers" in rec:
-        identifiers = defaultdict(list, work.get("identifiers", {}))
+        existing_raw = work.get("identifiers") or {}
+        existing = existing_raw.dict() if hasattr(existing_raw, "dict") else dict(existing_raw)
+        # Deep-copy lists to avoid aliasing existing[k] through the defaultdict
+        identifiers = defaultdict(list, {k: list(v) for k, v in existing.items()})
         for k, vals in rec["work_identifiers"].items():
             identifiers[k].extend(vals)
             identifiers[k] = list(set(identifiers[k]))
-        if work.get("identifiers") != identifiers:
-            work["identifiers"] = dict(identifiers)
+        new_ids = dict(identifiers)
+        if existing != new_ids:
+            work["identifiers"] = new_ids
             need_work_save = True
 
     return need_work_save
