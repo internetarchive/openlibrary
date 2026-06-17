@@ -18,6 +18,7 @@ from openlibrary.plugins.upstream.merge_authors import (
     AuthorMergeEngine,
     AuthorRedirectEngine,
 )
+from openlibrary.utils.request_context import req_context, web_ctx_ip
 from openlibrary.utils.retry import MaxRetriesExceeded, RetryStrategy
 
 router = APIRouter(tags=["merge-authors"])
@@ -33,36 +34,37 @@ class MergeAuthorsBody(BaseModel):
 
 @router.post("/authors/merge.json")
 def merge_authors_json(_: LibrarianDep, data: MergeAuthorsBody) -> Any:
-    try:
-        engine = AuthorMergeEngine(AuthorRedirectEngine())
-        merge_result = engine.merge(data.master, data.duplicates)
-    except ClientException as e:
-        raise HTTPException(
-            status_code=400,
-            detail=json.loads(e.json),
-        )
+    with web_ctx_ip(req_context.get().x_forwarded_for or "127.0.0.1"):
+        try:
+            engine = AuthorMergeEngine(AuthorRedirectEngine())
+            merge_result = engine.merge(data.master, data.duplicates)
+        except ClientException as e:
+            raise HTTPException(
+                status_code=400,
+                detail=json.loads(e.json),
+            )
 
-    def update_request() -> None:
-        if data.mrid:
-            rtype = "update-request"
-            update_data: dict[str, Any] = {"action": "approve", "mrid": data.mrid}
-        else:
-            rtype = "create-request"
-            update_data = {"mr_type": 2, "olids": data.olids, "action": "create-merged"}
-        if data.comment:
-            update_data["comment"] = data.comment
-        process_merge_request(rtype, update_data)
+        def update_request() -> None:
+            if data.mrid:
+                rtype = "update-request"
+                update_data: dict[str, Any] = {"action": "approve", "mrid": data.mrid}
+            else:
+                rtype = "create-request"
+                update_data = {"mr_type": 2, "olids": data.olids, "action": "create-merged"}
+            if data.comment:
+                update_data["comment"] = data.comment
+            process_merge_request(rtype, update_data)
 
-    try:
-        RetryStrategy(
-            [ClientException],
-            max_retries=5,
-            delay=2,
-        )(update_request)
-    except MaxRetriesExceeded as e:
-        raise HTTPException(
-            status_code=400,
-            detail=str(e.last_exception),
-        )
+        try:
+            RetryStrategy(
+                [ClientException],
+                max_retries=5,
+                delay=2,
+            )(update_request)
+        except MaxRetriesExceeded as e:
+            raise HTTPException(
+                status_code=400,
+                detail=str(e.last_exception),
+            )
 
     return merge_result
