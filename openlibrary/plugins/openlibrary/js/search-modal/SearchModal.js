@@ -941,12 +941,13 @@ export class SearchModal extends LitElement {
         // never opens during a drag (clicking ends the drag) and the drop is lost.
         trigger.addEventListener('dragover', (e) => {
             e.preventDefault();
-            if (!this.open) this._openModal();
+            if (!this.open) this._openModal('drag');
         });
     }
 
-    _openModal() {
+    _openModal(trigger = 'click') {
         this.open = true;
+        this._track('Open', trigger);
         if (!this._allLangsLoaded && !this._langsLoading) {
             this._loadAllLanguages();
         }
@@ -1160,11 +1161,11 @@ export class SearchModal extends LitElement {
             <div class="results ${this._navigatingKey ? 'is-navigating' : ''}" @keydown=${this._onResultsKeydown}>
                 ${this._authorSuggestions.length ? html`
                     <ul class="results-list author-suggestion">
-                        ${repeat(this._authorSuggestions, a => a.key, a => this._renderAuthorSuggestion(a))}
+                        ${repeat(this._authorSuggestions, a => a.key, (a, i) => this._renderAuthorSuggestion(a, i))}
                     </ul>
                 ` : nothing}
                 <h3 class="results-heading">${this._i18n.topResults}</h3>
-                <ul class="results-list">${repeat(this._results, r => r.key, r => this._renderResult(r))}</ul>
+                <ul class="results-list">${repeat(this._results, r => r.key, (r, i) => this._renderResult(r, i))}</ul>
             </div>
         `;
     }
@@ -1233,13 +1234,13 @@ export class SearchModal extends LitElement {
     // A "go to the author page" row shown above the works for each top-result
     // author the query names (see deriveAuthors). The whole row is a single link
     // to the author page, so it's a plain anchor (no nested-link concern).
-    _renderAuthorSuggestion(author) {
+    _renderAuthorSuggestion(author, index = 0) {
         const href = `/authors/${author.key}`;
         return html`<li>
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href)}
+                    @click=${(e) => this._onResultPress(e, href, { type: 'author', rank: index + 1 })}
                 >
                     <span class="result__avatar">
                         ${SearchModal._personIcon}
@@ -1286,7 +1287,7 @@ export class SearchModal extends LitElement {
     // The whole row is a single link to the work — the author is surfaced in
     // its own suggestion row, so there's no separate author link here (which
     // also keeps this a plain anchor with no nested-link concern).
-    _renderResult(work) {
+    _renderResult(work, index = 0) {
         // Promote the hit to the specific edition that best matches the query —
         // its OL edition page — so the result opens on (and displays) that copy
         // rather than the work page. The edition is editions.docs[0] from the
@@ -1396,7 +1397,7 @@ export class SearchModal extends LitElement {
                 <a
                     class="result ${this._navigatingKey === href ? 'is-target' : ''}"
                     href=${href}
-                    @click=${(e) => this._onResultPress(e, href)}
+                    @click=${(e) => this._onResultPress(e, href, { type: display === edition ? 'edition' : 'work', rank: index + 1 })}
                 >
                     <span class="result__cover-link">
                         <img class="result__cover" src=${cover} srcset=${coverSrcset} alt="" loading="lazy" width="36" height="50" @error=${this._onCoverError}/>
@@ -1428,6 +1429,16 @@ export class SearchModal extends LitElement {
 
     // ── Event handlers ───────────────────────────────────────────────────
 
+    // Send a Matomo event through OL's wrapper. The modal renders in Shadow
+    // DOM, so Matomo's selector-based click triggers can't see its controls —
+    // we emit events manually instead. Guarded so a missing analytics CDN can't
+    // break an interaction. Labels carry only the *shape* of the interaction
+    // (counts, positions, types) — never the query text the patron typed.
+    _track(action, label) {
+        if (!window.archive_analytics) return;
+        window.archive_analytics.ol_send_event_ping({ category: 'SearchModal', action, label });
+    }
+
     _onDialogOpened() {
         this.renderRoot.querySelector('.search-input')?.focus();
     }
@@ -1447,9 +1458,13 @@ export class SearchModal extends LitElement {
     // shows its loading treatment (cover spinner, dimmed siblings) during that
     // gap. Modified clicks (open in new tab/window) don't navigate this page —
     // leave them untreated.
-    _onResultPress(e, key) {
+    _onResultPress(e, key, meta) {
         if (e.defaultPrevented || e.button !== 0) return;
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        // Track which row was chosen by type + 1-based rank (e.g. "work:3",
+        // "author:1") — never the title. New-tab/modified clicks return above,
+        // so this counts the in-window navigations the typeahead drove.
+        if (meta) this._track('ResultClick', `${meta.type}:${meta.rank}`);
         this._saveCurrentSearch();
         this._navigatingKey = key;
     }
@@ -1584,6 +1599,10 @@ export class SearchModal extends LitElement {
         this._saveCurrentSearch();
         const url = this._buildSearchUrl();
         if (!url) return;
+        // Distinguish a fall-through from the typeahead (results were showing)
+        // from a blind jump to /search (no inline results yet) — the ratio of
+        // this to ResultClick tells us whether the typeahead satisfies intent.
+        this._track('SeeAllResults', this._results.length ? 'hasResults' : 'noResults');
         // Flag the footer button so its spinner shows during the navigation
         // delay (the page keeps painting until /search arrives). Mirrors how a
         // pressed result sets _navigatingKey before the window navigates.
@@ -1632,6 +1651,18 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
+                // A settled autocomplete that came back empty. Label by which
+                // filter *category* was active so we can tell a genuine catalog
+                // gap (`unfiltered`) from a user who over-constrained themselves
+                // (`availability`/`language`/`availability+language`). Categories
+                // only — never the filter values or query text; that catalog-gap
+                // detail belongs in the server search logs, not analytics labels.
+                if (this._results.length === 0) {
+                    const active = [];
+                    if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+                    if (this._languages.length > 0) active.push('language');
+                    this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
+                }
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
