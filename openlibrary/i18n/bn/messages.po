@@ -2475,7 +2475,7 @@ msgstr "स्थिति"
 
 #: about/index.html
 msgid "Fellows"
-msgstr ""
+msgstr "ফেলোবৃন্দ"
 
 #: about/index.html
 #, fuzzy
@@ -2484,7 +2484,7 @@ msgstr "स्वयंसेवक"
 
 #: about/index.html
 msgid "Department:"
-msgstr ""
+msgstr "বিভাগ:"
 
 #: about/index.html
 #, fuzzy
@@ -2498,7 +2498,7 @@ msgstr "आयाम"
 
 #: about/index.html
 msgid "Engineering"
-msgstr ""
+msgstr "প্রকৌশল"
 
 #: about/index.html
 #, fuzzy
@@ -2507,7 +2507,7 @@ msgstr "लाइब्रेरियन पोर्टल"
 
 #: about/index.html
 msgid "If you volunteer with Open Library and would like to be listed as part of the team, then complete the <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library team information form</a>."
-msgstr ""
+msgstr "আপনি যদি Open Library-তে স্বেচ্ছাসেবক হিসেবে কাজ করেন এবং দলের অংশ হিসেবে তালিকাভুক্ত হতে চান, তাহলে <a href=\"https://forms.gle/zPyuXGf4Bg6RzbDA7\">Open Library দলের তথ্য ফর্ম</a> পূরণ করুন।"
 
 #: account/create.html
 #, fuzzy
@@ -2516,7 +2516,7 @@ msgstr "यूज़रनेम में सिर्फ़ संख्या
 
 #: account/create.html
 msgid "A qualifying program must be selected"
-msgstr ""
+msgstr "একটি যোগ্যতাসম্পন্ন প্রোগ্রাম নির্বাচন করতে হবে"
 
 #: account/create.html
 msgid "Sign Up to Open Library"
@@ -2528,7 +2528,7 @@ msgstr "साइन अप"
 
 #: account/create.html
 msgid "Get your free Open Library card and borrow digital books from the nonprofit Internet Archive"
-msgstr ""
+msgstr "আপনার বিনামূল্যের Open Library কার্ড নিন এবং অলাভজনক Internet Archive থেকে ডিজিটাল বই ধার করুন"
 
 #: account/create.html type/author/view.html
 msgid "Success!"
@@ -2548,19 +2548,19 @@ msgstr "मैं <a href=\"https://archive.org/\">इंटरनेट आर�
 
 #: account/create.html
 msgid "I want to apply* for <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">special print disability access</a> through a qualifying program."
-msgstr ""
+msgstr "আমি একটি যোগ্যতাসম্পন্ন প্রোগ্রামের মাধ্যমে <a href=\"https://help.archive.org/help/program-overview/\" target=\"_blank\">বিশেষ মুদ্রণ-প্রতিবন্ধিতা অ্যাক্সেস</a>-এর জন্য আবেদন* করতে চাই।"
 
 #: account/create.html
 msgid "Select qualifying program"
-msgstr ""
+msgstr "যোগ্যতাসম্পন্ন প্রোগ্রাম নির্বাচন করুন"
 
 #: account/create.html
 msgid "* Please use the email address associated with this qualifying program. You will receive an email after activation with next steps."
-msgstr ""
+msgstr "* এই যোগ্যতাসম্পন্ন প্রোগ্রামের সাথে সংযুক্ত ইমেইল ঠিকানা ব্যবহার করুন। সক্রিয়করণের পরে পরবর্তী পদক্ষেপ সহ একটি ইমেইল পাবেন।"
 
 #: account/create.html
 msgid "Sign Up with Email"
-msgstr ""
+msgstr "ইমেইল দিয়ে নিবন্ধন করুন"
 
 #: account/create.html
 #, fuzzy
@@ -2569,7 +2569,7 @@ msgstr "साइन अप करके, आप इंटरनेट आर्
 
 #: account/create.html
 msgid "Already have an account? <a href=\"/account/login\">Log in</a>"
-msgstr ""
+msgstr "ইতোমধ্যে অ্যাকাউন্ট আছে? <a href=\"/account/login\">লগ ইন করুন</a>"
 
 #: account/delete.html
 msgid "Delete Account"
@@ -2590,7 +2590,7 @@ msgstr "Goodreads से इंपोर्ट करें"
 
 #: account/import.html
 msgid "For instructions on exporting data refer to: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
-msgstr ""
+msgstr "ডেটা রপ্তানির নির্দেশনার জন্য দেখুন: <a href=\"https://www.goodreads.com/review/import\">Goodreads Import/Export</a>"
 
 #: account/import.html
 msgid "File size limit 10MB and .csv file type only"
@@ -2683,11 +2683,11 @@ msgstr "ISBN"
 
 #: account/loan_history.html
 msgid "No loans found in your borrow history."
-msgstr ""
+msgstr "আপনার ধার করার ইতিহাসে কোনো ঋণ পাওয়া যায়নি।"
 
 #: account/loan_history.html
 msgid "<a href=\"/search\">Search for a book</a> to borrow."
-msgstr ""
+msgstr "ধার করতে <a href=\"/search\">একটি বই খুঁজুন</a>।"
 
 #: account/loans.html
 msgid "You've not checked out any books at this moment."
@@ -2755,7 +2755,7 @@ msgstr[1] "इसे उधार लेने के लिए आपके प
 
 #: account/loans.html
 msgid "Looking for a book to borrow?  Check out our staff picks, or search for a book on a specific subject:"
-msgstr ""
+msgstr "ধার করার জন্য বই খুঁজছেন? আমাদের কর্মীদের পছন্দ দেখুন, বা একটি নির্দিষ্ট বিষয়ে বই খুঁজুন:"
 
 #: account/loans.html home/index.html
 msgid "Books We Love"
@@ -2763,7 +2763,7 @@ msgstr "वे किताबें जिन्हें हम पसंद �
 
 #: account/loans.html
 msgid "Or, check out our <a href=\"/collections\">special collections</a>."
-msgstr ""
+msgstr "অথবা, আমাদের <a href=\"/collections\">বিশেষ সংগ্রহ</a> দেখুন।"
 
 #: account/mybooks.html
 msgid "No books are on this shelf"
@@ -2820,11 +2820,11 @@ msgstr "ईमेल पते की पुष्टि नहीं की ज
 #: account/not_verified.html
 #, python-format
 msgid "When you created your account, we sent an email to %(email)s that contained a link for you to verify your email address. We need you to click that link, please."
-msgstr ""
+msgstr "আপনি অ্যাকাউন্ট তৈরি করার সময়, আমরা %(email)s-এ একটি ইমেইল পাঠিয়েছিলাম যাতে আপনার ইমেইল যাচাই করার একটি লিঙ্ক ছিল। অনুগ্রহ করে সেই লিঙ্কটি ক্লিক করুন।"
 
 #: account/not_verified.html
 msgid "If you can't find the email, just hit this button to send a fresh one:"
-msgstr ""
+msgstr "ইমেইলটি খুঁজে না পেলে, নতুন একটি পাঠাতে এই বোতামটি চাপুন:"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Resend the verification email"
@@ -2832,7 +2832,7 @@ msgstr "सत्यापन ईमेल फिर से भेजें"
 
 #: account/not_verified.html account/verify/failed.html
 msgid "Thanks!"
-msgstr ""
+msgstr "ধন্যবাদ!"
 
 #: account/notes.html
 msgid "My notes for an edition of "
@@ -2906,11 +2906,11 @@ msgstr "गोपनीयता सेटिंग्स"
 
 #: account/privacy.html
 msgid "Would you like to make your <a href=\"/account/books\">Reading Log</a> public?"
-msgstr ""
+msgstr "আপনার <a href=\"/account/books\">রিডিং লগ</a> কি সর্বজনীন করতে চান?"
 
 #: account/privacy.html
 msgid "This will enable others to see what books you want to read, are reading, or have already read. Patrons with reading logs set to public may be followed."
-msgstr ""
+msgstr "এটি অন্যদের দেখতে দেবে আপনি কোন বই পড়তে চান, পড়ছেন বা ইতোমধ্যে পড়েছেন। পাবলিক রিডিং লগ সহ পাঠকদের অনুসরণ করা যায়।"
 
 #: account/privacy.html admin/people/view.html
 msgid "Yes"
@@ -2922,11 +2922,11 @@ msgstr "नहीं"
 
 #: account/privacy.html
 msgid "Enable Safe Mode?"
-msgstr ""
+msgstr "নিরাপদ মোড সক্রিয় করবেন?"
 
 #: account/privacy.html
 msgid "Safe Mode blurs book covers that have been flagged as having sensitive imagery."
-msgstr ""
+msgstr "নিরাপদ মোড সংবেদনশীল ছবি হিসেবে চিহ্নিত বইয়ের প্রচ্ছদগুলিকে ঝাপসা করে দেয়।"
 
 #: account/reading_log.html
 #, python-format
@@ -2951,12 +2951,12 @@ msgstr "%(username)s %(total)d किताबें पढ़ना चाह�
 #: account/reading_log.html
 #, python-format
 msgid "Books %(username)s has read in %(year)d"
-msgstr ""
+msgstr "%(year)d সালে %(username)s পড়া বই"
 
 #: account/reading_log.html
 #, python-format
 msgid "%(username)s has read %(total)d books in %(year)d. Join %(username)s on OpenLibrary.org and tell the world about the books that you care about."
-msgstr ""
+msgstr "%(year)d সালে %(username)s %(total)d টি বই পড়েছেন। OpenLibrary.org-এ %(username)s-এর সাথে যোগ দিন এবং বিশ্বকে আপনার পছন্দের বই সম্পর্কে জানান।"
 
 #: account/reading_log.html
 #, python-format
@@ -2976,7 +2976,7 @@ msgstr "पुस्तकें %(username)s ने पढ़ी हैं"
 #: account/reading_log.html
 #, python-format
 msgid "Books added by people %(username)s follows"
-msgstr ""
+msgstr "%(username)s যাদের অনুসরণ করেন তাদের যোগ করা বই"
 
 #: account/reading_log.html
 msgid "Search your reading log"
@@ -3019,7 +3019,7 @@ msgstr "अपने रीडिंग लॉग में जोड़ने �
 
 #: account/reading_log.html
 msgid "There are no recent books in your feed. When you follow public accounts, their book updates will appear here."
-msgstr ""
+msgstr "আপনার ফিডে কোনো সাম্প্রতিক বই নেই। আপনি পাবলিক অ্যাকাউন্ট অনুসরণ করলে, তাদের বইয়ের আপডেট এখানে দেখা যাবে।"
 
 #: account/readinglog_shelf_name.html
 msgid "Want To Read"
@@ -3037,7 +3037,7 @@ msgstr "मेरी किताबें"
 #: account/readinglog_stats.html
 #, python-format
 msgid "Displaying stats about <strong>%(works_count)d</strong> books. Note all charts show only the top 20 bars. Note reading log stats are private."
-msgstr ""
+msgstr "<strong>%(works_count)d</strong> টি বইয়ের পরিসংখ্যান দেখানো হচ্ছে। সমস্ত চার্টে কেবল শীর্ষ ২০টি বার দেখা যায়। রিডিং লগ পরিসংখ্যান ব্যক্তিগত।"
 
 #: account/readinglog_stats.html
 msgid "Author Stats"
@@ -3061,7 +3061,7 @@ msgstr "लेखक के जन्म के देश के अनुसा
 
 #: account/readinglog_stats.html
 msgid "Demographic statistics powered by <a href=\"https://www.wikidata.org/\">Wikidata</a>. Here's a <a id=\"wd-query-sample\" href=\"\">sample</a> of the query used. <br />Improve these stats by adding the Wikidata author identifier following <a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">these instructions</a>."
-msgstr ""
+msgstr "<a href=\"https://www.wikidata.org/\">Wikidata</a>-চালিত জনতাত্ত্বিক পরিসংখ্যান। ব্যবহৃত কোয়েরির একটি <a id=\"wd-query-sample\" href=\"\">নমুনা</a> এখানে আছে। <br /><a href=\"https://openlibrary.org/help/faq/editing.en#author-identifiers-purpose\">এই নির্দেশনা</a> অনুসরণ করে Wikidata লেখক শনাক্তকারী যোগ করে এই পরিসংখ্যান উন্নত করুন।"
 
 #: account/readinglog_stats.html
 msgid "Work Stats"
@@ -3131,7 +3131,7 @@ msgstr "आयात और निर्यात"
 #: account/topmenu.html
 #, python-format
 msgid "Privacy settings: %(public)s"
-msgstr ""
+msgstr "গোপনীয়তা সেটিংস: %(public)s"
 
 #: account/verify.html
 msgid "Verification email sent"
@@ -3149,15 +3149,15 @@ msgstr ""
 
 #: account/verify.html
 msgid "Then, come back to Open Library and find some great books!"
-msgstr ""
+msgstr "তারপর, Open Library-তে ফিরে আসুন এবং কিছু চমৎকার বই খুঁজুন!"
 
 #: account/view.html
 msgid "Yearly Reading Goal"
-msgstr ""
+msgstr "বার্ষিক পাঠ লক্ষ্য"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 msgid "Following"
-msgstr ""
+msgstr "অনুসরণ করছি"
 
 #: account/view.html books/mybooks_breadcrumb_select.html
 #, fuzzy
@@ -3179,11 +3179,11 @@ msgstr "आपकी बुक समीक्षाओं को अन्य �
 #: account/yrg_banner.html
 #, python-format
 msgid "Set your %(year)s Yearly Reading Goal:"
-msgstr ""
+msgstr "আপনার %(year)s বার্ষিক পাঠ লক্ষ্য নির্ধারণ করুন:"
 
 #: account/yrg_banner.html
 msgid "Set my goal"
-msgstr ""
+msgstr "আমার লক্ষ্য নির্ধারণ করুন"
 
 #: account/email/forgot-ia.html
 msgid "Forgot Your Internet Archive Email?"
@@ -3273,7 +3273,7 @@ msgstr "आपके ईमेल की पुष्टि नहीं की 
 
 #: account/verify/failed.html
 msgid "Fill your email and hit this button to resend a fresh verification email:"
-msgstr ""
+msgstr "আপনার ইমেইল পূরণ করুন এবং নতুন যাচাইকরণ ইমেইল পাঠাতে এই বোতামটি চাপুন:"
 
 #: account/verify/failed.html
 msgid "Enter your email address here"
@@ -3294,16 +3294,16 @@ msgstr "हाँ! आपका ईमेल सत्यापित कर द
 
 #: admin/attach_debugger.html
 msgid "Attach Debugger"
-msgstr ""
+msgstr "ডিবাগার সংযুক্ত করুন"
 
 #: admin/attach_debugger.html
 #, python-format
 msgid "Attach Debugger on Python %(version_number)s"
-msgstr ""
+msgstr "Python %(version_number)s-এ ডিবাগার সংযুক্ত করুন"
 
 #: admin/attach_debugger.html
 msgid "Start a debugger on port 3000."
-msgstr ""
+msgstr "পোর্ট ৩০০০-এ একটি ডিবাগার শুরু করুন।"
 
 #: admin/attach_debugger.html
 msgid "Waiting for debugger to attach..."
@@ -3321,11 +3321,11 @@ msgstr "IP एड्रेस"
 #: admin/block.html
 #, python-format
 msgid "IP address %(address)s has been added to the textarea. Please click Save to block that IP."
-msgstr ""
+msgstr "আইপি ঠিকানা %(address)s টেক্সটএরিয়াতে যোগ করা হয়েছে। সেই আইপি ব্লক করতে সংরক্ষণ ক্লিক করুন।"
 
 #: admin/graphs.html
 msgid "Performance Graphs"
-msgstr ""
+msgstr "পারফরম্যান্স গ্রাফ"
 
 #: admin/graphs.html
 #, fuzzy
@@ -3339,11 +3339,11 @@ msgstr "पूरे समय"
 
 #: admin/graphs.html
 msgid "Page Load Times Split"
-msgstr ""
+msgstr "পৃষ্ঠা লোড সময়ের বিভাজন"
 
 #: admin/graphs.html
 msgid "Infobase Mean"
-msgstr ""
+msgstr "ইনফোবেস গড়"
 
 #: admin/history.html admin/imports.html authors/infobox.html type/author/edit.html
 msgid "Date"
@@ -3369,7 +3369,7 @@ msgstr "ओपन लाइब्रेरी में एक नई कित�
 
 #: admin/imports-add.html
 msgid "Please add IA identifiers to be imported, one per line."
-msgstr ""
+msgstr "আমদানি করার জন্য IA শনাক্তকারী যোগ করুন, প্রতি লাইনে একটি করে।"
 
 #: admin/imports-add.html admin/inspect/store.html admin/ip/view.html admin/people/edits.html admin/permissions.html my_books/check_ins/check_in_form.html reading_goals/reading_goal_form.html
 msgid "Submit"
@@ -3377,7 +3377,7 @@ msgstr "सबमिट"
 
 #: admin/imports.html
 msgid "New Books Imported Per Day"
-msgstr ""
+msgstr "প্রতিদিন নতুন বই আমদানি"
 
 #: admin/imports.html admin/imports_by_date.html admin/pd_dashboard.html site/stats.html
 #, fuzzy
@@ -3392,7 +3392,7 @@ msgstr "मेरी पठन सूची:"
 #: admin/imports.html
 #, python-format
 msgid "<strong>Current Import Rate:</strong> %(num)d imports/hour."
-msgstr ""
+msgstr "<strong>বর্তমান আমদানির হার:</strong> %(num)d আমদানি/ঘণ্টা।"
 
 #: admin/imports.html
 #, fuzzy
@@ -3401,7 +3401,7 @@ msgstr "वर्ष:"
 
 #: admin/imports.html
 msgid "Summary By Date"
-msgstr ""
+msgstr "তারিখ অনুযায়ী সারসংক্ষেপ"
 
 #: admin/imports.html
 #, fuzzy
@@ -3420,7 +3420,7 @@ msgstr "# Books Starred"
 
 #: admin/imports.html
 msgid "#books failed to import"
-msgstr ""
+msgstr "আমদানিতে ব্যর্থ বইয়ের সংখ্যা"
 
 #: admin/imports.html
 #, fuzzy
@@ -3434,7 +3434,7 @@ msgstr "हाल के अकाउंट"
 
 #: admin/imports.html admin/imports_by_date.html
 msgid "Identifier"
-msgstr ""
+msgstr "শনাক্তকারী"
 
 #: admin/imports.html admin/imports_by_date.html
 #, fuzzy
@@ -3468,7 +3468,7 @@ msgstr "लेखक"
 
 #: admin/index.html
 msgid "<span class=\"login-counts\">0</span> patrons have logged in at least once over the past 30 days."
-msgstr ""
+msgstr "গত ৩০ দিনে <span class=\"login-counts\">0</span> জন পাঠক অন্তত একবার লগ ইন করেছেন।"
 
 #: admin/index.html
 msgid "Stats"
@@ -3476,7 +3476,7 @@ msgstr "स्थिति"
 
 #: admin/index.html
 msgid "Edits Per Day"
-msgstr ""
+msgstr "প্রতিদিন সম্পাদনা"
 
 #: admin/index.html admin/people/index.html
 msgid "Edits"
@@ -3484,15 +3484,15 @@ msgstr "संपादित करता"
 
 #: admin/index.html
 msgid "Yesterday"
-msgstr ""
+msgstr "গতকাল"
 
 #: admin/index.html
 msgid "Last 7 days"
-msgstr ""
+msgstr "গত ৭ দিন"
 
 #: admin/index.html
 msgid "Last 28 days"
-msgstr ""
+msgstr "গত ২৮ দিন"
 
 #: admin/index.html
 #, fuzzy
@@ -3505,7 +3505,7 @@ msgstr "बोट"
 
 #: admin/index.html
 msgid "New Accounts Per Day"
-msgstr ""
+msgstr "প্রতিদিন নতুন অ্যাকাউন্ট"
 
 #: admin/index.html
 #, fuzzy
@@ -3562,7 +3562,7 @@ msgstr "# यूनीक यूज़र लॉगिंग बुक्स"
 
 #: admin/index.html
 msgid "Yearly Reading Goals"
-msgstr ""
+msgstr "বার্ষিক পাঠ লক্ষ্যসমূহ"
 
 #: admin/index.html
 #, fuzzy
@@ -3581,7 +3581,7 @@ msgstr "समीक्षाएँ अपडेट करें"
 
 #: admin/index.html
 msgid "Patrons Following"
-msgstr ""
+msgstr "অনুসরণকারী পাঠক"
 
 #: admin/index.html
 #, fuzzy
@@ -3590,7 +3590,7 @@ msgstr "बनाई गई सूचियाँ"
 
 #: admin/index.html
 msgid "Patrons Creating Notes"
-msgstr ""
+msgstr "নোট তৈরিকারী পাঠক"
 
 #: admin/index.html
 #, fuzzy
@@ -3599,7 +3599,7 @@ msgstr "# Books Starred"
 
 #: admin/index.html
 msgid "Star Rating Patrons"
-msgstr ""
+msgstr "তারকা রেটিং দেওয়া পাঠক"
 
 #: admin/index.html home/stats.html
 msgid "Unique Visitors"
@@ -3617,11 +3617,11 @@ msgstr "उधार"
 
 #: admin/index.html
 msgid "Borrows, last 3 months graph"
-msgstr ""
+msgstr "ধার, গত ৩ মাসের গ্রাফ"
 
 #: admin/index.html
 msgid "Borrows, last 2 years graph"
-msgstr ""
+msgstr "ধার, গত ২ বছরের গ্রাফ"
 
 #: admin/index.html
 #, fuzzy
@@ -3665,7 +3665,7 @@ msgstr "%(date)s में शामिल हुए"
 #: admin/loans_table.html
 #, python-format
 msgid "#%(num_position)d among %(num_waitlist)d people waiting for this book"
-msgstr ""
+msgstr "এই বইয়ের জন্য অপেক্ষমাণ %(num_waitlist)d জনের মধ্যে #%(num_position)d"
 
 #: admin/menu.html
 msgid "Admin Center"
@@ -3702,11 +3702,11 @@ msgstr "मेमकैच का निरीक्षण करें"
 
 #: admin/pd_dashboard.html
 msgid "Print Disability Access Requests"
-msgstr ""
+msgstr "মুদ্রণ-প্রতিবন্ধিতা অ্যাক্সেস অনুরোধ"
 
 #: admin/pd_dashboard.html
 msgid "Breakdown by Qualifying Authority"
-msgstr ""
+msgstr "যোগ্যতাদানকারী কর্তৃপক্ষ অনুযায়ী বিভাজন"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3720,7 +3720,7 @@ msgstr "ईमेल"
 
 #: admin/pd_dashboard.html
 msgid "Fulfilled"
-msgstr ""
+msgstr "পূর্ণ"
 
 #: admin/pd_dashboard.html
 #, fuzzy
@@ -3729,7 +3729,7 @@ msgstr "विवरण"
 
 #: admin/permissions.html
 msgid "[Admin Center] Site Permissions"
-msgstr ""
+msgstr "[অ্যাডমিন কেন্দ্র] সাইট অনুমতি"
 
 #: admin/permissions.html
 #, fuzzy
@@ -3738,7 +3738,7 @@ msgstr "अनुमति"
 
 #: admin/permissions.html
 msgid "Change the policy of who can edit the site."
-msgstr ""
+msgstr "কে সাইট সম্পাদনা করতে পারবেন তার নীতি পরিবর্তন করুন।"
 
 #: admin/permissions.html
 #, fuzzy
@@ -3747,7 +3747,7 @@ msgstr "हमने कितने नए ओपन लाइब्रेर�
 
 #: admin/permissions.html
 msgid "This applies to /authors/*, /books/* and /works/* records."
-msgstr ""
+msgstr "এটি /authors/*, /books/* এবং /works/* রেকর্ডে প্রযোজ্য।"
 
 #: admin/permissions.html
 #, fuzzy
@@ -3756,7 +3756,7 @@ msgstr "एक ओपन लाइब्रेरियन बनें"
 
 #: admin/permissions.html
 msgid "This applies to /about/*, /help/*, /dev/*, /docs/* etc."
-msgstr ""
+msgstr "এটি /about/*, /help/*, /dev/*, /docs/* ইত্যাদিতে প্রযোজ্য।"
 
 #: admin/permissions.html
 #, fuzzy
@@ -3765,7 +3765,7 @@ msgstr "अनुमति"
 
 #: admin/permissions.html
 msgid "This updates \"permission\" and \"child_permission\" fields of /, /works, /books and /authors records in the database."
-msgstr ""
+msgstr "এটি ডেটাবেসে /, /works, /books এবং /authors রেকর্ডের \"permission\" এবং \"child_permission\" ক্ষেত্র আপডেট করে।"
 
 #: admin/solr.html
 #, fuzzy
@@ -3784,7 +3784,7 @@ msgstr "उदहारण"
 
 #: admin/solr.html
 msgid "On update, these keys will be added to solr update queue and it'll take about 15 minutes for them to get reindexed in Solr."
-msgstr ""
+msgstr "আপডেটে, এই কীগুলি Solr আপডেট সারিতে যোগ করা হবে এবং Solr-এ পুনরায় সূচীভুক্ত হতে প্রায় ১৫ মিনিট লাগবে।"
 
 #: admin/solr.html
 msgid "Enter the keys to reindex in Solr"
@@ -3805,15 +3805,15 @@ msgstr "एडमिन सेंटर"
 
 #: admin/spamwords.html
 msgid "Please enter the SPAM regular expressions in the textarea below, one per line."
-msgstr ""
+msgstr "নিচের টেক্সটএরিয়াতে SPAM রেগুলার এক্সপ্রেশন প্রবেশ করান, প্রতি লাইনে একটি করে।"
 
 #: admin/spamwords.html
 msgid "Be sure to escape any meta characters that are meant to be character literals."
-msgstr ""
+msgstr "নিশ্চিত করুন যে অক্ষর আক্ষরিক হিসেবে ব্যবহৃত যেকোনো মেটা অক্ষর এস্কেপ করা হয়েছে।"
 
 #: admin/spamwords.html
 msgid "If you are adding a domain, prepend the following to the domain:"
-msgstr ""
+msgstr "আপনি যদি একটি ডোমেইন যোগ করেন, তাহলে ডোমেইনের আগে নিম্নলিখিতটি যোগ করুন:"
 
 #: admin/spamwords.html
 msgid "For example, if you want to prevent edits containing the domain <code>t.co</code>, add <code>(|https://|http://)t\\.co</code> to the spamwords list."
