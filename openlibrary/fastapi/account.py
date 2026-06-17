@@ -5,6 +5,7 @@ FastAPI account endpoints for authentication.
 from __future__ import annotations
 
 import os
+import traceback
 from typing import Annotated, Any
 from urllib.parse import unquote, urlparse
 
@@ -184,6 +185,7 @@ def account_loan_history_json(
             "error": f"{type(e).__name__}: {e}",
             "error_type": type(e).__name__,
             "detail": str(e),
+            "traceback": traceback.format_exc(),
         }
 
 
