@@ -1023,29 +1023,30 @@ msgid "Solr Editions"
 msgstr ""
 
 #: design/toggle.html openlibrary/plugins/worksearch/code.py
-#: search/availability_i18n.html work_search.html
+#: search/availability_i18n.html type/author/view.html work_search.html
 msgid "Readable Only"
 msgstr ""
 
-#: work_search.html
+#: type/author/view.html work_search.html
 msgid "Filter by availability"
 msgstr ""
 
 #: openlibrary/plugins/worksearch/code.py search/search_modal_i18n.html
-#: type/edition/view.html type/work/view.html work_search.html
+#: type/author/view.html type/edition/view.html type/work/view.html
+#: work_search.html
 msgid "Language"
 msgstr ""
 
-#: search/search_modal_i18n.html work_search.html
+#: search/search_modal_i18n.html type/author/view.html work_search.html
 msgid "Search languages…"
 msgstr ""
 
 #: books/edit/edition.html languages/index.html search/search_modal_i18n.html
-#: work_search.html
+#: type/author/view.html work_search.html
 msgid "Languages"
 msgstr ""
 
-#: work_search.html
+#: type/author/view.html work_search.html
 msgid "Filter by language"
 msgstr ""
 
@@ -1750,7 +1751,7 @@ msgstr ""
 msgid "Search your reading log"
 msgstr ""
 
-#: account/reading_log.html type/author/view.html
+#: account/reading_log.html
 #, python-format
 msgid "— Show <a href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
@@ -6908,8 +6909,12 @@ msgid "Search %(author)s books"
 msgstr ""
 
 #: type/author/view.html
+msgid "No matching works by this author with the current filters."
+msgstr ""
+
+#: type/author/view.html
 #, python-format
-msgid "— Show <a href=\"%(url)s\">everything</a> by this author?"
+msgid "<a href=\"%(url)s\">Show all %(count)s works</a>?"
 msgstr ""
 
 #: RelatedSubjects.html SubjectTags.html openlibrary/plugins/worksearch/code.py

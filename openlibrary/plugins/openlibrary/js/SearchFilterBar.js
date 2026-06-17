@@ -63,8 +63,13 @@ function syncStoredPrefFromUrl(params) {
 
 /**
  * If the URL has no filter params at all and the stored preference has a
- * non-default value, replace-navigate to /search with the sticky filters applied. Returns
- * true when a navigation was kicked off (caller should stop further init).
+ * non-default value, replace-navigate to the current page with the sticky
+ * filters applied. Returns true when a navigation was kicked off (caller should
+ * stop further init).
+ *
+ * The reading preference is global, so this inherits it onto whatever listing
+ * page hosts the bar (/search, an author page, …) — the bar's own controls then
+ * render the inherited state visibly, which is what makes the stickiness safe.
  *
  * `replace` is used so the unfiltered URL doesn't end up in the back-stack.
  */
@@ -81,20 +86,21 @@ function maybeApplyStickyFilters(params) {
     const mapped = AVAILABILITY_TO_PARAMS[storedAvail] || {};
     Object.entries(mapped).forEach(([key, value]) => next.set(key, value));
     storedLangs.forEach(code => next.append('language', code));
-    window.location.replace(`/search?${next.toString()}`);
+    window.location.replace(`${window.location.pathname}?${next.toString()}`);
     return true;
 }
 
 /**
- * Navigate to /search with the current query string mutated by `mutate`.
- * Pagination is reset because the result set changes.
+ * Navigate to the current page with its query string mutated by `mutate`.
+ * Pagination is reset because the result set changes. Uses the live pathname so
+ * the same bar drives /search and other listing surfaces (e.g. author pages).
  * @param {(params: URLSearchParams) => void} mutate
  */
 function navigateWithParams(mutate) {
     const params = new URLSearchParams(window.location.search);
     mutate(params);
     params.delete('page');
-    window.location.assign(`/search?${params.toString()}`);
+    window.location.assign(`${window.location.pathname}?${params.toString()}`);
 }
 
 /**

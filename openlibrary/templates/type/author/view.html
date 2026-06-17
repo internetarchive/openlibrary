@@ -117,15 +117,44 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
 
+                $# Current filter state, derived from the URL the same way /search does.
+                $# `active_availability` collapses the has_fulltext/public_scan params
+                $# into one value; languages are the selected `language=` codes.
+                $ author_req = input(language=[])
+                $ active_availability = get_active_availability(author_req)
+                $ selected_languages = [lang for lang in (author_req.language if isinstance(author_req.language, list) else [author_req.language]) if lang]
+                $ filter_active = active_availability != 'all' or bool(selected_languages)
+
                 <form method="GET" class="olform pagesearchbox">
-                    <input type="hidden" name="has_fulltext" value="true"/>
-                    $if (query_param('sort')):
-                      <input type="hidden" name="sort" value="$query_param('sort')"/>
-                    $if (query_param('mode')):
-                      <input type="hidden" name="mode" value="$query_param('mode')"/>
+                    $# Preserve the active filters + sort across a search-within-author
+                    $# submit so the keyword search doesn't silently drop them.
+                    $for k in ['has_fulltext', 'public_scan', 'print_disabled', 'sort']:
+                        $if query_param(k):
+                          <input type="hidden" name="$k" value="$query_param(k)"/>
+                    $for lang in selected_languages:
+                        <input type="hidden" name="language" value="$lang"/>
                     $:render_template("search/searchbox", q=query_param('q'), placeholder=_('Search %(author)s books', author=title))
                   </form>
         <div class="clearfix"></div>
+
+                $# The filter bar is wired client-side by SearchFilterBar.js (shared
+                $# with /search). Shown when there's more than one work to act on, or
+                $# whenever a filter is active so the user can always clear it — the
+                $# single-work, no-filter case has nothing to filter, so it's hidden.
+                $if filter_active or books_count > 1:
+                    <div class="search-filter-row" id="search-filter-row">
+                      <ol-toggle
+                        variant="card"
+                        label="$_('Readable Only')"
+                        accessible-label="$_('Filter by availability')"
+                      ></ol-toggle>
+                      <ol-select-popover
+                        label="$_('Language')"
+                        placeholder="$_('Search languages…')"
+                        unselected-heading="$_('Languages')"
+                        aria-label="$_('Filter by language')"
+                      ></ol-select-popover>
+                    </div>
 
                 <div class="search-results-stats">
                     $if books_count > 1:
@@ -133,17 +162,21 @@ $ show_librarian_extras = ctx.user and (ctx.user.is_admin() or ctx.user.is_libra
 
                     $if books_count > 0:
                         $:render_template("search/layout_options.html", selected_layout=layout)
-
-                    $if input(mode="everything").mode == "everything":
-                        $if books_count > 0:
-                            <span>$:_('— Show <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebooks'))</span>
-                    $else:
-                        <span>$:_('— Show <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))</span>
                 </div>
 
                 $:macros.OlPagination(safeint(query_param('page'), default=1), ceil(books_count / 20))
 
                 <div id="searchResults">
+                    $# Escape hatch: an inherited/active filter that hides every work
+                    $# would otherwise look like the author has none. Offer a one-click
+                    $# clear back to the full bibliography, with its real size.
+                    $if filter_active and books_count == 0:
+                        $ clear_url = changequery(has_fulltext=None, public_scan=None, print_disabled=None, language=None, mode=None, page=None)
+                        <p class="search-results-empty collapse">
+                            $_('No matching works by this author with the current filters.')
+                            <br/>
+                            $:_('<a href="%(url)s">Show all %(count)s works</a>?', url=clear_url, count=commify(page.get_work_count()))
+                        </p>
                     <ul class="list-books $cond(layout == 'grid', 'list-books--grid')">
                       $for doc in books.docs:
                          $:macros.SearchResultsWork(doc, show_librarian_extras=show_librarian_extras, include_dropper=True, seq_index=loop.index0)
