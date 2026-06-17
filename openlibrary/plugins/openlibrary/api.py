@@ -133,15 +133,49 @@ class booknotes(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 
+@deprecated("migrated to fastapi")
 class work_bookshelves(delegate.page):
     path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
     @jsonapi
     def GET(self, work_id):
+        return json.dumps(self.get_bookshelves_summary(work_id))
+
+    @staticmethod
+    def get_bookshelves_summary(work_id):
         from openlibrary.core.models import Bookshelves
 
-        return json.dumps({"counts": Bookshelves.get_work_summary(work_id)})
+        return {"counts": Bookshelves.get_work_summary(work_id)}
+
+    @staticmethod
+    def process_work_bookshelves(username, work_id, bookshelf_id, edition_id=None, dont_remove=False):
+        from openlibrary.core.models import Bookshelves
+
+        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
+
+        try:
+            bookshelf_id = int(bookshelf_id)
+            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
+            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
+                raise ValueError
+        except TypeError, ValueError:
+            return {"error": "Invalid bookshelf"}
+
+        if ((not dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
+            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
+            BookshelvesEvents.delete_by_username_and_work(username, work_id)
+
+        else:
+            resolved_edition_id = int(extract_numeric_id_from_olid(edition_id)) if edition_id else None
+            work_bookshelf = Bookshelves.add(
+                username=username,
+                bookshelf_id=bookshelf_id,
+                work_id=work_id,
+                edition_id=resolved_edition_id,
+            )
+
+        return {"bookshelves_affected": work_bookshelf}
 
     def POST(self, work_id):
         """
@@ -158,8 +192,6 @@ class work_bookshelves(delegate.page):
         :rtype: json
         :return: a list of bookshelves_affected
         """
-        from openlibrary.core.models import Bookshelves
-
         user = accounts.get_current_user()
         i = web.input(
             edition_id=None,
@@ -174,36 +206,18 @@ class work_bookshelves(delegate.page):
             raise web.seeother("/account/login?redirect=%s" % key)
 
         username = user.key.split("/")[2]
-        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
-
-        try:
-            bookshelf_id = int(i.bookshelf_id)
-            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
-            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
-                raise ValueError
-        except TypeError, ValueError:
-            return delegate.RawText(
-                json.dumps({"error": "Invalid bookshelf"}),
-                content_type="application/json",
-            )
-
-        if ((not i.dont_remove) and bookshelf_id == current_status) or bookshelf_id == -1:
-            work_bookshelf = Bookshelves.remove(username=username, work_id=work_id, bookshelf_id=current_status)
-            BookshelvesEvents.delete_by_username_and_work(username, work_id)
-
-        else:
-            edition_id = int(i.edition_id.split("/")[2][2:-1]) if i.edition_id else None
-            work_bookshelf = Bookshelves.add(
-                username=username,
-                bookshelf_id=bookshelf_id,
-                work_id=work_id,
-                edition_id=edition_id,
-            )
+        response = self.process_work_bookshelves(
+            username=username,
+            work_id=work_id,
+            bookshelf_id=i.bookshelf_id,
+            edition_id=i.edition_id,
+            dont_remove=i.dont_remove,
+        )
 
         if i.redir:
             raise web.seeother(key)
         return delegate.RawText(
-            json.dumps({"bookshelves_affected": work_bookshelf}),
+            json.dumps(response),
             content_type="application/json",
         )
 

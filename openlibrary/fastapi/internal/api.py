@@ -34,6 +34,7 @@ from openlibrary.fastapi.models import (
 )
 from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
+from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
@@ -265,8 +266,31 @@ async def booknotes_post(
     return BooknoteResponse(success="note added")
 
 
-async def work_bookshelves():
-    pass
+@router.get("/works/OL{work_id}W/bookshelves.json")
+def get_work_bookshelves(work_id: Annotated[int, Path(gt=0)]) -> dict:
+    """Get reading-log shelf counts for a work."""
+    return legacy_work_bookshelves.get_bookshelves_summary(work_id)
+
+
+@router.post("/works/OL{work_id}W/bookshelves.json")
+def post_work_bookshelves(
+    work_id: Annotated[int, Path(gt=0)],
+    user: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    query_edition_id: Annotated[str | None, Query(alias="edition_id", pattern=r"(?i)^(?:/books/)?OL\d+M$")] = None,
+    query_bookshelf_id: Annotated[str | None, Query(alias="bookshelf_id")] = None,
+    query_dont_remove: Annotated[bool | None, Query(alias="dont_remove")] = None,
+    form_edition_id: Annotated[str | None, Form(alias="edition_id", pattern=r"(?i)^(?:/books/)?OL\d+M$")] = None,
+    form_bookshelf_id: Annotated[str | None, Form(alias="bookshelf_id")] = None,
+    form_dont_remove: Annotated[bool | None, Form(alias="dont_remove")] = None,
+) -> dict:
+    """Add a work to, move a work between, or remove a work from a reading-log shelf."""
+    return legacy_work_bookshelves.process_work_bookshelves(
+        username=user.username,
+        work_id=work_id,
+        bookshelf_id=form_bookshelf_id if form_bookshelf_id is not None else query_bookshelf_id,
+        edition_id=form_edition_id if form_edition_id is not None else query_edition_id,
+        dont_remove=form_dont_remove if form_dont_remove is not None else query_dont_remove or False,
+    )
 
 
 async def work_editions():
