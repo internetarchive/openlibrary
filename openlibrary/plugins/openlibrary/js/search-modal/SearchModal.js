@@ -1651,10 +1651,18 @@ export class SearchModal extends LitElement {
                 if (this._availability === 'readable') this._readableCount = this._numFound;
                 this._loading           = false;
                 this._hasSearched       = true;
-                // A settled autocomplete that came back empty — a content/
-                // discovery gap signal. Count only; the query text stays out of
-                // analytics (it's in server search logs if ever needed).
-                if (this._results.length === 0) this._track('NoResults');
+                // A settled autocomplete that came back empty. Label by which
+                // filter *category* was active so we can tell a genuine catalog
+                // gap (`unfiltered`) from a user who over-constrained themselves
+                // (`availability`/`language`/`availability+language`). Categories
+                // only — never the filter values or query text; that catalog-gap
+                // detail belongs in the server search logs, not analytics labels.
+                if (this._results.length === 0) {
+                    const active = [];
+                    if (this._availability !== DEFAULT_AVAILABILITY) active.push('availability');
+                    if (this._languages.length > 0) active.push('language');
+                    this._track('NoResults', active.length ? active.join('+') : 'unfiltered');
+                }
             })
             .catch(() => {
                 if (this._activeFetchKey !== fetchKey) return;
