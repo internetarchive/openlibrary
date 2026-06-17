@@ -31,6 +31,7 @@ from openlibrary.plugins.openlibrary.home import caching_prethread
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.plugins.worksearch.schemes.works import get_fulltext_min
 from openlibrary.utils import dateutil, extract_numeric_id_from_olid
+from openlibrary.utils.async_utils import async_bridge
 from openlibrary.utils.dateutil import current_year
 from openlibrary.utils.request_context import site
 
@@ -555,7 +556,7 @@ class ReadingLog:
         shelf_id = Bookshelves.PRESET_BOOKSHELVES[self.READING_LOG_KEY_TO_SHELF[key]]
         return Bookshelves.count_user_books_on_shelf(username, shelf_id)
 
-    def get_works(
+    async def get_works_async(
         self,
         key: READING_LOG_KEYS,
         page: int = 1,
@@ -582,7 +583,7 @@ class ReadingLog:
         else:
             sort_literal = "created desc"
 
-        logged_books: LoggedBooksData = Bookshelves.get_users_logged_books(
+        logged_books: LoggedBooksData = await Bookshelves.get_users_logged_books(
             self.user.get_username(),
             bookshelf_id=Bookshelves.PRESET_BOOKSHELVES[shelf],
             page=page,
@@ -594,6 +595,8 @@ class ReadingLog:
         )
 
         return logged_books
+
+    get_works = async_bridge.wrap(get_works_async)
 
 
 @public
