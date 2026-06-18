@@ -39,6 +39,7 @@ __all__ = [
     "days_since",
     "extract_year",
     "format_date",
+    "format_decimal",
     "json_encode",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
@@ -197,6 +198,16 @@ def commify(number, lang=None):
         return babel.numbers.format_decimal(int(number), locale=lang)
     except Exception:
         return str(number)
+
+
+def format_decimal(number, decimal_places=1, lang=None):
+    """Locale-aware decimal number formatting."""
+    try:
+        lang = lang or web.ctx.get("lang") or "en"
+        fmt = "#,##0." + "0" * decimal_places
+        return babel.numbers.format_decimal(number, format=fmt, locale=lang)
+    except Exception:
+        return str(round(number, decimal_places))
 
 
 def truncate(text: str, limit: int) -> str:
