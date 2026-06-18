@@ -8,13 +8,14 @@ import asyncio
 from pathlib import Path
 
 from fastapi import APIRouter, Request
+from fastapi.responses import PlainTextResponse
 
 import infogami
 
 router = APIRouter()
 
 
-@router.get("/robots.txt")
+@router.get("/robots.txt", response_class=PlainTextResponse)
 async def get_robots_txt(request: Request) -> str:
     """
     Serve robots.txt based on environment.
