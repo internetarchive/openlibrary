@@ -84,6 +84,7 @@ class DeprecatedJSONEndpointHandler(DeprecatedEndpointHandler):
 
 # List of deprecated paths and encodings
 DEPRECATED_PATHS: list[tuple[str, str | None]] = [
+    (r"/robots.txt", None),
     (r"/search", "json"),
     (r"/search/lists", "json"),
     (r"/search/subjects", "json"),
