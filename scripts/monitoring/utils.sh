@@ -129,6 +129,7 @@ log_top_response_times() {
 
     local ts=$(date +%s)
     # Iterate over, and log in grafana to bucket eg `stats.ol-covers.response_times.10000ms`
+    while IFS= read -r line; do
         count=$(echo $line | awk '{print $1}')
         time_bucket=$(echo $line | awk '{print $2}')
         graphite_event="$BUCKET.$time_bucket $count $ts"
