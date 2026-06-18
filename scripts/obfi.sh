@@ -536,7 +536,7 @@ def quick_parse_date(date_str: str, time_str) -> datetime:
 last_dt = None
 last_dt_str = None
 started = False
-buffer = 25  # Lines to read after mismatch
+buffer = 200  # Lines to read after mismatch - can sometimes be very out of order!
 try:
     for line in sys.stdin:
         try:
@@ -559,7 +559,7 @@ try:
 
             if start <= date <= end:
                 started = True
-                buffer = 25
+                buffer = 200
                 sys.stdout.write(line)
             elif started:
                 buffer -= 1
