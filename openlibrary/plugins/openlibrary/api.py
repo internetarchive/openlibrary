@@ -8,12 +8,12 @@ import io
 import json
 import logging
 from collections import defaultdict
-from collections.abc import Callable
 from typing import Any, Literal
 from warnings import deprecated
 
 import qrcode
 import web
+from starlette.datastructures import URL
 
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
@@ -51,76 +51,6 @@ from openlibrary.utils.isbn import normalize_isbn
 from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger(__name__)
-
-
-def get_work_editions_pagination(limit, offset):
-    return h.safeint(limit) or 50, h.safeint(offset) or 0
-
-
-def get_author_works_pagination(limit, offset):
-    return h.safeint(limit, 50), h.safeint(offset, 0)
-
-
-def get_work_editions_data(work, limit, offset, *, current_site=None, fullpath: str | None = None, changequery: Callable[..., str] | None = None):
-    current_site = current_site or web.ctx.site
-    fullpath = fullpath or web.ctx.fullpath
-    changequery = changequery or web.changequery
-    limit = min(limit, 1000)
-
-    keys = current_site.things(
-        {
-            "type": "/type/edition",
-            "works": work.key,
-            "limit": limit,
-            "offset": offset,
-        }
-    )
-    editions = current_site.get_many(keys, raw=True)
-
-    size = work.edition_count
-    links = {
-        "self": fullpath,
-        "work": work.key,
-    }
-
-    if offset > 0:
-        links["prev"] = changequery(offset=min(0, offset - limit))
-
-    if offset + len(editions) < size:
-        links["next"] = changequery(offset=offset + limit)
-
-    return {"links": links, "size": size, "entries": editions}
-
-
-def get_author_works_data(author, limit, offset, *, current_site=None, fullpath: str | None = None, changequery: Callable[..., str] | None = None):
-    current_site = current_site or web.ctx.site
-    fullpath = fullpath or web.ctx.fullpath
-    changequery = changequery or web.changequery
-    limit = min(limit, 1000)
-
-    keys = current_site.things(
-        {
-            "type": "/type/work",
-            "authors": {"author": {"key": author.key}},
-            "limit": limit,
-            "offset": offset,
-        }
-    )
-    works = current_site.get_many(keys, raw=True)
-
-    size = author.get_work_count()
-    links = {
-        "self": fullpath,
-        "author": author.key,
-    }
-
-    if offset > 0:
-        links["prev"] = changequery(offset=min(0, offset - limit))
-
-    if offset + len(works) < size:
-        links["next"] = changequery(offset=offset + limit)
-
-    return {"links": links, "size": size, "entries": works}
 
 
 class ratings:
@@ -309,19 +239,46 @@ class work_editions(delegate.page):
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/work":
+        i = web.input(limit=50, offset=0)
+        data = self.get_editions_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit) or 50,
+            offset=h.safeint(i.offset) or 0,
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit, offset = get_work_editions_pagination(i.limit, i.offset)
-
-            data = self.get_editions_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_editions_data(work, limit, offset):
-        return get_work_editions_data(work, limit, offset)
+    def get_editions_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        work = current_site.get(key)
+        if not work or work.type.key != "/type/work":
+            return None
+
+        limit = min(limit or 50, 1000)
+        keys = current_site.things(
+            {
+                "type": "/type/edition",
+                "works": work.key,
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+        editions = current_site.get_many(keys, raw=True)
+
+        url = url.replace(scheme="", netloc="")
+        links = {
+            "self": str(url),
+            "work": work.key,
+        }
+        if offset > 0:
+            links["prev"] = str(url.include_query_params(offset=min(0, offset - limit)))
+        if offset + len(editions) < work.edition_count:
+            links["next"] = str(url.include_query_params(offset=offset + limit))
+
+        return {"links": links, "size": work.edition_count, "entries": editions}
 
 
 @deprecated("migrated to fastapi")
@@ -330,19 +287,47 @@ class author_works(delegate.page):
     encoding = "json"
 
     def GET(self, key):
-        doc = web.ctx.site.get(key)
-        if not doc or doc.type.key != "/type/author":
+        i = web.input(limit=50, offset=0)
+        data = self.get_works_data(
+            key,
+            url=URL(web.ctx.fullpath),
+            limit=h.safeint(i.limit, 50),
+            offset=h.safeint(i.offset, 0),
+        )
+        if data is None:
             raise web.HTTPError("404 Not Found", {"Content-Type": "application/json"}, data="{}")
-        else:
-            i = web.input(limit=50, offset=0)
-            limit, offset = get_author_works_pagination(i.limit, i.offset)
-
-            data = self.get_works_data(doc, limit=limit, offset=offset)
-            return delegate.RawText(json.dumps(data), content_type="application/json")
+        return delegate.RawText(json.dumps(data), content_type="application/json")
 
     @staticmethod
-    def get_works_data(author, limit, offset):
-        return get_author_works_data(author, limit, offset)
+    def get_works_data(key: str, url: URL, limit: int, offset: int) -> dict[str, Any] | None:
+        current_site = site.get()
+        author = current_site.get(key)
+        if not author or author.type.key != "/type/author":
+            return None
+
+        limit = min(limit, 1000)
+        keys = current_site.things(
+            {
+                "type": "/type/work",
+                "authors": {"author": {"key": author.key}},
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+        works = current_site.get_many(keys, raw=True)
+        size = author.get_work_count()
+
+        url = url.replace(scheme="", netloc="")
+        links = {
+            "self": str(url),
+            "author": author.key,
+        }
+        if offset > 0:
+            links["prev"] = str(url.include_query_params(offset=min(0, offset - limit)))
+        if offset + len(works) < size:
+            links["next"] = str(url.include_query_params(offset=offset + limit))
+
+        return {"links": links, "size": size, "entries": works}
 
 
 async def get_price_data_async(isbn: str, asin: str) -> dict[str, Any]:

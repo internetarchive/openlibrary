@@ -32,18 +32,12 @@ from openlibrary.fastapi.models import (
     Pagination,
     parse_comma_separated_list,
 )
-from openlibrary.plugins.openlibrary.api import (
-    bestbook_award,
-    get_author_works_data,
-    get_author_works_pagination,
-    get_price_data_async,
-    get_work_editions_data,
-    get_work_editions_pagination,
-)
+from openlibrary.plugins.openlibrary.api import author_works as legacy_author_works
+from openlibrary.plugins.openlibrary.api import bestbook_award, get_price_data_async
 from openlibrary.plugins.openlibrary.api import ratings as legacy_ratings
 from openlibrary.plugins.openlibrary.api import work_bookshelves as legacy_work_bookshelves
+from openlibrary.plugins.openlibrary.api import work_editions as legacy_work_editions
 from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.utils.request_context import site
 from openlibrary.views.loanstats import SINCE_DAYS, get_trending_books
 
 SHOW_INTERNAL_IN_SCHEMA = os.getenv("LOCAL_DEV") is not None
@@ -54,29 +48,6 @@ router = APIRouter(tags=["internal"], include_in_schema=SHOW_INTERNAL_IN_SCHEMA)
 # This guarantees that our path parameter validated by FastAPI is always
 # a safe dictionary key when we pass it to the legacy backend function.
 TrendingPeriod = Literal["now", "daily", "weekly", "monthly", "yearly", "forever"]
-
-
-def _request_fullpath(request: Request) -> str:
-    if request.url.query:
-        return f"{request.url.path}?{request.url.query}"
-    return request.url.path
-
-
-def _changequery_for_request(request: Request, **kw) -> str:
-    query = dict(request.query_params)
-    for key, value in kw.items():
-        if value is None:
-            query.pop(key, None)
-        else:
-            query[key] = str(value)
-
-    if query:
-        return f"{request.url.path}?{urlencode(query)}"
-    return request.url.path
-
-
-def _json_not_found() -> JSONResponse:
-    return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
 
 
 class AvailabilityStatusV2(BaseModel):
@@ -321,52 +292,42 @@ def post_work_bookshelves(
     )
 
 
-@router.get("/works/OL{work_id}W/editions.json")
+@router.get("/works/OL{work_id}W/editions.json", response_model=None)
 def work_editions(
     request: Request,
     work_id: Annotated[int, Path(ge=0)],
-    limit: Annotated[str | None, Query()] = "50",
-    offset: Annotated[str | None, Query()] = "0",
-) -> Any:
+    limit: Annotated[int, Query(description="Maximum number of editions to return")] = 50,
+    offset: Annotated[int, Query(description="Number of editions to skip")] = 0,
+) -> dict[str, Any] | JSONResponse:
     """Get paginated editions for a work."""
-    current_site = site.get()
-    work = current_site.get(f"/works/OL{work_id}W")
-    if not work or work.type.key != "/type/work":
-        return _json_not_found()
-
-    resolved_limit, resolved_offset = get_work_editions_pagination(limit, offset)
-    return get_work_editions_data(
-        work,
-        limit=resolved_limit,
-        offset=resolved_offset,
-        current_site=current_site,
-        fullpath=_request_fullpath(request),
-        changequery=lambda **kw: _changequery_for_request(request, **kw),
+    data = legacy_work_editions.get_editions_data(
+        f"/works/OL{work_id}W",
+        url=request.url,
+        limit=limit,
+        offset=offset,
     )
+    if data is None:
+        return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
+    return data
 
 
-@router.get("/authors/OL{author_id}A/works.json")
+@router.get("/authors/OL{author_id}A/works.json", response_model=None)
 def author_works(
     request: Request,
     author_id: Annotated[int, Path(ge=0)],
-    limit: Annotated[str | None, Query()] = "50",
-    offset: Annotated[str | None, Query()] = "0",
-) -> Any:
+    limit: Annotated[int, Query(description="Maximum number of works to return")] = 50,
+    offset: Annotated[int, Query(description="Number of works to skip")] = 0,
+) -> dict[str, Any] | JSONResponse:
     """Get paginated works for an author."""
-    current_site = site.get()
-    author = current_site.get(f"/authors/OL{author_id}A")
-    if not author or author.type.key != "/type/author":
-        return _json_not_found()
-
-    resolved_limit, resolved_offset = get_author_works_pagination(limit, offset)
-    return get_author_works_data(
-        author,
-        limit=resolved_limit,
-        offset=resolved_offset,
-        current_site=current_site,
-        fullpath=_request_fullpath(request),
-        changequery=lambda **kw: _changequery_for_request(request, **kw),
+    data = legacy_author_works.get_works_data(
+        f"/authors/OL{author_id}A",
+        url=request.url,
+        limit=limit,
+        offset=offset,
     )
+    if data is None:
+        return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
+    return data
 
 
 class PriceResponse(BaseModel):
