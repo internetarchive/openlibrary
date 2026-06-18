@@ -25,6 +25,7 @@ from infogami.utils.view import (
 )
 from openlibrary import accounts  # noqa: F401 side effects may be needed
 from openlibrary.plugins.upstream import (
+    account,  # noqa: F401 side effects may be needed
     addbook,
     addtag,
     borrow,  # noqa: F401 side effects may be needed
