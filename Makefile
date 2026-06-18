@@ -52,6 +52,11 @@ lit-components:
 
 i18n:
 	python ./scripts/i18n-messages compile
+	for po in openlibrary/i18n/*/messages.po; do \
+		grep -v '^#~' $$po \
+			| msggrep -N 'openlibrary/components/lit/*.js' /dev/stdin \
+			| node node_modules/gettext.js/bin/po2json /dev/stdin $$(dirname $$po)/messages.json >/dev/null; \
+	done
 
 git:
 	git submodule init

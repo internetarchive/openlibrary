@@ -299,8 +299,7 @@ msgstr "Pagination"
 msgid "Popover"
 msgstr "Supprimer"
 
-#: design.html type/edition/view.html type/work/view.html
-#, fuzzy
+#: design.html type/edition/view.html type/work/view.html openlibrary/components/lit/OLReadMore.js
 msgid "Read More"
 msgstr "Lire plus"
 
@@ -1094,7 +1093,7 @@ msgstr "Merci beaucoup d'avoir amélioré cette entrée !"
 #: ShareModal.html covers/author_photo.html covers/book_cover.html
 #: covers/change.html design/banner.html design/toast.html lib/exports.html
 #: my_books/check_ins/check_in_prompt.html my_books/dropdown_content.html
-#: native_dialog.html
+#: native_dialog.html openlibrary/components/lit/OlBanner.js
 msgid "Close"
 msgstr "Fermer"
 
@@ -8377,8 +8376,7 @@ msgstr "Première publication en %s"
 msgid "Book %s"
 msgstr ""
 
-#: type/edition/view.html type/work/view.html
-#, fuzzy
+#: type/edition/view.html type/work/view.html openlibrary/components/lit/OLReadMore.js
 msgid "Read Less"
 msgstr "Lire moins"
 

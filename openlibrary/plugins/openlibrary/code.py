@@ -24,6 +24,7 @@ from openlibrary.core import db
 from openlibrary.core.batch_imports import (
     batch_import,
 )
+from openlibrary.i18n import get_js_i18n_data
 from openlibrary.i18n import gettext as _
 from openlibrary.plugins.upstream.utils import get_coverstore_public_url, setup_requests
 from openlibrary.utils.request_context import (
@@ -942,6 +943,12 @@ class new:
 
 
 api and api.add_hook("new", new)
+
+
+@public
+def js_i18n_data() -> str:
+    """Return JS i18n JSON for the current locale, safe to embed in a <script> tag."""
+    return get_js_i18n_data(web.ctx.get("lang", "en"))
 
 
 @public
