@@ -3111,23 +3111,23 @@ msgstr "ఏవీ కనుగొనబడలేదు."
 
 #: admin/inspect/store.html
 msgid "Admin Center / Inspect"
-msgstr ""
+msgstr "అడ్మిన్ సెంటర్ / తనిఖీ"
 
 #: admin/inspect/store.html
 msgid "Inspect Store"
-msgstr ""
+msgstr "స్టోర్ తనిఖీ చేయండి"
 
 #: admin/inspect/store.html
 msgid "Get"
-msgstr ""
+msgstr "పొందండి"
 
 #: admin/inspect/store.html
 msgid "Key"
-msgstr ""
+msgstr "కీ"
 
 #: admin/inspect/store.html
 msgid "Query"
-msgstr ""
+msgstr "ప్రశ్న"
 
 #: admin/inspect/store.html
 #, fuzzy
@@ -3156,7 +3156,7 @@ msgstr "ఏవీ కనుగొనబడలేదు."
 
 #: admin/ip/index.html
 msgid "[Admin Center] IP Addresses"
-msgstr ""
+msgstr "[అడ్మిన్ సెంటర్] IP చిరునామాలు"
 
 #: admin/ip/index.html
 #, fuzzy
@@ -3165,7 +3165,7 @@ msgstr "మీ ఈమెయిలు చిరునామా"
 
 #: admin/ip/index.html
 msgid "List of Banned IPs"
-msgstr ""
+msgstr "నిషేధించిన IP ల జాబితా"
 
 #: admin/ip/index.html admin/people/index.html
 #, fuzzy
@@ -3189,29 +3189,29 @@ msgstr "సవరణల చరిత్ర"
 
 #: admin/ip/index.html
 msgid "x minutes ago"
-msgstr ""
+msgstr "x నిమిషాల క్రితం"
 
 #: admin/ip/index.html admin/ip/view.html
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 #: admin/ip/index.html
 msgid "comment"
-msgstr ""
+msgstr "వ్యాఖ్య"
 
 #: admin/ip/view.html admin/people/view.html
 msgid "[Admin Center]"
-msgstr ""
+msgstr "[అడ్మిన్ సెంటర్]"
 
 #: admin/ip/view.html
 #, python-format
 msgid "IP %(ip)s is <a href=\"/admin/block\">blocked</a>."
-msgstr ""
+msgstr "IP %(ip)s <a href=\"/admin/block\">నిరోధించబడింది</a>."
 
 #: admin/ip/view.html
 #, python-format
 msgid "Block %(ip)s"
-msgstr ""
+msgstr "%(ip)s ని నిరోధించు"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -3221,18 +3221,20 @@ msgstr "దయచేసి పాత్ర ఎంచుకోండి."
 #: RecentChanges.html admin/ip/view.html admin/people/edits.html
 #: recentchanges/render.html
 msgid "When you see numbers here, that's the IP address of the anonymous editor"
-msgstr ""
+msgstr "మీరు ఇక్కడ సంఖ్యలు చూసినప్పుడు, అది అనామక సంపాదకుని IP చిరునామా"
 
 #: admin/ip/view.html admin/people/edits.html
 #, python-format
 msgid "Reverted by %(revert_author)s"
-msgstr ""
+msgstr "%(revert_author)s చేత వెనక్కు తీర్చబడింది"
 
 #: EditButtons.html admin/ip/view.html admin/people/edits.html
 msgid ""
 "Please, leave a short note about what you changed: <span class=\"small "
 "gray\">(Optional, but very useful!)</span>"
 msgstr ""
+"దయచేసి, మీరు ఏమి మార్చారో ఒక చిన్న వ్యాఖ్య వ్రాయండి: <span class=\"small "
+"gray\">(ఐచ్ఛికం, కానీ చాలా ఉపయోగకరం!)</span>"
 
 #: admin/ip/view.html admin/people/edits.html
 #, fuzzy
@@ -3242,11 +3244,11 @@ msgstr "%s న సృష్టించబడింది"
 #: admin/people/edits.html
 #, python-format
 msgid "[Admin Center] Edits of %(user)s"
-msgstr ""
+msgstr "[అడ్మిన్ సెంటర్] %(user)s యొక్క సవరణలు"
 
 #: admin/people/edits.html
 msgid "people"
-msgstr ""
+msgstr "వ్యక్తులు"
 
 #: admin/people/edits.html
 #, fuzzy
@@ -3255,7 +3257,7 @@ msgstr "మార్చు"
 
 #: admin/people/index.html
 msgid "[Admin Center] People"
-msgstr ""
+msgstr "[అడ్మిన్ సెంటర్] వ్యక్తులు"
 
 #: admin/people/index.html
 #, fuzzy
@@ -3279,15 +3281,15 @@ msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో 
 
 #: admin/people/index.html
 msgid "IA ID:"
-msgstr ""
+msgstr "IA ID:"
 
 #: admin/people/index.html
 msgid "e.g. @foobar"
-msgstr ""
+msgstr "ఉదా. @foobar"
 
 #: admin/people/index.html
 msgid "No account found with this ID."
-msgstr ""
+msgstr "ఈ ID తో ఖాతా కనుగొనబడలేదు."
 
 #: admin/people/index.html
 #, fuzzy
@@ -3311,7 +3313,7 @@ msgstr "చరిత్ర"
 
 #: admin/people/view.html
 msgid "block and revert all edits"
-msgstr ""
+msgstr "అన్ని సవరణలు నిరోధించి వెనక్కు తీర్చు"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3321,11 +3323,11 @@ msgstr "మీ ఖాతా తొలగించండి"
 #: admin/people/view.html
 #, python-format
 msgid "Registered on <span class=\"time\">%(date)s</span>."
-msgstr ""
+msgstr "<span class=\"time\">%(date)s</span> న నమోదు చేసుకున్నారు."
 
 #: admin/people/view.html
 msgid "login as this user"
-msgstr ""
+msgstr "ఈ వినియోగదారుగా లాగిన్ చేయండి"
 
 #: admin/people/view.html
 #, python-format
@@ -3333,10 +3335,12 @@ msgid ""
 "Activated on <span class=\"time\">%(date)s</span> from <a "
 "href=\"/admin/ip/%(ip)s\">%(ip)s</a>."
 msgstr ""
+"<span class=\"time\">%(date)s</span> న <a "
+"href=\"/admin/ip/%(ip)s\">%(ip)s</a> నుండి సక్రియం చేయబడింది."
 
 #: admin/people/view.html
 msgid "unblock this account"
-msgstr ""
+msgstr "ఈ ఖాతా నిరోధన తొలగించు"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3364,7 +3368,7 @@ msgstr "అడ్మిన్ మాత్రమే"
 
 #: admin/people/view.html
 msgid "Make Human"
-msgstr ""
+msgstr "మానవంగా మార్చు"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3388,11 +3392,11 @@ msgstr "నన్ను గుర్తుంచుకోండి"
 
 #: admin/people/view.html
 msgid "Last Login:"
-msgstr ""
+msgstr "చివరి లాగిన్:"
 
 #: admin/people/view.html
 msgid "Tags:"
-msgstr ""
+msgstr "ట్యాగులు:"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3401,7 +3405,7 @@ msgstr "మీ ఖాతా"
 
 #: admin/people/view.html
 msgid "Dry Run"
-msgstr ""
+msgstr "డ్రై రన్"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3426,15 +3430,15 @@ msgstr "బాట్లు రాయడం"
 #: admin/people/view.html
 #, python-format
 msgid "%(num)d edits"
-msgstr ""
+msgstr "%(num)d సవరణలు"
 
 #: admin/people/view.html
 msgid "Debug Info"
-msgstr ""
+msgstr "డీబగ్ సమాచారం"
 
 #: admin/people/view.html
 msgid "Account Information"
-msgstr ""
+msgstr "ఖాతా సమాచారం"
 
 #: admin/people/view.html
 #, fuzzy
@@ -3466,17 +3470,17 @@ msgstr "వెతుకు"
 #: authors/index.html search/authors.html
 #, python-format
 msgid "about %(subjects)s"
-msgstr ""
+msgstr "%(subjects)s గురించి"
 
 #: authors/index.html search/authors.html
 #, python-format
 msgid "including <i>%(topwork)s</i>"
-msgstr ""
+msgstr "<i>%(topwork)s</i> తో సహా"
 
 #: authors/infobox.html
 #, python-format
 msgid "View on %(site)s"
-msgstr ""
+msgstr "%(site)s లో చూడండి"
 
 #: authors/infobox.html
 #, fuzzy
@@ -3502,38 +3506,38 @@ msgstr " రుణం చర్యలు"
 
 #: book_providers/cita_press_download_options.html
 msgid "Download PDF from Cita Press"
-msgstr ""
+msgstr "Cita Press నుండి PDF డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/cita_press_download_options.html
 msgid "More at Cita Press"
-msgstr ""
+msgstr "Cita Press లో మరింత"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an HTML from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg నుండి HTML డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/runeberg_download_options.html
 #: book_providers/standard_ebooks_download_options.html type/list/exports.html
 msgid "HTML"
-msgstr ""
+msgstr "HTML"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a text version from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg నుండి టెక్స్ట్ వెర్షన్ డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/gutenberg_download_options.html
 #: book_providers/ia_download_options.html
 msgid "Plain text"
-msgstr ""
+msgstr "సాదా టెక్స్ట్"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download an ePub from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg నుండి ePub డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/gutenberg_download_options.html
 msgid "Download a Kindle file from Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg నుండి Kindle ఫైల్ డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/gutenberg_download_options.html
 #, fuzzy
@@ -3542,7 +3546,7 @@ msgstr "పిల్లలు"
 
 #: book_providers/gutenberg_download_options.html
 msgid "More at Project Gutenberg"
-msgstr ""
+msgstr "Project Gutenberg లో మరింత"
 
 #: book_providers/ia_download_options.html
 #, fuzzy
@@ -3566,11 +3570,13 @@ msgstr "ఇంటర్నెట్ ఆర్కైవ్ నుండి ఈబ
 
 #: book_providers/ia_download_options.html
 msgid "MOBI"
-msgstr ""
+msgstr "MOBI"
 
 #: book_providers/ia_download_options.html
 msgid "Download open DAISY from Internet Archive (print-disabled format)"
 msgstr ""
+"Internet Archive నుండి ఓపెన్ DAISY డౌన్‌లోడ్ చేయండి (ముద్రణ-నిలిపివేయబడిన"
+" ఆకృతి)"
 
 #: book_providers/ia_download_options.html type/list/embed.html
 #, fuzzy
@@ -3584,32 +3590,32 @@ msgstr "ఇంటర్నెట్ ఆర్కైవ్ నుండి ఈబ
 
 #: book_providers/librivox_download_options.html
 msgid "Whole Book MP3"
-msgstr ""
+msgstr "పూర్తి పుస్తకం MP3"
 
 #: book_providers/librivox_download_options.html
 msgid "Get the RSS Feed from LibriVox"
-msgstr ""
+msgstr "LibriVox నుండి RSS ఫీడ్ పొందండి"
 
 #: book_providers/librivox_download_options.html
 msgid "RSS Feed"
-msgstr ""
+msgstr "RSS ఫీడ్"
 
 #: book_providers/librivox_download_options.html
 msgid "More at LibriVox"
-msgstr ""
+msgstr "LibriVox లో మరింత"
 
 #: book_providers/openstax_download_options.html
 msgid "Download PDF from OpenStax"
-msgstr ""
+msgstr "OpenStax నుండి PDF డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/openstax_download_options.html
 msgid "More at OpenStax"
-msgstr ""
+msgstr "OpenStax లో మరింత"
 
 #: book_providers/read_button.html
 #, python-format
 msgid "Listen to a reading from %s"
-msgstr ""
+msgstr "%s నుండి చదవడం వినండి"
 
 #: book_providers/read_button.html
 #, fuzzy
@@ -3619,67 +3625,69 @@ msgstr "ఒక పుస్తకం చేర్చు"
 #: book_providers/read_button.html
 #, python-format
 msgid "Read free online from %s"
-msgstr ""
+msgstr "%s నుండి ఆన్‌లైన్‌లో ఉచితంగా చదవండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all scanned images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg నుండి అన్ని స్కాన్ చేసిన చిత్రాలు డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "Scanned images"
-msgstr ""
+msgstr "స్కాన్ చేసిన చిత్రాలు"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all color images from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg నుండి అన్ని రంగు చిత్రాలు డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "Color images"
-msgstr ""
+msgstr "రంగు చిత్రాలు"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all HTML files from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg నుండి అన్ని HTML ఫైళ్ళు డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all text and index files from Project Runeberg"
 msgstr ""
+"Project Runeberg నుండి అన్ని టెక్స్ట్ మరియు ఇండెక్స్ ఫైళ్ళు డౌన్‌లోడ్ "
+"చేయండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "Text and index files"
-msgstr ""
+msgstr "టెక్స్ట్ మరియు ఇండెక్స్ ఫైళ్ళు"
 
 #: book_providers/runeberg_download_options.html
 msgid "Download all OCR text from Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg నుండి అన్ని OCR టెక్స్ట్ డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/runeberg_download_options.html
 msgid "OCR text"
-msgstr ""
+msgstr "OCR టెక్స్ట్"
 
 #: book_providers/runeberg_download_options.html
 msgid "More at Project Runeberg"
-msgstr ""
+msgstr "Project Runeberg లో మరింత"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an HTML from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks నుండి HTML డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download an ePub from Standard Ebook."
-msgstr ""
+msgstr "Standard Ebook నుండి ePub డౌన్‌లోడ్ చేయండి."
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kindle file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks నుండి Kindle ఫైల్ డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kindle (azw3)"
-msgstr ""
+msgstr "Kindle (azw3)"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Download a Kobo file from Standard Ebooks"
-msgstr ""
+msgstr "Standard Ebooks నుండి Kobo ఫైల్ డౌన్‌లోడ్ చేయండి"
 
 #: book_providers/standard_ebooks_download_options.html
 msgid "Kobo (kepub)"
