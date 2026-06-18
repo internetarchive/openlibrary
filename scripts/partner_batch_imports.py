@@ -18,8 +18,8 @@ from collections.abc import Mapping
 from typing import cast
 
 import requests
-from infogami import config  # noqa: F401 side effects may be needed
 
+from infogami import config  # noqa: F401 side effects may be needed
 from openlibrary.config import load_config
 from openlibrary.core.imports import Batch
 from openlibrary.plugins.upstream.utils import setup_requests
@@ -321,7 +321,7 @@ def load_state(path, logfile):
             active_fname, offset = next(fin).strip().split(",")
             unfinished_filenames = filenames[filenames.index(active_fname) :]
             return unfinished_filenames, int(offset)
-    except (ValueError, OSError):
+    except ValueError, OSError:
         return filenames, 0
 
 

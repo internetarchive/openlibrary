@@ -7,9 +7,10 @@ from sqlite3 import IntegrityError
 from typing import cast
 
 import web
-from infogami.utils import stats
 from psycopg2.errors import UniqueViolation
 from web.db import PostgresDB
+
+from infogami.utils import stats
 
 
 @functools.cache
@@ -48,7 +49,7 @@ class CommonExtras:
                 work_id=new_work_id,
                 vars={"work_id": current_work_id},
             )
-        except (UniqueViolation, IntegrityError):
+        except UniqueViolation, IntegrityError:
             (
                 rows_changed,
                 rows_deleted,
@@ -99,7 +100,7 @@ class CommonExtras:
                 )
                 rows_changed += 1
                 t_update.rollback() if _test else t_update.commit()
-            except (UniqueViolation, IntegrityError):
+            except UniqueViolation, IntegrityError:
                 t_delete = oldb.transaction()
                 # otherwise, delete row with current_work_id if failed
                 oldb.query(
@@ -134,7 +135,7 @@ class CommonExtras:
                 username=new_username,
                 vars={"username": username},
             )
-        except (UniqueViolation, IntegrityError):
+        except UniqueViolation, IntegrityError:
             # if any of the records would conflict with an exiting
             # record associated with new_username
             pass  # assuming impossible for now, not a great assumption
@@ -149,7 +150,7 @@ class CommonExtras:
 
         try:
             rows_deleted = oldb.delete(cls.TABLENAME, where="username=$username", vars={"username": username})
-        except (UniqueViolation, IntegrityError):
+        except UniqueViolation, IntegrityError:
             pass
 
         t.rollback() if _test else t.commit()

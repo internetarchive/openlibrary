@@ -13,6 +13,7 @@ from warnings import deprecated
 
 import qrcode
 import web
+
 from infogami import config  # noqa: F401 side effects may be needed
 from infogami.infobase.client import ClientException
 from infogami.plugins.api.code import jsonapi
@@ -20,7 +21,6 @@ from infogami.utils import delegate
 from infogami.utils.view import (
     render_template,  # noqa: F401 used for its side effects
 )
-
 from openlibrary import accounts
 from openlibrary.accounts.model import (
     OpenLibraryAccount,  # noqa: F401 side effects may be needed
@@ -162,7 +162,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id_val != -1 and bookshelf_id_val not in shelf_ids:
                 return {"error": "Invalid bookshelf"}
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return {"error": "Invalid bookshelf"}
 
         if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
@@ -848,7 +848,7 @@ class unlink_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=1)
@@ -914,7 +914,7 @@ class link_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except (ValueError, ExpiredTokenError):
+        except ValueError, ExpiredTokenError:
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=2)

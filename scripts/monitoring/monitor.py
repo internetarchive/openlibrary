@@ -255,5 +255,5 @@ async def main():
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
+    except KeyboardInterrupt, SystemExit:
         print("[OL-MONITOR] Monitoring stopped.", flush=True)

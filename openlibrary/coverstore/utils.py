@@ -49,7 +49,7 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         return default
 
 
