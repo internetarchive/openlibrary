@@ -4010,6 +4010,10 @@ msgid ""
 "distributing over 1 million books free in a format called DAISY, designed"
 " for those of us who find it challenging to use regular printed media. "
 msgstr ""
+"<a href=\"//archive.org\">Internet Archive</a> DAISY అనే ఫార్మాట్‌లో 10 "
+"లక్షలకు పైగా పుస్తకాలను ఉచితంగా పంపిణీ చేయడం గర్వంగా చెప్పగలను, ఇది "
+"సాధారణ ముద్రిత మీడియా ఉపయోగించడం కష్టంగా అనిపించే వారి కోసం "
+"రూపొందించబడింది. "
 
 #: books/daisy.html
 msgid ""
@@ -4019,6 +4023,10 @@ msgid ""
 " by the <a href=\"http://www.loc.gov/nls/\">Library of Congress NLS "
 "program</a>."
 msgstr ""
+"Open Library లో DAISY రెండు రకాలు ఉన్నాయి: <i>ఓపెన్</i> మరియు "
+"<i>రక్షిత</i>. ఓపెన్ DAISY లు ప్రపంచంలో ఎవరైనా అనేక వేర్వేరు పరికరాలపై "
+"చదవగలరు. రక్షిత DAISY లు <a href=\"http://www.loc.gov/nls/\">Library of "
+"Congress NLS కార్యక్రమం</a> జారీ చేసిన కీతో మాత్రమే తెరవగలరు."
 
 #: books/daisy.html lists/home.html
 msgid "Enjoy!"
@@ -4036,6 +4044,10 @@ msgid ""
 "books</span> offer the benefits of regular audiobooks, with navigation "
 "within the book, to chapters or specific pages."
 msgstr ""
+"DAISY డిజిటల్ ఫార్మాట్ సాధారణ ముద్రిత మీడియా ఉపయోగించడంలో ఇబ్బంది పడే "
+"వ్యక్తులకు సహాయపడుతుంది. DAISY డిజిటల్ <span class=\"highlight\">మాట్లాడే"
+" పుస్తకాలు</span> సాధారణ ఆడియోబుక్‌ల ప్రయోజనాలను అందిస్తాయి, పుస్తకంలో "
+"అధ్యాయాలకు లేదా నిర్దిష్ట పేజీలకు నావిగేషన్‌తో."
 
 #: books/daisy.html
 #, fuzzy
@@ -4055,6 +4067,10 @@ msgid ""
 "circulated to eligible borrowers in the United States through a national "
 "network of cooperating libraries."
 msgstr ""
+"అమెరికా కాంగ్రెస్ గ్రంథాలయం <a href=\"http://www.loc.gov/nls/\">అంధులు "
+"మరియు శారీరక వికలాంగుల జాతీయ గ్రంథాలయ సేవ (NLS)</a> అర్హులైన రుణగ్రహీతలకు"
+" సహకార గ్రంథాలయాల జాతీయ నెట్‌వర్క్ ద్వారా అమెరికా అంతటా బ్రెయిల్ మరియు "
+"ఆడియో పదార్థాల ఉచిత గ్రంథాలయ కార్యక్రమాన్ని నిర్వహిస్తుంది."
 
 #: books/daisy.html
 msgid "Are you eligible to register?"
@@ -4074,6 +4090,12 @@ msgid ""
 " to those with a Library of Congress NLS key. These titles are brought to"
 " you by the<a href=\"//archive.org/\"> Internet Archive</a>."
 msgstr ""
+"<a href=\"/subjects/accessible_book\" title=\"Subject: Accessible book\">"
+" అనేక ఓపెన్ DAISY లతో</a> పాటు, Open Library Library of Congress NLS కీ "
+"ఉన్న వారికి యాక్సెస్ చేయగలిగే చిన్న ఎంపిక<a "
+"href=\"/subjects/protected_DAISY\" title=\"Subject: Protected DAISY\"> "
+"రక్షిత DAISY శీర్షికలను</a> జాబితా చేస్తుంది. ఈ శీర్షికలు మీకు<a "
+"href=\"//archive.org/\"> Internet Archive</a> ద్వారా అందిస్తున్నారు."
 
 #: books/daisy.html
 msgid ""
@@ -4158,6 +4180,9 @@ msgid ""
 "Library ID (like <a href=\"/authors/OL23919A\" target=\"_blank\" "
 "rel=\"noopener noreferrer\"><em>OL23919A</em></a>)."
 msgstr ""
+"మీరు రచయిత పేరు (ఉదా. <em>j k rowling</em>) లేదా Open Library ID (ఉదా. <a"
+" href=\"/authors/OL23919A\" target=\"_blank\" rel=\"noopener "
+"noreferrer\"><em>OL23919A</em></a>) ద్వారా శోధించవచ్చు."
 
 #: books/edit.html
 msgid "Author editing requires javascript"
@@ -4344,6 +4369,9 @@ msgid ""
 "href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
 "href=\"/subjects/psychology\">psychology</a></i>"
 msgstr ""
+"ఉదాహరణకు: <i><a href=\"/subjects/cheese\">cheese</a>, <a "
+"href=\"/subjects/roman_empire\">Roman Empire</a>, <a "
+"href=\"/subjects/psychology\">psychology</a></i>"
 
 #: books/edit/about.html
 msgid "A person? Or, people?"
@@ -4355,6 +4383,9 @@ msgid ""
 "Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
 "Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 msgstr ""
+"ఉదాహరణకు: <i><a href=\"/subjects/person:Theodore_Roosevelt\">Theodore "
+"Roosevelt</a>, <a href=\"/subjects/person:Julian_of_Norwich\">Julian of "
+"Norwich</a>, <a href=\"/subjects/person:Tintin\">Tintin</a></i>"
 
 #: books/edit/about.html
 msgid "Note any places mentioned?"
@@ -4366,6 +4397,9 @@ msgid ""
 "href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
 "href=\"/subjects/place:Omaha\">Omaha</a></i>"
 msgstr ""
+"ఉదాహరణకు: <i><a href=\"/subjects/place:London\">London</a>, <a "
+"href=\"/subjects/place:Atlantis\">Atlantis</a>, <a "
+"href=\"/subjects/place:Omaha\">Omaha</a></i>"
 
 #: books/edit/about.html
 msgid "When is it set or about?"
@@ -4377,6 +4411,9 @@ msgid ""
 "href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
 "href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 msgstr ""
+"ఉదాహరణకు: <i><a href=\"/subjects/time:1984\">1984</a>, <a "
+"href=\"/subjects/time:the_middle_ages\">The Middle Ages</a>, <a "
+"href=\"/subjects/time:1810-1890\">1810-1890</a></i>"
 
 #: books/edit/edition.html
 msgid "Select this language"
@@ -4588,6 +4625,9 @@ msgid ""
 "For example: <i>Eaters of the Dead</i> is an alternate title for <i><a "
 "href=\"/books/OL24923038M\">The 13th Warrior</a></i>."
 msgstr ""
+"ఉదాహరణకు: <i>Eaters of the Dead</i> అనేది <i><a "
+"href=\"/books/OL24923038M\">The 13th Warrior</a></i> యొక్క ప్రత్యామ్నాయ "
+"శీర్షిక."
 
 #: books/edit/edition.html
 msgid "What work is this an edition of?"
@@ -4607,6 +4647,9 @@ msgid ""
 "href=\"/works/OL262757W\" target=\"_blank\" rel=\"noopener "
 "noreferrer\"><em>OL262757W</em></a>)."
 msgstr ""
+"మీరు శీర్షిక లేదా Open Library ID (ఉదా. <a href=\"/works/OL262757W\" "
+"target=\"_blank\" rel=\"noopener noreferrer\"><em>OL262757W</em></a>) "
+"ద్వారా శోధించవచ్చు."
 
 #: books/edit/edition.html
 #, fuzzy
@@ -4883,6 +4926,8 @@ msgid ""
 "Please connect Open Library records to <u>good</u><span "
 "class=\"orange\">*</span> online resources."
 msgstr ""
+"దయచేసి Open Library రికార్డులను <u>మంచి</u><span "
+"class=\"orange\">*</span> ఆన్‌లైన్ వనరులతో అనుసంధానించండి."
 
 #: books/edit/web.html
 msgid "Give your link a label"
@@ -5848,6 +5893,13 @@ msgid ""
 "href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 msgstr ""
+"Open Library అనేది <a href=\"//archive.org/\">Internet Archive</a> యొక్క "
+"చొరవ, ఇది 501(c)(3) లాభాపేక్ష లేని సంస్థ, ఇంటర్నెట్ సైట్లు మరియు ఇతర "
+"సాంస్కృతిక కళాఖండాల డిజిటల్ గ్రంథాలయాన్ని నిర్మిస్తోంది. ఇతర <a "
+"href=\"//archive.org/projects/\">ప్రాజెక్టులలో</a> <a "
+"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> మరియు <a href=\"//archive-it.org"
+"\">archive-it.org</a> ఉన్నాయి"
 
 #: lib/nav_foot.html
 #, python-format
@@ -6476,6 +6528,8 @@ msgid ""
 "MR #%(id)s opened %(date)s by <a href=\"/people/%(submitter)s\" "
 "class=\"commenter\">@%(submitter)s</a>"
 msgstr ""
+"MR #%(id)s %(date)s న <a href=\"/people/%(submitter)s\" "
+"class=\"commenter\">@%(submitter)s</a> ద్వారా తెరవబడింది"
 
 #: merge_request_table/table_row.html
 #, fuzzy
@@ -6816,6 +6870,9 @@ msgid ""
 "read\">%(books_read)d</span>/<span class=\"reading-goal-"
 "progress__goal\">%(goal)d</span> Books"
 msgstr ""
+"<span class=\"reading-goal-progress__books-"
+"read\">%(books_read)d</span>/<span class=\"reading-goal-"
+"progress__goal\">%(goal)d</span> పుస్తకాలు"
 
 #: reading_goals/reading_goal_progress.html
 #, python-format
@@ -8490,7 +8547,7 @@ msgstr ""
 
 #: type/user/view.html
 msgid "private"
-msgstr ""
+msgstr "ప్రైవేట్"
 
 #: type/user/view.html
 #, fuzzy
