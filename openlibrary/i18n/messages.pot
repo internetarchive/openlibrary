@@ -936,8 +936,10 @@ msgstr ""
 
 #: trending.html
 #, python-format
-msgid "Logged %(count)i times %(time_unit)s"
-msgstr ""
+msgid "Logged %(count)i time %(time_unit)s"
+msgid_plural "Logged %(count)i times %(time_unit)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: verify_human.html
 msgid "Human Verification"

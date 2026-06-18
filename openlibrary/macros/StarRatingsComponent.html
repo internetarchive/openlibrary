@@ -1,7 +1,5 @@
 $def with(ratings_count, ratings_average, page_type)
 
-$ rounded_avg = "%.1f" % ratings_average
-$ formatted_ratings_count = "{:,}".format(ratings_count) if ratings_count else ""
 $ small = "star--small" if page_type != 'book_page' else ''
 
 $if ratings_average:
@@ -9,4 +7,4 @@ $if ratings_average:
     $:('<span class="star {}">★</span>'.format(small) * int(ratings_average))
     $if (stats_decimal >= 0.5) and (stats_decimal < 1):
       <span class="star star--half $small">★</span>
-    <span itemprop="ratingValue">$ungettext('%(average)s (%(count)s rating)', '%(average)s (%(count)s ratings)', ratings_count, average=rounded_avg, count=formatted_ratings_count)</span>
+    <span itemprop="ratingValue">$ungettext('%(average)s (%(count)s rating)', '%(average)s (%(count)s ratings)', ratings_count, average=format_decimal(ratings_average), count=commify(ratings_count))</span>
