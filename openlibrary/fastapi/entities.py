@@ -1,0 +1,403 @@
+"""FastAPI endpoint for serving entity documents as JSON.
+
+This file is named entities.py because it handles the
+generic "view document as JSON" pattern for multiple entity types —
+works, editions/books, authors, and people (users).  The shared helpers
+(``_entity_get`` / ``_entity_put``) and factory functions live here so
+that every entity type gets identical behavior — JSONP support, revision
+fetching, error formatting — without duplicating code.
+
+Naming rationale
+~~~~~~~~~~~~~~~~
+The FastAPI router files in this package are named after the **route
+domain** they serve (books.py → /api/books, lists.py → /lists/...,
+subjects.py → /subjects/..., etc.).  A file called ``works.py`` that
+also registers routes under ``/books/``, ``/authors/`` and ``/people/``
+would be misleading.  ``entities.py`` accurately captures the scope:
+any top-level Open Library entity whose raw JSON document should be
+exposed at ``/{type}/{id}.json``.
+"""
+
+import json
+import re
+from collections.abc import Callable
+from typing import Annotated, Any, Literal
+
+from fastapi import APIRouter, Body, Path, Query, Request
+from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse, Response
+
+from infogami.infobase import client
+from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.models import wrap_jsonp
+from openlibrary.utils.request_context import site
+
+router = APIRouter(tags=["entities"])
+
+
+# Shared query-parameter descriptors used by both factory and direct handlers.
+
+#: ``?m=history`` routes to the version-history endpoint.
+# NB: ``default`` is omitted here because the default is set via ``= None``
+# in the function signature — FastAPI/Annotated rejects duplicate defaults.
+_MODE_PARAM = Query(description="View mode. Set to ``history`` to return version history instead of the entity document.")
+
+#: History pagination.
+_HISTORY_AUTHOR = Query(description="Filter version history by author key (e.g. ``/people/openlibrary``).")
+_HISTORY_OFFSET = Query(ge=0, description="Number of revisions to skip.")
+_HISTORY_LIMIT = Query(ge=1, le=1000, description="Maximum revisions to return.")
+
+
+# -------------------------------------------------------------------------
+# Response models used for OpenAPI schema generation
+# -------------------------------------------------------------------------
+# The handlers return ``Response`` objects directly (to support JSONP), so
+# FastAPI uses these models *only* for OpenAPI docs — the actual response
+# payload is not validated or filtered through them.
+
+
+class EntityRef(BaseModel):
+    """A reference to another entity document (e.g. ``{"key": "/authors/OL1A"}``)."""
+
+    key: str
+
+
+class DatetimeValue(BaseModel):
+    """An Open Library datetime sub-document."""
+
+    type: Literal["/type/datetime"] = "/type/datetime"
+    value: str
+
+
+class BaseEntity(BaseModel):
+    """Common metadata fields present in every entity document."""
+
+    key: str
+    type: EntityRef
+    revision: int
+    latest_revision: int
+    created: DatetimeValue
+    last_modified: DatetimeValue
+
+    model_config = {"extra": "allow"}
+
+
+class WorkResponse(BaseEntity):
+    """Full JSON of a work entity."""
+
+    title: str = Field(default="", description="The work title.")
+    authors: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of author contributions (each entry is a dict with ``author``, ``type``, etc.).",
+    )
+
+
+class EditionResponse(BaseEntity):
+    """Full JSON of an edition (book) entity."""
+
+    title: str = Field(default="", description="The edition title.")
+    works: list[EntityRef] = Field(
+        default_factory=list,
+        description="List of works this edition belongs to.",
+    )
+
+
+class AuthorResponse(BaseEntity):
+    """Full JSON of an author entity."""
+
+    name: str = Field(default="", description="The author's display name.")
+
+
+class UserResponse(BaseEntity):
+    """Full JSON of a user profile."""
+
+    displayname: str | None = Field(default=None, description="The user's display name.")
+
+
+class PutResponse(BaseModel):
+    """Response from saving an entity."""
+
+    key: str = Field(description="The key of the saved entity.")
+    revision: int = Field(ge=1, description="The new revision number.")
+
+
+# -------------------------------------------------------------------------
+# Internal helpers shared by all entity-type routes
+# -------------------------------------------------------------------------
+
+
+def _safe_client_error_status(e: client.ClientException) -> int:
+    """Extract an HTTP status code from a ClientException status string."""
+    try:
+        match = re.search(r"\d{3}", e.status or "500")
+        return int(match.group(0)) if match else 500
+    except ValueError, TypeError:
+        return 500
+
+
+def _entity_history(
+    key: str,
+    author: str | None = None,
+    offset: int = 0,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Fetch version history for an entity, stripping IP addresses.
+
+    Mirrors the legacy web.py ``?m=history`` handler
+    (``openlibrary.plugins.upstream.code.history``) which redacts IPs
+    from the infobase version data before returning it.
+    """
+    query: dict[str, Any] = {"key": key, "sort": "-created", "offset": offset, "limit": limit}
+    if author:
+        query["author"] = author
+
+    s = site.get()
+    # Low-level connection mirrors ``infogami.plugins.api.code.request``.
+    result = s._conn.request(s.name, "/versions", "GET", {"query": json.dumps(query)})
+    history = json.loads(result)
+    for row in history:
+        row.pop("ip", None)
+    return history
+
+
+def _entity_get(
+    request: Request,
+    key: str,
+    revision: int | None,
+    text: bool,
+) -> Response:
+    """Shared GET logic: fetch a single entity by key and return JSON."""
+    s = site.get()
+
+    try:
+        thing = s.get(key, revision=revision)
+    except client.ClientException as e:
+        status_code = _safe_client_error_status(e)
+        return JSONResponse(
+            status_code=status_code,
+            content={"error": "internal_error", "detail": str(e)},
+        )
+
+    if thing is None:
+        return JSONResponse(
+            status_code=404,
+            content={"error": "notfound", "key": key},
+        )
+
+    data = thing.dict()
+    json_string = json.dumps(data)
+
+    # text/plain override for legacy compatibility
+    callback = request.query_params.get("callback")
+    if text and not callback:
+        return Response(content=json_string, media_type="text/plain")
+
+    # JSONP wrapping for ?callback=functionName
+    return wrap_jsonp(request, json_string)
+
+
+def _entity_put(
+    request: Request,
+    key: str,
+    body: dict[str, Any],
+) -> Response:
+    """Shared PUT logic: save an entity by key and return the result."""
+    s = site.get()
+
+    # Ensure the key in the body matches the URL key
+    body_key = body.get("key")
+    if body_key and body_key != key:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "key_mismatch", "detail": f"Key in body ({body_key}) does not match URL ({key})"},
+        )
+
+    body["key"] = key
+
+    comment = body.pop("_comment", None)
+
+    try:
+        result = s.save(body, comment=comment)
+    except client.ClientException as e:
+        status_code = _safe_client_error_status(e)
+        return JSONResponse(
+            status_code=status_code,
+            content={"error": "save_failed", "detail": str(e)},
+        )
+
+    return wrap_jsonp(request, json.dumps(result))
+
+
+def _make_get_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callable:
+    """Factory that creates a GET handler for a specific entity type.
+
+    Args:
+        entity_name: Human-readable name ("work", "edition", "author").
+        key_fmt: Function that takes the numeric ID and returns the full key
+                 (e.g. ``lambda n: f"/works/OL{n}W"``).
+    """
+    # Create the Path descriptor here (outside the handler) so the f-string
+    # is evaluated eagerly and not stored as an unresolved string reference
+    # by ``from __future__ import annotations``.
+    entity_id_path = Path(gt=0, description=f"The Open Library {entity_name} numeric ID.")
+
+    def handler(
+        request: Request,
+        entity_id: Annotated[int, entity_id_path],
+        v: Annotated[
+            int | None,
+            Query(
+                alias="v",
+                ge=1,
+                description="Fetch a specific revision instead of the latest.",
+            ),
+        ] = None,
+        text: Annotated[
+            bool,
+            Query(
+                description="If true, returns the response with Content-Type: text/plain instead of application/json.",
+            ),
+        ] = False,
+        m: Annotated[str | None, _MODE_PARAM] = None,
+        author: Annotated[str | None, _HISTORY_AUTHOR] = None,
+        offset: Annotated[int, _HISTORY_OFFSET] = 0,
+        limit: Annotated[int, _HISTORY_LIMIT] = 20,
+    ) -> Response:
+        key = key_fmt(entity_id)
+        if m == "history":
+            data = _entity_history(key, author=author, offset=offset, limit=limit)
+            return wrap_jsonp(request, json.dumps(data))
+        return _entity_get(request, key, revision=v, text=text)
+
+    return handler
+
+
+def _make_put_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callable:
+    """Factory that creates a PUT handler for a specific entity type."""
+    entity_id_path = Path(gt=0, description=f"The Open Library {entity_name} numeric ID.")
+
+    def handler(
+        request: Request,
+        entity_id: Annotated[int, entity_id_path],
+        body: Annotated[
+            dict[str, Any],
+            Body(
+                description="The full entity document as JSON. The ``_comment`` field is extracted and passed as the save comment.",
+            ),
+        ],
+        _: LibrarianDep,
+    ) -> Response:
+        return _entity_put(request, key_fmt(entity_id), body=body)
+
+    return handler
+
+
+# -------------------------------------------------------------------------
+# Route definitions for each entity type
+# -------------------------------------------------------------------------
+
+# --- Works -----------------------------------------------------------
+
+WORK_DESC = "Returns the full JSON of a work, including metadata, subjects, and authors."
+
+router.add_api_route(
+    "/works/OL{entity_id}W.json",
+    _make_get_handler("work", lambda n: f"/works/OL{n}W"),
+    methods=["GET"],
+    description=WORK_DESC,
+    response_model=WorkResponse,
+    tags=["entities"],
+)
+router.add_api_route(
+    "/works/OL{entity_id}W.json",
+    _make_put_handler("work", lambda n: f"/works/OL{n}W"),
+    methods=["PUT"],
+    description="Saves an updated work document. Requires librarian auth. Frontend: ``ile/utils/ol.js`` ``move_to_work``/``move_to_author``.",
+    response_model=PutResponse,
+    tags=["entities"],
+)
+
+# --- Books (editions) -------------------------------------------------
+
+BOOK_DESC = "Returns the full JSON of an edition (book), including metadata, works, publishers, etc."
+
+router.add_api_route(
+    "/books/OL{entity_id}M.json",
+    _make_get_handler("edition", lambda n: f"/books/OL{n}M"),
+    methods=["GET"],
+    description=BOOK_DESC,
+    response_model=EditionResponse,
+    tags=["entities"],
+)
+router.add_api_route(
+    "/books/OL{entity_id}M.json",
+    _make_put_handler("edition", lambda n: f"/books/OL{n}M"),
+    methods=["PUT"],
+    description=("Saves an updated edition document. Requires librarian auth. Frontend: ``ile/utils/ol.js`` ``move_to_work``/``move_to_author``."),
+    response_model=PutResponse,
+    tags=["entities"],
+)
+
+# --- Authors ---------------------------------------------------------
+
+AUTHOR_DESC = "Returns the full JSON of an author, including name, bio, birth/death dates, etc."
+
+router.add_api_route(
+    "/authors/OL{entity_id}A.json",
+    _make_get_handler("author", lambda n: f"/authors/OL{n}A"),
+    methods=["GET"],
+    description=AUTHOR_DESC,
+    response_model=AuthorResponse,
+    tags=["entities"],
+)
+router.add_api_route(
+    "/authors/OL{entity_id}A.json",
+    _make_put_handler("author", lambda n: f"/authors/OL{n}A"),
+    methods=["PUT"],
+    description="Saves an updated author document. Requires librarian auth.",
+    response_model=PutResponse,
+    tags=["entities"],
+)
+
+# --- People (users) --------------------------------------------------
+# People use human-readable keys (/people/username) rather than OL IDs.
+# The web.py view mode handles this generically — any path works.
+
+
+@router.get(
+    "/people/{username}.json",
+    response_model=UserResponse,
+    description="Returns the full JSON of a user profile, including display name, permissions, etc.",
+)
+def user_json(
+    request: Request,
+    username: str,
+    v: Annotated[
+        int | None,
+        Query(
+            alias="v",
+            ge=1,
+            description="Fetch a specific revision instead of the latest.",
+        ),
+    ] = None,
+    text: Annotated[
+        bool,
+        Query(
+            description="If true, returns the response with Content-Type: text/plain instead of application/json.",
+        ),
+    ] = False,
+    m: Annotated[str | None, _MODE_PARAM] = None,
+    author: Annotated[str | None, _HISTORY_AUTHOR] = None,
+    offset: Annotated[int, _HISTORY_OFFSET] = 0,
+    limit: Annotated[int, _HISTORY_LIMIT] = 20,
+) -> Response:
+    """Get the full JSON representation of a user profile.
+
+    Fetches the user document at ``/people/{username}`` and returns it as JSON.
+    When ``?m=history`` is set, returns version history instead.
+    """
+    key = f"/people/{username}"
+    if m == "history":
+        data = _entity_history(key, author=author, offset=offset, limit=limit)
+        return wrap_jsonp(request, json.dumps(data))
+    return _entity_get(request, key, revision=v, text=text)
