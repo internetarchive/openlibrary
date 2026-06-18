@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,6 +22,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -123,7 +123,7 @@ class xauth(delegate.page):
         # xauth() sends JSON body; web.input() only reads query params + form bodies
         try:
             body = json.loads(web.data() or "{}")
-        except json.JSONDecodeError, ValueError:
+        except (json.JSONDecodeError, ValueError):
             body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
@@ -704,7 +704,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except OSError, ValueError:
+        except (OSError, ValueError):
             return
 
     @staticmethod

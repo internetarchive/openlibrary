@@ -56,7 +56,7 @@ async def fetch_docs(
                 )
                 response.raise_for_status()
                 break
-            except httpx.RequestError, httpx.HTTPStatusError:
+            except (httpx.RequestError, httpx.HTTPStatusError):
                 if attempt == 4:
                     raise
                 await asyncio.sleep(2)
@@ -93,7 +93,7 @@ async def stream_bounds(
                     )
                     response.raise_for_status()
                     break
-                except httpx.RequestError, httpx.HTTPStatusError:
+                except (httpx.RequestError, httpx.HTTPStatusError):
                     if attempt == 4:
                         raise
                     await asyncio.sleep(2)
