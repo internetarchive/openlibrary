@@ -7692,11 +7692,9 @@ msgid "Look for this edition for sale at %(store)s"
 msgstr ""
 
 #: AffiliateLinks.html.jinja
-msgid "When you buy books using these links the Internet Archive may earn a"
-msgstr ""
-
-#: AffiliateLinks.html.jinja
-msgid "small commission"
+msgid ""
+"When you buy books using these links the Internet Archive may earn a <a "
+"class=\"nostyle\" href=\"/help/faq/about#selling\">small commission</a>."
 msgstr ""
 
 #: AffiliateLinksLoadingIndicator.html
