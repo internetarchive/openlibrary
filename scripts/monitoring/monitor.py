@@ -68,6 +68,11 @@ def monitor_nginx_logs():
         sources=["../obfi.sh", "utils.sh"],
     )
 
+    bash_run(
+        f"log_top_response_times stats.{bucket}.response_times",
+        sources=["../obfi.sh", "utils.sh"],
+    )
+
 
 @limit_server(["ol-solr0", "ol-solr1", "ol-solr2"], scheduler)
 @scheduler.scheduled_job("interval", seconds=60)

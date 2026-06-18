@@ -107,3 +107,33 @@ log_top_ip_counts() {
     done
 }
 export -f log_top_ip_counts
+
+log_top_response_times() {
+    BUCKET="$1"
+
+    # Get top response times in the last minute
+    TOP_RESPONSE_TIMES=$(
+        obfi_in_docker obfi_previous_minute | \
+        obfi_top_response_times | \
+        tail -n +2
+    )
+    # Output like this from obfi_top_response_times:
+    # n=26383  min=0.000s  avg=0.386s  max=53.666s
+    #      5694 10ms
+    #      4273 100ms
+    #     14669 1000ms
+    #      1491 5000ms
+    #       225 10000ms
+    #        19 20000ms
+    #        12 LONG
+
+    local ts=$(date +%s)
+    # Iterate over, and log in grafana to bucket eg `stats.ol-covers.nginx.response_time.time.10000ms`
+    while IFS= read -r line; do
+        count=$(echo $line | awk '{print $1}')
+        time_bucket=$(echo $line | awk '{print $2}')
+        graphite_event="$BUCKET.$time_bucket $count $ts"
+        echo $graphite_event
+        echo $graphite_event | nc -q0 graphite.us.archive.org 2003
+    done <<< "$TOP_RESPONSE_TIMES"
+}
