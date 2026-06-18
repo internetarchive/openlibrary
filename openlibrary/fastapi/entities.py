@@ -28,7 +28,7 @@ from pydantic import BaseModel, Field
 from starlette.responses import JSONResponse, Response
 
 from infogami.infobase import client
-from openlibrary.fastapi.auth import LibrarianDep  # noqa: TC001
+from openlibrary.fastapi.auth import CanWriteDep  # noqa: TC001
 from openlibrary.fastapi.models import wrap_jsonp
 from openlibrary.utils.request_context import site
 
@@ -285,7 +285,7 @@ def _make_put_handler(entity_name: str, key_fmt: Callable[[int], str]) -> Callab
                 description="The full entity document as JSON. The ``_comment`` field is extracted and passed as the save comment.",
             ),
         ],
-        _: LibrarianDep,
+        _: CanWriteDep,
     ) -> Response:
         return _entity_put(request, key_fmt(entity_id), body=body)
 
@@ -312,7 +312,7 @@ router.add_api_route(
     "/works/OL{entity_id}W.json",
     _make_put_handler("work", lambda n: f"/works/OL{n}W"),
     methods=["PUT"],
-    description="Saves an updated work document. Requires librarian auth. Frontend: ``ile/utils/ol.js`` ``move_to_work``/``move_to_author``.",
+    description="Saves an updated work document. Requires write access (admin, API usergroup, or bot-flagged user).",
     response_model=PutResponse,
     tags=["entities"],
 )
@@ -333,7 +333,7 @@ router.add_api_route(
     "/books/OL{entity_id}M.json",
     _make_put_handler("edition", lambda n: f"/books/OL{n}M"),
     methods=["PUT"],
-    description=("Saves an updated edition document. Requires librarian auth. Frontend: ``ile/utils/ol.js`` ``move_to_work``/``move_to_author``."),
+    description=("Saves an updated edition document. Requires write access (admin, API usergroup, or bot-flagged user)."),
     response_model=PutResponse,
     tags=["entities"],
 )
@@ -354,7 +354,7 @@ router.add_api_route(
     "/authors/OL{entity_id}A.json",
     _make_put_handler("author", lambda n: f"/authors/OL{n}A"),
     methods=["PUT"],
-    description="Saves an updated author document. Requires librarian auth.",
+    description="Saves an updated author document. Requires write access (admin, API usergroup, or bot-flagged user).",
     response_model=PutResponse,
     tags=["entities"],
 )
