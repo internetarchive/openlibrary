@@ -164,4 +164,38 @@ async def require_librarian(
     return _
 
 
+async def require_can_write(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> AuthenticatedUser:
+    """FastAPI dependency matching web.py's ``can_write()`` check.
+
+    Mirrors ``openlibrary.plugins.openlibrary.code.can_write`` which allows:
+    - Members of ``/usergroup/admin`` (admins)
+    - Members of ``/usergroup/api``
+    - Bot-flagged accounts (accounts with ``bot=true`` in the store)
+
+    This is intentionally broader than ``require_librarian`` — legacy API
+    integrations and automated tooling rely on the ``/usergroup/api`` and
+    bot-flag paths.  Returns 403 if the user lacks sufficient permissions.
+    """
+    user = get_current_user()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    # Check the three conditions from web.py's can_write()
+    can_write = bool(user.is_admin() or user.is_usergroup_member("/usergroup/api") or (user.get_account() and user.get_account().get("bot") in ("true", True)))
+
+    if not can_write:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions",
+        )
+
+    return _
+
+
 LibrarianDep = Annotated[AuthenticatedUser, Depends(require_librarian)]
+CanWriteDep = Annotated[AuthenticatedUser, Depends(require_can_write)]

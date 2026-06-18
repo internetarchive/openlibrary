@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from infogami.infobase.client import ClientException
-from openlibrary.fastapi.auth import AuthenticatedUser, require_librarian
+from openlibrary.fastapi.auth import AuthenticatedUser, require_can_write
 from openlibrary.fastapi.entities import router
 
 # ---------------------------------------------------------------------------
@@ -287,19 +287,19 @@ class TestEntityGet:
 class TestEntityPut:
     """Tests for ``PUT /{entity_type}/{id}.json`` routes.
 
-    All PUT routes require librarian-level authentication; the autouse
-    fixture overrides ``LibrarianDep`` to skip that check.
+    All PUT routes require write access (admin, API usergroup, or bot);
+    the autouse fixture overrides ``require_can_write`` to skip that check.
     """
 
     @pytest.fixture(autouse=True)
-    def _librarian_override(self, client):
-        """Override ``require_librarian`` so PUT tests don't need real auth.
+    def _write_override(self, client):
+        """Override ``require_can_write`` so PUT tests don't need real auth.
 
-        ``LibrarianDep`` is an ``Annotated[..., Depends(require_librarian)]``
+        ``CanWriteDep`` is an ``Annotated[..., Depends(require_can_write)]``
         type alias.  ``dependency_overrides`` expects the actual function
         passed to ``Depends()`` as the key.
         """
-        client.app.dependency_overrides[require_librarian] = lambda: AuthenticatedUser(
+        client.app.dependency_overrides[require_can_write] = lambda: AuthenticatedUser(
             username="testuser",
             user_key="/people/testuser",
             timestamp="2026-01-01T00:00:00",
@@ -398,7 +398,7 @@ class TestEntityPut:
     # -- auth -------------------------------------------------------------
 
     def test_put_unauthenticated(self, client):
-        """Without overriding ``LibrarianDep``, PUT should return 401."""
+        """Without overriding ``CanWriteDep``, PUT should return 401."""
         # Ensure no override is active for this test
         client.app.dependency_overrides.clear()
 
