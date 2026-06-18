@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
 
 import web
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -348,3 +348,66 @@ async def search_authors_json(
         doc["key"] = doc["key"].split("/")[-1]
 
     return raw_resp
+
+
+@router.get("/search/facets.json", tags=["search"])
+async def search_facets_json(
+    request: Request,
+    params: Annotated[PublicQueryOptions, Depends()],
+    field: Annotated[
+        list[str] | None,
+        Query(description=(f"Facet field(s) to return. Repeat to request multiple. Valid values: {', '.join(sorted(WorkSearchScheme.facet_fields))}")),
+    ] = None,
+    sfw: Annotated[str | None, Cookie()] = None,
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """
+    Returns context-aware facet values for one or more search facet fields.
+
+    Queries Solr with rows=0 alongside the current search params, returning only
+    values with count > 0, ordered by count descending. Designed to power the
+    OlSelectPopover components in the search results filter bar (PR #12949).
+
+    Example: GET /search/facets.json?field=language&field=subject_facet&q=lord+of+the+rings
+    """
+    if not field:
+        raise HTTPException(status_code=400, detail="At least one 'field' parameter is required.")
+    fields: list[str] = field
+
+    invalid = set(fields) - WorkSearchScheme.facet_fields
+    if invalid:
+        raise HTTPException(
+            status_code=400,
+            detail=(f"Invalid facet field(s): {sorted(invalid)}. Valid fields: {sorted(WorkSearchScheme.facet_fields)}"),
+        )
+
+    scheme = WorkSearchScheme(lang=request.state.lang)
+    query = params.model_dump(exclude_none=True)
+
+    search_response = await run_solr_query_async(
+        scheme,
+        query,
+        rows=0,
+        page=1,
+        facet=fields,
+        highlight=False,
+        request_label="BOOK_SEARCH_FACETS",
+        solr_internals_params=solr_internals_params,
+    )
+
+    # process_facet_counts renames author_facet → author_key internally;
+    # map back so the response key always matches the caller's input field name.
+    INTERNAL_RENAME = {"author_key": "author_facet"}
+
+    result: dict[str, list[dict[str, Any]]] = {f: [] for f in fields}
+    if search_response.facet_counts:
+        for facet_field, values in search_response.facet_counts.items():
+            output_key = INTERNAL_RENAME.get(facet_field, facet_field)
+            if output_key not in result:
+                continue
+            # values are (display_label, filter_value, count) tuples from process_facet;
+            # label == value for most fields; they differ for author_facet (name vs. OL key)
+            # and for subject/person/place/time facets that use "Name|key" solr values.
+            result[output_key] = [{"value": filter_val, "label": display_label, "count": count} for display_label, filter_val, count in values if count > 0]
+
+    return result
