@@ -81,18 +81,15 @@ class Ratings(db.CommonExtras):
     @classmethod
     def get_work_ratings_summary(cls, work_id: int) -> WorkRatingsSummary | None:
         oldb = db.get_db()
-        # NOTE: Using some old postgres syntax here :/ for modern postgres syntax,
-        # see the query in solr_builder.py
         query = """
             SELECT
-                sum( CASE WHEN rating = 1 THEN 1 ELSE 0 END ) as ratings_count_1,
-                sum( CASE WHEN rating = 2 THEN 1 ELSE 0 END ) as ratings_count_2,
-                sum( CASE WHEN rating = 3 THEN 1 ELSE 0 END ) as ratings_count_3,
-                sum( CASE WHEN rating = 4 THEN 1 ELSE 0 END ) as ratings_count_4,
-                sum( CASE WHEN rating = 5 THEN 1 ELSE 0 END ) as ratings_count_5
+                count(*) FILTER (WHERE rating = 1) AS ratings_count_1,
+                count(*) FILTER (WHERE rating = 2) AS ratings_count_2,
+                count(*) FILTER (WHERE rating = 3) AS ratings_count_3,
+                count(*) FILTER (WHERE rating = 4) AS ratings_count_4,
+                count(*) FILTER (WHERE rating = 5) AS ratings_count_5
             FROM ratings
             WHERE work_id = $work_id
-            GROUP BY work_id
         """
         result = oldb.query(query, vars={"work_id": work_id})
         if not result:

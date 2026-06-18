@@ -1,16 +1,5 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False, compact_mode=False, secondary_action=False, layout='carousel')
 
-$def carousel_i18n_input():
-  $ show_carousel_i18n_strings=  {
-  $ "loading": _("Loading...")
-  $ }
-
-  <input type="hidden" name="carousel-i18n-strings" value="$json_encode(show_carousel_i18n_strings)">
-
-
-$if render_once('books/custom_carousel.i18n-strings'):
-  $:carousel_i18n_input()
-
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
       $if title and url:

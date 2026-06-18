@@ -1,31 +1,3 @@
-import { removeURLParameter } from './Browser';
-import $ from 'jquery';
-
-/**
- * Adds hidden input elements/modifes the action of the form to match the given search mode
- * (Don't really understand what's happening, so just not gonna touch it too much)
- * @param {JQuery} form the form we'll modify
- * @param {String} searchMode
- */
-export function addModeInputsToForm($form, searchMode) {
-    $('input[name=\'has_fulltext\']').remove();
-
-    let url = $form.attr('action');
-    if (url) {
-        url = removeURLParameter(url, 'm');
-        url = removeURLParameter(url, 'has_fulltext');
-        url = removeURLParameter(url, 'subject_facet');
-
-        if (searchMode !== 'everything') {
-            $form.append('<input type="hidden" name="has_fulltext" value="true"/>');
-            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
-        }
-
-        $form.attr('action', url);
-    }
-}
-
-
 /**
  * @typedef {Object} PersistentValue.Options
  * @property {String?} [default]
@@ -122,22 +94,3 @@ export const mode = new PersistentValue('mode', {
         return isValidMode ? mode : DEFAULT_MODE;
     }
 });
-
-/** Manages interactions of the search mode radio buttons */
-export class SearchModeSelector {
-    /**
-     * @param {JQuery} radioButtons
-     */
-    constructor(radioButtons) {
-        this.$radioButtons = radioButtons;
-        this.change(newMode => mode.write(newMode));
-    }
-
-    /**
-     * Listen for changes
-     * @param {Function} handler
-     */
-    change(handler) {
-        this.$radioButtons.on('change', event => handler($(event.target).val()));
-    }
-}

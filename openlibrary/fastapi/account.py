@@ -8,10 +8,11 @@ import os
 from typing import Annotated
 from urllib.parse import unquote, urlparse
 
-from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request, Response, status
 from pydantic import BaseModel, Field
 
 from infogami import config
+from openlibrary import accounts
 from openlibrary.accounts.model import audit_accounts, generate_login_code_for_user
 from openlibrary.core import stats
 from openlibrary.fastapi.auth import (
@@ -19,6 +20,7 @@ from openlibrary.fastapi.auth import (
     get_authenticated_user,
     require_authenticated_user,
 )
+from openlibrary.plugins.upstream import account as legacy_account
 from openlibrary.plugins.upstream.account import get_login_error
 
 router = APIRouter()
@@ -32,6 +34,24 @@ def _safe_redirect(url: str, default: str = "/") -> str:
     if parsed.scheme or parsed.netloc or not url.startswith("/") or url.startswith("//"):
         return default
     return url
+
+
+class AccountLoansResponse(BaseModel):
+    """Response model for /account/loans.json."""
+
+    loans: list[dict] = Field(
+        ...,
+        description="List of the user's current loans, each containing ocaid, book, resource_type, expiry, etc.",
+    )
+
+
+class AccountLoanHistoryResponse(BaseModel):
+    """Response model for /account/loan-history.json."""
+
+    loans_history: dict = Field(
+        ...,
+        description="Loan history data containing 'docs' (list of loan records), 'show_next' (bool), 'limit' (int), and 'page' (int).",
+    )
 
 
 class AuthTestResponse(BaseModel):
@@ -148,6 +168,37 @@ async def optional_auth_endpoint(
             "message": "Hello, anonymous user!",
             "is_authenticated": False,
         }
+
+
+@router.get("/account/loans.json", response_model=AccountLoansResponse)
+def account_loans_json(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+) -> dict:
+    try:
+        return legacy_account.get_account_loans_json(accounts.get_current_user())
+    except Exception:
+        if os.getenv("LOCAL_DEV"):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Loan data requires credentials for the production Internet Archive server and is not available in the local development environment.",
+            )
+        raise
+
+
+@router.get("/account/loan-history.json", response_model=AccountLoanHistoryResponse)
+def account_loan_history_json(
+    _: Annotated[AuthenticatedUser, Depends(require_authenticated_user)],
+    page: Annotated[int, Query(ge=1)] = 1,
+) -> dict:
+    try:
+        return legacy_account.get_account_loan_history_json(accounts.get_current_user(), page)
+    except Exception:
+        if os.getenv("LOCAL_DEV"):
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Loan history requires credentials for the production Internet Archive server and is not available in the local development environment.",
+            )
+        raise
 
 
 class LoginForm(BaseModel):

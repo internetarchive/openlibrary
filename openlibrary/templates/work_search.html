@@ -1,6 +1,8 @@
-$def with (q_param, search_response, get_doc, param, page, rows, has_solr_editions_enabled)
+$def with (q_param, search_response, get_doc, param, page, rows, readable_count, has_solr_editions_enabled)
 
 $ layout = get_remembered_layout()
+$ bodyclass = ctx.setdefault('bodyclass', [])
+$ bodyclass.append('search-page')
 
 <div>
     <div id="contentHead">
@@ -17,13 +19,7 @@ $ layout = get_remembered_layout()
 
     <form method="get" action="/search" class="siteSearch search-row olform">
       <label for="q" class="hidden">$_('Keywords')</label>
-      $:render_template("search/searchbox", q=q_param)
-      <span class="mode-options">
-        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-        <label for="mode-search-everything">$_('Everything')</label>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
-        <label for="mode-search-ebooks">$_('Ebooks')</label>
-      </span>
+      $:render_template("search/searchbox", q=q_param, autofocus=True)
       $if ctx.user and (ctx.user.is_admin() or ctx.user.is_super_librarian() or ctx.user.is_librarian()):
         <div style="display: flex; justify-content: flex-end"  title="$_('This is only visible to super librarians.')">
             <label
@@ -34,7 +30,7 @@ $ layout = get_remembered_layout()
                 $:_('Solr Editions')
             </label>
         </div>
-      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+      $ sticky = set(['sort', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b', 'has_fulltext', 'public_scan', 'print_disabled'])
 
       $for k, values in param.items():
         $if k not in sticky:
@@ -42,9 +38,38 @@ $ layout = get_remembered_layout()
         $for v in values if isinstance(values, list) else [values]:
           <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
     </form>
+
+        $# Current selections are wired client-side by SearchFilterBar.js, which
+        $# seeds the toggle/popover from the URL query so they stay in sync with
+        $# the sidebar facets across page loads.
+        $# The readable-results count is computed server-side (search.GET) and
+        $# rendered into the sublabel here, so it's present on first paint with no
+        $# async flash-in or layout shift. Empty when there's nothing to count.
+        $ readable_sublabel = commify(readable_count) if readable_count is not None else ''
+        <div class="search-filter-row" id="search-filter-row">
+          <ol-toggle
+            variant="card"
+            label="$_('Readable Only')"
+            accessible-label="$_('Filter by availability')"
+            sublabel="$readable_sublabel"
+          ></ol-toggle>
+          <ol-select-popover
+            label="$_('Language')"
+            placeholder="$_('Search languages…')"
+            unselected-heading="$_('Languages')"
+            aria-label="$_('Filter by language')"
+          ></ol-select-popover>
+        </div>
+
+        $# Availability and language chips are rendered server-side on the first
+        $# paint (they don't need facet_counts to resolve a display name); the
+        $# rest of the chips (author, subject, etc.) appear once the async
+        $# facets request populates the bar. See search.js initSearchFacets.
+        $# `param` carries the current request's params; passing it as `query`
+        $# lets the chip's clear-URL (changequery) preserve q and other filters.
+        $# The partials path (partials.py) does the same via parsed_qs.
         <span class="selected-search-facets-container">
-            $if search_response.facet_counts:
-              $:render_template('search/work_search_selected_facets', param, search_response, q_param)
+            $:render_template('search/work_search_selected_facets', param, search_response, q_param, query=param)
         </span>
     </div>
 

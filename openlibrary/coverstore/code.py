@@ -18,7 +18,7 @@ from openlibrary.coverstore.coverlib import read_file, read_image, save_image
 from openlibrary.coverstore.server import load_config
 from openlibrary.coverstore.utils import (
     changequery,
-    download,
+    download_external_image,
     ol_get,
     ol_things,
     safeint,
@@ -141,7 +141,7 @@ class upload:
 
         if i.source_url:
             try:
-                data = download(i.source_url)
+                data = download_external_image(i.source_url)
             except:
                 error(ERROR_INVALID_URL)
         elif i.file is not None and i.file != {}:
@@ -190,7 +190,7 @@ class upload2:
 
         if source_url:
             try:
-                data = download(source_url)
+                data = download_external_image(source_url)
             except:
                 error(ERROR_INVALID_URL)
 

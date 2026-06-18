@@ -91,6 +91,7 @@ export function initAuthorView() {
     $.ajax({
         url: '/authors/merge.json',
         type: 'POST',
+        contentType: 'application/json',
         data: JSON.stringify(data),
         error: function() {
             $('#preMerge').fadeOut();

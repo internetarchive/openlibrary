@@ -336,6 +336,12 @@ jQuery(function() {
             .then((module) => module.initSearchFacets(searchFacets));
     }
 
+    const searchFilterBar = document.querySelector('.search-filter-row');
+    if (searchFilterBar) {
+        import(/* webpackChunkName: "search-filter-bar" */ './SearchFilterBar')
+            .then((module) => module.initSearchFilterBar(searchFilterBar));
+    }
+
     // Conditionally load Integrated Librarian Environment
     if (document.getElementsByClassName('show-librarian-tools').length) {
         import(/* webpackChunkName: "ile" */ './ile')
