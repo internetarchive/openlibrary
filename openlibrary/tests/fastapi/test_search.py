@@ -315,10 +315,10 @@ class TestSearchEndpoint:
         assert call_kwargs["fields"] == expected_fields
 
 
-class TestBatchSearchEndpoint:
-    """Tests for the POST /search/batch.json endpoint."""
+class TestCarouselsSearchEndpoint:
+    """Tests for the POST /search/carousels.json endpoint."""
 
-    def test_batch_returns_results_in_order(self, client, mock_work_search_async):
+    def test_carousels_returns_results_in_order(self, client, mock_work_search_async):
         """Two queries come back in the same order as submitted."""
         first_result = {
             "numFound": 1,
@@ -341,7 +341,7 @@ class TestBatchSearchEndpoint:
         mock_work_search_async.side_effect = [first_result, second_result]
 
         response = client.post(
-            "/search/batch.json",
+            "/search/carousels.json",
             json={
                 "queries": [
                     {"q": "python"},
@@ -357,10 +357,10 @@ class TestBatchSearchEndpoint:
         assert data[1]["docs"][0]["title"] == "Second Result"
         assert mock_work_search_async.call_count == 2
 
-    def test_batch_passes_query_params(self, client, mock_work_search_async):
+    def test_carousels_passes_query_params(self, client, mock_work_search_async):
         """Query fields are forwarded to work_search_async correctly."""
         response = client.post(
-            "/search/batch.json",
+            "/search/carousels.json",
             json={
                 "queries": [
                     {
@@ -383,23 +383,23 @@ class TestBatchSearchEndpoint:
         assert call_kwargs["limit"] == 10
         assert call_kwargs["fields"] == "key,title"
         assert call_kwargs["lang"] == "eng"
-        assert call_kwargs["request_label"] == "BATCH_SEARCH_API"
+        assert call_kwargs["request_label"] == "CAROUSEL_SEARCH_API"
         assert call_kwargs["facet"] is False
 
-    def test_batch_size_over_20_returns_422(self, client, mock_work_search_async):
-        """A batch with more than 20 queries is rejected with 422."""
+    def test_carousels_size_over_20_returns_422(self, client, mock_work_search_async):
+        """More than 20 queries is rejected with 422."""
         response = client.post(
-            "/search/batch.json",
+            "/search/carousels.json",
             json={"queries": [{"q": f"query {i}"} for i in range(21)]},
         )
 
         assert response.status_code == 422
         mock_work_search_async.assert_not_called()
 
-    def test_batch_empty_queries_returns_422(self, client, mock_work_search_async):
+    def test_carousels_empty_queries_returns_422(self, client, mock_work_search_async):
         """An empty queries list is rejected with 422."""
         response = client.post(
-            "/search/batch.json",
+            "/search/carousels.json",
             json={"queries": []},
         )
 

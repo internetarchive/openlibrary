@@ -193,8 +193,8 @@ async def search_json(
     return raw_response
 
 
-class BatchSearchQuery(BaseModel):
-    """A single query within a batch search request."""
+class MultiSearchQuery(BaseModel):
+    """A single Solr query within a multi-search request."""
 
     q: str = Field("", description="Solr query string (including any ebook_access filters)")
     sort: str | None = Field(None, description="Sort order")
@@ -205,37 +205,54 @@ class BatchSearchQuery(BaseModel):
     editions: bool = Field(False, description="Whether to include nested edition data")
 
 
-class BatchSearchRequest(BaseModel):
-    queries: list[BatchSearchQuery] = Field(..., min_length=1, max_length=20)
+class MultiSearchRequest(BaseModel):
+    queries: list[MultiSearchQuery] = Field(..., min_length=1, max_length=20)
 
 
-@router.post("/search/batch.json", tags=["search"])
-async def search_batch_json(
-    batch: BatchSearchRequest,
-    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)],
+async def _run_parallel_search(
+    queries: list[MultiSearchQuery],
+    request_label: str,
+    solr_internals_params: SolrInternalsParams | None,
 ) -> list[dict]:
-    """Execute multiple search queries in parallel. Returns one result per input query, in order.
+    """Execute a list of Solr queries in parallel via asyncio.gather.
 
-    Used by the OPDS service to fetch all carousel groups in a single request
-    instead of N parallel requests, reducing burst rate-limit exposure.
+    Shared by all named multi-search endpoints (/search/carousels.json, etc.).
+    Returns results in input order. Each query is independent; one slow query
+    does not block others.
     """
 
-    async def run_one(item: BatchSearchQuery) -> dict:
-        result = await work_search_async(
+    async def run_one(item: MultiSearchQuery) -> dict:
+        return await work_search_async(
             {"q": item.q},
             sort=item.sort,
             page=item.page,
             limit=item.limit,
             fields=item.fields,
             facet=False,
-            request_label="BATCH_SEARCH_API",
+            request_label=request_label,
             lang=item.lang,
             solr_internals_params=solr_internals_params,
         )
-        return result
 
-    results = await asyncio.gather(*[run_one(q) for q in batch.queries])
-    return list(results)
+    return list(await asyncio.gather(*[run_one(q) for q in queries]))
+
+
+@router.post("/search/carousels.json", tags=["search"])
+async def search_carousels_json(
+    body: MultiSearchRequest,
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)],
+) -> list[dict]:
+    """Fetch all OPDS home-feed carousel groups in a single request.
+
+    Accepts up to 20 named Solr queries (one per carousel slot) and executes
+    them in parallel. Returns one result set per input query, in order.
+    Reduces N round-trips from the OPDS service to 1, avoiding rate-limit
+    burst exhaustion.
+
+    Future named endpoints (e.g. /search/merge.json) share the same
+    parallel dispatch and response pattern via _run_parallel_search.
+    """
+    return await _run_parallel_search(body.queries, "CAROUSEL_SEARCH_API", solr_internals_params)
 
 
 @router.get("/search/inside.json")
