@@ -99,14 +99,14 @@ class TestWorkEditions:
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
             site_context.get.return_value = current_site
-            response = fastapi_client.get("/works/OL123W/editions.json?limit=5000&offset=25")
+            response = fastapi_client.get("/works/OL123W/editions.json?limit=1000&offset=25")
 
         assert response.status_code == 200
         assert response.json()["links"] == {
-            "self": "/works/OL123W/editions.json?limit=5000&offset=25",
+            "self": "/works/OL123W/editions.json?limit=1000&offset=25",
             "work": "/works/OL123W",
-            "prev": "/works/OL123W/editions.json?limit=5000&offset=-975",
-            "next": "/works/OL123W/editions.json?limit=5000&offset=1025",
+            "prev": "/works/OL123W/editions.json?limit=1000&offset=-975",
+            "next": "/works/OL123W/editions.json?limit=1000&offset=1025",
         }
         current_site.things.assert_called_once_with(
             {
@@ -166,7 +166,7 @@ class TestWorkEditions:
         )
 
     @pytest.mark.parametrize("doc", [None, make_doc("/authors/OL1A", "/type/author")])
-    def test_work_editions_returns_legacy_json_404(self, fastapi_client, doc):
+    def test_work_editions_returns_404(self, fastapi_client, doc):
         current_site = make_site(doc, [], [])
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
@@ -174,11 +174,10 @@ class TestWorkEditions:
             response = fastapi_client.get("/works/OL123W/editions.json")
 
         assert response.status_code == 404
-        assert response.json() == {}
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()
 
-    def test_work_editions_allows_zero_id_and_returns_legacy_json_404(self, fastapi_client):
+    def test_work_editions_allows_zero_id_and_returns_404(self, fastapi_client):
         current_site = make_site(None, [], [])
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
@@ -186,7 +185,6 @@ class TestWorkEditions:
             response = fastapi_client.get("/works/OL0W/editions.json")
 
         assert response.status_code == 404
-        assert response.json() == {}
         current_site.get.assert_called_once_with("/works/OL0W")
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()
@@ -246,14 +244,14 @@ class TestAuthorWorks:
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
             site_context.get.return_value = current_site
-            response = fastapi_client.get("/authors/OL456A/works.json?limit=5000&offset=25")
+            response = fastapi_client.get("/authors/OL456A/works.json?limit=1000&offset=25")
 
         assert response.status_code == 200
         assert response.json()["links"] == {
-            "self": "/authors/OL456A/works.json?limit=5000&offset=25",
+            "self": "/authors/OL456A/works.json?limit=1000&offset=25",
             "author": "/authors/OL456A",
-            "prev": "/authors/OL456A/works.json?limit=5000&offset=-975",
-            "next": "/authors/OL456A/works.json?limit=5000&offset=1025",
+            "prev": "/authors/OL456A/works.json?limit=1000&offset=-975",
+            "next": "/authors/OL456A/works.json?limit=1000&offset=1025",
         }
         current_site.things.assert_called_once_with(
             {
@@ -313,7 +311,7 @@ class TestAuthorWorks:
         )
 
     @pytest.mark.parametrize("doc", [None, make_doc("/works/OL1W", "/type/work")])
-    def test_author_works_returns_legacy_json_404(self, fastapi_client, doc):
+    def test_author_works_returns_404(self, fastapi_client, doc):
         current_site = make_site(doc, [], [])
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
@@ -321,11 +319,10 @@ class TestAuthorWorks:
             response = fastapi_client.get("/authors/OL456A/works.json")
 
         assert response.status_code == 404
-        assert response.json() == {}
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()
 
-    def test_author_works_allows_zero_id_and_returns_legacy_json_404(self, fastapi_client):
+    def test_author_works_allows_zero_id_and_returns_404(self, fastapi_client):
         current_site = make_site(None, [], [])
 
         with patch("openlibrary.plugins.openlibrary.api.site") as site_context:
@@ -333,7 +330,6 @@ class TestAuthorWorks:
             response = fastapi_client.get("/authors/OL0A/works.json")
 
         assert response.status_code == 404
-        assert response.json() == {}
         current_site.get.assert_called_once_with("/authors/OL0A")
         current_site.things.assert_not_called()
         current_site.get_many.assert_not_called()

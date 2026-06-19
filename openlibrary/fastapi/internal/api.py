@@ -15,7 +15,7 @@ from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Path, Query, Request, status
 from pydantic import BaseModel, BeforeValidator, Field
-from starlette.responses import JSONResponse, RedirectResponse
+from starlette.responses import RedirectResponse
 
 from openlibrary import accounts
 from openlibrary.core import lending, models
@@ -292,13 +292,19 @@ def post_work_bookshelves(
     )
 
 
-@router.get("/works/OL{work_id}W/editions.json", response_model=None)
+class PaginatedGroupEntryResponse(BaseModel):
+    links: dict[str, str]
+    size: int
+    entries: list[dict]
+
+
+@router.get("/works/OL{work_id}W/editions.json", response_model=PaginatedGroupEntryResponse, response_model_exclude_none=True)
 def work_editions(
     request: Request,
     work_id: Annotated[int, Path(ge=0)],
-    limit: Annotated[int, Query(description="Maximum number of editions to return")] = 50,
-    offset: Annotated[int, Query(description="Number of editions to skip")] = 0,
-) -> dict[str, Any] | JSONResponse:
+    limit: Annotated[int, Query(ge=0, le=1000, description="Maximum number of editions to return")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Number of editions to skip")] = 0,
+) -> PaginatedGroupEntryResponse:
     """Get paginated editions for a work."""
     data = legacy_work_editions.get_editions_data(
         f"/works/OL{work_id}W",
@@ -307,17 +313,17 @@ def work_editions(
         offset=offset,
     )
     if data is None:
-        return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
-    return data
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return PaginatedGroupEntryResponse(**data)
 
 
-@router.get("/authors/OL{author_id}A/works.json", response_model=None)
+@router.get("/authors/OL{author_id}A/works.json", response_model=PaginatedGroupEntryResponse, response_model_exclude_none=True)
 def author_works(
     request: Request,
     author_id: Annotated[int, Path(ge=0)],
-    limit: Annotated[int, Query(description="Maximum number of works to return")] = 50,
-    offset: Annotated[int, Query(description="Number of works to skip")] = 0,
-) -> dict[str, Any] | JSONResponse:
+    limit: Annotated[int, Query(ge=0, le=1000, description="Maximum number of works to return")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Number of works to skip")] = 0,
+) -> PaginatedGroupEntryResponse:
     """Get paginated works for an author."""
     data = legacy_author_works.get_works_data(
         f"/authors/OL{author_id}A",
@@ -326,8 +332,8 @@ def author_works(
         offset=offset,
     )
     if data is None:
-        return JSONResponse(content={}, status_code=status.HTTP_404_NOT_FOUND)
-    return data
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return PaginatedGroupEntryResponse(**data)
 
 
 class PriceResponse(BaseModel):

@@ -274,7 +274,7 @@ class work_editions(delegate.page):
             "work": work.key,
         }
         if offset > 0:
-            links["prev"] = str(url.include_query_params(offset=min(0, offset - limit)))
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
         if offset + len(editions) < work.edition_count:
             links["next"] = str(url.include_query_params(offset=offset + limit))
 
@@ -323,7 +323,7 @@ class author_works(delegate.page):
             "author": author.key,
         }
         if offset > 0:
-            links["prev"] = str(url.include_query_params(offset=min(0, offset - limit)))
+            links["prev"] = str(url.include_query_params(offset=max(0, offset - limit)))
         if offset + len(works) < size:
             links["next"] = str(url.include_query_params(offset=offset + limit))
 
