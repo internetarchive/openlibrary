@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
 from warnings import deprecated
 
+import infogami.core.code as core  # noqa: F401 side effects may be needed
 import requests
 import web
-
-import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import (
@@ -23,6 +22,7 @@ from infogami.utils.view import (
     render_template,
     require_login,
 )
+
 from openlibrary import accounts
 from openlibrary.accounts import (
     InternetArchiveAccount,
@@ -866,32 +866,28 @@ class account_preferences(delegate.page):
                 content_type="application/json",
             )
         prefs = {
-            'mode': d.get('mode', 'all'),
-            'language': d.get('language', 'en'),
-            'date': d.get('date', [1900, 2025]),
+            "mode": d.get("mode", "all"),
+            "language": d.get("language", "en"),
+            "date": d.get("date", [1900, 2025]),
         }
 
         # Transform to backend format
         backend_prefs = {
-            'formats': (
-                'has_fulltext'
-                if prefs['mode'] == 'fulltext'
-                else 'ebook_access' if prefs['mode'] == 'preview' else None
-            ),
-            'first_publish_year': prefs['date'],
+            "formats": ("has_fulltext" if prefs["mode"] == "fulltext" else "ebook_access" if prefs["mode"] == "preview" else None),
+            "first_publish_year": prefs["date"],
         }
-        if prefs['language'] != 'all':
-            backend_prefs['languages'] = [prefs['language']]
+        if prefs["language"] != "all":
+            backend_prefs["languages"] = [prefs["language"]]
         expires = 3600 * 24 * 365
-        web.setcookie('ol_mode', prefs['mode'], expires=expires)
-        web.setcookie('ol_lang', prefs['language'], expires=expires)
-        web.setcookie('ol_date', ",".join(map(str, prefs['date'])), expires=expires)
+        web.setcookie("ol_mode", prefs["mode"], expires=expires)
+        web.setcookie("ol_lang", prefs["language"], expires=expires)
+        web.setcookie("ol_date", ",".join(map(str, prefs["date"])), expires=expires)
 
-        if d.get('redirect', True):
+        if d.get("redirect", True):
             raise web.seeother("/account")
         else:
             return delegate.RawText(
-                json.dumps({'status': 'ok', 'backend_prefs': backend_prefs}),
+                json.dumps({"status": "ok", "backend_prefs": backend_prefs}),
                 content_type="application/json",
             )
 

@@ -13,11 +13,11 @@ from unicodedata import normalize
 
 import httpx
 import web
-
 from infogami import config
 from infogami.infobase.client import storify
 from infogami.utils import delegate
 from infogami.utils.view import public, render, render_template, safeint
+
 from openlibrary.core import cache
 from openlibrary.core.env import get_ol_env
 from openlibrary.core.lending import add_availability, add_availability_async
@@ -427,12 +427,12 @@ def _prepare_solr_query_params(  # noqa: PLR0912
         else:
             params += [("fq", f'{field}:"{val}"') for val in non_empty]
 
-    if 'fq' in param:
-        fq_list = param['fq']
+    if "fq" in param:
+        fq_list = param["fq"]
         if isinstance(fq_list, list):
-            params += [('fq', fq) for fq in fq_list]
+            params += [("fq", fq) for fq in fq_list]
         elif isinstance(fq_list, str):
-            params.append(('fq', fq_list))
+            params.append(("fq", fq_list))
 
     # Many fields in solr use the convention of `*_facet` both
     # as a facet key and as the explicit search query key.
