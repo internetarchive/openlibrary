@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import Mapping
 from typing import Annotated, Any, Literal, Self
@@ -190,6 +191,51 @@ async def search_json(
     raw_response["offset"] = params.offset
 
     return raw_response
+
+
+class BatchSearchQuery(BaseModel):
+    """A single query within a batch search request."""
+
+    q: str = Field("", description="Solr query string (including any ebook_access filters)")
+    sort: str | None = Field(None, description="Sort order")
+    page: int = Field(1, ge=1)
+    limit: int = Field(25, ge=1, le=1000)
+    fields: str = Field("*", description="Comma-separated list of fields to return")
+    lang: str | None = Field(None, description="Language code for edition preference")
+    editions: bool = Field(False, description="Whether to include nested edition data")
+
+
+class BatchSearchRequest(BaseModel):
+    queries: list[BatchSearchQuery] = Field(..., min_length=1, max_length=20)
+
+
+@router.post("/search/batch.json", tags=["search"])
+async def search_batch_json(
+    batch: BatchSearchRequest,
+    solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)],
+) -> list[dict]:
+    """Execute multiple search queries in parallel. Returns one result per input query, in order.
+
+    Used by the OPDS service to fetch all carousel groups in a single request
+    instead of N parallel requests, reducing burst rate-limit exposure.
+    """
+
+    async def run_one(item: BatchSearchQuery) -> dict:
+        result = await work_search_async(
+            {"q": item.q},
+            sort=item.sort,
+            page=item.page,
+            limit=item.limit,
+            fields=item.fields,
+            facet=False,
+            request_label="BATCH_SEARCH_API",
+            lang=item.lang,
+            solr_internals_params=solr_internals_params,
+        )
+        return result
+
+    results = await asyncio.gather(*[run_one(q) for q in batch.queries])
+    return list(results)
 
 
 @router.get("/search/inside.json")
