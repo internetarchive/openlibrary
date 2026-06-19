@@ -321,11 +321,24 @@ msgid "Preview"
 msgstr ""
 
 #: history.html
+#, python-format
+msgid "Compare revisions %(a)s and %(b)s"
+msgstr ""
+
+#: history.html
 msgid "History of edits to"
 msgstr ""
 
 #: history.html
-msgid "Revision"
+msgid "Revision comparison"
+msgstr ""
+
+#: history.html
+msgid "Clear comparison"
+msgstr ""
+
+#: history.html
+msgid "Rev"
 msgstr ""
 
 #: RecentChanges.html RecentChangesAdmin.html RecentChangesUsers.html
@@ -350,12 +363,18 @@ msgstr ""
 msgid "Diff"
 msgstr ""
 
+#. Column header labeling the "A" side (the earlier/left revision) of a
+#. revision comparison on a page's edit-history table. Keep extremely short; a
+#. single letter is ideal. Pairs with "B".
 #: history.html
-msgid "Compare"
+msgid "A"
 msgstr ""
 
+#. Column header labeling the "B" side (the later/right revision) of a revision
+#. comparison on a page's edit-history table. Keep extremely short; a single
+#. letter is ideal. Pairs with "A".
 #: history.html
-msgid "See Diff"
+msgid "B"
 msgstr ""
 
 #: history.html lib/history.html
@@ -364,11 +383,20 @@ msgid "View revision %s"
 msgstr ""
 
 #: history.html
-msgid "Compare this version..."
+msgid "Changes"
 msgstr ""
 
 #: history.html
-msgid "...to this version"
+msgid "Compare this revision with the current version"
+msgstr ""
+
+#: history.html
+msgid "vs current"
+msgstr ""
+
+#: history.html
+#, python-format
+msgid "Pick revision %s as A or B for comparison"
 msgstr ""
 
 #: import_preview.html
