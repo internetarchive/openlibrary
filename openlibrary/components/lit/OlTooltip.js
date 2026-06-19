@@ -123,9 +123,11 @@ export class OlTooltip extends LitElement {
         this._hideTimer = null;
         this._tooltipId = `ol-tooltip-${++OlTooltip._idCounter}`;
 
-        // Tooltips are a hover/focus affordance. On touch devices a tap would
-        // both fire the action and surface the tooltip (via emulated mouseenter
-        // or tap-focus), so we only arm the triggers on hover-capable pointers.
+        // Gates the *pointer* path only. On touch devices a tap would both fire
+        // the action and surface the tooltip via an emulated mouseenter, so we
+        // arm mouseenter only on hover-capable pointers. Keyboard focus is not
+        // gated on this — see _onFocusIn, which uses :focus-visible so tab-focus
+        // works even on touch-capable devices (e.g. a tablet with a keyboard).
         this._canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
         this._onMouseEnter = this._onMouseEnter.bind(this);
@@ -214,7 +216,14 @@ export class OlTooltip extends LitElement {
     }
 
     _onFocusIn() {
-        if (this.disabled || !this._canHover) return;
+        if (this.disabled) return;
+        // Show on genuine keyboard focus only, independent of pointer capability.
+        // :focus-visible is the browser's own heuristic for "focus that warrants a
+        // ring" — true for Tab/keyboard focus, false for a pointer (mouse/touch)
+        // click — so a tap that focuses the trigger won't pop the tooltip, while a
+        // keyboard user gets it even on a touch device with hover: none.
+        const trigger = this._triggerEl;
+        if (!trigger?.matches?.(':focus-visible')) return;
         this._clearTimers();
         this._show();
     }
