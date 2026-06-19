@@ -51,16 +51,23 @@ class Features(BaseSettings):
 
         YAML keys are expected to match field names (kebab-case keys like
         ``stats-header`` are normalized to snake_case). Legacy string values
-        like ``enabled``/``disabled`` are mapped to booleans; native YAML
-        booleans and dict-based group gates are also handled.
+        like ``enabled``/``disabled`` are mapped to booleans; unknown keys
+        and unrecognized string values raise ``ValueError``.
         """
         data = yaml.safe_load(Path(path).read_text()) or {}
         features_dict = data.get("features") or {}
         normalized = {}
         for key, value in features_dict.items():
             normalized_key = key.replace("-", "_")
+            if normalized_key not in cls.model_fields:
+                continue
             if isinstance(value, str):
-                normalized_value = _LEGACY_FLAG_MAP.get(value.lower(), bool(value))
+                normalized_value = _LEGACY_FLAG_MAP.get(value.lower())
+                if normalized_value is None:
+                    raise ValueError(
+                        f"Unrecognized feature flag value {value!r} for {key!r}; "
+                        f"expected one of {sorted(_LEGACY_FLAG_MAP)} or a native boolean"
+                    )
             else:
                 normalized_value = bool(value)
             normalized[normalized_key] = normalized_value
