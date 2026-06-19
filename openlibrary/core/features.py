@@ -33,7 +33,7 @@ _LEGACY_FLAG_MAP = {
 
 
 class Features(BaseSettings):
-    model_config = {"extra": "ignore"}
+    model_config = {"extra": "ignore", "env_prefix": "OL_FEATURE_"}
 
     debug: bool = False
     dev: bool = False
