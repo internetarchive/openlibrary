@@ -37,6 +37,24 @@ from openlibrary.plugins.worksearch.schemes.works import WorkSearchScheme
 
 router = APIRouter()
 
+# Facet fields exposed by /search/facets.json — mirrors WorkSearchScheme.facet_fields
+FacetField = Literal[
+    "author_facet",
+    "first_publish_year",
+    "has_fulltext",
+    "language",
+    "person_facet",
+    "place_facet",
+    "public_scan_b",
+    "publisher_facet",
+    "subject_facet",
+    "time_facet",
+]
+
+# process_facet_counts renames author_facet → author_key internally; map back so
+# the response key always matches the caller's requested field name.
+_FACET_INTERNAL_RENAME = {"author_key": "author_facet"}
+
 
 class PublicQueryOptions(BaseModel):
     """
@@ -139,6 +157,14 @@ class SearchRequestParams(PublicQueryOptions, Pagination):
             query_fields |= set(WorkSearchScheme.field_name_map.keys())
             q = self.model_dump(include=query_fields, exclude_none=True)
             return q
+
+
+class FacetValue(BaseModel):
+    """A single facet option returned by /search/facets.json."""
+
+    value: str = Field(description="Filter value to pass back to /search.json (e.g. 'eng', 'OL9A')")
+    label: str = Field(description="Human-readable display label — differs from value for author_facet")
+    count: int = Field(description="Number of matching works")
 
 
 class SearchResponse(BaseModel):
@@ -350,17 +376,17 @@ async def search_authors_json(
     return raw_resp
 
 
-@router.get("/search/facets.json", tags=["search"])
+@router.get("/search/facets.json", tags=["search"], response_model=dict[str, list[FacetValue]])
 async def search_facets_json(
     request: Request,
     params: Annotated[PublicQueryOptions, Depends()],
     field: Annotated[
-        list[str] | None,
-        Query(description=(f"Facet field(s) to return. Repeat to request multiple. Valid values: {', '.join(sorted(WorkSearchScheme.facet_fields))}")),
+        list[FacetField] | None,
+        Query(description="Facet field(s) to return. Repeat for multiple."),
     ] = None,
     sfw: Annotated[str | None, Cookie()] = None,
     solr_internals_params: Annotated[SolrInternalsParams | None, Depends(SolrInternalsParams.from_request)] = None,
-) -> dict[str, list[dict[str, Any]]]:
+) -> dict[str, list[FacetValue]]:
     """
     Returns context-aware facet values for one or more search facet fields.
 
@@ -372,42 +398,26 @@ async def search_facets_json(
     """
     if not field:
         raise HTTPException(status_code=400, detail="At least one 'field' parameter is required.")
-    fields: list[str] = field
-
-    invalid = set(fields) - WorkSearchScheme.facet_fields
-    if invalid:
-        raise HTTPException(
-            status_code=400,
-            detail=(f"Invalid facet field(s): {sorted(invalid)}. Valid fields: {sorted(WorkSearchScheme.facet_fields)}"),
-        )
-
-    scheme = WorkSearchScheme(lang=request.state.lang)
-    query = params.model_dump(exclude_none=True)
 
     search_response = await run_solr_query_async(
-        scheme,
-        query,
+        WorkSearchScheme(lang=request.state.lang),
+        params.model_dump(exclude_none=True),
         rows=0,
         page=1,
-        facet=fields,
+        facet=list(field),
         highlight=False,
         request_label="BOOK_SEARCH_FACETS",
         solr_internals_params=solr_internals_params,
     )
 
-    # process_facet_counts renames author_facet → author_key internally;
-    # map back so the response key always matches the caller's input field name.
-    INTERNAL_RENAME = {"author_key": "author_facet"}
-
-    result: dict[str, list[dict[str, Any]]] = {f: [] for f in fields}
+    result: dict[str, list[FacetValue]] = {f: [] for f in field}
     if search_response.facet_counts:
         for facet_field, values in search_response.facet_counts.items():
-            output_key = INTERNAL_RENAME.get(facet_field, facet_field)
+            output_key = _FACET_INTERNAL_RENAME.get(facet_field, facet_field)
             if output_key not in result:
                 continue
-            # values are (display_label, filter_value, count) tuples from process_facet;
-            # label == value for most fields; they differ for author_facet (name vs. OL key)
-            # and for subject/person/place/time facets that use "Name|key" solr values.
-            result[output_key] = [{"value": filter_val, "label": display_label, "count": count} for display_label, filter_val, count in values if count > 0]
+            # values are (display_label, filter_value, count) tuples; label differs
+            # from value for author_facet (name vs OL key) and "Name|key" subject fields.
+            result[output_key] = [FacetValue(value=filter_val, label=display_label, count=count) for display_label, filter_val, count in values if count > 0]
 
     return result

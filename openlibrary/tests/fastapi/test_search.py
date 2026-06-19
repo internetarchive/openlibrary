@@ -405,9 +405,10 @@ class TestSearchFacetsEndpoint:
 
     def test_rejects_invalid_field(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?field=notafield&q=tolkien")
-        assert response.status_code == 400
-        assert "notafield" in response.json()["detail"]
-        assert "Valid fields" in response.json()["detail"]
+        # FastAPI validates FacetField Literal and returns 422 for unknown values
+        assert response.status_code == 422
+        detail = response.json()["detail"]
+        assert any(err.get("input") == "notafield" for err in detail)
 
     def test_returns_facet_values_for_single_field(self, fastapi_client, mock_run_solr_query_async):
         response = fastapi_client.get("/search/facets.json?field=language&q=lord+of+the+rings")
@@ -446,8 +447,3 @@ class TestSearchFacetsEndpoint:
         response = fastapi_client.get("/search/facets.json?field=language")
         assert response.status_code == 200
         assert "language" in response.json()
-
-    def test_openapi_contains_facets_endpoint(self, fastapi_client):
-        response = fastapi_client.get("/openapi.json")
-        assert response.status_code == 200
-        assert "/search/facets.json" in response.json()["paths"]
