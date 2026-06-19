@@ -5,9 +5,9 @@ from typing import Literal, NotRequired, TypedDict
 from urllib.parse import parse_qs, quote, quote_plus
 
 import web
+from infogami.utils.view import public, render_template
 from pydantic import BaseModel, Field, field_validator
 
-from infogami.utils.view import public, render_template
 from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
