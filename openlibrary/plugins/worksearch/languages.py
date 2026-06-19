@@ -1,6 +1,7 @@
 """Language pages"""
 
 import logging
+import unicodedata
 from dataclasses import dataclass
 from typing import Literal, override
 
@@ -15,6 +16,12 @@ from openlibrary.utils.async_utils import async_bridge
 from . import search, subjects
 
 logger = logging.getLogger("openlibrary.worksearch")
+
+
+def _name_sort_key(name: str) -> str:
+    """Sort key for language names: strips diacritics and case-folds for correct alphabetical order."""
+    nfd = unicodedata.normalize("NFD", name)
+    return "".join(c for c in nfd if unicodedata.category(c) != "Mn").casefold()
 
 
 async def get_top_languages(
@@ -33,7 +40,7 @@ async def get_top_languages(
         )
         for (lang_key, count) in await get_all_language_counts("work")
     ]
-    results.sort(key=lambda x: x[sort].casefold() if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
+    results.sort(key=lambda x: _name_sort_key(x[sort]) if sort == "name" else x[sort], reverse=sort in ("count", "ebook_edition_count"))
     return results[:limit]
 
 
