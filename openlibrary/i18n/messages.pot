@@ -4698,6 +4698,18 @@ msgstr ""
 msgid "Qualifying for Print Disability Special Access"
 msgstr ""
 
+#: follow/follow.html lists/list_follow.html
+msgid "Follow"
+msgstr ""
+
+#: follow/follow.html
+msgid "Unfollow"
+msgstr ""
+
+#: follow/follow.html
+msgid "Failed to update followers. Please try again in a few moments."
+msgstr ""
+
 #: history/sources.html
 msgid "record"
 msgstr ""
@@ -5526,10 +5538,6 @@ msgstr ""
 
 #: lists/list_follow.html
 msgid "🔒︎"
-msgstr ""
-
-#: Follow.html lists/list_follow.html
-msgid "Follow"
 msgstr ""
 
 #: lists/list_follow.html
@@ -7760,14 +7768,6 @@ msgstr ""
 
 #: EditionNavBar.html
 msgid "Go to next section"
-msgstr ""
-
-#: Follow.html
-msgid "Unfollow"
-msgstr ""
-
-#: Follow.html
-msgid "Failed to update followers. Please try again in a few moments."
 msgstr ""
 
 #: FormatExpiry.html
