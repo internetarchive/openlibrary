@@ -119,6 +119,12 @@ class TestFromYaml:
         f = Features.from_yaml(config)
         assert f.stats is False
 
+    def test_unrecognized_string_raises(self, tmp_path: Path):
+        config = tmp_path / "openlibrary.yml"
+        config.write_text("features:\n    stats: maybe\n")
+        with pytest.raises(ValueError, match=r"Unrecognized feature flag value.*stats"):
+            Features.from_yaml(config)
+
     def test_unknown_key_is_ignored(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"
         config.write_text("features:\n    history_v2: admin\n    stats: true\n")
@@ -132,32 +138,36 @@ class TestRealConfig:
         f = Features.from_yaml("conf/openlibrary.yml")
         assert isinstance(f, Features)
 
-    def test_real_config_has_stats_as_native_boolean(self):
+    def test_real_config_stats_is_native_boolean(self):
         raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        features_section = raw.get("features", {})
-        stats_val = features_section.get("stats")
-        assert isinstance(stats_val, bool), (
-            f"expected native boolean, got {type(stats_val).__name__}: {stats_val!r}"
-        )
-        assert stats_val is True
+        val = raw.get("features", {}).get("stats")
+        assert isinstance(val, bool), f"expected native boolean, got {type(val).__name__}: {val!r}"
 
-    def test_real_config_has_stats_header_as_native_boolean(self):
+    def test_real_config_stats_currently_enabled(self):
+        """Regression guard: stats/stats-header default to a different value
+        than legacy always-on behavior, so dev config must explicitly set
+        them. If this assertion is intentionally changed, that's fine —
+        update this test alongside the config change.
+        """
         raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        features_section = raw.get("features", {})
-        val = features_section.get("stats-header")
-        assert isinstance(val, bool), (
-            f"expected native boolean, got {type(val).__name__}: {val!r}"
-        )
-        assert val is True
+        assert raw["features"]["stats"] is True
+
+    def test_real_config_stats_header_is_native_boolean(self):
+        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
+        val = raw.get("features", {}).get("stats-header")
+        assert isinstance(val, bool), f"expected native boolean, got {type(val).__name__}: {val!r}"
+
+    def test_real_config_stats_header_currently_enabled(self):
+        """Regression guard — see test_real_config_stats_currently_enabled."""
+        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
+        assert raw["features"]["stats-header"] is True
 
     def test_no_legacy_stats_strings_in_real_config(self):
         raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
         features_section = raw.get("features", {})
         for key in ("stats", "stats-header"):
             val = features_section.get(key)
-            assert not isinstance(val, str), (
-                f"{key} has legacy string value {val!r} — should be native boolean"
-            )
+            assert not isinstance(val, str), f"{key} has legacy string value {val!r} — should be native boolean"
 
 
 class TestLegacyFlagMap:

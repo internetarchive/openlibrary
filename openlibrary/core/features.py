@@ -64,10 +64,7 @@ class Features(BaseSettings):
             if isinstance(value, str):
                 normalized_value = _LEGACY_FLAG_MAP.get(value.lower())
                 if normalized_value is None:
-                    raise ValueError(
-                        f"Unrecognized feature flag value {value!r} for {key!r}; "
-                        f"expected one of {sorted(_LEGACY_FLAG_MAP)} or a native boolean"
-                    )
+                    raise ValueError(f"Unrecognized feature flag value {value!r} for {key!r}; expected one of {sorted(_LEGACY_FLAG_MAP)} or a native boolean")
             else:
                 normalized_value = bool(value)
             normalized[normalized_key] = normalized_value
