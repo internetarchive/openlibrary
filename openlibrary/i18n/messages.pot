@@ -4629,6 +4629,206 @@ msgstr ""
 msgid "Finished"
 msgstr ""
 
+#: design/autocomplete.html
+msgid "Autocomplete component"
+msgstr ""
+
+#: design/autocomplete.html
+msgid ""
+"The ol-autocomplete component provides a reusable autocomplete input with"
+" ARIA combobox pattern, debounced fetch, and keyboard navigation."
+msgstr ""
+
+#: design/autocomplete.html
+msgid "Language autocomplete"
+msgstr ""
+
+#: design/autocomplete.html
+msgid ""
+"Type a language name to see autocomplete suggestions from the languages "
+"API."
+msgstr ""
+
+#: design/autocomplete.html
+msgid "Selected:"
+msgstr ""
+
+#: design/autocomplete.html
+msgid "With pre-selected value"
+msgstr ""
+
+#: design/autocomplete.html
+msgid "The component can be initialized with an existing selection."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Language Edit component"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"The ol-language-edit component provides inline editing of languages on "
+"edition pages with a popover interface."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Single language"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"Hover over the language text to reveal the edit pencil. Click it to open "
+"the editing popover."
+msgstr ""
+
+#: design/language_edit.html
+msgid "Multiple languages"
+msgstr ""
+
+#: design/language_edit.html
+msgid ""
+"Editions can have multiple languages. The component displays them comma-"
+"separated."
+msgstr ""
+
+#: design/pagination.html
+msgid "Pagination component"
+msgstr ""
+
+#: design/pagination.html
+msgid ""
+"The ol-pagination component provides support for both event-based and "
+"URL-based navigation."
+msgstr ""
+
+#: design/pagination.html
+msgid "Event-based"
+msgstr ""
+
+#: design/pagination.html
+#, python-format
+msgid ""
+"When a page is clicked, the component fires an %(event_name)s event with "
+"the page number in %(event_detail)s."
+msgstr ""
+
+#: design/pagination.html
+msgid "Selected page:"
+msgstr ""
+
+#: design/pagination.html
+msgid "URL-based Navigation"
+msgstr ""
+
+#: design/pagination.html
+msgid ""
+"When base-url is provided, pagination renders anchor tags for SEO-"
+"friendly links."
+msgstr ""
+
+#: design/pagination.html
+msgid "First page (no previous arrow)"
+msgstr ""
+
+#: design/pagination.html
+msgid "Middle page (both arrows visible)"
+msgstr ""
+
+#: design/pagination.html
+msgid "Last page (no next arrow)"
+msgstr ""
+
+#: design/pagination.html
+msgid "3 pages"
+msgstr ""
+
+#: design/pagination.html
+msgid "5 pages (no ellipsis needed)"
+msgstr ""
+
+#: design/pagination.html
+msgid "100 pages with ellipsis:"
+msgstr ""
+
+#: design/read_more.html
+msgid "Read More component"
+msgstr ""
+
+#: design/read_more.html
+msgid ""
+"The ol-read-more component provides expandable/collapsible content with "
+"two truncation modes: height-based and line-based."
+msgstr ""
+
+#: design/read_more.html
+msgid "Height-based truncation"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(max_height)s to limit content by pixel height."
+msgstr ""
+
+#: design/read_more.html
+msgid "Line-based truncation"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(max_lines)s to limit content by number of lines."
+msgstr ""
+
+#: design/read_more.html
+msgid "Custom button text"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid ""
+"Use %(more_text)s and %(less_text)s to customize the toggle button "
+"labels. We'll use the i18n strings for this example."
+msgstr ""
+
+#: SearchResultsWork.html design/read_more.html
+msgid "Show more"
+msgstr ""
+
+#: SearchResultsWork.html design/read_more.html
+msgid "Show less"
+msgstr ""
+
+#: design/read_more.html
+msgid "Custom background color"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid ""
+"Use %(background_color)s to match the gradient fade to your container "
+"background."
+msgstr ""
+
+#: design/read_more.html
+msgid "Small label size"
+msgstr ""
+
+#: design/read_more.html
+#, python-format
+msgid "Use %(label_size)s for a smaller toggle button."
+msgstr ""
+
+#: design/read_more.html
+msgid "Content shorter than limit (no button)"
+msgstr ""
+
+#: design/read_more.html
+msgid "When content fits within the limit, no toggle button is shown."
+msgstr ""
+
+#: design/read_more.html
+msgid "This is short content that fits within 5 lines, so no button appears."
+msgstr ""
+
 #: design/toggle.html
 msgid "Toggle"
 msgstr ""
@@ -8053,14 +8253,6 @@ msgstr ""
 #: SearchResultsWork.html
 #, python-format
 msgid "Book %(position)s"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show more"
-msgstr ""
-
-#: SearchResultsWork.html
-msgid "Show less"
 msgstr ""
 
 #: SearchResultsWork.html
