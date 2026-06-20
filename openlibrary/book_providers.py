@@ -115,6 +115,14 @@ class Acquisition:
             raise ValueError(f"Unknown ebook acquisition format: {json}")
 
     @staticmethod
+    def from_json_safe(json: dict) -> Acquisition | None:
+        try:
+            return Acquisition.from_json(json)
+        except ValueError as e:
+            logger.warning(f"Failed to parse acquisition from json: {json} with error {e}")
+            return None
+
+    @staticmethod
     def from_opds_json(json: dict) -> Acquisition:
         if json.get("properties", {}).get("indirectAcquisition", None):
             mimetype = json["properties"]["indirectAcquisition"][0]["type"]
@@ -266,7 +274,7 @@ class AbstractBookProvider[TProviderMetadata]:
         ed_or_solr: Edition | dict,
     ) -> list[Acquisition]:
         if providers := ed_or_solr.get("providers", []):
-            return [Acquisition.from_json(dict(p)) for p in providers]
+            return [acq for p in providers if (acq := Acquisition.from_json_safe(dict(p)))]
         else:
             return []
 
@@ -573,7 +581,9 @@ class DirectProvider(AbstractBookProvider):
         in the solr request. (Note: this field is populated from db)
         """
         if providers := ed_or_solr.get("providers", []):
-            identifiers = [provider.url for provider in map(Acquisition.from_json, providers) if provider.ebook_access >= EbookAccess.PRINTDISABLED]
+            identifiers = [
+                provider.url for provider in map(Acquisition.from_json_safe, providers) if provider and provider.ebook_access >= EbookAccess.PRINTDISABLED
+            ]
             to_remove = set()
             for tbp in PROVIDER_ORDER:
                 # Avoid infinite recursion.
@@ -603,7 +613,9 @@ class DirectProvider(AbstractBookProvider):
         Return the access level of the edition.
         """
         # For now assume 0 is best
-        return EbookAccess.from_acquisition_access(Acquisition.from_json(edition["providers"][0]).access)
+        if acq := Acquisition.from_json_safe(edition["providers"][0]):
+            return EbookAccess.from_acquisition_access(acq.access)
+        return EbookAccess.NO_EBOOK
 
 
 class WikisourceProvider(AbstractBookProvider):

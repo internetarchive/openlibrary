@@ -636,7 +636,7 @@ def _get_amazon_metadata(
     resources: Any = None,
     high_priority: bool = False,
     stage_import: bool = True,
-    timeout: float = 4.0,
+    timeout: float = 10.0,
 ) -> dict | None:
     """Uses the Amazon Product Advertising API ItemLookup operation to locate a
     specific book by identifier; either 'isbn' or 'asin'.

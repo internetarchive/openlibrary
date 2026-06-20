@@ -383,9 +383,23 @@ class Stats:
             else cls._get_books_imported_per_day
         )()
 
+    # web.db's `order=` kwarg is not parameterized; restrict to a fixed set
+    # so this stays robust even if a future caller forwards user input as the
+    # `order` argument (the bug shape fixed for /merges in PR #12460).
+    _ALLOWED_ORDERS: Final = {
+        None: None,
+        "import_time desc": "import_time desc",
+        "import_time asc": "import_time asc",
+        "added_time desc": "added_time desc",
+        "added_time asc": "added_time asc",
+    }
+
     @staticmethod
     def get_items(date=None, order=None, limit=None):
         """Returns all rows with given added date."""
+        if order not in Stats._ALLOWED_ORDERS:
+            raise ValueError(f"Invalid order: {order!r}. Must be one of {list(Stats._ALLOWED_ORDERS)}.")
+        order = Stats._ALLOWED_ORDERS[order]
         where = "added_time::date = $date" if date else "1 = 1"
         try:
             return db.select("import_item", where=where, order=order, limit=limit, vars=locals())

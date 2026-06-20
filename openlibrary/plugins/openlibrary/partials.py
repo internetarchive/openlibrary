@@ -11,6 +11,7 @@ from openlibrary.accounts import get_current_user
 from openlibrary.core import cache
 from openlibrary.core.fulltext import fulltext_search_async
 from openlibrary.core.helpers import affiliate_id
+from openlibrary.core.jinja import get_jinja_env
 from openlibrary.core.lending import compose_ia_url, get_available_async
 from openlibrary.core.vendors import (
     BetterWorldBooksMetadata,
@@ -317,8 +318,11 @@ class AffiliateLinksPartial:
 
         primary_stores = build_primary_stores(ctx)
         more_stores = build_more_stores(ctx)
-        macro = web.template.Template.globals["macros"].AffiliateLinks(primary_stores, more_stores)
-        return {"partials": str(macro)}
+
+        template = get_jinja_env().get_template("AffiliateLinks.html.jinja")
+        html = template.render(primary_stores=primary_stores, more_stores=more_stores)
+
+        return {"partials": html}
 
 
 class SearchFacetsPartial:

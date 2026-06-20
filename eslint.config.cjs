@@ -36,7 +36,6 @@ module.exports = [
       "vue.config.js",
       "openlibrary/components/dev/serve-component.js",
       "conf/svgo.config.js",
-      "stories/.storybook/main.js",
     ],
     languageOptions: {
       sourceType: "script",
@@ -59,21 +58,6 @@ module.exports = [
     languageOptions: {
       ecmaVersion: "latest",
       sourceType: "module",
-      globals: {
-        ...globals.node,
-      },
-    },
-    rules: {
-      "no-console": "off",
-    },
-  },
-
-  // Configuration for Storybook preview files (ES modules)
-  {
-    files: ["stories/.storybook/preview.js"],
-    languageOptions: {
-      sourceType: "module",
-      ecmaVersion: "latest",
       globals: {
         ...globals.node,
       },

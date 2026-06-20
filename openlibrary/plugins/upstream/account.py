@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import io
 import json
@@ -7,6 +9,7 @@ from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
+from warnings import deprecated
 
 import requests
 import web
@@ -52,6 +55,7 @@ from openlibrary.plugins.upstream import borrow, forms
 from openlibrary.plugins.upstream.mybooks import MyBooksTemplate
 from openlibrary.plugins.upstream.utils import is_safe_redirect
 from openlibrary.utils.dateutil import elapsed_time
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.core.models import SubjectType
@@ -1229,6 +1233,21 @@ class my_follows(delegate.page):
         return mb.render(header_title=_(key.capitalize()), template=template)
 
 
+def get_account_loans_json(user: User) -> dict[str, Any]:
+    user.update_loan_status()
+    loans = borrow.get_loans(user)
+    return {"loans": loans}
+
+
+def get_account_loan_history_json(user: User, page: int) -> dict[str, Any]:
+    username = user["key"].split("/")[-1]
+    mb = MyBooksTemplate(username, key="loan_history")
+    loan_history_data = dict(get_loan_history_data(page=page, mb=mb))
+    # Ensure all `docs` are `dicts`, as some are `Edition`s.
+    loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
+    return {"loans_history": loan_history_data}
+
+
 class account_loans(delegate.page):
     path = "/account/loans"
 
@@ -1245,6 +1264,7 @@ class account_loans(delegate.page):
         return mb.render(header_title=_("Loans"), template=template)
 
 
+@deprecated("migrated to fastapi")
 class account_loans_json(delegate.page):
     encoding = "json"
     path = "/account/loans"
@@ -1252,10 +1272,8 @@ class account_loans_json(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        user.update_loan_status()
-        loans = borrow.get_loans(user)
         web.header("Content-Type", "application/json")
-        return delegate.RawText(json.dumps({"loans": loans}))
+        return delegate.RawText(json.dumps(get_account_loans_json(user)))
 
 
 class account_loan_history(delegate.page):
@@ -1278,6 +1296,7 @@ class account_loan_history(delegate.page):
         return mb.render(header_title=_("Loan History"), template=template)
 
 
+@deprecated("migrated to fastapi")
 class account_loan_history_json(delegate.page):
     encoding = "json"
     path = "/account/loan-history"
@@ -1287,14 +1306,8 @@ class account_loan_history_json(delegate.page):
         i = web.input(page=1)
         page = int(i.page)
         user = accounts.get_current_user()
-        username = user["key"].split("/")[-1]
-        mb = MyBooksTemplate(username, key="loan_history")
-        loan_history_data = get_loan_history_data(page=page, mb=mb)
-        # Ensure all `docs` are `dicts`, as some are `Edition`s.
-        loan_history_data["docs"] = [loan.dict() if not isinstance(loan, dict) else loan for loan in loan_history_data["docs"]]
         web.header("Content-Type", "application/json")
-
-        return delegate.RawText(json.dumps({"loans_history": loan_history_data}))
+        return delegate.RawText(json.dumps(get_account_loan_history_json(user, page)))
 
 
 class account_waitlist(delegate.page):
@@ -1454,7 +1467,7 @@ def get_loan_history_data(page: int, mb: MyBooksTemplate) -> dict[str, Any]:
     """
     if not (account := OpenLibraryAccount.get_by_username(mb.username)):
         raise render.notfound("Account for not found for %s" % mb.username, create=False)
-    s3_keys = web.ctx.site.store.get(account._key).get("s3_keys")
+    s3_keys = site.get().store.get(account._key).get("s3_keys")
     limit = RESULTS_PER_PAGE
     offset = page * limit - limit
     loan_history = s3_loan_api(

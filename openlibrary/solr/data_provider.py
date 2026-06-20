@@ -22,6 +22,7 @@ from web import DB
 
 from openlibrary.core import ia
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.env import get_ol_env
 from openlibrary.core.ratings import Ratings, WorkRatingsSummary
 from openlibrary.solr.utils import get_solr_base_url
 from openlibrary.utils import extract_numeric_id_from_olid
@@ -38,9 +39,7 @@ OCAID_PATTERN = re.compile(r"^[^\s&#?/]+$")
 def get_data_provider(type="default"):
     """Returns the data provider of given type."""
     if type == "default":
-        return BetterDataProvider()
-    elif type == "legacy":
-        return LegacyDataProvider()
+        return DatabaseDataProvider()
     else:
         raise ValueError("unknown data provider type: %s" % type)
 
@@ -132,7 +131,8 @@ class DataProvider:
                         "rows": len(ocaids),
                         "fl": ",".join(IA_METADATA_FIELDS),
                         "output": "json",
-                        "service": "metadata__unlimited",
+                        # This is only available from prod
+                        **({} if get_ol_env().LOCAL_DEV else {"service": "metadata__unlimited"}),
                     },
                 )
             r.raise_for_status()
@@ -260,71 +260,6 @@ class DataProvider:
         self.ia_cache.clear()
 
 
-class LegacyDataProvider(DataProvider):
-    def __init__(self):
-        from openlibrary.catalog.utils.query import query_iter, withKey
-
-        super().__init__()
-        self._query_iter = query_iter
-        self._withKey = withKey
-
-    def find_redirects(self, key):
-        """Returns keys of all things which are redirected to this one."""
-        logger.info("find_redirects %s", key)
-        q = {"type": "/type/redirect", "location": key}
-        return [r["key"] for r in self._query_iter(q)]
-
-    def get_editions_of_work(self, work):
-        logger.info("find_editions_of_work %s", work["key"])
-        q = {"type": "/type/edition", "works": work["key"], "*": None}
-        return list(self._query_iter(q))
-
-    async def get_document(self, key):
-        logger.info("get_document %s", key)
-        return self._withKey(key)
-
-    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
-        work_id = int(work_key[len("/works/OL") : -len("W")])
-        return Ratings.get_work_ratings_summary(work_id)
-
-    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
-        work_id = extract_numeric_id_from_olid(work_key)
-        counts = Bookshelves.get_work_summary(work_id)
-        return cast(
-            WorkReadingLogSolrSummary,
-            {
-                "readinglog_count": sum(counts.values()),
-                **{f"{shelf}_count": count for shelf, count in counts.items()},
-            },
-        )
-
-    def clear_cache(self):
-        # Nothing's cached, so nothing to clear!
-        return
-
-    @typing.override
-    async def get_trending_data(self, work_key: str) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                get_solr_base_url() + "/get",
-                params={
-                    "id": work_key,
-                    "fl": ",".join(  # noqa: FLY002
-                        (
-                            "trending_score_hourly_sum",
-                            "trending_score_hourly_*",
-                            "trending_score_daily_*",
-                            "trending_z_score",
-                        )
-                    ),
-                },
-            )
-            response.raise_for_status()
-            solr_doc = response.json()["doc"] or {}
-
-            return {field: solr_doc.get(field, 0) for field in get_all_trending_fields()}
-
-
 def get_all_trending_fields():
     for index in range(24):
         yield f"trending_score_hourly_{index}"
@@ -359,7 +294,15 @@ class ExternalDataProvider(DataProvider):
             return response.json()
 
 
-class BetterDataProvider(LegacyDataProvider):
+class DatabaseDataProvider(DataProvider):
+    """
+    This data provider assumes we are running in a full prod or local OL environment
+    with database access.
+
+    It uses the infogami site to fetch data directly from the database, as well as
+    makes queries to solr for some data (like trending data) that is not in the database.
+    """
+
     def __init__(
         self,
         site: Site | None = None,
@@ -506,16 +449,17 @@ class BetterDataProvider(LegacyDataProvider):
         # Infobase doesn't has a way to do find editions of multiple works at once.
         # Using raw SQL to avoid making individual infobase queries, which is very
         # time consuming.
-        key_query = "select id from property where name='works' and type=(select id from thing where key='/type/edition')"
-
-        q = (
-            "SELECT edition.key as edition_key, work.key as work_key"
-            " FROM thing as edition, thing as work, edition_ref"
-            " WHERE edition_ref.thing_id=edition.id"
-            "   AND edition_ref.value=work.id"
-            f"   AND edition_ref.key_id=({key_query})"
-            "   AND work.key in $keys"
-        )
+        q = """
+            SELECT edition.key as edition_key, work.key as work_key
+            FROM thing as edition, thing as work, edition_ref
+            WHERE edition_ref.thing_id=edition.id
+                AND edition_ref.value=work.id
+                AND edition_ref.key_id=(
+                    SELECT id FROM property
+                    WHERE name='works' AND type=(SELECT id FROM thing WHERE key='/type/edition')
+                )
+                AND work.key in $keys
+        """
         result = self.db.query(q, vars={"keys": work_keys})
         for row in result:
             self.edition_keys_of_works_cache.setdefault(row.work_key, []).append(row.edition_key)
@@ -523,6 +467,45 @@ class BetterDataProvider(LegacyDataProvider):
         keys = [k for _keys in self.edition_keys_of_works_cache.values() for k in _keys]
         self.preload_documents0(keys)
         return
+
+    @typing.override
+    def get_work_ratings(self, work_key: str) -> WorkRatingsSummary | None:
+        work_id = int(work_key[len("/works/OL") : -len("W")])
+        return Ratings.get_work_ratings_summary(work_id)
+
+    @typing.override
+    def get_work_reading_log(self, work_key: str) -> WorkReadingLogSolrSummary:
+        work_id = extract_numeric_id_from_olid(work_key)
+        counts = Bookshelves.get_work_summary(work_id)
+        return cast(
+            WorkReadingLogSolrSummary,
+            {
+                "readinglog_count": sum(counts.values()),
+                **{f"{shelf}_count": count for shelf, count in counts.items()},
+            },
+        )
+
+    @typing.override
+    async def get_trending_data(self, work_key: str) -> dict:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                get_solr_base_url() + "/get",
+                params={
+                    "id": work_key,
+                    "fl": ",".join(  # noqa: FLY002
+                        (
+                            "trending_score_hourly_sum",
+                            "trending_score_hourly_*",
+                            "trending_score_daily_*",
+                            "trending_z_score",
+                        )
+                    ),
+                },
+            )
+            response.raise_for_status()
+            solr_doc = response.json()["doc"] or {}
+
+            return {field: solr_doc.get(field, 0) for field in get_all_trending_fields()}
 
     def clear_cache(self):
         super().clear_cache()

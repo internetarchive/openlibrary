@@ -5,10 +5,13 @@ from typing import Literal
 
 import web
 
+from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.core.edits import ApiMode, CommunityEditsQueue, get_status_for_view
+from openlibrary.utils.request_context import site
+from openlibrary.utils.retry import RetryStrategy
 
 # Usergroups that may use create or update merge requests
 ALLOWED_USERGROUPS: list[str] = [
@@ -33,6 +36,45 @@ def process_merge_request(rtype, data):
     else:
         resp = response(status="error", error="Unknown request type")
     return resp
+
+
+def perform_merge_update(mrid: str | None, olids: str, comment: str | None) -> None:
+    """Orchestrate the merge request update with retries.
+
+    Builds the appropriate request type and data, then attempts to process
+    the merge request with retry logic.
+
+    Args:
+        mrid: Merge request ID to approve, or None to create a new request.
+        olids: Comma-separated author keys (used when creating a new request).
+        comment: Optional comment for the merge request.
+
+    Raises:
+        MaxRetriesExceeded: If all retry attempts to process the request fail.
+    """
+
+    def update_request() -> None:
+        if mrid:
+            process_merge_request(
+                "update-request",
+                {
+                    "action": "approve",
+                    "mrid": mrid,
+                    **({"comment": comment} if comment else {}),
+                },
+            )
+        else:
+            process_merge_request(
+                "create-request",
+                {
+                    "mr_type": 2,
+                    "olids": olids,
+                    "action": "create-merged",
+                    **({"comment": comment} if comment else {}),
+                },
+            )
+
+    RetryStrategy([ClientException], max_retries=5, delay=2)(update_request)
 
 
 class community_edits_queue(delegate.page):
@@ -203,12 +245,12 @@ class community_edits_queue(delegate.page):
     def create_title(mr_type: int, olids: list[str]) -> str:
         if mr_type == CommunityEditsQueue.TYPE["WORK_MERGE"]:
             for olid in olids:
-                book = web.ctx.site.get(f"/works/{olid}")
+                book = site.get().get(f"/works/{olid}")
                 if book and book.title:
                     return book.title
         elif mr_type == CommunityEditsQueue.TYPE["AUTHOR_MERGE"]:
             for olid in olids:
-                author = web.ctx.site.get(f"/authors/{olid}")
+                author = site.get().get(f"/authors/{olid}")
                 if author and author.name:
                     return author.name
         return "Unknown record"

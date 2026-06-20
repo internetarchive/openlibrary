@@ -79,11 +79,9 @@ ol-button > button {
   color: var(--white);
   cursor: pointer;
   user-select: none;
-  transition:
-    background-color 0.15s,
-    color 0.15s,
-    border-color 0.15s,
-    transform 0.08s;
+  /* Hover color changes are instant (see docs/ai/design.md); only the
+     :active press-scale animates. */
+  transition: transform 0.08s;
 }
 
 /* Press feedback — tactile scale on activation. */

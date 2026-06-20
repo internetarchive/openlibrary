@@ -31,7 +31,7 @@ from openlibrary.core import (
 )
 from openlibrary.i18n import gettext as _
 from openlibrary.utils import dateutil
-from openlibrary.utils.request_context import req_context
+from openlibrary.utils.request_context import req_context, site
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -81,10 +81,10 @@ class checkout_with_ocaid(delegate.page):
         """
         i = web.input()
         params = urllib.parse.urlencode(i)
-        ia_edition = web.ctx.site.get("/books/ia:%s" % ocaid)
+        ia_edition = site.get().get("/books/ia:%s" % ocaid)
         if not ia_edition:
             raise web.notfound()
-        edition = web.ctx.site.get(ia_edition.location)
+        edition = site.get().get(ia_edition.location)
         url = "%s/x/borrow" % edition.key
         raise web.seeother(url + "?" + params)
 
@@ -93,7 +93,7 @@ class checkout_with_ocaid(delegate.page):
         then forwards a borrow request to the canonical borrow
         endpoint with this OL identifier.
         """
-        ia_edition = web.ctx.site.get("/books/ia:%s" % ocaid)
+        ia_edition = site.get().get("/books/ia:%s" % ocaid)
         if not ia_edition:
             raise web.notfound()
         borrow().POST(ia_edition.location)
@@ -118,7 +118,7 @@ class borrow(delegate.page):
         )
 
         action = i.action
-        edition = web.ctx.site.get(key)
+        edition = site.get().get(key)
         if not edition:
             raise web.notfound()
 
@@ -175,7 +175,7 @@ class borrow(delegate.page):
         if user:
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
-            s3_keys = web.ctx.site.store.get(account._key).get("s3_keys")
+            s3_keys = site.get().store.get(account._key).get("s3_keys")
             lending.get_cached_loans_of_user.memcache_delete(user.key, {})  # invalidate cache for user loans
         if not user or not ia_itemname or not s3_keys:
             web.setcookie(config.login_cookie_name, "", expires=-1)
@@ -264,7 +264,7 @@ class borrow_status(delegate.page):
 
         i = web.input(callback=None)
 
-        edition = web.ctx.site.get(key)
+        edition = site.get().get(key)
 
         if not edition:
             raise web.notfound()
@@ -310,8 +310,8 @@ def get_borrow_status(itemid):
     loan = lending.get_loan(itemid)
     has_loan = bool(loan)
 
-    edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": itemid})
-    editions = web.ctx.site.get_many(edition_keys)
+    edition_keys = site.get().things({"type": "/type/edition", "ocaid": itemid})
+    editions = site.get().get_many(edition_keys)
     has_waitinglist = editions and any(e.get_waitinglist_size() > 0 for e in editions)
 
     return web.storage(
@@ -352,8 +352,8 @@ def get_all_store_values(**query) -> list:
     got_all = False
 
     while not got_all:
-        # new_values = web.ctx.site.store.values(**query)
-        new_items = web.ctx.site.store.items(**query)
+        # new_values = site.get().store.values(**query)
+        new_items = site.get().store.items(**query)
         for new_item in new_items:
             new_item[1].update({"store_key": new_item[0]})
             # XXX-Anand: Handling the existing loans
@@ -385,7 +385,7 @@ def get_edition_loans(edition):
 def get_loan_key(resource_id: str):
     """Get the key for the loan associated with the resource_id"""
     # Find loan in OL
-    loan_keys = web.ctx.site.store.query("/type/loan", "resource_id", resource_id)
+    loan_keys = site.get().store.query("/type/loan", "resource_id", resource_id)
     if not loan_keys:
         # No local records
         return None
@@ -410,7 +410,7 @@ def is_loaned_out(resource_id: str) -> bool | None:
         return lending.is_loaned_out_on_ia(identifier)
 
     # Find the loan and check if it has expired
-    loan = web.ctx.site.store.get(loan_key)
+    loan = site.get().store.get(loan_key)
     return bool(loan and datetime_from_isoformat(loan["expiry"]) < datetime.utcnow())
 
 
@@ -452,7 +452,7 @@ def is_users_turn_to_borrow(user, edition) -> bool:
 def is_admin() -> bool:
     """Returns True if the current user is in admin usergroup."""
     user = accounts.get_current_user()
-    return user is not None and user.key in [m.key for m in web.ctx.site.get("/usergroup/admin").members]
+    return user is not None and user.key in [m.key for m in site.get().get("/usergroup/admin").members]
 
 
 def return_resource(resource_id):
@@ -462,14 +462,14 @@ def return_resource(resource_id):
     if not loan_key:
         raise Exception("Asked to return %s but no loan recorded" % resource_id)
 
-    loan = web.ctx.site.store.get(loan_key)
+    loan = site.get().store.get(loan_key)
 
     delete_loan(loan_key, loan)
 
 
 def delete_loan(loan_key, loan=None) -> None:
     if not loan:
-        loan = web.ctx.site.store.get(loan_key)
+        loan = site.get().store.get(loan_key)
         if not loan:
             raise Exception("Could not find store record for %s", loan_key)
 

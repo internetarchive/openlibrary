@@ -25,6 +25,7 @@ SolrRequestLabel = Literal[
     "BOOK_SEARCH",
     "BOOK_SEARCH_API",
     "BOOK_SEARCH_FACETS",
+    "BOOK_SEARCH_READABLE_COUNT",
     "BOOK_CAROUSEL",
     "AUTHOR_BOOKS_PAGE",
     # /get endpoint
