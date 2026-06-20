@@ -105,7 +105,7 @@ class TestWorkEditions:
         assert response.json()["links"] == {
             "self": "/works/OL123W/editions.json?limit=1000&offset=25",
             "work": "/works/OL123W",
-            "prev": "/works/OL123W/editions.json?limit=1000&offset=-975",
+            "prev": "/works/OL123W/editions.json?limit=1000&offset=0",
             "next": "/works/OL123W/editions.json?limit=1000&offset=1025",
         }
         current_site.things.assert_called_once_with(
@@ -147,7 +147,7 @@ class TestWorkEditions:
             }
         )
 
-    def test_work_editions_accepts_negative_offset(self, fastapi_client):
+    def test_work_editions_rejects_negative_offset(self, fastapi_client):
         work = make_doc("/works/OL123W", "/type/work", edition_count=0)
         current_site = make_site(work, [], [])
 
@@ -155,15 +155,10 @@ class TestWorkEditions:
             site_context.get.return_value = current_site
             response = fastapi_client.get("/works/OL123W/editions.json?limit=10&offset=-5")
 
-        assert response.status_code == 200
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/edition",
-                "works": "/works/OL123W",
-                "limit": 10,
-                "offset": -5,
-            }
-        )
+        assert response.status_code == 422
+        current_site.get.assert_not_called()
+        current_site.things.assert_not_called()
+        current_site.get_many.assert_not_called()
 
     @pytest.mark.parametrize("doc", [None, make_doc("/authors/OL1A", "/type/author")])
     def test_work_editions_returns_404(self, fastapi_client, doc):
@@ -250,7 +245,7 @@ class TestAuthorWorks:
         assert response.json()["links"] == {
             "self": "/authors/OL456A/works.json?limit=1000&offset=25",
             "author": "/authors/OL456A",
-            "prev": "/authors/OL456A/works.json?limit=1000&offset=-975",
+            "prev": "/authors/OL456A/works.json?limit=1000&offset=0",
             "next": "/authors/OL456A/works.json?limit=1000&offset=1025",
         }
         current_site.things.assert_called_once_with(
@@ -292,7 +287,7 @@ class TestAuthorWorks:
         current_site.get.assert_not_called()
         current_site.things.assert_not_called()
 
-    def test_author_works_accepts_negative_offset(self, fastapi_client):
+    def test_author_works_rejects_negative_offset(self, fastapi_client):
         author = make_doc("/authors/OL456A", "/type/author", get_work_count=Mock(return_value=0))
         current_site = make_site(author, [], [])
 
@@ -300,15 +295,10 @@ class TestAuthorWorks:
             site_context.get.return_value = current_site
             response = fastapi_client.get("/authors/OL456A/works.json?limit=10&offset=-5")
 
-        assert response.status_code == 200
-        current_site.things.assert_called_once_with(
-            {
-                "type": "/type/work",
-                "authors": {"author": {"key": "/authors/OL456A"}},
-                "limit": 10,
-                "offset": -5,
-            }
-        )
+        assert response.status_code == 422
+        current_site.get.assert_not_called()
+        current_site.things.assert_not_called()
+        current_site.get_many.assert_not_called()
 
     @pytest.mark.parametrize("doc", [None, make_doc("/works/OL1W", "/type/work")])
     def test_author_works_returns_404(self, fastapi_client, doc):
