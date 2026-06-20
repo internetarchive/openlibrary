@@ -1,10 +1,11 @@
 """Generic helper functions to use in the templates and the webapp."""
 
+import functools
 import json
 import re
 from collections.abc import Callable, Iterable
 from datetime import date, datetime
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlsplit
 
 import babel
@@ -14,7 +15,6 @@ import babel.numbers
 import genshi
 import genshi.filters
 import web
-from babel.core import Locale
 from bs4 import BeautifulSoup
 
 from infogami import config
@@ -23,6 +23,9 @@ from infogami.infobase.client import Nothing
 # handy utility to parse ISO date strings
 from infogami.infobase.utils import parse_datetime
 from infogami.utils.view import safeint
+
+if TYPE_CHECKING:
+    from babel.core import Locale
 
 # Helper functions that are added to `__all__` are exposed for use in templates
 # in /openlibrary/plugins/upstream/utils.py setup()
@@ -36,6 +39,7 @@ __all__ = [
     "days_since",
     "extract_year",
     "format_date",
+    "format_decimal",
     "json_encode",
     "parse_datetime",  # function imported from elsewhere
     "percentage",
@@ -52,7 +56,7 @@ __all__ = [
 __docformat__ = "restructuredtext en"
 
 
-def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
+def sanitize(html: str, encoding: str = "utf8", beautify: bool = True) -> str:
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     Using encoding=None if passing Unicode strings.
@@ -63,11 +67,11 @@ def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
     def get_nofollow(name, event):
         attrs = event[1][1]
 
-        if href := attrs.get('href', ''):
+        if href := attrs.get("href", ""):
             # add rel=nofollow to all absolute links
             _, host, _, _, _ = urlsplit(href)
             if host:
-                return 'nofollow'
+                return "nofollow"
 
     try:
         html_stream = genshi.HTML(html, encoding=encoding)
@@ -83,11 +87,7 @@ def sanitize(html: str, encoding: str = 'utf8', beautify: bool = True) -> str:
         else:
             raise
 
-    stream = (
-        html_stream
-        | genshi.filters.HTMLSanitizer()
-        | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
-    )
+    stream = html_stream | genshi.filters.HTMLSanitizer() | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
     return cast(str, stream.render())
 
 
@@ -114,9 +114,7 @@ def json_encode(d, **kw) -> str:
     return json.dumps([] if isinstance(d, Nothing) else d, **kw)
 
 
-def safesort(
-    iterable: Iterable, key: Callable | None = None, reverse: bool = False
-) -> list:
+def safesort(iterable: Iterable, key: Callable | None = None, reverse: bool = False) -> list:
     """Sorts heterogeneous of objects without raising errors.
 
     Sorting heterogeneous objects sometimes causes error. For example,
@@ -150,9 +148,7 @@ def datestr(
             now = datetime.now()
         delta = then - now
         if abs(delta.days) < 4:  # Threshold from web.py
-            return babel.dates.format_timedelta(
-                delta, add_direction=True, locale=_get_babel_locale(lang)
-            )
+            return babel.dates.format_timedelta(delta, add_direction=True, locale=_get_babel_locale(lang))
     return format_date(then, lang=lang)
 
 
@@ -204,10 +200,20 @@ def commify(number, lang=None):
         return str(number)
 
 
+def format_decimal(number, decimal_places=1, lang=None):
+    """Locale-aware decimal number formatting."""
+    try:
+        lang = lang or web.ctx.get("lang") or "en"
+        fmt = "#,##0." + "0" * decimal_places
+        return babel.numbers.format_decimal(number, format=fmt, locale=lang)
+    except Exception:
+        return str(round(number, decimal_places))
+
+
 def truncate(text: str, limit: int) -> str:
     """Truncate text and add ellipses if it longer than specified limit."""
     if not text:
-        return ''
+        return ""
     if len(text) <= limit:
         return text
     return text[:limit] + "..."
@@ -215,38 +221,38 @@ def truncate(text: str, limit: int) -> str:
 
 def urlsafe(path: str) -> str:
     """Replaces the unsafe chars from path with underscores."""
-    return _get_safepath_re().sub('_', path).strip('_')[:100]
+    return _get_safepath_re().sub("_", path).strip("_")[:100]
 
 
-@web.memoize
+@functools.cache
 def _get_safepath_re():
     """Make regular expression that matches all unsafe chars."""
     # unsafe chars according to RFC 2396
     reserved = ";/?:@&=+$,"
     delims = '<>#%"'
     unwise = "{}|\\^[]`"
-    space = ' \n\r'
+    space = " \n\r"
 
     unsafe = reserved + delims + unwise + space
-    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    pattern = "[%s]+" % "".join(re.escape(c) for c in unsafe)
     return re.compile(pattern)
 
 
 _texsafe_map = {
-    '"': r'\textquotedbl{}',
-    '#': r'\#',
-    '$': r'\$',
-    '%': r'\%',
-    '&': r'\&',
-    '<': r'\textless{}',
-    '>': r'\textgreater{}',
-    '\\': r'\textbackslash{}',
-    '^': r'\^{}',
-    '_': r'\_{}',
-    '{': r'\{',
-    '}': r'\}',
-    '|': r'\textbar{}',
-    '~': r'\~{}',
+    '"': r"\textquotedbl{}",
+    "#": r"\#",
+    "$": r"\$",
+    "%": r"\%",
+    "&": r"\&",
+    "<": r"\textless{}",
+    ">": r"\textgreater{}",
+    "\\": r"\textbackslash{}",
+    "^": r"\^{}",
+    "_": r"\_{}",
+    "{": r"\{",
+    "}": r"\}",
+    "|": r"\textbar{}",
+    "~": r"\~{}",
 }
 
 _texsafe_re = None
@@ -301,17 +307,17 @@ def uniq(values, key=None):
 
 
 def affiliate_id(affiliate):
-    return config.get('affiliate_ids', {}).get(affiliate, '')
+    return config.get("affiliate_ids", {}).get(affiliate, "")
 
 
 def bookreader_host() -> str:
-    return config.get('bookreader_host', '')
+    return config.get("bookreader_host", "")
 
 
 def private_collections() -> list[str]:
     """Collections which are lendable but should not be linked from OL
     TODO: Remove when we can handle institutional books"""
-    return ['georgetown-university-law-library-rr']
+    return ["georgetown-university-law-library-rr"]
 
 
 def private_collection_in(collections: list[str]) -> bool:
@@ -321,14 +327,14 @@ def private_collection_in(collections: list[str]) -> bool:
 def extract_year(input: str, int_only: bool = True) -> str:
     """Extracts the year from an author's birth or death date."""
     if int_only:
-        pattern = r'\d{4}'
+        pattern = r"\d{4}"
     else:
-        pattern = r'[0-9xX?]{4}'
+        pattern = r"[0-9xX?]{4}"
 
     if result := re.search(pattern, input):
         return result.group()
 
-    return ''
+    return ""
 
 
 def _get_helpers():

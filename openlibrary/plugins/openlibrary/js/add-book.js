@@ -8,7 +8,7 @@ import {
     isFormatValidIsbn13,
     isValidLccn,
     isValidOclc
-} from './idValidation.js'
+} from './idValidation.js';
 import { trimInputValues } from './utils.js';
 
 let invalidChecksum;
@@ -21,7 +21,7 @@ let emptyId;
 const i18nStrings = JSON.parse(document.querySelector('form[name=edit]').dataset.i18n);
 const addBookForm = $('form#addbook');
 
-export function initAddBookImport () {
+export function initAddBookImport() {
     $('.list-books a').on('click', function() {
         var li = $(this).parents('li').first();
         $('input#work').val(`/works/${li.attr('id')}`);
@@ -39,21 +39,21 @@ export function initAddBookImport () {
     invalidOclc = i18nStrings.invalid_oclc;
     emptyId = i18nStrings.empty_id;
 
-    $('#id_value').on('change',autoCompleteIdName);
+    $('#id_value').on('change', autoCompleteIdName);
     $('#addbook').on('submit', parseAndValidateId);
     $('#id_value').on('input', clearErrors);
     $('#id_name').on('change', clearErrors);
 
     $('#publish_date').on('blur', validatePublishDate);
 
-    trimInputValues('input')
+    trimInputValues('input');
 
     // Prevents submission if the publish date is > 1 year in the future
     addBookForm.on('submit', function() {
         if ($('#publish-date-errors').hasClass('hidden')) {
             return true;
         } else return false;
-    })
+    });
 }
 
 // a flag to make raiseIsbnError perform differently upon subsequent calls

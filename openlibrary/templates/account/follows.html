@@ -7,18 +7,16 @@ $if follows:
       <li class="follow-row">
         <div class="follow-row--name">
           $if follow['publisher'] == username:
-            <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" class="account-avatar">$follow['subscriber']</a>
+            <a href="/people/$follow['subscriber']/books" class="username-avatar"><img src="/people/$follow['subscriber']/avatar" class="account-avatar" alt="">$follow['subscriber']</a>
           $else:
-            <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" class="account-avatar">$follow['publisher']</a>
+            <a href="/people/$follow['publisher']/books" class="username-avatar"><img src="/people/$follow['publisher']/avatar" class="account-avatar" alt="">$follow['publisher']</a>
         </div>
         <div>
           $if manage:
-            $:macros.Follow(follow['publisher'], following=1)
+            $:macros.Follow(follow['publisher'], following=1, link_track='FollowsPage|Follow')
         </div>
       </li>
     </ul>
-  <div class="pager">
-    $:macros.Pager(page, num_found, results_per_page)
-  </div>
+  $:macros.OlPagination(page, ceil(num_found / results_per_page))
 $else:
   <p>$_("There is nothing to see here yet.")</p>

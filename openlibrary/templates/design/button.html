@@ -1,0 +1,118 @@
+$def with (api)
+
+<article class="design-pattern" id="button">
+  <h2 class="design-pattern__title">Button</h2>
+  <p class="design-pattern__description">The <code>ol-button</code> component is a presentation-only button primitive. It renders a real <code>&lt;button&gt;</code> into the light DOM, so styles apply pre-hydration without a flash. It carries no application logic — variants, sizes, and a loading state only.</p>
+
+  <section class="example">
+    <h3 class="example__title">Variants</h3>
+    <pre class="example__code"><code class="language-html">&lt;ol-button&gt;Primary&lt;/ol-button&gt;
+&lt;ol-button variant="secondary"&gt;Secondary&lt;/ol-button&gt;
+&lt;ol-button variant="destructive"&gt;Destructive&lt;/ol-button&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <ol-button>Primary</ol-button>
+      <ol-button variant="secondary">Secondary</ol-button>
+      <ol-button variant="destructive">Destructive</ol-button>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Sizes</h3>
+    <pre class="example__code"><code class="language-html">&lt;ol-button size="small"&gt;Small&lt;/ol-button&gt;
+&lt;ol-button&gt;Medium&lt;/ol-button&gt;
+&lt;ol-button size="large"&gt;Large&lt;/ol-button&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+      <ol-button size="small">Small</ol-button>
+      <ol-button>Medium</ol-button>
+      <ol-button size="large">Large</ol-button>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Disabled</h3>
+    <pre class="example__code"><code class="language-html">&lt;ol-button disabled&gt;Disabled&lt;/ol-button&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <ol-button disabled>Primary</ol-button>
+      <ol-button variant="secondary" disabled>Secondary</ol-button>
+      <ol-button variant="destructive" disabled>Destructive</ol-button>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Loading</h3>
+    <p>Toggle the <code>loading</code> attribute to show a spinner and prevent interaction. The label is hidden but kept in the DOM so the button's width doesn't shift.</p>
+    <pre class="example__code"><code class="language-html">&lt;ol-button loading&gt;Save&lt;/ol-button&gt;</code></pre>
+    <div class="example__output" style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <ol-button loading>Save</ol-button>
+      <ol-button variant="secondary" loading>Cancel</ol-button>
+      <ol-button variant="destructive" loading>Delete</ol-button>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Interactive loading demo</h3>
+    <p>Click the button to trigger a 1.5s fake request. The button disables itself while loading.</p>
+    <div class="example__output">
+      <ol-button id="demo-button-loading">Save</ol-button>
+    </div>
+    <script>
+      document.getElementById('demo-button-loading').addEventListener('click', function(e) {
+        var btn = e.currentTarget;
+        if (btn.loading) return;
+        btn.loading = true;
+        setTimeout(function() { btn.loading = false; }, 1500);
+      });
+    </script>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Full width</h3>
+    <pre class="example__code"><code class="language-html">&lt;ol-button full-width&gt;Continue&lt;/ol-button&gt;</code></pre>
+    <div class="example__output">
+      <ol-button full-width>Continue</ol-button>
+    </div>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Form submission</h3>
+    <p>Set <code>type="submit"</code> and place the button inside a <code>&lt;form&gt;</code>. The component renders a real <code>&lt;button type="submit"&gt;</code>, so native validation, the form's <code>submit</code> event, and Enter-to-submit from input fields all work without any extra wiring.</p>
+    <pre class="example__code"><code class="language-html">&lt;form&gt;
+  &lt;input required&gt;
+  &lt;ol-button type="submit"&gt;Submit&lt;/ol-button&gt;
+&lt;/form&gt;</code></pre>
+    <div class="example__output">
+      <form id="demo-button-form" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <label for="demo-button-form-input">Your name:</label>
+        <input id="demo-button-form-input" name="name" required>
+        <ol-button type="submit">Submit</ol-button>
+        <ol-button type="reset" variant="secondary">Reset</ol-button>
+      </form>
+      <p>Last submitted: <strong id="demo-button-form-output">&mdash;</strong></p>
+    </div>
+    <script>
+      (function () {
+        var form = document.getElementById('demo-button-form');
+        var out = document.getElementById('demo-button-form-output');
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          out.textContent = new FormData(form).get('name') || '—';
+        });
+        form.addEventListener('reset', function () {
+          out.textContent = '—';
+        });
+      })();
+    </script>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Events</h3>
+    <p>No custom events. Use the native <code>click</code> event; it bubbles from the inner <code>&lt;button&gt;</code>.</p>
+  </section>
+
+  <section class="example">
+    <h3 class="example__title">Rendering notes</h3>
+    <p>The component uses light DOM — there is no shadow root. Styles live in a plain stylesheet (components/ol-button.css) that is loaded render-blocking by every page entry point that uses the button. Pre-upgrade the host element is styled via attribute selectors so the button is visible immediately; once upgraded, the component inserts a real <code>&lt;button&gt;</code> child and the host collapses to a transparent wrapper.</p>
+  </section>
+
+  $:render_template("design/api_tables", api)
+</article>

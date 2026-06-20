@@ -1,6 +1,9 @@
 import pytest
+import web
 
 from openlibrary.core import models
+from openlibrary.mocks import mock_infobase
+from openlibrary.utils.request_context import site as site_var
 
 
 class MockSite:
@@ -151,20 +154,20 @@ class TestWork:
         work3 = {"key": work3_key, "location": work4_key, "type": type_redir}
         work4 = {"key": work4_key, "type": type_work}
 
-        import web
+        mock_site = mock_infobase.MockSite()
+        mock_site.save(web.storage(work1))
+        mock_site.save(web.storage(work2))
+        mock_site.save(web.storage(work3))
+        mock_site.save(web.storage(work4))
+        monkeypatch.setattr(web.ctx, "site", mock_site, raising=False)
+        token = site_var.set(mock_site)
 
-        from openlibrary.mocks import mock_infobase
-
-        site = mock_infobase.MockSite()
-        site.save(web.storage(work1))
-        site.save(web.storage(work2))
-        site.save(web.storage(work3))
-        site.save(web.storage(work4))
-        monkeypatch.setattr(web.ctx, "site", site, raising=False)
-
-        work_key = "/works/OL123W"
-        redirect_chain = models.Work.get_redirect_chain(work_key)
-        assert redirect_chain
-        resolved_work = redirect_chain[-1]
-        assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
-        assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        try:
+            work_key = "/works/OL123W"
+            redirect_chain = models.Work.get_redirect_chain(work_key)
+            assert redirect_chain
+            resolved_work = redirect_chain[-1]
+            assert str(resolved_work.type) == type_work["key"], f"{resolved_work} of type {resolved_work.type} should be {type_work['key']}"
+            assert resolved_work.key == work4_key, f"Should be work4.key: {resolved_work}"
+        finally:
+            site_var.reset(token)

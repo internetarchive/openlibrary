@@ -59,13 +59,14 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
           alt="$_('Open Library logo')"/>
       </div>
     </a>
-    $# detect-missing-i18n-skip-line
-    <a
-      href="$changequery(dict(show_page_status=1))"
-      style="color:transparent;position:absolute;pointer-events:none;"
-      tabindex="-1"
-      aria-hidden="true"
-    >Page Status</a>
+    $if not is_recognized_bot():
+      $# detect-missing-i18n-skip-line
+      <a
+        href="$changequery(dict(show_page_status=1))"
+        style="color:transparent;position:absolute;pointer-events:none;"
+        tabindex="-1"
+        aria-hidden="true"
+      >Page Status</a>
   </div>
 
   $ browseProps = {
@@ -86,41 +87,37 @@ $ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_super_li
 
   <div class="search-component">
     <div class="search-bar-component">
-      <div class="search-bar">
-        <div class="search-facet">
-          <label class="search-facet-selector">
-            <span aria-hidden="true" class="search-facet-value">$_("All")</span>
-            <select aria-label="Search by">
-              <option value="all">$_("All")</option>
-              <option value="title">$_("Title")</option>
-              <option value="author">$_("Author")</option>
-              <option value="text">$_("Text")</option>
-              <option value="subject">$_("Subject")</option>
-              <option value="lists">$_("Lists")</option>
-              <option value="advanced">$_("Advanced")</option>
-            </select>
-          </label>
-        </div>
-        <form class="search-bar-input" action="/search" method="get" role="search">
-          <input type="text" name="q" placeholder="$_('Search')" aria-label="Search" autocomplete="off">
-          <input name="mode" type="checkbox" aria-hidden="true" aria-label="Search checkbox" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
-          <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
-          <div class="vertical-separator"></div>
-          <a
-            id="barcode_scanner_link"
-            class="search-by-barcode-submit"
-            aria-label="$_('Search by barcode')"
-            title="$_('Search by barcode')"
-            href="/barcodescanner?returnTo=/isbn/$$$$$$"
-          >
-          </a>
-        </form>
-      </div>
-      <div class="search-dropdown">
-        <ul class="search-results">
-        </ul>
-      </div>
+      $# data-i18n carries the translated availability labels (for the "Readable
+      $# Only" toggle) and data-i18n-ui the modal's chrome strings; SearchModal.js reads both from
+      $# this trigger element. The visual "Search" label is hidden on
+      $# mobile/touch widths (the trigger renders as a compact icon-only
+      $# pill there) and shown at desktop to give the full wide search bar.
+      $# `aria-label` keeps the accessible name in both modes.
+      $# data-search-lang is the patron's site language (2-letter UI code, e.g.
+      $# 'fr'); the modal maps it to a MARC code (siteLanguageToMarc) to flag a
+      $# readable result whose only readable copy isn't in their language.
+      $# data-print-disabled is whether the patron is verified for print-disabled
+      $# access; the modal widens the "Readable" badge to printdisabled scans for
+      $# them, matching the server's per-patron readable count (get_fulltext_min).
+      $# Read straight from the `pd` cookie — the same (login-independent) signal
+      $# request_context derives print_disabled from, so badge and count agree.
+      $ is_print_disabled = 'true' if cookies().get('pd') else 'false'
+      <button type="button" class="search-bar-trigger" aria-haspopup="dialog" aria-label="$_('Search')" data-i18n="$:render_template('search/availability_i18n')" data-i18n-ui="$:render_template('search/search_modal_i18n')" data-search-lang="$(get_lang() or 'en')" data-print-disabled="$is_print_disabled">
+        <span class="search-bar-trigger__label">$_('Search')</span>
+        <span class="search-bar-trigger__icon" aria-hidden="true"></span>
+      </button>
     </div>
+    $# Barcode scan needs a camera, so it's only surfaced on touch devices
+    $# (hidden on hover-capable pointers via CSS).
+    <a
+      id="barcode_scanner_link"
+      class="search-by-barcode"
+      aria-label="$_('Search by barcode')"
+      title="$_('Search by barcode')"
+      href="/barcodescanner?returnTo=/isbn/$$$$$$"
+    >
+      <img src="/static/images/icons/barcode_scanner.svg" alt="" width="22" height="22"/>
+    </a>
   </div>
 
   $if not ctx.user:

@@ -5,7 +5,7 @@
 
 .flash-messages {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   clear: both;
 }
 
@@ -14,18 +14,18 @@
   background-color: var(--light-yellow);
   background-position: 10px 50%;
   background-repeat: no-repeat;
-  padding: 15px 52px;
+  padding: var(--spacing-inset-md) 52px;
   text-align: left;
-  background-image: url(/images/icons/icon_check.png);
+  background-image: url(/static/images/icons/icon_check.png);
 }
 
 .flash-messages .error span {
-  background-image: url(/images/icons/icon_alert.png);
+  background-image: url(/static/images/icons/icon_alert.png);
 }
 
 .flash-messages .bookadded span {
-  background: var(--light-yellow) url(/images/icons/icon_check.png) no-repeat
-    40px 40px;
+  background: var(--light-yellow) url(/static/images/icons/icon_check.png)
+    no-repeat 40px 40px;
   padding: 40px 40px 40px 80px;
   position: relative;
 }
@@ -33,7 +33,7 @@
 .flash-messages .bookadded span span {
   display: inline;
   padding: 0;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 
 .flash-messages .bookadded h3 {
@@ -45,7 +45,7 @@
 
 .flash-messages .bookadded .brown {
   font-size: 1.125em;
-  margin: 15px 0 30px;
+  margin: var(--spacing-stack-md) 0 var(--spacing-stack-xl);
 }
 
 .flash-messages .bookadded .list {

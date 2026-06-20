@@ -9,8 +9,9 @@ import { buildPartialsUrl } from  '../utils.js';
  *      number of books to show at: [default, >1200px, >1024px, >600px, >480px, >360px]
  * @property {String} analyticsCategory
  * @property {String} carouselKey
+ * @property {Object<string, string>} [i18n] localized UI strings (e.g. `loading`)
  * @property {Object} [loadMore] configuration for loading more items
- * @property {String} loadMore.url to use to load more items
+ * @property {String} loadMore.queryType query category used to fetch more items (e.g. 'SEARCH', 'BROWSE', 'SUBJECTS')
  * @property {Number} loadMore.limit of new items to receive
  * @property {'page' | 'offset'} loadMore.pageMode
  * -- INTERNAL --
@@ -51,10 +52,17 @@ export class Carousel {
         /** @type {jquery} */
         this.$container = $container;
 
-        //This loads in i18n strings from a hidden input element, generated in the books/custom_carousel.html template.
-        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]')
+        // i18n strings. Prefer the per-carousel strings embedded in `data-config`,
+        // which are always present even for carousels rendered via partials. Fall
+        // back to the shared hidden input (books/custom_carousel.html), then to an
+        // empty string so loading can continue if a translation is missing.
+        this.i18n = {loading: ''};
+        const i18nInput = document.querySelector('input[name="carousel-i18n-strings"]');
         if (i18nInput) {
             this.i18n = JSON.parse(i18nInput.value);
+        }
+        if (this.config.i18n) {
+            this.i18n = this.config.i18n;
         }
     }
 
@@ -143,7 +151,7 @@ export class Carousel {
     }
 
     fetchPartials() {
-        const loadMore = this.loadMore
+        const loadMore = this.loadMore;
         const url = buildPartialsUrl('CarouselLoadMore', {
             queryType: loadMore.queryType,
             q: loadMore.q,
@@ -161,14 +169,18 @@ export class Carousel {
         $.ajax({url: url, type: 'GET'})
             .then((results) => {
                 this.removeLoadingSlide();
-                const cards = results.partials || []
-                cards.forEach(card => this.slick.addSlide(card))
+                const cards = results.partials || [];
+                cards.forEach(card => this.slick.addSlide(card));
 
                 if (!cards.length) {
                     loadMore.allDone = true;
                 }
                 loadMore.locked = false;
             })
+            .fail(() => {
+                this.removeLoadingSlide();
+                loadMore.locked = false;
+            });
     }
 
     clearCarousel() {

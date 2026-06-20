@@ -2,6 +2,7 @@
 
 import logging
 import os
+import re
 import urllib
 from urllib.parse import quote_plus
 
@@ -30,13 +31,13 @@ class ReadableUrlProcessor:
     """
 
     patterns = (
-        (r'/\w+/OL\d+M', '/type/edition', 'title', 'untitled'),
-        (r'/\w+/ia:[a-zA-Z0-9_\.-]+', '/type/edition', 'title', 'untitled'),
-        (r'/\w+/OL\d+A', '/type/author', 'name', 'noname'),
-        (r'/\w+/OL\d+W', '/type/work', 'title', 'untitled'),
-        (r'[/\w\-]*/lists/OL\d+L', '/type/list', 'name', 'unnamed'),
-        (r'/series/OL\d+L', '/type/series', 'name', 'unnamed'),
-        (r'/\w+/OL\d+T', '/type/tag', 'name', 'untitled'),
+        (r"/\w+/OL\d+M", "/type/edition", "title", "untitled"),
+        (r"/\w+/ia:[a-zA-Z0-9_\.-]+", "/type/edition", "title", "untitled"),
+        (r"/\w+/OL\d+A", "/type/author", "name", "noname"),
+        (r"/\w+/OL\d+W", "/type/work", "title", "untitled"),
+        (r"[/\w\-]*/lists/OL\d+L", "/type/list", "name", "unnamed"),
+        (r"/series/OL\d+L", "/type/series", "name", "unnamed"),
+        (r"/\w+/OL\d+T", "/type/tag", "name", "untitled"),
     )
 
     def __call__(self, handler):
@@ -47,22 +48,14 @@ class ReadableUrlProcessor:
         if web.ctx.path.startswith("/user/") and not web.ctx.site.get(web.ctx.path):
             raise web.seeother("/people/" + web.ctx.path[len("/user/") :])
 
-        real_path, readable_path = get_readable_path(
-            web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding
-        )
+        real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         # @@ web.ctx.path is either quoted or unquoted depends on whether the application is running
         # @@ using builtin-server. That is probably a bug in web.py.
         # @@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
-        if (
-            readable_path != web.ctx.path
-            and readable_path != urllib.parse.quote(web.safestr(web.ctx.path))
-            and web.ctx.method == "GET"
-        ):
-            raise web.redirect(
-                web.safeunicode(readable_path) + web.safeunicode(web.ctx.query)
-            )
+        if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":
+            raise web.redirect(str(readable_path) + str(web.ctx.query))
 
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
@@ -70,7 +63,7 @@ class ReadableUrlProcessor:
         out = handler()
 
         # Exclude noindex items
-        if web.ctx.get('exclude'):
+        if web.ctx.get("exclude"):
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path)
 
@@ -122,7 +115,7 @@ def _get_object(site, key):
 
     # Disabled temporarily as the index is not ready the db
 
-    # if obj is None and web.re_compile(r"/.*/OL\d+[A-Z]"):
+    # if obj is None and re.compile(r"/.*/OL\d+[A-Z]"):
     #    olid = web.safestr(key).split("/")[-1]
     #    key = site._request("/olid_to_key", data={"olid": olid}).key
     #    obj = key and site.get(key)
@@ -138,10 +131,10 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     def match(path):
         for pat, _type, _property, default_title in patterns:
-            m = web.re_compile('^' + pat).match(path)
+            m = re.compile("^" + pat).match(path)
             if m:
                 prefix = m.group()
-                extra = web.lstrips(path, prefix)
+                extra = path.removeprefix(prefix)
                 tokens = extra.split("/", 2)
 
                 # `extra` starts with "/". So first token is always empty.
@@ -156,7 +149,7 @@ def get_readable_path(site, path, patterns, encoding=None):
     _type, _property, default_title, prefix, middle, suffix = match(path)
 
     if _type is None:
-        path = web.safeunicode(path)
+        path = str(path)
         return (path, path)
 
     if encoding is not None or path.endswith((".json", ".rdf", ".yml")):
@@ -165,7 +158,7 @@ def get_readable_path(site, path, patterns, encoding=None):
         thing = _get_object(site, key)
         if thing:
             path = thing.key + ext
-        path = web.safeunicode(path)
+        path = str(path)
         return (path, path)
 
     thing = _get_object(site, prefix)
@@ -176,15 +169,15 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     if thing and thing.type.key == _type:
         title = thing.get(_property) or default_title
-        middle = '/' + quote_plus(h.urlsafe(title.strip()))
+        middle = "/" + quote_plus(h.urlsafe(title.strip()))
     else:
         middle = ""
 
     if is_exclusion(thing):
         web.ctx.exclude = True
 
-    prefix = web.safeunicode(prefix)
-    middle = web.safeunicode(middle)
-    suffix = web.safeunicode(suffix)
+    prefix = str(prefix)
+    middle = str(middle)
+    suffix = str(suffix)
 
     return (prefix + suffix, prefix + middle + suffix)

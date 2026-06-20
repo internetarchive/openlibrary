@@ -26,6 +26,17 @@
   flex-grow: 1;
   font-size: 1em !important;
   min-width: 0;
+  outline: none;
+}
+
+.searchbox__input::-webkit-search-cancel-button,
+.searchbox__input::-webkit-search-decoration {
+  appearance: none;
+}
+
+.searchbox:focus-within {
+  outline: none;
+  box-shadow: var(--box-shadow-focus);
 }
 
 /* --width-breakpoint-tablet */

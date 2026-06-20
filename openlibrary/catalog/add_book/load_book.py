@@ -1,7 +1,6 @@
 import logging
 from typing import TYPE_CHECKING, Any, Final, NotRequired, TypedDict, cast
 
-import web
 from pydantic import TypeAdapter, ValidationError
 
 from openlibrary.catalog.utils import (
@@ -12,6 +11,7 @@ from openlibrary.catalog.utils import (
 )
 from openlibrary.core.helpers import extract_year
 from openlibrary.utils import extract_numeric_id_from_olid, uniq
+from openlibrary.utils.request_context import site
 
 if TYPE_CHECKING:
     from openlibrary.plugins.upstream.models import Author
@@ -22,44 +22,44 @@ logger = logging.getLogger("openlibrary.catalog.add_book.load_book")
 # E.g. remove "señorita" and not "señor", when both match.
 HONORIFICS: Final = sorted(
     [
-        'countess',
-        'doctor',
-        'doktor',
-        'dr',
-        'dr.',
-        'frau',
-        'fräulein',
-        'herr',
-        'lady',
-        'lord',
-        'm.',
-        'madame',
-        'mademoiselle',
-        'miss',
-        'mister',
-        'mistress',
-        'mixter',
-        'mlle',
-        'mlle.',
-        'mme',
-        'mme.',
-        'monsieur',
-        'mr',
-        'mr.',
-        'mrs',
-        'mrs.',
-        'ms',
-        'ms.',
-        'mx',
-        'mx.',
-        'professor',
-        'señor',
-        'señora',
-        'señorita',
-        'sir',
-        'sr.',
-        'sra.',
-        'srta.',
+        "countess",
+        "doctor",
+        "doktor",
+        "dr",
+        "dr.",
+        "frau",
+        "fräulein",
+        "herr",
+        "lady",
+        "lord",
+        "m.",
+        "madame",
+        "mademoiselle",
+        "miss",
+        "mister",
+        "mistress",
+        "mixter",
+        "mlle",
+        "mlle.",
+        "mme",
+        "mme.",
+        "monsieur",
+        "mr",
+        "mr.",
+        "mrs",
+        "mrs.",
+        "ms",
+        "ms.",
+        "mx",
+        "mx.",
+        "professor",
+        "señor",
+        "señora",
+        "señorita",
+        "sir",
+        "sr.",
+        "sra.",
+        "srta.",
     ],
     key=len,
     reverse=True,
@@ -81,18 +81,18 @@ def east_in_by_statement(rec: dict[str, Any], author: dict[str, Any]) -> bool:
     Otherwise returns whether author name uses eastern name order.
     TODO: elaborate on what this actually means, and how it is used.
     """
-    if 'by_statement' not in rec:
+    if "by_statement" not in rec:
         return False
-    if 'authors' not in rec:
+    if "authors" not in rec:
         return False
-    name = author['name']
+    name = author["name"]
     flipped = flip_name(name)
-    name = name.replace('.', '')
-    name = name.replace(', ', '')
-    if name == flipped.replace('.', ''):
+    name = name.replace(".", "")
+    name = name.replace(", ", "")
+    if name == flipped.replace(".", ""):
         # name was not flipped
         return False
-    return rec['by_statement'].find(name) != -1
+    return rec["by_statement"].find(name) != -1
 
 
 class AuthorImportDict(TypedDict):
@@ -119,29 +119,29 @@ def do_flip(author: AuthorImportDict) -> None:
     and any alternate_names in place
     i.e. Smith, John => John Smith
     """
-    alternate_names = [flip_name(name) for name in author.get('alternate_names', [])]
+    alternate_names = [flip_name(name) for name in author.get("alternate_names", [])]
     if alternate_names:
-        author['alternate_names'] = alternate_names
-    if 'personal_name' in author and author['personal_name'] != author['name']:
+        author["alternate_names"] = alternate_names
+    if "personal_name" in author and author["personal_name"] != author["name"]:
         # Don't flip names if name is more complex than personal_name (legacy behaviour)
         return
-    first_comma = author['name'].find(', ')
+    first_comma = author["name"].find(", ")
     if first_comma == -1:
         return
     # e.g: Harper, John Murdoch, 1845-
-    if author['name'].find(',', first_comma + 1) != -1:
+    if author["name"].find(",", first_comma + 1) != -1:
         return
-    if author['name'].find('i.e.') != -1:
+    if author["name"].find("i.e.") != -1:
         return
-    if author['name'].find('i. e.') != -1:
+    if author["name"].find("i. e.") != -1:
         return
-    name = flip_name(author['name'])
-    author['name'] = name
-    if 'personal_name' in author:
-        author['personal_name'] = name
+    name = flip_name(author["name"])
+    author["name"] = name
+    if "personal_name" in author:
+        author["personal_name"] = name
 
 
-def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Author":
+def pick_from_matches(author: AuthorImportDict, match: list[Author]) -> Author:
     """
     Finds the best match for author from a list of OL authors records, match.
 
@@ -151,10 +151,10 @@ def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Autho
     :return: A single OL author record from match
     """
     maybe = []
-    if 'birth_date' in author and 'death_date' in author:
-        maybe = [m for m in match if 'birth_date' in m and 'death_date' in m]
-    elif 'date' in author:
-        maybe = [m for m in match if 'date' in m]
+    if "birth_date" in author and "death_date" in author:
+        maybe = [m for m in match if "birth_date" in m and "death_date" in m]
+    elif "date" in author:
+        maybe = [m for m in match if "date" in m]
     if not maybe:
         maybe = match
     if len(maybe) == 1:
@@ -162,34 +162,32 @@ def pick_from_matches(author: AuthorImportDict, match: list["Author"]) -> "Autho
     return min(maybe, key=key_int)
 
 
-def find_author(author: AuthorImportDict) -> list["Author"]:
+def find_author(author: AuthorImportDict) -> list[Author]:
     """
     Searches OL for an author by a range of queries.
     """
 
-    def has_dates(author: "dict | Author | AuthorImportDict") -> bool:
-        return 'birth_date' in author or 'death_date' in author
+    def has_dates(author: dict | Author | AuthorImportDict) -> bool:
+        return "birth_date" in author or "death_date" in author
 
     def walk_redirects(obj, seen):
-        seen.add(obj['key'])
-        while obj['type']['key'] == '/type/redirect':
-            assert obj['location'] != obj['key']
-            obj = web.ctx.site.get(obj['location'])
-            seen.add(obj['key'])
+        seen.add(obj["key"])
+        while obj["type"]["key"] == "/type/redirect":
+            assert obj["location"] != obj["key"]
+            obj = site.get().get(obj["location"])
+            seen.add(obj["key"])
         return obj
 
-    def get_redirected_authors(authors: list["Author"]):
+    def get_redirected_authors(authors: list[Author]):
         keys = [a.type.key for a in authors]
-        if any(k != '/type/author' for k in keys):
-            seen: set[dict] = set()
-            all_authors = [
-                walk_redirects(a, seen) for a in authors if a['key'] not in seen
-            ]
+        if any(k != "/type/author" for k in keys):
+            seen: set[str] = set()
+            all_authors = [walk_redirects(a, seen) for a in authors if a["key"] not in seen]
             return all_authors
         return authors
 
     # Look for OL ID first.
-    if (key := author.get("key")) and (record := web.ctx.site.get(key)):
+    if (key := author.get("key")) and (record := site.get().get(key)):
         # Always match on OL ID, even if remote identifiers don't match.
         return get_redirected_authors([record])
 
@@ -201,10 +199,8 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
         for identifier, val in remote_ids.items():
             queries.append({"type": "/type/author", f"remote_ids.{identifier}": val})
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                matched_authors.extend(
-                    get_redirected_authors(list(web.ctx.site.get_many(reply)))
-                )
+            if reply := list(site.get().things(query)):
+                matched_authors.extend(get_redirected_authors(list(site.get().get_many(reply))))
         matched_authors = uniq(matched_authors, key=lambda thing: thing.key)
         # The match is whichever one has the most identifiers in common
         if matched_authors:
@@ -236,20 +232,20 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
             },  # Use `-1` to ensure an empty string from extract_year doesn't match empty dates.
         ]
         for query in queries:
-            if reply := list(web.ctx.site.things(query)):
-                things += get_redirected_authors(list(web.ctx.site.get_many(reply)))
+            if reply := list(site.get().things(query)):
+                things += get_redirected_authors(list(site.get().get_many(reply)))
                 break
     match = []
     seen = set()
     # If author has dates, we only consider dated candidates,
     # otherwise only include undated candidates.
     for a in things:
-        if key := a['key'] in seen:
+        if key := a["key"] in seen:
             continue
         seen.add(key)
         if has_dates(author) != has_dates(a):
             continue
-        assert a.type.key == '/type/author'
+        assert a.type.key == "/type/author"
         if has_dates(author) and not author_dates_match(author, a):
             continue
         match.append(a)
@@ -260,7 +256,7 @@ def find_author(author: AuthorImportDict) -> list["Author"]:
     return [pick_from_matches(author, match)]
 
 
-def find_entity(author: AuthorImportDict) -> "Author | None":
+def find_entity(author: AuthorImportDict) -> Author | None:
     """
     Looks for an existing Author record in OL
     and returns it if found.
@@ -298,9 +294,7 @@ def remove_author_honorifics(name: str) -> str:
     return name
 
 
-def author_import_record_to_author(
-    author_import_record_dict: dict, eastern=False
-) -> "Author | dict[str, Any]":
+def author_import_record_to_author(author_import_record_dict: dict, eastern=False) -> Author | dict[str, Any]:
     """
     Converts an import style new-author dictionary into an
     Open Library existing author, or new author candidate, representation.
@@ -323,35 +317,35 @@ def author_import_record_to_author(
             exc_info=True,
         )
     author_import_record = cast(AuthorImportDict, author_import_record_dict)
-    if author_import_record.get('entity_type') != 'org' and not eastern:
+    if author_import_record.get("entity_type") != "org" and not eastern:
         do_flip(author_import_record)
     if existing := find_entity(author_import_record):
-        assert existing.type.key == '/type/author'
-        for k in 'last_modified', 'id', 'revision', 'created':
+        assert existing.type.key == "/type/author"
+        for k in "last_modified", "id", "revision", "created":
             if existing.k:
                 del existing.k
         new = existing
-        if 'death_date' in author_import_record and 'death_date' not in existing:
-            new['death_date'] = author_import_record['death_date']
+        if "death_date" in author_import_record and "death_date" not in existing:
+            new["death_date"] = author_import_record["death_date"]
         return new
-    a: dict[str, Any] = {'type': {'key': '/type/author'}}
+    a: dict[str, Any] = {"type": {"key": "/type/author"}}
     for f in (
-        'name',
-        'title',
-        'personal_name',
-        'birth_date',
-        'death_date',
-        'date',
-        'remote_ids',
-        'entity_type',
-        'alternate_names',
+        "name",
+        "title",
+        "personal_name",
+        "birth_date",
+        "death_date",
+        "date",
+        "remote_ids",
+        "entity_type",
+        "alternate_names",
     ):
         if f in author_import_record:
             a[f] = author_import_record[f]
     return a
 
 
-type_map = {'description': 'text', 'notes': 'text', 'number_of_pages': 'int'}
+type_map = {"description": "text", "notes": "text", "number_of_pages": "int"}
 
 
 def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
@@ -361,31 +355,29 @@ def import_record_to_edition(rec: dict[str, Any]) -> dict[str, Any]:
     :return: Open Library style edition dict representation
     """
     book: dict[str, Any] = {
-        'type': {'key': '/type/edition'},
+        "type": {"key": "/type/edition"},
     }
     for k, v in rec.items():
-        if k == 'authors':
+        if k == "authors":
             if v and v[0]:
-                book['authors'] = []
+                book["authors"] = []
                 for author in v:
-                    author['name'] = remove_author_honorifics(author['name'])
+                    author["name"] = remove_author_honorifics(author["name"])
                     east = east_in_by_statement(rec, author)
-                    book['authors'].append(
-                        author_import_record_to_author(author, eastern=east)
-                    )
+                    book["authors"].append(author_import_record_to_author(author, eastern=east))
             continue
 
-        if k in ('languages', 'translated_from'):
+        if k in ("languages", "translated_from"):
             formatted_languages = format_languages(languages=v)
             book[k] = formatted_languages
             continue
 
         if k in type_map:
-            t = '/type/' + type_map[k]
+            t = "/type/" + type_map[k]
             if isinstance(v, list):
-                book[k] = [{'type': t, 'value': i} for i in v]
+                book[k] = [{"type": t, "value": i} for i in v]
             else:
-                book[k] = {'type': t, 'value': v}
+                book[k] = {"type": t, "value": v}
         else:
             book[k] = v
     return book

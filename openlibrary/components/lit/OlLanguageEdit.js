@@ -245,8 +245,7 @@ export class OlLanguageEdit extends LitElement {
         return html`
             <span class="display-text" itemprop="inLanguage">${this._displayText}</span>
             <ol-popover
-                ?open="${this._isOpen}"
-                label="Edit languages"
+                aria-label="Edit languages"
                 @ol-popover-close="${this._close}"
                 @ol-popover-open="${this._onPopoverOpen}"
             >
@@ -254,7 +253,7 @@ export class OlLanguageEdit extends LitElement {
                     slot="trigger"
                     class="trigger"
                     aria-label="Edit languages"
-                    @click="${this._open}"
+                    @click="${this._resetEditState}"
                 >
                     <svg class="pencil-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -305,21 +304,26 @@ export class OlLanguageEdit extends LitElement {
         `;
     }
 
-    _open() {
+    get _popover() {
+        return this.shadowRoot.querySelector('ol-popover');
+    }
+
+    // Seed the edit form from the current languages. Runs on the trigger click
+    // (before ol-popover self-opens) so the popover shows fresh state.
+    _resetEditState() {
         this._editLanguages = this._parsedLanguages.map(l => ({ ...l }));
         if (this._editLanguages.length === 0) {
             this._editLanguages = [{ key: '', name: '' }];
         }
         this._comment = '';
         this._error = '';
-        this._isOpen = true;
     }
 
     _onPopoverOpen() {
+        this._isOpen = true;
         // Focus first autocomplete after popover animation starts
         this.updateComplete.then(() => {
-            const popover = this.shadowRoot.querySelector('ol-popover');
-            const autocomplete = popover?.querySelector('ol-autocomplete');
+            const autocomplete = this._popover?.querySelector('ol-autocomplete');
             autocomplete?.focusInput();
         });
     }
@@ -327,6 +331,9 @@ export class OlLanguageEdit extends LitElement {
     _close() {
         this._isOpen = false;
         this._error = '';
+        // Drive ol-popover closed for the cancel/save paths; harmless and
+        // idempotent when called from the (self-closing) ol-popover-close event.
+        if (this._popover) this._popover.open = false;
         // Return focus to trigger
         this.updateComplete.then(() => {
             const trigger = this.shadowRoot.querySelector('.trigger');

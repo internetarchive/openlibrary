@@ -28,7 +28,7 @@ div#content {
 
 /* stylelint-disable selector-max-specificity */
 div#content {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
@@ -43,37 +43,37 @@ div#revertLink {
   top: 60px;
   right: 20px;
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 /* stylelint-enable selector-max-specificity */
 .formElement {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--darker-grey);
 }
 .label {
-  padding: 10px 0 5px;
+  padding: var(--spacing-inset-sm) 0 var(--spacing-inset-xs);
 }
 .label label {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   font-weight: 700;
 }
 .label span {
   font-size: 0.75em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
 }
 textarea {
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   font-size: 0.875em;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
   resize: vertical;
 }
 .formElement input[type="text"],
 .formElement select {
   font-size: 1em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--dark-grey);
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 table.code {
   border: 1px solid var(--grey-e7e7e7);
@@ -84,13 +84,13 @@ table.code {
 table.code td {
   background-color: var(--white);
   vertical-align: top;
-  font-family: var(--code-family);
+  font-family: var(--font-family-code);
   font-size: 0.875em;
-  padding: 5px;
+  padding: var(--spacing-inset-xs);
 }
 /* stylelint-disable selector-max-specificity */
 div#databar {
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   margin: 20px 20px 0;
   background-color: var(--light-yellow);
 }
@@ -100,16 +100,16 @@ div#databar a {
 /* stylelint-enable selector-max-specificity */
 /* stylelint-disable selector-max-specificity */
 #editHead {
-  background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
-  padding: 25px 0 45px 140px;
+  background: url(/static/images/logo_OL-sm.png) 20px 15px no-repeat;
+  padding: var(--spacing-inset-lg) 0 45px 140px;
   white-space: nowrap;
   clear: left;
 }
 #editHead h2 {
-  margin: 0 0 5px;
+  margin: 0 0 var(--spacing-stack-xs);
 }
 #editHead h2 a {
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--red);
   font-size: var(--font-size-label-large);
   font-weight: normal;
@@ -128,15 +128,12 @@ div#databar a {
 .formElement.pagetype #type\.key {
   width: 100%;
 }
-/* stylelint-disable selector-max-specificity */
 div#revertNotice,
-div#header,
 footer,
 div#bottom,
 .siteSearch {
   display: none;
 }
-/* stylelint-enable selector-max-specificity */
 
 /* Defined in openlibrary/macros/EditButtons.html */
 div.adminDelete {

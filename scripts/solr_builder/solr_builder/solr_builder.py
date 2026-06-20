@@ -125,9 +125,7 @@ class LocalPostgresDataProvider(DataProvider):
         :return: None
         """
         # Not sure if this name needs to be unique
-        cursor_name = (
-            cursor_name or 'solr_builder_server_side_cursor_' + uuid.uuid4().hex
-        )
+        cursor_name = cursor_name or "solr_builder_server_side_cursor_" + uuid.uuid4().hex
         cur = self._conn.cursor(name=cursor_name)
         cur.itersize = size
         cur.execute(query)
@@ -212,14 +210,10 @@ class LocalPostgresDataProvider(DataProvider):
         """
         self.query_all(q, json_cache=self.cached_work_ratings)
         for row in self.cached_work_ratings.values():
-            row.update(
-                Ratings.work_ratings_summary_from_counts(
-                    [row[f'ratings_count_{i}'] for i in range(1, 6)]
-                )
-            )
+            row.update(Ratings.work_ratings_summary_from_counts([row[f"ratings_count_{i}"] for i in range(1, 6)]))
 
     def cache_work_reading_logs(self, lo_key: str, hi_key: str):
-        per_shelf_fields = ', '.join(
+        per_shelf_fields = ", ".join(
             f"""
                 '{json_name}_count', count(*) filter (where "Shelf" = '{human_name}')
             """.strip()
@@ -241,39 +235,33 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, json_cache=self.cached_work_reading_logs)
 
     async def cache_cached_editions_ia_metadata(self):
-        ocaids = list({doc['ocaid'] for doc in self.cache.values() if 'ocaid' in doc})
+        ocaids = list({doc["ocaid"] for doc in self.cache.values() if "ocaid" in doc})
         await self.preload_metadata(ocaids)
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
         logger.debug("find_redirects %s", key)
-        q = """
+        q = (
+            """
         SELECT "Key" FROM test
         WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
-        """ % key
+        """
+            % key
+        )
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work_direct(self, work):
         q = """
         SELECT "JSON" FROM test
         WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' = '%s'
-        """ % work['key']
+        """ % work["key"]
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work(self, work):
         # They should all be cached...
-        cache_hit = any(
-            lo <= work['key'] <= hi for (lo, hi) in self.cached_work_editions_ranges
-        )
+        cache_hit = any(lo <= work["key"] <= hi for (lo, hi) in self.cached_work_editions_ranges)
         if cache_hit:
-            return [
-                doc
-                for doc in self.cache.values()
-                if (
-                    doc['type']['key'] == '/type/edition'
-                    and safeget(lambda: doc['works'][0]['key'] == work['key'])
-                )
-            ]
+            return [doc for doc in self.cache.values() if (doc["type"]["key"] == "/type/edition" and safeget(lambda: doc["works"][0]["key"] == work["key"]))]
         else:
             return self.get_editions_of_work_direct(work)
 
@@ -290,10 +278,13 @@ class LocalPostgresDataProvider(DataProvider):
 
         logger.debug("get_document cache miss %s", key)
 
-        q = """
+        q = (
+            """
         SELECT "JSON" FROM test
         WHERE "Key" = '%s'
-        """ % key
+        """
+            % key
+        )
         row = next(self.query_iter(q))
         if row:
             return row[0]
@@ -320,7 +311,7 @@ async def simple_timeit_async(awaitable: Awaitable):
 
 
 def build_job_query(
-    job: Literal['works', 'orphans', 'authors', 'lists'],
+    job: Literal["works", "orphans", "authors", "lists"],
     start_at: str | None = None,
     offset: int = 0,
     last_modified: str | None = None,
@@ -360,15 +351,15 @@ def build_job_query(
     if start_at:
         q_where += """ AND "Key" >= '%s'""" % start_at
 
-    if job == 'orphans':
+    if job == "orphans":
         q_where += """ AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL"""
 
     return f"{q_select} {q_where} {q_order} {q_offset} {q_limit}"
 
 
 async def main(
-    cmd: Literal['index', 'fetch-end'],
-    job: Literal['works', 'orphans', 'authors', 'lists'],
+    cmd: Literal["index", "fetch-end"],
+    job: Literal["works", "orphans", "authors", "lists"],
     osp_dump: Path | None = None,
     postgres="postgres.ini",
     ol="http://ol/",
@@ -411,18 +402,18 @@ async def main(
     set_osp_dump_location(osp_dump)
 
     PLogEntry = namedtuple(
-        'PLogEntry',
+        "PLogEntry",
         [
-            'seen',
-            'total',
-            'percent',
-            'elapsed',
-            'q_1',
-            'q_auth',
-            'q_ia',
-            'cached',
-            'ia_cache',
-            'next',
+            "seen",
+            "total",
+            "percent",
+            "elapsed",
+            "q_1",
+            "q_auth",
+            "q_ia",
+            "cached",
+            "ia_cache",
+            "next",
         ],
     )
 
@@ -440,13 +431,9 @@ async def main(
             """
             self.last_entry = entry
             if self.filename:
-                with open(progress, 'a') as f:
-                    f.write(
-                        '\t'.join(
-                            self.fmt(k, val) for k, val in entry._asdict().items()
-                        )
-                    )
-                    f.write('\n')
+                with open(progress, "a") as f:
+                    f.write("\t".join(self.fmt(k, val) for k, val in entry._asdict().items()))
+                    f.write("\n")
 
         def update(
             self,
@@ -475,9 +462,7 @@ async def main(
             :return: None
             """
             args = locals()
-            entry = self.last_entry._replace(
-                **{f: args[f] for f in PLogEntry._fields if args[f] is not None}
-            )
+            entry = self.last_entry._replace(**{f: args[f] for f in PLogEntry._fields if args[f] is not None})
             self.log(entry)
 
         def fmt(self, k: str, val: Any) -> str:
@@ -487,17 +472,17 @@ async def main(
             :return: str
             """
             if val is None:
-                return '?'
+                return "?"
             if isinstance(val, str):
                 return val
-            if k == 'percent':
-                return '%.2f%%' % (100 * val)
-            if k in ['elapsed', 'q_1', 'q_auth', 'q_ia']:
-                return '%.2fs' % val
+            if k == "percent":
+                return "%.2f%%" % (100 * val)
+            if k in ["elapsed", "q_1", "q_auth", "q_ia"]:
+                return "%.2fs" % val
             if isinstance(val, float):
-                return '%.2f' % val
-            if k == 'next':
-                return val.split('/')[-1]
+                return "%.2f" % val
+            if k == "next":
+                return val.split("/")[-1]
             return str(val)
 
     plog = PLog(progress)
@@ -505,7 +490,7 @@ async def main(
     # load the contents of the config?
     with LocalPostgresDataProvider(postgres) as db:
         # Check to see where we should be starting from
-        if cmd == 'fetch-end':
+        if cmd == "fetch-end":
             next_start_query = build_job_query(job, start_at, limit, last_modified, 1)
             next_start_results = db.query_all(next_start_query)
             if next_start_results:
@@ -515,9 +500,9 @@ async def main(
         logger.info(
             json.dumps(
                 {
-                    'scope': 'solr_builder::main',
-                    'event': 'Indexing started',
-                    'start_at': start_at,
+                    "scope": "solr_builder::main",
+                    "event": "Indexing started",
+                    "start_at": start_at,
                 }
             )
         )
@@ -526,10 +511,10 @@ async def main(
 
         if progress:
             # Clear the file
-            async with aiofiles.open(progress, 'w') as f:
-                await f.write('')
-            async with aiofiles.open(progress, 'a') as f:
-                await f.write('Calculating total... ')
+            async with aiofiles.open(progress, "w") as f:
+                await f.write("")
+            async with aiofiles.open(progress, "a") as f:
+                await f.write("Calculating total... ")
 
         start = time.time()
         q_count = """SELECT COUNT(*) FROM(%s) AS foo""" % q
@@ -537,13 +522,11 @@ async def main(
         end = time.time()
 
         if progress:
-            async with aiofiles.open(progress, 'a') as f:
-                await f.write('%d (%.2fs)\n' % (count, end - start))
-                await f.write('\t'.join(PLogEntry._fields) + '\n')
+            async with aiofiles.open(progress, "a") as f:
+                await f.write("%d (%.2fs)\n" % (count, end - start))
+                await f.write("\t".join(PLogEntry._fields) + "\n")
 
-        plog.log(
-            PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?')
-        )
+        plog.log(PLogEntry(0, count, "0.00%", 0, "?", "?", "?", "?", "?", start_at or "?"))
         plog.update(q_1=0, q_auth=0, q_ia=0)
 
         start = time.time()
@@ -557,27 +540,21 @@ async def main(
 
                 if job == "works":
                     # cache editions
-                    editions_time, _ = simple_timeit(
-                        lambda: db2.cache_work_editions(*key_range)
-                    )
+                    editions_time, _ = simple_timeit(lambda: db2.cache_work_editions(*key_range))
                     plog.update(
                         q_1=plog.last_entry.q_1 + editions_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
 
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = await simple_timeit_async(
-                        db2.cache_cached_editions_ia_metadata()
-                    )
+                    ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
                     plog.update(
                         q_ia=plog.last_entry.q_ia + ocaids_time,
                         ia_cache=len(db2.ia_cache),
                     )
 
                     # cache authors
-                    authors_time, _ = simple_timeit(
-                        lambda: db2.cache_work_authors(*key_range)
-                    )
+                    authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
                     plog.update(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
@@ -588,23 +565,19 @@ async def main(
                     db2.cache_work_reading_logs(*key_range)
                 elif job == "orphans":
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = await simple_timeit_async(
-                        db2.cache_cached_editions_ia_metadata()
-                    )
+                    ocaids_time, _ = await simple_timeit_async(db2.cache_cached_editions_ia_metadata())
                     plog.update(
                         q_ia=plog.last_entry.q_ia + ocaids_time,
                         ia_cache=len(db2.ia_cache),
                     )
 
                     # cache authors
-                    authors_time, _ = simple_timeit(
-                        lambda: db2.cache_edition_authors(*key_range)
-                    )
+                    authors_time, _ = simple_timeit(lambda: db2.cache_edition_authors(*key_range))
                     plog.update(
                         q_auth=plog.last_entry.q_auth + authors_time,
                         cached=len(db.cache) + len(db2.cache),
                     )
-                elif job == 'lists':
+                elif job == "lists":
                     # Nothing to cache ; just need the lists themselves and
                     # they are already cached
                     pass
@@ -624,7 +597,7 @@ async def main(
                 keys,
                 commit=False,
                 skip_id_check=skip_solr_id_check,
-                update='quiet' if dry_run else 'update',
+                update="quiet" if dry_run else "update",
             )
 
             seen += len(keys)
@@ -639,7 +612,7 @@ async def main(
             db.clear_cache()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from scripts.solr_builder.solr_builder.fn_to_cli import FnToCLI
 
     FnToCLI(main).run()

@@ -222,8 +222,12 @@ export class OlAutocomplete extends LitElement {
 
         clearTimeout(this._debounceTimer);
         if (query.trim()) {
-            this._debounceTimer = setTimeout(() => this._fetchResults(query), 300);
+            this._debounceTimer = setTimeout(() => {
+                this._debounceTimer = null;
+                this._fetchResults(query);
+            }, 300);
         } else {
+            this._debounceTimer = null;
             this._results = [];
             this._isOpen = false;
         }
@@ -244,6 +248,14 @@ export class OlAutocomplete extends LitElement {
     }
 
     _onKeydown(e) {
+        // Enter is handled regardless of menu state — the user may press it
+        // before the debounced fetch has opened the menu (see _onEnter).
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            this._onEnter();
+            return;
+        }
+
         if (!this._isOpen) {
             if (e.key === 'ArrowDown' && this._results.length > 0) {
                 this._isOpen = true;
@@ -262,18 +274,40 @@ export class OlAutocomplete extends LitElement {
             e.preventDefault();
             this._activeIndex = Math.max(this._activeIndex - 1, 0);
             break;
-        case 'Enter':
-            e.preventDefault();
-            if (this._activeIndex >= 0 && this._results[this._activeIndex]) {
-                this._selectResult(this._results[this._activeIndex]);
-            }
-            break;
         case 'Escape':
             e.preventDefault();
             this._isOpen = false;
             this._activeIndex = -1;
             break;
         }
+    }
+
+    async _onEnter() {
+        // A keyboard-highlighted option always wins.
+        if (this._activeIndex >= 0 && this._results[this._activeIndex]) {
+            this._selectResult(this._results[this._activeIndex]);
+            return;
+        }
+        // Otherwise, select an exact (case-insensitive) match to what was typed.
+        let match = this._findExactMatch();
+        // If the debounced fetch is still pending, flush it and re-check so a
+        // fast typist who hits Enter immediately isn't penalized.
+        if (!match && this._debounceTimer) {
+            clearTimeout(this._debounceTimer);
+            this._debounceTimer = null;
+            const query = this._query.trim();
+            if (query) {
+                await this._fetchResults(query);
+                match = this._findExactMatch();
+            }
+        }
+        if (match) this._selectResult(match);
+    }
+
+    _findExactMatch() {
+        const query = this._query.trim().toLowerCase();
+        if (!query) return null;
+        return this._results.find(r => r.name.trim().toLowerCase() === query) || null;
     }
 
     _onClear(e) {

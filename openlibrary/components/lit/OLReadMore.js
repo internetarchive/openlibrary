@@ -14,10 +14,19 @@ import { LitElement, html, css } from 'lit';
  *   <p>Long content here...</p>
  * </ol-read-more>
  *
- * @property {String} background-color - Background color for the gradient fade (default: white)
- * @property {String} label-size - Size of the toggle button text: "medium" (default) or "small" (12px)
+ * @prop {String} maxHeight - Collapsed height of the content before truncating (default: "80px")
+ * @prop {String} moreText - Label for the expand toggle (default: "Read more")
+ * @prop {String} lessText - Label for the collapse toggle (default: "Read less")
+ * @prop {String} backgroundColor - Background color for the gradient fade (default: white)
+ * @prop {String} labelSize - Size of the toggle button text: "medium" (default) or "small" (12px)
+ *
+ * @slot - The collapsible content
  *
  * @csspart toggle-btn - The toggle button element (targets both "more" and "less" buttons)
+ *
+ * @cssprop [--ol-readmore-link-color=hsl(202, 96%, 28%)] - Color of the more/less toggle button
+ * @cssprop [--ol-readmore-gradient-color=white] - Solid color the fade gradient blends toward (match the surrounding background)
+ * @cssprop [--ol-readmore-gradient-color-transparent=rgba(255, 255, 255, 0)] - Transparent end of the fade gradient
  *
  * @example
  * <ol-read-more max-height="100px" more-text="Read more" less-text="Read less">
@@ -61,10 +70,10 @@ export class OLReadMore extends LitElement {
             font-weight: 500;
             text-align: center;
             width: 100%;
-            padding: 24px 12px 12px 12px;
+            padding: var(--spacing-inset-lg) var(--spacing-md) var(--spacing-md) var(--spacing-md);
             background: linear-gradient(
                 var(--ol-readmore-gradient-color-transparent) 0,
-                var(--ol-readmore-gradient-color) 12px
+                var(--ol-readmore-gradient-color) var(--spacing-md)
             );
             border: none;
             border-radius: 0 0 4px 4px;
@@ -72,7 +81,7 @@ export class OLReadMore extends LitElement {
         }
 
         .toggle-btn.more {
-            margin-top: -12px;
+            margin-top: calc(-1 * var(--spacing-md));
         }
 
         .toggle-btn:hover {
@@ -108,8 +117,8 @@ export class OLReadMore extends LitElement {
 
         .toggle-btn.small {
             font-size: 12px;
-            padding-top: 16px;
-            padding-bottom: 8px;
+            padding-top: var(--spacing-inset-md);
+            padding-bottom: var(--spacing-inset-sm);
         }
     `;
 

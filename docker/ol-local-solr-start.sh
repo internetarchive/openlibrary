@@ -35,7 +35,7 @@ if [ -f "$OL_SCHEMA_FILE" ] && [ -f "$SOLR_SCHEMA_FILE" ]; then
         solr start -p $TMP_SOLR_PORT
         # Wait for solr core to be ready for searching
         until curl -s -o /dev/null -w "%{http_code}" "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -q "200"; do
-            sleep 5;
+            sleep 1;
         done
 
         TOTAL_SOLR_DOCS=$(curl -s "http://localhost:${TMP_SOLR_PORT}/solr/${CORE_NAME}/select?q=*:*&rows=0&wt=json" | grep -oE '"numFound":[0-9]+' | grep -oE '[0-9]+')

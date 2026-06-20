@@ -1,12 +1,13 @@
 import { FadingToast } from '../Toast.js';
 import { findDropperForWork } from '../my-books';
 import { ReadingLogShelves } from '../my-books/MyBooksDropper/ReadingLogForms';
+import { queueAction } from '../utils.js';
 
 export function initRatingHandlers(ratingForms) {
     for (const form of ratingForms) {
         form.addEventListener('submit', function(e) {
             handleRatingSubmission(e, form);
-        })
+        });
     }
 }
 
@@ -19,10 +20,9 @@ function handleRatingSubmission(event, form) {
         const formData = new FormData(form);
         let rating;
         if (event.submitter.value) {
-            rating = Number(event.submitter.value)
-            formData.append('rating', event.submitter.value)
+            rating = Number(event.submitter.value);
+            formData.append('rating', event.submitter.value);
         }
-        formData.append('ajax', true);
 
         // Make AJAX call
         fetch(form.action, {
@@ -33,12 +33,21 @@ function handleRatingSubmission(event, form) {
             body: new URLSearchParams(formData)
         })
             .then((response) => {
-                // POST handler will redirect to login page when not logged in
-                if (response.redirected) {
-                    window.location = response.url
+                if (response.status === 401) {
+                    if (event.submitter && event.submitter.id) {
+                        const label = form.querySelector(`label[for="${event.submitter.id}"]`);
+                        if (label) {
+                            const { action, title, type } = label.dataset;
+                            if (action && title && type) {
+                                queueAction(action, title, window.location.pathname + window.location.search, type);
+                            }
+                        }
+                    }
+                    window.location.href = `/account/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                    return;
                 }
                 if (!response.ok) {
-                    throw new Error('Ratings update failed')
+                    throw new Error('Ratings update failed');
                 }
                 // Update view to deselect all stars
                 form.querySelectorAll('.star-selected').forEach((elem) => {
@@ -46,7 +55,7 @@ function handleRatingSubmission(event, form) {
                     if (elem.hasAttribute('property')) {
                         elem.removeAttribute('property');
                     }
-                })
+                });
 
                 const clearButton = form.querySelector('.star-messaging');
                 if (rating) {  // A rating was added or updated
@@ -55,14 +64,14 @@ function handleRatingSubmission(event, form) {
                     form.querySelectorAll(`.star-${rating}`).forEach((elem) => {
                         elem.classList.add('star-selected');
                         if (elem.tagName === 'LABEL') {
-                            elem.setAttribute('property', 'ratingValue')
+                            elem.setAttribute('property', 'ratingValue');
                         }
-                    })
+                    });
 
                     // Find dropper that is associated with this star rating affordance:
-                    const dropper = findDropperForWork(form.dataset.workKey)
+                    const dropper = findDropperForWork(form.dataset.workKey);
                     if (dropper) {
-                        dropper.updateShelfDisplay(ReadingLogShelves.ALREADY_READ)
+                        dropper.updateShelfDisplay(ReadingLogShelves.ALREADY_READ);
                     }
                 } else {  // A rating was deleted
                     clearButton.classList.add('hidden');
@@ -70,6 +79,6 @@ function handleRatingSubmission(event, form) {
             })
             .catch((error) => {
                 new FadingToast(error.message).show();
-            })
+            });
     }
 }

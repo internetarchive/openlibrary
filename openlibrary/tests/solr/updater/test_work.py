@@ -1,13 +1,10 @@
 from types import MappingProxyType
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
 
 from openlibrary.book_providers import IALiteMetadata
-from openlibrary.core.lists.model import SeriesDict
-from openlibrary.core.models import WorkSeriesEdge
 from openlibrary.solr.updater.work import (
-    DataProvider,
     WorkSolrBuilder,
     WorkSolrUpdater,
 )
@@ -17,6 +14,11 @@ from openlibrary.tests.solr.test_update import (
     make_edition,
     make_work,
 )
+
+if TYPE_CHECKING:
+    from openlibrary.core.lists.model import SeriesDict
+    from openlibrary.core.models import WorkSeriesEdge
+    from openlibrary.solr.data_provider import DataProvider
 
 
 def sorted_split_semicolon(s):

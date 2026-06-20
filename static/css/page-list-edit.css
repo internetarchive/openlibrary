@@ -25,7 +25,7 @@
 }
 
 #list-edit .ac-input .floating-label {
-  margin-top: 10px;
+  margin-top: var(--spacing-stack-sm);
 }
 
 #list-edit.list-edit--series .seed--controls {
@@ -52,13 +52,13 @@
 
 #list-edit textarea,
 #list-edit input {
-  padding: 4px;
+  padding: var(--spacing-inset-xs);
   max-width: 800px;
   resize: vertical;
 }
 
 #list-edit > *:not(:first-child) {
-  margin-top: 6px;
+  margin-top: var(--spacing-stack-xs);
 }
 
 #list-edit .multi-input-autocomplete--seeds .seed--controls {
@@ -77,9 +77,9 @@
   }
   #list-edit .multi-input-autocomplete--seeds .seed--controls {
     flex-direction: row;
-    padding-bottom: 4px;
+    padding-bottom: var(--spacing-inset-xs);
     border-bottom: 1px solid var(--light-mid-grey);
-    margin-bottom: 4px;
+    margin-bottom: var(--spacing-stack-xs);
     justify-content: space-between;
   }
 }
@@ -94,9 +94,9 @@
   }
   #list-edit .multi-input-autocomplete--seeds .seed--controls {
     flex-direction: column;
-    padding-right: 4px;
+    padding-right: var(--spacing-inset-xs);
     border-right: 1px solid var(--light-mid-grey);
-    margin-right: 4px;
+    margin-right: var(--spacing-inline-xs);
   }
 }
 
@@ -107,10 +107,10 @@
 #list-edit .mia__input {
   list-style: none;
   width: 90%;
-  margin-top: 6px;
+  margin-top: var(--spacing-stack-xs);
   border: 1px solid var(--light-grey);
   border-radius: var(--border-radius-input);
-  padding: 8px;
+  padding: var(--spacing-inset-sm);
   background: var(--grey-fafafa);
 }
 

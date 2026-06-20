@@ -3,9 +3,10 @@ import { LitElement, html, css, nothing } from 'lit';
 /**
  * A tooltip component that displays contextual information on hover/focus.
  *
- * Wraps a trigger element and shows a tooltip panel with configurable placement,
- * delay, and arrow. Supports "warm" behavior — moving between multiple tooltips
- * skips the show delay after the first one, so scanning a toolbar feels instant.
+ * Wraps a trigger element and shows a tooltip panel with configurable placement
+ * and arrow. The tooltip appears after a short delay and is shown/hidden
+ * instantly with no animation. Each tooltip is independent — moving from one
+ * trigger to another hides the old tooltip and shows the new one.
  *
  * @element ol-tooltip
  *
@@ -15,10 +16,10 @@ import { LitElement, html, css, nothing } from 'lit';
  *     "left", or "right" and align is "start", "center", or "end".
  *     Default: "top"
  * @prop {Number} showDelay - Milliseconds to wait before showing (default: 150).
- *     Skipped when moving between tooltips quickly ("warm" mode).
+ *     Set to 0 for an instant tooltip.
  * @prop {Number} hideDelay - Milliseconds to wait before hiding (default: 0)
- * @prop {Number} offset - Gap in px between trigger and tooltip (default: 8)
- * @prop {Boolean} withoutArrow - Hides the directional arrow
+ * @prop {Number} offset - Gap in px between trigger and tooltip (default: 4)
+ * @prop {Boolean} arrow - Shows the directional arrow (hidden by default)
  * @prop {Boolean} disabled - Prevents the tooltip from showing
  *
  * @fires ol-tooltip-show - Fired when the tooltip opens
@@ -33,17 +34,12 @@ import { LitElement, html, css, nothing } from 'lit';
  * </ol-tooltip>
  *
  * @example
- * <ol-tooltip placement="bottom-start" show-delay="300">
+ * <ol-tooltip placement="bottom-start" show-delay="0">
  *   <button>Options</button>
  *   <span slot="content">Rich <strong>HTML</strong> content</span>
  * </ol-tooltip>
  */
 export class OlTooltip extends LitElement {
-    // ── Warm-mode tracking ──
-    // When any tooltip hides, we record the timestamp. If another tooltip
-    // tries to show within the warm window, we skip its show delay entirely.
-    static _lastHideTime = 0;
-    static WARM_WINDOW = 300; // ms
     static _idCounter = 0;
 
     static properties = {
@@ -52,13 +48,12 @@ export class OlTooltip extends LitElement {
         showDelay: { type: Number, attribute: 'show-delay' },
         hideDelay: { type: Number, attribute: 'hide-delay' },
         offset: { type: Number },
-        withoutArrow: { type: Boolean, attribute: 'without-arrow' },
+        arrow: { type: Boolean },
         disabled: { type: Boolean },
         _visible: { state: true },
         _position: { state: true },
         _actualSide: { state: true },
         _arrowOffset: { state: true },
-        _animState: { state: true },
     };
 
     static styles = css`
@@ -70,40 +65,21 @@ export class OlTooltip extends LitElement {
         .tooltip {
             position: fixed;
             z-index: 1000;
+            display: none;
             max-width: var(--ol-tooltip-max-width, 280px);
             padding: 6px 10px;
-            background: var(--grey-darker, #333);
-            color: var(--white, #fff);
+            background: var(--dark-grey);
+            color: var(--white);
             font-size: 13px;
-            line-height: 1.4;
-            border-radius: var(--border-radius-small, 6px);
+            line-height: var(--line-height-snug);
+            border-radius: var(--border-radius-tooltip);
             pointer-events: none;
             user-select: none;
             width: max-content;
-
-            /* Start state */
-            opacity: 0;
-            transform: scale(0.88);
         }
 
-        .tooltip[data-state="entering"],
-        .tooltip[data-state="open"] {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .tooltip[data-state="entering"] {
-            transition:
-                opacity 250ms cubic-bezier(0.23, 1, 0.32, 1),
-                transform 250ms cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .tooltip[data-state="exiting"] {
-            opacity: 0;
-            transform: scale(0.88);
-            transition:
-                opacity 180ms cubic-bezier(0.165, 0.84, 0.44, 1),
-                transform 180ms cubic-bezier(0.165, 0.84, 0.44, 1);
+        .tooltip[data-visible] {
+            display: block;
         }
 
         /* ── Arrow ── */
@@ -128,13 +104,6 @@ export class OlTooltip extends LitElement {
         :host([data-side="right"]) .arrow {
             left: -4px;
         }
-
-        @media (prefers-reduced-motion: reduce) {
-            .tooltip[data-state="entering"],
-            .tooltip[data-state="exiting"] {
-                transition: none;
-            }
-        }
     `;
 
     constructor() {
@@ -143,25 +112,30 @@ export class OlTooltip extends LitElement {
         this.placement = 'top';
         this.showDelay = 150;
         this.hideDelay = 0;
-        this.offset = 8;
-        this.withoutArrow = false;
+        this.offset = 4;
+        this.arrow = false;
         this.disabled = false;
         this._visible = false;
         this._position = { top: 0, left: 0 };
         this._actualSide = 'top';
         this._arrowOffset = 0;
-        this._animState = 'closed';
-        this._reducedMotion = false;
         this._showTimer = null;
         this._hideTimer = null;
         this._tooltipId = `ol-tooltip-${++OlTooltip._idCounter}`;
+
+        // Gates the *pointer* path only. On touch devices a tap would both fire
+        // the action and surface the tooltip via an emulated mouseenter, so we
+        // arm mouseenter only on hover-capable pointers. Keyboard focus is not
+        // gated on this — see _onFocusIn, which uses :focus-visible so tab-focus
+        // works even on touch-capable devices (e.g. a tablet with a keyboard).
+        this._canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
         this._onMouseEnter = this._onMouseEnter.bind(this);
         this._onMouseLeave = this._onMouseLeave.bind(this);
         this._onFocusIn = this._onFocusIn.bind(this);
         this._onFocusOut = this._onFocusOut.bind(this);
         this._onKeydown = this._onKeydown.bind(this);
-        this._onTouchOutside = this._onTouchOutside.bind(this);
+        this._onScroll = this._onScroll.bind(this);
     }
 
     connectedCallback() {
@@ -180,42 +154,36 @@ export class OlTooltip extends LitElement {
         this.removeEventListener('focusin', this._onFocusIn);
         this.removeEventListener('focusout', this._onFocusOut);
         this.removeEventListener('keydown', this._onKeydown);
-        document.removeEventListener('touchstart', this._onTouchOutside, true);
+        window.removeEventListener('scroll', this._onScroll, true);
         this._clearTimers();
     }
 
     render() {
-        const show = this._animState !== 'closed';
         // Reflect the actual side as a host attribute for arrow CSS
-        if (show) {
+        if (this._visible) {
             this.dataset.side = this._actualSide;
+        } else {
+            delete this.dataset.side;
         }
 
         return html`
             <slot @slotchange="${this._onSlotChange}"></slot>
-            ${show ? html`
-                <div
-                    class="tooltip"
-                    id="${this._tooltipId}"
-                    role="tooltip"
-                    data-state="${this._animState}"
-                    style="
-                        top: ${this._position.top}px;
-                        left: ${this._position.left}px;
-                        transform-origin: ${this._transformOrigin};
-                    "
-                    @transitionend="${this._onTransitionEnd}"
-                >
-                    <slot name="content">${this.content}</slot>
-                    ${!this.withoutArrow ? html`
-                        <div
-                            class="arrow"
-                            aria-hidden="true"
-                            style="${this._arrowStyle}"
-                        ></div>
-                    ` : nothing}
-                </div>
-            ` : nothing}
+            <div
+                class="tooltip"
+                id="${this._tooltipId}"
+                role="tooltip"
+                ?data-visible="${this._visible}"
+                style="top: ${this._position.top}px; left: ${this._position.left}px;"
+            >
+                <slot name="content">${this.content}</slot>
+                ${this.arrow ? html`
+                    <div
+                        class="arrow"
+                        aria-hidden="true"
+                        style="${this._arrowStyle}"
+                    ></div>
+                ` : nothing}
+            </div>
         `;
     }
 
@@ -229,11 +197,10 @@ export class OlTooltip extends LitElement {
     // ── Trigger handlers ──
 
     _onMouseEnter() {
-        if (this.disabled) return;
+        if (this.disabled || !this._canHover) return;
         this._clearTimers();
-        const delay = this._isWarm() ? 0 : this.showDelay;
-        if (delay > 0) {
-            this._showTimer = setTimeout(() => this._show(), delay);
+        if (this.showDelay > 0) {
+            this._showTimer = setTimeout(() => this._show(), this.showDelay);
         } else {
             this._show();
         }
@@ -250,66 +217,56 @@ export class OlTooltip extends LitElement {
 
     _onFocusIn() {
         if (this.disabled) return;
+        // Show on genuine keyboard focus only, independent of pointer capability.
+        // :focus-visible is the browser's own heuristic for "focus that warrants a
+        // ring" — true for Tab/keyboard focus, false for a pointer (mouse/touch)
+        // click — so a tap that focuses the trigger won't pop the tooltip, while a
+        // keyboard user gets it even on a touch device with hover: none.
+        const trigger = this._triggerEl;
+        if (!trigger?.matches?.(':focus-visible')) return;
         this._clearTimers();
         this._show();
-        // On touch devices, listen for taps outside to dismiss
-        document.addEventListener('touchstart', this._onTouchOutside, true);
     }
 
     _onFocusOut() {
         this._clearTimers();
         this._hide();
-        document.removeEventListener('touchstart', this._onTouchOutside, true);
-    }
-
-    _onTouchOutside(e) {
-        if (!e.composedPath().includes(this)) {
-            this._clearTimers();
-            this._hide();
-            document.removeEventListener('touchstart', this._onTouchOutside, true);
-        }
     }
 
     _onKeydown(e) {
-        if (e.key === 'Escape' && this._animState !== 'closed') {
+        if (e.key === 'Escape' && this._visible) {
             this._hide();
         }
     }
 
-    // ── Warm-mode check ──
-
-    _isWarm() {
-        return (Date.now() - OlTooltip._lastHideTime) < OlTooltip.WARM_WINDOW;
+    _onScroll() {
+        // The panel is positioned once at show time (position: fixed), so any
+        // scroll would strand it away from the trigger. Hiding is simpler and
+        // less jarring than repositioning mid-scroll.
+        this._hide();
     }
 
     // ── Show / Hide ──
 
     _show() {
-        if (this._animState === 'open' || this._animState === 'entering') return;
+        if (this._visible) return;
 
-        this._reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        // Render off-screen to measure
+        // Render off-screen first so we can measure the panel, then position it.
+        // The off-screen frame is never seen on-screen, so the tooltip simply
+        // pops into place once positioned — no flash at the wrong spot.
         this._position = { top: -9999, left: -9999 };
-        this._animState = this._reducedMotion ? 'open' : 'preparing';
+        this._visible = true;
+
+        // Capture phase catches scrolls in any ancestor scroll container, not
+        // just the window. Passive since we never preventDefault.
+        window.addEventListener('scroll', this._onScroll, { capture: true, passive: true });
 
         this.updateComplete.then(() => {
+            if (!this._visible) return;
             const tooltip = this.shadowRoot.querySelector('.tooltip');
             if (!tooltip) return;
 
             this._computePosition(tooltip.offsetWidth, tooltip.offsetHeight);
-
-            if (this._reducedMotion) {
-                this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
-                    bubbles: true, composed: true
-                }));
-                return;
-            }
-
-            // Force reflow so browser paints the start position
-            tooltip.getBoundingClientRect();
-
-            this._animState = 'entering';
             this.dispatchEvent(new CustomEvent('ol-tooltip-show', {
                 bubbles: true, composed: true
             }));
@@ -317,32 +274,13 @@ export class OlTooltip extends LitElement {
     }
 
     _hide() {
-        if (this._animState === 'closed' || this._animState === 'exiting') return;
+        if (!this._visible) return;
 
-        OlTooltip._lastHideTime = Date.now();
-
-        if (this._reducedMotion) {
-            this._animState = 'closed';
-            this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
-                bubbles: true, composed: true
-            }));
-            return;
-        }
-
-        this._animState = 'exiting';
+        window.removeEventListener('scroll', this._onScroll, true);
+        this._visible = false;
         this.dispatchEvent(new CustomEvent('ol-tooltip-hide', {
             bubbles: true, composed: true
         }));
-    }
-
-    _onTransitionEnd(e) {
-        if (e.target !== e.currentTarget) return;
-
-        if (this._animState === 'entering') {
-            this._animState = 'open';
-        } else if (this._animState === 'exiting') {
-            this._animState = 'closed';
-        }
     }
 
     // ── Positioning ──
@@ -356,7 +294,7 @@ export class OlTooltip extends LitElement {
         const viewW = window.innerWidth;
         const viewH = window.innerHeight;
         const pad = 8;
-        const arrowSize = this.withoutArrow ? 0 : 4;
+        const arrowSize = this.arrow ? 4 : 0;
 
         const [reqSide, reqAlign] = this._parsePlacement(this.placement);
 
@@ -440,16 +378,6 @@ export class OlTooltip extends LitElement {
         this._position = { top, left };
         this._actualSide = side;
         this._arrowOffset = arrowPos;
-    }
-
-    get _transformOrigin() {
-        switch (this._actualSide) {
-        case 'top': return `${this._arrowOffset}px bottom`;
-        case 'bottom': return `${this._arrowOffset}px top`;
-        case 'left': return `right ${this._arrowOffset}px`;
-        case 'right': return `left ${this._arrowOffset}px`;
-        default: return 'center center';
-        }
     }
 
     get _arrowStyle() {

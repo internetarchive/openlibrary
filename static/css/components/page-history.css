@@ -27,7 +27,7 @@
 table.history {
   width: 100%;
   margin-top: 10px;
-  border-top: 1px solid var(--grey-e7e7e7);
+  border-top: var(--border-table);
 }
 
 table.history tr:last-child {
@@ -36,9 +36,9 @@ table.history tr:last-child {
 
 table.history td {
   font-size: 0.6875em;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
-  border-bottom: 1px solid var(--grey-e7e7e7);
+  border-bottom: var(--border-table);
 }
 
 table.history td.timestamp {
@@ -49,4 +49,294 @@ table.history td.timestamp {
 table.history td.detail {
   padding: 10px;
   width: 100%;
+}
+
+/* History page redesign - #12628 */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory thead tr th {
+  font-weight: bold;
+  padding: 10px 12px;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody td.number {
+  text-align: center;
+}
+
+/* Column sizing: When/Who hug their content, Comment absorbs the slack */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody td {
+  padding: 10px 12px;
+  vertical-align: top;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.when {
+  color: var(--grey);
+  white-space: nowrap;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.who {
+  white-space: nowrap;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.comment {
+  width: 100%;
+}
+
+/* Keep the two diff buttons side by side on one row */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.compare-against {
+  white-space: nowrap;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-against a {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-button);
+  color: var(--dark-grey);
+  display: inline-block;
+  min-width: 64px;
+  font-size: var(--font-size-label-small);
+  font-weight: 500;
+  padding: 3px 8px;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-against a + a {
+  margin-left: 6px;
+}
+
+/* Rev, when, and who links read as plain links: body-sized, blue, underlined */
+/* stylelint-disable selector-max-specificity */
+table#pageHistory td.number a,
+table#pageHistory td.when a,
+table#pageHistory td.who a {
+  color: var(--link-blue);
+  text-decoration: underline;
+}
+/* stylelint-enable selector-max-specificity */
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.comment a {
+  color: var(--link-blue);
+  text-decoration: none;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.pick-ab {
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Align the single A | B header over the bare per-row radios */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory th.pick-ab-header {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory td.pick-ab .pick-ab__radios {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  align-items: center;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .pick-ab__option {
+  width: 20px;
+  margin: 0;
+  text-align: center;
+}
+
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory .compare-against a:hover {
+  background-color: var(--lightest-grey);
+}
+
+/* Sticky card holding the cross-page A/B selection and Compare action (#12628) */
+.page-history-compare {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-level-1);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 30px;
+  padding: 8px 12px;
+  border: var(--border-card);
+  border-radius: var(--border-radius-card);
+  background: var(--beige-pale);
+  color: var(--dark-grey);
+  font-size: var(--font-size-label-medium);
+}
+
+.page-history-compare[hidden] {
+  display: none;
+}
+
+/* Match the bordered style of the in-table Changes / vs current buttons. */
+/* Qualify with `a` so this beats the global `a:link` underline/blue rule. */
+a.page-history-compare__submit {
+  border: 1px solid var(--light-grey);
+  border-radius: var(--border-radius-button);
+  background: var(--white);
+  color: var(--dark-grey);
+  font-size: var(--font-size-label-small);
+  font-weight: 500;
+  padding: 3px 10px;
+  text-decoration: none;
+}
+
+.page-history-compare__submit:hover {
+  background: var(--lightest-grey);
+}
+
+.page-history-compare__submit.is-disabled {
+  border-color: var(--lighter-grey);
+  background: transparent;
+  color: var(--mid-grey);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.page-history-compare__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-button);
+  background: transparent;
+  color: var(--grey);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.page-history-compare__clear:hover {
+  background: var(--light-grey);
+  color: var(--dark-grey);
+}
+
+/* Mark the rows chosen as A / B with a left accent bar in the selection */
+/* outline color — inset shadow avoids shifting cell content. The number */
+/* cell stretches to the full row height on desktop, so the bar spans the */
+/* row; mobile drops it (the cell is only as tall as the rev number there). */
+/* stylelint-disable-next-line selector-max-specificity */
+table#pageHistory tbody tr.pick-ab-selected td.number {
+  box-shadow: inset 3px 0 0 var(--color-focus-ring);
+}
+
+/* Mobile: collapse the table into stacked, card-like rows */
+@media only screen and (max-width: 768px /* --width-breakpoint-tablet */) {
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory thead {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody {
+    display: block;
+  }
+
+  /* rev # gutter | stacked who / when / comment / actions | A-B radio column */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "rev who     pick"
+      "rev when    pick"
+      "rev comment pick"
+      "rev diff    pick";
+    gap: 2px 14px;
+    align-items: start;
+    padding: 14px 4px;
+    border-bottom: var(--border-table);
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.number {
+    grid-area: rev;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.who {
+    grid-area: who;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.when {
+    grid-area: when;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.comment {
+    grid-area: comment;
+  }
+
+  /* A commentless revision shouldn't reserve a row or its gaps */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.comment--empty {
+    display: none;
+  }
+
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr:has(td.comment--empty) {
+    grid-template-areas:
+      "rev who  pick"
+      "rev when pick"
+      "rev diff pick";
+  }
+
+  /* Changes / vs current share one left-aligned row */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.compare-against {
+    grid-area: diff;
+  }
+
+  /* Let the radios and any injected compare button join the row's own grid */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.pick-ab {
+    display: contents;
+  }
+
+  /* Radios ride in the right column, top-aligned with the rev # */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory td.pick-ab .pick-ab__radios {
+    grid-area: pick;
+  }
+
+  /* No A / B accent bar on mobile: the desktop bar lives on the number cell, */
+  /* which here is only as tall as the rev number and renders as a stub. The */
+  /* filled radio already signals the selection, so just drop the bar. */
+  /* stylelint-disable-next-line selector-max-specificity */
+  table#pageHistory tbody tr.pick-ab-selected td.number {
+    box-shadow: none;
+  }
 }

@@ -56,7 +56,7 @@
   position: relative;
   display: block;
   border-radius: 5px;
-  padding: 0.2rem 0.4rem;
+  padding: var(--spacing-inset-xs) var(--spacing-inset-sm);
 }
 
 .iaBar .language-component .language-dropdown-component {
@@ -68,5 +68,5 @@
 
 /* stylelint-disable-next-line selector-max-specificity */
 .iaBar .language-component .language-dropdown-component li {
-  padding: 8px 12px;
+  padding: var(--spacing-inset-sm);
 }

@@ -5,9 +5,9 @@
 .linkButton {
   border-radius: 5px;
   background-color: var(--white);
-  padding: 10px;
+  padding: var(--spacing-inset-sm);
   display: inline-block;
-  font-family: var(--body-family);
+  font-family: var(--font-family-body);
   color: var(--grey);
   border: 1px solid var(--mid-grey);
   cursor: pointer;

@@ -5,121 +5,340 @@
  */
 
 .design-pattern-library {
-  padding: 16px;
+  padding: var(--spacing-inset-md);
 }
 
-/* -- Nav -- */
+.design-pattern-library__layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+}
 
-.design-pattern-nav__heading {
-  font-size: var(--font-size-body-small);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--grey);
-  margin: 0 0 4px;
-  padding: 0 10px;
+/* Sidebar nav: horizontal scrolling on mobile, vertical sidebar on desktop */
+.design-pattern-nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-level-1);
+  margin: 0 -16px;
+  padding: 4px 16px;
+  background-color: var(--beige);
+  border-bottom: var(--border-divider);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.design-pattern-nav__title {
+  font-size: var(--font-size-body-large);
+  margin: 0 0 12px;
+  color: var(--dark-grey);
 }
 
 .design-pattern-nav__list {
   list-style: none;
-  margin: 0 0 16px;
+  margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  gap: 4px;
 }
 
-.design-pattern-nav__link {
+.design-pattern-nav__list li {
+  flex-shrink: 0;
+}
+
+.design-pattern-nav__list a {
   display: block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  color: var(--grey);
-  text-decoration: none !important;
-  font-size: var(--font-size-body-medium);
-}
-
-.design-pattern-nav__link:hover {
-  background-color: var(--lightest-grey);
+  padding: 8px 12px;
+  border-radius: var(--border-radius-card);
+  text-decoration: none;
   color: var(--dark-grey);
+  font-size: var(--font-size-body-medium);
+  white-space: nowrap;
+  transition: background-color 0.15s;
 }
 
-.design-pattern-nav__link.is-active {
-  color: var(--primary-blue);
-  font-weight: 600;
+.design-pattern-nav__list a:hover {
+  background-color: var(--lightest-grey);
+  color: var(--link-blue);
 }
 
-/* -- Content -- */
+/* Nested component links (e.g. Chip under Chip Group). On mobile the nav is a
+   horizontal scroller, so the sublist just sits inline after its parent. */
+.design-pattern-nav__sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: contents;
+}
+
+/* Main content area */
+.design-pattern-main {
+  flex: 1;
+  min-width: 0;
+}
 
 .design-pattern {
-  padding-bottom: 24px;
+  padding-bottom: var(--spacing-inset-lg);
   border-bottom: var(--border-divider);
-  margin-bottom: 24px;
+  margin-bottom: var(--spacing-stack-lg);
 }
 
 .design-pattern__title {
-  margin-top: 0;
+  color: var(--dark-grey);
+  margin: 0 0 8px;
+}
+
+.design-pattern__description {
+  margin: 0 0 var(--spacing-stack-md);
+  font-size: 18px;
+  color: var(--mid-grey);
 }
 
 .example {
-  margin-bottom: 24px;
+  margin-bottom: 48px;
 }
 
 .example__title {
   font-size: var(--font-size-title-medium);
   margin-top: 0;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-stack-xs);
+  color: var(--dark-grey);
 }
 
-p {
+.design-pattern-library p {
   margin-top: 0;
   margin-bottom: 8px;
 }
 
-.example__code {
-  display: block;
+/* Reset Prism theme styles that leak outside code blocks */
+.design-pattern-library .tag,
+.design-pattern-library .token:not(.example__code .token) {
+  color: inherit;
+  background: none;
+}
+
+pre.example__code {
   background-color: var(--lightest-grey);
-  padding: 12px;
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
   margin-bottom: 12px;
   border-radius: var(--border-radius-card);
-  font-size: var(--font-size-body-medium);
+  font-size: var(--font-size-label-medium);
   font-family: var(--font-family-code);
   overflow-x: auto;
+  white-space: pre-wrap;
   word-break: break-all;
 }
 
-.example__output {
-  margin-bottom: 24px;
+pre.example__code code[class*="language-"] {
+  font-size: var(--font-size-label-medium);
 }
 
 @media only screen and (min-width: 768px) {
   .design-pattern-library {
-    display: flex;
-    gap: 32px;
-    padding: 24px;
+    padding: var(--spacing-inset-lg);
+  }
+
+  .design-pattern-library__layout {
+    flex-direction: row;
+    gap: 40px;
+    align-items: flex-start;
   }
 
   .design-pattern-nav {
-    flex: 0 0 200px;
     position: sticky;
     top: 24px;
-    align-self: flex-start;
+    flex: 0 0 200px;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    border-bottom: none;
+    overflow: visible;
   }
 
   .design-pattern-nav__list {
-    flex-direction: column;
-    gap: 0;
+    display: block;
   }
 
-  .design-pattern-nav__link {
-    padding: 4px 10px;
+  .design-pattern-nav__list li {
+    margin-bottom: var(--spacing-stack-xs);
   }
 
-  .design-pattern-content {
-    flex: 1;
-    min-width: 0;
+  .design-pattern-nav__list a {
+    padding: 6px 12px;
   }
 
-  .example__code {
+  /* Desktop: nested links stack under their parent, indented and marked with a
+     vertical guide line (matches the parent/child grouping in the sidebar). */
+  .design-pattern-nav__sublist {
+    display: block;
+    margin: var(--spacing-stack-xs) 0 0 12px;
+    padding-left: 12px;
+    border-left: var(--border-divider);
+  }
+
+  pre.example__code {
     word-break: normal;
   }
 }
+
+.example__output {
+  margin-bottom: var(--spacing-stack-lg);
+}
+
+.color-swatch {
+  display: flex;
+  gap: var(--spacing-inline-xs);
+}
+
+.color-swatch .color-block {
+  width: 1em;
+  height: 1em;
+  display: block;
+  margin: 3px;
+}
+
+.color-block-primary-cta {
+  background-color: var(--primary-blue);
+}
+.color-block-background {
+  background-color: var(--beige);
+}
+.color-block-link-clicked {
+  background-color: var(--dark-blue);
+}
+.color-block-link-unclicked {
+  background-color: var(--link-blue);
+}
+.demo-btn {
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--border-radius-button);
+  border: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  background: var(--white);
+  font-size: var(--font-size-body-large);
+}
+
+/* Rich tooltip content, styled by the consuming page (see design/tooltip.html). */
+.book-tip {
+  font-size: var(--font-size-body-medium);
+}
+.book-tip__heading {
+  margin-bottom: var(--spacing-2xs);
+}
+.book-tip__trigger {
+  display: block;
+  width: 120px;
+  height: auto;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  box-shadow: 0 0 0 0 var(--lightest-grey);
+  transition: box-shadow 0.15s ease;
+}
+.book-tip__trigger:hover,
+.book-tip__trigger:focus-visible {
+  box-shadow: 0 0 0 6px var(--lightest-grey);
+  outline: none;
+}
+.book-tip__title {
+  font-weight: 600;
+}
+.book-tip__year {
+  color: var(--lighter-grey);
+}
+.book-tip__byline {
+  color: var(--lighter-grey);
+  font-size: var(--font-size-label-medium);
+}
+
+/* Auto-generated API reference tables (from the Custom Elements Manifest) */
+.component-api {
+  margin-bottom: 48px;
+}
+
+.component-api__group {
+  font-size: var(--font-size-body-large);
+  margin: var(--spacing-stack-md) 0;
+  color: var(--dark-grey);
+}
+
+/* Tables can be wider than the page (long type/default values, nowrap headers);
+   this wrapper lets them scroll horizontally instead of overflowing the layout. */
+.component-api__table-wrap {
+  overflow-x: auto;
+  margin-bottom: var(--spacing-stack-md);
+}
+
+.component-api__table {
+  width: 100%;
+  /* Separate (not collapse) so the rounded outer border clips cleanly with
+     overflow: hidden — collapsed borders bleed past the radius at the corners. */
+  border-collapse: separate;
+  border-spacing: 0;
+  border: var(--border-table);
+  border-radius: var(--border-radius-card);
+  overflow: hidden;
+  /* Opaque so the page's beige background doesn't show through the cells. */
+  background: var(--white);
+  font-size: var(--font-size-body-medium);
+}
+
+.component-api__table th,
+.component-api__table td {
+  padding: var(--spacing-inset-sm) var(--spacing-inset-md);
+  /* Override the site-wide `tbody { font-size: 0.9em }` so header and body
+     cells render at the same size. */
+  font-size: var(--font-size-body-medium);
+  /* The table's own border supplies the top and left edges; cells draw the
+     interior grid with their right and bottom borders. */
+  border-bottom: var(--border-table);
+  border-right: var(--border-table);
+  vertical-align: top;
+}
+
+.component-api__table th {
+  text-align: start;
+  font-weight: 600;
+  color: var(--dark-grey);
+  white-space: nowrap;
+  background: var(--grey-fafafa);
+}
+
+.component-api__table td {
+  /* White cells paint over the site-wide `tbody tr` beige tint, keeping these
+     tables clean while the rest of the site keeps that background. */
+  background: var(--white);
+  color: var(--dark-grey);
+}
+
+.component-api__table code {
+  font-family: var(--font-family-code);
+  font-size: var(--font-size-label-medium);
+  color: var(--dark-grey);
+}
+
+/* The description column carries the prose; let it claim the slack so the
+   short columns stay compact and single-line. */
+.component-api__table td:last-child {
+  width: 100%;
+}
+
+/* Drop the redundant edges so they don't double up with the table border. */
+.component-api__table th:last-child,
+.component-api__table td:last-child {
+  border-right: none;
+}
+
+.component-api__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.component-api__empty {
+  color: var(--grey);
+}
+
+.component-api__default-slot {
+  font-style: italic;
+  color: var(--mid-grey);
+}
+
 @import "legacy.css";

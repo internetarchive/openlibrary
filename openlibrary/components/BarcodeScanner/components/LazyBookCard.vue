@@ -37,7 +37,7 @@ export default {
             identifier: null,
             errored: false,
             loading: true,
-        }
+        };
     },
     mounted() {
         this.fromISBN(this.isbn);
@@ -56,7 +56,7 @@ export default {
                             this.coverSrc = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
                         }
                     }
-                    return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${editionRecord.works[0].key}.json`).then(r => r.json())
+                    return fetch(`https://${CONFIGS.OL_BASE_PUBLIC}${editionRecord.works[0].key}.json`).then(r => r.json());
                 }).then(workRecord => {
                     return Promise.all(
                         workRecord.authors
@@ -73,7 +73,7 @@ export default {
                 });
         },
     },
-}
+};
 </script>
 
 <style>
