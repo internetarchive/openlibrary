@@ -1056,157 +1056,157 @@ msgstr "বই লোড করুন"
 
 #: account/import.html:27
 msgid "Export your Reading Log"
-msgstr "अपना रीडिंग लॉग एक्सपोर्ट करें"
+msgstr "নিজের রিডিং লগ রপ্তানি করুন"
 
 #: account/import.html:28
 msgid "Download a copy of your reading log."
-msgstr "अपने रीडिंग लॉग की एक कॉपी डाउनलोड करें।"
+msgstr "নিজের রিডিং লগের একটি কপি ডাউনলোড করুন।"
 
 #: account/import.html:28
 msgid "What is this?"
-msgstr "यह क्या है?"
+msgstr "এটি কি?"
 
 #: account/import.html:33 account/import.html:44 account/import.html:55
 #: account/import.html:66 account/import.html:77
 msgid "Download (.csv format)"
-msgstr "डाउनलोड करें (.csv फ़ॉर्मेट)"
+msgstr "ডাউনলোড করুন (.csv ফরম্যাট)"
 
 #: account/import.html:38
 msgid "Export your book notes"
-msgstr "अपने बुक नोट एक्सपोर्ट करें"
+msgstr "নিজের বুক নোটস রপ্তানি করুন"
 
 #: account/import.html:39
 msgid "Download a copy of your book notes."
-msgstr "अपने बुक नोट्स की एक कॉपी डाउनलोड करें।"
+msgstr "নিজের বুক নোটস এর একটি কপি ডাউনলোড করুন।"
 
 #: account/import.html:39
 msgid "What are book notes?"
-msgstr "बुक नोट्स क्या होते हैं?"
+msgstr "বুক নোটস কি?"
 
 #: account/import.html:49
 msgid "Export your reviews"
-msgstr "अपनी समीक्षाएँ एक्सपोर्ट करें"
+msgstr "নিজের সমীক্ষাগুলি রপ্তানি করুন"
 
 #: account/import.html:50
 msgid "Download a copy of your review tags."
-msgstr "अपने समीक्षा टैग की एक कॉपी डाउनलोड करें।"
+msgstr "নিজের সমীক্ষা ট্যাগগুলির একটি কপি ডাউনলোড করুন।"
 
 #: account/import.html:50
 msgid "What are review tags?"
-msgstr "समीक्षा टैग क्या हैं?"
+msgstr "সমীক্ষা ট্যাগ কি?"
 
 #: account/import.html:60
 msgid "Export your list overview"
-msgstr "अपनी लिस्ट का ओवरव्यू एक्सपोर्ट करें"
+msgstr "নিজের সূচির ওভারভিউ রপ্তানি করুন"
 
 #: account/import.html:61
 msgid "Download a summary of your lists and their contents."
-msgstr "अपनी सूचियों और उनकी सामग्री का सारांश डाउनलोड करें।"
+msgstr "আপনার সূচির সারাংশ এবং তার বিষয়বস্তূ ডাউনলোড করুন।"
 
 #: account/import.html:61
 msgid "What are lists?"
-msgstr "सूचियाँ क्या हैं?"
+msgstr "সূচি কি?"
 
 #: account/import.html:71
 msgid "Export your star ratings"
-msgstr "अपनी स्टार रेटिंग एक्सपोर्ट करें"
+msgstr "নিজের ষ্টার রেটিংগুলি রপ্তানি করুন"
 
 #: account/import.html:72
 msgid "Download a copy of your star ratings"
-msgstr "अपनी स्टार रेटिंग की एक कॉपी डाउनलोड करें"
+msgstr "নিজের ষ্টার রেটিংগুলির একটি কপি ডাউনলোড করুন "
 
 #: account/import.html:72
 msgid "What are star ratings?"
-msgstr "स्टार रेटिंग क्या होती हैं?"
+msgstr "ষ্টার রেটিং কি?"
 
 #: account/loans.html:54
 msgid "You've not checked out any books at this moment."
-msgstr "आपने इस समय कोई किताब नहीं देखी है।"
+msgstr "এই সময়ে আপনি কোনো বই দেখেননি।"
 
 #: account/loans.html:66
 msgid "Loan actions"
-msgstr "लोन से जुड़ी कार्रवाइयाँ"
+msgstr "ঋণ সংক্রান্ত কার্যাবলী"
 
 #: ManageLoansButtons.html:13 account/loans.html:93
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)d people waiting for this book."
-msgstr[0] "एक व्यक्ति इस किताब का इंतज़ार कर रहा है।"
-msgstr[1] "%(n)d लोग इस पुस्तक का इंतजार कर रहे हैं।"
+msgstr[0] "এক ব্যাক্তি এই বইয়ের জন্য অপেক্ষা করছেন।"
+msgstr[1] "%(n)d জন ব্যাক্তি এই বইয়ের জন্য অপেক্ষা করছেন।"
 
 #: account/loans.html:99
 msgid "Not yet downloaded."
-msgstr "अभी तक डाउनलोड नहीं किया गया है।"
+msgstr "এখনো অবধি ডাউনলোড করা হয়নি।"
 
 #: account/loans.html:100
 msgid "Download Now"
-msgstr "डाक डाउनलोड करें"
+msgstr "ডাউনলোড করুন"
 
 #: account/loans.html:109
 msgid "Return via<br/>Adobe Digital Editions"
-msgstr "Adobe Digital Editions के ज़रिए वापसी<br/>"
+msgstr "Adobe Digital Editions এর দ্বারা ফেরত করুন<br/>"
 
 #: account/loans.html:120
 msgid "Books You're Waiting For"
-msgstr "जिन किताबों का आप इंतज़ार कर रहे हैं"
+msgstr "যেসব বইয়ের জন্য আপনি অপেক্ষা করছেন"
 
 #: account/loans.html:127
 msgid "You are not waiting for any books at this moment."
-msgstr "आप इस समय किसी भी किताब का इंतजार नहीं कर रहे हैं।"
+msgstr "আপনি এই মুহূর্তে কোনো বইয়ের জন্য অপেক্ষা করছেন না।"
 
 #: account/loans.html:130
 msgid "Leave the Waiting List"
-msgstr "प्रतीक्षा सूची छोड़ें"
+msgstr "প্রতীক্ষা সূচি ত্যাগ করুন"
 
 #: account/loans.html:130
 msgid ""
 "Are you sure you want to leave the waiting list "
 "of<br/><strong>TITLE</strong>?"
 msgstr ""
-"क्या आप वाकई <br/><strong>TITLE</strong> की प्रतीक्षा सूची छोड़ना चाहते "
-"हैं?"
+"আপনি কি সত্যিই <br/><strong>TITLE</strong> প্রতীক্ষা সূচি ত্যাগ করতে চান"
+"?"
 
 #: account/loans.html:149 admin/loans_table.html:43 admin/menu.html:33
 #: merge_queue/merge_queue.html:59
 msgid "Status"
-msgstr "स्थिति"
+msgstr "অবস্থা"
 
 #: RecentChangesAdmin.html:23 account/loans.html:150 admin/loans_table.html:47
 msgid "Actions"
-msgstr "कार्रवाईयां"
+msgstr "কার্যসমূহ"
 
 #: account/loans.html:172
 #, python-format
 msgid "Waiting for 1 day"
 msgid_plural "Waiting for %(count)d days"
-msgstr[0] "1 दिन का इंतजार"
-msgstr[1] "%(count)d दिनों की प्रतीक्षा"
+msgstr[0] "1 দিনের অপেক্ষা"
+msgstr[1] "%(count)d দিনের অপেক্ষা"
 
 #: account/loans.html:179
 msgid "You are the next person to receive this book."
-msgstr "आप इस पुस्तक को प्राप्त करने वाले अगले व्यक्ति हैं।"
+msgstr "এই বইটি গ্রহণকারী পরবর্তী ব্যক্তি হলেন আপনি।"
 
 #: ManageWaitlistButton.html:21 account/loans.html:181
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)d people ahead of you in the waiting list."
-msgstr[0] "प्रतीक्षा सूची में आपसे आगे एक व्यक्ति है।"
-msgstr[1] "प्रतीक्षा सूची में आपसे आगे %(count)d लोग हैं।"
+msgstr[0] "প্রতীক্ষা সূচিতে আপনার আগে একজন ব্যাক্তি আছেন।"
+msgstr[1] "প্রতীক্ষা সূচিতে আপনার আগে %(count)d জন ব্যাক্তি আছেন।"
 
 #: account/loans.html:190
 msgid "You have less than an hour to borrow it."
-msgstr "आपके पास इसे उधार लेने के लिए एक घंटे से भी कम समय है।"
+msgstr "এটি ধার করার জন্য আপনার কাছে এক ঘণ্টারও কম সময় আছে।"
 
 #: account/loans.html:192
 #, python-format
 msgid "You have one more hour to borrow it."
 msgid_plural "You have %(hours)d more hours to borrow it."
-msgstr[0] "इसे उधार लेने के लिए आपके पास एक घंटा और है।"
-msgstr[1] "इसे उधार लेने के लिए आपके पास %(hours)d अधिक घंटे हैं।"
+msgstr[0] "এটি ধার করার জন্য আপনার কাছে আরও এক ঘন্টা আছে।"
+msgstr[1] "এটি ধার করার জন্য আপনার কাছে আরও %(hours)d ঘন্টা আছে।"
 
 #: account/loans.html:199
 msgid "Borrow Now"
-msgstr "अभी उधार लें"
+msgstr " এখনই ধার করুন"
 
 #: account/loans.html:204
 msgid "Leave the waiting list?"
