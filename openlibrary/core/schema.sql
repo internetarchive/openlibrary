@@ -137,11 +137,12 @@ CREATE TABLE acquisitions (
     work_id integer not null,
     edition_id integer not null,
     provider_name text not null,
+    local_id text not null,
     -- provider metadata blob: prices, formats, urls, etc.
-    data jsonb not null default '{}'::jsonb,
+    data jsonb not null,
     created timestamp without time zone default (current_timestamp at time zone 'utc'),
     updated timestamp without time zone default (current_timestamp at time zone 'utc'),
-    UNIQUE (edition_id, provider_name)
+    UNIQUE (local_id, provider_name)
 );
 
 CREATE INDEX acquisitions_work_id_idx ON acquisitions (work_id);
