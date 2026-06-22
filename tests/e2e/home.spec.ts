@@ -16,11 +16,12 @@ test.describe('Home page @smoke', () => {
         await expect(page.locator('#contentBody')).toBeVisible();
     });
 
-    test('header search input is present and focusable', async ({ page }) => {
+    test('header search trigger is present', async ({ page }) => {
         await page.goto('/');
-        // The header search bar should be in the DOM (may be hidden on mobile behind a toggle)
-        const searchInput = page.locator('#header-bar input[type="text"], #header-bar input[type="search"]').first();
-        await expect(searchInput).toBeAttached();
+        // The search bar is a Lit web component — the visible affordance is a trigger button
+        // that opens a search dialog; there is no plain <input> in the DOM until the dialog opens.
+        const searchTrigger = page.locator('.search-bar-component, button.search-bar-trigger').first();
+        await expect(searchTrigger).toBeAttached();
     });
 
     test('footer is rendered', async ({ page }) => {
