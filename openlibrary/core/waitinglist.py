@@ -13,6 +13,8 @@ Each waiting instance is represented as a document in the store as follows:
     }
 """
 
+from __future__ import annotations
+
 import datetime
 import logging
 from typing import TYPE_CHECKING

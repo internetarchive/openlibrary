@@ -1,12 +1,14 @@
 """Lists implementation."""
 
+from __future__ import annotations
+
 import json
 import random
 from collections.abc import Generator
 from dataclasses import dataclass, field
 from typing import Literal, cast
 from urllib.parse import parse_qs
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import web
 from pydantic import BaseModel

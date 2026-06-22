@@ -1,5 +1,7 @@
 """Utilities for coverstore"""
 
+from __future__ import annotations
+
 import contextlib
 import json
 import mimetypes
@@ -49,7 +51,7 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return default
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import typing
 from argparse import BooleanOptionalAction
 from pathlib import Path

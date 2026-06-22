@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import unicodedata
 
@@ -220,7 +222,7 @@ def compare_date(e1: dict, e2: dict) -> ThresholdResult:
         e2_pub = int(e2["publish_date"])
         if within(e1_pub, e2_pub, 2):
             return ("date", "+/-2 years", -25)
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         pass
     return ("date", "mismatch", DATE_MISMATCH)
 

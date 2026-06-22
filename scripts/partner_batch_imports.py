@@ -10,6 +10,8 @@ To Run:
 PYTHONPATH=. python ./scripts/partner_batch_imports.py /olsystem/etc/openlibrary.yml
 """
 
+from __future__ import annotations
+
 import datetime
 import logging
 import os

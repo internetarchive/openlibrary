@@ -1,5 +1,7 @@
 """Caching utilities."""
 
+from __future__ import annotations
+
 import functools
 import hashlib
 import inspect
@@ -90,7 +92,7 @@ class memcache_memoize[**P, T]:
     def _generate_key_prefix(self) -> str:
         try:
             prefix = self.f.__name__ + "_"
-        except AttributeError, TypeError:
+        except (AttributeError, TypeError):
             prefix = ""
 
         return prefix + self._random_string(10)

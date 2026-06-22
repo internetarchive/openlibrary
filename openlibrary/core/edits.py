@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import json
 from sqlite3 import IntegrityError
@@ -159,7 +161,7 @@ class CommunityEditsQueue:
                 submitter=new_username,
                 vars={"submitter": submitter},
             )
-        except UniqueViolation, IntegrityError:
+        except (UniqueViolation, IntegrityError):
             rows_changed = 0
 
         t.rollback() if _test else t.commit()

@@ -3,7 +3,7 @@
 import json
 import re
 from typing import Any
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import web
 

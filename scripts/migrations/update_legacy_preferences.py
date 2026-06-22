@@ -3,6 +3,8 @@
 Updates all legacy preferences, deleting "rpd" and "pda" values.
 """
 
+from __future__ import annotations
+
 import argparse
 
 import web

@@ -3,6 +3,8 @@
 Defines various monitoring jobs, that check the health of the system.
 """
 
+from __future__ import annotations
+
 import asyncio
 import os
 import re

@@ -5,6 +5,8 @@ PYTHONPATH=. python ./scripts/update_stale_ocaid_references.py /olsystem/etc/ope
 # e.g. https://openlibrary.org/recentchanges/2025/03/16/bulk_update/146351306
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

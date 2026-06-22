@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from typing import Literal, cast, override
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import requests
 import web

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import re
 from functools import cached_property
@@ -199,7 +201,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         lexile_str = self._edition.get("lexile")
         try:
             return int(lexile_str) if lexile_str else None
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return None
 
     @property
@@ -221,7 +223,7 @@ class EditionSolrBuilder(AbstractSolrBuilder):
         number_of_pages_str = self._edition.get("number_of_pages")
         try:
             return int(number_of_pages_str) if number_of_pages_str else None
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return None
 
     @property

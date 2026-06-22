@@ -4,12 +4,14 @@ its experience. This does not include public facing APIs with LTS
 (long term support)
 """
 
+from __future__ import annotations
+
 import io
 import json
 import logging
 from collections import defaultdict
 from typing import Any, Literal
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import qrcode
 import web
@@ -162,7 +164,7 @@ class work_bookshelves(delegate.page):
             shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
             if bookshelf_id_val != -1 and bookshelf_id_val not in shelf_ids:
                 return {"error": "Invalid bookshelf"}
-        except TypeError, ValueError:
+        except (TypeError, ValueError):
             return {"error": "Invalid bookshelf"}
 
         if ((not dont_remove) and bookshelf_id_val == current_status) or bookshelf_id_val == -1:
@@ -848,7 +850,7 @@ class unlink_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except ValueError, ExpiredTokenError:
+        except (ValueError, ExpiredTokenError):
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=1)
@@ -914,7 +916,7 @@ class link_ia_ol(delegate.page):
         try:
             if not HMACToken.verify(digest, msg, "ia_sync_secret", unix_time=True):
                 raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
-        except ValueError, ExpiredTokenError:
+        except (ValueError, ExpiredTokenError):
             raise web.HTTPError("401 Unauthorized", {"Content-Type": "application/json"})
 
         parts = msg.split("|", maxsplit=2)

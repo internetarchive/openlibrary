@@ -1,5 +1,7 @@
 """Admin functionality."""
 
+from __future__ import annotations
+
 import calendar
 from datetime import date, datetime, timedelta
 
@@ -29,7 +31,7 @@ class Stats:
         try:
             # Last available total count
             self.total = next(x for x in reversed(docs) if total_key in x)[total_key]
-        except KeyError, StopIteration:
+        except (KeyError, StopIteration):
             self.total = ""
 
     def get_counts(self, ndays=28, times=False):
@@ -74,7 +76,7 @@ def _get_loan_counts_from_graphite(ndays: int) -> list[list[int]] | None:
             },
         )
         return r.json()[0]["datapoints"]
-    except requests.exceptions.RequestException, ValueError, AttributeError:
+    except (requests.exceptions.RequestException, ValueError, AttributeError):
         return None
 
 

@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import web
 from web.template import TemplateResult

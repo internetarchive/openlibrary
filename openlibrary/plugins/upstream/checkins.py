@@ -1,7 +1,9 @@
 """Reading log check-ins handler and services."""
 
+from __future__ import annotations
+
 import json
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import web
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import datetime
 import functools
@@ -451,7 +453,7 @@ def _get_pr_info(pr_number: int) -> dict:
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
         }
-    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
+    except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
         return {
             "title": f"PR #{pr_number}",
             "head_sha": "",
@@ -479,7 +481,7 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             try:
                 cmp = _github_get(f"compare/{stored}...{head_sha}")
                 drift = cmp.get("ahead_by", -1)
-            except urllib.error.URLError, ValueError, json.JSONDecodeError:
+            except (urllib.error.URLError, ValueError, json.JSONDecodeError):
                 drift = -1
         user = gh.get("user") or {}
         assignee = gh.get("assignee") or {}
@@ -493,7 +495,7 @@ def _get_pr_drift(pr: TestingPR) -> dict:
             "assignee": assignee.get("login", ""),
             "assignee_avatar": assignee.get("avatar_url", ""),
         }
-    except urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError:
+    except (urllib.error.URLError, KeyError, ValueError, json.JSONDecodeError):
         return {
             "head_sha": "",
             "drift": -1,
@@ -527,7 +529,7 @@ def _trigger_rebuild() -> bool:
     try:
         urllib.request.urlopen(url, timeout=10)
         return True
-    except urllib.error.URLError, ValueError:
+    except (urllib.error.URLError, ValueError):
         return False
 
 

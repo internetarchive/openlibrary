@@ -9,7 +9,7 @@ from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
-from warnings import deprecated
+from typing_extensions import deprecated
 
 import requests
 import web
@@ -123,7 +123,7 @@ class xauth(delegate.page):
         # xauth() sends JSON body; web.input() only reads query params + form bodies
         try:
             body = json.loads(web.data() or "{}")
-        except json.JSONDecodeError, ValueError:
+        except (json.JSONDecodeError, ValueError):
             body = {}
         result = {"error": "incorrect option specified"}
         if i.op == "authenticate":
@@ -704,7 +704,7 @@ class account_validation(delegate.page):
         url = "https://archive.org/metadata/@%s" % username
         try:
             return bool(requests.get(url).json())
-        except OSError, ValueError:
+        except (OSError, ValueError):
             return
 
     @staticmethod

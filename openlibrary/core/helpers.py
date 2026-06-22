@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Generic helper functions to use in the templates and the webapp."""
 
 import functools

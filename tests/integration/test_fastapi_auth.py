@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # /// script
 # requires-python = ">=3.14"
 # dependencies = [
