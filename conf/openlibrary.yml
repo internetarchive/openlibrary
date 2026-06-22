@@ -15,6 +15,9 @@ smtp_server: localhost
 dummy_sendmail: True
 debug: True
 
+# What is the in-cluster name of the open library server (used for OL API import)
+servername: "http://web:8080"
+
 coverstore_url: http://covers:7075
 # URL to use inside HTML files; must be publicly accessible from
 # a client's browser
