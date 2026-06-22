@@ -15,11 +15,11 @@ from typing import TYPE_CHECKING, Literal
 
 import requests
 import web
-from validate_email import validate_email
-
 from infogami import config
 from infogami.infobase.client import ClientException
 from infogami.utils.view import public, render_template
+from validate_email import validate_email
+
 from openlibrary.core import helpers, stats
 from openlibrary.core.bestbook import Bestbook
 from openlibrary.core.booknotes import Booknotes
@@ -941,11 +941,21 @@ class InternetArchiveAccount(web.storage):
         )
 
     @classmethod
-    def issue_s3_key(cls, email: str | None = None, itemname: str | None = None) -> dict | None:
+    def issue_s3_key(
+        cls,
+        email: str | None = None,
+        itemname: str | None = None,
+        auth_token: str | None = None,
+    ) -> dict | None:
         """Fetch a new S3 keypair via the xauthn issue_key op.
 
         xauthn's info/authenticate/activate/redeem_otp ops no longer return S3
         keys; callers must request them separately after a successful auth step.
+
+        auth_token: the token returned by the preceding auth op (redeem_otp,
+        authenticate, or activate). Required by xauthn once the breaking change
+        from issue #12942 is fully deployed; pass None only in legacy contexts.
+
         Returns {"access": ..., "secret": ...} on success, None on failure.
         """
         kwargs: dict = {"op": "issue_key", "key_type": "s3"}
@@ -953,6 +963,8 @@ class InternetArchiveAccount(web.storage):
             kwargs["email"] = email.strip().lower()
         if itemname:
             kwargs["itemname"] = itemname
+        if auth_token:
+            kwargs["auth_token"] = auth_token
         response = cls.xauth(**kwargs)
         return response.get("s3") or None
 
@@ -975,8 +987,10 @@ class InternetArchiveAccount(web.storage):
             }
 
         values = response.get("values", {})
-        # activate no longer returns S3 keys — fetch them via issue_key
-        s3_keys = cls.issue_s3_key(email=values.get("email"))
+        # activate no longer returns S3 keys — fetch them via issue_key.
+        # Pass the auth_token that activate returns (required by xauthn once #12942 lands).
+        auth_token = values.get("auth_token")
+        s3_keys = cls.issue_s3_key(email=values.get("email"), auth_token=auth_token)
         if not s3_keys:
             return {"error": "s3_key_issue_failed", "code": 500}
         values["s3"] = s3_keys
@@ -1009,6 +1023,7 @@ def audit_accounts(  # noqa: PLR0912
                       the absence of archive.org dependency
     """
 
+    ia_auth_token: str | None = None
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
         if not r.get("authorized", False):
@@ -1022,6 +1037,7 @@ def audit_accounts(  # noqa: PLR0912
         if not valid_email(email):
             return {"error": "invalid_email"}
         ia_login = InternetArchiveAccount.authenticate(email, password)
+        ia_auth_token = ia_login.get("values", {}).get("auth_token")
 
     if "values" in ia_login and any(ia_login["values"].get("reason") == err for err in ["account_blocked", "account_locked"]):
         return {"error": "account_locked"}
@@ -1115,11 +1131,12 @@ def audit_accounts(  # noqa: PLR0912
             return {"error": "accounts_not_connected"}
 
     # authenticate/info no longer return S3 keys (xauthn breaking change, issue #12942).
-    # S3-path callers pass keys directly; password-path callers must fetch via issue_key.
+    # S3-path callers pass keys directly; password-path callers must fetch via issue_key,
+    # passing the auth_token from the preceding authenticate response.
     if s3_access_key and s3_secret_key:
         s3_keys: dict | None = {"access": s3_access_key, "secret": s3_secret_key}
     else:
-        s3_keys = InternetArchiveAccount.issue_s3_key(email=email)
+        s3_keys = InternetArchiveAccount.issue_s3_key(email=email, auth_token=ia_auth_token)
 
     # Handle Print Disability Processing
     has_special_access = getattr(ia_account, "has_disability_access", False)
