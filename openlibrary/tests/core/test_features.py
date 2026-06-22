@@ -30,7 +30,7 @@ def _reset_features_to_defaults(monkeypatch: pytest.MonkeyPatch, tmp_path: Path)
             publishers: false
             recentchanges_v2: false
             stats: true
-            stats-header: false
+            stats-header: true
             superfast: false
             undo: true
         """,
@@ -46,7 +46,7 @@ class TestDefaults:
         assert f.publishers is False
         assert f.recentchanges_v2 is False
         assert f.stats is True
-        assert f.stats_header is False
+        assert f.stats_header is True
         assert f.superfast is False
         assert f.undo is True
 
@@ -77,7 +77,7 @@ class TestFromYaml:
         config.write_text("features:\n    stats: true\n")
         f = Features.from_yaml(config)
         assert f.stats is True
-        assert f.stats_header is False  # default
+        assert f.stats_header is True  # default
 
     def test_ignores_non_features_keys(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"
@@ -99,7 +99,7 @@ class TestFromYaml:
         config.write_text("site: openlibrary.org\n")
         f = Features.from_yaml(config)
         assert f.stats is True  # default
-        assert f.stats_header is False  # default
+        assert f.stats_header is True  # default
 
     def test_kebab_case_normalized(self, tmp_path: Path):
         config = tmp_path / "openlibrary.yml"
@@ -138,36 +138,20 @@ class TestRealConfig:
         f = Features.from_yaml("conf/openlibrary.yml")
         assert isinstance(f, Features)
 
-    def test_real_config_stats_is_native_boolean(self):
-        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        val = raw.get("features", {}).get("stats")
-        assert isinstance(val, bool), f"expected native boolean, got {type(val).__name__}: {val!r}"
-
-    def test_real_config_stats_currently_enabled(self):
-        """Regression guard: stats/stats-header default to a different value
-        than legacy always-on behavior, so dev config must explicitly set
-        them. If this assertion is intentionally changed, that's fine —
-        update this test alongside the config change.
+    def test_real_config_stats_defaults_when_removed(self):
+        """stats and stats-header are removed from YAML in Phase 1 —
+        they use class defaults (True) which match legacy always-on behavior.
         """
-        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        assert raw["features"]["stats"] is True
+        f = Features.from_yaml("conf/openlibrary.yml")
+        assert f.stats is True
+        assert f.stats_header is True
 
-    def test_real_config_stats_header_is_native_boolean(self):
-        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        val = raw.get("features", {}).get("stats-header")
-        assert isinstance(val, bool), f"expected native boolean, got {type(val).__name__}: {val!r}"
-
-    def test_real_config_stats_header_currently_enabled(self):
-        """Regression guard — see test_real_config_stats_currently_enabled."""
-        raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
-        assert raw["features"]["stats-header"] is True
-
-    def test_no_legacy_stats_strings_in_real_config(self):
+    def test_stats_and_stats_header_not_in_yaml(self):
+        """Verify the flags are fully removed from config, not just renamed."""
         raw = yaml.safe_load(Path("conf/openlibrary.yml").read_text())
         features_section = raw.get("features", {})
-        for key in ("stats", "stats-header"):
-            val = features_section.get(key)
-            assert not isinstance(val, str), f"{key} has legacy string value {val!r} — should be native boolean"
+        assert "stats" not in features_section
+        assert "stats-header" not in features_section
 
 
 class TestLegacyFlagMap:
@@ -198,7 +182,7 @@ class TestModuleInstance:
 
     def test_dot_notation(self):
         assert features_module.features.stats is True
-        assert features_module.features.stats_header is False
+        assert features_module.features.stats_header is True
 
     def test_reflects_yaml_reload(self, tmp_path: Path):
         _write_test_config(tmp_path, "features:\n    stats: true\n    stats-header: true\n")

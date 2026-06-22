@@ -41,7 +41,7 @@ class Features(BaseSettings):
     publishers: bool = False
     recentchanges_v2: bool = False
     stats: bool = True
-    stats_header: bool = False
+    stats_header: bool = True
     superfast: bool = False
     undo: bool = True
 
