@@ -9,10 +9,10 @@ from datetime import datetime
 from math import ceil
 from typing import TYPE_CHECKING, Any, Final
 from urllib.parse import urlparse
-from typing_extensions import deprecated
 
 import requests
 import web
+from typing_extensions import deprecated
 
 import infogami.core.code as core  # noqa: F401 side effects may be needed
 from infogami import config

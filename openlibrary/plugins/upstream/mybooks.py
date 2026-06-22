@@ -5,9 +5,9 @@ import urllib.parse
 from datetime import datetime
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, cast
-from typing_extensions import deprecated
 
 import web
+from typing_extensions import deprecated
 from web.template import TemplateResult
 
 from infogami import config  # noqa: F401 side effects may be needed

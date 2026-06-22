@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 from typing import Literal, cast, override
-from typing_extensions import deprecated
 
 import requests
 import web
+from typing_extensions import deprecated
 
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate

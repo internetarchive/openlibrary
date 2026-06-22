@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-from typing_extensions import deprecated
 
 import web
+from typing_extensions import deprecated
 
 from infogami.utils import delegate
 from infogami.utils.view import public

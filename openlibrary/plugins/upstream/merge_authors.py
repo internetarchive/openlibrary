@@ -3,9 +3,9 @@
 import json
 import re
 from typing import Any
-from typing_extensions import deprecated
 
 import web
+from typing_extensions import deprecated
 
 from infogami.infobase.client import ClientException
 from infogami.utils import delegate
