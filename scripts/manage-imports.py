@@ -21,7 +21,7 @@ logger = logging.getLogger("openlibrary.importer")
 def get_ol(servername=None):
     if os.getenv("LOCAL_DEV"):
         ol = OpenLibrary(base_url="http://localhost:8080")
-        ol.login("admin", "admin123")
+        ol.login("openlibrary@example.com", "admin123")
     else:
         ol = OpenLibrary(base_url=servername)
         ol.autologin()
